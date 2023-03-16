@@ -400,7 +400,7 @@ period_seq_v <- function(from, to, units, num = 1,
                                   function(x, y) rep(x, y))
   period_df[, ("by") := by]
   out <- period_df[, list("time" = time_add(get("from"),
-                                     periods = setnames(get("by"), unit),
+                                     periods = setnames(as.list(get("by")), unit),
                                      roll_month = roll_month,
                                      roll_dst = roll_dst)),
             keyby = "g"][["time"]]
