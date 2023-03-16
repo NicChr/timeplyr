@@ -320,6 +320,38 @@ convert_common_dates <- function(x){
 }
 # Calculate size of period unit to expand from and to to get a specified length
 # Similar to how base::seq() calculates by when from, to, and length.out are specified
+# period_by <- function(from, to, length){
+#   seconds_unit <- period_unit("seconds")
+#   recycled_args <- recycle_args(from, to, length)
+#   from <- recycled_args[[1L]]
+#   to <- recycled_args[[2L]]
+#   length <- recycled_args[[3L]]
+#   which_len_1 <- which(length == 1)
+#   int <- lubridate::interval(from, to)
+#   # remainder_m <- matrix(numeric(length(from) * length(.period_units)),
+#   #                       nrow = length(from), ncol = length(.period_units))
+#   # division_m <- remainder_m
+#   # for (i in seq_along(.period_units)){
+#   #   j <- length(.period_units) - i + 1L
+#   #   division <- int / period_unit(.period_units[[j]])(1)
+#   #   division_m[, j] <- division
+#   #   remainder_m[, j] <- division %% 1
+#   # }
+#   # Which period units to keep
+#   # keep <- pmax(rowSums(remainder_m == 0 & division_m > 0), 1)
+#   # division <- int / .period_units[keep]
+#   # out <- lubridate::seconds_to_period(
+#   #   seconds_unit( (division / (length - 1)) )
+#   # )
+#   division <- int / seconds_unit(1)
+#   out <- seconds_unit( (division / (length - 1)) )
+#   # out <- lubridate::seconds_to_period(
+#   #   seconds_unit( (division / (length - 1)) )
+#   # )
+#   out[which_len_1] <- seconds_unit(0)
+#   out
+# }
+# Unvectorised version
 period_by <- function(from, to, length){
   if (length == 1){
     lubridate::seconds(0)
@@ -327,15 +359,17 @@ period_by <- function(from, to, length){
     int <- lubridate::interval(from, to)
     periods_to_try <- rev(.period_units)
     for (i in seq_along(periods_to_try)){
-      period_unit <- periods_to_try[i]
-      division <- int / lubridate::period(num = 1, units = period_unit)
-      remainder <- division %% 1
-      if (abs(division) >= 1 & remainder == 0){
-        out <- lubridate::period(num = (division / (length - 1)), units = period_unit)
+      unit <- period_unit(periods_to_try[[i]])
+      division <- int / unit(1)
+      # remainder <- division %% 1
+      remainder <- ( (division / (length - 1)) %% 1 )
+      if (abs(division) >= 1 &&
+          remainder == 0){
+        out <- unit( (division / (length - 1)) )
         return(out)
       }
     }
-    lubridate::period(num = (division / (length - 1)), units = period_unit)
+    unit( (division / (length - 1)) )
   }
 }
 # Calculates size of duration to cut a pre-specified interval of
@@ -426,6 +460,62 @@ period_unit <- function(units = "seconds"){
          months = months,
          years = lubridate::years)
 }
+# # Functional that returns lubridate duration function
+# duration_unit <- function(units = "seconds"){
+#   if (length(units) <= 1L){
+#     if (!units %in% .duration_units) unit_match_stop(.duration_units)
+#     switch(units,
+#            picoseconds = lubridate::dpicoseconds,
+#            nanoseconds = lubridate::dnanoseconds,
+#            microseconds = lubridate::dmicroseconds,
+#            milliseconds = lubridate::dmilliseconds,
+#            seconds = lubridate::dseconds,
+#            minutes = lubridate::dminutes,
+#            hours = lubridate::dhours,
+#            days = lubridate::ddays,
+#            weeks = lubridate::dweeks,
+#            months = lubridate::dmonths,
+#            years = lubridate::dyears)
+#   } else {
+#     if (length(setdiff(units, .duration_units)) > 0L) unit_match_stop(.duration_units)
+#     fns_list <- c(lubridate::dpicoseconds,
+#                   lubridate::dnanoseconds,
+#                   lubridate::dmicroseconds,
+#                   lubridate::dmilliseconds,
+#                   lubridate::dseconds,
+#                   lubridate::dminutes,
+#                   lubridate::dhours,
+#                   lubridate::ddays,
+#                   lubridate::dweeks,
+#                   lubridate::dmonths,
+#                   lubridate::dyears)
+#     fns_list[match(units, .duration_units)]
+#   }
+# }
+# # Functional that returns lubridate period function
+# period_unit <- function(units = "seconds"){
+#   if (length(units) <= 1L){
+#     if (!units %in% .period_units) unit_match_stop(.period_units)
+#     switch(units,
+#            seconds = lubridate::seconds,
+#            minutes = lubridate::minutes,
+#            hours = lubridate::hours,
+#            days = lubridate::days,
+#            weeks = lubridate::weeks,
+#            months = months,
+#            years = lubridate::years)
+#   } else {
+#     if (length(setdiff(units, .period_units)) > 0L) unit_match_stop(.period_units)
+#     fns_list <- c(lubridate::seconds,
+#                   lubridate::minutes,
+#                   lubridate::hours,
+#                   lubridate::days,
+#                   lubridate::weeks,
+#                   months,
+#                   lubridate::years)
+#     fns_list[match(units, .period_units)]
+#   }
+# }
 # Functional that returns lubridate unit function
 time_unit <- function(units, type = c("duration", "period")){
   type <- match.arg(type)

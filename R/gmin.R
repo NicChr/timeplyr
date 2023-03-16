@@ -1,7 +1,7 @@
-#' A grouped version of `pmin()` and `pmax()`
-#' @description This is like `pmin()`/`pmax()` in the sense that it returns
-#' a vector of min/max values the same length as x.
-#' It doesn't operate over multiple vectors like `pmin()` and `pmax()` do.
+#' Grouped minimum/maximum.
+#'
+#' @description This is like `min()` and `max()` but always returns
+#' a vector the same length as x.
 #' @param x An atomic vector.
 #' @param g An integer vector of group IDs.
 #' @param na.rm Should `NA` values be removed? Default is `TRUE`.
@@ -19,20 +19,26 @@
 #' @rdname gmin
 #' @export
 gmin <- function(x, g = NULL, na.rm = TRUE){
-  if (is.null(g)) g <- rep_len(1L, length(x))
   out <- collapse::fmin(x,
                         g = g,
                         use.g.names = FALSE,
                         na.rm = na.rm)
-  out[match(g, seq_len(length(out)))]
+  if (is.null(g)){
+    rep_len(out, length(x))
+  } else {
+    out[match(g, seq_len(length(out)))]
+  }
 }
 #' @rdname gmin
 #' @export
 gmax <- function(x, g = NULL, na.rm = TRUE){
-  if (is.null(g)) g <- rep_len(1L, length(x))
   out <- collapse::fmax(x,
                         g = g,
                         use.g.names = FALSE,
                         na.rm = na.rm)
-  out[match(g, seq_len(length(out)))]
+  if (is.null(g)){
+    rep_len(out, length(x))
+  } else {
+    out[match(g, seq_len(length(out)))]
+  }
 }

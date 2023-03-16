@@ -7,6 +7,8 @@
 #' `add_group_id()` adds an integer column of group IDs.
 #' dplyr group indices are returned by default unless additional
 #' groups are specified through `...` and/or `.by`.
+#' It's very fast and takes significantly less memory
+#' than using `dplyr::group_by()` and `group_indices()`.
 #' @param data A data frame.
 #' @param ... Additional groups using tidy select notation.
 #' @param sort Should the order of the groups be retained?
@@ -82,7 +84,7 @@ group_id <- function(data, ...,
   }
   else if (length(group_vars) > 0L){
     out <- collapse::GRP(safe_ungroup(data), by = c(group_vars, dot_vars),
-                         sort = FALSE,
+                         sort = sort,
                          decreasing = FALSE,
                          na.last = TRUE,
                          return.groups = FALSE,

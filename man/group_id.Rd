@@ -46,6 +46,8 @@ groups. \cr
 \code{add_group_id()} adds an integer column of group IDs.
 dplyr group indices are returned by default unless additional
 groups are specified through \code{...} and/or \code{.by}.
+It's very fast and takes significantly less memory
+than using \code{dplyr::group_by()} and \code{group_indices()}.
 }
 \examples{
 library(timeplyr)

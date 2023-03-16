@@ -3,7 +3,7 @@
 \name{gmin}
 \alias{gmin}
 \alias{gmax}
-\title{A grouped version of \code{pmin()} and \code{pmax()}}
+\title{Grouped minimum/maximum.}
 \usage{
 gmin(x, g = NULL, na.rm = TRUE)
 
@@ -17,9 +17,8 @@ gmax(x, g = NULL, na.rm = TRUE)
 \item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
 }
 \description{
-This is like \code{pmin()}/\code{pmax()} in the sense that it returns
-a vector of min/max values the same length as x.
-It doesn't operate over multiple vectors like \code{pmin()} and \code{pmax()} do.
+This is like \code{min()} and \code{max()} but always returns
+a vector the same length as x.
 }
 \examples{
 library(timeplyr)

@@ -193,6 +193,8 @@ time_seq <- function(from, to, by, length.out = NULL,
     if (missing_from){
       from <- to - (time_unit * length.out) + time_unit
     }
+    if (floor_date) from <- time_floor(from , by = by_unit,
+                                       week_start = week_start)
     if (seq_type == "duration"){
       out <- duration_seq(from = from,
                            length = length.out,
@@ -437,7 +439,7 @@ seq_v <- function(from, to, by = 1){
 # x <- Sys.time()
 # seq.POSIXt(x, x + dseconds(112), by = 1) - time_cast(sequence(113, from = as.double(x), by =1 ), x)
 # seq.POSIXt(x, x + dseconds(112), by = 1) - time_cast(sequence2(113, from = as.double(x), by =1 ), x)
-sequence2 <- function(nvec, from, by = 1){
+sequence2 <- function(nvec, from = 1, by = 1){
   out_len <- sum(nvec)
   g_len <- length(nvec)
   # Recycle

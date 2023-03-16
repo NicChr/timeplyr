@@ -448,7 +448,9 @@ ffactor <- function(x, levels = NULL, ordered = FALSE, na.exclude = TRUE){
 unique_groups <- function(data, ...,
                           sort = FALSE, .by = NULL,
                           add_indices = FALSE){
-  group_vars <- get_groups(data, {{ .by }})
+  group_vars <- get_group_info(data, !!!enquos(...),
+                               .by = {{ .by }},
+                               type = "select")[["all_groups"]]
   # Check if group id colname exists
   grp_nm <- new_var_nm(data, ".group.id")
   data[[grp_nm]] <- group_id(data, !!!enquos(...),
@@ -545,14 +547,13 @@ recycle_args <- function (..., length, set_names = FALSE){
   else {
     recycle_length <- length
   }
-  if (missing_length && base::length(unique(lengths(dots))) ==
-      1) {
+  if (missing_length && base::length(unique(lengths(dots))) == 1L) {
     out <- dots
   }
   else {
     out <- lapply(dots, function(x) rep_len(x, recycle_length))
   }
-  if (set_names) {
+  if (set_names){
     arg_names <- vapply(match.call(expand.dots = FALSE)[["..."]],
                         FUN = deparse, FUN.VALUE = character(1))
     names(out) <- arg_names
