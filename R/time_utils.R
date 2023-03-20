@@ -574,6 +574,7 @@ time_c <- function(...){
 # and x into date is template is date (but x is not datetime)
 # and coerces timezone of x to template timezone
 time_cast <- function(x, template){
+  if (is.null(x) || is.null(template)) return(x)
   stopifnot(is_time_or_num(x))
   if (is_datetime(template) && !is_datetime(x)){
     lubridate::with_tz(lubridate::as_datetime(x),
