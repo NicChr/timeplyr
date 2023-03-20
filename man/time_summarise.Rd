@@ -111,3 +111,24 @@ The first answers the question: What was the average number of
 flights in any hour, for hours where there flights.
 The second answers our original question.
 }
+\examples{
+library(timeplyr)
+library(dplyr)
+library(lubridate)
+library(nycflights13)
+
+# Works the same way as summarise()
+identical(flights \%>\%
+            summarise(across(where(is.numeric), mean)),
+          flights \%>\%
+            time_summarise(across(where(is.numeric), mean)))
+# Like the other time_ functions, it allows for an additional time variable to
+# aggregate by
+
+# Monthly averages for each numeric variable
+flights \%>\%
+  time_summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE)),
+                 time = across(time_hour, as_date),
+                 by = "month",
+                 include_interval = TRUE)
+}

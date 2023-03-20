@@ -56,7 +56,6 @@ The adaptive argument has been replaced with the simpler
 (and less functional) partial argument.
 }
 \examples{
-\dontrun{
 library(timeplyr)
 
 x <- 1:10
@@ -73,5 +72,4 @@ x <- sample(c(1, 0), 10^3, replace = TRUE)
 ev <- frollmean2(x)
 plot(1:length(x), ev)
 abline(h = 0.5, lty = 2)
-}
 }

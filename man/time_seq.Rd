@@ -54,7 +54,7 @@ starting sequences at the beginning of a week
 or month for example.}
 
 \item{week_start}{day on which week starts following ISO conventions - 1
-means Monday, 7 means Sunday (default).
+means Monday (default), 7 means Sunday.
 This is only used when \code{floor_date = TRUE}.}
 
 \item{seq_type}{If "auto", \code{periods} are used for
@@ -112,7 +112,11 @@ library(lubridate)
 # Dates
 today <- today()
 now <- now()
+
 time_seq(today, today + years(1), by = "day")
+time_seq(today, length.out = 10, by = "day")
+time_seq(today, length.out = 10, by = "hour")
+
 time_seq(today, today + years(1), by = list("days" = 1)) # Alternative
 time_seq(today, today + years(1), by = "week")
 time_seq(today, today + years(1), by = "fortnight")

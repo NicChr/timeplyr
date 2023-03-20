@@ -72,11 +72,14 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   }
   # If all dot args are data variables, don't transform
   out <- safe_ungroup(data)
-  if (length(setdiff(dot_nms2(...), names(data))) > 0L){
-    out <- out %>%
-      # Ungrouped mutate
-      dplyr::mutate(!!!enquos(...))
-  }
+  out <- out %>%
+    # Ungrouped mutate
+    dplyr::mutate(!!!enquos(...))
+  # if (length(setdiff(dot_nms2(...), names(data))) > 0L){
+  #   out <- out %>%
+  #     # Ungrouped mutate
+  #     dplyr::mutate(!!!enquos(...))
+  # }
   out <- out %>%
     dplyr::mutate(!!enquo(wt))
   wt_var <- tidy_transform_names(safe_ungroup(data),

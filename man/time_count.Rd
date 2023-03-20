@@ -89,7 +89,7 @@ sequences at the beginning of a week
 or month for example.}
 
 \item{week_start}{day on which week starts following ISO conventions - 1
-means Monday, 7 means Sunday (default).
+means Monday (default), 7 means Sunday.
 This is only used when \code{floor_date = TRUE}.}
 
 \item{seq_type}{If "auto", \code{periods} are used for
@@ -136,9 +136,8 @@ level.
 
 To avoid time expansion, simply set \code{complete = FALSE},
 which will simply perform a count across your time variable and specified groups.
-The time aggregation through \code{by} works even when \code{complete = FALSE}.
-In this case, if \code{by} is less granular, meaning it's a unit that is a lower time unit
-than the data, then an error is thrown. This will likely be amended in a later development.
+The time aggregation through \code{by} works even when \code{complete = FALSE} and even when
+\code{by} is more granular than the data.
 }
 \description{
 This function operates like \code{dplyr::count()}

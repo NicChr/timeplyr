@@ -9,8 +9,8 @@
 #' Some more exotic time units such as quarters, fortnights, etc
 #' can be specified.
 #'
-#' @param x Start time.
-#' @param y end time.
+#' @param x Start datetime.
+#' @param y End date or datetime.
 #' @param by Argument to expand and summarise time series.
 #' If `by` is `NULL` then a heuristic will try and estimate the highest
 #' order time unit associated with the time variable.
@@ -28,7 +28,16 @@
 #' @param as_period Logical. Should time interval be coerced to a period
 #' before time difference is calculated? This is useful for calculating
 #' for example age in exact years or months.
-#'
+#' @examples
+#' library(timeplyr)
+#' library(lubridate)
+#' time_diff(today(), today() + days(10),
+#'           by = "days")
+#' time_diff(today(), today() + days(0:100),
+#'           by = "days")
+#' time_diff(today(), today() + days(100),
+#'           by = list("days" = 1:100))
+#' time_diff(1, 1 + 0:100, by = 3)
 #' @export
 time_diff <- function(x, y, by,
                       type = c("auto", "duration", "period"),

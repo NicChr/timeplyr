@@ -66,7 +66,8 @@
 #' argument? This is particularly useful for starting sequences at the beginning of a week
 #' or month for example.
 #' @param week_start day on which week starts following ISO conventions - 1
-#' means Monday, 7 means Sunday (default). This is only used when `floor_date = TRUE`.
+#' means Monday (default), 7 means Sunday.
+#' This is only used when `floor_date = TRUE`.
 #' @param roll_month Control how impossible dates are handled when
 #' month or year arithmetic is involved.
 #' Options are "preday", "boundary", "postday", "full" and "NA".
@@ -74,7 +75,24 @@
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
 #' @param sort Should the result be sorted? Default is `FALSE` and original (input)
 #' order is kept. The sorting only applies to groups and time variable.
+#' @examples
+#' library(timeplyr)
+#' library(dplyr)
+#' library(lubridate)
+#' library(nycflights13)
 #'
+#' # Works the same way as mutate()
+#' identical(flights %>%
+#'             mutate(across(where(is.numeric), mean)),
+#'           flights %>%
+#'             time_mutate(across(where(is.numeric), mean)))
+#' # Like the other time_ functions, it allows for an additional time variable to
+#' # aggregate by
+#' flights %>%
+#'   time_mutate(time = across(time_hour, as_date),
+#'               by = "month", .keep = "none",
+#'               include_interval = TRUE) %>%
+#'   distinct()
 #' @export
 time_mutate <- function(data, ..., time = NULL, by = NULL,
                         from = NULL, to = NULL,
@@ -104,9 +122,8 @@ time_mutate <- function(data, ..., time = NULL, by = NULL,
   out[, (sort_nm) := seq_len(.N)]
   # Add variable to keep track of group IDs
   grp_nm <- new_var_nm(out, ".group.id")
-  set_add_group_id(out, template = data, sort = TRUE, as_qg = FALSE,
-                   .by = {{ .by }},
-                   .name = grp_nm)
+  out[, (grp_nm) := group_id(data, .by = {{ .by }},
+                             sort = TRUE, as_qg = FALSE)]
   int_nm <- new_var_nm(out, "interval")
   data.table::setorderv(out, cols = c(grp_nm, time_var))
   if (length(time_var) > 0L){

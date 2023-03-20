@@ -122,8 +122,8 @@ at the beginning of a week
 or month for example.}
 
 \item{week_start}{day on which week starts following ISO conventions - 1
-means Monday, 7 means Sunday (default). This is only used
-when \code{floor_date = TRUE}.}
+means Monday (default), 7 means Sunday.
+This is only used when \code{floor_date = TRUE}.}
 
 \item{roll_month}{Control how impossible dates are handled when
 month or year arithmetic is involved.

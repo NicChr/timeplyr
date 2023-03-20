@@ -62,20 +62,20 @@ unit_match <- function(x){
 unit_parse <- function(x){
   # Extract numbers from string
   # Try decimal numbers
-  eval_num <- "FALSE" # Flag to use eval(parse())
+  eval_num <- FALSE # Flag to use eval(parse())
   num_str <- regmatches(x, m = regexpr(pattern = ".*[[:digit:]]*\\.[[:digit:]]+",
                                         text = x))
   # Try strings like n/m
   if (length(num_str) == 0L){
     num_str <- regmatches(x, m = regexpr(pattern = ".*[[:digit:]]+\\/[[:digit:]]+",
                                          text = x))
-    eval_num <- "TRUE"
+    eval_num <- TRUE
   }
   # Try strings like n*m
   if (length(num_str) == 0L){
     num_str <- regmatches(x, m = regexpr(pattern = ".*[[:digit:]]+\\*[[:digit:]]+",
                                          text = x))
-    eval_num <- "TRUE"
+    eval_num <- TRUE
   }
   # If not try regular numbers
   if (length(num_str) == 0L){
@@ -160,26 +160,6 @@ time_interval <- function(from, to){
   }
   out
 }
-# get_min <- function(data, time, .by = NULL){
-#   time_var <- tidy_select_names(data, !!enquo(time))
-#   group_id <- group_id(data, .by = {{ .by }},
-#                        sort = TRUE)
-#   .from <- collapse::fmin(data[[time_var]],
-#                         g = group_id, |>
-#                         use.g.names = FALSE,
-#                         na.rm = TRUE)
-#   .from[match(group_id, seq_len(collapse::fnunique(group_id)))]
-# }
-# get_max <- function(data, time, .by = NULL){
-#   time_var <- tidy_select_names(data, !!enquo(time))
-#   group_id <- group_id(data, .by = {{ .by }},
-#                        sort = TRUE)
-#   .to <- collapse::fmax(data[[time_var]],
-#                           g = group_id,
-#                           use.g.names = FALSE,
-#                           na.rm = TRUE)
-#   .to[match(group_id, seq_len(collapse::fnunique(group_id)))]
-# }
 # Time interval from ascending x
 time_interval3 <- function(x, to = NULL, is_sorted = FALSE){
   time_breaks <- collapse::funique(collapse::na_rm(x), sort = !is_sorted)
@@ -191,6 +171,8 @@ time_interval3 <- function(x, to = NULL, is_sorted = FALSE){
   time_int[match(time_start, time_breaks)]
 }
 # Time interval from ascending time sequence
+# These 2 functions are weird as to must match the length of the unique groups, not x..
+# also x must be in ascending order
 time_seq_interval <- function(x, to, g = NULL){
   n <- length(x)
   out <- time_interval(x, collapse::flag(x, n = -1L, g = g))
@@ -201,6 +183,40 @@ time_seq_interval <- function(x, to, g = NULL){
     out[end_points] <- time_interval(x[end_points], to)
   } else {
     out[n] <- time_interval(x[n], to)
+  }
+  out
+}
+# Time cut levels from ascending time sequence
+time_seq_levels <- function(x, to, g = NULL, fmt = NULL){
+  if (is.null(fmt)){
+    fmt_f <- identity
+  } else {
+    fmt_f <- function(x, ...) format(x, fmt, ...)
+  }
+  n <- length(x)
+  time_breaks_fmt <- fmt_f(x)
+  out <- stringr::str_c("[",
+                        time_breaks_fmt,
+                        ", ",
+                        collapse::flag(time_breaks_fmt,
+                                       g = g, n = -1L),
+                        ")")
+  if (!is.null(g)){
+    # Use time seq df to get time intervals
+    end_points <- which(is.na(out) & !is.na(x))
+    # Use data end-points to create the rightmost intervals of each group
+    out[end_points] <- stringr::str_c("[",
+                              time_breaks_fmt[end_points],
+                              ", ",
+                              fmt_f(to),
+                              "]")
+  } else {
+    out[[n]] <- stringr::str_c("[",
+                       time_breaks_fmt[[n]],
+                       ", ",
+                       fmt_f(to),
+                       "]")
+
   }
   out
 }
@@ -382,6 +398,11 @@ duration_by <- function(from, to, length){
   out[length == 1] <- seconds_unit(0) # Special case
   out
 }
+num_by <- function(from, to, length){
+  out <- (to - from) / (length - 1)
+  out[length == 1] <- 0
+  out
+}
 # Vectorized except for periods
 time_by <- function(from, to, length, seq_type){
   if (is_time(from) && is_time(to)){
@@ -391,7 +412,7 @@ time_by <- function(from, to, length, seq_type){
       duration_by(from, to, length)
     }
   } else {
-    (to - from) / (length - 1)
+    num_by(from, to, length)
   }
 }
 # This only works for single unit vectors
@@ -460,6 +481,9 @@ period_unit <- function(units = "seconds"){
          months = months,
          years = lubridate::years)
 }
+numeric_unit <- function(units){
+  identity
+}
 # # Functional that returns lubridate duration function
 # duration_unit <- function(units = "seconds"){
 #   if (length(units) <= 1L){
@@ -516,29 +540,30 @@ period_unit <- function(units = "seconds"){
 #     fns_list[match(units, .period_units)]
 #   }
 # }
-# Functional that returns lubridate unit function
+# Functional that returns time unit function
 time_unit <- function(units, type = c("duration", "period")){
-  type <- match.arg(type)
-  if (type == "duration"){
-    duration_unit(units)
+  if (units == "numeric"){
+    numeric_unit(units)
   } else {
-    period_unit(units)
+    type <- match.arg(type)
+    if (type == "duration"){
+      duration_unit(units)
+    } else {
+      period_unit(units)
+    }
   }
 }
 # Safe time concatenation
 time_c2 <- function(x, y){
-  if (isTRUE(all.equal(class(x), class(y)))){
-    c(x, y)
+  if (isTRUE(all.equal(attributes(x), attributes(y)))){
+    list(x, y)
   } else {
     common_type <- vctrs::vec_ptype2(x, y)
     if (is_datetime(common_type)){
-      if (!is_datetime(x)){
-        x <- lubridate::as_datetime(x)
-      } else {
-        y <- lubridate::as_datetime(y)
-      }
+      x <- time_cast(x, common_type)
+      y <- time_cast(y, common_type)
     }
-    c(x, y)
+    list(x, y)
   }
 }
 # Safe time concatenation
@@ -672,4 +697,50 @@ time_agg <- function(time_seq_data, data, time, group_id, to = NULL,
       dplyr::left_join(int_df, by = c(group_id, time))
   }
   out
+}
+
+# # This checks if time aggregation is necessary
+needs_aggregation <- function(by, granularity){
+  if (is.null(by)){
+    out <- FALSE
+  } else {
+    by_unit_info <- unit_guess(by)
+    granularity_unit_info <- unit_guess(granularity)
+
+    by_seconds <- as.numeric(time_unit(by_unit_info[["unit"]],
+                                       type = "duration")(
+      by_unit_info[["num"]] * by_unit_info[["scale"]]))
+    granularity_seconds <- as.numeric(time_unit(granularity_unit_info[["unit"]],
+                                                type = "duration")(
+      granularity_unit_info[["num"]] * granularity_unit_info[["scale"]]))
+
+    if (granularity_seconds < by_seconds){
+      out <- TRUE
+    } else {
+      out <- FALSE
+    }
+  }
+  out
+}
+
+fcut_ind <- function(x, breaks, rightmost.closed = FALSE,
+                     left.open = FALSE, all.inside = FALSE){
+  breaksi <- findInterval(x,
+                          breaks,
+                          rightmost.closed = rightmost.closed,
+                          left.open = left.open,
+                          all.inside = all.inside)
+  # This makes it so that NA is returned for any x where findinterval
+  # resorts to 0 and doesn't just remove them
+  collapse::setv(breaksi, 0L, length(breaks) + 1L, vind1 = FALSE)
+  breaksi
+}
+cut_time2 <- function(x, breaks, rightmost.closed = FALSE, left.open = FALSE){
+  breaks[
+    fcut_ind(x,
+             breaks,
+             rightmost.closed = rightmost.closed,
+             left.open = left.open,
+             all.inside = FALSE)
+  ]
 }

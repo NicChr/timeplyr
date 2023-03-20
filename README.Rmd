@@ -14,6 +14,10 @@ knitr::opts_chunk$set(
 )
 ```
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/NicChr/timeplyr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/NicChr/timeplyr/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+
 # timeplyr
 
 # **A date and datetime extension to dplyr**
@@ -43,20 +47,83 @@ library(timeplyr)
 
 **Most functions with a v suffix are vector versions of the tidy equivalents**
 
-**Control how to aggregate time using the `by` argument**
 
-**Control which time sequence type you want through the `seq_type` argument**
+The functions `time_count()`, `time_expand()`, `time_summarise()`, `time_complete()`, `time_mutate()` and `time_reframe()`
+all operate similarly to the tidyverse equivalents but additionally accept a `time` argument.  
+
+For example, `data %>% time_count(time = date, by = "month")` will:
+
+  * Fill in missing gaps in time  
+  * Count the dates by month
+
+There are many more options to allow for more flexible time summarisation, such as 
+choosing start/end times, flooring dates to get full time units (e.g months), and many others.
 
 ## Some simple examples
 
 We use flights departing from New York City in 2013.
 
-```{r duplicates}
+```{r}
 library(tidyverse)
 library(lubridate)
 library(nycflights13)
 flights <- flights %>%
   mutate(date = as_date(time_hour))
+```
+
+## `time_count()`
+
+#### Easily fill in implicit missing gaps and aggregate time.
+
+```{r}
+flights_ts <- flights %>%
+  time_count(time = time_hour)
+flights_ts
+```
+
+
+#### Dates work as easily as datetimes
+
+```{r}
+flights %>%
+  time_count(time = across(time_hour, as_date),
+             by = "day")
+```
+
+#### Specify time aggregation through `by`
+
+```{r}
+# Some examples
+flights %>%
+  time_count(time = across(time_hour, as_date),
+             by = "7 days")
+flights %>%
+  time_count(time = across(time_hour, as_date),
+             by = "2 weeks")
+flights %>%
+  time_count(time = across(time_hour, as_date),
+             by = "fortnight")
+flights %>%
+  time_count(time = across(time_hour, as_date),
+             by = "month")
+flights %>%
+  time_count(time = across(time_hour, as_date),
+             by = "quarter")
+flights %>%
+  time_count(time = across(time_hour, as_date),
+             by = "year")
+```
+
+#### Ensure full weeks/months/years by using `floor_date = TRUE`
+
+```{r}
+start <- dmy("17-Jan-2013")
+flights %>%
+  time_count(time = across(time_hour, as_date),
+             by = "week", from = start, floor_date = TRUE)
+flights %>%
+  time_count(time = across(time_hour, as_date),
+             by = "month", from = start, floor_date = TRUE)
 ```
 
 ## `missing_dates()`
@@ -69,18 +136,7 @@ length(time_missing(flights$time_hour, by = "hour")) # Missing hours
 time_missing(flights$date, by = "day") # Missing days
 ```
 
-## `time_count()`
-
-#### Easily fill in implicit missing gaps and aggregate time.
-
-```{r}
-flights_ts <- flights %>%
-  time_count(time = time_hour,
-             by = "hour")
-flights_ts
-```
-
-#### Alternatively with `time_countv()`
+#### Alternatively, counts with `time_countv()`
 
 ```{r}
 flight_counts <- time_countv(flights$time_hour, by = "hour")
@@ -320,18 +376,26 @@ Create pretty time axes using `time_cut()` and `time_breaks()`
 times <- flights$time_hour
 dates <- flights$date
 
-head(time_cut(dates, n = 10))
+levels(time_cut(dates, n = 10))
 date_breaks <- time_breaks(dates, n = 12)
 time_breaks <- time_breaks(times, n = 12, floor_date = TRUE)
 
-flights %>%
-  ggplot(aes(x = date)) + 
-  geom_bar() + 
-  scale_x_date(breaks = date_breaks, labels = scales::label_date_short())
+weekly_data <- flights %>%
+  time_count(time = date, by = "week",
+             to = max(time_span(date, by = "week")),
+             include_interval = TRUE) %>%
+  # Filter full weeks
+  mutate(n_days = interval/days(1)) %>%
+  filter(n_days == 7)
+weekly_data %>%
+  ggplot(aes(x = date, y = n)) + 
+  geom_bar(stat = "identity", fill = "#0072B2") + 
+  scale_x_date(breaks = date_breaks, labels = scales::label_date_short()) +
+  theme_minimal()
 
 flights %>%
   ggplot(aes(x = time_hour)) + 
-  geom_bar() + 
+  geom_bar(fill = "#0072B2") + 
   scale_x_datetime(breaks = time_breaks, labels = scales::label_date_short())
 ```
 

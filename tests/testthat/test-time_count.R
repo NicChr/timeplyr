@@ -10,6 +10,82 @@ testthat::test_that("Compare to tidyr", {
   date_seq <- seq(from2, to2, by = "day")
   date_seq2 <- seq(from1, to1, by = "day")
   year_seq <- seq(from2, to2, by = "year")
+  start1 <- lubridate::ymd_hms("2013-03-16 11:43:48",
+                               tz = "GB")
+  end1 <- start1 + lubridate::ddays(10)
+  start2 <- lubridate::as_date(start1)
+  end2 <- lubridate::as_date(end1)
+
+  testthat::expect_identical(
+    flights %>%
+      time_count(from = start1,
+                 to = end2,
+                 time = time_hour,
+                 by = "hour",
+                 complete = FALSE),
+    flights %>%
+      dplyr::filter(time_hour >= time_cast(start1, flights$time_hour) &
+                      time_hour <= time_cast(end2, flights$time_hour)) %>%
+      fcount(time_hour)
+    )
+  testthat::expect_identical(
+    flights %>%
+      time_count(time = time_hour, by = "hour", sort = TRUE),
+    flights %>%
+      fcount(time_hour) %>%
+      time_complete(time = time_hour, fill = list(n = 0L),
+                    by = "hour", sort = FALSE) %>%
+      dplyr::arrange(dplyr::desc(n))
+  )
+  testthat::expect_identical(
+    flights %>%
+      time_count(time = time_hour, tailnum, by = "year",
+                 na_groups = FALSE) %>%
+      dplyr::select(tailnum, time_hour, n),
+    flights %>%
+      dplyr::filter(!dplyr::if_any(tailnum, ~ is.na(.x))) %>%
+      dplyr::group_by(tailnum) %>%
+      dplyr::summarise(time_hour = min(flights$time_hour),
+                       n = dplyr::n()) %>%
+      safe_ungroup() %>%
+      dplyr::select(tailnum, time_hour, n)
+  )
+
+  # Intervals
+  testthat::expect_equal(
+    flights %>%
+    time_count(time = time_hour, by = "2 weeks",
+               include_interval = TRUE, seq_type = "period") %>%
+    dplyr::mutate(n_days = interval / lubridate::days(1)) %>%
+    fcount(n_days),
+    dplyr::tibble(n_days = c(0.75, 14),
+                  n = c(1, 26))
+  )
+  testthat::expect_equal(
+    flights %>%
+      time_count(time = time_hour, by = "hour",
+                 include_interval = TRUE) %>%
+      dplyr::mutate(n_hrs = interval / lubridate::dhours(1)) %>%
+      fcount(n_hrs),
+    dplyr::tibble(n_hrs = c(0, 1),
+                  n = c(1, 8754))
+  )
+  # Pivotting wide
+  testthat::expect_identical(
+    flights %>%
+      time_count(time = time_hour, .by = origin,
+                 by = "month", wide_cols = origin),
+    flights %>%
+      time_mutate(time = time_hour,
+                  by = "month",
+                  .by = origin) %>%
+      fcount(origin, time_hour) %>%
+      tidyr::pivot_wider(names_from = all_of("origin"),
+                         values_from = all_of("n"))
+  )
+  # Warning
+  testthat::expect_warning(flights %>%
+                             time_count(time = time_hour, lubridate::today()))
   testthat::expect_identical(flights %>% fcount(origin, dest),
                              flights %>% time_count(origin, dest))
   testthat::expect_identical(flights %>%
@@ -142,115 +218,5 @@ testthat::test_that("Compare to tidyr", {
   testthat::expect_identical(res4,
                              res4 %>%
                                dplyr::arrange(time_hour, dest, origin))
-
-})
-
-testthat::test_that("Tests for time_countv", {
-  flights2 <- nycflights13::flights
-  flights2 <- flights2 %>%
-    dplyr::slice_sample(n = nrow(flights2)) %>%
-    dplyr::mutate(date = lubridate::as_date(time_hour))
-  from <- lubridate::as_datetime(lubridate::dmy(02042013)) +
-    lubridate::minutes(35)
-  to <- lubridate::dmy(08092013)
-  from2 <- bound_from(from, flights2$time_hour)
-  to2 <- bound_to(to, flights2$time_hour)
-  nrow_flights2 <- flights2 %>%
-    dplyr::filter(dplyr::between(time_hour, from2, to2)) %>%
-    nrow()
-  # Test for if the input order is retained, and whether the count is correct too
-  res1 <- flights2 %>%
-    dplyr::mutate(n1 = time_countv(time_hour, by = "hour",
-                                  include_interval = FALSE, sort = FALSE, unique = FALSE, use.names = FALSE,
-                                  complete = FALSE)) %>%
-    fadd_count(time_hour, name = "n2") %>%
-    dplyr::select(dplyr::all_of(c("time_hour", "n1", "n2"))) %>%
-    dplyr::distinct() %>%
-    dplyr::arrange(time_hour) %>%
-    dplyr::mutate(diff = abs(n1 - n2)) %>%
-    fcount(diff)
-  testthat::expect_identical(res1, dplyr::tibble(diff = 0L,
-                                                 n = 6936L))
-
-  res2 <- time_countv(flights2$time_hour, use.names = FALSE)
-
-  testthat::expect_identical(res2,
-                             flights2 %>%
-                               fcount(time_hour) %>%
-                               time_complete(time = time_hour,
-                                             fill = list(n = 0)) %>%
-                               dplyr::pull(n))
-  res3 <- time_countv(flights2$time_hour, use.names = FALSE,
-                      from = from, to = to)
-  testthat::expect_identical(res2,
-                             flights2 %>%
-                               fcount(time_hour) %>%
-                               time_complete(time = time_hour,
-                                             fill = list(n = 0)) %>%
-                               dplyr::pull(n))
-  res4 <- time_countv(flights2$time_hour, by = "month",
-                      from = from, to = to)
-  tbreaks <- time_seq(from, to, by = "month",
-                      tz = lubridate::tz(flights2$time_hour))
-
-  testthat::expect_equal(res4,
-                         flights2 %>%
-                           dplyr::filter(dplyr::between(time_hour,
-                                                        from,
-                                                        lubridate::with_tz(to, tz = "America/New_York"))) %>%
-                           dplyr::mutate(time = cut_time2(time_hour,
-                                                   c(tbreaks, max(tbreaks) + 1))) %>%
-                           fcount(time) %>%
-                           dplyr::pull(n) %>%
-                           setnames(tbreaks))
-
-  res5 <- time_countv(flights2$time_hour, by = "month",
-                      from = from, to = to, sort = FALSE,
-                      use.names = FALSE)
-
-  testthat::expect_equal(res5,
-                         flights2 %>%
-                           dplyr::filter(dplyr::between(time_hour,
-                                                        from,
-                                                        lubridate::with_tz(to, tz = "America/New_York"))) %>%
-                           dplyr::mutate(time = cut_time2(time_hour,
-                                                          c(tbreaks, max(tbreaks) + 1))) %>%
-                           dplyr::summarise(n = dplyr::n(), .by = dplyr::all_of("time")) %>%
-                           dplyr::pull(n))
-
-  # Unfinished
-  res6 <- time_countv(flights2$time_hour, by = "month",
-                      from = from, to = to, sort = FALSE,
-                      use.names = TRUE,
-                      include_interval = TRUE)
-  res7 <- time_countv(flights2$time_hour, by = "month",
-                      from = from, to = to, sort = FALSE, unique = FALSE,
-                      use.names = TRUE,
-                      include_interval = TRUE)
-  res8 <- time_countv(flights2$time_hour, by = "month",
-                      from = from, to = to, sort = TRUE, unique = FALSE,
-                      use.names = TRUE,
-                      include_interval = TRUE)
-  res9 <- time_countv(flights2$time_hour, by = "month",
-                      from = from, to = to, sort = TRUE, unique = TRUE,
-                      use.names = TRUE,
-                      include_interval = TRUE)
-  # Unfinished
-  res10 <- time_countv(flights2$time_hour, by = "month",
-                      from = from, to = to, sort = FALSE,
-                      use.names = TRUE,
-                      include_interval = FALSE)
-  res11 <- time_countv(flights2$time_hour, by = "month",
-                      from = from, to = to, sort = FALSE, unique = FALSE,
-                      use.names = TRUE,
-                      include_interval = FALSE)
-  res12 <- time_countv(flights2$time_hour, by = "month",
-                      from = from, to = to, sort = TRUE, unique = FALSE,
-                      use.names = TRUE,
-                      include_interval = FALSE)
-  res13 <- time_countv(flights2$time_hour, by = "month",
-                      from = from, to = to, sort = TRUE, unique = TRUE,
-                      use.names = TRUE,
-                      include_interval = FALSE)
 
 })

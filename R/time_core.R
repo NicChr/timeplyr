@@ -46,8 +46,8 @@
 #' at the beginning of a week
 #' or month for example.
 #' @param week_start day on which week starts following ISO conventions - 1
-#' means Monday, 7 means Sunday (default). This is only used
-#' when `floor_date = TRUE`.
+#' means Monday (default), 7 means Sunday.
+#' This is only used when `floor_date = TRUE`.
 #' @param roll_month Control how impossible dates are handled when
 #' month or year arithmetic is involved.
 #' Options are "preday", "boundary", "postday", "full" and "NA".
@@ -291,7 +291,8 @@ time_countv <- function(x, by = NULL, from = NULL, to = NULL,
     if (length(time_missed) > 0L){
       int_df <- dplyr::tibble(!!"interval" :=
                                 c(int_df[["interval"]],
-                                  time_seq_interval(time_missed, to = .to)))
+                                  time_seq_int[which(lubridate::int_start(time_seq_int) %in% time_missed)]))
+                                  # time_seq_interval(time_missed, to = .to)))
     }
 
     if (sort) int_df <- int_df[out_order, , drop = FALSE]

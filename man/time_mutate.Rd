@@ -73,7 +73,8 @@ argument? This is particularly useful for starting sequences at the beginning of
 or month for example.}
 
 \item{week_start}{day on which week starts following ISO conventions - 1
-means Monday, 7 means Sunday (default). This is only used when \code{floor_date = TRUE}.}
+means Monday (default), 7 means Sunday.
+This is only used when \code{floor_date = TRUE}.}
 
 \item{roll_month}{Control how impossible dates are handled when
 month or year arithmetic is involved.
@@ -115,4 +116,23 @@ You wold get an answer of 38.5. Why the difference?
 The first answers the question: What was the average number of
 flights in any hour, for hours where there flights.
 The second answers our original question.
+}
+\examples{
+library(timeplyr)
+library(dplyr)
+library(lubridate)
+library(nycflights13)
+
+# Works the same way as mutate()
+identical(flights \%>\%
+            mutate(across(where(is.numeric), mean)),
+          flights \%>\%
+            time_mutate(across(where(is.numeric), mean)))
+# Like the other time_ functions, it allows for an additional time variable to
+# aggregate by
+flights \%>\%
+  time_mutate(time = across(time_hour, as_date),
+              by = "month", .keep = "none",
+              include_interval = TRUE) \%>\%
+  distinct()
 }

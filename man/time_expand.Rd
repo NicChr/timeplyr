@@ -83,7 +83,8 @@ argument? This is particularly useful for starting sequences at the beginning of
 or month for example.}
 
 \item{week_start}{day on which week starts following ISO conventions - 1
-means Monday, 7 means Sunday (default). This is only used when \code{floor_date = TRUE}.}
+means Monday (default), 7 means Sunday.
+This is only used when \code{floor_date = TRUE}.}
 
 \item{expand_type}{Type of time expansion to use where "nesting" finds combinations already present in the data,
 "crossing" finds all combinations of values in the group variables.}
@@ -119,8 +120,8 @@ when \code{expand_type = crossing}, all possible combinations of supplied groups
 dataset are used as well.
 }
 \examples{
-\dontrun{
 library(timeplyr)
+library(dplyr)
 library(lubridate)
 library(nycflights13)
 
@@ -151,9 +152,4 @@ flights \%>\%
   group_by(origin, dest, tailnum) \%>\%
   time_expand(time = time_hour, by = "week",
               seq_type = "duration")
-# Alternatively
-flights \%>\%
-  time_expand(time = time_hour, by = "day",
-              .by = c(origin, dest))
-}
 }

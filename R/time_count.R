@@ -76,7 +76,7 @@
 #' sequences at the beginning of a week
 #' or month for example.
 #' @param week_start day on which week starts following ISO conventions - 1
-#' means Monday, 7 means Sunday (default).
+#' means Monday (default), 7 means Sunday.
 #' This is only used when `floor_date = TRUE`.
 #' @param seq_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or
@@ -114,9 +114,8 @@
 #'
 #' To avoid time expansion, simply set `complete = FALSE`,
 #' which will simply perform a count across your time variable and specified groups.
-#' The time aggregation through `by` works even when `complete = FALSE`.
-#' In this case, if `by` is less granular, meaning it's a unit that is a lower time unit
-#' than the data, then an error is thrown. This will likely be amended in a later development.
+#' The time aggregation through `by` works even when `complete = FALSE` and even when
+#' `by` is more granular than the data.
 #'
 #' @examples
 #' library(timeplyr)
@@ -196,11 +195,9 @@ time_count <- function(data, ..., time = NULL, by = NULL,
   data.table::setDT(ts_data)
   # Add variable to keep track of group IDs
   grp_nm <- new_var_nm(ts_data, ".group.id")
-  set_add_group_id(ts_data, template = data,
-                   sort = TRUE, as_qg = FALSE,
-                   .by = {{ .by }},
-                   .name = grp_nm,
-                   key = FALSE)
+  ts_data[, (grp_nm) := group_id(data, sort = TRUE,
+                                 as_qg = FALSE,
+                                 .by = {{ .by }})]
   # Remove unecessary columns
   # rm_vars <- setdiff(names(ts_data),
   #                      c(grp_nm, group_vars, time_var, extra_group_vars,
@@ -227,6 +224,9 @@ time_count <- function(data, ..., time = NULL, by = NULL,
     } else {
       to_nm <- to_var
     }
+    # Time cast
+    ts_data[, (from_nm) := time_cast(get(from_nm), get(time_var))]
+    ts_data[, (to_nm) := time_cast(get(to_nm), get(time_var))]
     if (length(from_var) > 0L || length(to_var) > 0L){
       ts_data <- ts_data[data.table::between(get(time_var), get(from_nm), get(to_nm),
                                              incbounds = TRUE, NAbounds = NA), ]
@@ -252,20 +252,12 @@ time_count <- function(data, ..., time = NULL, by = NULL,
       by_n <- granularity[["num"]]
       by_unit <- granularity[["unit"]]
     }
-    if (by_unit == "numeric"){
-      granularity_seconds <- granularity[["num"]]
-      by_seconds <- by_n
-    } else {
-      granularity_seconds <- as.numeric(duration_unit(granularity[["unit"]])
-                                        (granularity[["num"]]))
-      by_seconds <- as.numeric(duration_unit(by_unit)(by_n))
-    }
     # This checks if time aggregation is necessary
-    if (!is.null(by) && (granularity_seconds < by_seconds)){
-      aggregate <- TRUE
-    } else {
-      aggregate <- FALSE
-    }
+    aggregate <- needs_aggregation(by = setnames(list(by_n), by_unit),
+                                   granularity = setnames(list(
+                                     granularity[["num"]]
+                                   ),
+                                   granularity[["unit"]]))
     seq_by <- setnames(list(by_n), by_unit)
     # Expanded time sequences for each group
     time_expanded <- ts_data %>%
@@ -383,7 +375,9 @@ time_count <- function(data, ..., time = NULL, by = NULL,
   }
   if (keep_class && !include_interval) {
     df_reconstruct(out, data)
+  } else if (keep_class && include_interval){
+    df_reconstruct(out, dplyr::tibble())
   } else {
-    out[]
+    out
   }
 }

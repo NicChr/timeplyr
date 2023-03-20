@@ -31,6 +31,8 @@
 #' * Numeric vector. If by is a numeric vector and x is not a date/datetime,
 #' then arithmetic is used, e.g `by = 1`.
 #' This is also vectorized where applicable.
+#' @param from Time series start date.
+#' @param to Time series end date.
 #' @param fmt (Optional) Date/datetime format for the factor labels.
 #' If supplied, this is passed to `format()`.
 #' @param floor_date Logical. Should the initial date be
@@ -38,8 +40,8 @@
 #' @param n_at_most Logical. If `TRUE` then n breaks at most are returned,
 #' otherwise at least n breaks are returned.
 #' @param week_start day on which week starts following ISO conventions - 1
-#' means Monday, 7 means Sunday (default). When `label = TRUE`,
-#' this will be the first level of the returned factor.
+#' means Monday (default), 7 means Sunday.
+#' This is only used when `floor_date = TRUE`.
 #' @param as_factor Logical. If `TRUE` the output is an ordered factor.
 #' Setting this to `FALSE` is sometimes much faster.
 #' @param seq_type If "auto", `periods` are used for
@@ -89,38 +91,27 @@
 #'                labels = weekly_labels)
 #' @rdname time_cut
 #' @export
-time_cut <- function(x, n = 5, by = NULL, fmt = NULL,
+time_cut <- function(x, n = 5, by = NULL,
+                     from = NULL, to = NULL,
+                     fmt = NULL,
                      floor_date = FALSE, week_start = getOption("lubridate.week.start", 1),
                      n_at_most = TRUE, as_factor = TRUE,
                      seq_type = c("auto", "duration", "period"),
                      roll_month = "preday", roll_dst = "pre"){
   time_breaks <- time_breaks(x = x, n = n, by = by,
-           floor_date = floor_date,
-           week_start = week_start,
-           n_at_most = n_at_most,
-           seq_type = seq_type,
-           roll_month = roll_month, roll_dst = roll_dst)
+                             from = from, to = to,
+                             floor_date = floor_date,
+                             week_start = week_start,
+                             n_at_most = n_at_most,
+                             seq_type = seq_type,
+                             roll_month = roll_month, roll_dst = roll_dst)
   x_unique <- collapse::na_rm(collapse::funique(x, sort = TRUE))
   if (length(time_breaks) > length(x_unique)) time_breaks <- x_unique
-  to <- collapse::fmax(x, na.rm = TRUE)
+  from <- bound_from(from, x)
+  to <- bound_to(to, x)
   out <- cut_time2(x, c(time_breaks, to + 1))
-  if (is.null(fmt)){
-    fmt_f <- identity
-  } else {
-    fmt_f <- function(x, ...) format(x, fmt, ...)
-  }
-  time_breaks_fmt <- fmt_f(time_breaks)
-  time_labels <- paste0("[",
-                        time_breaks_fmt,
-                        ", ",
-                        collapse::flag(time_breaks_fmt, n = -1L),
-                        ")")
-  time_labels[[length(time_labels)]] <-
-    paste0("[",
-           time_breaks_fmt[[length(time_breaks_fmt)]],
-           ", ",
-           fmt_f(x_unique[[length(x_unique)]]),
-           "]")
+  time_labels <- time_seq_levels(time_breaks, g = NULL, to = to,
+                                 fmt = fmt)
   if (as_factor){
     out <- ffactor(out,
                    levels = as.character(time_breaks),
@@ -137,6 +128,7 @@ time_cut <- function(x, n = 5, by = NULL, fmt = NULL,
 #' @rdname time_cut
 #' @export
 time_breaks <- function(x, n = 5, by = NULL,
+                        from = NULL, to = NULL,
                         floor_date = FALSE, week_start = getOption("lubridate.week.start", 1),
                         n_at_most = TRUE,
                         seq_type = c("auto", "duration", "period"),
@@ -144,10 +136,10 @@ time_breaks <- function(x, n = 5, by = NULL,
   stopifnot(n >= 1)
   stopifnot(length(n) == 1)
   seq_type <- match.arg(seq_type)
-  from <- collapse::fmin(x, na.rm = TRUE)
-  to <- collapse::fmax(x, na.rm = TRUE)
-  x_unique <- collapse::funique(collapse::na_rm(x), sort = TRUE)
-  n <- min(n, length(x_unique))
+  from <- bound_from(from, x)
+  to <- bound_to(to, x)
+  n_unique <- n_unique(x, na.rm = TRUE)
+  n <- min(n, n_unique)
   if (is.null(by)){
     date_units <- c("days", "weeks", "months", "years")
     units_to_try <- date_units
@@ -185,7 +177,7 @@ time_breaks <- function(x, n = 5, by = NULL,
                                 seq_type = seq_type)
     unit_multiplier <- 1
   }
-  if (n_breaks > n){
+  if (n_breaks > n && n_breaks < n_unique){
     unit_multiplier <- (n_breaks / n)
     if (!n_at_most){
       unit_multiplier <- floor(unit_multiplier)
@@ -197,25 +189,4 @@ time_breaks <- function(x, n = 5, by = NULL,
         floor_date = floor_date, week_start = week_start,
         seq_type = seq_type,
         roll_month = roll_month, roll_dst = roll_dst)
-}
-fcut_ind <- function(x, breaks, rightmost.closed = FALSE,
-                     left.open = FALSE, all.inside = FALSE){
-  breaksi <- findInterval(x,
-                          breaks,
-                          rightmost.closed = rightmost.closed,
-                          left.open = left.open,
-                          all.inside = all.inside)
-  # This makes it so that NA is returned for any x where findinterval
-  # resorts to 0 and doesn't just remove them
-  collapse::setv(breaksi, 0L, length(breaks) + 1L, vind1 = FALSE)
-  breaksi
-}
-cut_time2 <- function(x, breaks, rightmost.closed = FALSE, left.open = FALSE){
-  breaks[
-    fcut_ind(x,
-             breaks,
-             rightmost.closed = rightmost.closed,
-                              left.open = left.open,
-                              all.inside = FALSE)
-  ]
 }

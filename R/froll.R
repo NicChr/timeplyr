@@ -20,7 +20,6 @@
 #' @param na.rm Should missing values be removed when calculating window? Defaults to \code{FALSE}.
 #' @param hasNA If it is known that x contains \code{NA} then setting to \code{TRUE} will speed up.
 #' @examples
-#' \dontrun{
 #' library(timeplyr)
 #'
 #' x <- 1:10
@@ -37,7 +36,6 @@
 #' ev <- frollmean2(x)
 #' plot(1:length(x), ev)
 #' abline(h = 0.5, lty = 2)
-#'}
 #' @rdname froll
 #' @export
 frollsum2 <- function(x, n = length(x), partial = TRUE,

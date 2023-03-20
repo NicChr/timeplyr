@@ -89,8 +89,9 @@ supplied variables in \code{...} does not exist in the data, but can be recycled
 to the length of the data, then it is added and treated as a data variable.
 }
 \examples{
-\dontrun{
 library(timeplyr)
+library(dplyr)
+library(lubridate)
 library(nycflights13)
 
 flights \%>\%
@@ -102,21 +103,28 @@ flights \%>\%
 # 1 extra group (carrier) this is very quick
 flights \%>\%
   group_by(origin, dest, tailnum) \%>\%
-  fexpand(carrier, keep_class = FALSE)
+  fexpand(carrier)
 # 2 extra groups, this is where the grouped calculation actually happens
 # still very quick
 flights \%>\%
   group_by(origin, dest, tailnum) \%>\%
   fexpand(carrier, flight)
-# Alternatively
-flights \%>\%
-  fexpand(carrier, flight,
-          .by = c(origin, dest, tailnum))
-# Return data.table
-flights \%>\%
-  fexpand(carrier, flight,
-          .by = c(origin, dest, tailnum), keep_class = FALSE)
 
+# Tidyverse select helpers and data masking can be used
+flights \%>\%
+  fexpand(date = as_date(time_hour),
+          across(all_of(c("origin", "dest"))),
+          pick("carrier"))
+# Alternatively
+# flights \%>\%
+#   fexpand(carrier, flight,
+#           .by = c(origin, dest, tailnum))
+# Return data.table
+# flights \%>\%
+#   fexpand(carrier, flight,
+#           .by = c(origin, dest, tailnum), keep_class = FALSE)
+
+\dontrun{
 library(microbenchmark)
 library(tidyr)
 # ~ 20x faster
@@ -127,15 +135,5 @@ microbenchmark(m1 = flights \%>\%
                  group_by(origin, dest, tailnum) \%>\%
                  expand(carrier, flight),
                times = 1)
-
-# Tidyverse select helpers and data masking can be used
-flights \%>\%
-  fexpand(date = as_date(time_hour),
-          across(all_of(c("origin", "dest"))),
-          pick("carrier"))
-
-# This errors as expected, too many rows
-# flights \%>\%
-#   fexpand(pick(where(is.numeric)), log_limit = 8)
 }
 }

@@ -39,7 +39,8 @@
 #' argument? This is particularly useful for starting sequences at the beginning of a week
 #' or month for example.
 #' @param week_start day on which week starts following ISO conventions - 1
-#' means Monday, 7 means Sunday (default). This is only used when `floor_date = TRUE`.
+#' means Monday (default), 7 means Sunday.
+#' This is only used when `floor_date = TRUE`.
 #' @param sort Logical. If `TRUE` expanded/completed variables are sorted.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
@@ -55,8 +56,8 @@
 #' Anything exceeding this will throw an error.
 #'
 #' @examples
-#' \dontrun{
 #' library(timeplyr)
+#' library(dplyr)
 #' library(lubridate)
 #' library(nycflights13)
 #'
@@ -87,11 +88,6 @@
 #'   group_by(origin, dest, tailnum) %>%
 #'   time_expand(time = time_hour, by = "week",
 #'               seq_type = "duration")
-#' # Alternatively
-#' flights %>%
-#'   time_expand(time = time_hour, by = "day",
-#'               .by = c(origin, dest))
-#' }
 #' @rdname time_expand
 #' @export
 time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NULL,
@@ -135,8 +131,7 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
     # The reason we're sorting it here is because collapse::fmin()
     # Returns the minimum per sorted group.
     grp_nm <- new_var_nm(out, ".group.id")
-    set_add_group_id(out, data, .by = {{ .by }}, .name = grp_nm,
-                     sort = TRUE, key = FALSE, as_qg = FALSE)
+    out[, (grp_nm) := group_id(data, .by = {{ .by }}, sort = TRUE, as_qg = FALSE)]
     data.table::setorderv(out, cols = grp_nm)
     time_tbl <- collapse::funique(out[, c(group_vars, grp_nm), with = FALSE],
                                   cols = grp_nm)
@@ -172,7 +167,7 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
     by_nm <- new_var_nm(out, ".by")
     time_tbl[, (by_nm) := by_n]
     time_tbl[, (by_nm) := data.table::fifelse(get(from_nm) > get(to_nm),
-                                              -1 * get(by_nm),
+                                              -1 * abs(get(by_nm)),
                                               get(by_nm))]
     # Determine size of sequences
     size_nm <- new_var_nm(out, ".size")
@@ -317,7 +312,10 @@ time_complete <- function(data, ..., time = NULL, by = NULL, from = NULL, to = N
     fill <- fill[!is.na(fill)]
     fill_nms <- names(fill)
     for (i in seq_along(fill)){
-      data.table::setnafill(out, cols = fill_nms[i], type = "const", fill = fill[[i]], nan = NaN)
+      out[, (fill_nms[[i]]) := data.table::fifelse(is.na(get(fill_nms[[i]])),
+                                                   fill[[i]],
+                                                   get(fill_nms[[i]]))]
+      # data.table::setnafill(out, cols = fill_nms[i], type = "const", fill = fill[[i]], nan = NaN)
     }
   }
   suppressWarnings(data.table::setcolorder(out, neworder = c(names(data), setdiff(names(out), names(data)))))

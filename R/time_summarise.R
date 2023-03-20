@@ -71,7 +71,26 @@
 #' @param sort Should the result be sorted? Default is `TRUE`.
 #' If `FALSE` then original (input) order is kept.
 #' The sorting only applies to groups and time variable.
+#' @examples
+#' library(timeplyr)
+#' library(dplyr)
+#' library(lubridate)
+#' library(nycflights13)
 #'
+#' # Works the same way as summarise()
+#' identical(flights %>%
+#'             summarise(across(where(is.numeric), mean)),
+#'           flights %>%
+#'             time_summarise(across(where(is.numeric), mean)))
+#' # Like the other time_ functions, it allows for an additional time variable to
+#' # aggregate by
+#'
+#' # Monthly averages for each numeric variable
+#' flights %>%
+#'   time_summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE)),
+#'                  time = across(time_hour, as_date),
+#'                  by = "month",
+#'                  include_interval = TRUE)
 #' @export
 time_summarise <- function(data, ..., time = NULL, by = NULL,
                         from = NULL, to = NULL,
@@ -83,7 +102,8 @@ time_summarise <- function(data, ..., time = NULL, by = NULL,
                         week_start = getOption("lubridate.week.start", 1),
                         roll_month = "preday", roll_dst = "pre",
                         sort = TRUE){
-  dplyr::distinct(time_mutate(data, !!!enquos(...),
+  int_nm <- new_var_nm(data, "interval")
+  out <- dplyr::distinct(time_mutate(data, !!!enquos(...),
               time = !!enquo(time),
               by = by,
               from = !!enquo(from),
@@ -97,6 +117,13 @@ time_summarise <- function(data, ..., time = NULL, by = NULL,
               week_start = week_start,
               roll_month = roll_month, roll_dst = roll_dst,
               sort = sort))
+  time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
+  group_info <- get_group_info(data, !!!enquos(...),
+                               type = "data-mask",
+                               .by = {{ .by }})
+  group_vars <-  group_info[["dplyr_groups"]]
+  extra_group_vars <- group_info[["extra_groups"]]
+  dplyr::select(out, dplyr::any_of(c(group_vars, time_var, int_nm, extra_group_vars)))
 }
 time_reframe <- function(data, ..., time = NULL, by = NULL,
                            from = NULL, to = NULL,
@@ -108,6 +135,7 @@ time_reframe <- function(data, ..., time = NULL, by = NULL,
                            week_start = getOption("lubridate.week.start", 1),
                            roll_month = "preday", roll_dst = "pre"){
   group_vars <- get_groups(data, {{ .by }})
+  int_nm <- new_var_nm(data, "interval")
   out <- time_mutate(data, time = !!enquo(time),
                      by = by,
                      from = !!enquo(from),
@@ -122,7 +150,7 @@ time_reframe <- function(data, ..., time = NULL, by = NULL,
                      roll_month = roll_month, roll_dst = roll_dst,
                      sort = TRUE)
   time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
-  out <- dplyr::reframe(out, !!!enquos(...), .by = all_of(c(group_vars, time_var)))
-  if (keep_class) out <- df_reconstruct(out, data)
-  out
+  out <- dplyr_summarise(out, !!!enquos(...), .by = dplyr::any_of(c(group_vars, time_var, int_nm)))
+  if (keep_class) out <- df_reconstruct(out, safe_ungroup(data))
+  safe_ungroup(out)
 }

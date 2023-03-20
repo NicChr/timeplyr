@@ -21,6 +21,16 @@ testthat::test_that("Dates", {
 
   # Very basic tests
   ### DATES ###
+  testthat::expect_equal(time_seq(lubridate::Date(0), start2, by = "day", seq_type = "duration"),
+                         lubridate::POSIXct(0))
+  testthat::expect_equal(time_seq(lubridate::Date(0), start2, by = "day", seq_type = "period"),
+                         lubridate::Date(0))
+  testthat::expect_equal(time_seq(lubridate::POSIXct(0), start2, by = "day", seq_type = "period"),
+                         lubridate::POSIXct(0))
+  testthat::expect_error(suppressWarnings(time_seq(start2, lubridate::Date(0), by = "day", seq_type = "duration")))
+  testthat::expect_error(suppressWarnings(time_seq(start2, lubridate::Date(0), by = "day", seq_type = "period")))
+  testthat::expect_error(suppressWarnings(time_seq(start2, lubridate::POSIXct(0), by = "day", seq_type = "period")))
+
   testthat::expect_equal(time_seq(start2, end2, by = "day"),
                          seq(start2, end2, by = "day"))
   testthat::expect_equal(time_seq(start2, end2, by = "3 days"),
@@ -154,6 +164,7 @@ testthat::test_that("Datetimes", {
 
   # Very basic tests
   ### DATETIMES ###
+  testthat::expect_error(time_seq(start1, lubridate::POSIXct(0), by = "day"))
   testthat::expect_equal(time_seq(start1, end1, by = "day", seq_type = "duration"),
                          seq(start1, end1, by = "day"))
   testthat::expect_equal(time_seq(start1, end1, by = "3 days", seq_type = "duration"),
@@ -256,75 +267,118 @@ testthat::test_that("Datetimes", {
                            seq(1, 100, by = 3),
                            seq(1, 100, by = 4)))
 })
-#
-# # # Dates
-# time_seq(start2, end2, by = "day")
-# time_seq(start2, end2, by = "hour")
-# time_seq(start2, end2, by = "min")
-# time_seq(start2, end2, by = "3 days")
-# time_seq(start2, by = "day", length.out = 3)
-# # Extreme cases
-# time_seq(start2, by = "day", length.out = 0)
-# time_seq(start2, by = "day", length.out = 0)
-# time_seq(start2, by = "day", length.out = 1)
-# time_seq(start2, by = "day", length.out = 0, seq_type = "duration")
-# time_seq(start2, by = "day", length.out = 1, seq_type = "duration")
-# time_seq(start2, by = "day", length.out = 1)
-# time_seq(start2, end2,  length.out = 0)
-# time_seq(start2, end2,  length.out = 1)
-# time_seq(start2, end2,  length.out = 0, seq_type = "duration")
-# time_seq(start2, end2,  length.out = 1, seq_type = "duration")
-# time_seq(start2, start2, length.out = 3)
-# time_seq(start2, start2, length.out = 3, seq_type = "duration")
-# time_seq(end2, end2, length.out = 3)
-#
-# time_seq(start2, by = "day", length.out = 3)
-# time_seq(to = end2, by = "day", length.out = 3)
-# time_seq(to = end2, length.out = 3)
-# time_seq(start2, end2, length.out = 3)
-# time_seq(start2, end2, by = "day", length.out = 2) # Error
-# time_seq(start2, by = "day") # Error
-# time_seq(to = end2, by = "day") # Error
-#
-# # Datetimes
-# time_seq(start1, end1) # Error
-# time_seq(start1, end1, length.out = 22)
-# time_seq(start1, end1, by = "day")
-# time_seq(start1, end1, length.out = 241)
-# time_seq(start1, end1, by = "hour")
-# time_seq(start1, end1, by = "min")
-# time_seq(start1, end1, length.out = length(time_seq(start1, end1, by = "min")))
-# time_seq(start1, end1, by = "3 days")
-# time_seq(start1, end1, by = "day", length.out = 2) # Error
-# time_seq(start1, length.out = 3) # Error
-# time_seq(start1, by = "day", length.out = 3)
-# time_seq(start1, start1, length.out = 3)
-# time_seq(to = end1, by = "day", length.out = 3)
-# time_seq(to = end1, length.out = 3) # Error
-# time_seq(start1, start1, length.out = 3)
-# time_seq(end1, end1, length.out = 3)
-#
-# # Mix of dates and Datetimes
-# time_seq(start2, end1) # Error
-# time_seq(start1, end2) # Error
-# time_seq(start1, end2, length.out = 22)
-# time_seq(start2, end1, length.out = 22)
-# time_seq(start1, end2, by = "day")
-# time_seq(start2, end1, by = "day")
-# time_seq(start1, end2, by = "hour")
-# time_seq(start2, end1, by = "hour")
-# time_seq(start1, end2, by = "min")
-# time_seq(start2, end1, by = "min")
-# time_seq(start1, end2, by = "3 days")
-# time_seq(start2, end1, by = "3 days")
-# time_seq(start1, length.out = 3) # Error
-# time_seq(start1, by = "day", length.out = 3)
-# time_seq(start1, by = "hour", length.out = 3)
-# time_seq(to = end1, by = "day", length.out = 3)
-# time_seq(to = end2, by = "day", length.out = 3)
-# time_seq(to = end1, by = "hour", length.out = 3)
-# time_seq(to = end2, by = "hour", length.out = 3)
-# time_seq(to = end1, length.out = 3) # Error
-# time_seq(start1, end1, length.out = 3)
-# time_seq(start1, end2, length.out = 3)
-# time_seq(start2, end1, length.out = 3)
+
+testthat::test_that("Time sequence lengths", {
+  start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
+                               tz = "GB")
+  end1 <- start1 + lubridate::ddays(37)
+  end2 <- start1 + lubridate::days(37)
+  testthat::expect_identical(time_seq_len(lubridate::Date(0), lubridate::Date(0), by = "days", seq_type = "period"),
+                             integer(0))
+  testthat::expect_identical(time_seq_len(lubridate::Date(0), lubridate::Date(0), by = "days", seq_type = "duration"),
+                             integer(0))
+  testthat::expect_identical(time_seq_len(lubridate::Date(0), lubridate::Date(0), by = "days", seq_type = "period"),
+                             integer(0))
+  testthat::expect_identical(time_seq_len(lubridate::POSIXct(0), lubridate::Date(0), by = "days", seq_type = "duration"),
+                             integer(0))
+  testthat::expect_identical(time_seq_len(lubridate::POSIXct(0), lubridate::Date(0), by = "days", seq_type = "period"),
+                             integer(0))
+  testthat::expect_identical(time_seq_len(lubridate::POSIXct(0), lubridate::POSIXct(0), by = "days", seq_type = "duration"),
+                             integer(0))
+  testthat::expect_identical(time_seq_len(lubridate::POSIXct(0), lubridate::POSIXct(0), by = "days", seq_type = "period"),
+                             integer(0))
+  testthat::expect_true(identical(time_seq_len(start1, end2, by = "days", seq_type = "period"),
+                                  38L))
+  testthat::expect_identical(time_seq_len(start1, lubridate::POSIXct(0), by = "days", seq_type = "period"),
+                             integer(0))
+  testthat::expect_identical(time_seq_len(start1, lubridate::Date(0), by = "days", seq_type = "period"),
+                             integer(0))
+  testthat::expect_true(identical(time_seq_len(start1, end2, by = "days", seq_type = "duration"),
+                                  37L))
+})
+testthat::test_that("Vectorised time sequences", {
+  start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
+                               tz = "GB")
+  end1 <- start1 + lubridate::ddays(37)
+  end2 <- start1 + lubridate::days(37)
+  testthat::expect_equal(time_seq_v(lubridate::Date(0), lubridate::Date(0), units = "days", seq_type = "period"),
+                             lubridate::Date(0))
+  testthat::expect_equal(time_seq_v(lubridate::Date(0), lubridate::Date(0), units = "days", seq_type = "duration"),
+                             lubridate::POSIXct(0))
+  testthat::expect_equal(time_seq_v(lubridate::Date(0), lubridate::Date(0), units = "days", seq_type = "period"),
+                             lubridate::Date(0))
+  testthat::expect_equal(time_seq_v(lubridate::POSIXct(0), lubridate::Date(0), units = "days", seq_type = "duration"),
+                             lubridate::POSIXct(0))
+  testthat::expect_equal(time_seq_v(lubridate::POSIXct(0), lubridate::Date(0), units = "days", seq_type = "period"),
+                             lubridate::POSIXct(0))
+  testthat::expect_equal(time_seq_v(lubridate::POSIXct(0), lubridate::POSIXct(0), units = "days", seq_type = "duration"),
+                             lubridate::POSIXct(0))
+  testthat::expect_equal(time_seq_v(lubridate::POSIXct(0), lubridate::POSIXct(0), units = "days", seq_type = "period"),
+                             lubridate::POSIXct(0))
+  testthat::expect_equal(time_seq_v(start1, end2, units = "days", seq_type = "period"),
+                                  time_seq(start1, end2, by = "days", seq_type = "period"))
+  testthat::expect_equal(time_seq_v(start1, end2, units = "days", seq_type = "duration"),
+                             time_seq(start1, end2, by = "days", seq_type = "duration"))
+  testthat::expect_equal(time_seq_v(start1, lubridate::POSIXct(0), units = "days", seq_type = "period"),
+                         lubridate::with_tz(lubridate::POSIXct(0), tzone = "GB"))
+  testthat::expect_equal(time_seq_v(start1, lubridate::Date(0), units = "days", seq_type = "period"),
+                         lubridate::with_tz(lubridate::POSIXct(0), tzone = "GB"))
+  testthat::expect_equal(time_seq_v(lubridate::as_date(start1), lubridate::Date(0), units = "days", seq_type = "period"),
+                         lubridate::Date(0))
+  foo1 <- function(x) time_seq(from = start1, to = end1, by = list("days" = x), seq_type = "duration")
+  testthat::expect_equal(time_seq_v(start1, end1, units = "days", num = seq(0.5, 20, 0.5), seq_type = "duration"),
+                         do.call(c, lapply(seq(0.5, 20, 0.5), foo1)))
+  foo2 <- function(x) time_seq(from = start1, to = end1, by = list("days" = x), seq_type = "period")
+  testthat::expect_equal(time_seq_v(start1, end1, units = "days", num = seq(1, 20, 1), seq_type = "period"),
+                         do.call(c, lapply(seq(1, 20, 1), foo2)))
+})
+
+testthat::test_that("ftseq compared to time_seq", {
+  start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
+                               tz = "GB")
+  end1 <- start1 + lubridate::ddays(37)
+  end2 <- start1 + lubridate::days(37)
+  testthat::expect_identical(time_seq(start1, end1, by = "2 days", seq_type = "period"),
+                             ftseq(start1, end1, units = "days", num = 2, seq_type = "period"))
+  testthat::expect_identical(time_seq(start1, end1, by = "2 days", seq_type = "duration"),
+                             ftseq(start1, end1, units = "days", num = 2, seq_type = "duration"))
+  # Negative sign for time_seq() but not ftseq()
+  testthat::expect_identical(time_seq(end1, start1, by = "2 days", seq_type = "duration"),
+                             ftseq(end1, start1,  units = "days", num = -2, seq_type = "duration"))
+
+  testthat::expect_identical(time_seq(start1, end1,  by = "2 days"),
+                             ftseq(start1, end1, units = "days", num = 2))
+  testthat::expect_identical(time_seq(start1, end1,  by = list("hours" = pi)),
+                             ftseq(start1, end1, units = "hours", num = pi))
+  testthat::expect_identical(time_seq(start1, end1,  by = list("hours" = pi), tz = "America/New_York"),
+                             ftseq(start1, end1, units = "hours", num = pi, tz = "America/New_York"))
+  testthat::expect_identical(time_seq(start1, end1,  by = list("hours" = pi), tz = "America/New_York",
+                                      floor_date = TRUE),
+                             ftseq(start1, end1, units = "hours", num = pi, tz = "America/New_York",
+                                   floor_date = TRUE))
+  testthat::expect_identical(time_seq(13.5, 194.75,  by = list("numeric" = 7),
+                                      floor_date = FALSE),
+                             ftseq(13.5, 194.75, units = "numeric", num = 7,
+                                   floor_date = FALSE))
+  testthat::expect_identical(time_seq(13.5, 194.75,  by = 7,
+                                      floor_date = FALSE),
+                             ftseq(13.5, 194.75, units = "numeric", num = 7,
+                                   floor_date = FALSE))
+  testthat::expect_identical(time_seq(13.5, 194.75,  by = 7,
+                                      floor_date = TRUE),
+                             ftseq(13.5, 194.75, units = "numeric", num = 7,
+                                   floor_date = TRUE))
+  testthat::expect_identical(time_seq(100, 5, by = 5),
+                             seq(100, 5, by = -5))
+  testthat::expect_identical(time_seq(100, 5, by = -5),
+                             seq(100, 5, by = -5))
+
+  testthat::expect_identical(time_seq(lubridate::Date(0), lubridate::Date(0), by = "days", seq_type = "duration"),
+                             lubridate::POSIXct(0))
+  testthat::expect_identical(ftseq(lubridate::Date(0), lubridate::Date(0), units = "days", seq_type = "duration"),
+                             lubridate::POSIXct(0))
+  testthat::expect_identical(time_seq(lubridate::Date(0), lubridate::Date(0), by = "days", seq_type = "period"),
+                         lubridate::Date(0))
+  testthat::expect_identical(ftseq(lubridate::Date(0), lubridate::Date(0), units = "days", seq_type = "period"),
+                         lubridate::Date(0))
+})

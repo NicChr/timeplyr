@@ -54,8 +54,9 @@
 #' Anything exceeding this will throw an error.
 #'
 #' @examples
-#' \dontrun{
 #' library(timeplyr)
+#' library(dplyr)
+#' library(lubridate)
 #' library(nycflights13)
 #'
 #' flights %>%
@@ -67,21 +68,28 @@
 #' # 1 extra group (carrier) this is very quick
 #' flights %>%
 #'   group_by(origin, dest, tailnum) %>%
-#'   fexpand(carrier, keep_class = FALSE)
+#'   fexpand(carrier)
 #' # 2 extra groups, this is where the grouped calculation actually happens
 #' # still very quick
 #' flights %>%
 #'   group_by(origin, dest, tailnum) %>%
 #'   fexpand(carrier, flight)
-#' # Alternatively
-#' flights %>%
-#'   fexpand(carrier, flight,
-#'           .by = c(origin, dest, tailnum))
-#' # Return data.table
-#' flights %>%
-#'   fexpand(carrier, flight,
-#'           .by = c(origin, dest, tailnum), keep_class = FALSE)
 #'
+#' # Tidyverse select helpers and data masking can be used
+#' flights %>%
+#'   fexpand(date = as_date(time_hour),
+#'           across(all_of(c("origin", "dest"))),
+#'           pick("carrier"))
+#' # Alternatively
+#' # flights %>%
+#' #   fexpand(carrier, flight,
+#' #           .by = c(origin, dest, tailnum))
+#' # Return data.table
+#' # flights %>%
+#' #   fexpand(carrier, flight,
+#' #           .by = c(origin, dest, tailnum), keep_class = FALSE)
+#'
+#' \dontrun{
 #' library(microbenchmark)
 #' library(tidyr)
 #' # ~ 20x faster
@@ -92,17 +100,8 @@
 #'                  group_by(origin, dest, tailnum) %>%
 #'                  expand(carrier, flight),
 #'                times = 1)
-#'
-#' # Tidyverse select helpers and data masking can be used
-#' flights %>%
-#'   fexpand(date = as_date(time_hour),
-#'           across(all_of(c("origin", "dest"))),
-#'           pick("carrier"))
-#'
-#' # This errors as expected, too many rows
-#' # flights %>%
-#' #   fexpand(pick(where(is.numeric)), log_limit = 8)
 #' }
+#' @rdname fexpand
 #' @export
 fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                     sort = TRUE, .by = NULL,
@@ -136,7 +135,7 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
   if (expand_type == "nesting" ||
       # Special case when data is grouped but only 1 data variable is specified to expand
       # There is no need from a speed perspective to do grouped calculation in this case
-      (length(group_vars) > 0 &&
+      (length(group_vars) > 0L &&
        length(leftover_grp_nms) <= 1L &&
        expand_type == "crossing")){
     out <- nested_join(summarise_vars, N = nrow2(data),
@@ -145,24 +144,22 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
   } else {
     # Method for grouped data which performs a separate cross-join of
     # non-grouped variables for each group
-    if (length(group_vars) > 0 && length(leftover_grp_nms) >= 2){
+    if (length(group_vars) > 0L && length(leftover_grp_nms) >= 2L){
       out1 <- nested_join(summarise_vars, N = nrow2(data),
                           sort = FALSE,
                           log_limit = log_limit)
       # Add group ID
       grp_nm <- new_var_nm(out1, ".group.id")
-      set_add_group_id(out1, .by = dplyr::all_of(group_vars),
-                       .name = grp_nm, sort = FALSE,
-                       key = TRUE)
+      out1[, (grp_nm) := group_id(out1, all_of(group_vars),
+                                  sort = FALSE)]
+      data.table::setorderv(out1, cols = grp_nm)
       # Add group IDs for each non-group variable
       # This will allow us to calculate final expanded size
       for (i in seq_along(leftover_grp_nms)){
         assign(paste0("grp_nm_", i),
                new_var_nm(out1, ".group.id"))
-        set_add_group_id(out1, .by = dplyr::all_of(leftover_grp_nms[i]),
-                         .name = get(paste0("grp_nm_", i)),
-                         sort = FALSE,
-                         key = FALSE)
+        out1[, (get(paste0("grp_nm_", i))) := group_id(out1, all_of(leftover_grp_nms[[i]]),
+                                                       sort = FALSE)]
       }
       group_id_nms <- unlist(mget(paste0("grp_nm_",
                                          seq_len(length(leftover_grp_nms)))),
@@ -182,6 +179,7 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
       out2 <- collapse::collapv(out1, FUN = function(x) list(collapse::funique(x)),
                                 by = grp_nm,
                                 cols = group_id_nms)
+      data.table::setkeyv(out2, cols = grp_nm)
       out <- out2[, do.call(expand.grid,
                             args = c(unlist(mget(group_id_nms), recursive = FALSE,
                                             use.names = FALSE),
@@ -189,11 +187,11 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                   keyby = grp_nm]
       data.table::setnames(out, new = c(grp_nm, leftover_grp_nms))
       for (i in seq_along(group_id_nms)){
-        out[, (leftover_grp_nms[i]) := out1[[leftover_grp_nms[i]]][match(out[[leftover_grp_nms[i]]],
-                                                                         out1[[group_id_nms[i]]])]]
+        out[, (leftover_grp_nms[[i]]) := out1[[leftover_grp_nms[[i]]]][match(out[[leftover_grp_nms[[i]]]],
+                                                                         out1[[group_id_nms[[i]]]])]]
       }
       for (i in seq_along(group_vars)){
-        out[, (group_vars[i]) := out1[[group_vars[i]]][match(out[[grp_nm]],
+        out[, (group_vars[[i]]) := out1[[group_vars[[i]]]][match(out[[grp_nm]],
                                                              out1[[grp_nm]])]]
       }
       out[, (grp_nm) := NULL][]
@@ -207,27 +205,10 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                           log_limit = log_limit)
     }
   }
-  if (length(out_nms) == 0) out_nms <- NULL
+  if (length(out_nms) == 0L) out_nms <- NULL
   data.table::setcolorder(out, out_nms)
   if (keep_class) out <- df_reconstruct(out, data)
   out
-}
-# Like data.table::CJ() but works on lists and data frames
-crossed_join <- function(X, sort = FALSE, log_limit = 8, unique = TRUE){
-  if (unique) X <- lapply(X, function(x) collapse::funique(x, sort = sort))
-  # Usually sorting or not sorting happens in the above line
-  # But if not then, let data.table sort
-  if (!unique && sort) {
-    dt_sort <- TRUE
-  } else {
-    dt_sort <- FALSE
-  }
-  expanded_n <- prod(collapse::vlengths(X))
-  if (log10(expanded_n) >= log_limit) stop("Requested expansion results in >= ",
-                                           expanded_n,
-                                           " rows, aborting.")
-  do.call(get("CJ", asNamespace("data.table")),
-          args = c(X, sorted = dt_sort, unique = FALSE))
 }
 # Nested join, recycling newly created variables with data variables
 nested_join <- function(X, sort = FALSE, log_limit = 8, N){
@@ -314,10 +295,9 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
     fill <- fill[!is.na(fill)]
     fill_nms <- names(fill)
     for (i in seq_along(fill)){
-      data.table::setnafill(out,
-                            cols = fill_nms[i],
-                            type = "const",
-                            fill = fill[[i]], nan = NaN)
+      out[, (fill_nms[[i]]) := data.table::fifelse(is.na(get(fill_nms[[i]])),
+                                                   fill[[i]],
+                                                   get(fill_nms[[i]]))]
     }
   }
   data.table::setcolorder(out, neworder = c(names(data),

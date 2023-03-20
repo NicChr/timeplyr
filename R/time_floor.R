@@ -7,8 +7,7 @@
 #' where 1 is Monday and 7 is Sunday.
 #'
 #' @export
-time_floor <- function(x, by,
-                       week_start = getOption("lubridate.week.start", 1)){
+time_floor <- function(x, by, week_start = getOption("lubridate.week.start", 1)){
   unit_info <- unit_guess(by)
   by_unit <- unit_info[["unit"]]
   by_n <- unit_info[["num"]] * unit_info[["scale"]]

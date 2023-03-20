@@ -76,11 +76,11 @@ testthat::test_that("Compared to tidyr", {
   testthat::expect_error(testdf %>%
                            fexpand(dplyr::across(dplyr::everything()),
                                    expand_type = "cross",
-                                   expansion_log_limit = 6))
+                                   log_limit = 6))
   testthat::expect_error(testdf %>%
                            fexpand(origin, 1:11, 1:12, 1:13, 1:10^5,
                                    expand_type = "nest",
-                                   expansion_log_limit = 5))
+                                   log_limit = 5))
   testthat::expect_identical(testdf %>%
                                  fexpand(1:10, yes = 1:10,
                                          expand_type = "nest"),

@@ -9,6 +9,8 @@ time_cut(
   x,
   n = 5,
   by = NULL,
+  from = NULL,
+  to = NULL,
   fmt = NULL,
   floor_date = FALSE,
   week_start = getOption("lubridate.week.start", 1),
@@ -23,6 +25,8 @@ time_breaks(
   x,
   n = 5,
   by = NULL,
+  from = NULL,
+  to = NULL,
   floor_date = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   n_at_most = TRUE,
@@ -52,6 +56,10 @@ then arithmetic is used, e.g \code{by = 1}.
 This is also vectorized where applicable.
 }}
 
+\item{from}{Time series start date.}
+
+\item{to}{Time series end date.}
+
 \item{fmt}{(Optional) Date/datetime format for the factor labels.
 If supplied, this is passed to \code{format()}.}
 
@@ -59,8 +67,8 @@ If supplied, this is passed to \code{format()}.}
 floored before building the sequence?}
 
 \item{week_start}{day on which week starts following ISO conventions - 1
-means Monday, 7 means Sunday (default). When \code{label = TRUE},
-this will be the first level of the returned factor.}
+means Monday (default), 7 means Sunday.
+This is only used when \code{floor_date = TRUE}.}
 
 \item{n_at_most}{Logical. If \code{TRUE} then n breaks at most are returned,
 otherwise at least n breaks are returned.}

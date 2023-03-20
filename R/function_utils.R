@@ -465,46 +465,46 @@ unique_groups <- function(data, ...,
   }
   out
 }
-# Add group id to data.table by reference
-# Use template if template is a grouped_df and you
-# want to use the group indices from that
-set_add_group_id <- function(DT, template = NULL, sort = TRUE,
-                             .by = NULL, key = FALSE,
-                             as_qg = FALSE,
-                             .name = ".group.id"){
-  if (!is.null(template)){
-    group_vars <- group_vars(template)
-  } else {
-    group_vars <- NULL
-  }
-  by_vars <- tidy_select_names(DT, {{ .by }})
-  if (length(by_vars) > 0){
-    if (length(group_vars) > 0) stop(".by cannot be used on a grouped_df")
-  }
-  # Method for grouped_df
-  if (length(group_vars) == 0L && length(by_vars) == 0L){
-    DT[, (.name) := rep_len(1L, (.N))]
-    } else if (sort && length(group_vars) > 0){
-      DT[, (.name) := dplyr::group_indices(template)]
-  }
-  else if (length(group_vars) > 0 && !sort){
-    DT[, (.name) := as.integer(collapse::group(DT[, group_vars, with = FALSE],
-                                    starts = FALSE, group.sizes = FALSE))]
-  } else {
-    DT[, (.name) := collapse::GRP(DT[, by_vars, with = FALSE],
-                                  sort = sort,
-                                        decreasing = FALSE,
-                                        na.last = TRUE,
-                                        return.groups = FALSE,
-                                        return.order = FALSE,
-                                        method = "auto",
-                                        call = FALSE)[["group.id"]]]
-  }
-  if (as_qg) DT[, (.name) := collapse::qG(get(.name),
-                                          sort = TRUE,
-                                          ordered = FALSE)]
-  if (key) data.table::setkeyv(DT, cols = .name)
-}
+# # Add group id to data.table by reference
+# # Use template if template is a grouped_df and you
+# # want to use the group indices from that
+# set_add_group_id <- function(DT, template = NULL, sort = TRUE,
+#                              .by = NULL, key = FALSE,
+#                              as_qg = FALSE,
+#                              .name = ".group.id"){
+#   if (!is.null(template)){
+#     group_vars <- group_vars(template)
+#   } else {
+#     group_vars <- NULL
+#   }
+#   by_vars <- tidy_select_names(DT, {{ .by }})
+#   if (length(by_vars) > 0){
+#     if (length(group_vars) > 0) stop(".by cannot be used on a grouped_df")
+#   }
+#   # Method for grouped_df
+#   if (length(group_vars) == 0L && length(by_vars) == 0L){
+#     DT[, (.name) := rep_len(1L, (.N))]
+#     } else if (sort && length(group_vars) > 0){
+#       DT[, (.name) := dplyr::group_indices(template)]
+#   }
+#   else if (length(group_vars) > 0 && !sort){
+#     DT[, (.name) := as.integer(collapse::group(DT[, group_vars, with = FALSE],
+#                                     starts = FALSE, group.sizes = FALSE))]
+#   } else {
+#     DT[, (.name) := collapse::GRP(DT[, by_vars, with = FALSE],
+#                                   sort = sort,
+#                                         decreasing = FALSE,
+#                                         na.last = TRUE,
+#                                         return.groups = FALSE,
+#                                         return.order = FALSE,
+#                                         method = "auto",
+#                                         call = FALSE)[["group.id"]]]
+#   }
+#   if (as_qg) DT[, (.name) := collapse::qG(get(.name),
+#                                           sort = TRUE,
+#                                           ordered = FALSE)]
+#   if (key) data.table::setkeyv(DT, cols = .name)
+# }
 # Slightly safer way of removing DT cols
 set_rm_cols <- function(DT, cols = NULL){
  if (length(intersect(cols, names(DT))) > 0L) DT[, (cols) := NULL]

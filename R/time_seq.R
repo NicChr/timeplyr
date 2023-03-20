@@ -35,7 +35,7 @@
 #' starting sequences at the beginning of a week
 #' or month for example.
 #' @param week_start day on which week starts following ISO conventions - 1
-#' means Monday, 7 means Sunday (default).
+#' means Monday (default), 7 means Sunday.
 #' This is only used when `floor_date = TRUE`.
 #' @param seq_type If "auto", `periods` are used for
 #' the time expansion when days, weeks,
@@ -61,7 +61,11 @@
 #' # Dates
 #' today <- today()
 #' now <- now()
+#'
 #' time_seq(today, today + years(1), by = "day")
+#' time_seq(today, length.out = 10, by = "day")
+#' time_seq(today, length.out = 10, by = "hour")
+#'
 #' time_seq(today, today + years(1), by = list("days" = 1)) # Alternative
 #' time_seq(today, today + years(1), by = "week")
 #' time_seq(today, today + years(1), by = "fortnight")
@@ -130,26 +134,23 @@ time_seq <- function(from, to, by, length.out = NULL,
     warning("from, to, by and length.out have all been specified,
             the result may be unpredictable.")
   }
-  if (!missing_from) stopifnot(length(from) <= 1)
-  if (!missing_to) stopifnot(length(to) <= 1)
-  if (!missing_by) stopifnot(length(by) <= 1)
-  if (!missing_len) stopifnot(length(length.out) <= 1)
+  if (!missing_from) stopifnot(length(from) <= 1L)
+  if (!missing_to) stopifnot(length(to) <= 1L)
+  if (!missing_by) stopifnot(length(by) <= 1L)
+  if (!missing_len) stopifnot(length(length.out) <= 1L)
+  from_and_to <- !missing_from && !missing_to
+  from_and_length <- !missing_from && !missing_len
+  to_and_length <- !missing_to && !missing_len
+  if (from_and_to){
+    if (length(from) == 1L && length(to) == 0L){
+      stop("to must be of length 1")
+    }
+  }
   # Basically if from and/or to are time do x else y
   if ( (
     (!missing_from && (is_time(from) || is.character(from))) ||
-    ( !missing_to &&  (is_time(to) || is.character(to)))
+    (!missing_to && (is_time(to) || is.character(to)))
   )){
-    from_and_to <- !missing_from && !missing_to
-    from_and_length <- !missing_from && !missing_len
-    to_and_length <- !missing_to && !missing_len
-    if (from_and_to){
-      if (length(from) == 0 && length(to) == 1) {
-        stop("from must be of length 1")
-      }
-      if (length(from) == 1 && length(to) == 0) {
-        stop("to must be of length 1")
-      }
-    }
     # Unit parsing
     if (!missing_by){
       unit_info <- unit_guess(by)
@@ -162,16 +163,19 @@ time_seq <- function(from, to, by, length.out = NULL,
     # Help the user by converting very common date formats
     if (!missing_from) from <- convert_common_dates(from)
     if (!missing_to) to <- convert_common_dates(to)
-
     # Make from and to most granular data type between them
     if (from_and_to && is_date(from) && is_datetime(to)){
-      from <- lubridate::as_datetime(from, tz = tz)
+      # from <- lubridate::as_datetime(from, tz = tz)
+      from <- time_cast(from, lubridate::POSIXct(0, tz = tz))
     }
     if (from_and_to && is_date(to) && is_datetime(from)){
-      to <- lubridate::as_datetime(to, tz = tz)
+      # to <- lubridate::as_datetime(to, tz = tz)
+      to <- time_cast(to, lubridate::POSIXct(0, tz = tz))
     }
     # From, to, length, no by
     if (from_and_to && missing_by && !missing_len){
+      if (floor_date) from <- time_floor(from, by = by_unit,
+                                         week_start = week_start)
       time_unit <- time_by(from, to, length = length.out, seq_type = seq_type)
       # Calculate by info from lubridate class object
       unit_info <- time_unit_info(time_unit)
@@ -180,6 +184,8 @@ time_seq <- function(from, to, by, length.out = NULL,
       # From, to, by, no length
     } else if (from_and_to && !missing_by && missing_len){
       time_unit <- time_unit(by_unit, type = seq_type)(by_n)
+      if (floor_date) from <- time_floor(from, by = by_unit,
+                                         week_start = week_start)
       length.out <- time_seq_len(from, to, by = by, seq_type = seq_type)
 
     } else if (missing_from){
@@ -192,9 +198,12 @@ time_seq <- function(from, to, by, length.out = NULL,
     ### After this we will always have both length and by
     if (missing_from){
       from <- to - (time_unit * length.out) + time_unit
+      if (floor_date) from <- time_floor(from, by = by_unit,
+                                         week_start = week_start)
     }
-    if (floor_date) from <- time_floor(from , by = by_unit,
-                                       week_start = week_start)
+    if (!missing_to && length(from) > 0L && length(to) > 0L && to < from){
+      by_n <- -abs(by_n)
+    }
     if (seq_type == "duration"){
       out <- duration_seq(from = from,
                            length = length.out,
@@ -215,6 +224,13 @@ time_seq <- function(from, to, by, length.out = NULL,
     args <- args[names(args) %in% c("from", "to", "by", "length.out")]
     if (!missing_from && floor_date){
       args[["from"]] <- time_floor(from, by = by)
+    }
+    if (!missing_by){
+      by <- unlist(unname(by))
+      if (from_and_to && length(from) > 0L && length(to) > 0L && to < from){
+        by <- -abs(by)
+      }
+      args[["by"]] <- by
     }
     out <- do.call(seq, args, envir = parent.frame())
   }
@@ -242,8 +258,10 @@ time_seq_len <- function(from, to, by,
     as.integer(time_diff) + 1L
   }
 }
-# This is like time_seq but without the string parsing
-# This always take a start and end-point as well.
+# ftseq differs from time_seq() in that it doesn't accept missing arguments,
+# (except) for non time from/to, always has a start and end point,
+# replaces by with unit and num arguments, and doesn't change the
+# sign of unit increment. This is more suited for loops.
 ftseq <- function(from, to, units, num = 1,
                   floor_date = FALSE,
                   week_start = getOption("lubridate.week.start", 1),
@@ -252,28 +270,22 @@ ftseq <- function(from, to, units, num = 1,
                   tz = lubridate::tz(from)){
   stopifnot(length(num) == 1L)
   stopifnot(length(units) == 1L)
+  by <- setnames(list(num), units)
   if (is_time(from) && is_time(to)){
     seq_type <- match.arg(seq_type)
     if (seq_type == "auto") seq_type <- guess_seq_type(units)
+    if (floor_date) from <- time_floor(from, by = units,
+                                       week_start = week_start)
+    out_length <- time_seq_len(from, to, by = by,
+                               seq_type = seq_type,
+                               as_period = FALSE)
     if (seq_type == "duration"){
       time_unit <- duration_unit(units)(x = num)
       num_seconds <- as.double(time_unit)
-      if (!is_datetime(from)) from <- lubridate::as_datetime(from, tz = tz)
-      if (floor_date) from <- lubridate::floor_date(from, unit = units,
-                                                    week_start = week_start)
-      # if (!is_datetime(to)) to <- lubridate::as_datetime(to, tz = tz)
-      if (to < from) num_seconds <- -abs(num_seconds)
-      out_length <- time_seq_len(from, to, by = setnames(list(num), units),
-                            seq_type = "duration", as_period = FALSE)
+      from <- time_cast(from, lubridate::POSIXct(0, tz = tz))
       out <- duration_seq(from, length = out_length, duration = num_seconds)
     } else {
       unit <- substr(units, 1L, nchar(units) -1L)
-      time_unit <- lubridate::period(num = num, units = units)
-      int <- lubridate::interval(from, to)
-      out_length <- abs((int %/% time_unit)) + 1
-      if (floor_date) from <- lubridate::floor_date(from, unit = units,
-                                                    week_start = week_start)
-      if (to < from) num <- -abs(num)
       out <- period_seq(from, out_length, unit,
                         num = num)
     }
@@ -286,11 +298,45 @@ ftseq <- function(from, to, units, num = 1,
   }
   out
 }
+# ftseq <- function(from, to, units, num = 1,
+#                   floor_date = FALSE,
+#                   week_start = getOption("lubridate.week.start", 1),
+#                   seq_type = c("auto", "duration", "period"),
+#                   roll_month = "preday", roll_dst = "pre",
+#                   tz = lubridate::tz(from)){
+#   stopifnot(length(num) == 1L)
+#   stopifnot(length(units) == 1L)
+#   from_to <- time_c2(from, to)
+#   from <- from_to[[1L]]
+#   to <- from_to[[2L]]
+#   if (length(from) > 0L && length(to) > 0L && to < from){
+#     num <- -abs(num)
+#   }
+#   # Ensure that out-of-bounds sequence isn't returned
+#   if (is_time(from) && is_time(to)){
+#     time_seq(from = from, to = to,
+#              by = setnames(list(num), units),
+#              week_start = week_start,
+#              floor_date = floor_date,
+#              seq_type = seq_type,
+#              roll_month = roll_month,
+#              roll_dst = roll_dst,
+#              tz = tz)
+#   } else {
+#     time_seq(from = from, to = to,
+#              by = num,
+#              week_start = week_start,
+#              floor_date = floor_date,
+#              seq_type = seq_type,
+#              roll_month = roll_month,
+#              roll_dst = roll_dst,
+#              tz = tz)
+#   }
+# }
 # This is purely for speed purposes
 duration_seq <- function(from, length, duration){
-  if (!is_datetime(from)) from <- lubridate::as_datetime(from,
-                                                         tz =
-                                                           lubridate::tz(from))
+  from <- time_cast(from, lubridate::POSIXct(0, tz = lubridate::tz(from)))
+  if (length(from) == 0L) return(from)
   seq.POSIXt(from = from,
              length.out = length, by = as.double(duration))
 }
@@ -298,6 +344,7 @@ duration_seq <- function(from, length, duration){
 # of a specified length and unit increment
 period_seq <- function(from, length, unit, num = 1,
                        roll_month = "preday", roll_dst = "pre"){
+  if (length(from) == 0L) return(from)
   int_seq <- seq_len(length) - 1L
   if (length == 0L) from <- from[0L]
   timechange::time_add(from, periods = setnames(list(num * int_seq),
@@ -307,8 +354,7 @@ period_seq <- function(from, length, unit, num = 1,
 # Duration sequence vectorised over from, to and num
 duration_seq_v <- function(from, to, units, num = 1){
   units <- match.arg(units, .duration_units)
-  tz <- lubridate::tz(from)
-  if (!is_datetime(from)) from <- lubridate::as_datetime(from, tz = tz)
+  from <- time_cast(from, lubridate::POSIXct(0, tz = lubridate::tz(from)))
   duration <- duration_unit(units)(num)
   num_seconds <- as.double(duration)
   seq_len <- time_seq_len(from, to, setnames(list(num),
@@ -346,7 +392,7 @@ period_seq_v3 <- function(from, to, units, num = 1,
   period_dt <- data.table::data.table(g = g_seq, from = from, by = by,
                                       key = "g")
   period_dt[, list("time" = time_add(get("from"),
-                                     periods = setnames(get("by"), unit),
+                                     periods = setnames(as.list(get("by")), unit),
                                      roll_month = roll_month,
                                      roll_dst = roll_dst)),
             keyby = "g"][["time"]]
@@ -427,11 +473,8 @@ period_seq_v2 <- function(from, to, units, num = 1,
 }
 # Base sequence vectorized over from and to
 seq_v <- function(from, to, by = 1){
-  seq_len <- time_seq_len(from, to,
-                           by = by)
-  sequence2(seq_len,
-            from = from,
-            by = by)
+  seq_len <- time_seq_len(from, to, by = by)
+  sequence2(seq_len, from = from, by = by)
 }
 # Like sequence() but slower and works with decimal numbers
 # Weirdly enough sequence() seems less precise than this?

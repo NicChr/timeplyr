@@ -7,9 +7,9 @@
 time_diff(x, y, by, type = c("auto", "duration", "period"), as_period = FALSE)
 }
 \arguments{
-\item{x}{Start time.}
+\item{x}{Start datetime.}
 
-\item{y}{end time.}
+\item{y}{End date or datetime.}
 
 \item{by}{Argument to expand and summarise time series.
 If \code{by} is \code{NULL} then a heuristic will try and estimate the highest
@@ -42,4 +42,15 @@ then lubridate arithmetic is used, otherwise base R arithmetic is used.
 
 Some more exotic time units such as quarters, fortnights, etc
 can be specified.
+}
+\examples{
+library(timeplyr)
+library(lubridate)
+time_diff(today(), today() + days(10),
+          by = "days")
+time_diff(today(), today() + days(0:100),
+          by = "days")
+time_diff(today(), today() + days(100),
+          by = list("days" = 1:100))
+time_diff(1, 1 + 0:100, by = 3)
 }
