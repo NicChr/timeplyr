@@ -54,4 +54,49 @@ testthat::test_that("General tests", {
                    keep_class = FALSE)
   testthat::expect_true(nrow(dplyr::anti_join(res1, res3)) == 0L)
   testthat::expect_true(nrow(dplyr::anti_join(res3, res1)) == 0L)
+
+  # Intervals
+  testthat::expect_equal(
+    flights %>%
+      time_summarise(time = time_hour, by = "2 weeks",
+                 include_interval = TRUE, seq_type = "period") %>%
+      dplyr::mutate(n_days = interval / lubridate::days(1)) %>%
+      fcount(n_days),
+    dplyr::tibble(n_days = c(0.75, 14),
+                  n = c(1, 26))
+  )
+  testthat::expect_equal(
+    flights %>%
+      time_summarise(time = time_hour, by = "hour",
+                 include_interval = TRUE) %>%
+      dplyr::mutate(n_hrs = interval / lubridate::dhours(1)) %>%
+      fcount(n_hrs),
+    dplyr::tibble(n_hrs = c(0, 1),
+                  n = c(1, 6935))
+  )
+  testthat::expect_identical(
+    flights %>%
+      time_summarise(time = time_hour, by = "3.5 hours", include_interval = TRUE) %>%
+      dplyr::filter(interval / duration_unit("hours")(1) > 3.5) %>%
+      nrow(),
+    0L
+  )
+  testthat::expect_identical(
+    flights %>%
+      time_summarise(time = time_hour,
+                 include_interval = TRUE, by = "3.5 hours") %>%
+      fcount(n_hrs = interval/ duration_unit("hours")(1)),
+    dplyr::tibble(n_hrs = c(0.5, 3.5),
+                  n = c(1L, 2242L))
+  )
+  testthat::expect_equal(
+    flights %>%
+      time_summarise(time = time_hour,
+                 include_interval = TRUE, by = "3.5 weeks",
+                 seq_type = "duration") %>%
+      fcount(n_hrs = round(interval/ duration_unit("weeks")(1),
+                           2)),
+    dplyr::tibble(n_hrs = c(3.11, 3.5),
+                  n = c(1L, 14L))
+  )
 })

@@ -82,19 +82,21 @@ testthat::test_that("time expand", {
                                           floor_date = TRUE),
                     tidyr::crossing(origin, dest))
   )
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights2 %>%
-      time_expand(time = across(time_hour, lubridate::as_date), .by = c(origin, dest),
+      dplyr::mutate(date = lubridate::as_date(time_hour)) %>%
+      time_expand(time = across(date, .names = "time_hour"), .by = c(origin, dest),
                   by = "2 week",
                   floor_date = TRUE),
     flights2 %>%
+      dplyr::mutate(date = lubridate::as_date(time_hour)) %>%
       dplyr::group_by(origin, dest) %>%
-      tidyr::expand(time_hour = time_span(lubridate::as_date(time_hour),
+      tidyr::expand(time_hour = time_span(date,
                                           by = "2 week",
                                           floor_date = TRUE)) %>%
       safe_ungroup()
   )
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights2 %>%
       dplyr::group_by(origin, dest) %>%
       time_expand(time = time_hour, by = "2 week",
@@ -105,14 +107,16 @@ testthat::test_that("time expand", {
                                           floor_date = TRUE,
                                           seq_type = "duration"))
   )
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights2 %>%
-      dplyr::group_by(origin, dest) %>%
-      time_expand(time = across(time_hour, lubridate::as_date), by = "2 week",
+      dplyr::mutate(date = lubridate::as_date(time_hour)) %>%
+      dplyr::group_by(dest) %>%
+      time_expand(time = date, by = "2 week",
                   floor_date = TRUE, seq_type = "period"),
     flights2 %>%
-      dplyr::group_by(origin, dest) %>%
-      tidyr::expand(time_hour = time_span(lubridate::as_date(time_hour), by = "2 week",
+      dplyr::mutate(date = lubridate::as_date(time_hour)) %>%
+      dplyr::group_by(dest) %>%
+      tidyr::expand(date = time_span(date, by = "2 week",
                                           floor_date = TRUE,
                                           seq_type = "period"))
   )
@@ -156,12 +160,15 @@ testthat::test_that("time expand", {
     dplyr::distinct(origin, dest, tailnum, min, max)
   base_res <- flights %>%
     dplyr::mutate(date = lubridate::as_date(time_hour)) %>%
-    dplyr::group_by(origin, dest, tailnum) %>%
-    dplyr::summarise(min = min(date),
-                     max = max(date)) %>%
-    safe_ungroup()
+    add_group_id(origin, dest, tailnum) %>%
+    dplyr::arrange(group_id) %>%
+    dplyr::mutate(min = gmin(date, g = group_id),
+                  max = gmax(date, g = group_id)) %>%
+    dplyr::distinct(origin, dest, tailnum, min, max)
+
   testthat::expect_identical(grouped_res %>%
-                               dplyr::select(-max), base_res %>%
+                               dplyr::select(-max),
+                             base_res %>%
                                dplyr::select(-max))
   testthat::expect_true(all(time_diff(grouped_res$max, base_res$max,
                                       by = "days", type = "duration") <= 7))

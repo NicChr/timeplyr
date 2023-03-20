@@ -325,9 +325,17 @@ time_count <- function(data, ..., time = NULL, by = NULL,
           which_groups_missed <- which(ts_data[[grp_nm]] %in% time_missed_df[[grp_nm]])
           to_agg <- collapse::ffirst(ts_data[[to_nm]][which_groups_missed],
                                      g = ts_data[[grp_nm]][which_groups_missed])
-          time_missed_df[[int_nm]] <- time_seq_interval(time_missed_df[[time_var]],
-                                                        g = time_missed_df[[grp_nm]],
-                                                        to = to_agg)
+          # which_time_seq_rows <- which(time_expanded[[grp_nm]] %in% time_missed_df[[grp_nm]])
+
+          time_seq_missed <- which(time_expanded[[grp_nm]] %in% time_missed_df[[grp_nm]])
+          time_seq_int <- time_seq_interval(time_expanded[[time_var]][time_seq_missed],
+                                            g = time_expanded[[grp_nm]][time_seq_missed],
+                                            to = to_agg)
+          time_seq_missed_df <- time_expanded %>%
+            dplyr::as_tibble() %>%
+            dplyr::mutate(.row.id.temp = dplyr::row_number()) %>%
+            dplyr::inner_join(time_missed_df, by = c(time_var, grp_nm))
+          time_missed_df[[int_nm]] <- time_seq_int[time_seq_missed_df[[".row.id.temp"]]]
           int_df <- dplyr::bind_rows(int_df, time_missed_df)
           int_df <- dplyr::arrange(int_df, across(all_of(c(grp_nm, time_var))))
         } else {

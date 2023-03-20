@@ -109,6 +109,12 @@ testthat::test_that("Tests for time_countv", {
     dplyr::select(x, interval, n)
   testthat::expect_true(nrow(dplyr::anti_join(res9a, res9b)) == 0L)
   testthat::expect_true(nrow(dplyr::anti_join(res9b, res9a)) == 0L)
+  testthat::expect_identical(
+    time_countv(flights2$time_hour, by = "3.5 hours", include_interval = TRUE) %>%
+      dplyr::filter(interval / duration_unit("hours")(1) > 3.5) %>%
+      nrow(),
+    0L
+  )
   # Unfinished
   res10 <- time_countv(flights2$time_hour, by = "month",
                        from = from, to = to, sort = FALSE,

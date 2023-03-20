@@ -70,6 +70,31 @@ testthat::test_that("Compare to tidyr", {
     dplyr::tibble(n_hrs = c(0, 1),
                   n = c(1, 8754))
   )
+  testthat::expect_identical(
+    flights %>%
+      time_count(time = time_hour, by = "3.5 hours", include_interval = TRUE) %>%
+      dplyr::filter(interval / duration_unit("hours")(1) > 3.5) %>%
+      nrow(),
+    0L
+  )
+  testthat::expect_identical(
+    flights %>%
+      time_count(time = time_hour,
+                 include_interval = TRUE, by = "3.5 hours") %>%
+    fcount(n_hrs = interval/ duration_unit("hours")(1)),
+    dplyr::tibble(n_hrs = c(0.5, 3.5),
+                  n = c(1L, 2501L))
+  )
+  testthat::expect_equal(
+    flights %>%
+      time_count(time = time_hour,
+                 include_interval = TRUE, by = "3.5 weeks",
+                 seq_type = "duration") %>%
+      fcount(n_hrs = round(interval/ duration_unit("weeks")(1),
+                           2)),
+    dplyr::tibble(n_hrs = c(3.11, 3.5),
+                  n = c(1L, 14L))
+  )
   # Pivotting wide
   testthat::expect_identical(
     flights %>%
