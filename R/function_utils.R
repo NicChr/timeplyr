@@ -586,27 +586,35 @@ seq_ones <- function(length){
 }
 # Grouped Empirical distribution function
 # Like dplyr::cume_dist() but works with groups.
-edf <- function(x, g = NULL, na.rm = TRUE){
-  # Order x first
-  x_order <- radix_order(x)
-  x <- x[x_order]
-  ones <- seq_ones(length(x))
-  if (is.null(g)){
-    g <- as.integer(ones)
-  } else {
-    g <- g[x_order]
-  }
-  grp <- collapse::GRP(g, sort = FALSE,
-                     na.last = TRUE, return.groups = FALSE,
-                     return.order = FALSE,
-                     call = FALSE)
-  grp_n <- collapse::GRPN(grp, expand = TRUE)
-  run_sum <- collapse::fcumsum(ones, na.rm = na.rm,
-                               check.o = TRUE,
-                               g = grp)
-  out <- run_sum / grp_n
-  out[radix_order(x_order)]
-}
+# edf <- function(x, g = NULL, na.rm = TRUE){
+#   # Order x first
+#   x_order <- radix_order(x)
+#   x <- x[x_order]
+#   if (is.null(g)){
+#     g <- seq_ones(length(x))
+#   } else {
+#     g <- g[x_order]
+#   }
+#   grp1 <- collapse::GRP(g, sort = FALSE,
+#                      na.last = TRUE, return.groups = TRUE,
+#                      return.order = FALSE,
+#                      call = TRUE)
+#   grp2 <- collapse::GRP(x, sort = FALSE,
+#                        na.last = TRUE, return.groups = TRUE,
+#                        return.order = FALSE,
+#                        call = TRUE)
+#   grp_n1 <- collapse::GRPN(grp1, expand = TRUE)
+#   grp_n2 <- collapse::GRPN(grp2, expand = TRUE)
+#   if (length(grp2[["group.starts"]]) > 0L){
+#     grp_n2[-grp2[["group.starts"]]] <- 0
+#   }
+#   run_sum <- collapse::fcumsum(grp_n2,
+#                                na.rm = na.rm,
+#                                check.o = TRUE,
+#                                g = grp1)
+#   out <- run_sum / grp_n1
+#   out[radix_order(x_order)]
+# }
 format_number <- function(x, digits = NULL,
                           rounding = c("decimal", "signif"), round_half_up = TRUE,
                           scientific = 10, drop_trailing_zeros = TRUE, drop_leading_zeros = FALSE,

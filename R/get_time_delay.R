@@ -192,8 +192,10 @@ get_time_delay <- function(data, origin, end, by = "day",
   }
   else {
     out[, ("delay_ceiling") := ceiling(get(delay_nm))]
-    out[, ("edf") := edf(get("delay_ceiling"),
-                         g = get(grp_nm))]
+    out[, ("edf") := dplyr::cume_dist(get("delay_ceiling")),
+        by = grp_nm]
+    # out[, ("edf") := edf(get("delay_ceiling"),
+    #                      g = get(grp_nm))]
     delay_tbl <- out %>%
       fcount(across(all_of(c(grp_nm, group_vars, "delay_ceiling", "edf"))),
              name = "n")
