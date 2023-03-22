@@ -4,14 +4,12 @@
 \alias{edf}
 \title{Grouped empirical cumulative distribution function applied to data}
 \usage{
-edf(x, g = NULL, na.rm = TRUE)
+edf(x, g = NULL)
 }
 \arguments{
 \item{x}{Numeric vector.}
 
 \item{g}{Nuemric vector of group IDs.}
-
-\item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
 }
 \description{
 Like \code{dplyr::cume_dist(x)} and \code{ecdf(x)(x)}

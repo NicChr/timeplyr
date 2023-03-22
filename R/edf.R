@@ -4,7 +4,6 @@
 #' but with added grouping functionality.
 #' @param x Numeric vector.
 #' @param g Nuemric vector of group IDs.
-#' @param na.rm Should `NA` values be removed? Default is `TRUE`.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -25,47 +24,55 @@
 #' edf2 <- edf(x, g = g)
 #' all.equal(edf1, edf2)
 #' @export
-edf <- function(x, g = NULL, na.rm = TRUE){
+edf <- function(x, g = NULL){
+  n_na <- sum(is.na(x))
   if (is.null(g)){
     x_order <- radix_order(x)
     x <- x[x_order]
-    grpn <- collapse::GRPN(x, expand = TRUE)
-    grpn[collapse::fdiff(x, n = 1L) == 0] <- 0L
-    run_sum <- collapse::fcumsum(grpn,
-                                 na.rm = na.rm,
-                                 check.o = FALSE)
+    if (n_na > 0) x <- x[seq_len(length(x) - n_na)]
+    grpn <- collapse::GRPN(x, expand = FALSE)
+    run_sum <- rep(collapse::fcumsum(grpn, na.rm = FALSE),
+                   times = grpn)
     out <- run_sum / length(x)
+    if (n_na > 0) out <- c(out, rep_len(NA_real_, n_na))
     out <- out[radix_order(x_order)]
   } else {
     # Create group IDs
     df <- data.table::data.table(x, g)
     df[, ("g1") := group_id(df, all_of("x"), sort = TRUE,
                             as_qg = FALSE)]
-    df[, ("g2") := group_id(df, all_of("g"), sort = FALSE,
-                            as_qg = FALSE)]
-    df[, ("g3") := group_id(df, all_of(c("g2", "g1")),
+    # df[, ("g2") := group_id(df, all_of("g"), sort = FALSE,
+    #                         as_qg = FALSE)]
+    # df[, ("g3") := group_id(df, all_of(c("g2", "g1")),
+    #                         sort = TRUE, as_qg = FALSE)]
+    df[, ("g3") := group_id(df, all_of(c("g", "g1")),
                             sort = TRUE, as_qg = FALSE)]
+    # Original order
     df[, ("id") := seq_len(.N)]
+    # sort_id <- seq_len(nrow2(df))
+    # Order if NAs are shifted to the end
+    which_na <- which(is.na(x))
+    df[, ("id") := data.table::fifelse(is.na(get("x")), NA_integer_,
+                                       get("id"))]
     # Sort data in ascending order
     data.table::setorderv(df, cols = "g3")
+    if (n_na > 0) df <- df[!is.na(get("x"))]
     # Group sizes
-    grp_n2 <- collapse::GRPN(df[["g2"]], expand = TRUE)
-    # Size of each run-segment within each group
-    grp_n3 <- collapse::GRPN(df[["g3"]], expand = TRUE)
-    # Want to retain the numbers at the start of each run-segment
-    # To then create a running total
-    if (nrow2(df) > 0L){
-      grp3_diff <- collapse::fdiff(df[["g3"]], n = 1L)
-      collapse::setv(grp_n3, which(grp3_diff == 0L), 0L, vind1 = TRUE)
-    }
-    # grp_n3[grp3_diff == 0L] <- 0L
-    run_sum <- collapse::fcumsum(grp_n3,
-                                 na.rm = na.rm,
-                                 check.o = FALSE,
-                                 g = df[["g2"]])
+    grp_n2 <- collapse::GRPN(df[["g"]], expand = TRUE)
+    grp_n3 <- collapse::GRPN(df[["g3"]], expand = FALSE)
+    run_sum <- rep(collapse::fcumsum(grp_n3, na.rm = FALSE,
+                                      g = collapse::funique(df,
+                                                            cols = "g3")[["g"]]),
+                    grp_n3)
     out <- run_sum / grp_n2
     # Return using input order
-    out <- out[radix_order(df[["id"]])]
+    if (n_na > 0){
+      out <- c(out, rep_len(NA_real_, n_na))
+      id <- c(df[["id"]], which_na)
+    } else {
+      id <- df[["id"]]
+    }
+    out <- out[radix_order(id)]
   }
   out
 }
