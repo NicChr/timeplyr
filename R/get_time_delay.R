@@ -186,11 +186,10 @@ get_time_delay <- function(data, origin, end, by = "day",
   max_delay <- max_delay[!is.infinite(max_delay)]
   if (length(min_delay) == 0 || length(max_delay) == 0){
     delay_tbl <- dplyr::tibble(delay = numeric(0),
-                               ecdf = numeric(0),
+                               edf = numeric(0),
                                n = integer(0),
                                cumulative = integer(0))
-  }
-  else {
+  } else {
     out[, ("delay_ceiling") := ceiling(get(delay_nm))]
     out[, ("edf") := dplyr::cume_dist(get("delay_ceiling")),
         by = grp_nm]
