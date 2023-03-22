@@ -177,7 +177,7 @@ time_breaks <- function(x, n = 5, by = NULL,
                                 seq_type = seq_type)
     unit_multiplier <- 1
   }
-  if (n_breaks > n && n_breaks < n_unique){
+  if (n_breaks > n && n < n_unique){
     unit_multiplier <- (n_breaks / n)
     if (!n_at_most){
       unit_multiplier <- floor(unit_multiplier)

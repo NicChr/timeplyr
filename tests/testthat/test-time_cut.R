@@ -45,6 +45,9 @@ testthat::test_that("time breaks", {
                                          to = end2),
                              time_span(x, by = "month",
                                        to = end2))
+  testthat::expect_identical(time_breaks(x, n = Inf,
+                                      n_at_most = FALSE),
+                             time_span(x, by = "hour"))
 })
 
 testthat::test_that("time cut", {
