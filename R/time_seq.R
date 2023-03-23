@@ -291,7 +291,8 @@ ftseq <- function(from, to, units, num = 1,
     } else {
       unit <- substr(units, 1L, nchar(units) -1L)
       out <- period_seq(from, out_length, unit,
-                        num = num)
+                        num = num,
+                        roll_month = roll_month, roll_dst = roll_dst)
     }
     if (length(tz) > 0 && lubridate::tz(out) != tz){
       out <- lubridate::with_tz(out, tzone = tz)
@@ -302,41 +303,6 @@ ftseq <- function(from, to, units, num = 1,
   }
   out
 }
-# ftseq <- function(from, to, units, num = 1,
-#                   floor_date = FALSE,
-#                   week_start = getOption("lubridate.week.start", 1),
-#                   seq_type = c("auto", "duration", "period"),
-#                   roll_month = "preday", roll_dst = "pre",
-#                   tz = lubridate::tz(from)){
-#   stopifnot(length(num) == 1L)
-#   stopifnot(length(units) == 1L)
-#   from_to <- time_c2(from, to)
-#   from <- from_to[[1L]]
-#   to <- from_to[[2L]]
-#   if (length(from) > 0L && length(to) > 0L && to < from){
-#     num <- -abs(num)
-#   }
-#   # Ensure that out-of-bounds sequence isn't returned
-#   if (is_time(from) && is_time(to)){
-#     time_seq(from = from, to = to,
-#              by = setnames(list(num), units),
-#              week_start = week_start,
-#              floor_date = floor_date,
-#              seq_type = seq_type,
-#              roll_month = roll_month,
-#              roll_dst = roll_dst,
-#              tz = tz)
-#   } else {
-#     time_seq(from = from, to = to,
-#              by = num,
-#              week_start = week_start,
-#              floor_date = floor_date,
-#              seq_type = seq_type,
-#              roll_month = roll_month,
-#              roll_dst = roll_dst,
-#              tz = tz)
-#   }
-# }
 # This is purely for speed purposes
 duration_seq <- function(from, length, duration){
   from <- time_cast(from, lubridate::POSIXct(0, tz = lubridate::tz(from)))
@@ -351,7 +317,7 @@ period_seq <- function(from, length, unit, num = 1,
   if (length(from) == 0L) return(from)
   int_seq <- seq_len(length) - 1L
   if (length == 0L) from <- from[0L]
-  timechange::time_add(from, periods = setnames(list(num * int_seq),
+  time_add(from, periods = setnames(list(num * int_seq),
                                                        unit),
                        roll_month = roll_month, roll_dst = roll_dst)
 }
@@ -386,7 +352,7 @@ period_seq_v3 <- function(from, to, units, num = 1,
   g <- rep(g_seq, times = seq_len)
   num <- rep(num, times = seq_len)
   # Arithmetic
-  g_add <- collapse::fcumsum(rep_len(1, out_len),
+  g_add <- collapse::fcumsum(seq_ones(out_len),
                              check.o = FALSE,
                              na.rm = FALSE,
                              g = g) - 1
@@ -414,7 +380,7 @@ period_seq_v <- function(from, to, units, num = 1,
   }
   period_df <- data.table::as.data.table(mget(c("from", "num", "seq_len")))
   period_df[, ("row_id") := seq_len(.N)]
-  # We want to eliminate unecessary grouped calculations
+  # We want to eliminate unnecessary grouped calculations
   # To do so we need to collapse identical groups and just repeat their sequences based on number of duplicates
   period_df[, ("g") := group_id(period_df,
                                 .by = all_of(c("from", "num", "seq_len")),
@@ -436,7 +402,7 @@ period_seq_v <- function(from, to, units, num = 1,
   g <- rep(g_seq, times = period_df[["seq_len"]])
   num <- rep(period_df[["num"]], times = period_df[["seq_len"]])
   # Arithmetic
-  g_add <- collapse::fcumsum(rep_len(1, sum(period_df[["seq_len"]])),
+  g_add <- collapse::fcumsum(seq_ones(sum(period_df[["seq_len"]])),
                              check.o = FALSE,
                              na.rm = FALSE,
                              g = g) - 1
@@ -508,7 +474,7 @@ sequence2 <- function(nvec, from = 1, by = 1){
   from + (g_add * by)
 }
 # Alternative base R only extension of sequence() that handles decimals
-# sequence3 <- function(nvec, from, by = 1){
+# sequence3 <- function(nvec, from = 1, by = 1){
 #   out_len <- sum(nvec)
 #   g_len <- length(nvec)
 #   # Recycle
