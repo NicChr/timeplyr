@@ -330,7 +330,7 @@ duration_seq_v <- function(from, to, units, num = 1){
   seq_len <- time_seq_len(from, to, setnames(list(num),
                                              units),
                           seq_type = "duration")
-  time_seq <- sequence2(seq_len,
+  time_seq <- sequence3(seq_len,
                         from = as.double(from),
                         by = num_seconds)
   time_cast(time_seq, from)
@@ -444,15 +444,15 @@ period_seq_v2 <- function(from, to, units, num = 1,
 # Base sequence vectorized over from and to
 seq_v <- function(from, to, by = 1){
   seq_len <- time_seq_len(from, to, by = by)
-  sequence2(seq_len, from = from, by = by)
+  sequence3(seq_len, from = from, by = by)
 }
 # Like sequence() but slower and works with decimal numbers
 # Weirdly enough sequence() seems less precise than this?
 # example:
 # x <- Sys.time()
 # seq.POSIXt(x, x + dseconds(112), by = 1) - time_cast(sequence(113, from = as.double(x), by =1 ), x)
-# seq.POSIXt(x, x + dseconds(112), by = 1) - time_cast(sequence2(113, from = as.double(x), by =1 ), x)
-sequence2 <- function(nvec, from = 1, by = 1){
+# seq.POSIXt(x, x + dseconds(112), by = 1) - time_cast(sequence3(113, from = as.double(x), by =1 ), x)
+sequence3 <- function(nvec, from = 1, by = 1){
   out_len <- sum(nvec)
   g_len <- length(nvec)
   # Recycle
@@ -473,20 +473,6 @@ sequence2 <- function(nvec, from = 1, by = 1){
   }
   from + (g_add * by)
 }
-# Alternative base R only extension of sequence() that handles decimals
-# sequence3 <- function(nvec, from = 1, by = 1){
-#   out_len <- sum(nvec)
-#   g_len <- length(nvec)
-#   # Recycle
-#   by <- rep_len(by, g_len)
-#   from <- rep_len(from, g_len)
-#   # Expand
-#   by <- rep(by, times = nvec)
-#   from <- rep(from, times = nvec)
-#   # Arithmetic
-#   g_add <- sequence(nvec, from = 1L, by = 1L) - 1L
-#   from + (g_add * by)
-# }
 # # Like sequence() but excepts end-point argument
 # sequence4 <- function(from, to, by = 1){
 #   seq_len <- time_seq_len(from, to,

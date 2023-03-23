@@ -147,9 +147,17 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
       # Cast common types/tz
       time_tbl[, (from_nm) := time_cast(get(from_nm), out[[time_var]])]
     }
-    if (floor_date) time_tbl[, (from_nm) := time_floor(get(from_nm),
-                                                       by_unit,
-                                                       week_start = week_start)]
+    if (floor_date){
+      if (is_time(out[[time_var]])){
+        time_tbl[, (from_nm) := time_floor(get(from_nm),
+                                           by_unit,
+                                           week_start = week_start)]
+      } else {
+        time_tbl[, (from_nm) := time_floor(get(from_nm),
+                                           by_n,
+                                           week_start = week_start)]
+      }
+    }
     to_nm <- new_var_nm(out, ".to")
     if (length(to_var) == 0L){
       time_tbl[, (to_nm) := collapse::fmax(out[[time_var]],

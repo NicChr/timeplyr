@@ -106,46 +106,6 @@ unit_parse <- function(x){
               "scale" = scale)
   out
 }
-# This function brings together all the above unit_ small helpers
-# It tries to first match the unit to an existing unit
-# If it can't, then it uses regex to separate the numbers
-# from the words
-# And also scales exotic units like quarters appropriately
-unit_guess <- function(x){
-  # If numeric then just return this..
-  if (is.numeric(x)){
-    out <- list("unit" = "numeric",
-                "num" = x,
-                "scale" = 1)
-  } else if (is.list(x)){
-    # If it's a list, string match but no parse
-    out <- unit_list_match(x)
-  } else {
-    # Try matching first as it's faster
-    unit <- unit_match(x)
-    # If that doesn't work finally try parsing
-    if (is.na(unit)){
-      out <- unit_parse(x)
-    } else {
-      num <- 1
-      scale <- 1
-      # If the unit is something exotic,
-      # The num needs to be scaled correctly
-      if (unit %in% .extra_time_units){
-        if (unit %in% .extra_time_units){
-          exotic_info <- convert_exotic_units(unit)
-          scale <- exotic_info[["scale"]]
-          unit <- exotic_info[["unit"]]
-        }
-      }
-      # num <- num * scale
-      out <- list("unit" = unit,
-                  "num" = num,
-                  "scale" = scale)
-    }
-  }
-  out
-}
 # Creates interval even using num
 time_interval <- function(from, to){
   if (is_time(from) || is_time(to)){
