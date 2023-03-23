@@ -18,6 +18,10 @@ testthat::test_that("Dates", {
                                       seq_type = "duration"),
                              seq(lubridate::as_datetime(start2),
                                  lubridate::as_datetime(end2), length.out = 10))
+  # Test for month arithmetic when to is at the end of a month
+  # This may be unexpected but at the moment, emphasis is always placed on a start point of any seq
+  testthat::expect_identical(time_seq(to = lubridate::ymd("1946-01-31"), length.out = 2, by = "9 months"),
+                             lubridate::ymd(c("1945-04-30", "1946-01-30")))
 
   # Very basic tests
   ### DATES ###

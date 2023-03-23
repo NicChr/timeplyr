@@ -24,9 +24,3 @@ edf1 <- dplyr::tibble(x, g) %>%
 edf2 <- edf(x, g = g)
 testthat::expect_equal(edf1, edf2)
 })
-
-x <- sample(seq(-10, 10, 0.5), size = 10^7, replace = TRUE)
-g <- sample(1:10^6, size = 10^7, replace = TRUE)
-edf(x)
-library(dplyr)
-cume_dist(x)

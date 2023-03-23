@@ -165,11 +165,9 @@ time_seq <- function(from, to, by, length.out = NULL,
     if (!missing_to) to <- convert_common_dates(to)
     # Make from and to most granular data type between them
     if (from_and_to && is_date(from) && is_datetime(to)){
-      # from <- lubridate::as_datetime(from, tz = tz)
       from <- time_cast(from, lubridate::POSIXct(0, tz = tz))
     }
     if (from_and_to && is_date(to) && is_datetime(from)){
-      # to <- lubridate::as_datetime(to, tz = tz)
       to <- time_cast(to, lubridate::POSIXct(0, tz = tz))
     }
     # From, to, length, no by
@@ -197,7 +195,13 @@ time_seq <- function(from, to, by, length.out = NULL,
     if (seq_type == "auto") seq_type <- guess_seq_type(by_unit)
     ### After this we will always have both length and by
     if (missing_from){
-      from <- to - (time_unit * length.out) + time_unit
+      if (seq_type == "period"){
+        from <- time_add(to, periods = setnames(list(-(by_n * length.out) + by_n),
+                                              substr(by_unit, 1L, nchar(by_unit) -1L)),
+                           roll_month = roll_month, roll_dst = roll_dst)
+      } else {
+        from <- to - (time_unit * length.out) + time_unit
+      }
       if (floor_date) from <- time_floor(from, by = by_unit,
                                          week_start = week_start)
     }
