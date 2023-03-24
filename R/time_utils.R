@@ -184,7 +184,9 @@ time_seq_levels <- function(x, to, g = NULL, fmt = NULL){
 time_diff_gcd <- function(x, is_sorted = FALSE){
   x <- as.double(x)
   x <- collapse::funique(x, sort = !is_sorted)
-  if (length(x) < 2){
+  if (length(x) == 0L){
+    gcd_diff <- numeric(0)
+  } else if (length(x) < 2){
     gcd_diff <- 1
   } else {
     y_diff <- collapse::fdiff(x,
@@ -196,8 +198,8 @@ time_diff_gcd <- function(x, is_sorted = FALSE){
     # gcd_diff <- Reduce(gcd, y_diff)
     gcd_diff <- collapse::vgcd(y_diff)
     if (!isTRUE(gcd_diff >= 1)) gcd_diff <- 1
-    gcd_diff
   }
+  gcd_diff
 }
 time_granularity <- function(x, is_sorted = FALSE, msg = TRUE){
   gcd_diff <- time_diff_gcd(x, is_sorted = is_sorted)
@@ -211,7 +213,7 @@ time_granularity <- function(x, is_sorted = FALSE, msg = TRUE){
     scale <- convert_seconds[["scale"]]
     granularity <- convert_seconds[["unit"]]
     unit <- "seconds"
-    num_and_unit <- paste(gcd_diff, unit, sep = " ")
+    num_and_unit <- stringr::str_c(gcd_diff, unit, sep = " ")
   } else {
     granularity <- "numeric unit(s)"
     scale <- 1
@@ -228,6 +230,8 @@ time_granularity <- function(x, is_sorted = FALSE, msg = TRUE){
 # Converts seconds to duration unit
 # Scale is in comparison to seconds
 seconds_to_unit <- function(x){
+  if (length(x) == 0L) return(list("unit" = character(0),
+                                   "scale" = numeric(0)))
   if (x >= 0 && x < 1/1000/1000/1000){
     unit <- "picoseconds"
     scale <- 1/1000/1000/1000/1000
@@ -380,33 +384,62 @@ time_by <- function(from, to, length, seq_type){
 time_unit_info <- function(time_unit){
   tclass <- class(time_unit)
   if (tclass == "Duration"){
-    setnames(as.list(as.double(time_unit)),
-             rep_len("second", length(time_unit)))
+    list("second" = as.double(time_unit))
   } else if (tclass == "Period"){
-    tattr <- attributes(time_unit)
-    lubridate_units <- intersect(names(tattr), substr(.period_units, 1L, nchar(.period_units) -1L))
-    tattr <- tattr[lubridate_units]
-    m <- matrix(unlist(tattr, use.names = FALSE), nrow = length(time_unit),
-                ncol = length(lubridate_units), byrow = FALSE)
-    m <- cbind(lubridate::second(time_unit), m)
-    colnames(m) <- c("second", lubridate_units)
-    which_zero <- which(rowSums(m) == 0)
-    # Replace empty rows with one temporarily..
-    m[which_zero, 1] <- 1
-    keep <- which(t(m) != 0) %% 6
-    keep[keep == 0] <- 6 # If exactly divisible, then these are years.
-    # Replace the zero rows with zeroes again
-    m[which_zero, 1] <- 0
-    keep[is.na(keep)] <- 1L # Keep seconds if NA
-    keep_m <- matrix(c(seq_len(nrow(m)), keep),
-                     byrow = FALSE, ncol = 2L)
-    out <- m[keep_m]
-    out_nms <- c("second", lubridate_units)[keep]
-    out <- setnames(as.list(out), out_nms)
-    out
+    out <- attributes(unclass(time_unit))
+    seconds <- lubridate::second(time_unit)
+    out[["second"]] <- seconds
+    sum_rng <- purrr::map(out, ~ sum(abs(collapse::frange(.x, na.rm = TRUE))))
+    keep <- purrr::map_lgl(sum_rng, ~ isTRUE(.x > 0))
+    if (sum(keep) == 0){
+      out["second"]
+    } else {
+      out[keep]
+    }
+    # if (!any(keep, na.rm = TRUE)){
+    #   out["second"]
+    # } else {
+    #   out[keep]
+    # }
+    # periods <- c("second",
+    #              "minute",
+    #              "hour",
+    #              "day",
+    #              "month",
+    #              "year")
+    # out <- setnames(vector("list", length(periods)),
+    #                 periods)
+    # keep <- logical(length(periods))
+    # for (i in seq_along(periods)){
+    #   out[[i]] <- do.call(get(periods[[i]],
+    #                           asNamespace("lubridate")),
+    #                       list(time_unit))
+    #   keep[[i]] <- sum(abs(out[[i]])) > 0
+    # }
+    # out[keep]
+    # tattr <- attributes(time_unit)
+    # lubridate_units <- intersect(names(tattr), substr(.period_units, 1L, nchar(.period_units) -1L))
+    # tattr <- tattr[lubridate_units]
+    # m <- matrix(unlist(tattr, use.names = FALSE), nrow = length(time_unit),
+    #             ncol = length(lubridate_units), byrow = FALSE)
+    # m <- cbind(lubridate::second(time_unit), m)
+    # colnames(m) <- c("second", lubridate_units)
+    # which_zero <- which(rowSums(m) == 0)
+    # # Replace empty rows with one temporarily..
+    # m[which_zero, 1] <- 1
+    # keep <- which(t(m) != 0) %% 6
+    # keep[keep == 0] <- 6 # If exactly divisible, then these are years.
+    # # Replace the zero rows with zeroes again
+    # m[which_zero, 1] <- 0
+    # keep[is.na(keep)] <- 1L # Keep seconds if NA
+    # keep_m <- matrix(c(seq_len(nrow(m)), keep),
+    #                  byrow = FALSE, ncol = 2L)
+    # out <- m[keep_m]
+    # out_nms <- c("second", lubridate_units)[keep]
+    # out <- setnames(as.list(out), out_nms)
+    # out
   } else {
-    setnames(as.list(as.double(time_unit)),
-             rep_len("numeric", length(time_unit)))
+    list("numeric" = as.double(time_unit))
   }
 }
 is_date_or_utc <- function(...){
@@ -535,7 +568,7 @@ time_c <- function(...){
 # and coerces timezone of x to template timezone
 time_cast <- function(x, template){
   if (is.null(x) || is.null(template)) return(x)
-  stopifnot(is_time_or_num(x))
+  # stopifnot(is_time_or_num(x))
   if (is_datetime(template) && !is_datetime(x)){
     lubridate::with_tz(lubridate::as_datetime(x),
                        tzone = lubridate::tz(template))
@@ -675,7 +708,9 @@ needs_aggregation <- function(by, granularity){
                                                 type = "duration")(
       granularity_unit_info[["num"]] * granularity_unit_info[["scale"]]))
 
-    if (granularity_seconds < by_seconds){
+    if (length(granularity_seconds) > 0L &&
+        length(by_seconds) > 0L &&
+        granularity_seconds < by_seconds){
       out <- TRUE
     } else {
       out <- FALSE

@@ -9,7 +9,7 @@ edf(x, g = NULL)
 \arguments{
 \item{x}{Numeric vector.}
 
-\item{g}{Nuemric vector of group IDs.}
+\item{g}{Numeric vector of group IDs.}
 }
 \description{
 Like \code{dplyr::cume_dist(x)} and \code{ecdf(x)(x)}

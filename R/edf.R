@@ -3,7 +3,7 @@
 #' @description Like `dplyr::cume_dist(x)` and `ecdf(x)(x)`
 #' but with added grouping functionality.
 #' @param x Numeric vector.
-#' @param g Nuemric vector of group IDs.
+#' @param g Numeric vector of group IDs.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)

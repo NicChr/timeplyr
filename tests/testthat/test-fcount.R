@@ -16,18 +16,18 @@ testthat::test_that("Compare to dplyr", {
                              iris %>% fcount())
   testthat::expect_identical(iris %>%
                                dplyr::group_by(Species) %>%
-                               dplyr::count(dplyr::across(dplyr::all_of("Species"))),
+                               dplyr::count(across(all_of("Species"))),
                              iris %>%
                                dplyr::group_by(Species) %>%
                                fcount())
-                               # fcount(dplyr::across(dplyr::all_of("Species"))))
+                               # fcount(across(all_of("Species"))))
   testthat::expect_identical(iris %>%
                                dplyr::group_by(Species) %>%
-                               dplyr::count(dplyr::across(dplyr::all_of(c("Species", "Sepal.Length")))),
+                               dplyr::count(across(all_of(c("Species", "Sepal.Length")))),
                              iris %>%
                                dplyr::group_by(Species) %>%
-                               fcount(dplyr::across(dplyr::all_of(c("Sepal.Length")))))
-                               # fcount(dplyr::across(dplyr::all_of(c("Species", "Sepal.Length")))))
+                               fcount(across(all_of(c("Sepal.Length")))))
+                               # fcount(across(all_of(c("Species", "Sepal.Length")))))
   testthat::expect_identical(iris %>%
                                dplyr::group_by(Species) %>%
                                dplyr::count(Species),
@@ -56,11 +56,11 @@ testthat::test_that("Compare to dplyr", {
                                fcount(Species))
   testthat::expect_identical(iris %>% dplyr::count(NA),
                              iris %>% fcount(NA))
-  testthat::expect_identical(iris %>% dplyr::count(dplyr::across(dplyr::everything())),
-                             iris %>% fcount(dplyr::across(dplyr::everything())))
-  testthat::expect_identical(iris %>% dplyr::count(dplyr::across(dplyr::everything()),
+  testthat::expect_identical(iris %>% dplyr::count(across(dplyr::everything())),
+                             iris %>% fcount(across(dplyr::everything())))
+  testthat::expect_identical(iris %>% dplyr::count(across(dplyr::everything()),
                                                    wt = weight),
-                             iris %>% fcount(dplyr::across(dplyr::everything()),
+                             iris %>% fcount(across(dplyr::everything()),
                                              wt = weight) %>%
                                dplyr::mutate(n = as.integer(n)))
   testthat::expect_identical(iris %>% dplyr::count(),
@@ -86,13 +86,13 @@ testthat::test_that("Compare to dplyr", {
   testthat::expect_identical(iris %>% dplyr::group_by(Species) %>% dplyr::count(Species),
                              iris %>% dplyr::group_by(Species) %>% fcount(Species))
   testthat::expect_identical(iris %>% dplyr::group_by(Species) %>%
-                               dplyr::count(dplyr::across(dplyr::all_of(c("Sepal.Length")))),
+                               dplyr::count(across(all_of(c("Sepal.Length")))),
                              iris %>% dplyr::group_by(Species) %>%
-                               fcount(dplyr::across(dplyr::all_of(c("Sepal.Length")))))
+                               fcount(across(all_of(c("Sepal.Length")))))
   testthat::expect_identical(iris %>% dplyr::group_by(Species) %>%
-                               dplyr::count(dplyr::across(dplyr::any_of(c("Species", "Sepal.Length")))),
+                               dplyr::count(across(dplyr::any_of(c("Species", "Sepal.Length")))),
                              iris %>% dplyr::group_by(Species) %>%
-                               fcount(dplyr::across(dplyr::any_of(c("Species", "Sepal.Length")))))
+                               fcount(across(dplyr::any_of(c("Species", "Sepal.Length")))))
   testthat::expect_identical(iris %>%
                                dplyr::count(as.character(Species)),
                              iris %>%
@@ -125,18 +125,18 @@ testthat::test_that("Compare to dplyr, add_count", {
                              iris %>% fadd_count())
   testthat::expect_identical(iris %>%
                                dplyr::group_by(Species) %>%
-                               dplyr::add_count(dplyr::across(dplyr::all_of("Species"))),
+                               dplyr::add_count(across(all_of("Species"))),
                              iris %>%
                                dplyr::group_by(Species) %>%
                                fadd_count())
-  # fadd_count(dplyr::across(dplyr::all_of("Species"))))
+  # fadd_count(across(all_of("Species"))))
   testthat::expect_identical(iris %>%
                                dplyr::group_by(Species) %>%
-                               dplyr::add_count(dplyr::across(dplyr::all_of(c("Species", "Sepal.Length")))),
+                               dplyr::add_count(across(all_of(c("Species", "Sepal.Length")))),
                              iris %>%
                                dplyr::group_by(Species) %>%
-                               fadd_count(dplyr::across(dplyr::all_of(c("Sepal.Length")))))
-  # fadd_count(dplyr::across(dplyr::all_of(c("Species", "Sepal.Length")))))
+                               fadd_count(across(all_of(c("Sepal.Length")))))
+  # fadd_count(across(all_of(c("Species", "Sepal.Length")))))
   testthat::expect_identical(iris %>%
                                dplyr::group_by(Species) %>%
                                dplyr::add_count(Species),
@@ -165,11 +165,11 @@ testthat::test_that("Compare to dplyr, add_count", {
                                fadd_count(Species))
   testthat::expect_identical(iris %>% dplyr::add_count(NA),
                              iris %>% fadd_count(NA))
-  testthat::expect_identical(iris %>% dplyr::add_count(dplyr::across(dplyr::everything())),
-                             iris %>% fadd_count(dplyr::across(dplyr::everything())))
-  testthat::expect_identical(iris %>% dplyr::add_count(dplyr::across(dplyr::everything()),
+  testthat::expect_identical(iris %>% dplyr::add_count(across(dplyr::everything())),
+                             iris %>% fadd_count(across(dplyr::everything())))
+  testthat::expect_identical(iris %>% dplyr::add_count(across(dplyr::everything()),
                                                    wt = weight),
-                             iris %>% fadd_count(dplyr::across(dplyr::everything()),
+                             iris %>% fadd_count(across(dplyr::everything()),
                                              wt = weight) %>%
                                dplyr::mutate(n = as.integer(n)))
   testthat::expect_identical(iris %>% dplyr::add_count(),
@@ -195,13 +195,13 @@ testthat::test_that("Compare to dplyr, add_count", {
   testthat::expect_identical(iris %>% dplyr::group_by(Species) %>% dplyr::add_count(Species),
                              iris %>% dplyr::group_by(Species) %>% fadd_count(Species))
   testthat::expect_identical(iris %>% dplyr::group_by(Species) %>%
-                               dplyr::add_count(dplyr::across(dplyr::all_of(c("Sepal.Length")))),
+                               dplyr::add_count(across(all_of(c("Sepal.Length")))),
                              iris %>% dplyr::group_by(Species) %>%
-                               fadd_count(dplyr::across(dplyr::all_of(c("Sepal.Length")))))
+                               fadd_count(across(all_of(c("Sepal.Length")))))
   testthat::expect_identical(iris %>% dplyr::group_by(Species) %>%
-                               dplyr::add_count(dplyr::across(dplyr::any_of(c("Species", "Sepal.Length")))),
+                               dplyr::add_count(across(dplyr::any_of(c("Species", "Sepal.Length")))),
                              iris %>% dplyr::group_by(Species) %>%
-                               fadd_count(dplyr::across(dplyr::any_of(c("Species", "Sepal.Length")))))
+                               fadd_count(across(dplyr::any_of(c("Species", "Sepal.Length")))))
   testthat::expect_identical(iris %>%
                                dplyr::add_count(as.character(Species)),
                              iris %>%

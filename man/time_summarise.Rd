@@ -118,17 +118,29 @@ library(lubridate)
 library(nycflights13)
 
 # Works the same way as summarise()
-identical(flights \%>\%
-            summarise(across(where(is.numeric), mean)),
-          flights \%>\%
-            time_summarise(across(where(is.numeric), mean)))
+flights \%>\%
+  summarise(across(where(is.numeric), mean))
+flights \%>\%
+  time_summarise(across(where(is.numeric), mean))
+
 # Like the other time_ functions, it allows for an additional time variable to
 # aggregate by
 
 # Monthly averages for each numeric variable
 flights \%>\%
-  time_summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE)),
+  time_summarise(mean_arr_time = mean(arr_time, na.rm = TRUE),
                  time = across(time_hour, as_date),
                  by = "month",
                  include_interval = TRUE)
+# Example of monthly summary using zoo's yearmon
+\dontrun{
+flights \%>\%
+  mutate(yearmon = zoo::as.yearmon(as_date(time_hour))) \%>\%
+  time_summarise(time = yearmon,
+                 by = 1/12,
+                 mean_arr_time = mean(arr_time, na.rm = TRUE),
+                 mean_dep_time = mean(dep_time, na.rm = TRUE),
+                 mean_diff_time = mean(arr_time - dep_time, na.rm = TRUE),
+                 include_interval = TRUE)
+}
 }

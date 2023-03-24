@@ -74,14 +74,8 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   out <- safe_ungroup(data)
   out <- out %>%
     # Ungrouped mutate
-    dplyr::mutate(!!!enquos(...))
-  # if (length(setdiff(dot_nms2(...), names(data))) > 0L){
-  #   out <- out %>%
-  #     # Ungrouped mutate
-  #     dplyr::mutate(!!!enquos(...))
-  # }
-  out <- out %>%
-    dplyr::mutate(!!enquo(wt))
+    dplyr::mutate(!!!enquos(...),
+                  !!enquo(wt))
   wt_var <- tidy_transform_names(safe_ungroup(data),
                                  !!enquo(wt))
   if (length(wt_var) > 0L) wtv <- out[[wt_var]]
@@ -94,17 +88,24 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   grp_nm <- new_var_nm(names(out), ".group.id")
   out <- out %>%
     add_group_id(sort = TRUE,
-             .by = all_of(all_vars),
-             .overwrite = TRUE,
-             as_qg = TRUE,
-             .name = grp_nm) %>%
+                 all_of(all_vars),
+                 as_qg = TRUE,
+                 .name = grp_nm) %>%
     dplyr::select(all_of(c(grp_nm, group_vars, data_vars))) %>%
     df_reconstruct(data)
+  # out <- out %>%
+  #   add_group_id(sort = TRUE,
+  #            .by = all_of(all_vars),
+  #            .overwrite = TRUE,
+  #            as_qg = TRUE,
+  #            .name = grp_nm) %>%
+  #   dplyr::select(all_of(c(grp_nm, group_vars, data_vars))) %>%
+  #   df_reconstruct(data)
 
   if (is.null(name)) name <- new_n_var_nm(out)
   group_id <- out[[grp_nm]]
   # Keep unique groups and sort
-  if (nrow2(out) >= 2L) out <- collapse::funique.data.frame(out, cols = grp_nm, sort = TRUE)
+  if (nrow2(out) >= 2L) out <- collapse::funique(out, cols = grp_nm, sort = TRUE)
   N <- nrow2(out)
   if (length(wt_var) == 0){
     nobs <- collapse::GRPN(group_id, expand = FALSE)
@@ -115,7 +116,6 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
       out <- df_reconstruct(dplyr::tibble(!!name := 0L), data)
     }
   } else {
-    # wtv <- dplyr::mutate(safe_ungroup(data), !!enquo(wt))[[wt_var]]
     nobs <- collapse::fsum(as.double(wtv),
                            g = group_id,
                            na.rm = TRUE,
