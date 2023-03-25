@@ -46,7 +46,7 @@
 #'   fadd_count(Species,
 #'              keep_class = FALSE) # Data.table result
 #' @importFrom dplyr %>%
-#' @importFrom data.table %between%
+#' @importFrom data.table :=
 #' @importFrom dplyr .data
 #' @importFrom dplyr group_vars
 #' @importFrom dplyr across

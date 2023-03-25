@@ -4,12 +4,14 @@
 \alias{edf}
 \title{Grouped empirical cumulative distribution function applied to data}
 \usage{
-edf(x, g = NULL)
+edf(x, g = NULL, wt = NULL)
 }
 \arguments{
 \item{x}{Numeric vector.}
 
 \item{g}{Numeric vector of group IDs.}
+
+\item{wt}{Frequency weights.}
 }
 \description{
 Like \code{dplyr::cume_dist(x)} and \code{ecdf(x)(x)}

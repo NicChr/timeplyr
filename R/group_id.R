@@ -65,8 +65,12 @@ group_id <- function(data, ...,
   if (length(by_vars) > 0L){
     if (!.overwrite && length(group_vars) > 0L) stop(".by cannot be used on a grouped_df")
   }
-  # Method for grouped_df
-  if (.overwrite && length(group_vars) > 0L && length(by_vars) > 0L){
+  if (length(group_vars) == 0L &&
+      length(by_vars) == 0L &&
+      length(dot_vars) == 0L){
+    out <- rep_len(1L, nrow2(data))
+    # Method for grouped_df
+  } else if (.overwrite && length(group_vars) > 0L && length(by_vars) > 0L){
     out <- collapse::GRP(safe_ungroup(data), by = c(by_vars, dot_vars),
                          sort = sort,
                          decreasing = FALSE,
@@ -75,37 +79,36 @@ group_id <- function(data, ...,
                          return.order = FALSE,
                          method = "auto",
                          call = FALSE)[["group.id"]]
-  } else if (length(group_vars) == 0L &&
-             length(by_vars) == 0L &&
-             length(dot_vars) == 0L){
-    out <- rep_len(1L, nrow2(data))
     # Special case, just using dplyr group indices
   } else if (sort &&
              length(group_vars) > 0L &&
              length(dot_vars) == 0L){
     out <- dplyr::group_indices(data)
   }
-  else if (length(group_vars) > 0L){
-    out <- collapse::GRP(safe_ungroup(data), by = c(group_vars, dot_vars),
-                         sort = sort,
-                         decreasing = FALSE,
-                         na.last = TRUE,
-                         return.groups = FALSE,
-                         return.order = FALSE,
-                         method = "auto",
-                         call = FALSE)[["group.id"]]
-  } else {
-    out <- collapse::GRP(safe_ungroup(data), by = c(by_vars, dot_vars),
-                         sort = sort,
-                         decreasing = FALSE,
-                         na.last = TRUE,
-                         return.groups = FALSE,
-                         return.order = FALSE,
-                         method = "auto",
-                         call = FALSE)[["group.id"]]
+  else {
+    if (sort){
+      out <- collapse::GRP(dplyr::select(safe_ungroup(data),
+                                         all_of(c(group_vars, by_vars, dot_vars))),
+                           sort = TRUE,
+                           decreasing = FALSE,
+                           na.last = TRUE,
+                           return.groups = FALSE,
+                           return.order = FALSE,
+                           method = "auto",
+                           call = FALSE)[["group.id"]]
+    } else {
+      out <- collapse::group(dplyr::select(safe_ungroup(data),
+                                           all_of(c(group_vars, by_vars, dot_vars))),
+                             group.sizes = FALSE,
+                             starts = FALSE)
+    }
+
   }
-  if (as_qg) out <- collapse::qG(out, sort = TRUE,
-                                 ordered = FALSE)
+  if (as_qg){
+    out <- collapse::qG(out, sort = sort, ordered = FALSE)
+  } else {
+   out <- as.integer(out)
+  }
   out
 }
 #' @rdname group_id

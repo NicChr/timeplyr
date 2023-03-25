@@ -4,6 +4,7 @@
 #' but with added grouping functionality.
 #' @param x Numeric vector.
 #' @param g Numeric vector of group IDs.
+#' @param wt Frequency weights.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -24,21 +25,36 @@
 #' edf2 <- edf(x, g = g)
 #' all.equal(edf1, edf2)
 #' @export
-edf <- function(x, g = NULL){
+edf <- function(x, g = NULL, wt = NULL){
   n_na <- sum(is.na(x))
   if (is.null(g)){
     x_order <- radix_order(x)
     x <- x[x_order]
     if (n_na > 0) x <- x[seq_len(length(x) - n_na)]
-    grpn <- collapse::GRPN(x, expand = FALSE)
-    run_sum <- rep(collapse::fcumsum(grpn, na.rm = FALSE),
-                   times = grpn)
-    out <- run_sum / length(x)
+    times <- collapse::GRPN(x, expand = FALSE)
+    ### No weights
+    if (is.null(wt)){
+      grpn <- times
+      N <- length(x)
+    } else {
+      ### With weights
+      if (!length(wt) %in% c(1, length(x))){
+        stop("wt must be of length 1 or length(x)")
+      }
+      if (length(wt) == 1L){
+        wt <- rep_len(wt, length(x))
+      }
+      grpn <- times * wt
+      N <- sum(wt)
+    }
+    sum_run <- rep(collapse::fcumsum(grpn, na.rm = FALSE),
+                   times = times)
+    out <- sum_run / N
     if (n_na > 0) out <- c(out, rep_len(NA_real_, n_na))
     out <- out[radix_order(x_order)]
   } else {
     # Create group IDs
-    df <- data.table::data.table(x, g)
+    df <- data.table::data.table(x, g, wt)
     df[, ("g1") := group_id(df, all_of("x"), sort = TRUE,
                             as_qg = FALSE)]
     df[, ("g3") := group_id(df, all_of(c("g", "g1")),
@@ -54,12 +70,20 @@ edf <- function(x, g = NULL){
     if (n_na > 0) df <- df[!is.na(get("x"))]
     # Group sizes
     grp_n2 <- collapse::GRPN(df[["g"]], expand = TRUE)
-    grp_n3 <- collapse::GRPN(df[["g3"]], expand = FALSE)
-    run_sum <- rep(collapse::fcumsum(grp_n3, na.rm = FALSE,
+    times <- collapse::GRPN(df[["g3"]], expand = FALSE)
+    if (is.null(wt)){
+      grp_n3 <- times
+      N <- grp_n2
+    } else {
+      grp_n3 <- times * df[["wt"]]
+      N <- gsum(df[["wt"]], g = df[["g"]])
+    }
+
+    sum_run <- rep(collapse::fcumsum(grp_n3, na.rm = FALSE,
                                       g = collapse::funique(df,
                                                             cols = "g3")[["g"]]),
-                    grp_n3)
-    out <- run_sum / grp_n2
+                    times)
+    out <- sum_run / N
     # Return using input order
     if (n_na > 0){
       out <- c(out, rep_len(NA_real_, n_na))

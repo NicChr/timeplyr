@@ -70,7 +70,7 @@ testthat::test_that("Group IDs", {
                                         as_qg = TRUE) %>%
                                as.integer())
 })
-testthat::test_that("Group IDs", {
+testthat::test_that("Adding group IDs", {
   base1 <- iris %>%
     dplyr::group_by(Species, Sepal.Length) %>%
     dplyr::mutate(id = dplyr::cur_group_id()) %>%
@@ -88,4 +88,9 @@ testthat::test_that("Group IDs", {
                              iris %>%
                                add_group_id(Species, Sepal.Length, sort = FALSE,
                                             .name = "id"))
+
+  testthat::expect_identical(base1,
+                             iris %>%
+                               add_group_id(Species, Sepal.Length, sort = TRUE) %>%
+                               dplyr::rename(id = group_id))
 })
