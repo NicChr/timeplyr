@@ -58,14 +58,10 @@
 fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                    .by = NULL){
   # Temporary fix as collapse grouping doesn't work on lubridate intervals
-  if (any(purrr::map_lgl(data, lubridate::is.interval))){
-    message("A variable of class 'interval' exists.
-    The grouping will be done using 'dplyr' until the issue is fixed.
-            You can report the issue at
-            https://github.com/SebKrantz/collapse/issues")
+  if (has_interval(data)){
     group_vars <- get_groups(data, {{ .by }})
     return(dplyr::count(data,
-                        dplyr::across(all_of(group_vars) ),
+                        across(all_of(group_vars) ),
                         !!!enquos(...),
                         wt = !!enquo(wt),
                         sort = sort, name = name))
@@ -91,16 +87,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                  all_of(all_vars),
                  as_qg = TRUE,
                  .name = grp_nm) %>%
-    dplyr::select(all_of(c(grp_nm, group_vars, data_vars))) %>%
-    df_reconstruct(data)
-  # out <- out %>%
-  #   add_group_id(sort = TRUE,
-  #            .by = all_of(all_vars),
-  #            .overwrite = TRUE,
-  #            as_qg = TRUE,
-  #            .name = grp_nm) %>%
-  #   dplyr::select(all_of(c(grp_nm, group_vars, data_vars))) %>%
-  #   df_reconstruct(data)
+    dplyr::select(all_of(c(grp_nm, group_vars, data_vars)))
 
   if (is.null(name)) name <- new_n_var_nm(out)
   group_id <- out[[grp_nm]]
@@ -134,7 +121,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   # Set row.names attr
   out[[grp_nm]] <- NULL
   attr(out, "row.names") <- seq_len(N)
-  out
+  df_reconstruct(out, data)
 }
 #' @rdname fcount
 #' @export
@@ -142,19 +129,14 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                        .by = NULL,
                        keep_class = TRUE){
   # Temporary fix as collapse grouping doesn't work on lubridate intervals
-  if (any(purrr::map_lgl(data, lubridate::is.interval))){
-    message("A variable of class 'interval' exists.
-    The grouping will be done using 'dplyr' until the issue is fixed.
-            You can report the issue at
-            https://github.com/SebKrantz/collapse/issues")
+  if (has_interval(data)){
     group_vars <- get_groups(data, {{ .by }})
     return(dplyr::add_count(data,
-                        dplyr::across( all_of(group_vars) ),
+                        across( all_of(group_vars) ),
                         !!!enquos(...),
                         wt = !!enquo(wt),
                         sort = sort, name = name))
   }
-  template <- data[0, , drop = FALSE]
   out <- data %>%
     safe_ungroup() %>%
     dplyr::mutate(!!!enquos(...),
@@ -171,7 +153,7 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   grp_nm <- new_var_nm(out, ".group.id")
 
   data.table::setDT(out)
-  group_id <- group_id(out, .by = all_of(all_vars), sort = TRUE,
+  group_id <- group_id(out, all_of(all_vars), sort = TRUE,
                    as_qg = TRUE)
   if (is.null(name)) name <- new_n_var_nm(out)
 
@@ -190,7 +172,7 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
     data.table::setorderv(out, cols = name, na.last = TRUE, order = -1L)
   }
   if (keep_class){
-    df_reconstruct(out, template)
+    df_reconstruct(out, data)
     }
   else {
    out[]

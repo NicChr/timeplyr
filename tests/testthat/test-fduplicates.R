@@ -9,10 +9,10 @@ testthat::test_that("Expected tests", {
   test_df2 <- dplyr::tibble(x = c("a", NA, "c", NA, NA),
                             y = c(NA, "b", "c", NA, NA),
                             z = c(NA, "b", "c", NA, NA))
-  testthat::expect_identical(nrow(duplicate_rows(test_df, .both_ways = TRUE)), 2L)
-  testthat::expect_identical(nrow(duplicate_rows(test_df2, .both_ways = TRUE,
+  testthat::expect_identical(nrow(fduplicates(test_df, .both_ways = TRUE)), 2L)
+  testthat::expect_identical(nrow(fduplicates(test_df2, .both_ways = TRUE,
                                                  .keep_na = FALSE)), 0L)
-  testthat::expect_identical(duplicate_rows(iris, Sepal.Length, Species,
+  testthat::expect_identical(fduplicates(iris, Sepal.Length, Species,
                                             .keep_all = TRUE,
                                             .both_ways = TRUE),
                              iris %>%
@@ -20,22 +20,38 @@ testthat::test_that("Expected tests", {
                                dplyr::filter(dplyr::n() > 1) %>%
                                safe_ungroup() %>%
                                as.data.frame())
-  testthat::expect_identical(nrow(duplicate_rows(test_df, .both_ways = FALSE)), 1L)
+  testthat::expect_identical(nrow(fduplicates(test_df, .both_ways = FALSE)), 1L)
   testthat::expect_identical(test_df %>%
-                               duplicate_rows(x1, x2, x3, x4, .both_ways = TRUE) %>%
+                               fduplicates(x1, x2, x3, x4, .both_ways = TRUE) %>%
                                nrow(), 3L)
   testthat::expect_identical(test_df %>%
-                               duplicate_rows(x1, x2, x3, x4, .both_ways = TRUE) %>%
+                               fduplicates(x1, x2, x3, x4, .both_ways = TRUE) %>%
                                nrow(), 3L)
   testthat::expect_identical(test_df %>%
                                dplyr::group_by(group) %>%
-                               duplicate_rows(x2, .both_ways = TRUE) %>%
+                               fduplicates(x2, .both_ways = TRUE) %>%
                                nrow(), 2L)
   testthat::expect_identical(test_df %>%
                                dplyr::group_by(group) %>%
-                               duplicate_rows(.both_ways = TRUE) %>%
+                               fduplicates(.both_ways = TRUE) %>%
                                nrow(), 2L)
   testthat::expect_identical(test_df %>%
-                               duplicate_rows(x2, .both_ways = TRUE) %>%
+                               fduplicates(x2, .both_ways = TRUE) %>%
                                nrow(), 6L)
+
+  testthat::expect_identical(test_df %>%
+                               fduplicates(x1, x2, .both_ways = TRUE,
+                                           .keep_all = TRUE,
+                                           .add_count = TRUE),
+                               test_df %>%
+                               dplyr::add_count(x1, x2) %>%
+                               dplyr::filter(n > 1))
+  testthat::expect_identical(test_df %>%
+                               fduplicates(x1, x2, .both_ways = TRUE,
+                                           .keep_all = FALSE,
+                                           .add_count = TRUE),
+                             test_df %>%
+                               dplyr::select(x1, x2) %>%
+                               dplyr::add_count(x1, x2) %>%
+                               dplyr::filter(n > 1))
 })

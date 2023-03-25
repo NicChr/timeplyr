@@ -359,11 +359,13 @@ duration_by <- function(from, to, length){
   seconds_unit <- duration_unit("seconds")
   division <- int / seconds_unit(1)
   out <- seconds_unit(division / (length - 1))
+  length <- rep_len(length, length(out))
   out[length == 1] <- seconds_unit(0) # Special case
   out
 }
 num_by <- function(from, to, length){
   out <- (to - from) / (length - 1)
+  length <- rep_len(length, length(out))
   out[length == 1] <- 0
   out
 }
@@ -441,10 +443,6 @@ time_unit_info <- function(time_unit){
   } else {
     list("numeric" = as.double(time_unit))
   }
-}
-is_date_or_utc <- function(...){
-  x <- vctrs::vec_c(...)
-  is_date(x) || lubridate::tz(x) == "UTC"
 }
 # Functional that returns lubridate duration function
 duration_unit <- function(units = "seconds"){
@@ -620,9 +618,9 @@ window_seq <- function(k, n, partial = TRUE){
   partial_len <- max(min(k - 1L, n), 0L)
   other_len <- max(0L, n - partial_len)
   if (partial){
-    c(seq_len(partial_len), collapse::alloc(k, other_len))
+    c(seq_len(partial_len), rep_len(k, other_len))
   } else {
-    c(collapse::alloc(NA_integer_, partial_len), collapse::alloc(k, other_len))
+    c(rep_len(NA_integer_, partial_len), rep_len(k, other_len))
   }
 }
 # time_seq_data must be sorted by groups + time

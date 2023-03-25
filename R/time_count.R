@@ -198,11 +198,6 @@ time_count <- function(data, ..., time = NULL, by = NULL,
   ts_data[, (grp_nm) := group_id(data, sort = TRUE,
                                  as_qg = FALSE,
                                  .by = {{ .by }})]
-  # Remove unecessary columns
-  # rm_vars <- setdiff(names(ts_data),
-  #                      c(grp_nm, group_vars, time_var, extra_group_vars,
-  #                        from_var, to_var, wt_var))
-  # set_rm_cols(ts_data, rm_vars)
   # Order by group vars - time var - additional group vars
   data.table::setorderv(ts_data, cols = c(grp_nm, time_var, extra_group_vars))
   if (length(time_var) > 0){
@@ -279,11 +274,9 @@ time_count <- function(data, ..., time = NULL, by = NULL,
         time_agg_df <- time_agg(time_expanded, ts_data, time = time_var,
                                 group_id = grp_nm,
                                 include_interval = include_interval, to = to_nm)
-        # int_nm <- setdiff(names(time_agg_df), c(time_var, grp_nm))
         ts_data[, (time_var) := time_agg_df[[time_var]]]
       }
       # Frequency table
-      # if (is.null(name)) name <- new_n_var_nm(ts_data)
       out <- ts_data %>%
         fcount(across(dplyr::any_of(c(grp_nm, group_vars, time_var,
                                              extra_group_vars))),
@@ -309,6 +302,7 @@ time_count <- function(data, ..., time = NULL, by = NULL,
         data.table::setorderv(out, cols = name, na.last = TRUE,
                               order = -1L)
       }
+      # Messy, need to clean this section in later version
       if (include_interval){
         out <- dplyr::as_tibble(out)
         message("data.table converted to tibble as data.table cannot include interval class")
@@ -316,8 +310,7 @@ time_count <- function(data, ..., time = NULL, by = NULL,
         int_nm <- new_var_nm(out, "interval")
         if (aggregate){
           int_df <- dplyr::distinct(time_agg_df,
-                                    across(all_of(c(time_var,
-                                                                  grp_nm, "interval"))))
+                                    across(all_of(c(time_var, grp_nm, "interval"))))
           time_missed_df <- dplyr::anti_join(dplyr::select(out,
                                                            all_of(c(time_var, grp_nm))),
                                              int_df,

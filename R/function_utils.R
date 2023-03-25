@@ -544,140 +544,29 @@ seq_ones <- function(length){
     rep_len(1, length)
   }
 }
-format_number <- function(x, digits = NULL,
-                          rounding = c("decimal", "signif"), round_half_up = TRUE,
-                          scientific = 10, drop_trailing_zeros = TRUE, drop_leading_zeros = FALSE,
-                          prefix = "", suffix = "", thousands_sep = "", decimal_sep = ".",
-                          format = NULL, flag = NULL, mode = storage.mode(x),
-                          width = NULL, big.interval = 3,
-                          small.mark = "", small.interval = 5,
-                          preserve.width = "individual",
-                          zero.print = NULL, replace.zero = TRUE){
-  # Handle common special cases
-  if (length(x) == 0) return(character(0))
-  if (isTRUE(all(is.na(x)))) return(rep_len(NA_character_, length(x)))
-  stopifnot(is.numeric(x))
-  stopifnot(inherits(scientific, c("integer", "numeric", "logical")))
-  if (!isTRUE(digits >= 0 || is.null(digits))) stop("Digits must be >= 0")
-  rounding <- match.arg(tolower(rounding), c("decimal", "signif"))
-  x_names <- names(x)
-  if (inherits(x, "integer64")){
-    warning("Numbers of class 'integer64' will be converted to numeric")
-    x <- as.numeric(x)
+# Grouped seq_len()
+gseq_len <- function(length, g = NULL){
+  if (is.null(g)){
+    seq_len(length)
+  }  else {
+    collapse::fcumsum(seq_ones(length),
+                      na.rm = FALSE,
+                      g = g)
   }
-  if (is.logical(scientific)){
-    scientific <- if (scientific) -Inf else Inf
+}
+# Drop leading zeroes
+drop_leading_zeros <- function(x, sep = "."){
+  pattern <- paste0("^([^[:digit:]]{0,})0{1,}\\", sep, "{1}")
+  sub(pattern, paste0("\\1", sep), x, perl = TRUE)
+}
+# Check if data has lubridate interval
+has_interval <- function(data, quiet = FALSE){
+  out <- any(purrr::map_lgl(data, lubridate::is.interval))
+  if (out && !quiet){
+    message("A variable of class 'interval' exists.
+    The grouping will be done using 'dplyr' until the issue is fixed.
+            You can report the issue at
+            https://github.com/SebKrantz/collapse/issues")
   }
-  # Auto format
-  if (length(format) == 0){
-    sci_format <- "e"
-    non_sci_format <- if (rounding == "decimal") "f" else "fg"
-  }
-  # Auto flag
-  if (length(flag) == 0){
-    sci_flag <- ""
-    non_sci_flag <- if (rounding == "decimal") "" else "#"
-  }
-  # User specified format
-  if (length(format) > 0){
-    sci_format <- format
-    non_sci_format <- format
-  }
-  # User specified flag
-  if (length(flag) > 0){
-    sci_flag <- flag
-    non_sci_flag <- flag
-  }
-  # If no digits specified, use auto
-  # 0 if format is for integers else <=3
-  if (length(digits) == 0){
-    digits <- min(getOption("digits"), 3)
-  }
-  if (rounding == "signif"){
-    format_digits_s <- digits
-    format_digits_l <- max(digits - 1, 0)
-    x <- signif2(x, digits = digits, round_half_up = round_half_up)
-  } else if (rounding == "decimal"){
-    format_digits_s <- digits
-    format_digits_l <- digits
-    x <- round2(x, digits = digits, round_half_up = round_half_up)
-  }
-  # If scientific notation specified, don't use below heuristic
-  # Heuristic to use scientific notation when numbers are too large/small
-  log10_ranks <- trunc(abs(log10(abs(x))))
-  log10_ranks[x == 0] <- 0
-  log10_ranks_s <- which(log10_ranks < scientific)
-  log10_ranks_l <- which(log10_ranks >= scientific)
-  out <- data.table::copy(x)
-  out[seq_along(x)] <- character(length(x))
-  # collapse::setv(out, seq_along(x), character(length(x)),
-  #                vind1 = TRUE)
-  collapse::setv(out, log10_ranks_s, formatC(x[log10_ranks_s], drop0trailing = drop_trailing_zeros,
-                                             digits = format_digits_s,
-                                             format = non_sci_format, flag = non_sci_flag, mode = mode,
-                                             big.mark = thousands_sep, decimal.mark = decimal_sep,
-                                             width = width, big.interval = big.interval,
-                                             small.mark = small.mark, small.interval = small.interval,
-                                             preserve.width = preserve.width,
-                                             zero.print = replace.zero, replace.zero = replace.zero),
-                 vind1 = TRUE)
-  collapse::setv(out, log10_ranks_l, formatC(x[log10_ranks_l], drop0trailing = drop_trailing_zeros,
-                                             digits = format_digits_l,
-                                             format = sci_format, flag = sci_flag,
-                                             mode = mode,
-                                             big.mark = thousands_sep, decimal.mark = decimal_sep,
-                                             width = width, big.interval = big.interval,
-                                             small.mark = small.mark, small.interval = small.interval,
-                                             preserve.width = preserve.width,
-                                             zero.print = zero.print, replace.zero = replace.zero),
-                 vind1 = TRUE)
-  # Temporary solution to fix formatC bug
-  # Remove numbers ending with dot
-  if (rounding == "signif"){
-    collapse::setv(out,
-                   seq_along(out),
-                   sub(pattern = paste0("\\", decimal_sep, "{1}([^[:digit:]]{0,})$"), "\\1", out, perl = TRUE),
-                   vind1 = TRUE)
-    # out <- sub(pattern = paste0("\\", decimal_sep, "{1}([^[:digit:]]{0,})$"), "\\1", out, perl = TRUE)
-  }
-  # if (drop_leading_zeros) y <- sub("^([-|<|=|>]?)0[.]", "\\1.", y) # Drop leading zeros
-  if (drop_leading_zeros){
-    # Regex that drops zeros where preceded by non digits at start of string and
-    # proceeded by the decimal separator
-    reg_pattern <- paste0("^([^[:digit:]]{0,})0{1,}\\", decimal_sep, "{1}")
-    collapse::setv(out,
-                   seq_along(out),
-                   sub(reg_pattern, paste0("\\1", decimal_sep), out, perl = TRUE), # Drop leading zeros
-                   vind1 = TRUE)
-    # out <- sub(reg_pattern, paste0("\\1", decimal_sep), out, perl = TRUE) # Drop leading zeros
-  }
-  collapse::setv(out,
-                 seq_along(out),
-                 stringr::str_c(prefix, out, suffix),
-                 vind1 = TRUE)
-  # out[seq_len(length(out))] <- stringr::str_c(prefix, out, suffix)
-  # y[is.infinite(x)] <- stringr::str_c(prefix, x[is.infinite(x)], suffix)
-  # Handle the NAs manually
-  collapse::setv(out,
-                 which(is.na(x)),
-                 NA_character_,
-                 vind1 = TRUE)
-  # out[is.na(x)] <- NA_character_
-  # Retain named vector
-  names(out) <- x_names
   out
-}
-round2 <- function(x, digits = 0, round_half_up = TRUE){
-  if (round_half_up){
-    janitor::round_half_up(x, digits = digits)
-  } else {
-    round(x, digits = digits)
-  }
-}
-signif2 <- function(x, digits = 6, round_half_up = TRUE){
-  if (round_half_up){
-    janitor::signif_half_up(x, digits = digits)
-  } else {
-    signif(x, digits = digits)
-  }
 }

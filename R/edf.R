@@ -41,15 +41,10 @@ edf <- function(x, g = NULL){
     df <- data.table::data.table(x, g)
     df[, ("g1") := group_id(df, all_of("x"), sort = TRUE,
                             as_qg = FALSE)]
-    # df[, ("g2") := group_id(df, all_of("g"), sort = FALSE,
-    #                         as_qg = FALSE)]
-    # df[, ("g3") := group_id(df, all_of(c("g2", "g1")),
-    #                         sort = TRUE, as_qg = FALSE)]
     df[, ("g3") := group_id(df, all_of(c("g", "g1")),
                             sort = TRUE, as_qg = FALSE)]
     # Original order
     df[, ("id") := seq_len(.N)]
-    # sort_id <- seq_len(nrow2(df))
     # Order if NAs are shifted to the end
     which_na <- which(is.na(x))
     df[, ("id") := data.table::fifelse(is.na(get("x")), NA_integer_,

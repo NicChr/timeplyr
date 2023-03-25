@@ -17,7 +17,10 @@
 #' If `FALSE` the order of the group IDs will be based on first appearance.
 #' @param .by Alternative way of supplying groups using tidy
 #' select notation. This is kept to be consistent with other functions.
-#' @param .name Name of the added group ID column.
+#' @param .name Name of the added group ID column which should be a
+#' character vector of length 1.
+#' If `NULL` then a column named "group_id" will be added,
+#' and if one already exists, a unique name will be used.
 #' @param .overwrite If `TRUE` then groups supplied through `.by`
 #' (as well as through `...`) overwrite existing dplyr groups.
 #' @param as_qg Should the group IDs be returned as a
@@ -111,8 +114,9 @@ add_group_id <- function(data, ...,
                          sort = TRUE,
                          .by = NULL,
                          .overwrite = FALSE,
-                         .name = "group_id",
+                         .name = NULL,
                          as_qg = FALSE){
+  if (is.null(.name)) .name <- new_var_nm(names(data), "group_id")
   data[[.name]] <- group_id(data, !!!enquos(...),
                             sort = sort, .by = {{ .by }},
                             .overwrite = .overwrite,

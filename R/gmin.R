@@ -19,11 +19,12 @@
 #' @rdname gmin
 #' @export
 gmin <- function(x, g = NULL, na.rm = TRUE){
+  if (!is.null(g)) g <- as.integer(g)
   out <- collapse::fmin(x,
                         g = g,
                         use.g.names = FALSE,
                         na.rm = na.rm)
-  if (is.null(g)){
+  if (length(g) == 0L){
     rep_len(out, length(x))
   } else {
     out[match(g, seq_len(length(out)))]
@@ -32,11 +33,12 @@ gmin <- function(x, g = NULL, na.rm = TRUE){
 #' @rdname gmin
 #' @export
 gmax <- function(x, g = NULL, na.rm = TRUE){
+  if (!is.null(g)) g <- as.integer(g)
   out <- collapse::fmax(x,
                         g = g,
                         use.g.names = FALSE,
                         na.rm = na.rm)
-  if (is.null(g)){
+  if (length(g) == 0L){
     rep_len(out, length(x))
   } else {
     out[match(g, seq_len(length(out)))]

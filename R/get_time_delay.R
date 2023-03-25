@@ -129,7 +129,7 @@ get_time_delay <- function(data, origin, end, by = "day",
   out <- data.table::copy(out)
   data.table::setDT(out)
   grp_nm <- new_var_nm(out, ".group.id")
-  out[, (grp_nm) := group_id(out, .by = group_vars,
+  out[, (grp_nm) := group_id(data, .by = {{ .by }},
                              sort = TRUE)]
   set_rm_cols(out, setdiff(names(out),
                            c(grp_nm, group_vars, start_time, end_time)))
@@ -175,6 +175,7 @@ get_time_delay <- function(data, origin, end, by = "day",
   delay_summary <- delay_summary %>%
     dplyr::full_join(quantile_summary, by = grp_nm, keep = FALSE) %>%
     dplyr::left_join(grp_df, by = grp_nm) %>%
+    dplyr::arrange(across(all_of(grp_nm))) %>%
     dplyr::select(all_of(c(group_vars, "n", "min", "max", "mean", "sd",
                            quantile_nms, "iqr", "mad", "se")))
   # Create delay table
@@ -191,10 +192,8 @@ get_time_delay <- function(data, origin, end, by = "day",
                                cumulative = integer(0))
   } else {
     out[, ("delay_ceiling") := ceiling(get(delay_nm))]
-    out[, ("edf") := dplyr::cume_dist(get("delay_ceiling")),
-        by = grp_nm]
-    # out[, ("edf") := edf(get("delay_ceiling"),
-    #                      g = get(grp_nm))]
+    out[, ("edf") := edf(get("delay_ceiling"),
+                         g = get(grp_nm))]
     delay_tbl <- out %>%
       fcount(across(all_of(c(grp_nm, group_vars, "delay_ceiling", "edf"))),
              name = "n")
@@ -208,6 +207,7 @@ get_time_delay <- function(data, origin, end, by = "day",
   }
   set_rm_cols(out, c(grp_nm, "delay_ceiling", "edf"))
   out <- df_reconstruct(out, data)
+  delay_summary <- df_reconstruct(delay_summary, data)
   delay_tbl <- df_reconstruct(delay_tbl, data)
   # Delay values
   delay_list <- list("data" = out,
@@ -234,6 +234,12 @@ get_time_delay <- function(data, origin, end, by = "day",
         plot_unit_text <- paste0("(", by_unit, ")")
       }
     }
+    # Custom number format
+    num_fmt <- function(x, drop_leading_zeros = TRUE, ...){
+      out <- formatC(x, ...)
+      if (drop_leading_zeros) out <- drop_leading_zeros(out)
+      out
+    }
     delay_summary_plot <- out %>%
       ggplot2::ggplot(ggplot2::aes(x = .data[[delay_nm]])) +
       ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(ndensity)), binwidth = 1, fill = "white", col = "black", alpha = 0.75) +
@@ -241,10 +247,14 @@ get_time_delay <- function(data, origin, end, by = "day",
                             bw = bw, ...) +
       ggplot2::stat_ecdf(col = "#0078D4") +
       ggplot2::theme_minimal() +
-      ggplot2::scale_x_continuous(n.breaks = 8, labels = function(x) format_number(x, digits = 2, rounding = "decimal",
-                                                                                   thousands_sep = ",")) +
-      ggplot2::scale_y_continuous(n.breaks = 5, labels = function(x) format_number(x, digits = 2, rounding = "signif",
-                                                                                   drop_leading_zeros = TRUE)) +
+      ggplot2::scale_x_continuous(n.breaks = 8, labels = function(x) num_fmt(x, digits = 2, big.mark = ",",
+                                                                             drop_leading_zeros = FALSE,
+                                                                             format = "f", flag = "",
+                                                                             drop0trailing = TRUE)) +
+      ggplot2::scale_y_continuous(n.breaks = 5, labels = function(x) num_fmt(x, digits = 2, big.mark = ",",
+                                                                             drop_leading_zeros = TRUE,
+                                                                             format = "fg", flag = "#",
+                                                                             drop0trailing = TRUE)) +
       ggplot2::labs(x = paste("Delay", plot_unit_text, sep = " "),
                     y = "Normalized density and ECDF",
                     title = paste0("Empirical distribution of time delay\nbetween ",

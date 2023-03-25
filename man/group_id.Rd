@@ -13,7 +13,7 @@ add_group_id(
   sort = TRUE,
   .by = NULL,
   .overwrite = FALSE,
-  .name = "group_id",
+  .name = NULL,
   as_qg = FALSE
 )
 }
@@ -37,7 +37,10 @@ select notation. This is kept to be consistent with other functions.}
 collapse "qG" class? The default (\code{FALSE}) always returns
 an integer vector.}
 
-\item{.name}{Name of the added group ID column.}
+\item{.name}{Name of the added group ID column which should be a
+character vector of length 1.
+If \code{NULL} then a column named "group_id" will be added,
+and if one already exists, a unique name will be used.}
 }
 \description{
 This is an extension to \code{dplyr::group_indices()} to allow for additional

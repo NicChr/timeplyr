@@ -127,12 +127,15 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
     }
     input_seq_type <- seq_type # Save original
     if (seq_type == "auto") seq_type <- guess_seq_type(by_unit)
-    # Add sorted group ID and sort by it by setting a key
+
+    # Add sorted group ID and sort by it
     # The reason we're sorting it here is because collapse::fmin()
     # Returns the minimum per sorted group.
     grp_nm <- new_var_nm(out, ".group.id")
     out[, (grp_nm) := group_id(data, .by = {{ .by }}, sort = TRUE, as_qg = FALSE)]
+    # Sort by groups
     data.table::setorderv(out, cols = grp_nm)
+    # Unique groups
     time_tbl <- collapse::funique(out[, c(group_vars, grp_nm), with = FALSE],
                                   cols = grp_nm)
     from_nm <- new_var_nm(out, ".from")
@@ -147,6 +150,7 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
       # Cast common types/tz
       time_tbl[, (from_nm) := time_cast(get(from_nm), out[[time_var]])]
     }
+    # Bit-hacky.. probably better to add a floor_date arg to time_seq_len
     if (floor_date){
       if (is_time(out[[time_var]])){
         time_tbl[, (from_nm) := time_floor(get(from_nm),
@@ -288,7 +292,6 @@ time_complete <- function(data, ..., time = NULL, by = NULL, from = NULL, to = N
   out <- data.table::copy(out)
   data.table::setDT(out)
   expanded_df <- time_expand(out,
-                           # across(all_of(group_vars)),
                            !!!enquos(...),
                            time = across(all_of(time_var)),
                            by = by, from = !!enquo(from),
@@ -326,7 +329,12 @@ time_complete <- function(data, ..., time = NULL, by = NULL, from = NULL, to = N
       # data.table::setnafill(out, cols = fill_nms[i], type = "const", fill = fill[[i]], nan = NaN)
     }
   }
-  suppressWarnings(data.table::setcolorder(out, neworder = c(names(data), setdiff(names(out), names(data)))))
-  if (keep_class) out <- df_reconstruct(out, data)
+  out_vars <- c(names(data), setdiff(names(out), names(data)))
+  if (length(out_vars) > 0L){
+    data.table::setcolorder(out, neworder = out_vars)
+  }
+  if (keep_class){
+    out <- df_reconstruct(out, data)
+  }
   out
 }
