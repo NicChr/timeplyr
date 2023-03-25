@@ -56,8 +56,7 @@ flights \%>\%
   fduplicates(across(contains("dep_time")), .keep_all = FALSE)
 # Similar to janitor::get_dupes()
 flights \%>\%
-  fduplicates(tailnum, dep_time, .keep_all = FALSE) \%>\%
-  fadd_count(tailnum, dep_time)
+  fduplicates(tailnum, dep_time, .keep_all = FALSE, .add_count = TRUE)
 # For every day were there multiple flights that departed at the same time?
 flights \%>\%
   group_by(year, month, day) \%>\%

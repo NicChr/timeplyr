@@ -291,62 +291,62 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
 #   }
 # }
 # Tidyverse-only version.
-duplicate_rows <- function(data, ..., .keep_all = FALSE,
-                           .both_ways = FALSE, .keep_na = TRUE,
-                           .by = NULL){
-  # Data groups
-  group_vars <- get_groups(data, .by = {{ .by }})
-  # If no variables selected then all variables used
-  if (dots_length(...) == 0){
-    dup_vars_all <- names(data)
-  } else {
-    if (.keep_all){
-      data <- data %>%
-        safe_ungroup() %>%
-        dplyr::mutate(!!!enquos(...)) %>%
-        df_reconstruct(data)
-      dup_vars_all <- tidy_transform_names(safe_ungroup(data),
-                                           !!!enquos(...))
-    } else {
-      data <- data %>%
-        safe_ungroup() %>%
-        dplyr::mutate(!!!enquos(...)) %>%
-        df_reconstruct(data)
-      keep_vars <- tidy_transform_names(safe_ungroup(data),
-                                        !!!enquos(...))
-      data <- data %>%
-        dplyr::select(all_of(c(group_vars, keep_vars)))
-      dup_vars_all <- names(data)
-    }
-  }
-  dup_vars <- setdiff(dup_vars_all, group_vars)
-  # Add column with row ID to keep track of rows
-  id_var <- new_var_nm(data, ".id")
-  data <- dplyr::mutate(data, .id = dplyr::row_number(),
-                        .by = {{ .by }})
-  # data with ID and dup cols
-  df_unique <- data %>%
-    dplyr::select(all_of(c(id_var, dup_vars_all))) %>%
-    dplyr::distinct(across(all_of(dup_vars_all)), .keep_all = TRUE)
-  # Duplicate rows
-  out <- data %>%
-    dplyr::anti_join(df_unique, by = c(group_vars, id_var))
-  # Remove empty rows (rows with all NA values)
-  if (!.keep_na){
-    out <- out %>%
-      dplyr::filter(!dplyr::if_all(.cols = all_of(dup_vars), is.na))
-  }
-  # Keep duplicates including first instance of duplicated rows
-  if (.both_ways) out <- dplyr::semi_join(data,
-                                            dplyr::select(out,
-                                                          all_of(dup_vars_all)),
-                                            by = dup_vars_all)
-  # Keep all columns or only duplicate search ones?
-  if (.keep_all) {
-    out %>%
-      dplyr::select(-all_of(id_var))
-  } else {
-    out %>%
-      dplyr::select(all_of(dup_vars_all))
-  }
-}
+# duplicate_rows <- function(data, ..., .keep_all = FALSE,
+#                            .both_ways = FALSE, .keep_na = TRUE,
+#                            .by = NULL){
+#   # Data groups
+#   group_vars <- get_groups(data, .by = {{ .by }})
+#   # If no variables selected then all variables used
+#   if (dots_length(...) == 0){
+#     dup_vars_all <- names(data)
+#   } else {
+#     if (.keep_all){
+#       data <- data %>%
+#         safe_ungroup() %>%
+#         dplyr::mutate(!!!enquos(...)) %>%
+#         df_reconstruct(data)
+#       dup_vars_all <- tidy_transform_names(safe_ungroup(data),
+#                                            !!!enquos(...))
+#     } else {
+#       data <- data %>%
+#         safe_ungroup() %>%
+#         dplyr::mutate(!!!enquos(...)) %>%
+#         df_reconstruct(data)
+#       keep_vars <- tidy_transform_names(safe_ungroup(data),
+#                                         !!!enquos(...))
+#       data <- data %>%
+#         dplyr::select(all_of(c(group_vars, keep_vars)))
+#       dup_vars_all <- names(data)
+#     }
+#   }
+#   dup_vars <- setdiff(dup_vars_all, group_vars)
+#   # Add column with row ID to keep track of rows
+#   id_var <- new_var_nm(data, ".id")
+#   data <- dplyr::mutate(data, .id = dplyr::row_number(),
+#                         .by = {{ .by }})
+#   # data with ID and dup cols
+#   df_unique <- data %>%
+#     dplyr::select(all_of(c(id_var, dup_vars_all))) %>%
+#     dplyr::distinct(across(all_of(dup_vars_all)), .keep_all = TRUE)
+#   # Duplicate rows
+#   out <- data %>%
+#     dplyr::anti_join(df_unique, by = c(group_vars, id_var))
+#   # Remove empty rows (rows with all NA values)
+#   if (!.keep_na){
+#     out <- out %>%
+#       dplyr::filter(!dplyr::if_all(.cols = all_of(dup_vars), is.na))
+#   }
+#   # Keep duplicates including first instance of duplicated rows
+#   if (.both_ways) out <- dplyr::semi_join(data,
+#                                             dplyr::select(out,
+#                                                           all_of(dup_vars_all)),
+#                                             by = dup_vars_all)
+#   # Keep all columns or only duplicate search ones?
+#   if (.keep_all) {
+#     out %>%
+#       dplyr::select(-all_of(id_var))
+#   } else {
+#     out %>%
+#       dplyr::select(all_of(dup_vars_all))
+#   }
+# }
