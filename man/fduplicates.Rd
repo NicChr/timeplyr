@@ -19,7 +19,8 @@ fduplicates(
 
 \item{...}{Variables used to find duplicate rows.}
 
-\item{.keep_all}{If \code{TRUE} then all columns of data frame are kept, default is \code{FALSE}.}
+\item{.keep_all}{If \code{TRUE} then all columns of data frame are kept,
+default is \code{FALSE}.}
 
 \item{.both_ways}{If \code{TRUE} then duplicates and non-duplicate first instances
 are retained. The default is \code{FALSE} which returns only duplicated rows.}

@@ -156,28 +156,54 @@ get_time_delay <- function(data, origin, end, by = "day",
   out <- out[!is.na(get(delay_nm)), ]
   quantile_prcnts <- round(probs * 100)
   quantile_nms <- paste0(rep_len("p", length(probs)), quantile_prcnts)
-  quantile_summary <- out[, list("quantile_nms" = quantile_nms,
-                                 "probs" = stats::quantile(get(delay_nm),
-                                                           probs = probs)),
-                          by = grp_nm]
-  quantile_summary <- tidyr::pivot_wider(quantile_summary, names_from = .data[["quantile_nms"]],
-                       values_from = .data[["probs"]])
-  delay_summary <- out[, list("n" = .N,
-                              "min" = min(get(delay_nm)),
-                              "max" = max(get(delay_nm)),
-                              "mean" = mean(get(delay_nm)),
-                              "sd" = stats::sd(get(delay_nm)),
-                              "iqr" = stats::quantile(get(delay_nm), 0.75) -
-                                stats::quantile(get(delay_nm), 0.25),
-                              "mad" = stats::mad(get(delay_nm))),
-                       by = grp_nm]
-  delay_summary[, ("se") := get("sd")/sqrt(get("n"))]
-  delay_summary <- delay_summary %>%
-    dplyr::full_join(quantile_summary, by = grp_nm, keep = FALSE) %>%
-    dplyr::left_join(grp_df, by = grp_nm) %>%
-    dplyr::arrange(across(all_of(grp_nm))) %>%
-    dplyr::select(all_of(c(group_vars, "n", "min", "max", "mean", "sd",
-                           quantile_nms, "iqr", "mad", "se")))
+  if (nrow2(out) == 0L){
+    quantile_summary <- setnames(data.table::as.data.table(
+      matrix(
+        rep_len(NA_real_, length(probs)),
+        ncol = length(probs))
+      ), quantile_nms)
+    group_df <- dplyr::add_row(out[, group_vars, with = FALSE])
+    delay_summary <- data.table::data.table("n" = 0L,
+                                            "min" = NA_real_,
+                                            "max" = NA_real_,
+                                            "mean" = NA_real_,
+                                            "sd" = NA_real_,
+                                            "iqr" = NA_real_,
+                                            "mad" = NA_real_,
+                                            "se" = NA_real_)
+    delay_summary <- dplyr::bind_cols(delay_summary, group_df)
+    delay_summary <- dplyr::bind_cols(delay_summary, quantile_summary)
+    delay_summary <- delay_summary[,
+                                   c(group_vars, "n", "min", "max", "mean", "sd",
+                                     quantile_nms, "iqr", "mad", "se"),
+                                   with = FALSE]
+
+  } else {
+    quantile_summary <- out[, list("quantile_nms" = quantile_nms,
+                                   "probs" = stats::quantile(get(delay_nm),
+                                                             probs = probs)),
+                            by = grp_nm]
+    quantile_summary <- tidyr::pivot_wider(quantile_summary,
+                                           names_from = all_of("quantile_nms"),
+                                           values_from = all_of("probs"))
+    delay_summary <- out[, list("n" = .N,
+                                "min" = min(get(delay_nm)),
+                                "max" = max(get(delay_nm)),
+                                "mean" = mean(get(delay_nm)),
+                                "sd" = stats::sd(get(delay_nm)),
+                                "iqr" = stats::quantile(get(delay_nm), 0.75) -
+                                  stats::quantile(get(delay_nm), 0.25),
+                                "mad" = stats::mad(get(delay_nm))),
+                         by = grp_nm]
+    delay_summary[, ("se") := get("sd")/sqrt(get("n"))]
+    delay_summary <- delay_summary %>%
+      dplyr::full_join(quantile_summary, by = grp_nm, keep = FALSE) %>%
+      dplyr::left_join(grp_df, by = grp_nm) %>%
+      dplyr::arrange(across(all_of(grp_nm))) %>%
+      dplyr::select(all_of(c(group_vars, "n", "min", "max", "mean", "sd",
+                             quantile_nms, "iqr", "mad", "se")))
+  }
+
   # Create delay table
   min_delay <- max(min(out[[delay_nm]]),
                    min_delay)
@@ -191,21 +217,22 @@ get_time_delay <- function(data, origin, end, by = "day",
                                n = integer(0),
                                cumulative = integer(0))
   } else {
-    out[, ("delay_ceiling") := ceiling(get(delay_nm))]
-    out[, ("edf") := edf(get("delay_ceiling"),
-                         g = get(grp_nm))]
     delay_tbl <- out %>%
-      fcount(across(all_of(c(grp_nm, group_vars, "delay_ceiling", "edf"))),
+      fcount(across(all_of(c(grp_nm, group_vars))),
+             across(all_of(delay_nm), ceiling),
              name = "n")
-    data.table::setDT(delay_tbl)[, ("cumulative") := collapse::fcumsum(get("n"),
+    data.table::setDT(delay_tbl)
+    delay_tbl[, ("cumulative") := collapse::fcumsum(get("n"),
                                                     g = get(grp_nm),
                                                     na.rm = TRUE)]
+    delay_tbl[, ("edf") := edf(get(delay_nm),
+                               g = get(grp_nm),
+                               wt = get("n"))]
     set_rm_cols(delay_tbl, setdiff(names(delay_tbl),
-                                   c(group_vars, "delay_ceiling",
+                                   c(group_vars, delay_nm,
                                      "n", "cumulative", "edf")))
-    data.table::setnames(delay_tbl, old = "delay_ceiling", new = delay_nm)
   }
-  set_rm_cols(out, c(grp_nm, "delay_ceiling", "edf"))
+  set_rm_cols(out, grp_nm)
   out <- df_reconstruct(out, data)
   delay_summary <- df_reconstruct(delay_summary, data)
   delay_tbl <- df_reconstruct(delay_tbl, data)

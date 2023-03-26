@@ -109,7 +109,7 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                     log_limit = 8){
   expand_type <- match.arg(expand_type)
   group_vars <- get_groups(data, {{ .by }})
-  summarise_vars <- summarise_list2(safe_ungroup(data), !!!enquos(...))
+  summarise_vars <- summarise_list(data, !!!enquos(...))
   grps_missed <- setdiff(group_vars, names(summarise_vars))
   # Add group vars to summary list
   if (length(grps_missed) > 0){
@@ -118,7 +118,7 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                           purrr::map(
                             grps_missed, function(x) purrr::pluck(
                               dplyr_summarise(
-                                safe_ungroup(data), across(dplyr::all_of(x))
+                                safe_ungroup(data), across(all_of(x))
                               ), 1)
                           ), grps_missed
                         ),
@@ -229,10 +229,9 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
   other_nms <- X_nms[!X_nms %in% data_nms]
   df <- data.table::as.data.table(X[X_nms %in% data_nms])
   n_data <- nrow2(df)
-  if (n_data > 0){
-    df <- unique_groups(df, .by = names(df))
+  if (n_data > 0L){
+    df <- fdistinct(df)
     # The below runs out of memory if qG class is present???
-    # df <- collapse::funique(df, sort = FALSE)
     n_data <- nrow2(df)
   }
   X_other <- X[X_nms %in% other_nms]
@@ -246,12 +245,12 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
                                            " rows, aborting.")
   # Nested cross-join
   grp_seq <- seq_len(n_data)
-  if (nrow2(df) == 0){
+  if (nrow2(df) == 0L){
     out <- do.call(get("CJ", asNamespace("data.table")),
                    args = c(X_other, sorted = FALSE, unique = FALSE))
   } else {
     out <- df[rep(grp_seq, each = n_other), , drop = FALSE]
-    if (length(X_other) > 0){
+    if (length(X_other) > 0L){
       rep_times <- nrow2(out) / collapse::vlengths(X_other)
       for (i in seq_along(X_other)){
         out[, (other_nms[i]) := rep(X_other[[i]], rep_times[i])][]

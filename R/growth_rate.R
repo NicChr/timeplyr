@@ -43,7 +43,8 @@ rolling_growth_rate <- function(x, n = length(x),
                                 partial = TRUE,
                                 na.rm = FALSE,
                                 log = FALSE, inf_fill = NULL){
-  if (na.rm) x <- collapse::na_rm(x)
+  # if (na.rm) x <- collapse::na_rm(x)
+  if (!missing(na.rm)) warning("na.rm is currently not implemented.")
   x_len <- length(x)
   n_len <- length(n)
   if (!isTRUE(n_len == 1 || n_len == x_len)){

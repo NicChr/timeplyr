@@ -645,7 +645,7 @@ time_cut_grouped <- function(time_seq_data, data, time, group_id,
     # print(i)
     .breaks <- fcut_ind(time_list_num[[i]],
                         c(time_seq_list_num[[i]],
-                          time_seq_num_max[i] + 1))
+                          time_seq_num_max[[i]] + 1))
     breaks_list[[i]] <- .breaks
     time_agg_list[[i]] <- time_seq_list[[i]][.breaks]
   }

@@ -67,13 +67,11 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                         sort = sort, name = name))
   }
   # If all dot args are data variables, don't transform
-  out <- safe_ungroup(data)
-  out <- out %>%
+  out <- data %>%
+    safe_ungroup() %>%
     # Ungrouped mutate
-    dplyr::mutate(!!!enquos(...),
-                  !!enquo(wt))
-  wt_var <- tidy_transform_names(safe_ungroup(data),
-                                 !!enquo(wt))
+    dplyr::mutate(!!!enquos(...), !!enquo(wt))
+  wt_var <- tidy_transform_names(safe_ungroup(data), !!enquo(wt))
   if (length(wt_var) > 0L) wtv <- out[[wt_var]]
   group_info <- get_group_info(data, !!!enquos(...),
                                type = "data-mask",
@@ -83,8 +81,8 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   all_vars <- group_info[["all_groups"]]
   grp_nm <- new_var_nm(names(out), ".group.id")
   out <- out %>%
-    add_group_id(sort = TRUE,
-                 all_of(all_vars),
+    add_group_id(all_of(all_vars),
+                 sort = TRUE,
                  as_qg = TRUE,
                  .name = grp_nm) %>%
     dplyr::select(all_of(c(grp_nm, group_vars, data_vars)))

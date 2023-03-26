@@ -15,19 +15,38 @@ edf(x, g = NULL, wt = NULL)
 }
 \description{
 Like \code{dplyr::cume_dist(x)} and \code{ecdf(x)(x)}
-but with added grouping functionality.
+but with added grouping and weighting functionality.\cr
+You can calculate the empirical distribution of x using
+aggregated data by supplying frequency weights.
+No expansion occurs which makes this function extremely efficient
+for this type of data, of which plotting is a common application.
 }
 \examples{
 library(timeplyr)
 library(dplyr)
+library(ggplot2)
+set.seed(9123812)
 x <- sample(seq(-10, 10, 0.5), size = 10^2, replace = TRUE)
 plot(sort(edf(x)))
 all.equal(edf(x), ecdf(x)(x))
 all.equal(edf(x), cume_dist(x))
-\dontrun{
-library(microbenchmark)
-microbenchmark(edf(x), cume_dist(x))
-}
+
+# Manual ECDF plot using only aggregate data
+y <- rnorm(100, 10)
+grid <- time_span(y, by = 0.1, floor_date = TRUE)
+counts <- time_countv(y, by = 0.1, floor_date = TRUE)
+edf <- edf(grid, wt = counts)
+
+# Full ecdf
+tibble(x) \%>\%
+  ggplot(aes(x = y)) +
+  stat_ecdf()
+# Approximation using aggregate only data
+tibble(grid, edf) \%>\%
+  ggplot(aes(x = grid, y = edf)) +
+  geom_step()
+
+# Grouped example
 g <- sample(letters[1:3], size = 10^2, replace = TRUE)
 
 edf1 <- tibble(x, g) \%>\%

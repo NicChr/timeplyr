@@ -13,6 +13,14 @@ is_monotonic_decreasing <- function(x){
 frequencies <- function(x){
   collapse::GRPN(x, expand = TRUE)
 }
+# Cumulative group sizes
+grp_sizes_cumulative <- function(x){
+  grp <- collapse::group(x, group.sizes = TRUE)
+  grpn <- collapse::GRPN(grp, expand = FALSE)
+  grpn_cum <- collapse::fcumsum(grpn, na.rm = FALSE)
+  out <- grpn_cum[match(as.integer(grp), seq_len(length(grpn)))]
+  out
+}
 
 lump_categories <- function(x, n = 10, factor = TRUE,
                             sort = c("frequency", "values"),
@@ -96,8 +104,16 @@ harmonic_mean <- function(x, weights = NULL, na.rm = FALSE){
 }
 
 # Transform variables using tidy data masking
-tidy_transform_names <- function(data, ...){
+tidy_transform_names2 <- function(data, ...){
   names(dplyr::transmute(data, !!!enquos(...)))
+}
+tidy_transform_names <- function(data, ...){
+  names(
+    summarise_list(
+      safe_ungroup(data)[1L, , drop = FALSE], !!!enquos(...),
+      fix.names = TRUE
+    )
+  )
 }
 # Select variables utilising tidyselect notation
 tidy_select_names <- function(data, ...){
@@ -106,24 +122,24 @@ tidy_select_names <- function(data, ...){
 # This works like dplyr::summarise but evaluates each expression
 # independently, and on the ungrouped data.
 # The result is always a list.
-summarise_list2 <- function(data, ..., fix.names = TRUE){
-  data <- safe_ungroup(data)
+summarise_list <- function(data, ..., fix.names = TRUE){
+  if (inherits(data, "grouped_df")) data <- dplyr::ungroup(data)
   quo_list <- rlang::eval_tidy(enquos(...), data)
-  out <- purrr::map(quo_list, function(quo) dplyr_summarise(data, !!quo))
+  out <- lapply(quo_list, function(quo) dplyr_summarise(data, !!quo))
   # Remove NULL entries
-  out_sizes <- collapse::vlengths(out)
-  if (all(out_sizes == 0)) return(list())
+  out_sizes <- lengths(out)
+  if (all(out_sizes == 0)) return(setnames(list(), character(0)))
   out <- out[out_sizes > 0]
   # Outer names
   outer_nms <- names(out)
   # Lengths of each list
-  out_sizes <- collapse::vlengths(out)
+  out_sizes <- lengths(out)
   # Expand list elements that have multiple elements
   which_less_than2 <- which(out_sizes < 2)
   which_greater_than1 <- which(out_sizes > 1)
   out1 <- out[which_less_than2]
   out2 <- out[which_greater_than1]
-  out_order <- order(c(which_less_than2, rep(which_greater_than1,
+  out_order <- radix_order(c(which_less_than2, rep(which_greater_than1,
                                              out_sizes[which_greater_than1])))
   outer_nms <- c(outer_nms[which_less_than2],
                  rep(outer_nms[which_greater_than1],
@@ -132,41 +148,84 @@ summarise_list2 <- function(data, ..., fix.names = TRUE){
   out1 <- unlist(unname(out1), recursive = FALSE)
   inner_nms <- c(names(out1), names(out2))[out_order]
   out <- c(out1, out2)[out_order]
-  out_lengths <- collapse::vlengths(out)
+  out_lengths <- lengths(out)
   if (fix.names){
     final_nms <- character(length(out))
     for (i in seq_along(out)){
-      if (outer_nms[i] == ""){
-        final_nms[i] <- inner_nms[i]
+      if (outer_nms[[i]] == ""){
+        final_nms[[i]] <- inner_nms[[i]]
       } else {
-        final_nms[i] <- outer_nms[i]
+        final_nms[[i]] <- outer_nms[[i]]
       }
     }
     names(out) <- final_nms
   }
   out
 }
+# summarise_list2 <- function(data, ..., .by = NULL, fix.names = TRUE){
+#   group_vars <- get_groups(data, .by = {{ .by }})
+#   quo_list <- rlang::eval_tidy(enquos(...), data)
+#   out <- purrr::map(quo_list, function(quo){
+#     dplyr::select(dplyr_summarise(data, !!quo),
+#                   -all_of(group_vars))
+#   })
+#   # Remove NULL entries
+#   out_sizes <- collapse::vlengths(out)
+#   if (all(out_sizes == 0)) return(list())
+#   out <- out[out_sizes > 0]
+#   # Outer names
+#   outer_nms <- names(out)
+#   # Lengths of each list
+#   out_sizes <- collapse::vlengths(out)
+#   # Expand list elements that have multiple elements
+#   which_less_than2 <- which(out_sizes < 2)
+#   which_greater_than1 <- which(out_sizes > 1)
+#   out1 <- out[which_less_than2]
+#   out2 <- out[which_greater_than1]
+#   out_order <- order(c(which_less_than2, rep(which_greater_than1,
+#                                              out_sizes[which_greater_than1])))
+#   outer_nms <- c(outer_nms[which_less_than2],
+#                  rep(outer_nms[which_greater_than1],
+#                      out_sizes[which_greater_than1]))[out_order]
+#   out2 <- unlist(out2, recursive = FALSE)
+#   out1 <- unlist(unname(out1), recursive = FALSE)
+#   inner_nms <- c(names(out1), names(out2))[out_order]
+#   out <- c(out1, out2)[out_order]
+#   out_lengths <- collapse::vlengths(out)
+#   if (fix.names){
+#     final_nms <- character(length(out))
+#     for (i in seq_along(out)){
+#       if (outer_nms[[i]] == ""){
+#         final_nms[[i]] <- inner_nms[[i]]
+#       } else {
+#         final_nms[[i]] <- outer_nms[[i]]
+#       }
+#     }
+#     names(out) <- final_nms
+#   }
+#   out
+# }
 # This is like summarise_list2 but works on grouped data
-summarise_list3 <- function(data, ..., fix.names = FALSE){
-  quo_list <- rlang::eval_tidy(enquos(...), data)
-  out <- purrr::map(quo_list, function(quo) dplyr_summarise(data, !!quo))
-  if (fix.names){
-    nms_out_nms <- names(out)
-    if (is.null(nms_out_nms)) nms_out_nms <- character(length(out))
-    out_lengths <- collapse::vlengths(out)
-    out_nms <- purrr::flatten_chr(purrr::map2(out, out_lengths, function(x, y) names(x)[y]))
-    final_nms <- character(length(out))
-      for (i in seq_along(out)){
-        if (nms_out_nms[i] == ""){
-          final_nms[i] <- out_nms[i]
-        } else {
-          final_nms[i] <- nms_out_nms[i]
-        }
-      }
-    names(out) <- final_nms
-  }
-  out
-}
+# summarise_list3 <- function(data, ..., fix.names = FALSE){
+#   quo_list <- rlang::eval_tidy(enquos(...), data)
+#   out <- purrr::map(quo_list, function(quo) dplyr_summarise(data, !!quo))
+#   if (fix.names){
+#     nms_out_nms <- names(out)
+#     if (is.null(nms_out_nms)) nms_out_nms <- character(length(out))
+#     out_lengths <- collapse::vlengths(out)
+#     out_nms <- purrr::flatten_chr(purrr::map2(out, out_lengths, function(x, y) names(x)[y]))
+#     final_nms <- character(length(out))
+#       for (i in seq_along(out)){
+#         if (nms_out_nms[i] == ""){
+#           final_nms[i] <- out_nms[i]
+#         } else {
+#           final_nms[i] <- nms_out_nms[i]
+#         }
+#       }
+#     names(out) <- final_nms
+#   }
+#   out
+# }
 
 # N expressions in ...
 dots_length <- function(...){
@@ -279,10 +338,9 @@ top_n <- function(x, n, na.rm = FALSE, with_ties = TRUE, sort = TRUE){
 get_group_info <- function(data, ..., type = c("select", "data-mask"),
                            .by = NULL){
   type <- match.arg(type)
-  # dplyr_groups <- group_vars(data)
   group_vars <- get_groups(data, {{ .by }})
   if (type == "select"){
-   extra_groups <- tidy_select_names(data, !!!enquos(...))
+   extra_groups <- tidy_select_names(safe_ungroup(data), !!!enquos(...))
   } else {
     extra_groups <- tidy_transform_names(safe_ungroup(data), !!!enquos(...))
   }
@@ -326,7 +384,7 @@ df_reconstruct <- function(data, template){
       template_attrs[["groups"]] <- NULL
     # } else {
     } else if (!inherits(data, "grouped_df") || !identical(template_attrs[["groups"]], data_attrs[["groups"]])){
-      grps <- collapse::GRP(dplyr::select(safe_ungroup(data), dplyr::all_of(out_groups)),
+      grps <- collapse::GRP(dplyr::select(safe_ungroup(data), all_of(out_groups)),
                             sort = TRUE, decreasing = FALSE, na.last = TRUE,
                             return.groups = TRUE, call = FALSE)
       groups <- dplyr::as_tibble(as.list(grps[["groups"]]))
@@ -445,24 +503,22 @@ ffactor <- function(x, levels = NULL, ordered = FALSE, na.exclude = TRUE){
 # Sort controls whether or not the data frame gets sorted by
 # the group, not if the group is itself sorted, which in this case
 # it always is
-unique_groups <- function(data, ...,
-                          sort = FALSE, .by = NULL,
-                          add_indices = FALSE){
+unique_groups <- function(data, ..., sort = FALSE, .by = NULL){
   group_vars <- get_group_info(data, !!!enquos(...),
                                .by = {{ .by }},
                                type = "select")[["all_groups"]]
   # Check if group id colname exists
-  grp_nm <- new_var_nm(data, ".group.id")
-  data[[grp_nm]] <- group_id(data, !!!enquos(...),
-                             sort = TRUE, .overwrite = FALSE,
-                                .by = {{ .by }}, as_qg = FALSE)
-  # Distinct group rows
-  out <- collapse::funique(dplyr::select(data, dplyr::all_of(c(group_vars,
-                                                               grp_nm))),
-                           cols = grp_nm, sort = sort)
-  if (!add_indices){
-    out[[grp_nm]] <- NULL
-  }
+  grp_nm <- new_var_nm(names(data), "group_id")
+  out <- data %>%
+    dplyr::select(all_of(group_vars)) %>%
+    add_group_id(!!!enquos(...),
+                 sort = TRUE, .overwrite = FALSE,
+                 .by = {{ .by }}, as_qg = FALSE,
+                 .name = grp_nm)
+  # collapse::funique(cols = grp_nm, sort = sort) %>%
+  # dplyr::mutate(!!grp_nm := as.integer(.data[[grp_nm]]))
+  out <- out[!collapse::fduplicated(out[[grp_nm]], all = FALSE), , drop = FALSE]
+  if (sort) out <- out[radix_order(out[[grp_nm]]), , drop = FALSE]
   out
 }
 # Slightly safer way of removing DT cols
@@ -525,6 +581,7 @@ setnames <- function(object = nm, nm){
   names(object) <- nm
   object
 }
+# Row products
 rowProds <- function(x, na.rm = FALSE, dims = 1L){
   exp(rowSums(log(x), na.rm = na.rm, dims = dims))
 }
@@ -569,4 +626,9 @@ has_interval <- function(data, quiet = FALSE){
             https://github.com/SebKrantz/collapse/issues")
   }
   out
+}
+# A wrapper around sample to account for length 1 vectors.
+# This is a well known problem (and solution)
+sample2 <- function(x, size = length(x), replace = FALSE, prob = NULL){
+  x[sample.int(length(x), size = size, replace = replace, prob = prob)]
 }
