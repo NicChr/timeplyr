@@ -309,7 +309,7 @@ time_count <- function(data, ..., time = NULL, by = NULL,
 
         int_nm <- new_var_nm(out, "interval")
         if (aggregate){
-          int_df <- dplyr::distinct(time_agg_df,
+          int_df <- fdistinct(time_agg_df,
                                     across(all_of(c(time_var, grp_nm, "interval"))))
           time_missed_df <- dplyr::anti_join(dplyr::select(out,
                                                            all_of(c(time_var, grp_nm))),

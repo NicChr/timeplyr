@@ -112,7 +112,7 @@ testthat::test_that("Compare to dplyr, add_count", {
   testthat::expect_identical(iris %>%
                                dplyr::mutate(interval = lubridate::interval(
                                  lubridate::today(), lubridate::today())) %>%
-                               fadd_count(keep_class = FALSE),
+                               fadd_count(keep_class = TRUE),
                              iris %>%
                                dplyr::mutate(interval = lubridate::interval(
                                  lubridate::today(), lubridate::today())) %>%
@@ -212,3 +212,4 @@ testthat::test_that("Compare to dplyr, add_count", {
                              flights %>% fadd_count(tailnum, origin, dest, sort = TRUE))
 
 })
+

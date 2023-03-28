@@ -59,50 +59,72 @@ group_id <- function(data, ...,
                      .by = NULL,
                      .overwrite = FALSE,
                      as_qg = FALSE){
+  N <- nrow2(data)
   group_vars <- group_vars(data)
   by_vars <- tidy_select_names(data, {{ .by }})
-  dot_vars <- tidy_select_names(data, !!!enquos(...))
+  dot_vars <- tidy_select_names(data, ...)
+  # by and group vars cannot both be supplied (unless .overwrite = TRUE)
   if (length(by_vars) > 0L){
-    if (!.overwrite && length(group_vars) > 0L) stop(".by cannot be used on a grouped_df")
-  }
-  if (length(group_vars) == 0L &&
-      length(by_vars) == 0L &&
-      length(dot_vars) == 0L){
-    out <- rep_len(1L, nrow2(data))
-    # Method for grouped_df
-  } else if (.overwrite && length(group_vars) > 0L && length(by_vars) > 0L){
-    out <- collapse::GRP(safe_ungroup(data), by = c(by_vars, dot_vars),
-                         sort = sort,
-                         decreasing = FALSE,
-                         na.last = TRUE,
-                         return.groups = FALSE,
-                         return.order = FALSE,
-                         method = "auto",
-                         call = FALSE)[["group.id"]]
-    # Special case, just using dplyr group indices
-  } else if (sort &&
-             length(group_vars) > 0L &&
-             length(dot_vars) == 0L){
-    out <- dplyr::group_indices(data)
-  }
-  else {
-    if (sort){
-      out <- collapse::GRP(dplyr::select(safe_ungroup(data),
-                                         all_of(c(group_vars, by_vars, dot_vars))),
-                           sort = TRUE,
-                           decreasing = FALSE,
-                           na.last = TRUE,
-                           return.groups = FALSE,
-                           return.order = FALSE,
-                           method = "auto",
-                           call = FALSE)[["group.id"]]
+    if (!.overwrite && length(group_vars) > 0L){
+      stop(".by cannot be used on a grouped_df")
     } else {
-      out <- collapse::group(dplyr::select(safe_ungroup(data),
-                                           all_of(c(group_vars, by_vars, dot_vars))),
-                             group.sizes = FALSE,
-                             starts = FALSE)
+      group_vars2 <- by_vars
     }
+  } else {
+    group_vars2 <- group_vars
+  }
+  # If there tidy-selected variables have been renamed then rename them..
+  if (length(dot_vars) > 0L && length(setdiff(dot_vars, names(data))) > 0L){
+    data <- data %>%
+      dplyr::select(dplyr::everything(), !!!enquos(...))
+      # dplyr::select(all_of(group_vars2, !!!enquos(...)))
 
+  } else {
+    data <- collapse::fselect(data, c(group_vars2, dot_vars))
+    # Make sure data is subset on columns we need (in correct order)
+    # data <- data[, c(group_vars2, dot_vars), drop = FALSE]
+  }
+  needs_regrouping <- !isTRUE(sort &&
+    length(group_vars) > 0L &&
+    length(by_vars) == 0L &&
+    length(dot_vars) == 0L)
+  # If data contains lubridate interval, use dplyr grouping, otherwise collapse
+  if (has_interval(data, quiet = TRUE)){
+    if (!needs_regrouping){
+      out <- dplyr::group_indices(data)
+    } else {
+      out <- data %>%
+        dplyr::group_by(across(all_of(c(group_vars2, dot_vars)))) %>%
+        dplyr::group_indices()
+    }
+    if (!sort) out <- collapse::group(out,
+                                      group.sizes = FALSE,
+                                      starts = FALSE)
+  } else {
+    if (length(group_vars2) == 0L &&
+        length(dot_vars) == 0L){
+      out <- rep_len(1L, nrow2(data))
+      # Method for grouped_df
+    } else if (!needs_regrouping){
+      out <- dplyr::group_indices(data)
+    } else {
+      if (sort){
+        out <- collapse::GRP(safe_ungroup(data),
+                             by = c(group_vars2, dot_vars),
+                             sort = TRUE,
+                             decreasing = FALSE,
+                             na.last = TRUE,
+                             return.groups = FALSE,
+                             return.order = FALSE,
+                             method = "auto",
+                             call = FALSE)[["group.id"]]
+      } else {
+        out <- collapse::group(safe_ungroup(data),
+                               group.sizes = FALSE,
+                               starts = FALSE)
+      }
+
+    }
   }
   if (as_qg){
     out <- collapse::qG(out, sort = sort, ordered = FALSE)

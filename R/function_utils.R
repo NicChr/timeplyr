@@ -14,65 +14,65 @@ frequencies <- function(x){
   collapse::GRPN(x, expand = TRUE)
 }
 # Cumulative group sizes
-grp_sizes_cumulative <- function(x){
-  grp <- collapse::group(x, group.sizes = TRUE)
-  grpn <- collapse::GRPN(grp, expand = FALSE)
-  grpn_cum <- collapse::fcumsum(grpn, na.rm = FALSE)
-  out <- grpn_cum[match(as.integer(grp), seq_len(length(grpn)))]
-  out
-}
+# grp_sizes_cumulative <- function(x){
+#   grp <- collapse::group(x, group.sizes = TRUE)
+#   grpn <- collapse::GRPN(grp, expand = FALSE)
+#   grpn_cum <- collapse::fcumsum(grpn, na.rm = FALSE)
+#   out <- grpn_cum[match(as.integer(grp), seq_len(length(grpn)))]
+#   out
+# }
 
-lump_categories <- function(x, n = 10, factor = TRUE,
-                            sort = c("frequency", "values"),
-                            descending = TRUE,
-                            drop_levels = FALSE
-                            # na_exclude = TRUE
-                            ){
-  sort <- match.arg(sort)
-  y <- as.character(x)
-  if (is.factor(x)){
-    x_unique <- levels(x)
-    if (descending){
-      x_unique_sorted <- rev(x_unique)
-    } else {
-      x_unique_sorted <- x_unique
-    }
-  } else {
-    x_unique <- collapse::funique(x[!is.na(x)])
-    # x_unique_sorted <- sort(x_unique, decreasing = descending)
-    x_unique_sorted <- x_unique[radix_order(x_unique, decreasing = descending)]
-  }
-  if (sort == "frequency"){
-    # ranked_categories <- sort(table(x), decreasing = descending)
-    # ranked_categories <- collapse::qtab(x, sort = FALSE, dnn = NULL, na.exclude = na_exclude)
-    ranked_categories <- collapse::qtab(x, sort = FALSE, dnn = NULL, na.exclude = TRUE)
-    ranked_categories <- ranked_categories[radix_order(ranked_categories,
-                                                       decreasing = descending)]
-    top_n_categories <- utils::head(ranked_categories, n = n)
-    top_n_categories <- names(top_n_categories[radix_order(top_n_categories,
-                                                           decreasing = descending)])
-  } else {
-    top_n_categories <- utils::head(x_unique_sorted, n = n)
-  }
-  top_n_category_levels <- as.character(top_n_categories)
-  if (length(x_unique) > length(top_n_categories)){
-    y[(!y %in% top_n_category_levels) & !is.na(y)] <- "Other"
-    top_n_category_levels <- collapse::funique(c(top_n_category_levels, "Other"))
-  }
-  if (factor){
-    # if (na_exclude){
-    #   na_factor_exclude <- NA
-    # } else {
-    #   na_factor_exclude <- NULL
-    # }
-    # y <- factor(y, levels = top_n_category_levels, exclude = na_factor_exclude)
-    y <- ffactor(y, levels = top_n_category_levels)
-    if (drop_levels){
-      y <- droplevels(y)
-    }
-  }
-  y
-}
+# lump_categories <- function(x, n = 10, factor = TRUE,
+#                             sort = c("frequency", "values"),
+#                             descending = TRUE,
+#                             drop_levels = FALSE
+#                             # na_exclude = TRUE
+#                             ){
+#   sort <- match.arg(sort)
+#   y <- as.character(x)
+#   if (is.factor(x)){
+#     x_unique <- levels(x)
+#     if (descending){
+#       x_unique_sorted <- rev(x_unique)
+#     } else {
+#       x_unique_sorted <- x_unique
+#     }
+#   } else {
+#     x_unique <- collapse::funique(x[!is.na(x)])
+#     # x_unique_sorted <- sort(x_unique, decreasing = descending)
+#     x_unique_sorted <- x_unique[radix_order(x_unique, decreasing = descending)]
+#   }
+#   if (sort == "frequency"){
+#     # ranked_categories <- sort(table(x), decreasing = descending)
+#     # ranked_categories <- collapse::qtab(x, sort = FALSE, dnn = NULL, na.exclude = na_exclude)
+#     ranked_categories <- collapse::qtab(x, sort = FALSE, dnn = NULL, na.exclude = TRUE)
+#     ranked_categories <- ranked_categories[radix_order(ranked_categories,
+#                                                        decreasing = descending)]
+#     top_n_categories <- utils::head(ranked_categories, n = n)
+#     top_n_categories <- names(top_n_categories[radix_order(top_n_categories,
+#                                                            decreasing = descending)])
+#   } else {
+#     top_n_categories <- utils::head(x_unique_sorted, n = n)
+#   }
+#   top_n_category_levels <- as.character(top_n_categories)
+#   if (length(x_unique) > length(top_n_categories)){
+#     y[(!y %in% top_n_category_levels) & !is.na(y)] <- "Other"
+#     top_n_category_levels <- collapse::funique(c(top_n_category_levels, "Other"))
+#   }
+#   if (factor){
+#     # if (na_exclude){
+#     #   na_factor_exclude <- NA
+#     # } else {
+#     #   na_factor_exclude <- NULL
+#     # }
+#     # y <- factor(y, levels = top_n_category_levels, exclude = na_factor_exclude)
+#     y <- ffactor(y, levels = top_n_category_levels)
+#     if (drop_levels){
+#       y <- droplevels(y)
+#     }
+#   }
+#   y
+# }
 # N unique with efficient na.rm
 n_unique <- function(x, na.rm = FALSE){
   out <- collapse::fnunique(x)
@@ -104,9 +104,6 @@ harmonic_mean <- function(x, weights = NULL, na.rm = FALSE){
 }
 
 # Transform variables using tidy data masking
-tidy_transform_names2 <- function(data, ...){
-  names(dplyr::transmute(data, !!!enquos(...)))
-}
 tidy_transform_names <- function(data, ...){
   names(
     summarise_list(
@@ -115,6 +112,10 @@ tidy_transform_names <- function(data, ...){
     )
   )
 }
+tidy_transform_names2 <- function(data, ...){
+  names(dplyr::transmute(data, !!!enquos(...)))
+}
+
 # Select variables utilising tidyselect notation
 tidy_select_names <- function(data, ...){
   names(tidyselect::eval_select(rlang::expr(c(!!!enquos(...))), data = data))
@@ -122,6 +123,7 @@ tidy_select_names <- function(data, ...){
 # This works like dplyr::summarise but evaluates each expression
 # independently, and on the ungrouped data.
 # The result is always a list.
+# Useful way of returning the column names after supplying data-masking variables too
 summarise_list <- function(data, ..., fix.names = TRUE){
   if (inherits(data, "grouped_df")) data <- dplyr::ungroup(data)
   quo_list <- rlang::eval_tidy(enquos(...), data)
@@ -384,7 +386,7 @@ df_reconstruct <- function(data, template){
       template_attrs[["groups"]] <- NULL
     # } else {
     } else if (!inherits(data, "grouped_df") || !identical(template_attrs[["groups"]], data_attrs[["groups"]])){
-      grps <- collapse::GRP(dplyr::select(safe_ungroup(data), all_of(out_groups)),
+      grps <- collapse::GRP(safe_ungroup(data), by = out_groups,
                             sort = TRUE, decreasing = FALSE, na.last = TRUE,
                             return.groups = TRUE, call = FALSE)
       groups <- dplyr::as_tibble(as.list(grps[["groups"]]))
@@ -396,17 +398,16 @@ df_reconstruct <- function(data, template){
       template_attrs[["groups"]] <- groups
       attr(template_attrs[["groups"]], ".drop") <- dplyr::group_by_drop_default(template)
     }
-    # All other non-group attributes
-    template_attrs[["names"]] <- names(data)
-    template_attrs[["row.names"]] <- data_attrs[["row.names"]]
-    attributes(data) <- template_attrs
-    data
-  } else {
-    template_attrs[["names"]] <- names(data)
-    template_attrs[["row.names"]] <- data_attrs[["row.names"]]
-    attributes(data) <- template_attrs
+    # # All other non-group attributes
+    # template_attrs[["names"]] <- names(data)
+    # template_attrs[["row.names"]] <- data_attrs[["row.names"]]
+    # attributes(data) <- template_attrs
     data
   }
+  template_attrs[["names"]] <- names(data)
+  template_attrs[["row.names"]] <- data_attrs[["row.names"]]
+  attributes(data) <- template_attrs
+  data
 }
 # Faster version of nrow specifically for data frames
 nrow2 <- function(data){
@@ -503,22 +504,21 @@ ffactor <- function(x, levels = NULL, ordered = FALSE, na.exclude = TRUE){
 # Sort controls whether or not the data frame gets sorted by
 # the group, not if the group is itself sorted, which in this case
 # it always is
-unique_groups <- function(data, ..., sort = FALSE, .by = NULL){
-  group_vars <- get_group_info(data, !!!enquos(...),
-                               .by = {{ .by }},
-                               type = "select")[["all_groups"]]
+unique_groups <- function(data, ..., sort = TRUE,
+                          .by = NULL, .group_id = TRUE){
+  group_vars <- get_groups(data, {{ .by }})
+  extra_vars <- tidy_select_names(data, !!!enquos(...))
   # Check if group id colname exists
   grp_nm <- new_var_nm(names(data), "group_id")
   out <- data %>%
-    dplyr::select(all_of(group_vars)) %>%
-    add_group_id(!!!enquos(...),
+    dplyr::select(all_of(group_vars), !!!enquos(...)) %>%
+    add_group_id(all_of(extra_vars),
                  sort = TRUE, .overwrite = FALSE,
                  .by = {{ .by }}, as_qg = FALSE,
                  .name = grp_nm)
-  # collapse::funique(cols = grp_nm, sort = sort) %>%
-  # dplyr::mutate(!!grp_nm := as.integer(.data[[grp_nm]]))
   out <- out[!collapse::fduplicated(out[[grp_nm]], all = FALSE), , drop = FALSE]
   if (sort) out <- out[radix_order(out[[grp_nm]]), , drop = FALSE]
+  if (!.group_id) out[[grp_nm]] <- NULL
   out
 }
 # Slightly safer way of removing DT cols

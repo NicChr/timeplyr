@@ -195,6 +195,7 @@ time_diff_gcd <- function(x, is_sorted = FALSE){
                               stubs = FALSE)
     y_diff <- collapse::na_rm(collapse::funique(round(abs(y_diff[-1L])),
                                                         sort = FALSE))
+    y_diff <- y_diff[y_diff > 0]
     # gcd_diff <- Reduce(gcd, y_diff)
     gcd_diff <- collapse::vgcd(y_diff)
     if (!isTRUE(gcd_diff >= 1)) gcd_diff <- 1

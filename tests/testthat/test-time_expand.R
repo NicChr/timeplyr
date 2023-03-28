@@ -27,13 +27,13 @@ testthat::test_that("time expand", {
                   expand_type = "nesting",
                   sort = FALSE),
     flights %>%
-      dplyr::distinct(across(all_of(c("dest", "tailnum", "origin"))))
+      fdistinct(across(all_of(c("dest", "tailnum", "origin"))))
   )
   testthat::expect_identical(
     flights2 %>%
       time_expand(time = time_hour),
     flights2 %>%
-      dplyr::distinct(time_hour) %>%
+      fdistinct(time_hour) %>%
       fcomplete(time_hour = time_span(time_hour, by = "hour"),
                 sort = TRUE)
   )
@@ -41,25 +41,25 @@ testthat::test_that("time expand", {
     flights2 %>%
       time_expand(time = time_hour, by = "week"),
     flights2 %>%
-      dplyr::distinct(time_hour) %>%
+      fdistinct(time_hour) %>%
       fcomplete(time_hour = time_span(time_hour, by = "hour"),
                 sort = TRUE) %>%
       dplyr::reframe(time_hour = cut_time2(time_hour,
                                            time_span(time_hour, by = "week"))) %>%
-      dplyr::distinct()
+      fdistinct()
   )
   testthat::expect_identical(
     flights2 %>%
       time_expand(time = time_hour, by = "week",
                   floor_date = TRUE),
     flights2 %>%
-      dplyr::distinct(time_hour) %>%
+      fdistinct(time_hour) %>%
       fcomplete(time_hour = time_span(time_hour, by = "hour"),
                 sort = TRUE) %>%
       dplyr::reframe(time_hour = cut_time2(time_hour,
                                            time_span(time_hour, by = "week",
                                                      floor_date = TRUE))) %>%
-      dplyr::distinct()
+      fdistinct()
   )
 
   # With groups..
@@ -157,14 +157,14 @@ testthat::test_that("time expand", {
     safe_ungroup() %>%
     dplyr::mutate(min = gmin(date, g = group_id),
                   max = gmax(date, g = group_id)) %>%
-    dplyr::distinct(origin, dest, tailnum, min, max)
+    fdistinct(origin, dest, tailnum, min, max)
   base_res <- flights %>%
     dplyr::mutate(date = lubridate::as_date(time_hour)) %>%
     add_group_id(origin, dest, tailnum) %>%
     dplyr::arrange(group_id) %>%
     dplyr::mutate(min = gmin(date, g = group_id),
                   max = gmax(date, g = group_id)) %>%
-    dplyr::distinct(origin, dest, tailnum, min, max)
+    fdistinct(origin, dest, tailnum, min, max)
 
   testthat::expect_identical(grouped_res %>%
                                dplyr::select(-max),
@@ -199,7 +199,7 @@ testthat::test_that("time expand", {
                   expand_type = "nesting",
                   sort = FALSE),
     flights %>%
-      dplyr::distinct()
+      fdistinct()
   )
   testthat::expect_identical(
     flights2 %>%

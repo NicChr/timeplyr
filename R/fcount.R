@@ -47,6 +47,8 @@
 #'              keep_class = FALSE) # Data.table result
 #' @importFrom dplyr %>%
 #' @importFrom data.table :=
+#' @importFrom data.table .N
+#' @importFrom data.table .SD
 #' @importFrom dplyr .data
 #' @importFrom dplyr group_vars
 #' @importFrom dplyr across
@@ -57,15 +59,6 @@
 #' @export
 fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                    .by = NULL){
-  # Temporary fix as collapse grouping doesn't work on lubridate intervals
-  if (has_interval(data)){
-    group_vars <- get_groups(data, {{ .by }})
-    return(dplyr::count(data,
-                        across(all_of(group_vars) ),
-                        !!!enquos(...),
-                        wt = !!enquo(wt),
-                        sort = sort, name = name))
-  }
   # If all dot args are data variables, don't transform
   out <- data %>%
     safe_ungroup() %>%
@@ -126,15 +119,6 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
 fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                        .by = NULL,
                        keep_class = TRUE){
-  # Temporary fix as collapse grouping doesn't work on lubridate intervals
-  if (has_interval(data)){
-    group_vars <- get_groups(data, {{ .by }})
-    return(dplyr::add_count(data,
-                        across( all_of(group_vars) ),
-                        !!!enquos(...),
-                        wt = !!enquo(wt),
-                        sort = sort, name = name))
-  }
   out <- data %>%
     safe_ungroup() %>%
     dplyr::mutate(!!!enquos(...),

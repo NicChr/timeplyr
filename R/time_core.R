@@ -191,7 +191,7 @@ time_summarisev <- function(x, by = NULL, from = NULL, to = NULL,
                          !!"interval" := time_int)
     # Unique and sorting
     if (unique){
-      out <- dplyr::distinct(out)
+      out <- fdistinct(out)
     }
     if (sort) out <- out[radix_order(out[["x"]]), , drop = FALSE]
   } else {
@@ -286,7 +286,7 @@ time_countv <- function(x, by = NULL, from = NULL, to = NULL,
     time_int <- time_seq_int[time_break_ind]
     int_df <- dplyr::tibble(!!"interval" := time_int)
     if (unique) {
-      int_df <- dplyr::distinct(int_df)
+      int_df <- fdistinct(int_df)
     }
     if (length(time_missed) > 0L){
       int_df <- dplyr::tibble(!!"interval" :=
