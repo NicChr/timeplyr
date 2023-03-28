@@ -30,7 +30,7 @@ If \code{FALSE} the order of the group IDs will be based on first appearance.}
 \item{.by}{Alternative way of supplying groups using tidy
 select notation. This is kept to be consistent with other functions.}
 
-\item{.overwrite}{If \code{TRUE} then groups supplied through \code{.by}
+\item{.overwrite}{(Questioning) If \code{TRUE} then groups supplied through \code{.by}
 (as well as through \code{...}) overwrite existing dplyr groups.}
 
 \item{as_qg}{Should the group IDs be returned as a

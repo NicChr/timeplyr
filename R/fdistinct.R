@@ -31,8 +31,7 @@ fdistinct <- function(data, ..., .keep_all = FALSE, .by = NULL){
       out_vars <- dup_vars
     }
   }
-  out <- out %>%
-    dplyr::select(all_of(out_vars))
+  out <- collapse::fselect(out, out_vars)
   g <- group_id(out, all_of(dup_vars),
                  sort = FALSE,
                  as_qg = FALSE)

@@ -7,7 +7,7 @@ testthat::test_that("Group IDs", {
     dplyr::group_indices()
 
   iris2 <- data.table::as.data.table(iris)
-  base3 <- iris2[, ("id") := .GRP, by = c("Species", "Sepal.Length")][["id"]]
+  base3 <- iris2[, ("id") := .GRP, by = c("Species", "Sepal.Length")][][["id"]]
 
   testthat::expect_identical(rep_len(1L, nrow(iris)),
                              group_id(iris))
@@ -69,6 +69,21 @@ testthat::test_that("Group IDs", {
                                group_id(Sepal.Length, sort = FALSE,
                                         as_qg = TRUE) %>%
                                as.integer())
+
+  # Zero cols
+  testthat::expect_identical(group_id(iris2 %>% dplyr::select()),
+                             seq_ones(nrow2(iris2)))
+  testthat::expect_identical(group_id(iris %>% dplyr::select()),
+                             seq_ones(nrow2(iris2)))
+  # With renaming
+
+  testthat::expect_identical(iris %>% group_id(okay = Species),
+                             base1)
+  testthat::expect_identical(iris %>%
+                               dplyr::group_by(Species) %>%
+                               group_id(okay = Species),
+                             base1)
+
 })
 testthat::test_that("Adding group IDs", {
   base1 <- iris %>%

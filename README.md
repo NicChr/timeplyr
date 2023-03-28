@@ -8,10 +8,15 @@
 
 # **A date and datetime extension to dplyr**
 
-This package provides a set of functions for wrangling, completing and
-summarising date and datetime data.
+This package provides a set of functions to make working with date and
+datetime data much easier!
 
-**It introduces no new classes to learn.**
+While most time-based packages are designed to work with clean and
+pre-aggregate data,  
+timeplyr contains a set of tidy tools to complete, expand and summarise
+both raw and aggregate date/datetime data.
+
+It introduces no new classes.
 
 ## Installation
 
@@ -32,13 +37,16 @@ library(timeplyr)
 **All functions that accept a data argument can handle grouped
 calculations**
 
-**Most functions with a v suffix are vector versions of the tidy
-equivalents**
-
-The functions `time_count()`, `time_expand()`, `time_summarise()`,
-`time_complete()`, `time_mutate()` and `time_reframe()` all operate
+The `time_` functions that accept a data frame argument all operate
 similarly to the tidyverse equivalents but additionally accept a `time`
-argument.
+argument to allow for date/datetime implicit missing value completion,
+expansion and aggregation.
+
+-   `time_count` - Time-based `dplyr::count`
+-   `time_summarise` - Time-based `dplyr::summarise`
+-   `time_mutate` - Time-based `dplyr::mutate`
+-   `time_expand` - Time-based `tidyr::expand`
+-   `time_complete` - Time-based `tidyr::complete`
 
 For example, `data %>% time_count(time = date, by = "month")` will:
 
@@ -49,6 +57,23 @@ There are many more options to allow for more flexible time
 summarisation, such as choosing start/end times, flooring dates to get
 full time units (e.g months), and many others.
 
+## Fast functions
+
+There are also a few dplyr alternatives designed to work faster on large
+numbers of groups.
+
+-   `fcount` - `dplyr::count` alternative
+-   `fdistinct` - `dplyr::distinct` alternative
+-   `fduplicates` - Finds duplicate rows, similar to
+    `data %>% group_by() %>% filter(n() > 1)`
+-   `fslice` - `dplyr::slice` alternative
+
+## Vector time functions
+
+There are also vector versions of the tidy equivalents, designed for use
+on atomic vectors. These include: `time_countv`, `time_expandv`,
+`time_summarisev` and `time_completev`.
+
 ## Some simple examples
 
 We use flights departing from New York City in 2013.
@@ -56,7 +81,7 @@ We use flights departing from New York City in 2013.
 ``` r
 library(tidyverse)
 #> -- Attaching core tidyverse packages ------------------------ tidyverse 2.0.0 --
-#> v dplyr     1.1.0     v readr     2.1.3
+#> v dplyr     1.1.1     v readr     2.1.3
 #> v forcats   0.5.2     v stringr   1.5.0
 #> v ggplot2   3.4.1     v tibble    3.2.0
 #> v lubridate 1.9.2     v tidyr     1.3.0
@@ -662,7 +687,7 @@ Vectorised function that calculates time sequence lengths
 ``` r
 time_seq_len(start, start + years(1:10), 
              by = list("days" = sample(1:10)))
-#>  [1]   74   82  366  147  914  275  640  418  549 3654
+#>  [1]  367  147  110  209  229 1097  640  325  549 1218
 ```
 
 Dealing with impossible dates and datetimes is very simple
@@ -693,11 +718,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2023-W12"
+#> [1] "2023-W13"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W12-1"
+#> [1] "2023-W13-2"
 iso_week(today(), year = FALSE)
-#> [1] "W12"
+#> [1] "W13"
 ```
 
 Helpers like `calendar()`, `create_calendar()` and `add_calendar()` can

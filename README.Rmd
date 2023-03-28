@@ -22,10 +22,12 @@ knitr::opts_chunk$set(
 
 # **A date and datetime extension to dplyr**
 
-This package provides a set of functions for
-wrangling, completing and summarising date and datetime data.
+This package provides a set of functions to make working with date and datetime data much easier!
 
-**It introduces no new classes to learn.**
+While most time-based packages are designed to work with clean and pre-aggregate data,   
+timeplyr contains a set of tidy tools to complete, expand and summarise both raw and aggregate date/datetime data.
+
+It introduces no new classes.
 
 ## Installation
 
@@ -45,11 +47,14 @@ library(timeplyr)
 
 **All functions that accept a data argument can handle grouped calculations**
 
-**Most functions with a v suffix are vector versions of the tidy equivalents**
 
+The `time_` functions that accept a data frame argument all operate similarly to the tidyverse equivalents but additionally accept a `time` argument to allow for date/datetime implicit missing value completion, expansion and aggregation.
 
-The functions `time_count()`, `time_expand()`, `time_summarise()`, `time_complete()`, `time_mutate()` and `time_reframe()`
-all operate similarly to the tidyverse equivalents but additionally accept a `time` argument.  
+* `time_count` - Time-based `dplyr::count`
+* `time_summarise` - Time-based `dplyr::summarise`
+* `time_mutate` - Time-based `dplyr::mutate`
+* `time_expand` - Time-based `tidyr::expand`
+* `time_complete` - Time-based `tidyr::complete`
 
 For example, `data %>% time_count(time = date, by = "month")` will:
 
@@ -58,6 +63,20 @@ For example, `data %>% time_count(time = date, by = "month")` will:
 
 There are many more options to allow for more flexible time summarisation, such as 
 choosing start/end times, flooring dates to get full time units (e.g months), and many others.
+
+## Fast functions
+
+There are also a few dplyr alternatives designed to work faster on large numbers of groups.
+
+* `fcount` - `dplyr::count` alternative
+* `fdistinct` - `dplyr::distinct` alternative
+* `fduplicates` - Finds duplicate rows, similar to `data %>% group_by() %>% filter(n() > 1)`
+* `fslice` - `dplyr::slice` alternative
+
+## Vector time functions
+
+There are also vector versions of the tidy equivalents, designed for use on atomic vectors.
+These include: `time_countv`, `time_expandv`, `time_summarisev` and `time_completev`.
 
 ## Some simple examples
 

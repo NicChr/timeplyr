@@ -21,7 +21,7 @@
 #' character vector of length 1.
 #' If `NULL` then a column named "group_id" will be added,
 #' and if one already exists, a unique name will be used.
-#' @param .overwrite If `TRUE` then groups supplied through `.by`
+#' @param .overwrite (Questioning) If `TRUE` then groups supplied through `.by`
 #' (as well as through `...`) overwrite existing dplyr groups.
 #' @param as_qg Should the group IDs be returned as a
 #' collapse "qG" class? The default (`FALSE`) always returns
@@ -63,6 +63,12 @@ group_id <- function(data, ...,
   group_vars <- group_vars(data)
   by_vars <- tidy_select_names(data, {{ .by }})
   dot_vars <- tidy_select_names(data, ...)
+  # If there tidy-selected variables have been renamed then rename them..
+  if (length(dot_vars) > 0L && length(setdiff(dot_vars, names(data))) > 0L){
+    data <- data %>%
+      dplyr::select(dplyr::everything(), !!!enquos(...))
+    group_vars <- group_vars(data) # Recalculate group vars as it might get renamed
+  }
   # by and group vars cannot both be supplied (unless .overwrite = TRUE)
   if (length(by_vars) > 0L){
     if (!.overwrite && length(group_vars) > 0L){
@@ -73,34 +79,23 @@ group_id <- function(data, ...,
   } else {
     group_vars2 <- group_vars
   }
-  # If there tidy-selected variables have been renamed then rename them..
-  if (length(dot_vars) > 0L && length(setdiff(dot_vars, names(data))) > 0L){
-    data <- data %>%
-      dplyr::select(dplyr::everything(), !!!enquos(...))
-      # dplyr::select(all_of(group_vars2, !!!enquos(...)))
-
-  } else {
-    data <- collapse::fselect(data, c(group_vars2, dot_vars))
-    # Make sure data is subset on columns we need (in correct order)
-    # data <- data[, c(group_vars2, dot_vars), drop = FALSE]
-  }
+  data <- collapse::fselect(data, c(group_vars2, dot_vars))
   needs_regrouping <- !isTRUE(sort &&
     length(group_vars) > 0L &&
     length(by_vars) == 0L &&
     length(dot_vars) == 0L)
   # If data contains lubridate interval, use dplyr grouping, otherwise collapse
   if (has_interval(data, quiet = TRUE)){
-    if (!needs_regrouping){
-      out <- dplyr::group_indices(data)
-    } else {
-      out <- data %>%
-        dplyr::group_by(across(all_of(c(group_vars2, dot_vars)))) %>%
-        dplyr::group_indices()
+    if (needs_regrouping){
+      data <- data %>%
+        dplyr::group_by(across(all_of(c(group_vars2, dot_vars))))
     }
+    out <- dplyr::group_indices(data)
     if (!sort) out <- collapse::group(out,
                                       group.sizes = FALSE,
                                       starts = FALSE)
   } else {
+    # Usual Method for when data does not contain interval
     if (length(group_vars2) == 0L &&
         length(dot_vars) == 0L){
       out <- rep_len(1L, nrow2(data))
@@ -110,7 +105,7 @@ group_id <- function(data, ...,
     } else {
       if (sort){
         out <- collapse::GRP(safe_ungroup(data),
-                             by = c(group_vars2, dot_vars),
+                             # by = c(group_vars2, dot_vars),
                              sort = TRUE,
                              decreasing = FALSE,
                              na.last = TRUE,
