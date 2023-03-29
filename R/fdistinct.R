@@ -10,31 +10,39 @@
 #' Columns are specified using tidy-select.
 #' @export
 fdistinct <- function(data, ..., .keep_all = FALSE, .by = NULL){
-  out <- data %>%
-    safe_ungroup() %>%
-    dplyr::mutate(!!!enquos(...))
-  group_info <- get_group_info(data, !!!enquos(...), type = "data-mask",
+  n_dots <- dots_length(...)
+  template <- data[1, , drop = FALSE]
+  if (inherits(data, "grouped_df")){
+    data <- dplyr::ungroup(data)
+  }
+  if (n_dots > 0){
+    data <- data %>%
+      dplyr::mutate(!!!enquos(...))
+  }
+  group_info <- get_group_info(template, !!!enquos(...), type = "data-mask",
                                .by = {{ .by }})
   group_vars <- group_info[["dplyr_groups"]]
   extra_groups <- group_info[["extra_groups"]]
   all_groups <- group_info[["all_groups"]]
-  # Check if group id colname exists
-  grp_nm <- new_var_nm(names(data), "group_id")
-  if (dots_length(...) == 0L){
-    dup_vars <- names(out)
+  if (n_dots == 0L){
+    dup_vars <- names(data)
     out_vars <- dup_vars
   } else {
     dup_vars <- all_groups
     if (.keep_all){
-      out_vars <- names(out)
+      out_vars <- names(data)
     } else {
       out_vars <- dup_vars
     }
   }
-  out <- collapse::fselect(out, out_vars)
-  g <- group_id(out, all_of(dup_vars),
+  data <- collapse::fselect(data, out_vars)
+  # out <- fslice(data, vctrs::vec_unique_loc(collapse::fselect(data, dup_vars)))
+  grp_nm <- new_var_nm(names(data), ".group.id")
+  g <- group_id(data, all_of(dup_vars),
                  sort = FALSE,
                  as_qg = FALSE)
-  out <- out[!collapse::fduplicated(g, all = FALSE), , drop = FALSE]
-  df_reconstruct(out, data)
+
+  data <- data[!collapse::fduplicated(g), , drop = FALSE]
+  data[[grp_nm]] <- NULL
+  df_reconstruct(data, template)
 }

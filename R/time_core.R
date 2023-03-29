@@ -191,7 +191,7 @@ time_summarisev <- function(x, by = NULL, from = NULL, to = NULL,
                          !!"interval" := time_int)
     # Unique and sorting
     if (unique){
-      out <- fdistinct(out)
+      out <- dplyr::distinct(out)
     }
     if (sort) out <- out[radix_order(out[["x"]]), , drop = FALSE]
   } else {

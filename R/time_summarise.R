@@ -115,7 +115,7 @@ time_summarise <- function(data, ..., time = NULL, by = NULL,
                         roll_month = "preday", roll_dst = "pre",
                         sort = TRUE){
   int_nm <- new_var_nm(data, "interval")
-  out <- fdistinct(time_mutate(data, !!!enquos(...),
+  out <- dplyr::distinct(time_mutate(data, !!!enquos(...),
               time = !!enquo(time),
               by = by,
               from = !!enquo(from),

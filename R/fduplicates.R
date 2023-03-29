@@ -1,9 +1,12 @@
 #' Find duplicate rows
 #'
-#' @description This functions works like `dplyr::distinct()` in its handling of
+#' @description This function works like `dplyr::distinct()` in its handling of
 #' arguments and data-masking but returns duplicate rows.
-#' It is exceptionally faster than `dplyr::distinct()` and `janitor::get_dupes()`
+#' In certain situations in can be much faster than `data %>% group_by() %>% filter(n() > 1)`
 #' when there are many groups.
+#' `fduplicates2()` returns the same output but uses a different
+#' method which utilises joins and is written entirely using dplyr.
+#'
 #'
 #' @param data A data frame.
 #' @param ... Variables used to find duplicate rows.
@@ -39,14 +42,18 @@
 #' flights %>%
 #'   group_by(year, month, day) %>%
 #'   fduplicates(dep_time, arr_time, .both_ways = TRUE)
+#' @rdname fduplicates
 #' @export
 fduplicates <- function(data, ..., .keep_all = FALSE,
                         .both_ways = FALSE, .add_count = FALSE,
                         .keep_na = TRUE, .by = NULL){
-  out <- data %>%
-    safe_ungroup() %>%
-    dplyr::mutate(!!!enquos(...))
-  group_info <- get_group_info(data, !!!enquos(...), type = "data-mask",
+  n_dots <- dots_length(...)
+  template <- data[1, , drop = FALSE]
+  out <- safe_ungroup(data)
+  if (n_dots > 0){
+    out <- dplyr::mutate(out, !!!enquos(...))
+  }
+  group_info <- get_group_info(template, !!!enquos(...), type = "data-mask",
                                .by = {{ .by }})
   group_vars <- group_info[["dplyr_groups"]]
   extra_groups <- group_info[["extra_groups"]]
@@ -93,7 +100,73 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
   }
   # Remove added group id cols
   set_rm_cols(out, c(grp_nm, grp_nm2))
-  df_reconstruct(out, data)
+  df_reconstruct(out, template)
+}
+# dplyr version.
+#' @rdname fduplicates
+#' @export
+fduplicates2 <- function(data, ..., .keep_all = FALSE,
+                           .both_ways = FALSE, .add_count = FALSE,
+                           .keep_na = TRUE, .by = NULL){
+  n_dots <- dots_length(...)
+  out <- safe_ungroup(data)
+  if (n_dots > 0){
+    out <- out %>%
+      dplyr::mutate(!!!enquos(...))
+  }
+  group_info <- get_group_info(data, !!!enquos(...), type = "data-mask",
+                               .by = {{ .by }})
+  group_vars <- group_info[["dplyr_groups"]]
+  extra_groups <- group_info[["extra_groups"]]
+  all_groups <- group_info[["all_groups"]]
+  if (n_dots == 0L){
+    dup_vars <- names(out)
+    out_vars <- dup_vars
+  } else {
+    dup_vars <- all_groups
+    if (.keep_all){
+      out_vars <- names(out)
+    } else {
+      out_vars <- dup_vars
+    }
+  }
+  dup_vars <- setdiff(dup_vars, group_vars)
+  # Group ID
+  grp_nm <- new_var_nm(names(out), ".group.id")
+  # Row ID (per group)
+  id_nm <- new_var_nm(names(out), ".id")
+  out <- out %>%
+    dplyr::mutate(!!grp_nm := group_id(data, .by = {{ .by }}),
+                  !!id_nm := gseq_len(nrow2(out), g = .data[[grp_nm]])) %>%
+    dplyr::select(all_of(c(grp_nm, id_nm, out_vars)))
+
+  # out <- dplyr::mutate(out, !!id_nm := dplyr::row_number(),
+  #                       .by = all_of(grp_nm))
+  if (.add_count){
+    n_var <- new_n_var_nm(names(out))
+    out <- dplyr::add_count(out, across(all_of(c(grp_nm, dup_vars))), name = n_var)
+    out_vars <- c(out_vars, n_var)
+  }
+  # data with ID and dup cols
+  df_unique <- out %>%
+    dplyr::distinct(across(all_of(c(grp_nm, dup_vars))),
+                    .keep_all = TRUE)
+  # Duplicate rows
+  out2 <- out %>%
+    dplyr::anti_join(df_unique, by = c(grp_nm, id_nm))
+  # Remove empty rows (rows with all NA values)
+  if (!.keep_na){
+    out2 <- out2 %>%
+      dplyr::filter(!dplyr::if_all(.cols = all_of(dup_vars), is.na))
+  }
+  # Keep duplicates including first instance of duplicated rows
+  if (.both_ways) out2 <- dplyr::semi_join(out,
+                                            dplyr::select(out2,
+                                                          all_of(c(grp_nm, dup_vars))),
+                                            by = c(grp_nm, dup_vars))
+  out2[[grp_nm]] <- NULL
+  out2[[id_nm]] <- NULL
+  df_reconstruct(out2, data)
 }
 # Tidyverse-only version.
 # duplicate_rows <- function(data, ..., .keep_all = FALSE,

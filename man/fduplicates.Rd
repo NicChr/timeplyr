@@ -2,9 +2,20 @@
 % Please edit documentation in R/fduplicates.R
 \name{fduplicates}
 \alias{fduplicates}
+\alias{fduplicates2}
 \title{Find duplicate rows}
 \usage{
 fduplicates(
+  data,
+  ...,
+  .keep_all = FALSE,
+  .both_ways = FALSE,
+  .add_count = FALSE,
+  .keep_na = TRUE,
+  .by = NULL
+)
+
+fduplicates2(
   data,
   ...,
   .keep_all = FALSE,
@@ -36,10 +47,12 @@ The default is \code{TRUE}.}
 Columns are specified using tidy-select.}
 }
 \description{
-This functions works like \code{dplyr::distinct()} in its handling of
+This function works like \code{dplyr::distinct()} in its handling of
 arguments and data-masking but returns duplicate rows.
-It is exceptionally faster than \code{dplyr::distinct()} and \code{janitor::get_dupes()}
+In certain situations in can be much faster than \code{data \%>\% group_by() \%>\% filter(n() > 1)}
 when there are many groups.
+\code{fduplicates2()} returns the same output but uses a different
+method which utilises joins and is written entirely using dplyr.
 }
 \examples{
 library(dplyr)
