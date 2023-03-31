@@ -166,8 +166,9 @@ time_count <- function(data, ..., time = NULL, by = NULL,
                     !!enquo(time),
                     !!enquo(from),
                     !!enquo(to),
-                    # !!enquo(wt),
-                    .by = {{ .by }})
+                    !!enquo(wt),
+                    .by = {{ .by }},
+                    keep = "none")
   group_info <- get_group_info(data, !!!enquos(...), type = "data-mask",
                                .by = {{ .by }})
   # Transformed variable names
@@ -176,7 +177,8 @@ time_count <- function(data, ..., time = NULL, by = NULL,
   time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
   from_var <- tidy_transform_names(safe_ungroup(data), !!enquo(from))
   to_var <- tidy_transform_names(safe_ungroup(data), !!enquo(to))
-  # wt_var <- tidy_transform_names(safe_ungroup(data), !!enquo(wt))
+  wt_var <- tidy_transform_names(safe_ungroup(data), !!enquo(wt))
+  if (length(wt_var) > 0L) wtv <- ts_data[[wt_var]]
   group_vars <-  group_info[["dplyr_groups"]]
   extra_group_vars <- group_info[["extra_groups"]]
   all_group_vars <- group_info[["all_groups"]]
@@ -280,7 +282,7 @@ time_count <- function(data, ..., time = NULL, by = NULL,
       out <- ts_data %>%
         fcount(across(dplyr::any_of(c(grp_nm, group_vars, time_var,
                                              extra_group_vars))),
-               wt = !!enquo(wt),
+               wt = across(all_of(wt_var)),
                name = name)
       name <- names(out)[length(names(out))]
 
@@ -357,7 +359,7 @@ time_count <- function(data, ..., time = NULL, by = NULL,
   } else {
     out <- ts_data %>%
       fcount(across(dplyr::any_of(c(group_vars, extra_group_vars))),
-             wt = !!enquo(wt),
+             wt = across(all_of(wt_var)),
              name = name,
              sort = sort)
     name <- names(out)[length(names(out))]
@@ -374,10 +376,8 @@ time_count <- function(data, ..., time = NULL, by = NULL,
                          values_fill = values_fill,
                          names_sort = FALSE)
   }
-  if (keep_class && !include_interval) {
+  if (keep_class){
     df_reconstruct(out, data)
-  } else if (keep_class && include_interval){
-    df_reconstruct(out, dplyr::tibble())
   } else {
     out
   }

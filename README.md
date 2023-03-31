@@ -32,10 +32,8 @@ library(timeplyr)
 
 ## Notes
 
-**All functions that accept a data argument are tidyverse friendly**
-
-**All functions that accept a data argument can handle grouped
-calculations**
+**All functions that accept a data argument are tidyverse friendly and
+can handle grouped calculations**
 
 The `time_` functions that accept a data frame argument all operate
 similarly to the tidyverse equivalents but additionally accept a `time`
@@ -687,7 +685,7 @@ Vectorised function that calculates time sequence lengths
 ``` r
 time_seq_len(start, start + years(1:10), 
              by = list("days" = sample(1:10)))
-#>  [1]  367  147  110  209  229 1097  640  325  549 1218
+#>  [1]   62   74  275  183  914  244  853  585 3289  522
 ```
 
 Dealing with impossible dates and datetimes is very simple
@@ -720,7 +718,7 @@ Simple function to get formatted ISO weeks.
 iso_week(today())
 #> [1] "2023-W13"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W13-2"
+#> [1] "2023-W13-5"
 iso_week(today(), year = FALSE)
 #> [1] "W13"
 ```

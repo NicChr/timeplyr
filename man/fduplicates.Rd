@@ -52,7 +52,7 @@ arguments and data-masking but returns duplicate rows.
 In certain situations in can be much faster than \code{data \%>\% group_by() \%>\% filter(n() > 1)}
 when there are many groups.
 \code{fduplicates2()} returns the same output but uses a different
-method which utilises joins and is written entirely using dplyr.
+method which utilises joins and is written almost entirely using dplyr.
 }
 \examples{
 library(dplyr)

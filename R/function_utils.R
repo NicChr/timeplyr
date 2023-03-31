@@ -22,57 +22,57 @@ frequencies <- function(x){
 #   out
 # }
 
-# lump_categories <- function(x, n = 10, factor = TRUE,
-#                             sort = c("frequency", "values"),
-#                             descending = TRUE,
-#                             drop_levels = FALSE
-#                             # na_exclude = TRUE
-#                             ){
-#   sort <- match.arg(sort)
-#   y <- as.character(x)
-#   if (is.factor(x)){
-#     x_unique <- levels(x)
-#     if (descending){
-#       x_unique_sorted <- rev(x_unique)
-#     } else {
-#       x_unique_sorted <- x_unique
-#     }
-#   } else {
-#     x_unique <- collapse::funique(x[!is.na(x)])
-#     # x_unique_sorted <- sort(x_unique, decreasing = descending)
-#     x_unique_sorted <- x_unique[radix_order(x_unique, decreasing = descending)]
-#   }
-#   if (sort == "frequency"){
-#     # ranked_categories <- sort(table(x), decreasing = descending)
-#     # ranked_categories <- collapse::qtab(x, sort = FALSE, dnn = NULL, na.exclude = na_exclude)
-#     ranked_categories <- collapse::qtab(x, sort = FALSE, dnn = NULL, na.exclude = TRUE)
-#     ranked_categories <- ranked_categories[radix_order(ranked_categories,
-#                                                        decreasing = descending)]
-#     top_n_categories <- utils::head(ranked_categories, n = n)
-#     top_n_categories <- names(top_n_categories[radix_order(top_n_categories,
-#                                                            decreasing = descending)])
-#   } else {
-#     top_n_categories <- utils::head(x_unique_sorted, n = n)
-#   }
-#   top_n_category_levels <- as.character(top_n_categories)
-#   if (length(x_unique) > length(top_n_categories)){
-#     y[(!y %in% top_n_category_levels) & !is.na(y)] <- "Other"
-#     top_n_category_levels <- collapse::funique(c(top_n_category_levels, "Other"))
-#   }
-#   if (factor){
-#     # if (na_exclude){
-#     #   na_factor_exclude <- NA
-#     # } else {
-#     #   na_factor_exclude <- NULL
-#     # }
-#     # y <- factor(y, levels = top_n_category_levels, exclude = na_factor_exclude)
-#     y <- ffactor(y, levels = top_n_category_levels)
-#     if (drop_levels){
-#       y <- droplevels(y)
-#     }
-#   }
-#   y
-# }
+lump_categories <- function(x, n = 10, factor = TRUE,
+                            sort = c("frequency", "values"),
+                            descending = TRUE,
+                            drop_levels = FALSE
+                            # na_exclude = TRUE
+                            ){
+  sort <- match.arg(sort)
+  y <- as.character(x)
+  if (is.factor(x)){
+    x_unique <- levels(x)
+    if (descending){
+      x_unique_sorted <- rev(x_unique)
+    } else {
+      x_unique_sorted <- x_unique
+    }
+  } else {
+    x_unique <- collapse::funique(x[!is.na(x)])
+    # x_unique_sorted <- sort(x_unique, decreasing = descending)
+    x_unique_sorted <- x_unique[radix_order(x_unique, decreasing = descending)]
+  }
+  if (sort == "frequency"){
+    # ranked_categories <- sort(table(x), decreasing = descending)
+    # ranked_categories <- collapse::qtab(x, sort = FALSE, dnn = NULL, na.exclude = na_exclude)
+    ranked_categories <- collapse::qtab(x, sort = FALSE, dnn = NULL, na.exclude = TRUE)
+    ranked_categories <- ranked_categories[radix_order(ranked_categories,
+                                                       decreasing = descending)]
+    top_n_categories <- utils::head(ranked_categories, n = n)
+    top_n_categories <- names(top_n_categories[radix_order(top_n_categories,
+                                                           decreasing = descending)])
+  } else {
+    top_n_categories <- utils::head(x_unique_sorted, n = n)
+  }
+  top_n_category_levels <- as.character(top_n_categories)
+  if (length(x_unique) > length(top_n_categories)){
+    y[(!y %in% top_n_category_levels) & !is.na(y)] <- "Other"
+    top_n_category_levels <- collapse::funique(c(top_n_category_levels, "Other"))
+  }
+  if (factor){
+    # if (na_exclude){
+    #   na_factor_exclude <- NA
+    # } else {
+    #   na_factor_exclude <- NULL
+    # }
+    # y <- factor(y, levels = top_n_category_levels, exclude = na_factor_exclude)
+    y <- ffactor(y, levels = top_n_category_levels)
+    if (drop_levels){
+      y <- droplevels(y)
+    }
+  }
+  y
+}
 # N unique with efficient na.rm
 n_unique <- function(x, na.rm = FALSE){
   out <- collapse::fnunique(x)
@@ -120,6 +120,26 @@ tidy_transform_names2 <- function(data, ...){
 tidy_select_names <- function(data, ...){
   names(tidyselect::eval_select(rlang::expr(c(!!!enquos(...))), data = data))
 }
+
+tidy_select_info <- function(data, ...){
+  data_nms <- names(data)
+  expr <- rlang::expr(c(!!!enquos(...)))
+  pos <- tidyselect::eval_select(expr, data = data)
+  out_nms <- names(pos)
+  pos <- unname(pos)
+  renamed <- match(out_nms, data_nms) != pos
+  renamed[is.na(renamed)] <- TRUE
+  # if (any(match(out_nms, data_nms) != pos, na.rm = TRUE)){
+  #   renamed <- TRUE
+  # } else {
+  #   renamed <- FALSE
+  # }
+  list("pos" = pos,
+       "out_nms" = out_nms,
+       "in_nms" = data_nms[pos],
+       "renamed" = renamed)
+}
+
 # This works like dplyr::summarise but evaluates each expression
 # independently, and on the ungrouped data.
 # The result is always a list.
@@ -550,9 +570,9 @@ new_var_nm <- function(data, check = ".group.id"){
   return(check)
 }
 # Convenience function
-is_df <- function(x){
-  inherits(x, "data.frame")
-}
+# is_df <- function(x){
+#   inherits(x, "data.frame")
+# }
 # Recycle arguments
 recycle_args <- function (..., length, set_names = FALSE){
   dots <- list(...)
@@ -632,3 +652,13 @@ has_interval <- function(data, quiet = FALSE){
 sample2 <- function(x, size = length(x), replace = FALSE, prob = NULL){
   x[sample.int(length(x), size = size, replace = replace, prob = prob)]
 }
+
+setv <- utils::getFromNamespace("setv", "collapse")
+
+# Some future utils for counts and weights..
+# wt_fun <- function(wt){
+#   rlang::expr(sum(!!enquo(wt), na.rm = TRUE))
+# }
+# data %>% summarise(!!wt_fun(!!enquo(wt)))
+# quo_name(enquo(wt))
+# quo_is_null()

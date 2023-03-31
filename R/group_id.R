@@ -62,13 +62,10 @@ group_id <- function(data, ...,
   N <- nrow2(data)
   group_vars <- group_vars(data)
   by_vars <- tidy_select_names(data, {{ .by }})
-  dot_vars <- tidy_select_names(data, ...)
-  # If there tidy-selected variables have been renamed then rename them..
-  if (length(dot_vars) > 0L && length(setdiff(dot_vars, names(data))) > 0L){
-    data <- data %>%
-      dplyr::select(dplyr::everything(), !!!enquos(...))
-    group_vars <- group_vars(data) # Recalculate group vars as it might get renamed
-  }
+  dot_vars <- tidy_select_names(data, !!!enquos(...))
+  data <- data %>%
+    dplyr::select(all_of(c(group_vars, by_vars)), !!!enquos(...))
+  group_vars <- group_vars(data)
   # by and group vars cannot both be supplied (unless .overwrite = TRUE)
   if (length(by_vars) > 0L){
     if (!.overwrite && length(group_vars) > 0L){

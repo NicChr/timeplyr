@@ -102,6 +102,33 @@ testthat::test_that("Compare to dplyr", {
   testthat::expect_identical(flights %>% dplyr::count(tailnum, origin, dest, sort = TRUE),
                              flights %>% fcount(tailnum, origin, dest, sort = TRUE))
 
+  # With weights
+  res1 <- flights %>%
+    fcount(origin, dest)
+  set.seed(812123123)
+  wt1 <- rep_len(3L, nrow(res1))
+  wt2 <- sample2(1:10, size = nrow(res1), replace = TRUE)
+
+  res1 <- res1 %>%
+    dplyr::mutate(wt2)
+  testthat::expect_identical(res1 %>%
+                               dplyr::count(origin, dest, wt = wt2),
+                             res1 %>%
+                               fcount(origin, dest, wt = wt2))
+  testthat::expect_identical(res1 %>%
+                               dplyr::mutate(wt1) %>%
+                               dplyr::count(origin, dest, wt = wt1),
+                             res1 %>%
+                               fcount(origin, dest, wt = wt1))
+  testthat::expect_identical(res1 %>%
+                               dplyr::count(origin, dest, n, wt = wt2),
+                             res1 %>%
+                               fcount(origin, dest, n, wt = wt2))
+  testthat::expect_identical(res1 %>%
+                               dplyr::count(origin, dest, wt = n),
+                             res1 %>%
+                               fcount(origin, dest, wt = n))
+
 })
 
 testthat::test_that("Compare to dplyr, add_count", {
@@ -119,7 +146,7 @@ testthat::test_that("Compare to dplyr, add_count", {
                                dplyr::add_count())
   testthat::expect_identical(iris %>% fadd_count(keep_class = FALSE),
                              iris %>%
-                               data.table::as.data.table() %>%
+                               # data.table::as.data.table() %>%
                                dplyr::mutate(n = dplyr::n()))
   testthat::expect_identical(iris %>% dplyr::add_count(),
                              iris %>% fadd_count())
@@ -210,6 +237,34 @@ testthat::test_that("Compare to dplyr, add_count", {
                              flights %>% fadd_count(tailnum, origin, dest))
   testthat::expect_identical(flights %>% dplyr::add_count(tailnum, origin, dest, sort = TRUE),
                              flights %>% fadd_count(tailnum, origin, dest, sort = TRUE))
+
+  # With weights
+  res1 <- flights %>%
+    fcount(origin, dest)
+  set.seed(812123123)
+  wt1 <- rep_len(3L, nrow(res1))
+  wt2 <- sample2(1:10, size = nrow(res1), replace = TRUE)
+
+  res1 <- res1 %>%
+    dplyr::mutate(wt2)
+  testthat::expect_identical(res1 %>%
+                               dplyr::add_count(origin, dest, wt = wt2),
+                             res1 %>%
+                               fadd_count(origin, dest, wt = wt2))
+  testthat::expect_identical(res1 %>%
+                               dplyr::mutate(wt1) %>%
+                               dplyr::add_count(origin, dest, wt = wt1),
+                             res1 %>%
+                               dplyr::mutate(wt1) %>%
+                               fadd_count(origin, dest, wt = wt1))
+  testthat::expect_identical(res1 %>%
+                               dplyr::add_count(origin, dest, n, wt = wt2),
+                             res1 %>%
+                               fadd_count(origin, dest, n, wt = wt2))
+  testthat::expect_identical(res1 %>%
+                               dplyr::add_count(origin, dest, wt = n),
+                             res1 %>%
+                               fadd_count(origin, dest, wt = n))
 
 })
 

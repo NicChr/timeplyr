@@ -727,7 +727,7 @@ fcut_ind <- function(x, breaks, rightmost.closed = FALSE,
                           all.inside = all.inside)
   # This makes it so that NA is returned for any x where findinterval
   # resorts to 0 and doesn't just remove them
-  collapse::setv(breaksi, 0L, length(breaks) + 1L, vind1 = FALSE)
+  setv(breaksi, 0L, length(breaks) + 1L, vind1 = FALSE)
   breaksi
 }
 cut_time2 <- function(x, breaks, rightmost.closed = FALSE, left.open = FALSE){

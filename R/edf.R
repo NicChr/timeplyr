@@ -25,6 +25,8 @@
 #' grid <- time_span(y, by = 0.1, floor_date = TRUE)
 #' counts <- time_countv(y, by = 0.1, floor_date = TRUE)
 #' edf <- edf(grid, wt = counts)
+#' # Trivial here as this is the same
+#' all.equal(unname(cumsum(counts)/sum(counts)), edf)
 #'
 #' # Full ecdf
 #' tibble(x) %>%

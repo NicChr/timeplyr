@@ -43,9 +43,7 @@ library(timeplyr)
 
 ## Notes
 
-**All functions that accept a data argument are tidyverse friendly**
-
-**All functions that accept a data argument can handle grouped calculations**
+**All functions that accept a data argument are tidyverse friendly and can handle grouped calculations**
 
 
 The `time_` functions that accept a data frame argument all operate similarly to the tidyverse equivalents but additionally accept a `time` argument to allow for date/datetime implicit missing value completion, expansion and aggregation.

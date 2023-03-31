@@ -121,7 +121,8 @@ get_time_delay <- function(data, origin, end, by = "day",
   out <- data %>%
     dplyr::mutate(!!enquo(origin),
                   !!enquo(end),
-                  .by = {{ .by }})
+                  .by = {{ .by }},
+                  .keep = "none")
   start_time <- tidy_transform_names(safe_ungroup(data),
                                      !!enquo(origin))
   end_time <- tidy_transform_names(safe_ungroup(data),
@@ -225,9 +226,16 @@ get_time_delay <- function(data, origin, end, by = "day",
     delay_tbl[, ("cumulative") := collapse::fcumsum(get("n"),
                                                     g = get(grp_nm),
                                                     na.rm = TRUE)]
-    delay_tbl[, ("edf") := edf(get(delay_nm),
-                               g = get(grp_nm),
-                               wt = get("n"))]
+    delay_tbl[, ("edf") :=
+                collapse::fcumsum(get(delay_nm),
+                                  g = get(grp_nm),
+                                  na.rm = FALSE) /
+                gsum(get(delay_nm),
+                     g = get(grp_nm),
+                     na.rm = FALSE)]
+    # delay_tbl[, ("edf") := edf(get(delay_nm),
+    #                            g = get(grp_nm),
+    #                            wt = get("n"))]
     set_rm_cols(delay_tbl, setdiff(names(delay_tbl),
                                    c(group_vars, delay_nm,
                                      "n", "cumulative", "edf")))
