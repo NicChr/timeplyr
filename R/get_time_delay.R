@@ -227,12 +227,9 @@ get_time_delay <- function(data, origin, end, by = "day",
                                                     g = get(grp_nm),
                                                     na.rm = TRUE)]
     delay_tbl[, ("edf") :=
-                collapse::fcumsum(get(delay_nm),
-                                  g = get(grp_nm),
-                                  na.rm = FALSE) /
-                gsum(get(delay_nm),
-                     g = get(grp_nm),
-                     na.rm = FALSE)]
+                get("cumulative") / gsum(get("n"),
+                                         g = get(grp_nm),
+                                         na.rm = FALSE)]
     # delay_tbl[, ("edf") := edf(get(delay_nm),
     #                            g = get(grp_nm),
     #                            wt = get("n"))]
