@@ -18,7 +18,7 @@ gmax(x, g = NULL, na.rm = TRUE, ...)
 \arguments{
 \item{x}{An atomic vector.}
 
-\item{g}{An integer vector of group IDs.}
+\item{g}{Group IDs passed directly to \code{collapse::GRP()}.}
 
 \item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
 
@@ -37,10 +37,8 @@ library(dplyr)
 # Dplyr
 iris \%>\%
   mutate(mean = mean(Sepal.Length), .by = Species)
-
-# Timeplyr
 iris \%>\%
-  mutate(mean = gmean(Sepal.Length, g = group_id(., Species)))
+  mutate(mean = gmean(Sepal.Length, g = Species))
 
 iris \%>\%
   add_group_id(Species, .name = "g") \%>\%

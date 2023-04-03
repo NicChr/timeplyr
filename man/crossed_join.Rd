@@ -2,13 +2,12 @@
 % Please edit documentation in R/crossed_join.R
 \name{crossed_join}
 \alias{crossed_join}
-\title{Like \code{data.table::CJ()} but works on lists and
-data frames like \code{expand.grid()}}
+\title{A wrapper around \code{do.call()} and \code{data.table::CJ()}}
 \usage{
 crossed_join(X, sort = FALSE, unique = TRUE, log_limit = 8)
 }
 \arguments{
-\item{X}{A list or data frame}
+\item{X}{A list or data frame.}
 
 \item{sort}{Should the expansion be sorted? By default it is \code{FALSE}.}
 
@@ -22,8 +21,9 @@ Anything >= this results in an error.}
 A data.table object
 }
 \description{
-Like \code{data.table::CJ()} but works on lists and
-data frames like \code{expand.grid()}
+This is a wrapper around \code{data.table::CJ()} that accepts
+a list or data.frame as an argument.
+It also uses collapse to retrieve unique values if \code{unique = TRUE}.
 }
 \examples{
 library(timeplyr)

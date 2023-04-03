@@ -4,7 +4,7 @@
 #' but always return a vector the same length as x. \cr
 #' They all accept group IDs for grouped calculations.
 #' @param x An atomic vector.
-#' @param g An integer vector of group IDs.
+#' @param g Group IDs passed directly to `collapse::GRP()`.
 #' @param na.rm Should `NA` values be removed? Default is `TRUE`.
 #' @param ... Additional parameters passed on to the collapse package
 #' equivalents, `fsum()`, `fmean()`, `fmin()`, and `fmax()`.
@@ -15,10 +15,8 @@
 #' # Dplyr
 #' iris %>%
 #'   mutate(mean = mean(Sepal.Length), .by = Species)
-#'
-#' # Timeplyr
 #' iris %>%
-#'   mutate(mean = gmean(Sepal.Length, g = group_id(., Species)))
+#'   mutate(mean = gmean(Sepal.Length, g = Species))
 #'
 #' iris %>%
 #'   add_group_id(Species, .name = "g") %>%
@@ -41,27 +39,37 @@
 #' @export
 gsum <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
-    g <- collapse::GRP(as.integer(g), sort = TRUE,
-                       return.order = TRUE, na.last = TRUE)
+    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+                       return.groups = TRUE)
+    if (is.null(g[["order"]])){
+      gorder <- radix_order(g[["group.id"]])
+    } else {
+      gorder <- g[["order"]]
+    }
   }
   out <- collapse::fsum(x,
                         g = g,
                         use.g.names = FALSE,
                         na.rm = na.rm,
                         ...)
-    if (length(g) == 0L){
-      rep_len(out, length(x))
-    } else {
-      out <- rep(out, g[["group.sizes"]])
-      out[radix_order(g[["order"]])]
-    }
+  if (length(g) == 0L){
+    rep_len(out, length(x))
+  } else {
+    out <- rep(out, g[["group.sizes"]])
+    out[radix_order(gorder)]
+  }
 }
 #' @rdname gsum
 #' @export
 gmean <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
-    g <- collapse::GRP(as.integer(g), sort = TRUE,
-                       return.order = TRUE, na.last = TRUE)
+    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+                       return.groups = TRUE)
+    if (is.null(g[["order"]])){
+      gorder <- radix_order(g[["group.id"]])
+    } else {
+      gorder <- g[["order"]]
+    }
   }
   out <- collapse::fmean(x,
                         g = g,
@@ -72,15 +80,20 @@ gmean <- function(x, g = NULL, na.rm = TRUE, ...){
     rep_len(out, length(x))
   } else {
     out <- rep(out, g[["group.sizes"]])
-    out[radix_order(g[["order"]])]
+    out[radix_order(gorder)]
   }
 }
 #' @rdname gsum
 #' @export
 gmin <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
-    g <- collapse::GRP(as.integer(g), sort = TRUE,
-                       return.order = TRUE, na.last = TRUE)
+    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+                       return.groups = TRUE)
+    if (is.null(g[["order"]])){
+      gorder <- radix_order(g[["group.id"]])
+    } else {
+      gorder <- g[["order"]]
+    }
   }
   out <- collapse::fmin(x,
                         g = g,
@@ -91,15 +104,20 @@ gmin <- function(x, g = NULL, na.rm = TRUE, ...){
     rep_len(out, length(x))
   } else {
     out <- rep(out, g[["group.sizes"]])
-    out[radix_order(g[["order"]])]
+    out[radix_order(gorder)]
   }
 }
 #' @rdname gsum
 #' @export
 gmax <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
-    g <- collapse::GRP(as.integer(g), sort = TRUE,
-                       return.order = TRUE, na.last = TRUE)
+    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+                       return.groups = TRUE)
+    if (is.null(g[["order"]])){
+      gorder <- radix_order(g[["group.id"]])
+    } else {
+      gorder <- g[["order"]]
+    }
   }
   out <- collapse::fmax(x,
                         g = g,
@@ -110,9 +128,31 @@ gmax <- function(x, g = NULL, na.rm = TRUE, ...){
     rep_len(out, length(x))
   } else {
     out <- rep(out, g[["group.sizes"]])
-    out[radix_order(g[["order"]])]
+    out[radix_order(gorder)]
   }
 }
+# version 2
+# gsum <- function(x, g = NULL, na.rm = TRUE, ...){
+#   if (!is.null(g)){
+#     if (!is.numeric(g)){
+#       g <- collapse::group(g)
+#     }
+#     g <- collapse::GRP(as.integer(g), sort = TRUE,
+#                        return.order = TRUE, na.last = TRUE)
+#   }
+#   out <- collapse::fsum(x,
+#                         g = g,
+#                         use.g.names = FALSE,
+#                         na.rm = na.rm,
+#                         ...)
+#   if (length(g) == 0L){
+#     rep_len(out, length(x))
+#   } else {
+#     out <- rep(out, g[["group.sizes"]])
+#     out[radix_order(g[["order"]])]
+#   }
+# }
+# Version 1
 # gsum <- function(x, g = NULL, na.rm = TRUE, ...){
 #   if (!is.null(g)){
 #     g <- collapse::qG(as.integer(g), sort = FALSE)

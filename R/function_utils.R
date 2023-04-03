@@ -497,7 +497,7 @@ safe_ungroup <- function(data){
 ffactor <- function(x, levels = NULL, ordered = FALSE, na.exclude = TRUE){
   # If no supplied levels, collapse can be used safely
   if (is.null(levels)){
-    out <- collapse::qF(data.table::copy(x), sort = TRUE, ordered = ordered,
+    out <- collapse::qF(x, sort = TRUE, ordered = ordered,
                         na.exclude = na.exclude)
   } else {
     levels <- as.character(levels)
@@ -513,7 +513,7 @@ ffactor <- function(x, levels = NULL, ordered = FALSE, na.exclude = TRUE){
     # is used because collapse::qF() only creates categories
     # that exist in the data
     if (isTRUE(all.equal(as.character(x_unique), levels))){
-      out <- collapse::qF(data.table::copy(x), sort = TRUE, ordered = ordered,
+      out <- collapse::qF(x, sort = TRUE, ordered = ordered,
                           na.exclude = na.exclude)
     } else {
       out <- factor(x, levels = levels, ordered = ordered, exclude = exclude)
@@ -654,3 +654,5 @@ setv <- utils::getFromNamespace("setv", "collapse")
 # data %>% summarise(!!wt_fun(!!enquo(wt)))
 # quo_name(enquo(wt))
 # quo_is_null()
+
+CJ <- utils::getFromNamespace("CJ", "data.table")

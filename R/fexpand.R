@@ -180,11 +180,18 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                                 by = grp_nm,
                                 cols = group_id_nms)
       data.table::setkeyv(out2, cols = grp_nm)
+      # out2 <- out1[, lapply(.SD, function(x) list(collapse::funique(x))),
+      #              keyby = grp_nm, .SDcols = group_id_nms]
       out <- out2[, do.call(expand.grid,
                             args = c(unlist(mget(group_id_nms), recursive = FALSE,
                                             use.names = FALSE),
-                                     KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)),
+                                     list(KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))),
                   keyby = grp_nm]
+      # data.table::setkeyv(out1, cols = grp_nm)
+      # out <- out1[, do.call(expand.grid,
+      #                       args = c(lapply(.SD, collapse::funique.default),
+      #                                list(KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))),
+      #             keyby = grp_nm, .SDcols = group_id_nms]
       data.table::setnames(out, new = c(grp_nm, leftover_grp_nms))
       for (i in seq_along(group_id_nms)){
         out[, (leftover_grp_nms[[i]]) := out1[[leftover_grp_nms[[i]]]][match(out[[leftover_grp_nms[[i]]]],
@@ -246,8 +253,7 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
   # Nested cross-join
   grp_seq <- seq_len(n_data)
   if (nrow2(df) == 0L){
-    out <- do.call(get("CJ", asNamespace("data.table")),
-                   args = c(X_other, sorted = FALSE, unique = FALSE))
+    out <- do.call(CJ, args = c(X_other, list(sorted = FALSE, unique = FALSE)))
   } else {
     out <- df[rep(grp_seq, each = n_other), , drop = FALSE]
     if (length(X_other) > 0L){
