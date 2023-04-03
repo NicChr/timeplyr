@@ -33,6 +33,15 @@ They all accept group IDs for grouped calculations.
 \examples{
 library(timeplyr)
 library(dplyr)
+
+# Dplyr
+iris \%>\%
+  mutate(mean = mean(Sepal.Length), .by = Species)
+
+# Timeplyr
+iris \%>\%
+  mutate(mean = gmean(Sepal.Length, g = group_id(., Species)))
+
 iris \%>\%
   add_group_id(Species, .name = "g") \%>\%
   mutate(min = gmin(Sepal.Length, g = g),

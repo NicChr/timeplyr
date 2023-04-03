@@ -35,8 +35,7 @@ frollmean2(
 \item{partial}{Should calculations be done using partial windows?
 Default is \code{TRUE}.}
 
-\item{weights}{Importance weights. These can either be
-length 1 or the same length as x.
+\item{weights}{Importance weights. Must be the same length as x.
 Currently, no normalisation of weights occurs.}
 
 \item{fill}{Numeric value to pad by for values in incomplete window.}

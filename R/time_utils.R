@@ -612,17 +612,23 @@ bound_to <- function(to, x){
 window_seq <- function(k, n, partial = TRUE){
   stopifnot(length(k) == 1L,
             length(n) == 1L)
-  if (n > .Machine[["integer.max"]]) stop("n must not be greater than .Machine$integer.max")
-  n <- as.integer(n)
-  k <- as.integer(min(k, n))
-  k <- max(k, 0L)
-  partial_len <- max(min(k - 1L, n), 0L)
-  other_len <- max(0L, n - partial_len)
-  if (partial){
-    c(seq_len(partial_len), rep_len(k, other_len))
-  } else {
-    c(rep_len(NA_integer_, partial_len), rep_len(k, other_len))
+  if (n > .Machine[["integer.max"]]){
+    stop("n must not be greater than .Machine$integer.max")
   }
+  n <- as.integer(n)
+  k <- as.integer(k)
+  k <- min(k, n) # Bound k to <= n
+  k <- max(k, 0L) # Bound k to >= 0
+  pk <- max(k - 1L, 0L) # Partial k, bounded to >= 0
+  p_seq <- seq_len(pk) # Partial window sequence
+  out <- collapse::alloc(k, n)
+  # Replace partial part with partial sequence
+  if (partial){
+    setv(out, p_seq, p_seq, vind1 = TRUE)
+  } else {
+    setv(out, p_seq, NA_integer_, vind1 = TRUE)
+  }
+  out
 }
 # time_seq_data must be sorted by groups + time
 # data must also be sorted the same way

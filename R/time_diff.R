@@ -9,7 +9,7 @@
 #' Some more exotic time units such as quarters, fortnights, etc
 #' can be specified.
 #'
-#' @param x Start datetime.
+#' @param x Start date or datetime.
 #' @param y End date or datetime.
 #' @param by Argument to expand and summarise time series.
 #' If `by` is `NULL` then a heuristic will try and estimate the highest

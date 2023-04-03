@@ -11,6 +11,15 @@
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
+#'
+#' # Dplyr
+#' iris %>%
+#'   mutate(mean = mean(Sepal.Length), .by = Species)
+#'
+#' # Timeplyr
+#' iris %>%
+#'   mutate(mean = gmean(Sepal.Length, g = group_id(., Species)))
+#'
 #' iris %>%
 #'   add_group_id(Species, .name = "g") %>%
 #'   mutate(min = gmin(Sepal.Length, g = g),
@@ -31,8 +40,30 @@
 #' @rdname gsum
 #' @export
 gsum <- function(x, g = NULL, na.rm = TRUE, ...){
-  if (!is.null(g)) g <- as.integer(g)
+  if (!is.null(g)){
+    g <- collapse::GRP(as.integer(g), sort = TRUE,
+                       return.order = TRUE, na.last = TRUE)
+  }
   out <- collapse::fsum(x,
+                        g = g,
+                        use.g.names = FALSE,
+                        na.rm = na.rm,
+                        ...)
+    if (length(g) == 0L){
+      rep_len(out, length(x))
+    } else {
+      out <- rep(out, g[["group.sizes"]])
+      out[radix_order(g[["order"]])]
+    }
+}
+#' @rdname gsum
+#' @export
+gmean <- function(x, g = NULL, na.rm = TRUE, ...){
+  if (!is.null(g)){
+    g <- collapse::GRP(as.integer(g), sort = TRUE,
+                       return.order = TRUE, na.last = TRUE)
+  }
+  out <- collapse::fmean(x,
                         g = g,
                         use.g.names = FALSE,
                         na.rm = na.rm,
@@ -40,51 +71,69 @@ gsum <- function(x, g = NULL, na.rm = TRUE, ...){
   if (length(g) == 0L){
     rep_len(out, length(x))
   } else {
-    out[match(g, seq_len(length(out)))]
+    out <- rep(out, g[["group.sizes"]])
+    out[radix_order(g[["order"]])]
   }
 }
 #' @rdname gsum
 #' @export
-gmean <- function(x, g = NULL, na.rm = TRUE,
-                  ...){
-  if (!is.null(g)) g <- as.integer(g)
-  out <- collapse::fmean(x,
-                         g = g,
-                         use.g.names = FALSE,
-                         na.rm = na.rm)
-  if (length(g) == 0L){
-    rep_len(out, length(x))
-  } else {
-    out[match(g, seq_len(length(out)))]
+gmin <- function(x, g = NULL, na.rm = TRUE, ...){
+  if (!is.null(g)){
+    g <- collapse::GRP(as.integer(g), sort = TRUE,
+                       return.order = TRUE, na.last = TRUE)
   }
-}
-#' @rdname gsum
-#' @export
-gmin <- function(x, g = NULL, na.rm = TRUE,
-                 ...){
-  if (!is.null(g)) g <- as.integer(g)
   out <- collapse::fmin(x,
                         g = g,
                         use.g.names = FALSE,
-                        na.rm = na.rm)
+                        na.rm = na.rm,
+                        ...)
   if (length(g) == 0L){
     rep_len(out, length(x))
   } else {
-    out[match(g, seq_len(length(out)))]
+    out <- rep(out, g[["group.sizes"]])
+    out[radix_order(g[["order"]])]
   }
 }
 #' @rdname gsum
 #' @export
-gmax <- function(x, g = NULL, na.rm = TRUE,
-                 ...){
-  if (!is.null(g)) g <- as.integer(g)
+gmax <- function(x, g = NULL, na.rm = TRUE, ...){
+  if (!is.null(g)){
+    g <- collapse::GRP(as.integer(g), sort = TRUE,
+                       return.order = TRUE, na.last = TRUE)
+  }
   out <- collapse::fmax(x,
                         g = g,
                         use.g.names = FALSE,
-                        na.rm = na.rm)
+                        na.rm = na.rm,
+                        ...)
   if (length(g) == 0L){
     rep_len(out, length(x))
   } else {
-    out[match(g, seq_len(length(out)))]
+    out <- rep(out, g[["group.sizes"]])
+    out[radix_order(g[["order"]])]
   }
 }
+# gsum <- function(x, g = NULL, na.rm = TRUE, ...){
+#   if (!is.null(g)){
+#     g <- collapse::qG(as.integer(g), sort = FALSE)
+#   }
+#   out <- collapse::fsum(x,
+#                         g = g,
+#                         use.g.names = FALSE,
+#                         na.rm = na.rm,
+#                         ...)
+#   if (length(g) == 0L){
+#     rep_len(out, length(x))
+#   } else {
+#     out[match(g, seq_len(length(out)))]
+#   }
+# }
+# if (!is.null(g)){
+#   if (collapse::is_GRP(g)){
+#     g <- collapse::GRP(g[["group.id"]], sort = TRUE,
+#                        return.order = TRUE, na.last = TRUE)
+#   } else {
+#     g <- collapse::GRP(as.integer(g), sort = TRUE,
+#                        return.order = TRUE, na.last = TRUE)
+#   }
+# }

@@ -214,9 +214,9 @@ get_time_delay <- function(data, origin, end, by = "day",
   max_delay <- max_delay[!is.infinite(max_delay)]
   if (length(min_delay) == 0 || length(max_delay) == 0){
     delay_tbl <- dplyr::tibble(delay = numeric(0),
-                               edf = numeric(0),
                                n = integer(0),
-                               cumulative = integer(0))
+                               cumulative = integer(0),
+                               edf = numeric(0))
   } else {
     delay_tbl <- out %>%
       fcount(across(all_of(c(grp_nm, group_vars))),
@@ -227,9 +227,11 @@ get_time_delay <- function(data, origin, end, by = "day",
                                                     g = get(grp_nm),
                                                     na.rm = TRUE)]
     delay_tbl[, ("edf") :=
-                get("cumulative") / gsum(get("n"),
-                                         g = get(grp_nm),
-                                         na.rm = FALSE)]
+                get("cumulative") / sum(get("n")), by = grp_nm]
+    # delay_tbl[, ("edf") :=
+    #             get("cumulative") / gsum(get("n"),
+    #                                      g = get(grp_nm),
+    #                                      na.rm = FALSE)]
     # delay_tbl[, ("edf") := edf(get(delay_nm),
     #                            g = get(grp_nm),
     #                            wt = get("n"))]
@@ -238,6 +240,7 @@ get_time_delay <- function(data, origin, end, by = "day",
                                      "n", "cumulative", "edf")))
   }
   set_rm_cols(out, grp_nm)
+  data.table::setcolorder(out, c(group_vars, setdiff(names(out), group_vars)))
   out <- df_reconstruct(out, data)
   delay_summary <- df_reconstruct(delay_summary, data)
   delay_tbl <- df_reconstruct(delay_tbl, data)
@@ -274,7 +277,8 @@ get_time_delay <- function(data, origin, end, by = "day",
     }
     delay_summary_plot <- out %>%
       ggplot2::ggplot(ggplot2::aes(x = .data[[delay_nm]])) +
-      ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(ndensity)), binwidth = 1, fill = "white", col = "black", alpha = 0.75) +
+      ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(ndensity)), binwidth = 1,
+                              fill = "white", col = "black", alpha = 0.75) +
       ggplot2::geom_density(ggplot2::aes(y = ggplot2::after_stat(scaled)), fill = "#3F3685", alpha = 0.3,
                             bw = bw, ...) +
       ggplot2::stat_ecdf(col = "#0078D4") +

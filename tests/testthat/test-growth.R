@@ -65,7 +65,7 @@ testthat::test_that("Weights and offsets", {
   # No weights/offset
   mod1 <- stats::glm(x ~ cp, family = poisson)
   sum(x2) / sum(x1)
-  testthat::expect_equal(exp(coef(mod1))[[2]], rolling_growth(x, n = 5)[10])
+  testthat::expect_equal(exp(stats::coef(mod1))[[2]], rolling_growth(x, n = 5)[10])
 
   # Weights and offset
   mod2 <- stats::glm(x ~ cp + offset(log(o)), family = poisson, weights = w)
@@ -114,7 +114,7 @@ testthat::test_that("Weights and offsets", {
   # No weights/offset
   mod1 <- stats::glm(x ~ cp, family = poisson)
   sum(x2) / sum(x1)
-  testthat::expect_equal(exp(coef(mod1))[[2]], rolling_growth(x, n = 50, na.rm = TRUE)[100])
+  testthat::expect_equal(exp(stats::coef(mod1))[[2]], rolling_growth(x, n = 50, na.rm = TRUE)[100])
 
   # # Weights and offset
   mod2 <- stats::glm(x ~ cp + offset(log(o)), family = poisson, weights = w)

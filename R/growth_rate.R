@@ -61,16 +61,16 @@ rolling_growth_rate <- function(x, n = length(x),
   }
   if (log){
     gr <- exp(( log(x) - log(x_lagged) ) / (n - 1))
-    collapse::setv(gr, which((n - 1) == 0), 1, vind1 = TRUE)
+    setv(gr, which((n - 1) == 0), 1, vind1 = TRUE)
   } else {
     gr <- ( (x / x_lagged) ^ (1 / (n - 1)) )
-    collapse::setv(gr, which(x == 0 & x_lagged == 0), 1, vind1 = TRUE)
+    setv(gr, which(x == 0 & x_lagged == 0), 1, vind1 = TRUE)
   }
   which_inf <- which(is.infinite(gr))
   if (length(which_inf) > 0 && !is.null(inf_fill)){
     if (is.na(inf_fill)) inf_fill <- NA_real_
     # Any growth change from 0 is replaced with inf_fill
-    collapse::setv(gr, which_inf, inf_fill, vind1 = TRUE)
+    setv(gr, which_inf, inf_fill, vind1 = TRUE)
   }
   gr
 }

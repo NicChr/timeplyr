@@ -168,7 +168,7 @@ time_count <- function(data, ..., time = NULL, by = NULL,
                     !!enquo(to),
                     !!enquo(wt),
                     .by = {{ .by }},
-                    keep = "none")
+                    .keep = "none")
   group_info <- get_group_info(data, !!!enquos(...), type = "data-mask",
                                .by = {{ .by }})
   # Transformed variable names

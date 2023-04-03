@@ -42,6 +42,6 @@ iso_week <- function(x, year = TRUE, day = FALSE){
 #' @export
 isoday <- function(x){
   out <- data.table::wday(x) -1L
-  collapse::setv(out, 0L, 7L, vind1 = FALSE)
+  setv(out, 0L, 7L, vind1 = FALSE)
   out
 }

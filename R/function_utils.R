@@ -2,12 +2,12 @@
 
 
 # Lightning fast monotonic checks
-is_monotonic_increasing <- function(x){
-  isTRUE(all(x == cummax(x)))
-}
-is_monotonic_decreasing <- function(x){
-  isTRUE(all(x == cummin(x)))
-}
+# is_monotonic_increasing <- function(x){
+#   isTRUE(all(x == cummax(x)))
+# }
+# is_monotonic_decreasing <- function(x){
+#   isTRUE(all(x == cummin(x)))
+# }
 
 
 frequencies <- function(x){
@@ -120,7 +120,8 @@ tidy_transform_names2 <- function(data, ...){
 tidy_select_names <- function(data, ...){
   names(tidyselect::eval_select(rlang::expr(c(!!!enquos(...))), data = data))
 }
-
+# Basic tidyselect information for further manipulation
+# Includes output and input names which might be useful
 tidy_select_info <- function(data, ...){
   data_nms <- names(data)
   expr <- rlang::expr(c(!!!enquos(...)))
@@ -539,6 +540,7 @@ unique_groups <- function(data, ..., sort = TRUE,
   out <- out[!collapse::fduplicated(out[[grp_nm]], all = FALSE), , drop = FALSE]
   if (sort) out <- out[radix_order(out[[grp_nm]]), , drop = FALSE]
   if (!.group_id) out[[grp_nm]] <- NULL
+  attr(out, "row.names") <- seq_len(nrow2(out))
   out
 }
 # Slightly safer way of removing DT cols
@@ -619,16 +621,6 @@ seq_ones <- function(length){
     rep_len(1L, length)
   } else {
     rep_len(1, length)
-  }
-}
-# Grouped seq_len()
-gseq_len <- function(length, g = NULL){
-  if (is.null(g)){
-    seq_len(length)
-  }  else {
-    collapse::fcumsum(seq_ones(length),
-                      na.rm = FALSE,
-                      g = g)
   }
 }
 # Drop leading zeroes

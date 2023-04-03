@@ -7,7 +7,7 @@
 time_diff(x, y, by, type = c("auto", "duration", "period"), as_period = FALSE)
 }
 \arguments{
-\item{x}{Start datetime.}
+\item{x}{Start date or datetime.}
 
 \item{y}{End date or datetime.}
 

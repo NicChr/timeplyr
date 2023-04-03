@@ -59,7 +59,7 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
   all_groups <- group_info[["all_groups"]]
   out_nms <- names(out)
   # If no variables selected then all variables used
-  if (dots_length(...) == 0L){
+  if (n_dots == 0){
     dup_vars <- out_nms
     out_vars <- dup_vars
   } else {
@@ -74,7 +74,7 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
   # Groups
   # Add group ID for all groups
   grp_nm <- new_var_nm(names(out), ".group.id")
-  out[[grp_nm]] <- group_id(data, all_of(dup_vars), sort = TRUE)
+  out[[grp_nm]] <- group_id(out, all_of(dup_vars), sort = TRUE)
   n_var_nm <- new_n_var_nm(names(out))
   out[[n_var_nm]] <- collapse::GRPN(out[[grp_nm]], expand = TRUE)
   out <- dplyr::filter(out, .data[[n_var_nm]] > 1)
@@ -208,10 +208,12 @@ fduplicates2 <- function(data, ..., .keep_all = FALSE,
       dplyr::filter(!dplyr::if_all(.cols = all_of(dup_vars), is.na))
   }
   # Keep duplicates including first instance of duplicated rows
-  if (.both_ways) out2 <- dplyr::semi_join(out,
-                                            dplyr::select(out2,
-                                                          all_of(c(grp_nm, dup_vars))),
-                                            by = c(grp_nm, dup_vars))
+  if (.both_ways){
+    out2 <- dplyr::semi_join(out,
+                             dplyr::select(out2,
+                                           all_of(c(grp_nm, dup_vars))),
+                             by = c(grp_nm, dup_vars))
+  }
   out2[[grp_nm]] <- NULL
   out2[[id_nm]] <- NULL
   df_reconstruct(out2, data)
