@@ -1,22 +1,36 @@
 #' Grouped statistical functions.
 #'
 #' @description These functions are wrappers around the collapse equivalents
-#' but always return a vector the same length as x. \cr
+#' but always return a vector the same length and same order as x.\cr
 #' They all accept group IDs for grouped calculations.
 #' @param x An atomic vector.
 #' @param g Group IDs passed directly to `collapse::GRP()`.
+#' This can be a vector, list or data frame.
 #' @param na.rm Should `NA` values be removed? Default is `TRUE`.
 #' @param ... Additional parameters passed on to the collapse package
-#' equivalents, `fsum()`, `fmean()`, `fmin()`, and `fmax()`.
+#' equivalents, `fsum()`, `fmean()`, `fmin()`, and `fmax()`,
+#' `fsd()`, `fvar()`, `fmode()`, `fmedian()`, `ffirst()`, `flast()`
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
-#'
+#' library(ggplot2)
 #' # Dplyr
 #' iris %>%
 #'   mutate(mean = mean(Sepal.Length), .by = Species)
+#' # Timeplyr
 #' iris %>%
 #'   mutate(mean = gmean(Sepal.Length, g = Species))
+#'
+#' # One can utilise pick() to specify multiple groups
+#' mpg %>%
+#'   mutate(mean = gmean(displ, g = pick(manufacturer, model)))
+#'
+#' # Alternatively you can create a unique ID for each group
+#' mpg %>%
+#'   add_group_id(manufacturer, model) %>%
+#'   mutate(mean = gmean(displ, g = group_id))
+#'
+#' # Another example
 #'
 #' iris %>%
 #'   add_group_id(Species, .name = "g") %>%
@@ -41,11 +55,15 @@ gsum <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
     g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
                        return.groups = TRUE)
-    if (is.null(g[["order"]])){
+    gorder <- g[["order"]]
+    if (is.null(gorder)){
       gorder <- radix_order(g[["group.id"]])
-    } else {
-      gorder <- g[["order"]]
     }
+    # if (is.null(g[["order"]])){
+    #   gorder <- radix_order(g[["group.id"]])
+    # } else {
+    #   gorder <- g[["order"]]
+    # }
   }
   out <- collapse::fsum(x,
                         g = g,
@@ -55,7 +73,7 @@ gsum <- function(x, g = NULL, na.rm = TRUE, ...){
   if (length(g) == 0L){
     rep_len(out, length(x))
   } else {
-    out <- rep(out, g[["group.sizes"]])
+    out <- rep(out, times = g[["group.sizes"]])
     out[radix_order(gorder)]
   }
 }
@@ -65,10 +83,9 @@ gmean <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
     g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
                        return.groups = TRUE)
-    if (is.null(g[["order"]])){
+    gorder <- g[["order"]]
+    if (is.null(gorder)){
       gorder <- radix_order(g[["group.id"]])
-    } else {
-      gorder <- g[["order"]]
     }
   }
   out <- collapse::fmean(x,
@@ -79,7 +96,7 @@ gmean <- function(x, g = NULL, na.rm = TRUE, ...){
   if (length(g) == 0L){
     rep_len(out, length(x))
   } else {
-    out <- rep(out, g[["group.sizes"]])
+    out <- rep(out, times = g[["group.sizes"]])
     out[radix_order(gorder)]
   }
 }
@@ -89,10 +106,9 @@ gmin <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
     g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
                        return.groups = TRUE)
-    if (is.null(g[["order"]])){
+    gorder <- g[["order"]]
+    if (is.null(gorder)){
       gorder <- radix_order(g[["group.id"]])
-    } else {
-      gorder <- g[["order"]]
     }
   }
   out <- collapse::fmin(x,
@@ -103,7 +119,7 @@ gmin <- function(x, g = NULL, na.rm = TRUE, ...){
   if (length(g) == 0L){
     rep_len(out, length(x))
   } else {
-    out <- rep(out, g[["group.sizes"]])
+    out <- rep(out, times = g[["group.sizes"]])
     out[radix_order(gorder)]
   }
 }
@@ -113,10 +129,9 @@ gmax <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
     g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
                        return.groups = TRUE)
-    if (is.null(g[["order"]])){
+    gorder <- g[["order"]]
+    if (is.null(gorder)){
       gorder <- radix_order(g[["group.id"]])
-    } else {
-      gorder <- g[["order"]]
     }
   }
   out <- collapse::fmax(x,
@@ -127,7 +142,145 @@ gmax <- function(x, g = NULL, na.rm = TRUE, ...){
   if (length(g) == 0L){
     rep_len(out, length(x))
   } else {
-    out <- rep(out, g[["group.sizes"]])
+    out <- rep(out, times = g[["group.sizes"]])
+    out[radix_order(gorder)]
+  }
+}
+#' @rdname gsum
+#' @export
+gsd <- function(x, g = NULL, na.rm = TRUE, ...){
+  if (!is.null(g)){
+    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+                       return.groups = TRUE)
+    gorder <- g[["order"]]
+    if (is.null(gorder)){
+      gorder <- radix_order(g[["group.id"]])
+    }
+  }
+  out <- collapse::fsd(x,
+                        g = g,
+                        use.g.names = FALSE,
+                        na.rm = na.rm,
+                        ...)
+  if (length(g) == 0L){
+    rep_len(out, length(x))
+  } else {
+    out <- rep(out, times = g[["group.sizes"]])
+    out[radix_order(gorder)]
+  }
+}
+#' @rdname gsum
+#' @export
+gvar <- function(x, g = NULL, na.rm = TRUE, ...){
+  if (!is.null(g)){
+    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+                       return.groups = TRUE)
+    gorder <- g[["order"]]
+    if (is.null(gorder)){
+      gorder <- radix_order(g[["group.id"]])
+    }
+  }
+  out <- collapse::fvar(x,
+                       g = g,
+                       use.g.names = FALSE,
+                       na.rm = na.rm,
+                       ...)
+  if (length(g) == 0L){
+    rep_len(out, length(x))
+  } else {
+    out <- rep(out, times = g[["group.sizes"]])
+    out[radix_order(gorder)]
+  }
+}
+#' @rdname gsum
+#' @export
+gmode <- function(x, g = NULL, na.rm = TRUE, ...){
+  if (!is.null(g)){
+    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+                       return.groups = TRUE)
+    gorder <- g[["order"]]
+    if (is.null(gorder)){
+      gorder <- radix_order(g[["group.id"]])
+    }
+  }
+  out <- collapse::fmode(x,
+                        g = g,
+                        use.g.names = FALSE,
+                        na.rm = na.rm,
+                        ...)
+  if (length(g) == 0L){
+    rep_len(out, length(x))
+  } else {
+    out <- rep(out, times = g[["group.sizes"]])
+    out[radix_order(gorder)]
+  }
+}
+#' @rdname gsum
+#' @export
+gmedian <- function(x, g = NULL, na.rm = TRUE, ...){
+  if (!is.null(g)){
+    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+                       return.groups = TRUE)
+    gorder <- g[["order"]]
+    if (is.null(gorder)){
+      gorder <- radix_order(g[["group.id"]])
+    }
+  }
+  out <- collapse::fmedian(x,
+                         g = g,
+                         use.g.names = FALSE,
+                         na.rm = na.rm,
+                         ...)
+  if (length(g) == 0L){
+    rep_len(out, length(x))
+  } else {
+    out <- rep(out, times = g[["group.sizes"]])
+    out[radix_order(gorder)]
+  }
+}
+#' @rdname gsum
+#' @export
+gfirst <- function(x, g = NULL, na.rm = TRUE, ...){
+  if (!is.null(g)){
+    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+                       return.groups = TRUE)
+    gorder <- g[["order"]]
+    if (is.null(gorder)){
+      gorder <- radix_order(g[["group.id"]])
+    }
+  }
+  out <- collapse::ffirst(x,
+                           g = g,
+                           use.g.names = FALSE,
+                           na.rm = na.rm,
+                           ...)
+  if (length(g) == 0L){
+    rep_len(out, length(x))
+  } else {
+    out <- rep(out, times = g[["group.sizes"]])
+    out[radix_order(gorder)]
+  }
+}
+#' @rdname gsum
+#' @export
+glast <- function(x, g = NULL, na.rm = TRUE, ...){
+  if (!is.null(g)){
+    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+                       return.groups = TRUE)
+    gorder <- g[["order"]]
+    if (is.null(gorder)){
+      gorder <- radix_order(g[["group.id"]])
+    }
+  }
+  out <- collapse::flast(x,
+                          g = g,
+                          use.g.names = FALSE,
+                          na.rm = na.rm,
+                          ...)
+  if (length(g) == 0L){
+    rep_len(out, length(x))
+  } else {
+    out <- rep(out, times = g[["group.sizes"]])
     out[radix_order(gorder)]
   }
 }

@@ -5,6 +5,12 @@
 \alias{gmean}
 \alias{gmin}
 \alias{gmax}
+\alias{gsd}
+\alias{gvar}
+\alias{gmode}
+\alias{gmedian}
+\alias{gfirst}
+\alias{glast}
 \title{Grouped statistical functions.}
 \usage{
 gsum(x, g = NULL, na.rm = TRUE, ...)
@@ -14,31 +20,57 @@ gmean(x, g = NULL, na.rm = TRUE, ...)
 gmin(x, g = NULL, na.rm = TRUE, ...)
 
 gmax(x, g = NULL, na.rm = TRUE, ...)
+
+gsd(x, g = NULL, na.rm = TRUE, ...)
+
+gvar(x, g = NULL, na.rm = TRUE, ...)
+
+gmode(x, g = NULL, na.rm = TRUE, ...)
+
+gmedian(x, g = NULL, na.rm = TRUE, ...)
+
+gfirst(x, g = NULL, na.rm = TRUE, ...)
+
+glast(x, g = NULL, na.rm = TRUE, ...)
 }
 \arguments{
 \item{x}{An atomic vector.}
 
-\item{g}{Group IDs passed directly to \code{collapse::GRP()}.}
+\item{g}{Group IDs passed directly to \code{collapse::GRP()}.
+This can be a vector, list or data frame.}
 
 \item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
 
 \item{...}{Additional parameters passed on to the collapse package
-equivalents, \code{fsum()}, \code{fmean()}, \code{fmin()}, and \code{fmax()}.}
+equivalents, \code{fsum()}, \code{fmean()}, \code{fmin()}, and \code{fmax()},
+\code{fsd()}, \code{fvar()}, \code{fmode()}, \code{fmedian()}, \code{ffirst()}, \code{flast()}}
 }
 \description{
 These functions are wrappers around the collapse equivalents
-but always return a vector the same length as x. \cr
+but always return a vector the same length and same order as x.\cr
 They all accept group IDs for grouped calculations.
 }
 \examples{
 library(timeplyr)
 library(dplyr)
-
+library(ggplot2)
 # Dplyr
 iris \%>\%
   mutate(mean = mean(Sepal.Length), .by = Species)
+# Timeplyr
 iris \%>\%
   mutate(mean = gmean(Sepal.Length, g = Species))
+
+# One can utilise pick() to specify multiple groups
+mpg \%>\%
+  mutate(mean = gmean(displ, g = pick(manufacturer, model)))
+
+# Alternatively you can create a unique ID for each group
+mpg \%>\%
+  add_group_id(manufacturer, model) \%>\%
+  mutate(mean = gmean(displ, g = group_id))
+
+# Another example
 
 iris \%>\%
   add_group_id(Species, .name = "g") \%>\%
