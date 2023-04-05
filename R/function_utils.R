@@ -572,9 +572,9 @@ new_var_nm <- function(data, check = ".group.id"){
   return(check)
 }
 # Convenience function
-# is_df <- function(x){
-#   inherits(x, "data.frame")
-# }
+is_df <- function(x){
+  inherits(x, "data.frame")
+}
 # Recycle arguments
 recycle_args <- function (..., length, set_names = FALSE){
   dots <- list(...)
@@ -656,3 +656,31 @@ setv <- utils::getFromNamespace("setv", "collapse")
 # quo_is_null()
 
 CJ <- utils::getFromNamespace("CJ", "data.table")
+
+is_whole_number <- function(x){
+  if (is.integer(x)) return(TRUE) # If already integer then true
+  if (length(x) == 0) return(FALSE) # If length is 0 then false
+  if (all(is.na(x))) return(FALSE) # All NA then false
+  if (any(is.infinite(x))) return(FALSE) # Any Inf then false
+  if (any(is.nan(x))) return(FALSE) # Any NaN then false
+  x_finite <- x[is.finite(x)]
+  x_range <- range(x_finite)
+  if (length(x_finite) == 0) return(FALSE) # If no finite values then false
+  # If integer check cannot be accurately determined, we don't check these and just return FALSE
+  result <- tryCatch((sum(x_range %% 1) == 0),
+                     error = function(e) e,
+                     warning = function(w) w)
+
+  if (inherits(result, "warning")){
+    message("Can't accurately identify if number is whole due to loss of accuracy,
+            returning FALSE")
+    return(FALSE)
+  }
+  isTRUE((sum(x_finite %% 1) == 0))
+}
+# Do all list elements have same number of elements?
+is_list_df_like <- function(X){
+  stopifnot(is.list(X))
+  lens <- collapse::vlengths(X, use.names = FALSE)
+  isTRUE(n_unique(lens) <= 1)
+}

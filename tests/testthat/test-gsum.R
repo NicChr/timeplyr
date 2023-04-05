@@ -1,4 +1,4 @@
-testthat::test_that("Test gmin and gmax", {
+testthat::test_that("Test grouped stat functions", {
 flights <- nycflights13::flights
 g1 <- group_id(flights, origin, dest)
 g2 <- group_id(flights, origin, dest, sort = FALSE)

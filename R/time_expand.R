@@ -195,7 +195,8 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
       (unit_is_days) &&
       is_date(out[[time_var]]) &&
       is_date(time_tbl[[from_nm]]) &&
-      is_date(time_tbl[[to_nm]])
+      is_date(time_tbl[[to_nm]]) &&
+      is_whole_number(by_n)
     is_special_case_utc <- input_seq_type == "auto" &&
       (unit_is_days || unit_is_less_than_days) &&
       is_datetime(out[[time_var]]) &&

@@ -54,7 +54,7 @@
 gsum <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
     g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
-                       return.groups = TRUE)
+                       return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
       gorder <- radix_order(g[["group.id"]])
@@ -82,7 +82,7 @@ gsum <- function(x, g = NULL, na.rm = TRUE, ...){
 gmean <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
     g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
-                       return.groups = TRUE)
+                       return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
       gorder <- radix_order(g[["group.id"]])
@@ -105,7 +105,7 @@ gmean <- function(x, g = NULL, na.rm = TRUE, ...){
 gmin <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
     g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
-                       return.groups = TRUE)
+                       return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
       gorder <- radix_order(g[["group.id"]])
@@ -128,7 +128,7 @@ gmin <- function(x, g = NULL, na.rm = TRUE, ...){
 gmax <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
     g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
-                       return.groups = TRUE)
+                       return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
       gorder <- radix_order(g[["group.id"]])
@@ -151,7 +151,7 @@ gmax <- function(x, g = NULL, na.rm = TRUE, ...){
 gsd <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
     g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
-                       return.groups = TRUE)
+                       return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
       gorder <- radix_order(g[["group.id"]])
@@ -174,7 +174,7 @@ gsd <- function(x, g = NULL, na.rm = TRUE, ...){
 gvar <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
     g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
-                       return.groups = TRUE)
+                       return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
       gorder <- radix_order(g[["group.id"]])
@@ -197,7 +197,7 @@ gvar <- function(x, g = NULL, na.rm = TRUE, ...){
 gmode <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
     g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
-                       return.groups = TRUE)
+                       return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
       gorder <- radix_order(g[["group.id"]])
@@ -220,7 +220,7 @@ gmode <- function(x, g = NULL, na.rm = TRUE, ...){
 gmedian <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
     g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
-                       return.groups = TRUE)
+                       return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
       gorder <- radix_order(g[["group.id"]])
@@ -243,7 +243,7 @@ gmedian <- function(x, g = NULL, na.rm = TRUE, ...){
 gfirst <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
     g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
-                       return.groups = TRUE)
+                       return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
       gorder <- radix_order(g[["group.id"]])
@@ -266,7 +266,7 @@ gfirst <- function(x, g = NULL, na.rm = TRUE, ...){
 glast <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
     g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
-                       return.groups = TRUE)
+                       return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
       gorder <- radix_order(g[["group.id"]])

@@ -26,7 +26,7 @@ crossed_join <- function(X, sort = FALSE, unique = TRUE, log_limit = 8){
   } else {
     dt_sort <- FALSE
   }
-  expanded_n <- prod(collapse::vlengths(X))
+  expanded_n <- prod(collapse::vlengths(X, use.names = FALSE))
   if (log10(expanded_n) >= log_limit) {
     stop("Requested expansion results in >= ",
          expanded_n,

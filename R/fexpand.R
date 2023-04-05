@@ -244,7 +244,7 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
   X_other <- X[X_nms %in% other_nms]
   X_other <- lapply(X_other, function(x) collapse::funique(x, sort = FALSE))
   n_data <- max(n_data, 1L)
-  n_other <- prod(collapse::vlengths(X_other))
+  n_other <- prod(collapse::vlengths(X_other, use.names = FALSE))
   n_other <- max(n_other, 1, na.rm = TRUE)
   expanded_n <- prod(c(n_data, n_other), na.rm = TRUE)
   if (log10(expanded_n) >= log_limit) stop("Requested expansion results in >= ",
@@ -257,7 +257,7 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
   } else {
     out <- df[rep(grp_seq, each = n_other), , drop = FALSE]
     if (length(X_other) > 0L){
-      rep_times <- nrow2(out) / collapse::vlengths(X_other)
+      rep_times <- nrow2(out) / collapse::vlengths(X_other, use.names = FALSE)
       for (i in seq_along(X_other)){
         out[, (other_nms[i]) := rep(X_other[[i]], rep_times[i])][]
       }
