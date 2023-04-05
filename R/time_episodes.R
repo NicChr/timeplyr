@@ -60,7 +60,7 @@ time_episodes <- function(data, ..., time, window,
   if (.add){
     .keep <- "all"
   } else {
-    .keep <- "none"
+    .keep <- "used"
   }
   start_nms <- data.table::copy(names(data))
   data <- data %>%
