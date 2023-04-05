@@ -128,13 +128,7 @@ tidy_select_info <- function(data, ...){
   pos <- tidyselect::eval_select(expr, data = data)
   out_nms <- names(pos)
   pos <- unname(pos)
-  renamed <- match(out_nms, data_nms) != pos
-  renamed[is.na(renamed)] <- TRUE
-  # if (any(match(out_nms, data_nms) != pos, na.rm = TRUE)){
-  #   renamed <- TRUE
-  # } else {
-  #   renamed <- FALSE
-  # }
+  renamed <- is.na(match(out_nms, data_nms) != pos)
   list("pos" = pos,
        "out_nms" = out_nms,
        "in_nms" = data_nms[pos],

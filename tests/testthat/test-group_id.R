@@ -33,12 +33,12 @@ testthat::test_that("Group IDs", {
                              iris %>%
                                group_id(.by = all_of(c("Species", "Sepal.Length")),
                                         sort = TRUE))
-  testthat::expect_identical(base2,
-                             iris %>%
-                               dplyr::group_by(Sepal.Width) %>%
-                               group_id(.by = all_of(c("Species", "Sepal.Length")),
-                                        sort = TRUE,
-                                        .overwrite = TRUE))
+  # testthat::expect_identical(base2,
+  #                            iris %>%
+  #                              dplyr::group_by(Sepal.Width) %>%
+  #                              group_id(.by = all_of(c("Species", "Sepal.Length")),
+  #                                       sort = TRUE,
+  #                                       .overwrite = TRUE))
   testthat::expect_identical(base2,
                              iris %>%
                                dplyr::group_by(Species) %>%
@@ -57,12 +57,12 @@ testthat::test_that("Group IDs", {
                              iris %>%
                                group_id(.by = all_of(c("Species", "Sepal.Length")),
                                         sort = FALSE))
-  testthat::expect_identical(base3,
-                             iris %>%
-                               dplyr::group_by(Sepal.Width) %>%
-                               group_id(.by = all_of(c("Species", "Sepal.Length")),
-                                        sort = FALSE,
-                                        .overwrite = TRUE))
+  # testthat::expect_identical(base3,
+  #                            iris %>%
+  #                              dplyr::group_by(Sepal.Width) %>%
+  #                              group_id(.by = all_of(c("Species", "Sepal.Length")),
+  #                                       sort = FALSE,
+  #                                       .overwrite = TRUE))
   testthat::expect_identical(base3,
                              iris %>%
                                dplyr::group_by(Species) %>%

@@ -21,8 +21,6 @@
 #' character vector of length 1.
 #' If `NULL` then a column named "group_id" will be added,
 #' and if one already exists, a unique name will be used.
-#' @param .overwrite (Questioning) If `TRUE` then groups supplied through `.by`
-#' (as well as through `...`) overwrite existing dplyr groups.
 #' @param as_qg Should the group IDs be returned as a
 #' collapse "qG" class? The default (`FALSE`) always returns
 #' an integer vector.
@@ -57,26 +55,25 @@
 group_id <- function(data, ...,
                      sort = TRUE,
                      .by = NULL,
-                     .overwrite = FALSE,
                      as_qg = FALSE){
   N <- nrow2(data)
   group_vars <- group_vars(data)
   by_vars <- tidy_select_names(data, {{ .by }})
   dot_vars <- tidy_select_names(data, !!!enquos(...))
-  data <- data %>%
-    dplyr::select(all_of(c(group_vars, by_vars)), !!!enquos(...))
-  group_vars <- group_vars(data)
-  # by and group vars cannot both be supplied (unless .overwrite = TRUE)
   if (length(by_vars) > 0L){
-    if (!.overwrite && length(group_vars) > 0L){
+    if (length(group_vars) > 0L){
       stop(".by cannot be used on a grouped_df")
-    } else {
-      group_vars2 <- by_vars
     }
-  } else {
-    group_vars2 <- group_vars
   }
-  data <- collapse::fselect(data, c(group_vars2, dot_vars))
+  select_info <- tidy_select_info(data, all_of(c(group_vars, by_vars)),
+                                  !!!enquos(...))
+  in_nms <- select_info[["in_nms"]]
+  out_nms <- select_info[["out_nms"]]
+  data <- collapse::fselect(data, in_nms)
+  names(data) <- out_nms
+  # Group var might have been renamed, so use select info
+  group_vars2 <- out_nms[match(c(group_vars, by_vars), in_nms)]
+  # by and group vars cannot both be supplied (unless .overwrite = TRUE)
   needs_regrouping <- !isTRUE(sort &&
     length(group_vars) > 0L &&
     length(by_vars) == 0L &&
@@ -95,14 +92,13 @@ group_id <- function(data, ...,
     # Usual Method for when data does not contain interval
     if (length(group_vars2) == 0L &&
         length(dot_vars) == 0L){
-      out <- rep_len(1L, nrow2(data))
+      out <- rep_len(1L, N)
       # Method for grouped_df
     } else if (!needs_regrouping){
       out <- dplyr::group_indices(data)
     } else {
       if (sort){
         out <- collapse::GRP(safe_ungroup(data),
-                             # by = c(group_vars2, dot_vars),
                              sort = TRUE,
                              decreasing = FALSE,
                              na.last = TRUE,
@@ -130,13 +126,11 @@ group_id <- function(data, ...,
 add_group_id <- function(data, ...,
                          sort = TRUE,
                          .by = NULL,
-                         .overwrite = FALSE,
                          .name = NULL,
                          as_qg = FALSE){
   if (is.null(.name)) .name <- new_var_nm(names(data), "group_id")
   data[[.name]] <- group_id(data, !!!enquos(...),
                             sort = sort, .by = {{ .by }},
-                            .overwrite = .overwrite,
                             as_qg = as_qg)
   data
 }

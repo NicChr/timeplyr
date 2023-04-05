@@ -101,20 +101,21 @@ time_episodes <- function(data, ..., time, window,
   # Create grouped ID variable
   grp_nm <- new_var_nm(out, ".group")
   out[, (grp_nm) := group_id(data, all_of(extra_groups), .by = {{ .by }},
-                             sort = TRUE, as_qg = TRUE)]
+                             sort = TRUE, as_qg = FALSE)]
   # Sort by groups > case ID > date col
   data.table::setorderv(out, cols = c(grp_nm, time_col), na.last = TRUE)
+  g <- collapse::GRP(out[[grp_nm]], sort = TRUE, call = FALSE, return.groups = FALSE)
   lag <- min(N, 1L) # Bound lag to >= 0.
   date_lag_nm <- new_var_nm(names(out), "date_lag")
   out[, (date_lag_nm) := collapse::flag(get(time_col),
                                        n = lag,
-                                       g = get(grp_nm))]
+                                       g = g)]
   time_elapsed_nm <- new_var_nm(names(out), "time_elapsed")
   out[, (time_elapsed_nm) := time_diff(get(date_lag_nm), get(time_col),
                                                 by = by, type = type)]
   # Row IDs per subject
   subject_row_id_nm <- new_var_nm(names(out), "subject_row_id")
-  out[, (subject_row_id_nm) := growid(out, g = get(grp_nm))]
+  out[, (subject_row_id_nm) := gseq_len(N, g = g)]
   # Binary variable indicating if new episode or not
   new_episode_nm <- new_var_nm(names(out), "new_episode")
   out[, (new_episode_nm) := data.table::fifelse(get(subject_row_id_nm) == 1 |
@@ -124,8 +125,8 @@ time_episodes <- function(data, ..., time, window,
   # Episode ID at record level
   episode_id_nm <- new_var_nm(names(out), "episode_id")
   out[, (episode_id_nm) := collapse::fcumsum(get("new_episode"),
-                                            g = get(grp_nm),
-                                            na.rm = FALSE)]
+                                             g = g,
+                                             na.rm = FALSE)]
   # Episode ID at group level
   episode_id_group_nm <- new_var_nm(names(out), "episode_id_group")
   out[, (episode_id_group_nm) := data.table::fifelse(get(new_episode_nm) == 1L,
@@ -134,8 +135,8 @@ time_episodes <- function(data, ..., time, window,
   # Get min episode dates for each subject + episode
   episode_start_nm <- new_var_nm(names(out), "episode_start")
   out[, (episode_start_nm) := gmin(get(time_col),
-                                            g = mget(c(all_groups, episode_id_nm)),
-                                            na.rm = TRUE)]
+                                   g = mget(c(all_groups, episode_id_nm)),
+                                   na.rm = TRUE)]
   # Remove uneccessary cols
   set_rm_cols(out, c(date_lag_nm, subject_row_id_nm, new_episode_nm, grp_nm))
   # Newly added cols
