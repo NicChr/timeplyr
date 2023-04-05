@@ -103,6 +103,7 @@
 #'                  mean_diff_time = mean(arr_time - dep_time, na.rm = TRUE),
 #'                  include_interval = TRUE)
 #' }
+#' @rdname time_summarise
 #' @export
 time_summarise <- function(data, ..., time = NULL, by = NULL,
                         from = NULL, to = NULL,
@@ -137,6 +138,8 @@ time_summarise <- function(data, ..., time = NULL, by = NULL,
   extra_group_vars <- group_info[["extra_groups"]]
   dplyr::select(out, dplyr::any_of(c(group_vars, time_var, int_nm, extra_group_vars)))
 }
+#' @rdname time_summarise
+#' @export
 time_reframe <- function(data, ..., time = NULL, by = NULL,
                            from = NULL, to = NULL,
                            seq_type = c("auto", "duration", "period"),

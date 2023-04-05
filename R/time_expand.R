@@ -106,7 +106,8 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
                        !!enquo(time),
                        !!enquo(from),
                        !!enquo(to),
-                       .by = {{ .by }})
+                       .by = {{ .by }},
+                       .keep = "none")
   time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
   from_var <- tidy_transform_names(safe_ungroup(data), !!enquo(from))
   to_var <- tidy_transform_names(safe_ungroup(data), !!enquo(to))

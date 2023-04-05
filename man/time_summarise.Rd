@@ -2,6 +2,7 @@
 % Please edit documentation in R/time_summarise.R
 \name{time_summarise}
 \alias{time_summarise}
+\alias{time_reframe}
 \title{A time based extension to \code{dplyr::summarise()}.}
 \usage{
 time_summarise(
@@ -20,6 +21,23 @@ time_summarise(
   roll_month = "preday",
   roll_dst = "pre",
   sort = TRUE
+)
+
+time_reframe(
+  data,
+  ...,
+  time = NULL,
+  by = NULL,
+  from = NULL,
+  to = NULL,
+  seq_type = c("auto", "duration", "period"),
+  include_interval = FALSE,
+  .by = NULL,
+  keep_class = TRUE,
+  floor_date = FALSE,
+  week_start = getOption("lubridate.week.start", 1),
+  roll_month = "preday",
+  roll_dst = "pre"
 )
 }
 \arguments{
