@@ -266,7 +266,7 @@ testthat::test_that("Datetimes", {
   testthat::expect_equal(y2, y4)
   testthat::expect_equal(y2, y3)
   testthat::expect_equal(y3, y4)
-  testthat::expect_equal(time_seq_v(1, c(50, 100, 100), num = 2:4),
+  testthat::expect_equal(time_seq_v(1, c(50, 100, 100), by = 2:4),
                          c(seq(1, 50, by = 2),
                            seq(1, 100, by = 3),
                            seq(1, 100, by = 4)))
@@ -305,35 +305,35 @@ testthat::test_that("Vectorised time sequences", {
                                tz = "GB")
   end1 <- start1 + lubridate::ddays(37)
   end2 <- start1 + lubridate::days(37)
-  testthat::expect_equal(time_seq_v(lubridate::Date(0), lubridate::Date(0), units = "days", seq_type = "period"),
+  testthat::expect_equal(time_seq_v(lubridate::Date(0), lubridate::Date(0), by = "days", seq_type = "period"),
                              lubridate::Date(0))
-  testthat::expect_equal(time_seq_v(lubridate::Date(0), lubridate::Date(0), units = "days", seq_type = "duration"),
+  testthat::expect_equal(time_seq_v(lubridate::Date(0), lubridate::Date(0), by = "days", seq_type = "duration"),
                              lubridate::POSIXct(0))
-  testthat::expect_equal(time_seq_v(lubridate::Date(0), lubridate::Date(0), units = "days", seq_type = "period"),
+  testthat::expect_equal(time_seq_v(lubridate::Date(0), lubridate::Date(0), by = "days", seq_type = "period"),
                              lubridate::Date(0))
-  testthat::expect_equal(time_seq_v(lubridate::POSIXct(0), lubridate::Date(0), units = "days", seq_type = "duration"),
+  testthat::expect_equal(time_seq_v(lubridate::POSIXct(0), lubridate::Date(0), by = "days", seq_type = "duration"),
                              lubridate::POSIXct(0))
-  testthat::expect_equal(time_seq_v(lubridate::POSIXct(0), lubridate::Date(0), units = "days", seq_type = "period"),
+  testthat::expect_equal(time_seq_v(lubridate::POSIXct(0), lubridate::Date(0), by = "days", seq_type = "period"),
                              lubridate::POSIXct(0))
-  testthat::expect_equal(time_seq_v(lubridate::POSIXct(0), lubridate::POSIXct(0), units = "days", seq_type = "duration"),
+  testthat::expect_equal(time_seq_v(lubridate::POSIXct(0), lubridate::POSIXct(0), by = "days", seq_type = "duration"),
                              lubridate::POSIXct(0))
-  testthat::expect_equal(time_seq_v(lubridate::POSIXct(0), lubridate::POSIXct(0), units = "days", seq_type = "period"),
+  testthat::expect_equal(time_seq_v(lubridate::POSIXct(0), lubridate::POSIXct(0), by = "days", seq_type = "period"),
                              lubridate::POSIXct(0))
-  testthat::expect_equal(time_seq_v(start1, end2, units = "days", seq_type = "period"),
+  testthat::expect_equal(time_seq_v(start1, end2, by = "days", seq_type = "period"),
                                   time_seq(start1, end2, by = "days", seq_type = "period"))
-  testthat::expect_equal(time_seq_v(start1, end2, units = "days", seq_type = "duration"),
+  testthat::expect_equal(time_seq_v(start1, end2, by = "days", seq_type = "duration"),
                              time_seq(start1, end2, by = "days", seq_type = "duration"))
-  testthat::expect_equal(time_seq_v(start1, lubridate::POSIXct(0), units = "days", seq_type = "period"),
+  testthat::expect_equal(time_seq_v(start1, lubridate::POSIXct(0), by = "days", seq_type = "period"),
                          lubridate::with_tz(lubridate::POSIXct(0), tzone = "GB"))
-  testthat::expect_equal(time_seq_v(start1, lubridate::Date(0), units = "days", seq_type = "period"),
+  testthat::expect_equal(time_seq_v(start1, lubridate::Date(0), by = "days", seq_type = "period"),
                          lubridate::with_tz(lubridate::POSIXct(0), tzone = "GB"))
-  testthat::expect_equal(time_seq_v(lubridate::as_date(start1), lubridate::Date(0), units = "days", seq_type = "period"),
+  testthat::expect_equal(time_seq_v(lubridate::as_date(start1), lubridate::Date(0), by = "days", seq_type = "period"),
                          lubridate::Date(0))
   foo1 <- function(x) time_seq(from = start1, to = end1, by = list("days" = x), seq_type = "duration")
-  testthat::expect_equal(time_seq_v(start1, end1, units = "days", num = seq(0.5, 20, 0.5), seq_type = "duration"),
+  testthat::expect_equal(time_seq_v(start1, end1, by = list("days" = seq(0.5, 20, 0.5)), seq_type = "duration"),
                          do.call(c, lapply(seq(0.5, 20, 0.5), foo1)))
   foo2 <- function(x) time_seq(from = start1, to = end1, by = list("days" = x), seq_type = "period")
-  testthat::expect_equal(time_seq_v(start1, end1, units = "days", num = seq(1, 20, 1), seq_type = "period"),
+  testthat::expect_equal(time_seq_v(start1, end1, by = list("days" = seq(1, 20, 1)), seq_type = "period"),
                          do.call(c, lapply(seq(1, 20, 1), foo2)))
 })
 

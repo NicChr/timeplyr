@@ -80,7 +80,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                  sort = TRUE,
                  as_qg = TRUE,
                  .name = grp_nm) %>%
-    dplyr::select(all_of(c(grp_nm, group_vars, data_vars)))
+    collapse::fselect(c(grp_nm, group_vars, data_vars))
 
   if (is.null(name)) name <- new_n_var_nm(out)
   group_id <- out[[grp_nm]]

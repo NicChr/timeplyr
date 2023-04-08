@@ -1,6 +1,6 @@
 Package: timeplyr
 Title: Date and datetime extension to dplyr
-Version: 0.1.5
+Version: 0.1.6
 Authors@R: 
     person("Nick", "Christofides", , "nick.christofides.r@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
@@ -9,6 +9,7 @@ Description: This package provides a set of class-agnostic functions for
     combines tidyverse-friendly syntax with the efficiency of data.table
     and speed of collapse.
 License: GPL (>= 2)
+BugReports: https://github.com/NicChr/timeplyr/issues
 Depends:
     R (>= 3.5.0)
 Imports:

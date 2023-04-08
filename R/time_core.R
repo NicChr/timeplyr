@@ -260,11 +260,11 @@ time_countv <- function(x, by = NULL, from = NULL, to = NULL,
   }
   # Count time
   # Don't count completed sequence items, only original..
-  cnt_grps <- collapse::GRP(if (complete) x[seq_len(out_len)] else x,
+  cnt_grps <- GRP2(if (complete) x[seq_len(out_len)] else x,
                             sort = FALSE,
                             call = FALSE, return.groups = FALSE,
                             na.last = TRUE, decreasing = FALSE,
-                            return.order = TRUE)
+                            return.order = FALSE)
   if (unique){
     out <- collapse::GRPN(cnt_grps, expand = FALSE)
     x <- collapse::funique(x, sort = FALSE)

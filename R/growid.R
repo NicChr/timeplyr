@@ -37,13 +37,13 @@
 #'
 #' # Comparison to rowidv()
 #' all.equal(rowidv(flights),
-#'           growid(flights, g = flights))
+#'           growid(flights))
 #'
 #' # Comparison to dplyr
 #' flights %>%
 #'   mutate(id1 = row_number(),
 #'          .by = c(origin, dest)) %>%
-#'   mutate(id2 = growid(., pick(origin, dest))) %>%
+#'   mutate(id2 = growid(pick(origin, dest))) %>%
 #'   filter(id1 != id2)
 #'
 #' flights %>%
@@ -68,7 +68,7 @@ growid <- function(x, g = x){
   if (is.null(g)){
     out <- seq_len(len)
   } else {
-    g <- collapse::GRP(g, sort = TRUE, call = FALSE, return.groups = FALSE)
+    g <- GRP2(g, sort = TRUE, call = FALSE, return.groups = FALSE)
     out <- collapse::fcumsum(seq_ones(len),
                              na.rm = FALSE,
                              g = g)
@@ -81,6 +81,8 @@ gseq_len <- function(length, g = NULL){
   if (is.null(g)){
     seq_len(length)
   }  else {
+    g <- GRP2(g, sort = TRUE,
+              call = FALSE, return.groups = FALSE)
     collapse::fcumsum(seq_ones(length),
                       na.rm = FALSE,
                       g = g)

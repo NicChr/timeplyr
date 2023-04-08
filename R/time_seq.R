@@ -15,11 +15,12 @@
 #' `seq(now(), length.out = 10, by = "0.5 days")` or \cr
 #' `seq(today(), length.out = 10, by = "0.5 days")`.\cr
 #'
+#' `time_seq_v()` is a vectorized version of `time_seq()`.\cr
+#'
 #' `time_seq_len()` is a vectorized convenience
 #' function to calculate the length/size of
 #' a regular time sequence, given a start, end and unit specification.\cr
 #'
-#' `time_seq_v()` is a vectorized version of `time_seq()`.\cr
 #'
 #' With periods, impossible dates and datetimes can be
 #' rolled forward or backward
@@ -51,8 +52,6 @@
 #' @param as_period Logical. Should time interval be coerced to a period
 #' before time difference is calculated? This is useful for calculating
 #' for example age in exact years or months.
-#' @param units Time units.
-#' @param num Number of time units.
 #'
 #' @examples
 #' library(timeplyr)
@@ -488,12 +487,17 @@ sequence3 <- function(nvec, from = 1, by = 1){
 #     from + (g_add * by)
 # }
 # Vectorised time sequence function
-# It is vectorized over from, to, units and num
+# It is vectorized over from, to and num
 #' @rdname time_seq
 #' @export
-time_seq_v <- function(from, to, units, num = 1,
+time_seq_v <- function(from, to, by,
                        seq_type = c("auto", "duration", "period"),
                        roll_month = "preday", roll_dst = "pre"){
+  unit_info <- unit_guess(by)
+  units <- unit_info[["unit"]]
+  num <- unit_info[["num"]]
+  scale <- unit_info[["scale"]]
+  num <- num * scale
   if (is_time(from) && is_time(to)){
     seq_type <- match.arg(seq_type)
     if (seq_type == "auto") seq_type <- guess_seq_type(units)

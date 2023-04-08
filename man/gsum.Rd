@@ -11,6 +11,7 @@
 \alias{gmedian}
 \alias{gfirst}
 \alias{glast}
+\alias{gnobs}
 \title{Grouped statistical functions.}
 \usage{
 gsum(x, g = NULL, na.rm = TRUE, ...)
@@ -32,11 +33,13 @@ gmedian(x, g = NULL, na.rm = TRUE, ...)
 gfirst(x, g = NULL, na.rm = TRUE, ...)
 
 glast(x, g = NULL, na.rm = TRUE, ...)
+
+gnobs(x, g = NULL, ...)
 }
 \arguments{
 \item{x}{An atomic vector.}
 
-\item{g}{Group IDs passed directly to \code{collapse::GRP()}.
+\item{g}{Group IDs passed directly to \code{GRP2()}.
 This can be a vector, list or data frame.}
 
 \item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}

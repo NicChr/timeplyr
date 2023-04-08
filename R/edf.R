@@ -71,7 +71,6 @@ edf <- function(x, g = NULL, wt = NULL){
         wt <- wt[x_order]
         if (n_na > 0) wt <- wt[seq_len(nx - n_na)]
       }
-
       g <- collapse::group(x, group.sizes = TRUE)
       times <- attr(g, "group.sizes")
       # times <- collapse::GRPN(g, expand = FALSE)
@@ -86,12 +85,9 @@ edf <- function(x, g = NULL, wt = NULL){
   } else {
     # Create group IDs
     df <- data.table::data.table(x, g, wt)
-    df[, ("g") := group_id(df, all_of("g"), sort = FALSE,
-                           as_qg = FALSE)]
-    df[, ("g1") := group_id(df, all_of("x"), sort = TRUE,
-                            as_qg = FALSE)]
-    df[, ("g3") := group_id(df, all_of(c("g", "g1")), sort = TRUE,
-                            as_qg = FALSE)]
+    df[, ("g") := group_id(get("g"), sort = FALSE, as_qg = FALSE)]
+    df[, ("g1") := group_id(get("x"), sort = TRUE, as_qg = FALSE)]
+    df[, ("g3") := group_id(df, all_of(c("g", "g1")), sort = TRUE, as_qg = FALSE)]
     # Original order
     df[, ("id") := seq_len(.N)]
     # Order if NAs are shifted to the end

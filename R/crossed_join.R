@@ -7,6 +7,9 @@
 #' @param sort Should the expansion be sorted? By default it is `FALSE`.
 #' @param unique Should unique values across each column or list element
 #' be taken? By default this is `TRUE`.
+#' @param strings_as_factors Should strings be converted to factors before
+#' expansion? The default is `FALSE` but setting to `TRUE` can offer
+#' a significant speed improvement.
 #' @param log_limit The maximum log10 limit for expanded number of rows.
 #' Anything >= this results in an error.
 #' @return A data.table object
@@ -15,7 +18,8 @@
 #' crossed_join(list(1:10, 11:20))
 #' crossed_join(iris, sort = TRUE)
 #' @export
-crossed_join <- function(X, sort = FALSE, unique = TRUE, log_limit = 8){
+crossed_join <- function(X, sort = FALSE, unique = TRUE,
+                         strings_as_factors = FALSE, log_limit = 8){
   if (unique){
     X <- lapply(X, function(x) collapse::funique(x, sort = sort))
   }
@@ -31,6 +35,14 @@ crossed_join <- function(X, sort = FALSE, unique = TRUE, log_limit = 8){
     stop("Requested expansion results in >= ",
          expanded_n,
          " rows, aborting.")
+  }
+  if (strings_as_factors){
+    is_chr <- purrr::map_lgl(X, is.character)
+    if (any(is_chr)){
+      which_chr <- which(is_chr)
+      X[which_chr] <- lapply(X[which_chr], function(x) collapse::qF(x, sort = FALSE, ordered = FALSE,
+                                                                    na.exclude = FALSE))
+    }
   }
   do.call(CJ, args = c(X, list(sorted = dt_sort, unique = FALSE)))
 }

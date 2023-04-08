@@ -158,8 +158,10 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
       for (i in seq_along(leftover_grp_nms)){
         assign(paste0("grp_nm_", i),
                new_var_nm(out1, ".group.id"))
-        out1[, (get(paste0("grp_nm_", i))) := group_id(out1, all_of(leftover_grp_nms[[i]]),
+        out1[, (get(paste0("grp_nm_", i))) := group_id(get(leftover_grp_nms[[i]]),
                                                        sort = FALSE)]
+        # out1[, (get(paste0("grp_nm_", i))) := group_id(out1, all_of(leftover_grp_nms[[i]]),
+        #                                                sort = FALSE)]
       }
       group_id_nms <- unlist(mget(paste0("grp_nm_",
                                          seq_len(length(leftover_grp_nms)))),

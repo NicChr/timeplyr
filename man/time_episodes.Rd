@@ -2,7 +2,7 @@
 % Please edit documentation in R/time_episodes.R
 \name{time_episodes}
 \alias{time_episodes}
-\title{Episodic calculation of time-based data}
+\title{Episodic calculation of time-to-event data}
 \usage{
 time_episodes(
   data,

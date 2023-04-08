@@ -4,7 +4,7 @@
 #' but always return a vector the same length and same order as x.\cr
 #' They all accept group IDs for grouped calculations.
 #' @param x An atomic vector.
-#' @param g Group IDs passed directly to `collapse::GRP()`.
+#' @param g Group IDs passed directly to `GRP2()`.
 #' This can be a vector, list or data frame.
 #' @param na.rm Should `NA` values be removed? Default is `TRUE`.
 #' @param ... Additional parameters passed on to the collapse package
@@ -53,7 +53,7 @@
 #' @export
 gsum <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
-    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+    g <- GRP2(g, sort = TRUE, na.last = TRUE,
                        return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
@@ -81,7 +81,7 @@ gsum <- function(x, g = NULL, na.rm = TRUE, ...){
 #' @export
 gmean <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
-    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+    g <- GRP2(g, sort = TRUE, na.last = TRUE,
                        return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
@@ -104,7 +104,7 @@ gmean <- function(x, g = NULL, na.rm = TRUE, ...){
 #' @export
 gmin <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
-    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+    g <- GRP2(g, sort = TRUE, na.last = TRUE,
                        return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
@@ -127,7 +127,7 @@ gmin <- function(x, g = NULL, na.rm = TRUE, ...){
 #' @export
 gmax <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
-    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+    g <- GRP2(g, sort = TRUE, na.last = TRUE,
                        return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
@@ -150,7 +150,7 @@ gmax <- function(x, g = NULL, na.rm = TRUE, ...){
 #' @export
 gsd <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
-    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+    g <- GRP2(g, sort = TRUE, na.last = TRUE,
                        return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
@@ -173,7 +173,7 @@ gsd <- function(x, g = NULL, na.rm = TRUE, ...){
 #' @export
 gvar <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
-    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+    g <- GRP2(g, sort = TRUE, na.last = TRUE,
                        return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
@@ -196,7 +196,7 @@ gvar <- function(x, g = NULL, na.rm = TRUE, ...){
 #' @export
 gmode <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
-    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+    g <- GRP2(g, sort = TRUE, na.last = TRUE,
                        return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
@@ -219,7 +219,7 @@ gmode <- function(x, g = NULL, na.rm = TRUE, ...){
 #' @export
 gmedian <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
-    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+    g <- GRP2(g, sort = TRUE, na.last = TRUE,
                        return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
@@ -242,7 +242,7 @@ gmedian <- function(x, g = NULL, na.rm = TRUE, ...){
 #' @export
 gfirst <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
-    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+    g <- GRP2(g, sort = TRUE, na.last = TRUE,
                        return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
@@ -265,7 +265,7 @@ gfirst <- function(x, g = NULL, na.rm = TRUE, ...){
 #' @export
 glast <- function(x, g = NULL, na.rm = TRUE, ...){
   if (!is.null(g)){
-    g <- collapse::GRP(g, sort = TRUE, na.last = TRUE,
+    g <- GRP2(g, sort = TRUE, na.last = TRUE,
                        return.groups = FALSE)
     gorder <- g[["order"]]
     if (is.null(gorder)){
@@ -284,13 +284,35 @@ glast <- function(x, g = NULL, na.rm = TRUE, ...){
     out[radix_order(gorder)]
   }
 }
+#' @rdname gsum
+#' @export
+gnobs <- function(x, g = NULL, ...){
+  if (!is.null(g)){
+    g <- GRP2(g, sort = TRUE, na.last = TRUE,
+                       return.groups = FALSE)
+    gorder <- g[["order"]]
+    if (is.null(gorder)){
+      gorder <- radix_order(g[["group.id"]])
+    }
+  }
+  out <- collapse::fnobs(x,
+                         g = g,
+                         use.g.names = FALSE,
+                         ...)
+  if (length(g) == 0L){
+    rep_len(out, length(x))
+  } else {
+    out <- rep(out, times = g[["group.sizes"]])
+    out[radix_order(gorder)]
+  }
+}
 # version 2
 # gsum <- function(x, g = NULL, na.rm = TRUE, ...){
 #   if (!is.null(g)){
 #     if (!is.numeric(g)){
 #       g <- collapse::group(g)
 #     }
-#     g <- collapse::GRP(as.integer(g), sort = TRUE,
+#     g <- GRP2(as.integer(g), sort = TRUE,
 #                        return.order = TRUE, na.last = TRUE)
 #   }
 #   out <- collapse::fsum(x,
@@ -323,10 +345,10 @@ glast <- function(x, g = NULL, na.rm = TRUE, ...){
 # }
 # if (!is.null(g)){
 #   if (collapse::is_GRP(g)){
-#     g <- collapse::GRP(g[["group.id"]], sort = TRUE,
+#     g <- GRP2(g[["group.id"]], sort = TRUE,
 #                        return.order = TRUE, na.last = TRUE)
 #   } else {
-#     g <- collapse::GRP(as.integer(g), sort = TRUE,
+#     g <- GRP2(as.integer(g), sort = TRUE,
 #                        return.order = TRUE, na.last = TRUE)
 #   }
 # }

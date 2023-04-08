@@ -5,12 +5,12 @@
 \alias{add_group_id}
 \title{Fast group IDs}
 \usage{
-group_id(data, ..., sort = TRUE, .by = NULL, as_qg = FALSE)
+group_id(data, ..., sort = TRUE, .by = NULL, .name = NULL, as_qg = FALSE)
 
 add_group_id(data, ..., sort = TRUE, .by = NULL, .name = NULL, as_qg = FALSE)
 }
 \arguments{
-\item{data}{A data frame.}
+\item{data}{A data frame or vector.}
 
 \item{...}{Additional groups using tidy select notation.}
 
@@ -22,14 +22,14 @@ If \code{FALSE} the order of the group IDs will be based on first appearance.}
 \item{.by}{Alternative way of supplying groups using tidy
 select notation. This is kept to be consistent with other functions.}
 
-\item{as_qg}{Should the group IDs be returned as a
-collapse "qG" class? The default (\code{FALSE}) always returns
-an integer vector.}
-
 \item{.name}{Name of the added group ID column which should be a
 character vector of length 1.
 If \code{NULL} then a column named "group_id" will be added,
 and if one already exists, a unique name will be used.}
+
+\item{as_qg}{Should the group IDs be returned as a
+collapse "qG" class? The default (\code{FALSE}) always returns
+an integer vector.}
 }
 \description{
 This is an extension to \code{dplyr::group_indices()} to allow for additional

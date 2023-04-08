@@ -31,8 +31,7 @@ time_seq_len(
 time_seq_v(
   from,
   to,
-  units,
-  num = 1,
+  by,
   seq_type = c("auto", "duration", "period"),
   roll_month = "preday",
   roll_dst = "pre"
@@ -75,10 +74,6 @@ See \code{?timechange::time_add} for more details.}
 \item{as_period}{Logical. Should time interval be coerced to a period
 before time difference is calculated? This is useful for calculating
 for example age in exact years or months.}
-
-\item{units}{Time units.}
-
-\item{num}{Number of time units.}
 }
 \description{
 This works like \code{seq()},
@@ -95,11 +90,11 @@ produce more expected results compared to \cr
 \code{seq(now(), length.out = 10, by = "0.5 days")} or \cr
 \code{seq(today(), length.out = 10, by = "0.5 days")}.\cr
 
+\code{time_seq_v()} is a vectorized version of \code{time_seq()}.\cr
+
 \code{time_seq_len()} is a vectorized convenience
 function to calculate the length/size of
 a regular time sequence, given a start, end and unit specification.\cr
-
-\code{time_seq_v()} is a vectorized version of \code{time_seq()}.\cr
 
 With periods, impossible dates and datetimes can be
 rolled forward or backward

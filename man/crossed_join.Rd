@@ -4,7 +4,13 @@
 \alias{crossed_join}
 \title{A wrapper around \code{do.call()} and \code{data.table::CJ()}}
 \usage{
-crossed_join(X, sort = FALSE, unique = TRUE, log_limit = 8)
+crossed_join(
+  X,
+  sort = FALSE,
+  unique = TRUE,
+  strings_as_factors = FALSE,
+  log_limit = 8
+)
 }
 \arguments{
 \item{X}{A list or data frame.}
@@ -13,6 +19,10 @@ crossed_join(X, sort = FALSE, unique = TRUE, log_limit = 8)
 
 \item{unique}{Should unique values across each column or list element
 be taken? By default this is \code{TRUE}.}
+
+\item{strings_as_factors}{Should strings be converted to factors before
+expansion? The default is \code{FALSE} but setting to \code{TRUE} can offer
+a significant speed improvement.}
 
 \item{log_limit}{The maximum log10 limit for expanded number of rows.
 Anything >= this results in an error.}

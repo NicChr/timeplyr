@@ -1,4 +1,4 @@
-#' Episodic calculation of time-based data
+#' Episodic calculation of time-to-event data
 #'
 #' @description This function calculates episodic flag
 #' variables
@@ -105,7 +105,7 @@ time_episodes <- function(data, ..., time, window,
   # Sort by groups > case ID > date col
   data.table::setorderv(out, cols = c(grp_nm, time_col), na.last = TRUE)
   g <- collapse::GRP(out[[grp_nm]], sort = TRUE, call = FALSE, return.groups = FALSE)
-  lag <- min(N, 1L) # Bound lag to >= 0.
+  lag <- min(N, 1L) # Bound lag to >= 0
   date_lag_nm <- new_var_nm(names(out), "date_lag")
   out[, (date_lag_nm) := collapse::flag(get(time_col),
                                        n = lag,

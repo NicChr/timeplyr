@@ -54,13 +54,13 @@ growid(flights$year, g = NULL)
 
 # Comparison to rowidv()
 all.equal(rowidv(flights),
-          growid(flights, g = flights))
+          growid(flights))
 
 # Comparison to dplyr
 flights \%>\%
   mutate(id1 = row_number(),
          .by = c(origin, dest)) \%>\%
-  mutate(id2 = growid(., pick(origin, dest))) \%>\%
+  mutate(id2 = growid(pick(origin, dest))) \%>\%
   filter(id1 != id2)
 
 flights \%>\%

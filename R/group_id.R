@@ -9,7 +9,7 @@
 #' groups are specified through `...` and/or `.by`.
 #' It's very fast and takes significantly less memory
 #' than using `dplyr::group_by()` and `group_indices()`.
-#' @param data A data frame.
+#' @param data A data frame or vector.
 #' @param ... Additional groups using tidy select notation.
 #' @param sort Should the order of the groups be retained?
 #' The input of the data is never changed but if sort is
@@ -55,7 +55,29 @@
 group_id <- function(data, ...,
                      sort = TRUE,
                      .by = NULL,
+                     .name = NULL,
                      as_qg = FALSE){
+  UseMethod("group_id")
+}
+#' @export
+group_id.default <- function(data, ..., sort = TRUE, as_qg = FALSE){
+  out <- collapse::qG(data, sort = sort, ordered = FALSE, na.exclude = FALSE)
+  if (!as_qg){
+    out <- as.integer(out)
+  }
+  out
+}
+#' @export
+group_id.Interval <- function(data, ..., sort = TRUE, as_qg = FALSE){
+  data <- GRP.Interval(data, sort = sort,
+                       call = FALSE, return.groups = FALSE)[["group.id"]]
+  group_id.default(data, ..., sort = sort, as_qg = as_qg)
+}
+#' @export
+group_id.data.frame <- function(data, ...,
+                                sort = TRUE,
+                                .by = NULL,
+                                as_qg = FALSE){
   N <- nrow2(data)
   group_vars <- group_vars(data)
   by_vars <- tidy_select_names(data, {{ .by }})
@@ -67,28 +89,18 @@ group_id <- function(data, ...,
   }
   select_info <- tidy_select_info(data, all_of(c(group_vars, by_vars)),
                                   !!!enquos(...))
+  pos <- select_info[["pos"]]
   in_nms <- select_info[["in_nms"]]
   out_nms <- select_info[["out_nms"]]
-  data <- collapse::fselect(data, in_nms)
+  data <- collapse::fselect(data, pos)
   names(data) <- out_nms
   # Group var might have been renamed, so use select info
   group_vars2 <- out_nms[match(c(group_vars, by_vars), in_nms)]
   # by and group vars cannot both be supplied (unless .overwrite = TRUE)
   needs_regrouping <- !isTRUE(sort &&
-    length(group_vars) > 0L &&
-    length(by_vars) == 0L &&
-    length(dot_vars) == 0L)
-  # If data contains lubridate interval, use dplyr grouping, otherwise collapse
-  if (has_interval(data, quiet = TRUE)){
-    if (needs_regrouping){
-      data <- data %>%
-        dplyr::group_by(across(all_of(c(group_vars2, dot_vars))))
-    }
-    out <- dplyr::group_indices(data)
-    if (!sort) out <- collapse::group(out,
-                                      group.sizes = FALSE,
-                                      starts = FALSE)
-  } else {
+                                length(group_vars) > 0L &&
+                                length(by_vars) == 0L &&
+                                length(dot_vars) == 0L)
     # Usual Method for when data does not contain interval
     if (length(group_vars2) == 0L &&
         length(dot_vars) == 0L){
@@ -97,27 +109,19 @@ group_id <- function(data, ...,
     } else if (!needs_regrouping){
       out <- dplyr::group_indices(data)
     } else {
-      if (sort){
-        out <- collapse::GRP(safe_ungroup(data),
-                             sort = TRUE,
-                             decreasing = FALSE,
-                             na.last = TRUE,
-                             return.groups = FALSE,
-                             return.order = FALSE,
-                             method = "auto",
-                             call = FALSE)[["group.id"]]
-      } else {
-        out <- collapse::group(safe_ungroup(data),
-                               group.sizes = FALSE,
-                               starts = FALSE)
-      }
-
+      out <- GRP2(safe_ungroup(data),
+                  sort = sort,
+                  decreasing = FALSE,
+                  na.last = TRUE,
+                  return.groups = FALSE,
+                  return.order = FALSE,
+                  method = "auto",
+                  call = FALSE)[["group.id"]]
     }
-  }
   if (as_qg){
-    out <- collapse::qG(out, sort = sort, ordered = FALSE)
+    out <- collapse::qG(out, sort = sort, ordered = FALSE, na.exclude = FALSE)
   } else {
-   out <- as.integer(out)
+    out <- as.integer(out)
   }
   out
 }
@@ -133,4 +137,24 @@ add_group_id <- function(data, ...,
                             sort = sort, .by = {{ .by }},
                             as_qg = as_qg)
   data
+}
+GRP.Interval <- function(X, ...){
+  X <- dplyr::tibble(!!"start" := lubridate::int_start(X),
+                     !!"data" := lubridate::int_length(X))
+  collapse::GRP(X, ...)
+}
+# data frame Wrapper around GRP to convert lubridate intervals to group IDs
+GRP2 <- function(X, ...){
+  if (is_df(X) && has_interval(X, quiet = TRUE)){
+    which_int <- which(purrr::map_lgl(X, lubridate::is.interval))
+    for (i in seq_along(which_int)){
+      X[[which_int[[i]]]] <- group_id.Interval(X[[which_int[[i]]]],
+                                               sort = TRUE, as_qg = FALSE)
+    }
+    collapse::GRP(X, ...)
+  } else {
+    do.call(get("GRP", asNamespace("collapse")),
+            as.list(match.call())[-1],
+            envir = parent.frame())
+  }
 }

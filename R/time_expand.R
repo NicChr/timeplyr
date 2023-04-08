@@ -218,11 +218,13 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
       }
       # Vectorised time sequence
       time_seq <- time_seq_v(time_tbl[[from_nm]],
-                               time_tbl[[to_nm]],
-                               units = by_unit,
-                               num = time_tbl[[by_nm]],
-                               roll_month = roll_month,
-                               roll_dst = roll_dst,
+                             time_tbl[[to_nm]],
+                             by = setnames(list(time_tbl[[by_nm]]),
+                                           by_unit),
+                             # units = by_unit,
+                             # num = time_tbl[[by_nm]],
+                             roll_month = roll_month,
+                             roll_dst = roll_dst,
                              seq_type = seq_type)
       if (is_special_case_days) time_seq <- lubridate::as_date(time_seq)
       out <- vctrs::vec_rep_each(time_tbl, time_tbl[[size_nm]])

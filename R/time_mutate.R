@@ -105,7 +105,6 @@ time_mutate <- function(data, ..., time = NULL, by = NULL,
                         week_start = getOption("lubridate.week.start", 1),
                         roll_month = "preday", roll_dst = "pre",
                         sort = FALSE){
-  seq_type <- match.arg(seq_type)
   group_vars <- get_groups(data, {{ .by }})
   out <- dplyr::mutate(data,
                        !!enquo(time),
