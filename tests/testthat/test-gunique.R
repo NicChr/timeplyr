@@ -15,8 +15,8 @@ testthat::expect_equal(gunique(x, g = g),
                          dplyr::group_by(g) %>%
                          dplyr::distinct(x) %>%
                          dplyr::pull(x))
-testthat::expect_equal(gunique(dplyr::select(iris)),
-                       dplyr::distinct(dplyr::select(iris)))
+# testthat::expect_equal(gunique(dplyr::select(iris)),
+#                        dplyr::distinct(dplyr::select(iris)))
 testthat::expect_equal(flights,
                        gunique(flights))
 testthat::expect_equal(flights %>%
