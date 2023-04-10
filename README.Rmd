@@ -76,6 +76,11 @@ There are also a few dplyr alternatives designed to work faster on large numbers
 There are also vector versions of the tidy equivalents, designed for use on atomic vectors.
 These include: `time_countv`, `time_expandv`, `time_summarisev` and `time_completev`.
 
+
+## `zoo::yearmon()`
+
+There is lightweight support for zoo's `yearmon()`.
+
 ## Some simple examples
 
 We use flights departing from New York City in 2013.
@@ -258,15 +263,6 @@ flights_ts %>%
   fcount(month_l, wt = n)
 ```
 
-#### To ensure full weeks, set `floor_date = TRUE` and `by = "week"`.
-
-```{r}
-flights %>%
-  time_count(time = time_hour,
-             by = "week", 
-             floor_date = TRUE)
-```
-
 ## `time_summarise()`
 
 We can do more than just counts, actually any summary using `time_summarise()`
@@ -338,8 +334,7 @@ Currently it vectorised over from, to and num
 # 3 sequences
 time_seq_v(from = start, 
            to = end, 
-           units = "months", 
-           num = 1:3)
+           by = list("months" = 1:3))
 # Equivalent to 
 c(time_seq(start, end, by = "month"),
   time_seq(start, end, by = "2 months"),
@@ -351,6 +346,7 @@ c(time_seq(start, end, by = "month"),
 Vectorised function that calculates time sequence lengths
 
 ```{r}
+set.seed(42)
 time_seq_len(start, start + years(1:10), 
              by = list("days" = sample(1:10)))
 ```
@@ -415,4 +411,109 @@ flights %>%
   geom_bar(fill = "#0072B2") + 
   scale_x_datetime(breaks = time_breaks, labels = scales::label_date_short())
 ```
+
+## Efficient grouped functions
+
+Some functions for data with many groups
+
+## `fcount()`/`fadd_count()`
+
+```{r}
+flights %>%
+  group_by(origin, dest, tailnum) %>%
+  fcount(flight, carrier)
+flights %>%
+  select(origin, dest, tailnum, flight, carrier) %>%
+  fadd_count(across(all_of(c("flight", "carrier"))), 
+             .by = c(origin, dest, tailnum))
+  
+```
+
+## `group_id()`/`add_group_id()`
+
+This calculates sorted and non-sorted group IDs
+
+```{r}
+flights %>%
+  group_by(origin, dest) %>%
+  group_id(sort = FALSE) %>%
+  unique()
+flights %>%
+  select(origin, dest) %>%
+  add_group_id(everything()) %>%
+  distinct(origin, dest, group_id)
+
+```
+
+## `fexpand()`/`crossed_join()`
+
+Fast cross join
+
+```{r}
+# Bare-bones but fast cross join
+flights %>%
+    select(where(is.character)) %>%
+    crossed_join(strings_as_factors = TRUE)
+# Tidy version that supports groups
+flights %>%
+  group_by(origin) %>%
+  fexpand(dest, carrier)
+```
+
+## `fslice()`
+
+Row index slicing (without sorting the data)
+
+```{r}
+flights %>%
+  group_by(origin, dest, tailnum) %>%
+  fslice(1:5)
+```
+
+## `fdistinct()`
+
+Distinct rows
+
+```{r}
+flights %>%
+  group_by(origin, dest, tailnum) %>%
+  fdistinct(year, month, day)
+```
+
+## `fduplicates()`
+
+Duplicate rows
+
+```{r}
+flights %>%
+  group_by(origin, dest, tailnum) %>%
+  fduplicates(year, month, day)
+```
+
+## `growid()`
+
+Grouped row IDs
+
+```{r}
+iris %>%
+  mutate(rowid = growid(pick(Species))) %>%
+  pull(rowid)
+```
+
+## Grouped statistical functions
+
+These functions are wrappers around the `collapse` equivalents, but the output 
+is always the same length as the input. 
+
+```{r}
+flights %>%
+  add_group_id(origin, .name = "g") %>%
+  mutate(nobs = gnobs(arr_time, g = g),
+         sum = gsum(arr_time, g = g),
+         mean = gmean(arr_time, g = g),
+         min = gmin(time_hour, g = g),
+         max = gmax(time_hour, g = g)) %>%
+  fdistinct(origin, nobs, sum, mean, min, max)
+```
+
 

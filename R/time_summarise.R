@@ -97,7 +97,7 @@
 #' flights %>%
 #'   mutate(yearmon = zoo::as.yearmon(as_date(time_hour))) %>%
 #'   time_summarise(time = yearmon,
-#'                  by = 1/12,
+#'                  n = n(),
 #'                  mean_arr_time = mean(arr_time, na.rm = TRUE),
 #'                  mean_dep_time = mean(dep_time, na.rm = TRUE),
 #'                  mean_diff_time = mean(arr_time - dep_time, na.rm = TRUE),

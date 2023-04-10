@@ -108,15 +108,20 @@ unit_parse <- function(x){
 }
 # Creates interval even using num
 time_interval <- function(from, to){
-  if (is_time(from) || is_time(to)){
+  if (is_time(from) && is_time(to)){
     out <- lubridate::interval(from, to)
   } else {
-    labels <- paste(from, to, sep = " to ")
-    from <- rep_len(from, length(labels))
-    to <- rep_len(to, length(labels))
-    out <- labels
-    attr(out, "starts") <- from
-    attr(out, "ends") <- to
+    out <- time_diff(from, to, by = 1)
+    if (length(from) < length(out)){
+      from <- rep_len(from, length(out))
+    }
+    attr(out, "start") <- from
+    # labels <- paste(from, to, sep = " to ")
+    # from <- rep_len(from, length(labels))
+    # to <- rep_len(to, length(labels))
+    # out <- labels
+    # attr(out, "starts") <- from
+    # attr(out, "ends") <- to
   }
   out
 }
@@ -135,9 +140,11 @@ time_interval3 <- function(x, to = NULL, is_sorted = FALSE){
 # also x must be in ascending order
 time_seq_interval <- function(x, to, g = NULL){
   n <- length(x)
-  out <- time_interval(x, collapse::flag(x, n = -1L, g = g))
+  out <- time_interval(x, collapse::flag(x, n = max(-1L, -length(x)), g = g))
   if (!is.null(g)){
     # Use time seq df to get time intervals
+    # starts <- attr(collapse::group(g, starts = TRUE), "starts")
+    # end_points <- c(starts[-1L] - 1L, length(x))
     end_points <- which(is.na(out) & !is.na(x))
     # Use data end-points to create the rightmost intervals of each group
     out[end_points] <- time_interval(x[end_points], to)
@@ -193,14 +200,11 @@ time_diff_gcd <- function(x, is_sorted = FALSE){
                               n = 1, diff = 1, g = NULL,
                               fill = NA, log = FALSE, rho = 1,
                               stubs = FALSE)
-    y_diff <- collapse::na_rm(collapse::funique(round(abs(y_diff[-1L]), digits = 6),
-                                                        sort = FALSE))
-    y_diff <- y_diff[y_diff > 0]
+    y_diff <- collapse::funique(round(abs(y_diff[-1L]), digits = 7),
+                                sort = FALSE)
+    y_diff <- y_diff[y_diff > 0 & !is.na(y_diff)]
     # gcd_diff <- Reduce(gcd, y_diff)
     gcd_diff <- collapse::vgcd(y_diff)
-    if (!isTRUE(gcd_diff >= 1)){
-      gcd_diff <- 1
-    }
   }
   gcd_diff
 }
@@ -596,7 +600,12 @@ time_cast <- function(x, template){
   } else if (is_date(template) && !is_date(x) && !is_datetime(x)){
     lubridate::as_date(x)
   }
-  else {
+  else if (inherits(template, "yearmon")){
+    if (is_time(x)){
+      x <- lubridate::year(x) + ( (lubridate::month(x) - 1) / 12 )
+    }
+    structure(floor(12 * as.double(x) + 1e-04)/12, class = "yearmon")
+  } else {
     x
   }
 }
@@ -810,4 +819,14 @@ is_special_case_utc <- function(from, to, unit, num, seq_type){
     lubridate::tz(from) == "UTC" &&
     lubridate::tz(to) == "UTC" &&
     is_whole_number(num)
+}
+# Repeat methods for zoo yearmon class
+rep_len.yearmon <- function(x, length.out){
+  x[rep_len(seq_along(x), length.out = length.out)]
+}
+rep.int.yearmon <- function(x, times){
+  x[rep.int(seq_along(x), times = times)]
+}
+rep.yearmon <- function(x, ...){
+  x[rep(seq_along(x), ...)]
 }

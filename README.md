@@ -72,6 +72,10 @@ There are also vector versions of the tidy equivalents, designed for use
 on atomic vectors. These include: `time_countv`, `time_expandv`,
 `time_summarisev` and `time_completev`.
 
+## `zoo::yearmon()`
+
+There is lightweight support for zoo’s `yearmon()`.
+
 ## Some simple examples
 
 We use flights departing from New York City in 2013.
@@ -81,7 +85,7 @@ library(tidyverse)
 #> -- Attaching core tidyverse packages ------------------------ tidyverse 2.0.0 --
 #> v dplyr     1.1.1     v readr     2.1.3
 #> v forcats   0.5.2     v stringr   1.5.0
-#> v ggplot2   3.4.1     v tibble    3.2.0
+#> v ggplot2   3.4.2     v tibble    3.2.0
 #> v lubridate 1.9.2     v tidyr     1.3.0
 #> v purrr     1.0.1     
 #> -- Conflicts ------------------------------------------ tidyverse_conflicts() --
@@ -525,29 +529,6 @@ flights_ts %>%
 #> 12 Dec     28135
 ```
 
-#### To ensure full weeks, set `floor_date = TRUE` and `by = "week"`.
-
-``` r
-flights %>%
-  time_count(time = time_hour,
-             by = "week", 
-             floor_date = TRUE)
-#> # A tibble: 53 x 2
-#>    time_hour               n
-#>  * <dttm>              <int>
-#>  1 2012-12-31 00:00:00  5166
-#>  2 2013-01-07 00:00:00  6114
-#>  3 2013-01-14 00:00:00  6034
-#>  4 2013-01-21 00:00:00  6049
-#>  5 2013-01-28 00:00:00  6063
-#>  6 2013-02-04 00:00:00  6104
-#>  7 2013-02-11 00:00:00  6236
-#>  8 2013-02-18 00:00:00  6381
-#>  9 2013-02-25 00:00:00  6444
-#> 10 2013-03-04 00:00:00  6546
-#> # ... with 43 more rows
-```
-
 ## `time_summarise()`
 
 We can do more than just counts, actually any summary using
@@ -660,8 +641,7 @@ to and num
 # 3 sequences
 time_seq_v(from = start, 
            to = end, 
-           units = "months", 
-           num = 1:3)
+           by = list("months" = 1:3))
 #>  [1] "2020-01-31" "2020-02-29" "2020-03-31" "2020-04-30" "2020-05-31"
 #>  [6] "2020-06-30" "2020-07-31" "2020-08-31" "2020-09-30" "2020-10-31"
 #> [11] "2020-11-30" "2020-12-31" "2021-01-31" "2020-01-31" "2020-03-31"
@@ -683,9 +663,10 @@ c(time_seq(start, end, by = "month"),
 Vectorised function that calculates time sequence lengths
 
 ``` r
+set.seed(42)
 time_seq_len(start, start + years(1:10), 
              by = list("days" = sample(1:10)))
-#>  [1]   62   74  275  183  914  244  853  585 3289  522
+#>  [1]  367  147  110  183  914  549  427  325  470 1218
 ```
 
 Dealing with impossible dates and datetimes is very simple
@@ -716,11 +697,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2023-W13"
+#> [1] "2023-W15"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W13-5"
+#> [1] "2023-W15-1"
 iso_week(today(), year = FALSE)
-#> [1] "W13"
+#> [1] "W15"
 ```
 
 Helpers like `calendar()`, `create_calendar()` and `add_calendar()` can
@@ -812,7 +793,7 @@ weekly_data %>%
   theme_minimal()
 ```
 
-![](man/figures/README-unnamed-chunk-27-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-26-1.png)<!-- -->
 
 ``` r
 flights %>%
@@ -821,4 +802,250 @@ flights %>%
   scale_x_datetime(breaks = time_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-27-2.png)<!-- -->
+![](man/figures/README-unnamed-chunk-26-2.png)<!-- -->
+
+## Efficient grouped functions
+
+Some functions for data with many groups
+
+## `fcount()`/`fadd_count()`
+
+``` r
+flights %>%
+  group_by(origin, dest, tailnum) %>%
+  fcount(flight, carrier)
+#> # A tibble: 186,870 x 6
+#> # Groups:   origin, dest, tailnum [52,783]
+#>    origin dest  tailnum flight carrier     n
+#>  * <chr>  <chr> <chr>    <int> <chr>   <int>
+#>  1 EWR    ALB   N10575    4117 EV          2
+#>  2 EWR    ALB   N10575    4162 EV          2
+#>  3 EWR    ALB   N10575    4309 EV          1
+#>  4 EWR    ALB   N10575    4566 EV          1
+#>  5 EWR    ALB   N10575    6043 EV          2
+#>  6 EWR    ALB   N11113    4264 EV          1
+#>  7 EWR    ALB   N11119    4093 EV          1
+#>  8 EWR    ALB   N11119    4271 EV          2
+#>  9 EWR    ALB   N11150    5675 EV          1
+#> 10 EWR    ALB   N11164    4088 EV          1
+#> # ... with 186,860 more rows
+flights %>%
+  select(origin, dest, tailnum, flight, carrier) %>%
+  fadd_count(across(all_of(c("flight", "carrier"))), 
+             .by = c(origin, dest, tailnum))
+#> # A tibble: 336,776 x 6
+#>    origin dest  tailnum flight carrier     n
+#>  * <chr>  <chr> <chr>    <int> <chr>   <int>
+#>  1 EWR    IAH   N14228    1545 UA          1
+#>  2 LGA    IAH   N24211    1714 UA          1
+#>  3 JFK    MIA   N619AA    1141 AA          2
+#>  4 JFK    BQN   N804JB     725 B6          1
+#>  5 LGA    ATL   N668DN     461 DL          2
+#>  6 EWR    ORD   N39463    1696 UA          1
+#>  7 EWR    FLL   N516JB     507 B6          3
+#>  8 LGA    IAD   N829AS    5708 EV          2
+#>  9 JFK    MCO   N593JB      79 B6          3
+#> 10 LGA    ORD   N3ALAA     301 AA          5
+#> # ... with 336,766 more rows
+```
+
+## `group_id()`/`add_group_id()`
+
+This calculates sorted and non-sorted group IDs
+
+``` r
+flights %>%
+  group_by(origin, dest) %>%
+  group_id(sort = FALSE) %>%
+  unique()
+#>   [1]   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18
+#>  [19]  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36
+#>  [37]  37  38  39  40  41  42  43  44  45  46  47  48  49  50  51  52  53  54
+#>  [55]  55  56  57  58  59  60  61  62  63  64  65  66  67  68  69  70  71  72
+#>  [73]  73  74  75  76  77  78  79  80  81  82  83  84  85  86  87  88  89  90
+#>  [91]  91  92  93  94  95  96  97  98  99 100 101 102 103 104 105 106 107 108
+#> [109] 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126
+#> [127] 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144
+#> [145] 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162
+#> [163] 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180
+#> [181] 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198
+#> [199] 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216
+#> [217] 217 218 219 220 221 222 223 224
+flights %>%
+  select(origin, dest) %>%
+  add_group_id(everything()) %>%
+  distinct(origin, dest, group_id)
+#> # A tibble: 224 x 3
+#>    origin dest  group_id
+#>    <chr>  <chr>    <int>
+#>  1 EWR    IAH         35
+#>  2 LGA    IAH        188
+#>  3 JFK    MIA        123
+#>  4 JFK    BQN         94
+#>  5 LGA    ATL        157
+#>  6 EWR    ORD         56
+#>  7 EWR    FLL         27
+#>  8 LGA    IAD        187
+#>  9 JFK    MCO        121
+#> 10 LGA    ORD        205
+#> # ... with 214 more rows
+```
+
+## `fexpand()`/`crossed_join()`
+
+Fast cross join
+
+``` r
+# Bare-bones but fast cross join
+flights %>%
+    select(where(is.character)) %>%
+    crossed_join(strings_as_factors = TRUE)
+#>           carrier tailnum origin dest
+#>        1:      UA  N14228    EWR  IAH
+#>        2:      UA  N14228    EWR  MIA
+#>        3:      UA  N14228    EWR  BQN
+#>        4:      UA  N14228    EWR  ATL
+#>        5:      UA  N14228    EWR  ORD
+#>       ---                            
+#> 20381756:      OO  N557AS    JFK  LEX
+#> 20381757:      OO  N557AS    JFK  CHO
+#> 20381758:      OO  N557AS    JFK  TVC
+#> 20381759:      OO  N557AS    JFK  ANC
+#> 20381760:      OO  N557AS    JFK  LGA
+# Tidy version that supports groups
+flights %>%
+  group_by(origin) %>%
+  fexpand(dest, carrier)
+#> # A tibble: 2,616 x 3
+#> # Groups:   origin [3]
+#>    origin dest  carrier
+#>  * <chr>  <chr> <chr>  
+#>  1 EWR    ALB   9E     
+#>  2 EWR    ALB   AA     
+#>  3 EWR    ALB   AS     
+#>  4 EWR    ALB   B6     
+#>  5 EWR    ALB   DL     
+#>  6 EWR    ALB   EV     
+#>  7 EWR    ALB   MQ     
+#>  8 EWR    ALB   OO     
+#>  9 EWR    ALB   UA     
+#> 10 EWR    ALB   US     
+#> # ... with 2,606 more rows
+```
+
+## `fslice()`
+
+Row index slicing (without sorting the data)
+
+``` r
+flights %>%
+  group_by(origin, dest, tailnum) %>%
+  fslice(1:5)
+#> # A tibble: 172,983 x 20
+#> # Groups:   origin, dest, tailnum [52,783]
+#>     year month   day dep_time sched_de~1 dep_d~2 arr_t~3 sched~4 arr_d~5 carrier
+#>    <int> <int> <int>    <int>      <int>   <dbl>   <int>   <int>   <dbl> <chr>  
+#>  1  2013     1     1      517        515       2     830     819      11 UA     
+#>  2  2013     1     1      533        529       4     850     830      20 UA     
+#>  3  2013     1     1      542        540       2     923     850      33 AA     
+#>  4  2013     1     1      544        545      -1    1004    1022     -18 B6     
+#>  5  2013     1     1      554        600      -6     812     837     -25 DL     
+#>  6  2013     1     1      554        558      -4     740     728      12 UA     
+#>  7  2013     1     1      555        600      -5     913     854      19 B6     
+#>  8  2013     1     1      557        600      -3     709     723     -14 EV     
+#>  9  2013     1     1      557        600      -3     838     846      -8 B6     
+#> 10  2013     1     1      558        600      -2     753     745       8 AA     
+#> # ... with 172,973 more rows, 10 more variables: flight <int>, tailnum <chr>,
+#> #   origin <chr>, dest <chr>, air_time <dbl>, distance <dbl>, hour <dbl>,
+#> #   minute <dbl>, time_hour <dttm>, date <date>, and abbreviated variable names
+#> #   1: sched_dep_time, 2: dep_delay, 3: arr_time, 4: sched_arr_time,
+#> #   5: arr_delay
+```
+
+## `fdistinct()`
+
+Distinct rows
+
+``` r
+flights %>%
+  group_by(origin, dest, tailnum) %>%
+  fdistinct(year, month, day)
+#> # A tibble: 316,477 x 6
+#> # Groups:   origin, dest, tailnum [52,783]
+#>    origin dest  tailnum  year month   day
+#>  * <chr>  <chr> <chr>   <int> <int> <int>
+#>  1 EWR    IAH   N14228   2013     1     1
+#>  2 LGA    IAH   N24211   2013     1     1
+#>  3 JFK    MIA   N619AA   2013     1     1
+#>  4 JFK    BQN   N804JB   2013     1     1
+#>  5 LGA    ATL   N668DN   2013     1     1
+#>  6 EWR    ORD   N39463   2013     1     1
+#>  7 EWR    FLL   N516JB   2013     1     1
+#>  8 LGA    IAD   N829AS   2013     1     1
+#>  9 JFK    MCO   N593JB   2013     1     1
+#> 10 LGA    ORD   N3ALAA   2013     1     1
+#> # ... with 316,467 more rows
+```
+
+## `fduplicates()`
+
+Duplicate rows
+
+``` r
+flights %>%
+  group_by(origin, dest, tailnum) %>%
+  fduplicates(year, month, day)
+#> # A tibble: 20,299 x 6
+#> # Groups:   origin, dest, tailnum [6,122]
+#>    origin dest  tailnum  year month   day
+#>  * <chr>  <chr> <chr>   <int> <int> <int>
+#>  1 EWR    BOS   N206JB   2013     1     1
+#>  2 JFK    DCA   N846MQ   2013     1     1
+#>  3 JFK    RDU   N828MQ   2013     1     1
+#>  4 LGA    CMH   N739MQ   2013     1     1
+#>  5 LGA    MIA   N3EMAA   2013     1     1
+#>  6 EWR    FLL   N516JB   2013     1     1
+#>  7 JFK    MCO   N5FMAA   2013     1     1
+#>  8 LGA    DCA   N951UW   2013     1     1
+#>  9 EWR    PWM   N11544   2013     1     1
+#> 10 LGA    DFW   N3DUAA   2013     1     1
+#> # ... with 20,289 more rows
+```
+
+## `growid()`
+
+Grouped row IDs
+
+``` r
+iris %>%
+  mutate(rowid = growid(pick(Species))) %>%
+  pull(rowid)
+#>   [1]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25
+#>  [26] 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50
+#>  [51]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25
+#>  [76] 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50
+#> [101]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25
+#> [126] 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50
+```
+
+## Grouped statistical functions
+
+These functions are wrappers around the `collapse` equivalents, but the
+output is always the same length as the input.
+
+``` r
+flights %>%
+  add_group_id(origin, .name = "g") %>%
+  mutate(nobs = gnobs(arr_time, g = g),
+         sum = gsum(arr_time, g = g),
+         mean = gmean(arr_time, g = g),
+         min = gmin(time_hour, g = g),
+         max = gmax(time_hour, g = g)) %>%
+  fdistinct(origin, nobs, sum, mean, min, max)
+#> # A tibble: 3 x 6
+#>   origin   nobs       sum  mean min                 max                
+#> * <chr>   <int>     <int> <dbl> <dttm>              <dttm>             
+#> 1 EWR    117445 175213363 1492. 2013-01-01 05:00:00 2013-12-31 23:00:00
+#> 2 LGA    101334 151435934 1494. 2013-01-01 05:00:00 2013-12-31 21:00:00
+#> 3 JFK    109284 166119372 1520. 2013-01-01 05:00:00 2013-12-31 23:00:00
+```

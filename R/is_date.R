@@ -20,5 +20,7 @@ is_time <- function(x){
 #' @rdname is_date
 #' @export
 is_time_or_num <- function(x){
-  inherits(x, c("integer", "numeric", "Date", "POSIXt", "POSIXct", "POSIXlt"))
+  inherits(x, c("integer", "numeric",
+                "Date", "POSIXt", "POSIXct", "POSIXlt")) ||
+    isTRUE(typeof(x) %in% c("integer", "double"))
 }

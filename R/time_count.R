@@ -354,6 +354,9 @@ time_count <- function(data, ..., time = NULL, by = NULL,
           dplyr::relocate(all_of(name),
                           .after = all_of(int_nm))
         out[[grp_nm]] <- NULL
+        if (!lubridate::is.interval(out[[int_nm]])){
+          attr(out[[int_nm]], "start") <- out[[time_var]]
+        }
 
       } else {
         out[, (grp_nm) := NULL] # Remove group ID

@@ -379,13 +379,12 @@ df_reconstruct <- function(data, template){
       # correctly group lubridate intervals
       # This is due to the fact that durations don't uniquely identify
       # start and end points.
-      if (has_interval(data, quiet = TRUE)){
+      if (has_interval(collapse::fselect(safe_ungroup(data), out_groups), quiet = TRUE)){
         grp_nm <- new_var_nm(out_groups, "g")
-        g <- group_id(safe_ungroup(data), all_of(out_groups),
+        groups <- collapse::fselect(safe_ungroup(data), out_groups)
+        g <- group_id.default(groups,
                       sort = TRUE, as_qg = FALSE)
-        groups <- data %>%
-          safe_ungroup() %>%
-          collapse::fselect(out_groups) %>%
+        groups <- groups %>%
           dplyr::mutate(!!grp_nm := g) %>%
           dplyr::distinct(across(all_of(grp_nm)), .keep_all = TRUE) %>%
           dplyr::arrange(across(all_of(grp_nm)))
@@ -393,6 +392,7 @@ df_reconstruct <- function(data, template){
       } else {
         g <- collapse::GRP(safe_ungroup(data), by = out_groups,
                               sort = TRUE, decreasing = FALSE, na.last = TRUE,
+                           return.order = FALSE,
                               return.groups = TRUE, call = FALSE)
         groups <- dplyr::as_tibble(as.list(g[["groups"]]))
       }
