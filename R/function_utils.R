@@ -522,7 +522,7 @@ unique_groups <- function(data, ..., sort = TRUE,
   out <- data %>%
     dplyr::select(all_of(group_vars), !!!enquos(...)) %>%
     add_group_id(all_of(extra_vars),
-                 sort = TRUE, .overwrite = FALSE,
+                 sort = TRUE,
                  .by = {{ .by }}, as_qg = FALSE,
                  .name = grp_nm)
   out <- out[!collapse::fduplicated(out[[grp_nm]], all = FALSE), , drop = FALSE]
