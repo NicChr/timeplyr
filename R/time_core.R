@@ -116,7 +116,6 @@ time_expandv <- function(x, by = NULL, from = NULL, to = NULL,
                       week_start = getOption("lubridate.week.start", 1),
                       roll_month = "preday", roll_dst = "pre"){
   stopifnot(is_time_or_num(x))
-  seq_type <- match.arg(seq_type)
   if (is.null(by)){
     unit_info <- time_granularity(x, is_sorted = is_sorted)
     by_n <- unit_info[["num"]]
@@ -126,7 +125,6 @@ time_expandv <- function(x, by = NULL, from = NULL, to = NULL,
     by_n <- unit_info[["num"]] * unit_info[["scale"]]
     by_unit <- unit_info[["unit"]]
   }
-  if (seq_type == "auto") seq_type <- guess_seq_type(by_unit)
   if (is.null(from) || is.null(to)){
     x_range <- collapse::frange(x, na.rm = TRUE)
   }
@@ -157,14 +155,14 @@ time_completev <- function(x, by = NULL, from = NULL, to = NULL,
                     seq_type = seq_type, is_sorted = is_sorted,
                     floor_date = floor_date, week_start = week_start,
                     roll_month = roll_month, roll_dst = roll_dst)
-  out <- c(x, tseq[!tseq %in% x])
+  out <- time_c(x, tseq[!tseq %in% x])
   if (sort) out <- radix_sort(out)
   out
 }
 #' @rdname time_core
 #' @export
 time_summarisev <- function(x, by = NULL, from = NULL, to = NULL,
-                            sort = TRUE, unique = TRUE,
+                            sort = FALSE, unique = FALSE,
                             seq_type = c("auto", "duration", "period"),
                             is_sorted = FALSE,
                             floor_date = FALSE,
@@ -179,6 +177,7 @@ time_summarisev <- function(x, by = NULL, from = NULL, to = NULL,
                            seq_type = seq_type, is_sorted = is_sorted,
                            floor_date = floor_date, week_start = week_start,
                            roll_month = roll_month, roll_dst = roll_dst)
+  # time_breaks <- time_cast(time_breaks, x)
   # Cut time
   time_break_ind <- fcut_ind(x, c(time_breaks, to + 1))
   # Time breaks subset on cut indices
@@ -191,7 +190,7 @@ time_summarisev <- function(x, by = NULL, from = NULL, to = NULL,
                          !!"interval" := time_int)
     # Unique and sorting
     if (unique){
-      out <- dplyr::distinct(out)
+      out <- gunique(out)
     }
     if (sort) out <- out[radix_order(out[["x"]]), , drop = FALSE]
   } else {
@@ -215,7 +214,6 @@ time_countv <- function(x, by = NULL, from = NULL, to = NULL,
                         week_start = getOption("lubridate.week.start", 1),
                         roll_month = "preday", roll_dst = "pre"){
   stopifnot(is_time_or_num(x))
-  seq_type <- match.arg(seq_type)
   x_na <- which(is.na(x))
   if (is.null(by)){
     unit_info <- time_granularity(x, is_sorted = is_sorted)
@@ -245,6 +243,7 @@ time_countv <- function(x, by = NULL, from = NULL, to = NULL,
                        seq_type = seq_type, floor_date = floor_date,
                        week_start = week_start,
                        roll_month = roll_month, roll_dst = roll_dst)
+  # time_breaks <- time_cast(time_breaks, x)
   out_len <- length(x)
   # Aggregate time/cut time
   time_break_ind <- fcut_ind(x, c(time_breaks, to + 1))
@@ -273,7 +272,7 @@ time_countv <- function(x, by = NULL, from = NULL, to = NULL,
   }
   # Complete missing time values with zero counts
   if (complete && length(time_missed) > 0L) {
-    out <- c(out, rep_len(0L, length(time_missed)))
+    out <- c(out, integer(length(time_missed)))
   }
   if (sort){
     out_order <- radix_order(x)
@@ -286,9 +285,9 @@ time_countv <- function(x, by = NULL, from = NULL, to = NULL,
     time_int <- time_seq_int[time_break_ind]
     int_df <- dplyr::tibble(!!"interval" := time_int)
     if (unique) {
-      int_df <- fdistinct(int_df)
+      int_df <- gunique(int_df)
     }
-    if (length(time_missed) > 0L){
+    if (complete && length(time_missed) > 0L){
       int_df <- dplyr::tibble(!!"interval" :=
                                 c(int_df[["interval"]],
                                   time_seq_int[which(lubridate::int_start(time_seq_int) %in% time_missed)]))

@@ -49,6 +49,16 @@ time_diff <- function(x, y, by,
     num <- unit_info[["num"]]
     scale <- unit_info[["scale"]]
     num <- num * scale
+    # Common but special case where from/to are whole days
+    # and type is "auto"
+    is_special_case_days <- is_special_case_days(from = x,
+                                                 to = y,
+                                                 unit = units,
+                                                 num = num,
+                                                 seq_type = type)
+    if (is_special_case_days && !as_period){
+      return(as.double(difftime(y, x, units = units)) / num)
+    }
     if (type == "auto") type <- guess_seq_type(units)
     int <- lubridate::interval(x, y)
     if (as_period || type == "period"){

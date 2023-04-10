@@ -148,7 +148,7 @@ testthat::test_that("Datetimes", {
                              to = end1, by = "day"))
   testthat::expect_equal(time_seq(start2, end1, by = "day",
                                   seq_type = "duration"),
-                         seq(lubridate::as_datetime(start2), end1, by = "day"))
+                         seq(lubridate::as_datetime(start2, tz = lubridate::tz(end1)), end1, by = "day"))
   testthat::expect_length(time_seq(start1, end1, by = "day"), 11)
   testthat::expect_equal(time_seq(start1, end1, length.out = 11), # Result is datetime
                          lubridate::as_datetime(seq(start1, by = "day", length.out = 11)))
@@ -254,18 +254,18 @@ testthat::test_that("Datetimes", {
   # Testing the vectorized period and duration sequence functions
   y1 <- period_seq_v(lubridate::today(), lubridate::today() + lubridate::days(50),
                      "days", c(2, rep(1, 112), rep(2, 154), 3, 6, 9))
-  y2 <- period_seq_v2(lubridate::today(), lubridate::today() + lubridate::days(50),
-                      "days", c(2, rep(1, 112), rep(2, 154), 3, 6, 9))
-  y3 <- period_seq_v3(lubridate::today(), lubridate::today() + lubridate::days(50),
-                      "days", c(2, rep(1, 112), rep(2, 154), 3, 6, 9))
+  # y2 <- period_seq_v2(lubridate::today(), lubridate::today() + lubridate::days(50),
+  #                     "days", c(2, rep(1, 112), rep(2, 154), 3, 6, 9))
+  # y3 <- period_seq_v3(lubridate::today(), lubridate::today() + lubridate::days(50),
+  #                     "days", c(2, rep(1, 112), rep(2, 154), 3, 6, 9))
   y4 <- lubridate::as_date(duration_seq_v(lubridate::today(), lubridate::today() + lubridate::days(50),
                                           "days", c(2, rep(1, 112), rep(2, 154), 3, 6, 9)))
-  testthat::expect_equal(y1, y2)
-  testthat::expect_equal(y1, y3)
+  # testthat::expect_equal(y1, y2)
+  # testthat::expect_equal(y1, y3)
   testthat::expect_equal(y1, y4)
-  testthat::expect_equal(y2, y4)
-  testthat::expect_equal(y2, y3)
-  testthat::expect_equal(y3, y4)
+  # testthat::expect_equal(y2, y4)
+  # testthat::expect_equal(y2, y3)
+  # testthat::expect_equal(y3, y4)
   testthat::expect_equal(time_seq_v(1, c(50, 100, 100), by = 2:4),
                          c(seq(1, 50, by = 2),
                            seq(1, 100, by = 3),

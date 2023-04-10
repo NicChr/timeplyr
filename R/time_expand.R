@@ -127,7 +127,7 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
       by_unit <- unit_info[["unit"]]
     }
     input_seq_type <- seq_type # Save original
-    if (seq_type == "auto") seq_type <- guess_seq_type(by_unit)
+    # if (seq_type == "auto") seq_type <- guess_seq_type(by_unit)
 
     # Add sorted group ID and sort by it
     # The reason we're sorting it here is because collapse::fmin()
@@ -192,19 +192,13 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
                                            "seconds")
     ### Special cases where units are days/utc and ranges are also days/utc
     # In these cases we can just use duration calculations which are much faster
-    is_special_case_days <- input_seq_type == "auto" &&
-      (unit_is_days) &&
-      is_date(out[[time_var]]) &&
-      is_date(time_tbl[[from_nm]]) &&
-      is_date(time_tbl[[to_nm]]) &&
-      is_whole_number(by_n)
     is_special_case_utc <- input_seq_type == "auto" &&
       (unit_is_days || unit_is_less_than_days) &&
       is_datetime(out[[time_var]]) &&
       lubridate::tz(out[[time_var]]) == "UTC" &&
       lubridate::tz(time_tbl[[from_nm]]) == "UTC" &&
       lubridate::tz(time_tbl[[to_nm]]) == "UTC"
-    if (is_special_case_days || is_special_case_utc) seq_type <- "duration"
+    if (is_special_case_utc) seq_type <- "duration"
       time_tbl[, (size_nm) := time_seq_len(get(from_nm),
                                                get(to_nm),
                                                by = setnames(list(get(by_nm)),
@@ -226,9 +220,10 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
                              roll_month = roll_month,
                              roll_dst = roll_dst,
                              seq_type = seq_type)
-      if (is_special_case_days) time_seq <- lubridate::as_date(time_seq)
+      # if (is_special_case_days) time_seq <- lubridate::as_date(time_seq)
       out <- vctrs::vec_rep_each(time_tbl, time_tbl[[size_nm]])
-      out[[time_var]] <- time_seq
+      data.table::setDT(out)
+      out[, (time_var) := time_seq]
       expanded_df <- fexpand(data,
                              !!!enquos(...),
                              expand_type = expand_type,

@@ -61,9 +61,16 @@ group_id <- function(data, ...,
 }
 #' @export
 group_id.default <- function(data, ..., sort = TRUE, as_qg = FALSE){
-  out <- collapse::qG(data, sort = sort, ordered = FALSE, na.exclude = FALSE)
-  if (!as_qg){
-    out <- as.integer(out)
+  out <- GRP2(safe_ungroup(data),
+              sort = sort,
+              decreasing = FALSE,
+              na.last = TRUE,
+              return.groups = FALSE,
+              return.order = FALSE,
+              method = "auto",
+              call = FALSE)[["group.id"]]
+  if (as_qg){
+    out <- collapse::qG(out, sort = sort, ordered = FALSE, na.exclude = FALSE)
   }
   out
 }
@@ -154,7 +161,7 @@ GRP2 <- function(X, ...){
     collapse::GRP(X, ...)
   } else {
     do.call(get("GRP", asNamespace("collapse")),
-            as.list(match.call())[-1],
+            as.list(match.call())[-1L],
             envir = parent.frame())
   }
 }

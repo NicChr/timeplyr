@@ -150,8 +150,9 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                           log_limit = log_limit)
       # Add group ID
       grp_nm <- new_var_nm(out1, ".group.id")
-      out1[, (grp_nm) := group_id(out1, all_of(group_vars),
-                                  sort = FALSE)]
+      out1[, (grp_nm) := group_id.default(mget(group_vars), sort = FALSE)]
+      # out1[, (grp_nm) := group_id(out1, all_of(group_vars),
+      #                             sort = FALSE)]
       data.table::setorderv(out1, cols = grp_nm)
       # Add group IDs for each non-group variable
       # This will allow us to calculate final expanded size

@@ -183,7 +183,10 @@ time_count <- function(data, ..., time = NULL, by = NULL,
   extra_group_vars <- group_info[["extra_groups"]]
   all_group_vars <- group_info[["all_groups"]]
 
-  wide_col_names <- tidy_select_names(ts_data, !!!enquos(wide_cols))
+  wide_col_names <- tidy_select_names(data, !!!enquos(wide_cols))
+  if (length(wide_col_names) > 0L && !wide_col_names %in% names(ts_data)){
+    ts_data[[wide_col_names]] <- data[[wide_col_names]]
+  }
   # Add wide_cols not specified in group_cols to the group_cols vector
   extra_group_vars <- c(extra_group_vars, setdiff(wide_col_names, extra_group_vars))
   all_group_vars <- c(all_group_vars, setdiff(wide_col_names, all_group_vars))

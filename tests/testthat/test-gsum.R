@@ -27,7 +27,8 @@ res <- flights %>%
                 mode = collapse::fmode(sched_arr_time, na.rm = TRUE),
                 median = stats::median(sched_arr_time, na.rm = TRUE),
                 first = dplyr::first(sched_arr_time, na_rm = TRUE),
-                last = dplyr::last(sched_arr_time, na_rm = TRUE))
+                last = dplyr::last(sched_arr_time, na_rm = TRUE),
+                nobs = sum(!is.na(arr_time)))
 gres1 <- flights %>%
   dplyr::mutate(min = min(time_hour),
                 max = max(time_hour),
@@ -39,6 +40,7 @@ gres1 <- flights %>%
                 median = stats::median(sched_arr_time, na.rm = TRUE),
                 first = dplyr::first(sched_arr_time, na_rm = TRUE),
                 last = dplyr::last(sched_arr_time, na_rm = TRUE),
+                nobs = sum(!is.na(arr_time)),
                 .by = c(origin, dest))
 testthat::expect_equal(res,
                            flights %>%
@@ -51,7 +53,8 @@ testthat::expect_equal(res,
                                            mode = gmode(sched_arr_time, na.rm = TRUE),
                                            median = gmedian(sched_arr_time, na.rm = TRUE),
                                            first = gfirst(sched_arr_time, na.rm = TRUE),
-                                           last = glast(sched_arr_time, na.rm = TRUE)))
+                                           last = glast(sched_arr_time, na.rm = TRUE),
+                                           nobs = gnobs(arr_time)))
 # Grouped
 testthat::expect_equal(gres1,
                            flights %>%
@@ -64,7 +67,8 @@ testthat::expect_equal(gres1,
                                            mode = gmode(sched_arr_time, g = g1, na.rm = TRUE),
                                            median = gmedian(sched_arr_time, g = g1, na.rm = TRUE),
                                            first = gfirst(sched_arr_time, g = g1, na.rm = TRUE),
-                                           last = glast(sched_arr_time, g = g1, na.rm = TRUE)))
+                                           last = glast(sched_arr_time, g = g1, na.rm = TRUE),
+                                           nobs = gnobs(arr_time, g = g1)))
 testthat::expect_equal(gres1,
                            flights %>%
                              dplyr::mutate(min = gmin(time_hour, g = g2),
@@ -76,7 +80,8 @@ testthat::expect_equal(gres1,
                                            mode = gmode(sched_arr_time, g = g2, na.rm = TRUE),
                                            median = gmedian(sched_arr_time, g = g2, na.rm = TRUE),
                                            first = gfirst(sched_arr_time, g = g2, na.rm = TRUE),
-                                           last = glast(sched_arr_time, g = g2, na.rm = TRUE)))
+                                           last = glast(sched_arr_time, g = g2, na.rm = TRUE),
+                                           nobs = gnobs(arr_time, g = g2)))
 testthat::expect_equal(gres1,
                        flights %>%
                          dplyr::mutate(min = gmin(time_hour, g = g3),
@@ -88,7 +93,8 @@ testthat::expect_equal(gres1,
                                        mode = gmode(sched_arr_time, g = g3, na.rm = TRUE),
                                        median = gmedian(sched_arr_time, g = g3, na.rm = TRUE),
                                        first = gfirst(sched_arr_time, g = g3, na.rm = TRUE),
-                                       last = glast(sched_arr_time, g = g3, na.rm = TRUE)))
+                                       last = glast(sched_arr_time, g = g3, na.rm = TRUE),
+                                       nobs = gnobs(arr_time, g = g3)))
 testthat::expect_equal(gres1,
                        flights %>%
                          dplyr::mutate(min = gmin(time_hour, g = g4),
@@ -100,7 +106,8 @@ testthat::expect_equal(gres1,
                                        mode = gmode(sched_arr_time, g = g4, na.rm = TRUE),
                                        median = gmedian(sched_arr_time, g = g4, na.rm = TRUE),
                                        first = gfirst(sched_arr_time, g = g4, na.rm = TRUE),
-                                       last = glast(sched_arr_time, g = g4, na.rm = TRUE)))
+                                       last = glast(sched_arr_time, g = g4, na.rm = TRUE),
+                                       nobs = gnobs(arr_time, g = g4)))
 testthat::expect_equal(gres1,
                        flights %>%
                          dplyr::mutate(min = gmin(time_hour, g = g5),
@@ -112,7 +119,8 @@ testthat::expect_equal(gres1,
                                        mode = gmode(sched_arr_time, g = g5, na.rm = TRUE),
                                        median = gmedian(sched_arr_time, g = g5, na.rm = TRUE),
                                        first = gfirst(sched_arr_time, g = g5, na.rm = TRUE),
-                                       last = glast(sched_arr_time, g = g5, na.rm = TRUE)))
+                                       last = glast(sched_arr_time, g = g5, na.rm = TRUE),
+                                       nobs = gnobs(arr_time, g = g5)))
 testthat::expect_equal(gres1,
                        flights %>%
                          dplyr::mutate(min = gmin(time_hour, g = g6),
@@ -124,7 +132,8 @@ testthat::expect_equal(gres1,
                                        mode = gmode(sched_arr_time, g = g6, na.rm = TRUE),
                                        median = gmedian(sched_arr_time, g = g6, na.rm = TRUE),
                                        first = gfirst(sched_arr_time, g = g6, na.rm = TRUE),
-                                       last = glast(sched_arr_time, g = g6, na.rm = TRUE)))
+                                       last = glast(sched_arr_time, g = g6, na.rm = TRUE),
+                                       nobs = gnobs(arr_time, g = g6)))
 testthat::expect_equal(gres1,
                        flights %>%
                          dplyr::mutate(min = gmin(time_hour, g = g7),
@@ -136,7 +145,8 @@ testthat::expect_equal(gres1,
                                        mode = gmode(sched_arr_time, g = g7, na.rm = TRUE),
                                        median = gmedian(sched_arr_time, g = g7, na.rm = TRUE),
                                        first = gfirst(sched_arr_time, g = g7, na.rm = TRUE),
-                                       last = glast(sched_arr_time, g = g7, na.rm = TRUE)))
+                                       last = glast(sched_arr_time, g = g7, na.rm = TRUE),
+                                       nobs = gnobs(arr_time, g = g7)))
 testthat::expect_equal(gres1,
                        flights %>%
                          dplyr::mutate(min = gmin(time_hour, g = g8),
@@ -148,7 +158,8 @@ testthat::expect_equal(gres1,
                                        mode = gmode(sched_arr_time, g = g8, na.rm = TRUE),
                                        median = gmedian(sched_arr_time, g = g8, na.rm = TRUE),
                                        first = gfirst(sched_arr_time, g = g8, na.rm = TRUE),
-                                       last = glast(sched_arr_time, g = g8, na.rm = TRUE)))
+                                       last = glast(sched_arr_time, g = g8, na.rm = TRUE),
+                                       nobs = gnobs(arr_time, g = g8)))
 
 testthat::expect_equal(gres1,
                        flights %>%
@@ -161,7 +172,8 @@ testthat::expect_equal(gres1,
                                        mode = gmode(sched_arr_time, g = g9, na.rm = TRUE),
                                        median = gmedian(sched_arr_time, g = g9, na.rm = TRUE),
                                        first = gfirst(sched_arr_time, g = g9, na.rm = TRUE),
-                                       last = glast(sched_arr_time, g = g9, na.rm = TRUE)))
+                                       last = glast(sched_arr_time, g = g9, na.rm = TRUE),
+                                       nobs = gnobs(arr_time, g = g9)))
 
 testthat::expect_equal(gres1,
                        flights %>%
@@ -174,7 +186,8 @@ testthat::expect_equal(gres1,
                                        mode = gmode(sched_arr_time, g = g10, na.rm = TRUE),
                                        median = gmedian(sched_arr_time, g = g10, na.rm = TRUE),
                                        first = gfirst(sched_arr_time, g = g10, na.rm = TRUE),
-                                       last = glast(sched_arr_time, g = g10, na.rm = TRUE)))
+                                       last = glast(sched_arr_time, g = g10, na.rm = TRUE),
+                                       nobs = gnobs(arr_time, g = g10)))
 testthat::expect_equal(gres1,
                        flights %>%
                          dplyr::mutate(min = gmin(time_hour, g = g11),
@@ -186,7 +199,8 @@ testthat::expect_equal(gres1,
                                        mode = gmode(sched_arr_time, g = g11, na.rm = TRUE),
                                        median = gmedian(sched_arr_time, g = g11, na.rm = TRUE),
                                        first = gfirst(sched_arr_time, g = g11, na.rm = TRUE),
-                                       last = glast(sched_arr_time, g = g11, na.rm = TRUE)))
+                                       last = glast(sched_arr_time, g = g11, na.rm = TRUE),
+                                       nobs = gnobs(arr_time, g = g11)))
 testthat::expect_equal(gres1,
                        flights %>%
                          dplyr::mutate(min = gmin(time_hour, g = g12),
@@ -198,7 +212,8 @@ testthat::expect_equal(gres1,
                                        mode = gmode(sched_arr_time, g = g12, na.rm = TRUE),
                                        median = gmedian(sched_arr_time, g = g12, na.rm = TRUE),
                                        first = gfirst(sched_arr_time, g = g12, na.rm = TRUE),
-                                       last = glast(sched_arr_time, g = g12, na.rm = TRUE)))
+                                       last = glast(sched_arr_time, g = g12, na.rm = TRUE),
+                                       nobs = gnobs(arr_time, g = g12)))
 testthat::expect_equal(gres1,
                        flights %>%
                          dplyr::mutate(min = gmin(time_hour, g = g13),
@@ -210,7 +225,8 @@ testthat::expect_equal(gres1,
                                        mode = gmode(sched_arr_time, g = g13, na.rm = TRUE),
                                        median = gmedian(sched_arr_time, g = g13, na.rm = TRUE),
                                        first = gfirst(sched_arr_time, g = g13, na.rm = TRUE),
-                                       last = glast(sched_arr_time, g = g13, na.rm = TRUE)))
+                                       last = glast(sched_arr_time, g = g13, na.rm = TRUE),
+                                       nobs = gnobs(arr_time, g = g13)))
 testthat::expect_equal(gres1,
                        flights %>%
                          dplyr::mutate(min = gmin(time_hour, g = g14),
@@ -222,7 +238,8 @@ testthat::expect_equal(gres1,
                                        mode = gmode(sched_arr_time, g = g14, na.rm = TRUE),
                                        median = gmedian(sched_arr_time, g = g14, na.rm = TRUE),
                                        first = gfirst(sched_arr_time, g = g14, na.rm = TRUE),
-                                       last = glast(sched_arr_time, g = g14, na.rm = TRUE)))
+                                       last = glast(sched_arr_time, g = g14, na.rm = TRUE),
+                                       nobs = gnobs(arr_time, g = g14)))
 testthat::expect_equal(gres1,
                        flights %>%
                          dplyr::mutate(min = gmin(time_hour, g = g15),
@@ -234,7 +251,8 @@ testthat::expect_equal(gres1,
                                        mode = gmode(sched_arr_time, g = g15, na.rm = TRUE),
                                        median = gmedian(sched_arr_time, g = g15, na.rm = TRUE),
                                        first = gfirst(sched_arr_time, g = g15, na.rm = TRUE),
-                                       last = glast(sched_arr_time, g = g15, na.rm = TRUE)))
+                                       last = glast(sched_arr_time, g = g15, na.rm = TRUE),
+                                       nobs = gnobs(arr_time, g = g15)))
 testthat::expect_equal(gres1,
                        flights %>%
                          dplyr::mutate(min = gmin(time_hour, g = g16),
@@ -246,5 +264,6 @@ testthat::expect_equal(gres1,
                                        mode = gmode(sched_arr_time, g = g16, na.rm = TRUE),
                                        median = gmedian(sched_arr_time, g = g16, na.rm = TRUE),
                                        first = gfirst(sched_arr_time, g = g16, na.rm = TRUE),
-                                       last = glast(sched_arr_time, g = g16, na.rm = TRUE)))
+                                       last = glast(sched_arr_time, g = g16, na.rm = TRUE),
+                                       nobs = gnobs(arr_time, g = g16)))
 })

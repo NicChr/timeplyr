@@ -1,6 +1,5 @@
 #' Much faster version of `dplyr::slice()` when there are lots of groups.
 #'
-#'
 #' @param data Data frame
 #' @param ... See `?dplyr::slice` for details.
 #' @param .by (Optional). A selection of columns to group by for this operation.
@@ -37,12 +36,37 @@ fslice <- function(data, ..., .by = NULL){
     g <- group_id(data, .by = {{ .by }},
                   sort = TRUE, as_qg = FALSE)
   }
-  index <- gseq_len(nrow2(data), g = g)
-  if (sum(range_sign) < 0){
-    data[which(!index %in% abs(n)), , drop = FALSE]
-  } else {
-    data[which(index %in% n), , drop = FALSE]
+    rowids <- gseq_len(nrow2(data), g = g)
+    if (sum(range_sign) < 0){
+      i <- which(!rowids %in% abs(n))
+    } else {
+      i <- which(rowids %in% n)
+    }
+  data[i, , drop = FALSE]
+}
+fslice_head <- function(data, ..., n = 1, .by = NULL){
+  rlang::check_dots_empty0(...)
+  stopifnot(length(n) == 1L)
+  N <- nrow2(data)
+  if (n >= 0){
+    n <- bound_to(n, N)
+    n_slice <- seq_len(n)
+    out <- fslice(data, n_slice, .by = {{ .by }})
   }
+  if (n < 0) stop("n < 0 is currently not supported")
+  out
+  # if (n < 0){
+  #   n <- bound_from(n, -N)
+  #   group_vars <- get_groups(data, .by = {{ .by }})
+  #   if (length(group_vars) == 0L){
+  #     g <- NULL
+  #     n_slice <- seq_len(nrow2(data) - abs(n))
+  #     out <- fslice(data, n_slice)
+  #   } else {
+  #     g <- group_id(data, .by = {{ .by }},
+  #                   sort = TRUE, as_qg = FALSE)
+  #   }
+  # }
 }
 # fslice_head <- function(data, ..., n = 1, .by = NULL){
 #   rlang::check_dots_empty0(...)

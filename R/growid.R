@@ -62,13 +62,16 @@ growid <- function(x, g = x){
       stopifnot(is_list_df_like(x))
       len <- utils::head(collapse::vlengths(x, use.names = FALSE), n = 1L)
     }
+    sort <- TRUE
   } else {
     len <- length(x)
+    sort <- FALSE
   }
   if (is.null(g)){
     out <- seq_len(len)
   } else {
-    g <- GRP2(g, sort = TRUE, call = FALSE, return.groups = FALSE)
+    g <- GRP2(g, sort = sort, call = FALSE, return.groups = FALSE,
+              return.order = FALSE)
     out <- collapse::fcumsum(seq_ones(len),
                              na.rm = FALSE,
                              g = g)

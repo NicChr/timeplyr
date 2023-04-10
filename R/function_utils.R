@@ -322,11 +322,16 @@ get_group_info <- function(data, ..., type = c("select", "data-mask"),
                            .by = NULL){
   type <- match.arg(type)
   group_vars <- get_groups(data, {{ .by }})
-  if (type == "select"){
-   extra_groups <- tidy_select_names(safe_ungroup(data), !!!enquos(...))
+  if (dots_length(...) == 0L){
+    extra_groups <- character(0)
   } else {
-    extra_groups <- tidy_transform_names(safe_ungroup(data), !!!enquos(...))
+    if (type == "select"){
+      extra_groups <- tidy_select_names(safe_ungroup(data), !!!enquos(...))
+    } else {
+      extra_groups <- tidy_transform_names(safe_ungroup(data), !!!enquos(...))
+    }
   }
+
   extra_groups <- setdiff(extra_groups, group_vars)
   all_groups <- c(group_vars, extra_groups)
   list("dplyr_groups" = group_vars,
@@ -336,7 +341,11 @@ get_group_info <- function(data, ..., type = c("select", "data-mask"),
 # This function returns the groups of a data frame
 get_groups <- function(data, .by = NULL){
   dplyr_groups <- group_vars(data)
-  by_groups <- tidy_select_names(data, {{ .by }})
+  if (rlang::quo_is_null(enquo(.by))){
+    by_groups <- NULL
+  } else {
+    by_groups <- tidy_select_names(data, {{ .by }})
+  }
   if (length(by_groups) > 0L){
     if (length(dplyr_groups) > 0L) stop(".by cannot be used on a grouped_df")
     by_groups
@@ -638,28 +647,17 @@ CJ <- utils::getFromNamespace("CJ", "data.table")
 
 is_whole_number <- function(x){
   if (is.integer(x)) return(TRUE) # If already integer then true
-  if (length(x) == 0) return(FALSE) # If length is 0 then false
-  if (all(is.na(x))) return(FALSE) # All NA then false
-  if (any(is.infinite(x))) return(FALSE) # Any Inf then false
-  if (any(is.nan(x))) return(FALSE) # Any NaN then false
-  x_finite <- x[is.finite(x)]
-  x_range <- range(x_finite)
-  if (length(x_finite) == 0) return(FALSE) # If no finite values then false
-  # If integer check cannot be accurately determined, we don't check these and just return FALSE
-  result <- tryCatch((sum(x_range %% 1) == 0),
-                     error = function(e) e,
-                     warning = function(w) w)
-
-  if (inherits(result, "warning")){
-    message("Can't accurately identify if number is whole due to loss of accuracy,
-            returning FALSE")
-    return(FALSE)
-  }
-  isTRUE((sum(x_finite %% 1) == 0))
+  if (length(x) == 0L) return(FALSE) # If length is 0 then false
+  # all.equal(x, as.integer(x), check.attributes = FALSE)
+  # isTRUE((sum(x %% 1) == 0))
+  all(floor(x) == x, na.rm = FALSE)
 }
 # Do all list elements have same number of elements?
 is_list_df_like <- function(X){
   stopifnot(is.list(X))
   lens <- collapse::vlengths(X, use.names = FALSE)
   isTRUE(n_unique(lens) <= 1)
+}
+pair_unique <- function(x, y){
+  ( ( (x + y + 1) * (x + y) ) / 2 ) + x
 }

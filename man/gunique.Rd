@@ -15,4 +15,6 @@ This can be a vector, list or data frame.}
 \description{
 Return unique values by group.
 When \code{g = NULL} this is equivalent to \code{unique()}.
+For \code{lubridate} users, this is much faster than \code{unique()} for
+intervals.
 }

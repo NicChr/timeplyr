@@ -547,29 +547,47 @@ time_unit <- function(units, type = c("duration", "period")){
     }
   }
 }
-# Safe time concatenation
-time_c2 <- function(x, y){
-  if (isTRUE(all.equal(attributes(x), attributes(y)))){
-    list(x, y)
-  } else {
-    common_type <- vctrs::vec_ptype2(x, y)
-    if (is_datetime(common_type)){
-      x <- time_cast(x, common_type)
-      y <- time_cast(y, common_type)
+# Coerce pair of dates/datetimes to the most informative
+# class between them
+set_time_cast <- function(x, y){
+  if (!identical(class(x), class(y))){
+    if (is_date(x) && is_datetime(y)){
+      x_nm <- deparse(substitute(x))
+      assign(x_nm, lubridate::as_datetime(x, tz = lubridate::tz(y)),
+             envir = parent.frame(n = 1))
+
     }
-    list(x, y)
+    if (is_date(y) && is_datetime(x)){
+      y_nm <- deparse(substitute(y))
+      assign(y_nm, lubridate::as_datetime(y, tz = lubridate::tz(x)),
+             envir = parent.frame(n = 1))
+    }
   }
 }
+
+# time_c2 <- function(x, y){
+#   if (isTRUE(all.equal(attributes(x), attributes(y)))){
+#     list(x, y)
+#   } else {
+#     common_type <- vctrs::vec_ptype2(x, y)
+#     if (is_datetime(common_type)){
+#       x <- time_cast(x, common_type)
+#       y <- time_cast(y, common_type)
+#     }
+#     list(x, y)
+#   }
+# }
 # Safe time concatenation
 time_c <- function(...){
   vctrs::vec_c(...)
 }
-# This turns x into datetime if template is datetime
-# and x into date is template is date (but x is not datetime)
-# and coerces timezone of x to template timezone
+# This coerces x into template class
 time_cast <- function(x, template){
   if (is.null(x) || is.null(template)) return(x)
   # stopifnot(is_time_or_num(x))
+  # else if (is_date(template) && !is_date(x) && !is_datetime(x)){
+  #   lubridate::as_date(x)
+  # }
   if (is_datetime(template) && !is_datetime(x)){
     lubridate::with_tz(lubridate::as_datetime(x),
                        tzone = lubridate::tz(template))
@@ -634,6 +652,32 @@ window_seq <- function(k, n, partial = TRUE){
 }
 # time_seq_data must be sorted by groups + time
 # data must also be sorted the same way
+# time_cut_grouped2 <- function(time_seq_data, data, time, group_id,
+#                              to){
+#   time_seq_num_max <- as.double(to)
+#   time_seq_list <- collapse::gsplit(time_seq_data[[time]],
+#                                     g = time_seq_data[[group_id]])
+#   time_list <- collapse::gsplit(data[[time]],
+#                                 g = data[[group_id]])
+#   # Change time to numbers
+#   time_seq_list_num <- lapply(time_seq_list, as.double)
+#   time_list_num <- lapply(time_list, as.double)
+#   # Pre-allocate list of aggregated time
+#   time_agg_list <- vector("list", length(time_seq_list))
+#   breaks_list <- vector("list", length(time_seq_list))
+#   seq_lengths <- collapse::vlengths(time_seq_list)
+#   # This loops through each group and aggregates time based on
+#   # The sequences within each group
+#   time_agg_list <- purrr::pmap(list(time_seq_list, time_list_num,
+#                                     time_seq_list_num, time_seq_num_max),
+#                                function(x1, x2, x3, x4) x1[fcut_ind(x2, c(x3, x4 + 1))])
+#   time_agg_v <- unlist(time_agg_list, recursive = FALSE, use.names = FALSE)
+#   time_agg_v <- time_cast(time_agg_v, data[[time]])
+#   setnames(list(time_agg_v,
+#                 unlist(breaks_list, recursive = FALSE, use.names = FALSE),
+#                 vctrs::vec_rep_each(seq_len(length(time_seq_list)), collapse::vlengths(time_agg_list))),
+#            c(time, ".breaks", group_id))
+# }
 time_cut_grouped <- function(time_seq_data, data, time, group_id,
                              to){
   time_seq_num_max <- as.double(to)
@@ -746,4 +790,24 @@ cut_time2 <- function(x, breaks, rightmost.closed = FALSE, left.open = FALSE){
              left.open = left.open,
              all.inside = FALSE)
   ]
+}
+is_date_or_utc <- function(x){
+  is_date(x) || lubridate::tz(x) == "UTC"
+}
+# Check for date sequences that should not be coerced to datetimes
+is_special_case_days <- function(from, to, unit, num, seq_type){
+  seq_type == "auto" &&
+  unit %in% c("days", "weeks") &&
+  is_date(from) &&
+  is_date(to) &&
+  is_whole_number(num)
+}
+is_special_case_utc <- function(from, to, unit, num, seq_type){
+  seq_type == "auto" &&
+    unit %in% c("days", "weeks") &&
+    is_datetime(from) &&
+    is_datetime(to) &&
+    lubridate::tz(from) == "UTC" &&
+    lubridate::tz(to) == "UTC" &&
+    is_whole_number(num)
 }
