@@ -420,28 +420,28 @@ nrow2 <- function(data){
   length(attr(data, "row.names"))
 }
 # Returns list of named ... expressions
-dot_nms <- function(..., fix.names = FALSE){
-  dot_nms <- purrr::map_chr(substitute(as.list(...))[-1], rlang::expr_deparse)
-  if (fix.names){
-    nms_dot_nms <- names(dot_nms)
-    out_nms <- character(length(dot_nms))
-    if (length(nms_dot_nms) > 0){
-      for (i in seq_along(dot_nms)){
-        if (nms_dot_nms[i] == ""){
-          out_nms[i] <- dot_nms[i]
-        } else {
-          out_nms[i] <- nms_dot_nms[i]
-        }
-      }
-    } else {
-      out_nms <- unname(dot_nms)
-    }
-    names(dot_nms) <- out_nms
-  }
-  dot_nms
-}
+# dot_nms <- function(..., fix.names = FALSE){
+#   dot_nms <- purrr::map_chr(substitute(as.list(...))[-1], rlang::expr_deparse)
+#   if (fix.names){
+#     nms_dot_nms <- names(dot_nms)
+#     out_nms <- character(length(dot_nms))
+#     if (length(nms_dot_nms) > 0){
+#       for (i in seq_along(dot_nms)){
+#         if (nms_dot_nms[i] == ""){
+#           out_nms[i] <- dot_nms[i]
+#         } else {
+#           out_nms[i] <- nms_dot_nms[i]
+#         }
+#       }
+#     } else {
+#       out_nms <- unname(dot_nms)
+#     }
+#     names(dot_nms) <- out_nms
+#   }
+#   dot_nms
+# }
 # Faster dot nms
-dot_nms2 <- function(...){
+dot_nms <- function(...){
   unlist((lapply(substitute(as.list(...))[-1L], deparse)),
          recursive = FALSE, use.names = FALSE)
 }
@@ -564,7 +564,7 @@ is_df <- function(x){
   inherits(x, "data.frame")
 }
 # Recycle arguments
-recycle_args <- function (..., length, set_names = FALSE){
+recycle_args <- function (..., length, use.names = FALSE){
   dots <- list(...)
   missing_length <- missing(length)
   if (missing_length) {
@@ -573,16 +573,14 @@ recycle_args <- function (..., length, set_names = FALSE){
   else {
     recycle_length <- length
   }
-  if (missing_length && base::length(unique(lengths(dots))) == 1L) {
+  if (missing_length && base::length(unique(lengths(dots, use.names = FALSE))) == 1L) {
     out <- dots
   }
   else {
     out <- lapply(dots, function(x) rep_len(x, recycle_length))
   }
-  if (set_names){
-    arg_names <- vapply(match.call(expand.dots = FALSE)[["..."]],
-                        FUN = deparse, FUN.VALUE = character(1))
-    names(out) <- arg_names
+  if (use.names){
+    names(out) <- dot_nms(...)
   }
   out
 }

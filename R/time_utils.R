@@ -62,32 +62,33 @@ unit_match <- function(x){
 unit_parse <- function(x){
   # Extract numbers from string
   # Try decimal numbers
-  eval_num <- FALSE # Flag to use eval(parse())
+  # eval_num <- FALSE # Flag to use eval(parse())
   num_str <- regmatches(x, m = regexpr(pattern = ".*[[:digit:]]*\\.[[:digit:]]+",
                                         text = x))
-  # Try strings like n/m
-  if (length(num_str) == 0L){
-    num_str <- regmatches(x, m = regexpr(pattern = ".*[[:digit:]]+\\/[[:digit:]]+",
-                                         text = x))
-    eval_num <- TRUE
-  }
-  # Try strings like n*m
-  if (length(num_str) == 0L){
-    num_str <- regmatches(x, m = regexpr(pattern = ".*[[:digit:]]+\\*[[:digit:]]+",
-                                         text = x))
-    eval_num <- TRUE
-  }
+  # # Try strings like n/m
+  # if (length(num_str) == 0L){
+  #   num_str <- regmatches(x, m = regexpr(pattern = ".*[[:digit:]]+\\/[[:digit:]]+",
+  #                                        text = x))
+  #   eval_num <- TRUE
+  # }
+  # # Try strings like n*m
+  # if (length(num_str) == 0L){
+  #   num_str <- regmatches(x, m = regexpr(pattern = ".*[[:digit:]]+\\*[[:digit:]]+",
+  #                                        text = x))
+  #   # eval_num <- TRUE
+  # }
   # If not try regular numbers
   if (length(num_str) == 0L){
     num_str <- regmatches(x, m = regexpr(pattern = ".*[[:digit:]]+",
                                          text = x))
-    eval_num <- FALSE
+    # eval_num <- FALSE
   }
-  if (eval_num){
-    num <- eval(parse(text = num_str))
-  } else {
-    num <- as.numeric(num_str)
-  }
+  num <- as.numeric(num_str)
+  # if (eval_num){
+  #   num <- eval(parse(text = num_str))
+  # } else {
+  #   num <- as.numeric(num_str)
+  # }
   if (length(num) == 0L) num <- 1
   scale <- 1
   if (length(num_str) > 0L){
@@ -140,7 +141,7 @@ time_interval3 <- function(x, to = NULL, is_sorted = FALSE){
 # also x must be in ascending order
 time_seq_interval <- function(x, to, g = NULL){
   n <- length(x)
-  out <- time_interval(x, collapse::flag(x, n = max(-1L, -length(x)), g = g))
+  out <- time_interval(x, collapse::flag(x, n = max(-1L, -n), g = g))
   if (!is.null(g)){
     # Use time seq df to get time intervals
     # starts <- attr(collapse::group(g, starts = TRUE), "starts")
@@ -166,7 +167,7 @@ time_seq_levels <- function(x, to, g = NULL, fmt = NULL){
                         time_breaks_fmt,
                         ", ",
                         collapse::flag(time_breaks_fmt,
-                                       g = g, n = -1L),
+                                       g = g, n = max(-1L, -n)),
                         ")")
   if (!is.null(g)){
     # Use time seq df to get time intervals
@@ -178,8 +179,8 @@ time_seq_levels <- function(x, to, g = NULL, fmt = NULL){
                               fmt_f(to),
                               "]")
   } else {
-    out[[n]] <- stringr::str_c("[",
-                       time_breaks_fmt[[n]],
+    out[n] <- stringr::str_c("[",
+                       time_breaks_fmt[n],
                        ", ",
                        fmt_f(to),
                        "]")
@@ -305,8 +306,26 @@ convert_common_dates <- function(x){
   }
   out
 }
-# Calculate size of period unit to expand from and to to get a specified length
-# Similar to how base::seq() calculates by when from, to, and length.out are specified
+# Calculate size of period unit to expand from and to for specified length
+period_by <- function(from, to, length){
+  seconds_unit <- period_unit("seconds")
+  recycled_args <- recycle_args(from, to, length)
+  from <- recycled_args[[1L]]
+  to <- recycled_args[[2L]]
+  length <- recycled_args[[3L]]
+  which_len_1 <- which(length == 1)
+  sec_diff <- time_diff(from, to,
+                        by = list("seconds" = 1), type = "period")
+  out <- lubridate::seconds_to_period(sec_diff / (length - 1))
+  period_info <- as.data.frame(time_unit_info(out))
+  n_unique_slots <- ncol(period_info) - rowSums(period_info == 0)
+  which_multi <- which(n_unique_slots > 1)
+  out[which_multi] <- seconds_unit(
+    lubridate::period_to_seconds(out[which_multi])
+  )
+  out[which_len_1] <- seconds_unit(0)
+  out
+}
 # period_by <- function(from, to, length){
 #   seconds_unit <- period_unit("seconds")
 #   recycled_args <- recycle_args(from, to, length)
@@ -339,33 +358,34 @@ convert_common_dates <- function(x){
 #   out
 # }
 # Unvectorised version
-period_by <- function(from, to, length){
-  if (length == 1){
-    lubridate::seconds(0)
-  } else {
-    int <- lubridate::interval(from, to)
-    periods_to_try <- rev(.period_units)
-    for (i in seq_along(periods_to_try)){
-      unit <- period_unit(periods_to_try[[i]])
-      division <- int / unit(1)
-      # remainder <- division %% 1
-      remainder <- ( (division / (length - 1)) %% 1 )
-      if (abs(division) >= 1 &&
-          remainder == 0){
-        out <- unit( (division / (length - 1)) )
-        return(out)
-      }
-    }
-    unit( (division / (length - 1)) )
-  }
-}
+# period_by <- function(from, to, length){
+#   if (length == 1){
+#     lubridate::seconds(0)
+#   } else {
+#     int <- lubridate::interval(from, to)
+#     periods_to_try <- rev(.period_units)
+#     for (i in seq_along(periods_to_try)){
+#       unit <- period_unit(periods_to_try[[i]])
+#       division <- int / unit(1)
+#       # remainder <- division %% 1
+#       remainder <- ( (division / (length - 1)) %% 1 )
+#       if (abs(division) >= 1 &&
+#           remainder == 0){
+#         out <- unit( (division / (length - 1)) )
+#         return(out)
+#       }
+#     }
+#     unit( (division / (length - 1)) )
+#   }
+# }
 # Calculates size of duration to cut a pre-specified interval of
 # a certain length
 duration_by <- function(from, to, length){
-  int <- lubridate::interval(from, to)
   seconds_unit <- duration_unit("seconds")
-  division <- int / seconds_unit(1)
-  out <- seconds_unit(division / (length - 1))
+  sec_diff <- time_diff(from, to,
+                        by = list("seconds" = 1),
+                        type = "duration")
+  out <- seconds_unit(sec_diff / (length - 1))
   length <- rep_len(length, length(out))
   out[length == 1] <- seconds_unit(0) # Special case
   out
@@ -601,10 +621,7 @@ time_cast <- function(x, template){
     lubridate::as_date(x)
   }
   else if (inherits(template, "yearmon")){
-    if (is_time(x)){
-      x <- lubridate::year(x) + ( (lubridate::month(x) - 1) / 12 )
-    }
-    structure(floor(12 * as.double(x) + 1e-04)/12, class = "yearmon")
+    as_yearmon(x)
   } else {
     x
   }
@@ -829,4 +846,16 @@ rep.int.yearmon <- function(x, times){
 }
 rep.yearmon <- function(x, ...){
   x[rep(seq_along(x), ...)]
+}
+# Coerce to yearmon
+# Safer for datetimes as it doesn't coerce to a specific timezone
+as_yearmon <- function(x){
+  if (inherits(x, "yearmon")){
+    x
+  } else {
+    if (is_time(x)){
+      x <- lubridate::year(x) + ( (lubridate::month(x) - 1) / 12 )
+    }
+    structure(floor(12 * as.double(x) + 1e-04)/12, class = "yearmon")
+  }
 }

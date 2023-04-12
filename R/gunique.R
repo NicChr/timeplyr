@@ -19,5 +19,11 @@ gunique <- function(x, g = NULL){
                        return.groups = FALSE, call = FALSE,
               return.order = FALSE)
   }
-  subset(x, growid(x, g = g) == 1)
+  if (is_df(x)){
+    out <- x[which(growid(x, g = g) == 1), , drop = FALSE]
+    attr(out, "row.names") <- seq_len(nrow2(out))
+  } else {
+    out <- x[growid(x, g = g) == 1]
+  }
+  out
 }

@@ -141,6 +141,30 @@ testthat::test_that("Datetimes", {
                                                    unit = "week",
                                                    week_start = 1),
                              start1 + lubridate::years(1), by = "3 weeks"))
+  testthat::expect_equal(time_seq(start1, by = "week",
+                                  length.out = 54,
+                                  week_start = 1,
+                                  floor_date = TRUE,
+                                  seq_type = "duration"),
+                         seq(lubridate::floor_date(start1,
+                                                   unit = "week",
+                                                   week_start = 1),
+                             length.out = 54, by = "week"))
+  testthat::expect_equal(time_seq(to = max(seq(start1, length.out = 54, by = "week")),
+                                  by = "week",
+                                  length.out = 54,
+                                  week_start = 1,
+                                  floor_date = TRUE,
+                                  seq_type = "duration"),
+                         seq(lubridate::floor_date(start1,
+                                                   unit = "week",
+                                                   week_start = 1),
+                             length.out = 54, by = "week"))
+  testthat::expect_warning(time_seq(start1, end1,
+                                  length.out = 54,
+                                  week_start = 1,
+                                  floor_date = TRUE,
+                                  seq_type = "duration"))
   testthat::expect_equal(time_seq(end1, length.out = 10, by = "day", seq_type = "duration"),
                          seq(end1, length.out = 10, by = "day"))
   testthat::expect_equal(time_seq(to = end1, length.out = 10, by = "day", seq_type = "duration"),

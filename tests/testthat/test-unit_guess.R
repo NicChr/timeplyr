@@ -29,14 +29,14 @@ testthat::test_that("unit_guess", {
                               "scale" = 2))
 
   # Basic math works too
-  testthat::expect_equal(unit_guess("10*10 days"),
-                         list("unit" = "days",
-                              "num" = 100,
-                              "scale" = 1))
-  testthat::expect_equal(unit_guess("10/10 days"),
-                         list("unit" = "days",
-                              "num" = 1,
-                              "scale" = 1))
+  # testthat::expect_equal(unit_guess("10*10 days"),
+  #                        list("unit" = "days",
+  #                             "num" = 100,
+  #                             "scale" = 1))
+  # testthat::expect_equal(unit_guess("10/10 days"),
+  #                        list("unit" = "days",
+  #                             "num" = 1,
+  #                             "scale" = 1))
 
   # Exotic units
   testthat::expect_equal(unit_guess("fortnights"),

@@ -37,10 +37,6 @@ unit_guess("0.5 hours")
 unit_guess("-7 days")
 unit_guess("-.12 days")
 
-# Basic math works too
-unit_guess("10*10 days")
-unit_guess("10/10 days")
-
 # Exotic units
 unit_guess("fortnights")
 unit_guess("decades")

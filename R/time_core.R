@@ -190,9 +190,13 @@ time_summarisev <- function(x, by = NULL, from = NULL, to = NULL,
                          !!"interval" := time_int)
     # Unique and sorting
     if (unique){
-      out <- gunique(out)
+      out <- fdistinct(out, .data[["x"]], .keep_all = TRUE)
+      # out <- gunique(out, g = out[["x"]])
     }
     if (sort) out <- out[radix_order(out[["x"]]), , drop = FALSE]
+    if (!lubridate::is.interval(time_int)){
+      attr(out[["interval"]], "start") <- out[["x"]]
+    }
   } else {
     if (unique){
       out <- collapse::funique(out, sort = sort)
@@ -251,6 +255,7 @@ time_countv <- function(x, by = NULL, from = NULL, to = NULL,
   x <- time_breaks[time_break_ind]
 
   # (Optionally) complete time data
+  time_missed <- x[0L]
   if (complete){
     time_missed <- time_breaks[!time_breaks %in% x]
     if (length(time_missed) > 0L){
@@ -260,44 +265,52 @@ time_countv <- function(x, by = NULL, from = NULL, to = NULL,
   # Count time
   # Don't count completed sequence items, only original..
   cnt_grps <- GRP2(if (complete) x[seq_len(out_len)] else x,
-                            sort = FALSE,
-                            call = FALSE, return.groups = FALSE,
-                            na.last = TRUE, decreasing = FALSE,
-                            return.order = FALSE)
-  if (unique){
-    out <- collapse::GRPN(cnt_grps, expand = FALSE)
-    x <- collapse::funique(x, sort = FALSE)
-  } else {
-    out <- collapse::GRPN(cnt_grps, expand = TRUE)
-  }
-  # Complete missing time values with zero counts
-  if (complete && length(time_missed) > 0L) {
-    out <- c(out, integer(length(time_missed)))
-  }
-  if (sort){
-    out_order <- radix_order(x)
-    out <- out[out_order]
-    x <- x[out_order]
-  }
-  if (use.names && !include_interval) out <- setnames(out, x)
+                   sort = FALSE,
+                   call = FALSE, return.groups = FALSE,
+                   na.last = TRUE, decreasing = FALSE,
+                   return.order = FALSE)
+  out <- integer(out_len + length(time_missed))
+  # Replace allocated integer with counts
+  setv(out, seq_len(out_len), collapse::GRPN(cnt_grps, expand = TRUE),
+       vind1 = TRUE)
+  # if (use.names && !include_interval) out <- setnames(out, x)
   if (include_interval){
     time_seq_int <- time_seq_interval(time_breaks, to = .to)
     time_int <- time_seq_int[time_break_ind]
-    int_df <- dplyr::tibble(!!"interval" := time_int)
-    if (unique) {
-      int_df <- gunique(int_df)
-    }
     if (complete && length(time_missed) > 0L){
-      int_df <- dplyr::tibble(!!"interval" :=
-                                c(int_df[["interval"]],
-                                  time_seq_int[which(lubridate::int_start(time_seq_int) %in% time_missed)]))
-                                  # time_seq_interval(time_missed, to = .to)))
+      time_int <- c(time_int, time_seq_int[which(attr(time_seq_int, "start") %in%
+                                                   time_cast(time_missed, attr(time_seq_int, "start")))])
     }
-
-    if (sort) int_df <- int_df[out_order, , drop = FALSE]
-    out <- dplyr::tibble(!!"x" := unname(x),
-                         !!"interval" := int_df[["interval"]],
+    out <- dplyr::tibble(!!"x" := x,
+                         !!"interval" := time_int,
                          !!"n" := out)
+    if (unique){
+      out <- fdistinct(out, .data[["x"]], .keep_all = TRUE)
+      # out <- gunique(out, g = out[["x"]])
+    }
+    if (sort){
+      out <- out[radix_order(out[["x"]]), , drop = FALSE]
+    }
+    if (!lubridate::is.interval(out[["interval"]])){
+      attr(out[["interval"]], "start") <- out[["x"]]
+    }
+  } else {
+    if (unique || sort){
+      dt <- data.table::data.table(x, out)
+      if (unique){
+        dt <- collapse::funique(dt, cols = "x", sort = sort)
+      } else if (!unique && sort){
+        data.table::setorderv(dt, cols = "x", na.last = TRUE)
+      }
+      out <- dt[["out"]]
+      if (use.names){
+        out <- setnames(out, dt[["x"]])
+      }
+    } else {
+      if (use.names){
+        out <- setnames(out, x)
+      }
+    }
   }
   out
 }

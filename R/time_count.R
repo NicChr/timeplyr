@@ -313,42 +313,41 @@ time_count <- function(data, ..., time = NULL, by = NULL,
         message("data.table converted to tibble as data.table cannot include interval class")
 
         int_nm <- new_var_nm(out, "interval")
-        if (aggregate){
-          int_df <- fdistinct(time_agg_df,
-                                    across(all_of(c(time_var, grp_nm, "interval"))))
-          time_missed_df <- dplyr::anti_join(dplyr::select(out,
-                                                           all_of(c(time_var, grp_nm))),
-                                             int_df,
-                                             by = c(time_var, grp_nm))
-          which_groups_missed <- which(ts_data[[grp_nm]] %in% time_missed_df[[grp_nm]])
-          to_agg <- collapse::ffirst(ts_data[[to_nm]][which_groups_missed],
-                                     g = ts_data[[grp_nm]][which_groups_missed])
-          # which_time_seq_rows <- which(time_expanded[[grp_nm]] %in% time_missed_df[[grp_nm]])
-
-          time_seq_missed <- which(time_expanded[[grp_nm]] %in% time_missed_df[[grp_nm]])
-          time_seq_int <- time_seq_interval(time_expanded[[time_var]][time_seq_missed],
-                                            g = time_expanded[[grp_nm]][time_seq_missed],
-                                            to = to_agg)
-          time_seq_missed_df <- time_expanded %>%
-            dplyr::as_tibble() %>%
-            dplyr::mutate(.row.id.temp = dplyr::row_number()) %>%
-            dplyr::inner_join(time_missed_df, by = c(time_var, grp_nm))
-          time_missed_df[[int_nm]] <- time_seq_int[time_seq_missed_df[[".row.id.temp"]]]
-          int_df <- dplyr::bind_rows(int_df, time_missed_df)
-          int_df <- dplyr::arrange(int_df, across(all_of(c(grp_nm, time_var))))
-        } else {
-          to_agg <- collapse::ffirst(ts_data[[to_nm]],
-                                     g = ts_data[[grp_nm]])
-          time_seq_data <- collapse::funique(time_expanded,
-                                             cols = c(grp_nm, time_var))
-          time_int <- time_seq_interval(time_seq_data[[time_var]],
-                                        to = to_agg,
-                                        g = time_seq_data[[grp_nm]])
-          # int_nm <- new_var_nm(data, "interval")
-          int_df <- dplyr::tibble(!!time_var := time_seq_data[[time_var]],
-                                  !!grp_nm := time_seq_data[[grp_nm]],
-                                  !!int_nm := time_int)
-        }
+        # if (FALSE){
+          # int_df <- fdistinct(time_agg_df,
+          #                           across(all_of(c(time_var, grp_nm, "interval"))))
+          # time_missed_df <- dplyr::anti_join(dplyr::select(out,
+          #                                                  all_of(c(time_var, grp_nm))),
+          #                                    int_df,
+          #                                    by = c(time_var, grp_nm))
+          # which_groups_missed <- which(ts_data[[grp_nm]] %in% time_missed_df[[grp_nm]])
+          # to_agg <- collapse::ffirst(ts_data[[to_nm]][which_groups_missed],
+          #                            g = ts_data[[grp_nm]][which_groups_missed])
+          # # which_time_seq_rows <- which(time_expanded[[grp_nm]] %in% time_missed_df[[grp_nm]])
+          #
+          # time_seq_missed <- which(time_expanded[[grp_nm]] %in% time_missed_df[[grp_nm]])
+          # time_seq_int <- time_seq_interval(time_expanded[[time_var]][time_seq_missed],
+          #                                   g = time_expanded[[grp_nm]][time_seq_missed],
+          #                                   to = to_agg)
+          # time_seq_missed_df <- time_expanded %>%
+          #   dplyr::as_tibble() %>%
+          #   dplyr::mutate(.row.id.temp = dplyr::row_number()) %>%
+          #   dplyr::inner_join(time_missed_df, by = c(time_var, grp_nm))
+          # time_missed_df[[int_nm]] <- time_seq_int[time_seq_missed_df[[".row.id.temp"]]]
+          # int_df <- dplyr::bind_rows(int_df, time_missed_df)
+          # int_df <- dplyr::arrange(int_df, across(all_of(c(grp_nm, time_var))))
+        # } else {
+        to_agg <- collapse::ffirst(ts_data[[to_nm]],
+                                   g = ts_data[[grp_nm]])
+        time_seq_data <- collapse::funique(time_expanded,
+                                           cols = c(grp_nm, time_var))
+        time_int <- time_seq_interval(time_seq_data[[time_var]],
+                                      to = to_agg,
+                                      g = time_seq_data[[grp_nm]])
+        int_df <- dplyr::tibble(!!time_var := time_seq_data[[time_var]],
+                                !!grp_nm := time_seq_data[[grp_nm]],
+                                !!int_nm := time_int)
+        # }
         out <- out %>%
           dplyr::left_join(int_df, by = c(grp_nm, time_var)) %>%
           dplyr::relocate(all_of(name),

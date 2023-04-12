@@ -132,6 +132,15 @@ testthat::test_that("Tests for time_countv", {
                        from = from, to = to, sort = TRUE, unique = TRUE,
                        use.names = TRUE,
                        include_interval = FALSE)
+  x <- flights2$time_hour
+  res <- time_countv(x, sort = FALSE, unique = TRUE, by = "2 weeks", include_interval = TRUE)
+  testthat::expect_equal(res$x,
+                         lubridate::int_start(res$interval))
+  res <- time_countv(x[c(1:100, 30000:35000, 100000:100001)],
+                         sort = TRUE, unique = FALSE, by = "week", include_interval = TRUE,
+                         floor_date = TRUE)
+  testthat::expect_equal(res$x,
+                         lubridate::int_start(res$interval))
 
 })
 
@@ -214,8 +223,15 @@ testthat::test_that("Tests for time_summarisev", {
     dplyr::tibble(x = time_span(x, by = "2 weeks", floor_date = TRUE)) %>%
       dplyr::mutate(interval = time_seq_interval(x, to = x_max))
   )
-  # res1 <-  time_summarisev(x, sort = FALSE, unique = FALSE,
-  #                          by = "2 weeks", include_interval = TRUE)
+
+  res <- time_summarisev(x, sort = FALSE, unique = TRUE, by = "2 weeks", include_interval = TRUE)
+  testthat::expect_equal(res$x,
+                         lubridate::int_start(res$interval))
+  res <- time_summarisev(x[c(1:100, 30000:35000, 100000:100001)],
+                         sort = TRUE, unique = FALSE, by = "week", include_interval = TRUE,
+                         floor_date = TRUE)
+  testthat::expect_equal(res$x,
+                         lubridate::int_start(res$interval))
 
 })
 

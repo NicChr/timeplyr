@@ -127,6 +127,21 @@ testthat::test_that("Compare to tidyr", {
     dplyr::tibble(n_hrs = c(3.11, 3.5),
                   n = c(1L, 14L))
   )
+  res42 <- flights %>%
+    dplyr::mutate(start = start1, end = lubridate::dmy(18112013)) %>%
+    time_count(time = time_hour, by = "13.5 hours", from = start, to = end, .by = c(origin, dest),
+               include_interval = TRUE)
+  testthat::expect_equal(res42$time_hour, lubridate::int_start(res42$interval))
+  res42 <- flights %>%
+    dplyr::mutate(start = start1, end = lubridate::dmy(18112013)) %>%
+    time_count(time = time_hour, by = "13.5 hours", from = start, to = end, .by = c(origin, dest),
+               include_interval = TRUE, floor_date = TRUE)
+  testthat::expect_equal(res42$time_hour, lubridate::int_start(res42$interval))
+  res42 <- flights %>%
+    dplyr::mutate(start = start1, end = lubridate::dmy(18112013)) %>%
+    time_count(origin, dest, time = time_hour, by = "17 hours", from = start, to = end,
+               include_interval = TRUE, floor_date = FALSE)
+  testthat::expect_equal(res42$time_hour, lubridate::int_start(res42$interval))
   # Pivotting wide
   testthat::expect_identical(
     flights %>%
@@ -267,3 +282,5 @@ testthat::test_that("Compare to tidyr", {
                                dplyr::arrange(time_hour, dest, origin))
 
 })
+# flights %>% time_count(time = time_hour, .by = c(origin, dest, tailnum), by = "730.5 hours",
+#                        seq_type = "dur", include_interval = TRUE)
