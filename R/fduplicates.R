@@ -74,7 +74,7 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
   # Groups
   # Add group ID for all groups
   grp_nm <- new_var_nm(names(out), ".group.id")
-  out[[grp_nm]] <- group_id(out, all_of(dup_vars), sort = TRUE)
+  out[[grp_nm]] <- group_id(out, all_of(dup_vars), order = TRUE)
   n_var_nm <- new_n_var_nm(names(out))
   out[[n_var_nm]] <- collapse::GRPN(out[[grp_nm]], expand = TRUE)
   out <- dplyr::filter(out, .data[[n_var_nm]] > 1)
@@ -131,10 +131,10 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
 #   # Groups
 #   grp_nm <- new_var_nm(names(out), ".group.id")
 #   out[, (grp_nm) := group_id(data, .by = {{ .by }},
-#                              sort = TRUE)]
+#                              order = TRUE)]
 #   # Add group ID for all groups
 #   grp_nm2 <- new_var_nm(c(names(out), grp_nm), ".group.id")
-#   out[, (grp_nm2) := group_id(out, all_of(dup_vars), sort = TRUE)]
+#   out[, (grp_nm2) := group_id(out, all_of(dup_vars), order = TRUE)]
 #
 #   n_var_nm <- new_n_var_nm(names(out))
 #   out[, (n_var_nm) := collapse::GRPN(get(grp_nm2), expand = TRUE)]

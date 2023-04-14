@@ -1,41 +1,19 @@
 #' A time based extension to `dplyr::mutate()`.
 #'
-#' @description Unlike the other `time_` functions,
-#' `time_summarise()` and `time_summarisev()` do \bold{not} fill
-#' missing gaps in time. They only summarise dates and datetimes to
-#' higher levels of aggregation.
-#' This works much the same as `dplyr::mutate()`, except that
+#' @description  This works much the same as `dplyr::mutate()`, except that
 #' you can supply an additional `time` argument to allow for
 #' aggregating time to a higher unit.
-#' Every expression is then grouped by your supplied groups + time.
-#' E.g., if you supply a date and specify `by = "week"`
-#' then time is aggregated up to the week level and then every expression is grouped by week.
-#' All `time_` functions build date/datetime sequences from the time start of each group by default.
-#'
-#' Unlike the other `time_` functions, this does \bold{not} support
-#' filling in missing gaps in time. Use `time_count()` or `time_complete()`
+
+#' Currently, this does \bold{not} support
+#' filling in missing gaps in time. \cr
+#' Use `time_count()` or `time_complete()`
 #' before using this if you believe there may be gaps in time.
-#' A good example of why this function might be useful can be seen when
-#' computing summary statistics when there are missing gaps in time.
-#' If you calculated the average number of hourly flights in
-#' the flights dataset, you might do `flights %>% count(time_hour) %>%
-#' summarise(avg = mean(n))` which would yield an answer of `48.6`
-#' If you instead did
-#' `flights %>% time_count(time = time_hour) %>% summarise(avg = mean(n))`
-#' Or equivalently
-#' `flights %>% time_count(time = time_hour) %>% time_summarise(avg = mean(n), time = time_hour, by = "year")`
-#' Or also
-#' `flights %>% fcount(time_hour) %>% time_complete(time = time_hour, fill = list(n = 0)) %>% summarise(avg = mean(n))`
-#' You wold get an answer of 38.5. Why the difference?
-#' The first answers the question: What was the average number of
-#' flights in any hour, for hours where there flights.
-#' The second answers our original question.
 #'
 #' @param data A data frame.
 #' @param ... Additional variables to include.
 #' `dplyr` "datamasking" semantics are used.
 #' @param time Time variable.
-#' @param by Argument to expand and summarise time series.
+#' @param by Time unit to summarise time series by.
 #' If `by` is `NULL` then a heuristic will try and estimate the highest
 #' order time unit associated with the time variable.
 #' If specified, then by must be one of the three:
@@ -122,7 +100,7 @@ time_mutate <- function(data, ..., time = NULL, by = NULL,
   # Add variable to keep track of group IDs
   grp_nm <- new_var_nm(out, ".group.id")
   out[, (grp_nm) := group_id(data, .by = {{ .by }},
-                             sort = TRUE, as_qg = FALSE)]
+                             order = TRUE, as_qg = FALSE)]
   int_nm <- new_var_nm(out, "interval")
   data.table::setorderv(out, cols = c(grp_nm, time_var))
   if (length(time_var) > 0L){

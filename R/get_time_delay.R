@@ -131,7 +131,7 @@ get_time_delay <- function(data, origin, end, by = "day",
   data.table::setDT(out)
   grp_nm <- new_var_nm(out, ".group.id")
   out[, (grp_nm) := group_id(data, .by = {{ .by }},
-                             sort = TRUE)]
+                             order = TRUE)]
   set_rm_cols(out, setdiff(names(out),
                            c(grp_nm, group_vars, start_time, end_time)))
   grp_df <- collapse::funique(out[, c(grp_nm, group_vars),

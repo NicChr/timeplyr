@@ -1,7 +1,7 @@
 testthat::test_that("Test grouped unique", {
 flights <- nycflights13::flights
 g1 <- group_id(flights, origin, dest)
-g2 <- group_id(flights, origin, dest, sort = FALSE)
+g2 <- group_id(flights, origin, dest, order = FALSE)
 
 
 testthat::expect_equal(gunique(numeric(0)),

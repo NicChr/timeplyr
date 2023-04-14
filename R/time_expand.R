@@ -133,7 +133,7 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
     # The reason we're sorting it here is because collapse::fmin()
     # Returns the minimum per sorted group.
     grp_nm <- new_var_nm(out, ".group.id")
-    out[, (grp_nm) := group_id(data, .by = {{ .by }}, sort = TRUE, as_qg = FALSE)]
+    out[, (grp_nm) := group_id(data, .by = {{ .by }}, order = TRUE, as_qg = FALSE)]
     # Sort by groups
     data.table::setorderv(out, cols = grp_nm)
     # Unique groups

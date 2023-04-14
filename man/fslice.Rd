@@ -2,9 +2,12 @@
 % Please edit documentation in R/fslice.R
 \name{fslice}
 \alias{fslice}
-\title{Much faster version of \code{dplyr::slice()} when there are lots of groups.}
+\alias{fslice_head}
+\title{Faster \code{dplyr::slice()}/\code{dplyr::slice_head()}}
 \usage{
 fslice(data, ..., .by = NULL)
+
+fslice_head(data, ..., n = 1, .by = NULL)
 }
 \arguments{
 \item{data}{Data frame}
@@ -13,9 +16,15 @@ fslice(data, ..., .by = NULL)
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
+
+\item{n}{Number of rows.}
 }
 \description{
-Much faster version of \code{dplyr::slice()} when there are lots of groups.
+When there are lots of groups, \code{fslice()} and \code{fslice_head()} are much faster than
+the dplyr equivalents.
+
+Unlike \code{dplyr}, \code{fslice()} and \code{fslice_head()} always return a sliced data frame in the same
+order it was given, similar to how \code{filter()} works.
 }
 \examples{
 library(timeplyr)

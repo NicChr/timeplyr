@@ -1,33 +1,31 @@
-#' A time based extension to `dplyr::summarise()`.
+#' A time based extension to `dplyr::summarise()`/`dplyr::reframe()`
 #'
-#' @description Unlike the other `time_` functions,
-#' `time_summarise()` and `time_summarisev()` do \bold{not} fill
-#' missing gaps in time. They only summarise dates and datetimes to
-#' higher levels of aggregation.
-#' This works much the same as `dplyr::summarise()`, except that
+#' @description This works much the same as `dplyr::summarise()`, except that
 #' you can supply an additional `time` argument to allow for
 #' aggregating time to a higher unit.
 #'
-#' Unlike the other `time_` functions, this does \bold{not} support
-#' filling in missing gaps in time. Use `time_count()` or `time_complete()`
+#' Currently, this does \bold{not} support
+#' filling in missing gaps in time. \cr
+#' Use `time_count()` or `time_complete()`
 #' before using this if you believe there may be gaps in time.
 #'
-#' A good example of why this function might be useful can be seen when
-#' computing summary statistics when there are missing gaps in time.
-#' If you calculated the average number of hourly flights in
-#' the flights dataset, you might do `flights %>% count(time_hour) %>%
-#' summarise(avg = mean(n))` which would yield an answer of `48.6`
-#' If you instead did
-#' `flights %>% time_count(time = time_hour) %>% summarise(avg = mean(n))`
-#' Or equivalently
-#' `flights %>% time_count(time = time_hour) %>% time_summarise(avg = mean(n), time = time_hour, by = "year")`
-#' Or also
-#' `flights %>% fcount(time_hour) %>% time_complete(time = time_hour, fill = list(n = 0)) %>% summarise(avg = mean(n))`
-#' You wold get an answer of 38.5. Why the difference?
-#' The first answers the question: What was the average number of
-#' flights in any hour, for hours where there flights.
-#' The second answers our original question.
-#'
+#' @param data A data frame.
+#' @param ... Additional variables to include.
+#' `dplyr` "datamasking" semantics are used.
+#' @param time Time variable.
+#' @param by Time unit to summarise time series by.
+#' If `by` is `NULL` then a heuristic will try and estimate the highest
+#' order time unit associated with the time variable.
+#' If specified, then by must be one of the three:
+#' * string, specifying either the unit or the number and unit, e.g
+#' `by = "days"` or `by = "2 weeks"`
+#' * named list of length one, the unit being the name, and
+#' the number the value of the list, e.g. `list("days" = 7)`.
+#' For the vectorized time functions, you can supply multiple values,
+#' e.g. `list("days" = 1:10)`.
+#' * Numeric vector. If by is a numeric vector and x is not a date/datetime,
+#' then arithmetic is used, e.g `by = 1`.
+#' This is also vectorized where applicable.
 #' @param data A data frame.
 #' @param ... Additional variables to include.
 #' `dplyr` "datamasking" semantics are used.
@@ -141,14 +139,15 @@ time_summarise <- function(data, ..., time = NULL, by = NULL,
 #' @rdname time_summarise
 #' @export
 time_reframe <- function(data, ..., time = NULL, by = NULL,
-                           from = NULL, to = NULL,
-                           seq_type = c("auto", "duration", "period"),
-                           include_interval = FALSE,
-                           .by = NULL,
-                           keep_class = TRUE,
-                           floor_date = FALSE,
-                           week_start = getOption("lubridate.week.start", 1),
-                           roll_month = "preday", roll_dst = "pre"){
+                         from = NULL, to = NULL,
+                         seq_type = c("auto", "duration", "period"),
+                         include_interval = FALSE,
+                         .by = NULL,
+                         keep_class = TRUE,
+                         floor_date = FALSE,
+                         week_start = getOption("lubridate.week.start", 1),
+                         roll_month = "preday", roll_dst = "pre",
+                         sort = TRUE){
   group_vars <- get_groups(data, {{ .by }})
   int_nm <- new_var_nm(data, "interval")
   out <- time_mutate(data, time = !!enquo(time),
@@ -163,7 +162,7 @@ time_reframe <- function(data, ..., time = NULL, by = NULL,
                      floor_date = floor_date,
                      week_start = week_start,
                      roll_month = roll_month, roll_dst = roll_dst,
-                     sort = TRUE)
+                     sort = sort)
   time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
   out <- dplyr_summarise(out, !!!enquos(...), .by = dplyr::any_of(c(group_vars, time_var, int_nm)))
   if (keep_class) out <- df_reconstruct(out, safe_ungroup(data))

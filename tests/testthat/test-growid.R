@@ -1,9 +1,9 @@
 testthat::test_that("Testing growid", {
   flights <- dplyr::select(nycflights13::flights, origin, dest)
   g1 <- group_id(flights, origin, dest)
-  g2 <- group_id(flights, origin, dest, sort = FALSE)
-  g3 <- group_id(flights, origin, dest, sort = FALSE, as_qg = TRUE)
-  g4 <- group_id(flights, origin, dest, sort = TRUE, as_qg = TRUE)
+  g2 <- group_id(flights, origin, dest, order = FALSE)
+  g3 <- group_id(flights, origin, dest, order = FALSE, as_qg = TRUE)
+  g4 <- group_id(flights, origin, dest, order = TRUE, as_qg = TRUE)
   g5 <- collapse::GRP(g1, sort = TRUE)
   g6 <- collapse::GRP(g1, sort = FALSE)
   g7 <- collapse::GRP(g2, sort = TRUE)

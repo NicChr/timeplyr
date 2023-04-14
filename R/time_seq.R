@@ -442,7 +442,7 @@ period_seq_v <- function(from, to, units, num = 1,
   period_df[, ("row_id") := seq_len(.N)]
   # We want to eliminate unnecessary grouped calculations
   # To do so we need to collapse identical groups and just repeat their sequences based on number of duplicates
-  period_df[, ("g") := group_id.default(mget(c("from", "num", "seq_len")), sort = FALSE)]
+  period_df[, ("g") := group_id.default(mget(c("from", "num", "seq_len")), order = FALSE)]
   period_df[, ("n") := collapse::GRPN(get("g"), expand = TRUE)]
 
   # It's important the result is properly ordered

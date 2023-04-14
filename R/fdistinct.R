@@ -34,7 +34,7 @@ fdistinct <- function(data, ..., .keep_all = FALSE, .by = NULL){
   out <- collapse::fselect(out, out_vars)
   # out <- fslice(out, vctrs::vec_unique_loc(collapse::fselect(out, dup_vars)))
   g <- group_id(out, all_of(dup_vars),
-                 sort = TRUE,
+                 order = TRUE,
                  as_qg = FALSE)
   out <- dplyr::filter(out, !collapse::fduplicated(g))
   df_reconstruct(out, data)

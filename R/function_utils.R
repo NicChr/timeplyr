@@ -73,13 +73,18 @@ lump_categories <- function(x, n = 10, factor = TRUE,
   }
   y
 }
-# N unique with efficient na.rm
+# Memory efficient n unique
 n_unique <- function(x, na.rm = FALSE){
-  out <- collapse::fnunique(x)
-  if (na.rm && length(collapse::whichNA(x)) > 0L){
-    out <- out - 1L
+  if (lubridate::is.interval(x)){
+    dplyr::n_distinct(x, na.rm = na.rm)
+  } else {
+    collapse::fndistinct(x, na.rm = na.rm)
   }
-  out
+  # out <- collapse::fnunique(x)
+  # if (na.rm && length(collapse::whichNA(x)) > 0L){
+  #   out <- out - 1L
+  # }
+  # out
 }
 
 is_length_one <- function(x){
@@ -316,6 +321,30 @@ top_n <- function(x, n, na.rm = FALSE, with_ties = TRUE, sort = TRUE){
   }
   out
 }
+
+# Slightly faster dplyr::group_vars
+group_vars <- function(x){
+  if (!inherits(x, "grouped_df") && is_df(x)){
+    character(0)
+  } else {
+    dplyr::group_vars(x)
+  }
+}
+# This function returns the groups of a data frame
+get_groups <- function(data, .by = NULL){
+  dplyr_groups <- group_vars(data)
+  if (rlang::quo_is_null(enquo(.by))){
+    by_groups <- NULL
+  } else {
+    by_groups <- tidy_select_names(data, {{ .by }})
+  }
+  if (length(by_groups) > 0L){
+    if (length(dplyr_groups) > 0L) stop(".by cannot be used on a grouped_df")
+    by_groups
+  } else {
+    dplyr_groups
+  }
+}
 # This function is for functions like count() where extra groups need
 # to be created
 get_group_info <- function(data, ..., type = c("select", "data-mask"),
@@ -337,21 +366,6 @@ get_group_info <- function(data, ..., type = c("select", "data-mask"),
   list("dplyr_groups" = group_vars,
        "extra_groups" = extra_groups,
        "all_groups" = all_groups)
-}
-# This function returns the groups of a data frame
-get_groups <- function(data, .by = NULL){
-  dplyr_groups <- group_vars(data)
-  if (rlang::quo_is_null(enquo(.by))){
-    by_groups <- NULL
-  } else {
-    by_groups <- tidy_select_names(data, {{ .by }})
-  }
-  if (length(by_groups) > 0L){
-    if (length(dplyr_groups) > 0L) stop(".by cannot be used on a grouped_df")
-    by_groups
-  } else {
-    dplyr_groups
-  }
 }
 
 # A collapse version of dplyr_reconstruct,
@@ -383,7 +397,7 @@ df_reconstruct <- function(data, template){
         grp_nm <- new_var_nm(out_groups, "g")
         groups <- collapse::fselect(safe_ungroup(data), out_groups)
         g <- group_id.default(groups,
-                      sort = TRUE, as_qg = FALSE)
+                      order = TRUE, as_qg = FALSE)
         groups <- groups %>%
           dplyr::mutate(!!grp_nm := g) %>%
           dplyr::distinct(across(all_of(grp_nm)), .keep_all = TRUE) %>%
@@ -513,7 +527,7 @@ ffactor <- function(x, levels = NULL, ordered = FALSE, na.exclude = TRUE){
 # Sort controls whether or not the data frame gets sorted by
 # the group, not if the group is itself sorted, which in this case
 # it always is
-unique_groups <- function(data, ..., sort = TRUE,
+unique_groups <- function(data, ..., order = sort, sort = TRUE,
                           .by = NULL, .group_id = TRUE){
   group_vars <- get_groups(data, {{ .by }})
   extra_vars <- tidy_select_names(data, !!!enquos(...))
@@ -522,7 +536,7 @@ unique_groups <- function(data, ..., sort = TRUE,
   out <- data %>%
     dplyr::select(all_of(group_vars), !!!enquos(...)) %>%
     add_group_id(all_of(extra_vars),
-                 sort = TRUE,
+                 order = order,
                  .by = {{ .by }}, as_qg = FALSE,
                  .name = grp_nm)
   out <- out[!collapse::fduplicated(out[[grp_nm]], all = FALSE), , drop = FALSE]
@@ -614,17 +628,7 @@ drop_leading_zeros <- function(x, sep = "."){
   pattern <- paste0("^([^[:digit:]]{0,})0{1,}\\", sep, "{1}")
   sub(pattern, paste0("\\1", sep), x, perl = TRUE)
 }
-# Check if data has lubridate interval
-has_interval <- function(data, quiet = FALSE){
-  out <- any(purrr::map_lgl(data, lubridate::is.interval))
-  if (out && !quiet){
-    message("A variable of class 'interval' exists.
-    The grouping will be done using 'dplyr' until the issue is fixed.
-            You can report the issue at
-            https://github.com/SebKrantz/collapse/issues")
-  }
-  out
-}
+
 # A wrapper around sample to account for length 1 vectors.
 # This is a well known problem (and solution)
 sample2 <- function(x, size = length(x), replace = FALSE, prob = NULL){

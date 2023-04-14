@@ -200,7 +200,7 @@ time_count <- function(data, ..., time = NULL, by = NULL,
   data.table::setDT(ts_data)
   # Add variable to keep track of group IDs
   grp_nm <- new_var_nm(ts_data, ".group.id")
-  ts_data[, (grp_nm) := group_id(data, sort = TRUE,
+  ts_data[, (grp_nm) := group_id(data, order = TRUE,
                                  as_qg = FALSE,
                                  .by = {{ .by }})]
   # Order by group vars - time var - additional group vars

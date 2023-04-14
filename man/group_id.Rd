@@ -3,20 +3,39 @@
 \name{group_id}
 \alias{group_id}
 \alias{add_group_id}
+\alias{group_loc}
 \title{Fast group IDs}
 \usage{
-group_id(data, ..., sort = TRUE, .by = NULL, .name = NULL, as_qg = FALSE)
+group_id(
+  data,
+  ...,
+  order = sort,
+  .by = NULL,
+  .name = NULL,
+  as_qg = FALSE,
+  sort = TRUE
+)
 
-add_group_id(data, ..., sort = TRUE, .by = NULL, .name = NULL, as_qg = FALSE)
+add_group_id(
+  data,
+  ...,
+  order = sort,
+  .by = NULL,
+  .name = NULL,
+  as_qg = FALSE,
+  sort = TRUE
+)
+
+group_loc(data, ..., order = TRUE, .by = NULL, sort = FALSE)
 }
 \arguments{
 \item{data}{A data frame or vector.}
 
 \item{...}{Additional groups using tidy select notation.}
 
-\item{sort}{Should the order of the groups be retained?
-The input of the data is never changed but if sort is
-\code{TRUE} (the default) then the order of the group IDs will be sorted.
+\item{order}{Should the groups be ordered?
+\bold{THE PHYSICAL ORDER OF THE DATA IS NOT CHANGED.} \cr
+When order is \code{TRUE} (the default) the group IDs will be ordered but not sorted.
 If \code{FALSE} the order of the group IDs will be based on first appearance.}
 
 \item{.by}{Alternative way of supplying groups using tidy
@@ -30,16 +49,18 @@ and if one already exists, a unique name will be used.}
 \item{as_qg}{Should the group IDs be returned as a
 collapse "qG" class? The default (\code{FALSE}) always returns
 an integer vector.}
+
+\item{sort}{Should the data frame be sorted by the groups? \cr
+This is only applicable to \code{group_loc()}. \cr
+For \code{group_id()} this should \bold{NOT BE USED} and is currently being deprecated,
+use \code{order} instead.}
 }
 \description{
-This is an extension to \code{dplyr::group_indices()} to allow for additional
-groups. \cr
-\code{group_id()} returns an integer vector of group IDs and
-\code{add_group_id()} adds an integer column of group IDs.
-dplyr group indices are returned by default unless additional
-groups are specified through \code{...} and/or \code{.by}.
-It's very fast and takes significantly less memory
-than using \code{dplyr::group_by()} and \code{group_indices()}.
+\itemize{
+\item \code{group_id()} returns an integer vector of group IDs.
+\item \code{add_group_id()} adds an integer column of group IDs.
+\item \code{group_loc()} returns a data frame of group locations in the data.
+}
 }
 \examples{
 library(timeplyr)
@@ -63,8 +84,8 @@ mm_mpg <- mpg \%>\%
 # Sorted/non-sorted groups
 mm_mpg \%>\%
   add_group_id(everything(),
-               .name = "sorted_id", sort = TRUE) \%>\%
+               .name = "sorted_id", order = TRUE) \%>\%
   add_group_id(manufacturer, model,
-               .name = "not_sorted_id", sort = FALSE) \%>\%
+               .name = "not_sorted_id", order = FALSE) \%>\%
   distinct()
 }

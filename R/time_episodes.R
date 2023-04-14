@@ -101,7 +101,7 @@ time_episodes <- function(data, ..., time, window,
   # Create grouped ID variable
   grp_nm <- new_var_nm(out, ".group")
   out[, (grp_nm) := group_id(data, all_of(extra_groups), .by = {{ .by }},
-                             sort = TRUE, as_qg = FALSE)]
+                             order = TRUE, as_qg = FALSE)]
   # Sort by groups > case ID > date col
   data.table::setorderv(out, cols = c(grp_nm, time_col), na.last = TRUE)
   g <- collapse::GRP(out[[grp_nm]], sort = TRUE, call = FALSE, return.groups = FALSE)

@@ -31,7 +31,7 @@ time_mutate(
 
 \item{time}{Time variable.}
 
-\item{by}{Argument to expand and summarise time series.
+\item{by}{Time unit to summarise time series by.
 If \code{by} is \code{NULL} then a heuristic will try and estimate the highest
 order time unit associated with the time variable.
 If specified, then by must be one of the three:
@@ -87,35 +87,13 @@ See \code{?timechange::time_add} for more details.}
 order is kept. The sorting only applies to groups and time variable.}
 }
 \description{
-Unlike the other \code{time_} functions,
-\code{time_summarise()} and \code{time_summarisev()} do \bold{not} fill
-missing gaps in time. They only summarise dates and datetimes to
-higher levels of aggregation.
 This works much the same as \code{dplyr::mutate()}, except that
 you can supply an additional \code{time} argument to allow for
 aggregating time to a higher unit.
-Every expression is then grouped by your supplied groups + time.
-E.g., if you supply a date and specify \code{by = "week"}
-then time is aggregated up to the week level and then every expression is grouped by week.
-All \code{time_} functions build date/datetime sequences from the time start of each group by default.
-
-Unlike the other \code{time_} functions, this does \bold{not} support
-filling in missing gaps in time. Use \code{time_count()} or \code{time_complete()}
+Currently, this does \bold{not} support
+filling in missing gaps in time. \cr
+Use \code{time_count()} or \code{time_complete()}
 before using this if you believe there may be gaps in time.
-A good example of why this function might be useful can be seen when
-computing summary statistics when there are missing gaps in time.
-If you calculated the average number of hourly flights in
-the flights dataset, you might do \code{flights \%>\% count(time_hour) \%>\% summarise(avg = mean(n))} which would yield an answer of \code{48.6}
-If you instead did
-\code{flights \%>\% time_count(time = time_hour) \%>\% summarise(avg = mean(n))}
-Or equivalently
-\code{flights \%>\% time_count(time = time_hour) \%>\% time_summarise(avg = mean(n), time = time_hour, by = "year")}
-Or also
-\code{flights \%>\% fcount(time_hour) \%>\% time_complete(time = time_hour, fill = list(n = 0)) \%>\% summarise(avg = mean(n))}
-You wold get an answer of 38.5. Why the difference?
-The first answers the question: What was the average number of
-flights in any hour, for hours where there flights.
-The second answers our original question.
 }
 \examples{
 library(timeplyr)

@@ -15,7 +15,7 @@ unit_list_match <- function(l){
   if (is.na(unit)) unit_match_stop()
   if (length(unit) == 0L) stop("unit list must be named")
   num <- l[[1L]]
-  scale <- 1
+  scale <- 1L
   if (unit %in% .extra_time_units){
     exotic_info <- convert_exotic_units(unit)
     scale <- exotic_info[["scale"]]
@@ -858,4 +858,20 @@ as_yearmon <- function(x){
     }
     structure(floor(12 * as.double(x) + 1e-04)/12, class = "yearmon")
   }
+}
+is_interval <- function(x){
+  inherits(x, "Interval")
+}
+# Check if data has lubridate interval
+has_interval <- function(data, quiet = FALSE){
+  # out <- any(purrr::map_lgl(data, lubridate::is.interval))
+  out <- any(vapply(data, FUN = is_interval,
+                    FUN.VALUE = logical(1)))
+  if (out && !quiet){
+    message("A variable of class 'interval' exists.
+    The grouping will be done using 'dplyr' until the issue is fixed.
+            You can report the issue at
+            https://github.com/SebKrantz/collapse/issues")
+  }
+  out
 }

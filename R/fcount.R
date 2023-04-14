@@ -46,7 +46,6 @@
 #' @importFrom data.table .N
 #' @importFrom data.table .SD
 #' @importFrom dplyr .data
-#' @importFrom dplyr group_vars
 #' @importFrom dplyr across
 #' @importFrom dplyr all_of
 #' @importFrom rlang enquo
@@ -77,7 +76,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   grp_nm <- new_var_nm(c(group_vars, data_vars), ".group.id")
   out <- out %>%
     add_group_id(all_of(all_vars),
-                 sort = TRUE,
+                 order = TRUE,
                  as_qg = TRUE,
                  .name = grp_nm) %>%
     collapse::fselect(c(grp_nm, group_vars, data_vars))
@@ -147,7 +146,7 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   group_vars <- group_info[["dplyr_groups"]]
   all_vars <- group_info[["all_groups"]]
 
-  group_id <- group_id(out, all_of(all_vars), sort = TRUE,
+  group_id <- group_id(out, all_of(all_vars), order = TRUE,
                        as_qg = TRUE)
   if (is.null(name)) name <- new_n_var_nm(out)
   if (length(wt_var) > 0L){
