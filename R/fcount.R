@@ -107,7 +107,8 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                                       fill = 0, nan = NaN)
   }
   if (sort){
-    out <- out[radix_order(out[[name]], decreasing = TRUE), , drop = FALSE]
+    out <- df_row_slice(out, radix_order(out[[name]], decreasing = TRUE))
+    # out <- out[radix_order(out[[name]], decreasing = TRUE), , drop = FALSE]
   }
   # Set row.names attr
   out[[grp_nm]] <- NULL
@@ -164,7 +165,9 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   }
   out[[name]] <- nobs
   if (sort){
-    out <- out[radix_order(out[[name]], decreasing = TRUE), , drop = FALSE]
+    out <- df_row_slice(out, radix_order(out[[name]],
+                                         decreasing = TRUE),
+                        reconstruct = FALSE)
   }
   df_reconstruct(out, data)
 }

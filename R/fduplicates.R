@@ -77,12 +77,14 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
   out[[grp_nm]] <- group_id(out, all_of(dup_vars), order = TRUE)
   n_var_nm <- new_n_var_nm(names(out))
   out[[n_var_nm]] <- collapse::GRPN(out[[grp_nm]], expand = TRUE)
-  out <- dplyr::filter(out, .data[[n_var_nm]] > 1)
+  # out <- dplyr::filter(out, .data[[n_var_nm]] > 1)
+  out <- df_row_slice(out, which(out[[n_var_nm]] > 1))
   if (!.add_count) out[[n_var_nm]] <- NULL
   if (.add_count) out_vars <- c(out_vars, n_var_nm)
   if (!.both_ways){
-    out <- dplyr::filter(out, collapse::fduplicated(.data[[grp_nm]],
-                                                    all = FALSE))
+    out <- df_row_slice(out, which(collapse::fduplicated(out[[grp_nm]], all = FALSE)))
+    # out <- dplyr::filter(out, collapse::fduplicated(.data[[grp_nm]],
+    #                                                 all = FALSE))
   }
   # Remove empty rows (rows with all NA values)
   if (!.keep_na){
@@ -93,67 +95,6 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
   out[[grp_nm]] <- NULL
   df_reconstruct(out, data)
 }
-# fduplicates <- function(data, ..., .keep_all = FALSE,
-#                         .both_ways = FALSE, .add_count = FALSE,
-#                         .keep_na = TRUE, .by = NULL){
-#   n_dots <- dots_length(...)
-#   out <- safe_ungroup(data)
-#   if (n_dots > 0){
-#     out <- dplyr::mutate(out, !!!enquos(...))
-#   }
-#   group_info <- get_group_info(data, !!!enquos(...), type = "data-mask",
-#                                .by = {{ .by }})
-#   group_vars <- group_info[["dplyr_groups"]]
-#   extra_groups <- group_info[["extra_groups"]]
-#   all_groups <- group_info[["all_groups"]]
-#   # # Coerce to DT
-#   out_nms <- names(out)
-#   # out <- data.table::copy(out)
-#   # data.table::setDT(out)
-#   # If no variables selected then all variables used
-#   if (dots_length(...) == 0L){
-#     dup_vars <- out_nms
-#     out_vars <- dup_vars
-#   } else {
-#     dup_vars <- all_groups
-#     if (.keep_all){
-#       out_vars <- out_nms
-#     } else {
-#       out_vars <- dup_vars
-#     }
-#   }
-#   # # Remove uneccessary cols
-#   # set_rm_cols(out, setdiff(names(out), out_vars))
-#   # Coerce to DT
-#   out <- data.table::copy(dplyr::select(out, all_of(out_vars)))
-#   data.table::setDT(out)
-#   data.table::setcolorder(out, out_vars)
-#   # Groups
-#   grp_nm <- new_var_nm(names(out), ".group.id")
-#   out[, (grp_nm) := group_id(data, .by = {{ .by }},
-#                              order = TRUE)]
-#   # Add group ID for all groups
-#   grp_nm2 <- new_var_nm(c(names(out), grp_nm), ".group.id")
-#   out[, (grp_nm2) := group_id(out, all_of(dup_vars), order = TRUE)]
-#
-#   n_var_nm <- new_n_var_nm(names(out))
-#   out[, (n_var_nm) := collapse::GRPN(get(grp_nm2), expand = TRUE)]
-#   out <- out[get(n_var_nm) > 1, ]
-#   if (!.add_count) out[, (n_var_nm) := NULL]
-#   if (.add_count) out_vars <- c(out_vars, n_var_nm)
-#   if (!.both_ways){
-#     out <- out[collapse::fduplicated(get(grp_nm2), all = FALSE), ]
-#   }
-#   # Remove empty rows (rows with all NA values)
-#   if (!.keep_na){
-#     out <- out %>%
-#       dplyr::filter(!dplyr::if_all(.cols = all_of(dup_vars), is.na))
-#   }
-#   # Remove added group id cols
-#   set_rm_cols(out, c(grp_nm, grp_nm2))
-#   df_reconstruct(out, data)
-# }
-# dplyr version.
 #' @rdname fduplicates
 #' @export
 fduplicates2 <- function(data, ..., .keep_all = FALSE,

@@ -127,11 +127,11 @@ testthat::test_that("Group IDs", {
   testthat::expect_equal(GRP2(safe_ungroup(df), by = "x", sort = TRUE)$group.id,
                          res)
 
-  testthat::expect_equal(nrow(group_loc(x)),
+  testthat::expect_equal(nrow(group_collapse(x)),
                          61)
-  testthat::expect_equal(nrow(group_loc(df)),
+  testthat::expect_equal(nrow(group_collapse(df)),
                          61)
-  testthat::expect_equal(nrow(group_loc(safe_ungroup(df), x)),
+  testthat::expect_equal(nrow(group_collapse(safe_ungroup(df), x)),
                          61)
 })
 testthat::test_that("Adding group IDs", {
@@ -164,42 +164,42 @@ testthat::test_that("Group locs", {
   flights <- nycflights13::flights
   base1 <- iris %>%
     dplyr::group_data() %>%
-    dplyr::mutate(group_id = 1L)
+    dplyr::mutate(.group = 1L)
   base2 <- flights %>%
-    add_group_id(origin, dest, order = TRUE) %>%
-    dplyr::pull(group_id) %>%
+    add_group_id(origin, dest, order = TRUE, .name = ".group") %>%
+    dplyr::pull(.group) %>%
     vctrs::vec_group_loc() %>%
     dplyr::as_tibble() %>%
     dplyr::mutate(loc = vctrs::as_list_of(loc, .ptype = integer(0))) %>%
-    dplyr::rename(group_id = key,
+    dplyr::rename(.group = key,
                   .rows = loc)
   base3 <- flights %>%
     dplyr::group_by(origin, dest) %>%
     dplyr::group_data() %>%
-    dplyr::mutate(group_id = growid(., NULL))
+    dplyr::mutate(.group = growid(., NULL))
   base4 <- base2 %>%
-    dplyr::mutate(group_id = seq_len(nrow(base2)))
+    dplyr::mutate(.group = seq_len(nrow(base2)))
   base5 <- base4
   res1 <- iris %>%
-    group_loc()
+    group_collapse()
   res2 <- flights %>%
-    group_loc(origin, dest, sort = FALSE, order = TRUE)
+    group_collapse(origin, dest, sort = FALSE, order = TRUE)
   res3 <- flights %>%
-    group_loc(origin, dest, sort = TRUE, order = TRUE)
+    group_collapse(origin, dest, sort = TRUE, order = TRUE)
   res4 <- flights %>%
-    group_loc(origin, dest, sort = TRUE, order = FALSE)
+    group_collapse(origin, dest, sort = TRUE, order = FALSE)
   res5 <- flights %>%
-    group_loc(origin, dest, sort = FALSE, order = FALSE)
+    group_collapse(origin, dest, sort = FALSE, order = FALSE)
 
-  testthat::expect_equal(base1$.rows, res1$.rows)
-  testthat::expect_equal(base1$group_id, res1$group_id)
-  testthat::expect_equal(base2$.rows, res2$.rows)
-  testthat::expect_equal(base2$group_id, res2$group_id)
-  testthat::expect_equal(base3$.rows, res3$.rows)
-  testthat::expect_equal(base3$group_id, res3$group_id)
-  testthat::expect_equal(base4$.rows, res4$.rows)
-  testthat::expect_equal(base4$group_id, res4$group_id)
-  testthat::expect_equal(base5$.rows, res5$.rows)
-  testthat::expect_equal(base5$group_id, res5$group_id)
+  testthat::expect_equal(base1$.rows, res1$.loc)
+  testthat::expect_equal(base1$.group, res1$.group)
+  testthat::expect_equal(base2$.rows, res2$.loc)
+  testthat::expect_equal(base2$.group, res2$.group)
+  testthat::expect_equal(base3$.rows, res3$.loc)
+  testthat::expect_equal(base3$.group, res3$.group)
+  testthat::expect_equal(base4$.rows, res4$.loc)
+  testthat::expect_equal(base4$.group, res4$.group)
+  testthat::expect_equal(base5$.rows, res5$.loc)
+  testthat::expect_equal(base5$.group, res5$.group)
 
 })

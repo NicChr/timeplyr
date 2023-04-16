@@ -254,7 +254,8 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
   if (nrow2(df) == 0L){
     out <- do.call(CJ, args = c(X_other, list(sorted = FALSE, unique = FALSE)))
   } else {
-    out <- df[rep(grp_seq, each = n_other), , drop = FALSE]
+    out <- df_row_slice(df, rep(grp_seq, each = n_other))
+    # out <- df[rep(grp_seq, each = n_other), , drop = FALSE]
     if (length(X_other) > 0L){
       rep_times <- nrow2(out) / collapse::vlengths(X_other, use.names = FALSE)
       for (i in seq_along(X_other)){

@@ -71,7 +71,7 @@ edf <- function(x, g = NULL, wt = NULL){
         wt <- wt[x_order]
         if (n_na > 0) wt <- wt[seq_len(nx - n_na)]
       }
-      g <- collapse::group(x, group.sizes = TRUE)
+      g <- group2(x, group.sizes = TRUE)
       times <- attr(g, "group.sizes")
       # times <- collapse::GRPN(g, expand = FALSE)
       grpn <- collapse::fsum(wt, g = g, use.g.names = FALSE)

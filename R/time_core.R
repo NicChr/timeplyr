@@ -193,7 +193,8 @@ time_summarisev <- function(x, by = NULL, from = NULL, to = NULL,
       out <- fdistinct(out, .data[["x"]], .keep_all = TRUE)
       # out <- gunique(out, g = out[["x"]])
     }
-    if (sort) out <- out[radix_order(out[["x"]]), , drop = FALSE]
+    # if (sort) out <- out[radix_order(out[["x"]]), , drop = FALSE]
+    if (sort) out <- df_row_slice(out, radix_order(out[["x"]]))
     if (!lubridate::is.interval(time_int)){
       attr(out[["interval"]], "start") <- out[["x"]]
     }
@@ -289,7 +290,8 @@ time_countv <- function(x, by = NULL, from = NULL, to = NULL,
       # out <- gunique(out, g = out[["x"]])
     }
     if (sort){
-      out <- out[radix_order(out[["x"]]), , drop = FALSE]
+      if (sort) out <- df_row_slice(out, radix_order(out[["x"]]))
+      # out <- out[radix_order(out[["x"]]), , drop = FALSE]
     }
     if (!lubridate::is.interval(out[["interval"]])){
       attr(out[["interval"]], "start") <- out[["x"]]

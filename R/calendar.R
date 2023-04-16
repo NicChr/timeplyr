@@ -97,13 +97,21 @@ calendar <- function(x, label = TRUE,
 add_calendar <- function(data, time = NULL, label = TRUE,
                          week_start = getOption("lubridate.week.start", 1),
                          fiscal_start = getOption("lubridate.fiscal.start", 1)){
-  data <- dplyr::mutate(data, !!enquo(time))
-  time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
-  if (length(time_var) > 0){
-    calendar <- calendar(data[[time_var]], label = label, week_start = week_start,
-                         fiscal_start = fiscal_start)[, -1, drop = FALSE]
-    data <- tbl_append2(data, calendar, suffix = ".y", quiet = FALSE)
+  if (rlang::quo_is_null(enquo(time))){
+    time_vars <- tidy_select_names(data, dplyr::where(is_time))
+    if (length(time_vars) == 0) {
+      stop("Please specify a time variable")
+    } else {
+      time_var <- time_vars[[1L]]
+      message(paste0("Using ", time_var))
+    }
+  } else {
+    data <- dplyr::mutate(data, !!enquo(time))
+    time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
   }
+  calendar <- calendar(data[[time_var]], label = label, week_start = week_start,
+                       fiscal_start = fiscal_start)[, -1, drop = FALSE]
+  data <- tbl_append2(data, calendar, suffix = ".y", quiet = FALSE)
   data
 }
 #' @rdname calendar

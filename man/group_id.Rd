@@ -3,30 +3,17 @@
 \name{group_id}
 \alias{group_id}
 \alias{add_group_id}
-\alias{group_loc}
+\alias{row_id}
+\alias{add_row_id}
 \title{Fast group IDs}
 \usage{
-group_id(
-  data,
-  ...,
-  order = sort,
-  .by = NULL,
-  .name = NULL,
-  as_qg = FALSE,
-  sort = TRUE
-)
+group_id(data, ..., order = TRUE, .by = NULL, as_qg = FALSE)
 
-add_group_id(
-  data,
-  ...,
-  order = sort,
-  .by = NULL,
-  .name = NULL,
-  as_qg = FALSE,
-  sort = TRUE
-)
+add_group_id(data, ..., order = TRUE, .by = NULL, .name = NULL, as_qg = FALSE)
 
-group_loc(data, ..., order = TRUE, .by = NULL, sort = FALSE)
+row_id(data, ..., .by = NULL)
+
+add_row_id(data, ..., .by = NULL, .name = NULL)
 }
 \arguments{
 \item{data}{A data frame or vector.}
@@ -41,25 +28,21 @@ If \code{FALSE} the order of the group IDs will be based on first appearance.}
 \item{.by}{Alternative way of supplying groups using tidy
 select notation. This is kept to be consistent with other functions.}
 
-\item{.name}{Name of the added group ID column which should be a
-character vector of length 1.
-If \code{NULL} then a column named "group_id" will be added,
-and if one already exists, a unique name will be used.}
-
 \item{as_qg}{Should the group IDs be returned as a
 collapse "qG" class? The default (\code{FALSE}) always returns
 an integer vector.}
 
-\item{sort}{Should the data frame be sorted by the groups? \cr
-This is only applicable to \code{group_loc()}. \cr
-For \code{group_id()} this should \bold{NOT BE USED} and is currently being deprecated,
-use \code{order} instead.}
+\item{.name}{Name of the added group ID column which should be a
+character vector of length 1.
+If \code{NULL} then a column named "group_id" will be added,
+and if one already exists, a unique name will be used.}
 }
 \description{
 \itemize{
-\item \code{group_id()} returns an integer vector of group IDs.
+\item \code{group_id()} returns an integer vector of group IDs the same size as the data.
 \item \code{add_group_id()} adds an integer column of group IDs.
-\item \code{group_loc()} returns a data frame of group locations in the data.
+\item \code{row_id()} returns an integer vector of row IDs.
+\item \code{add_row_id()} adds an integer column of row IDs.
 }
 }
 \examples{

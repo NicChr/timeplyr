@@ -240,7 +240,8 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
       if (length(intersect(group_vars, expanded_nms)) == 0L){
         out_n <- nrow2(out)
         expanded_n <- nrow2(expanded_df)
-        out <- out[rep(seq_len(out_n), each = expanded_n), , drop = FALSE]
+        out <- df_row_slice(out, rep(seq_len(out_n), each = expanded_n))
+        # out <- out[rep(seq_len(out_n), each = expanded_n), , drop = FALSE]
         for (i in seq_len(length(expanded_nms))){
           out[, (expanded_nms[i]) := rep(expanded_df[[expanded_nms[i]]], out_n)][]
         }

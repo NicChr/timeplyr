@@ -3,11 +3,40 @@
 \name{fslice}
 \alias{fslice}
 \alias{fslice_head}
-\title{Faster \code{dplyr::slice()}/\code{dplyr::slice_head()}}
+\alias{fslice_tail}
+\alias{fslice_sample}
+\title{Faster \code{dplyr::slice()}}
 \usage{
-fslice(data, ..., .by = NULL)
+fslice(data, ..., .by = NULL, keep_order = FALSE, sort_groups = TRUE)
 
-fslice_head(data, ..., n = 1, .by = NULL)
+fslice_head(
+  data,
+  ...,
+  n = 1,
+  .by = NULL,
+  keep_order = FALSE,
+  sort_groups = TRUE
+)
+
+fslice_tail(
+  data,
+  ...,
+  n = 1,
+  .by = NULL,
+  keep_order = FALSE,
+  sort_groups = TRUE
+)
+
+fslice_sample(
+  data,
+  ...,
+  n,
+  .by = NULL,
+  keep_order = FALSE,
+  sort_groups = TRUE,
+  replace = FALSE,
+  seed = NULL
+)
 }
 \arguments{
 \item{data}{Data frame}
@@ -17,14 +46,35 @@ fslice_head(data, ..., n = 1, .by = NULL)
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
 
+\item{keep_order}{Should the sliced data frame be returned in its original order?
+The default is \code{FALSE}.}
+
+\item{sort_groups}{If \code{TRUE} (the default) the by-group slices will be
+done in order of the sorted groups.
+If \code{FALSE} the group order is determined by first-appearance in the data.}
+
 \item{n}{Number of rows.}
+
+\item{replace}{Should \code{slice_sample()} sample with or without replacement?
+Default is \code{FALSE}, without replacement.}
+
+\item{seed}{Seed number defining RNG state.
+If supplied, this is only applied locally within the function
+and the seed state isn't retained after sampling.}
 }
 \description{
-When there are lots of groups, \code{fslice()} and \code{fslice_head()} are much faster than
-the dplyr equivalents.
+When there are lots of groups, the \code{fslice()} functions are much faster.
 
-Unlike \code{dplyr}, \code{fslice()} and \code{fslice_head()} always return a sliced data frame in the same
-order it was given, similar to how \code{filter()} works.
+\code{fslice()} and friends allow for more flexibility in how you order the by-group slicing. \cr
+Furthermore, you can control whether the returned data frame is sliced in
+the order of the supplied row indices, or whether the
+original order is retained (like \code{dplyr::filter()}).
+
+\code{fslice_head()} and \code{fslice_tail()} are very fast with large numbers of groups.
+
+\code{fslice_sample()} is arguably more intuitive as it by default
+resamples each entire group without replacement, without having to specify a
+maximum group size like in \code{dplyr::slice_sample()}.
 }
 \examples{
 library(timeplyr)

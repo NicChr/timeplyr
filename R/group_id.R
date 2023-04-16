@@ -1,9 +1,10 @@
 #' Fast group IDs
 #'
 #' @description
-#' *  `group_id()` returns an integer vector of group IDs.
+#' *  `group_id()` returns an integer vector of group IDs the same size as the data.
 #' *  `add_group_id()` adds an integer column of group IDs.
-#' *  `group_loc()` returns a data frame of group locations in the data.
+#' *  `row_id()` returns an integer vector of row IDs.
+#' *  `add_row_id()` adds an integer column of row IDs.
 #'
 #' @param data A data frame or vector.
 #' @param ... Additional groups using tidy select notation.
@@ -20,10 +21,6 @@
 #' @param as_qg Should the group IDs be returned as a
 #' collapse "qG" class? The default (`FALSE`) always returns
 #' an integer vector.
-#' @param sort Should the data frame be sorted by the groups? \cr
-#' This is only applicable to `group_loc()`. \cr
-#' For `group_id()` this should \bold{NOT BE USED} and is currently being deprecated,
-#' use `order` instead.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -53,19 +50,13 @@
 #' @rdname group_id
 #' @export
 group_id <- function(data, ...,
-                     order = sort,
+                     order = TRUE,
                      .by = NULL,
-                     .name = NULL,
-                     as_qg = FALSE,
-                     sort = TRUE){
-  if (!missing(sort)){
-    message("sort has been deprecated, please use order instead.")
-  }
+                     as_qg = FALSE){
   UseMethod("group_id")
 }
 #' @export
-group_id.default <- function(data, ..., order = sort, as_qg = FALSE,
-                             sort = TRUE){
+group_id.default <- function(data, ..., order = TRUE, as_qg = FALSE){
   if (order){
     out <- GRP2(safe_ungroup(data),
                 sort = TRUE,
@@ -87,18 +78,16 @@ group_id.default <- function(data, ..., order = sort, as_qg = FALSE,
   out
 }
 #' @export
-group_id.Interval <- function(data, ..., order = sort, as_qg = FALSE,
-                              sort = TRUE){
+group_id.Interval <- function(data, ..., order = TRUE, as_qg = FALSE){
   data <- GRP.Interval(data, sort = order,
                        call = FALSE, return.groups = FALSE)[["group.id"]]
   group_id.default(data, ..., order = order, as_qg = as_qg)
 }
 #' @export
 group_id.data.frame <- function(data, ...,
-                                order = sort,
+                                order = TRUE,
                                 .by = NULL,
-                                as_qg = FALSE,
-                                sort = TRUE){
+                                as_qg = FALSE){
   N <- nrow2(data)
   group_vars <- group_vars(data)
   by_vars <- tidy_select_names(data, {{ .by }})
@@ -149,18 +138,52 @@ group_id.data.frame <- function(data, ...,
 #' @rdname group_id
 #' @export
 add_group_id <- function(data, ...,
-                         order = sort,
+                         order = TRUE,
                          .by = NULL,
                          .name = NULL,
-                         as_qg = FALSE,
-                         sort = TRUE){
-  if (!missing(sort)){
-    message("sort has been deprecated, please use order instead.")
-  }
+                         as_qg = FALSE){
   if (is.null(.name)) .name <- new_var_nm(names(data), "group_id")
   data[[.name]] <- group_id.data.frame(data, !!!enquos(...),
                                        order = order, .by = {{ .by }},
-                                       as_qg = as_qg, sort = sort)
+                                       as_qg = as_qg)
+  data
+}
+#' @rdname group_id
+#' @export
+row_id <- function(data, ..., .by = NULL){
+  UseMethod("row_id")
+}
+#' @export
+row_id.default <- function(data, ..., .by = NULL){
+  g <- GRP2(safe_ungroup(data),
+              sort = TRUE,
+              decreasing = FALSE,
+              na.last = TRUE,
+              return.groups = FALSE,
+              return.order = FALSE,
+              method = "auto",
+              call = FALSE)
+  growid(data, g = g)
+}
+#' @export
+row_id.data.frame <- function(data, ..., .by = NULL){
+  vars <- get_group_info(data, !!!enquos(...),
+                         type = "select", .by = {{ .by }})[["all_groups"]]
+  if (length(vars) == 0L){
+    g <- NULL
+  } else {
+    g <- GRP2(collapse::fselect(data, vars),
+              sort = TRUE,
+              return.groups = FALSE, return.order = FALSE,
+              call = FALSE)
+  }
+  growid(data, g = g)
+}
+#' @rdname group_id
+#' @export
+add_row_id <- function(data, ..., .by = NULL, .name = NULL){
+  if (is.null(.name)) .name <- new_var_nm(names(data), "row_id")
+  data[[.name]] <- row_id.data.frame(data, !!!enquos(...), .by = {{ .by }})
   data
 }
 GRP.Interval <- function(X, ...){
@@ -198,73 +221,50 @@ GRP2 <- function(X, ...){
   }
   # collapse::GRP(X, ...)
 }
-#' @rdname group_id
-#' @export
-group_loc <- function(data, ..., order = TRUE, .by = NULL,
-                      sort = FALSE){
-  UseMethod("group_loc")
-}
-#' @export
-group_loc.default <- function(data, ..., order = TRUE, .by = NULL,
-                              sort = FALSE){
-  g <- GRP2(data,
-              sort = order,
-              decreasing = FALSE,
-              na.last = TRUE,
-              return.groups = TRUE,
-              return.order = FALSE,
-              method = "auto",
-              call = FALSE)
-  out <- dplyr::as_tibble(as.list(g[["groups"]]))
-  grp_nm <- new_var_nm(names(out), "group_id")
-  out[[grp_nm]] <- seq_len(nrow2(out))
-  rowids <- growid(data, g = NULL)
-  out[[".rows"]] <- vctrs::as_list_of(
-    collapse::gsplit(x = rowids, g = g),
-    .ptype = integer(0)
-  )
-  if (!sort && order){
-    out <- out[data.table::frankv(collapse::funique(g[["group.id"]]),
-                                  ties.method = "average"), , drop = FALSE]
-  }
-  out
-}
-#' @export
-group_loc.data.frame <- function(data, ..., order = TRUE, .by = NULL,
-                                 sort = FALSE){
-  vars <- get_group_info(data, !!!enquos(...),
-                         type = "select", .by = {{ .by }})[["all_groups"]]
-  if (length(vars) == 0L){
-    rowids <- seq_len(nrow2(data))
-    out <- data.frame(group_id = 1L,
-                      .rows = vctrs::as_list_of(list(rowids), .ptype = integer(0)))
-  } else {
-    out <- group_loc.default(collapse::fselect(safe_ungroup(data), vars),
-                             order = order, sort = sort)
-  }
-  out <- df_reconstruct(out, safe_ungroup(data))
-  attr(out, "row.names") <- seq_len(nrow2(out))
-  out
-}
-# group_loc.data.frame <- function(data, ..., sort = FALSE, .by = NULL){
-#   group_vars <- get_groups(data, .by = {{ .by }})
-#   g <- group_id(data, !!!enquos(...), .by = {{ .by }}, sort = TRUE)
-#   dot_vars <- tidy_select_names(data, !!!enquos(...))
-#   rowids <- seq_along(attr(data, "row.names"))
-#   rows <- collapse::gsplit(x = rowids, g = g)
-#   rows <- vctrs::as_list_of(rows, .ptype = integer(0))
-#   grp_nm <- new_var_nm(c(group_vars, dot_vars), "group_id")
-#   out <- dplyr::filter(
-#     transmute2(
-#       safe_ungroup(data),
-#       across(all_of(c(group_vars, dot_vars))),
-#       !!grp_nm := as.integer(g)
-#     ),
-#     !collapse::fduplicated(g)
+# group_loc <- function(data, ..., order = TRUE, .by = NULL,
+#                       sort = FALSE){
+#   .Deprecated("group_collapse")
+#   UseMethod("group_loc")
+# }
+# group_loc.default <- function(data, ..., order = TRUE, .by = NULL,
+#                               sort = FALSE){
+#   g <- GRP2(safe_ungroup(data),
+#               sort = order,
+#               decreasing = FALSE,
+#               na.last = TRUE,
+#               return.groups = TRUE,
+#               return.order = FALSE,
+#               method = "auto",
+#               call = FALSE)
+#   out <- dplyr::as_tibble(as.list(g[["groups"]]))
+#   grp_nm <- new_var_nm(names(out), "group_id")
+#   out[[grp_nm]] <- seq_len(nrow2(out))
+#   rowids <- growid(data, g = NULL)
+#   out[[".rows"]] <- vctrs::as_list_of(
+#     collapse::gsplit(x = rowids, g = g),
+#     .ptype = integer(0)
 #   )
-#   out[[".rows"]] <- rows
-#   if (sort){
-#     out <- out[radix_order(out[[grp_nm]]), , drop = FALSE]
+#   if (!sort && order){
+#     out <- out[data.table::frankv(collapse::funique(g[["group.id"]]),
+#                                   ties.method = "average"), , drop = FALSE]
 #   }
+#   out
+# }
+# group_loc.data.frame <- function(data, ..., order = TRUE, .by = NULL,
+#                                  sort = FALSE){
+#   vars <- get_group_info(data, !!!enquos(...),
+#                          type = "select", .by = {{ .by }})[["all_groups"]]
+#   if (length(vars) == 0L){
+#     rowids <- seq_len(nrow2(data))
+#     n <- min(nrow2(data), 1L)
+#     rowids <- list(rowids)[n]
+#     out <- data.frame(group_id = integer(n) + 1L,
+#                       .rows = vctrs::as_list_of(rowids, .ptype = integer(0)))
+#   } else {
+#     out <- group_loc.default(collapse::fselect(safe_ungroup(data), vars),
+#                              order = order, sort = sort)
+#   }
+#   out <- df_reconstruct(out, safe_ungroup(data))
+#   attr(out, "row.names") <- seq_len(nrow2(out))
 #   out
 # }

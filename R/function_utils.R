@@ -663,3 +663,12 @@ is_list_df_like <- function(X){
 pair_unique <- function(x, y){
   ( ( (x + y + 1) * (x + y) ) / 2 ) + x
 }
+# Row slice
+df_row_slice <- function(data, i, reconstruct = TRUE){
+  if (reconstruct){
+    df_reconstruct(vctrs::vec_slice(safe_ungroup(data), i), data)
+  } else {
+    vctrs::vec_slice(safe_ungroup(data), i)
+  }
+
+}
