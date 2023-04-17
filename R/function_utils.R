@@ -374,13 +374,22 @@ df_reconstruct <- function(data, template){
   if (!inherits(data, "data.frame") || !inherits(template, "data.frame")){
     stop("data must be a data.frame")
   }
-  if (identical(inherits(template, c("data.table", "data.frame"), which = TRUE),
-                c(1L, 2L))){
-    attr(data, "groups") <- NULL
-    return(data.table::as.data.table(data))
-  }
   data_attrs <- attributes(data)
   template_attrs <- attributes(template)
+  if (identical(inherits(template, c("data.table", "data.frame"), which = TRUE),
+                c(1L, 2L))){
+    # if (inherits(data, "data.table")){
+    #   keep <- c("row.names", "class", "names", ".internal.selfref")
+    #   for (a in setdiff(names(data_attrs), keep)){
+    #     attr(data, a) <- NULL
+    #   }
+    #   return(data)
+    # }
+    attr(data, "groups") <- NULL
+    return(collapse::qDT(data.table::copy(data), keep.attr = FALSE))
+
+  }
+
   if (inherits(template, "grouped_df")){
     template_groups <- setdiff(names(template_attrs[["groups"]]), ".rows")
     data_groups <- setdiff(names(attr(data, "groups")), ".rows")

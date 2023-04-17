@@ -5,7 +5,7 @@
 \alias{add_group_id}
 \alias{row_id}
 \alias{add_row_id}
-\title{Fast group IDs}
+\title{Fast group and row IDs}
 \usage{
 group_id(data, ..., order = TRUE, .by = NULL, as_qg = FALSE)
 

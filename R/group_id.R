@@ -1,4 +1,4 @@
-#' Fast group IDs
+#' Fast group and row IDs
 #'
 #' @description
 #' *  `group_id()` returns an integer vector of group IDs the same size as the data.

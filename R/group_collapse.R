@@ -68,8 +68,13 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
             call = FALSE)
   out <- dplyr::as_tibble(as.list(g[["groups"]]))
   out[[".group"]] <- seq_len(nrow2(out))
-  rowids <- growid(data, g = NULL)
   if (loc || start || end){
+    # out[[".loc"]] <- vctrs::as_list_of(
+    #   vctrs::vec_locate_sorted_groups(g[["group.id"]],
+    #                                   direction = "asc", na_value = "largest")[["loc"]],
+    #   .ptype = integer(0)
+    # )
+    rowids <- growid(data, g = NULL)
     out[[".loc"]] <- vctrs::as_list_of(
       collapse::gsplit(x = rowids, g = g),
       .ptype = integer(0)
@@ -109,7 +114,8 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
   }
   if (!sort && order){
     out <- df_row_slice(out, data.table::frank(collapse::funique(g[["group.id"]], sort = FALSE),
-                                               ties.method = "first"))
+                                               ties.method = "first"),
+                        reconstruct = FALSE)
   }
   out
 }
@@ -126,7 +132,7 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
     n <- length(rowids)
     ss <- min(nrow2(data), 1L)
     rowids <- list(rowids)[ss]
-    out <- data.frame(.group = integer(ss) + 1L)
+    out <- dplyr::tibble(!!".group" := integer(ss) + 1L)
     if (loc){
       out[[".loc"]] <- vctrs::as_list_of(rowids, .ptype = integer(0))
     }
@@ -149,7 +155,7 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
                                   # loc_order = loc_order,
                                   start = start, end = end)
   }
-  out <- df_reconstruct(out, data)
+  # out <- df_reconstruct(out, data)
   attr(out, "row.names") <- seq_len(nrow2(out))
   out
 }

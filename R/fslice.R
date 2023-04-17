@@ -50,10 +50,8 @@
 fslice <- function(data, ..., .by = NULL,
                    keep_order = FALSE, sort_groups = TRUE){
   dots <- list(...)
+  N <- nrow2(data)
   n <- unlist(dots, recursive = TRUE, use.names = FALSE)
-  # if (anyDuplicated(n) > 0){
-  #   stop("Duplicate row slides are not currently supported")
-  # }
   if (length(n) == 0L) n <- 0L
   n <- as.integer(n)
   range_sign <- sign(collapse::frange(n, na.rm = FALSE))
@@ -64,14 +62,16 @@ fslice <- function(data, ..., .by = NULL,
   group_vars <- get_groups(data, .by = {{ .by }})
   if (length(group_vars) == 0L){
     g <- NULL
-    i <- n[data.table::between(n, -nrow2(data), nrow2(data))]
-    # i <- n[abs(n) <= nrow2(data)]
+    i <- n[data.table::between(n, -N, N)]
   } else {
       group_df <- group_collapse(data, .by = {{ .by }},
                                  order = sort_groups, sort = sort_groups,
                                  loc = TRUE,
                                  # loc_order = FALSE,
                                  size = TRUE, start = FALSE, end = FALSE)
+      # Constrain n to <= max GRPN
+      GN <-  max(group_df[[".size"]])
+      n <- n[data.table::between(n, -GN, GN)]
       rows <- group_df[[".loc"]]
       row_lens <- group_df[[".size"]]
       if (sum(range_sign) >= 0){
@@ -85,7 +85,9 @@ fslice <- function(data, ..., .by = NULL,
         row_lens <- row_lens[keep]
         size <- size[keep]
       }
-      i <- unlist(lapply(rows, function(x) x[n]), use.names = FALSE, recursive = FALSE)
+      i <- unlist(lapply(rows, function(x) x[n]),
+                  use.names = FALSE,
+                  recursive = FALSE)
       i <- collapse::na_rm(i)
       if (is.null(i)){
         i <- integer(0)
@@ -101,36 +103,16 @@ fslice <- function(data, ..., .by = NULL,
 fslice_head <- function(data, ..., n = 1, .by = NULL,
                         keep_order = FALSE, sort_groups = TRUE){
   rlang::check_dots_empty0(...)
-  stopifnot(length(n) == 1L)
   N <- nrow2(data)
-  group_df <- group_collapse(data, .by = {{ .by }},
-                             order = sort_groups, sort = sort_groups,
-                             loc = TRUE,
-                             # loc_order = FALSE,
-                             size = TRUE, start = FALSE, end = FALSE)
-  rows <- group_df[[".loc"]]
-  row_lens <- group_df[[".size"]]
-  if (n >= 0){
-    n <- as.integer(min(n, N))
-    size <- pmin(n, row_lens)
-  } else {
-    n <- as.integer(max(n, -N))
-    size <- pmax(0L, row_lens + n)
-  }
-  keep <- which(size > 0)
-  if (length(rows) - length(keep) > 0L){
-    rows <- rows[keep]
-    row_lens <- row_lens[keep]
-    size <- size[keep]
-  }
-  start <- cumsum(c(1L, row_lens[-length(row_lens)]))
-  sequences <- sequence(size, from = start, by = 1L)
-  # Alternate method
-  # for (i in seq_along(rows)){
-  #   length(rows[[i]]) <- size[[i]]
-  # }
-  # i <- unlist(rows, use.names = FALSE, recursive = FALSE)
-  i <- unlist(rows, recursive = FALSE, use.names = FALSE)[sequences]
+  slice_info <- df_slice_prepare(data, n = n,
+                                 .by = {{ .by }},
+                                 sort_groups = sort_groups)
+  group_sizes <- slice_info[["group_sizes"]]
+  # Start indices of sequences
+  start <- cumsum(c(1L, group_sizes[-length(group_sizes)]))
+  # Vectorised sequences
+  sequences <- sequence(slice_info[["slice_sizes"]], from = start, by = 1L)
+  i <- unlist(slice_info[["rows"]], recursive = FALSE, use.names = FALSE)[sequences]
   if (is.null(i)){
     i <- integer(0)
   }
@@ -144,40 +126,14 @@ fslice_head <- function(data, ..., n = 1, .by = NULL,
 fslice_tail <- function(data, ..., n = 1, .by = NULL,
                         keep_order = FALSE, sort_groups = TRUE){
   rlang::check_dots_empty0(...)
-  stopifnot(length(n) == 1L)
   N <- nrow2(data)
-  # if (!missing(n) && !missing(prop)){
-  #   stop("Either n or prop must be supplied, not both.")
-  # }
-  group_df <- group_collapse(data, .by = {{ .by }},
-                             order = sort_groups, sort = sort_groups,
-                             loc = TRUE,
-                             # loc_order = FALSE,
-                             size = TRUE, start = FALSE, end = FALSE)
-  rows <- group_df[[".loc"]]
-  row_lens <- group_df[[".size"]]
-  if (n >= 0){
-    n <- as.integer(min(n, N))
-    size <- pmin(n, row_lens)
-  } else {
-    n <- as.integer(max(n, -N))
-    size <- pmax(0L, row_lens - abs(n))
-  }
-  keep <- which(size > 0)
-  if (length(rows) - length(keep) > 0L){
-    rows <- rows[keep]
-    row_lens <- row_lens[keep]
-    size <- size[keep]
-  }
-  # if (n >= 0){
-  #   start <- cumsum(row_lens)
-  # } else {
-  #   start <- cumsum(c(1L, row_lens[-length(row_lens)])) + abs(n)
-  # }
-  # sequences <- sequence(size, from = start, by = as.integer(sign(n) * -1L))
-  start <- cumsum(row_lens)
-  sequences <- sequence(size, from = start - size + 1L, by = 1L)
-  i <- unlist(rows, use.names = FALSE, recursive = FALSE)[sequences]
+  slice_info <- df_slice_prepare(data, n = n,
+                                 .by = {{ .by }},
+                                 sort_groups = sort_groups)
+  slice_sizes <- slice_info[["slice_sizes"]]
+  start <- cumsum(slice_info[["group_sizes"]])
+  sequences <- sequence(slice_sizes, from = start - slice_sizes + 1L, by = 1L)
+  i <- unlist(slice_info[["rows"]], use.names = FALSE, recursive = FALSE)[sequences]
   if (is.null(i)){
     i <- integer(0)
   }
@@ -196,31 +152,13 @@ fslice_sample <- function(data, ..., n, .by = NULL,
   if (missing(n)){
     n <- N
   }
-  stopifnot(length(n) == 1L)
   # if (!rlang::quo_is_null(enquo(prob))){
   #   data <- dplyr::mutate(data, !!enquo(prob),
   #                         .by = {{ .by }})
   # }
-  group_df <- group_collapse(data, .by = {{ .by }},
-                             order = sort_groups, sort = sort_groups,
-                             loc = TRUE,
-                             # loc_order = FALSE,
-                             size = TRUE, start = FALSE, end = FALSE)
-  rows <- group_df[[".loc"]]
-  row_lens <- group_df[[".size"]]
-  if (n >= 0){
-    n <- as.integer(min(n, N))
-    size <- pmin(n, row_lens)
-  } else {
-    n <- as.integer(max(n, -N))
-    size <- pmax(0L, row_lens + n)
-  }
-  keep <- which(size > 0)
-  if (length(rows) - length(keep) > 0L){
-    rows <- rows[keep]
-    row_lens <- row_lens[keep]
-    size <- size[keep]
-  }
+  slice_info <- df_slice_prepare(data, n = n,
+                                 .by = {{ .by }},
+                                 sort_groups = sort_groups)
   seed_exists <- exists(".Random.seed")
   seed_is_null <- is.null(seed)
   if (!seed_is_null){
@@ -229,7 +167,9 @@ fslice_sample <- function(data, ..., n, .by = NULL,
     }
     set.seed(seed)
   }
-  rows <- purrr::map2(rows, size, ~ sample2(.x, size = .y, replace = replace))
+  rows <- purrr::map2(slice_info[["rows"]],
+                      slice_info[["slice_sizes"]],
+                      ~ sample2(.x, size = .y, replace = replace))
   if (seed_exists && !seed_is_null){
     .Random.seed <<- old
   } else if (!seed_is_null){
@@ -243,4 +183,32 @@ fslice_sample <- function(data, ..., n, .by = NULL,
     i <- radix_sort(i)
   }
   df_row_slice(data, i)
+}
+df_slice_prepare <- function(data, n, .by = NULL, sort_groups = TRUE){
+  N <- nrow2(data)
+  stopifnot(length(n) == 1L)
+  group_df <- group_collapse(data, .by = {{ .by }},
+                             order = sort_groups, sort = sort_groups,
+                             loc = TRUE,
+                             # loc_order = FALSE,
+                             size = TRUE, start = FALSE, end = FALSE)
+  rows <- group_df[[".loc"]]
+  group_sizes <- group_df[[".size"]]
+  GN <- max(group_sizes)
+  if (n >= 0){
+    n <- as.integer(min(n, GN))
+    slice_sizes <- pmin(n, group_sizes)
+  } else {
+    n <- as.integer(max(n, -GN))
+    slice_sizes <- pmax(0L, group_sizes + n)
+  }
+  keep <- which(slice_sizes > 0)
+  if (length(rows) - length(keep) > 0L){
+    rows <- rows[keep]
+    group_sizes <- group_sizes[keep]
+    slice_sizes <- slice_sizes[keep]
+  }
+  list("rows" = rows,
+       "group_sizes" = group_sizes,
+       "slice_sizes" = slice_sizes)
 }
