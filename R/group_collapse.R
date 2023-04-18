@@ -28,7 +28,7 @@
 #' @param start Should group start locations be added? Default is `TRUE`.
 #' @param end Should group end locations be added? Default is `TRUE`.
 #' @return
-#' A `data.frame` of unique groups and an integer ID uniquely identifying each group.
+#' A `tibble` of unique groups and an integer ID uniquely identifying each group.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)

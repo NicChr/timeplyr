@@ -12,7 +12,8 @@ fslice(data, ..., .by = NULL, keep_order = FALSE, sort_groups = TRUE)
 fslice_head(
   data,
   ...,
-  n = 1,
+  n,
+  prop,
   .by = NULL,
   keep_order = FALSE,
   sort_groups = TRUE
@@ -21,7 +22,8 @@ fslice_head(
 fslice_tail(
   data,
   ...,
-  n = 1,
+  n,
+  prop,
   .by = NULL,
   keep_order = FALSE,
   sort_groups = TRUE
@@ -31,10 +33,12 @@ fslice_sample(
   data,
   ...,
   n,
+  prop,
   .by = NULL,
   keep_order = FALSE,
   sort_groups = TRUE,
   replace = FALSE,
+  weights = NULL,
   seed = NULL
 )
 }
@@ -55,8 +59,12 @@ If \code{FALSE} the group order is determined by first-appearance in the data.}
 
 \item{n}{Number of rows.}
 
-\item{replace}{Should \code{slice_sample()} sample with or without replacement?
+\item{prop}{Proportion of rows.}
+
+\item{replace}{Should \code{fslice_sample()} sample with or without replacement?
 Default is \code{FALSE}, without replacement.}
+
+\item{weights}{Probability weights used in \code{fslice_sample()}.}
 
 \item{seed}{Seed number defining RNG state.
 If supplied, this is only applied locally within the function

@@ -40,7 +40,7 @@ This is kept to be consistent with other functions.}
 \item{end}{Should group end locations be added? Default is \code{TRUE}.}
 }
 \value{
-A \code{data.frame} of unique groups and an integer ID uniquely identifying each group.
+A \code{tibble} of unique groups and an integer ID uniquely identifying each group.
 }
 \description{
 \code{group_collapse()} is similar to \code{dplyr::group_data()} but differs in 3 key regards:

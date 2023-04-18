@@ -23,8 +23,10 @@
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
 #' @param n Number of rows.
-#' @param replace Should `slice_sample()` sample with or without replacement?
+#' @param prop Proportion of rows.
+#' @param replace Should `fslice_sample()` sample with or without replacement?
 #' Default is `FALSE`, without replacement.
+#' @param weights Probability weights used in `fslice_sample()`.
 #' @param seed Seed number defining RNG state.
 #' If supplied, this is only applied locally within the function
 #' and the seed state isn't retained after sampling.
@@ -100,13 +102,13 @@ fslice <- function(data, ..., .by = NULL,
 }
 #' @rdname fslice
 #' @export
-fslice_head <- function(data, ..., n = 1, .by = NULL,
+fslice_head <- function(data, ..., n, prop, .by = NULL,
                         keep_order = FALSE, sort_groups = TRUE){
   rlang::check_dots_empty0(...)
-  N <- nrow2(data)
-  slice_info <- df_slice_prepare(data, n = n,
+  slice_info <- df_slice_prepare(data, n, prop,
                                  .by = {{ .by }},
-                                 sort_groups = sort_groups)
+                                 sort_groups = sort_groups,
+                                 default_n = 1L)
   group_sizes <- slice_info[["group_sizes"]]
   # Start indices of sequences
   start <- cumsum(c(1L, group_sizes[-length(group_sizes)]))
@@ -123,13 +125,13 @@ fslice_head <- function(data, ..., n = 1, .by = NULL,
 }
 #' @rdname fslice
 #' @export
-fslice_tail <- function(data, ..., n = 1, .by = NULL,
+fslice_tail <- function(data, ..., n, prop, .by = NULL,
                         keep_order = FALSE, sort_groups = TRUE){
   rlang::check_dots_empty0(...)
-  N <- nrow2(data)
-  slice_info <- df_slice_prepare(data, n = n,
+  slice_info <- df_slice_prepare(data, n, prop,
                                  .by = {{ .by }},
-                                 sort_groups = sort_groups)
+                                 sort_groups = sort_groups,
+                                 default_n = 1L)
   slice_sizes <- slice_info[["slice_sizes"]]
   start <- cumsum(slice_info[["group_sizes"]])
   sequences <- sequence(slice_sizes, from = start - slice_sizes + 1L, by = 1L)
@@ -144,21 +146,22 @@ fslice_tail <- function(data, ..., n = 1, .by = NULL,
 }
 #' @rdname fslice
 #' @export
-fslice_sample <- function(data, ..., n, .by = NULL,
+fslice_sample <- function(data, ..., n, prop,
+                          .by = NULL,
                           keep_order = FALSE, sort_groups = TRUE,
-                          replace = FALSE, seed = NULL){
+                          replace = FALSE, weights = NULL, seed = NULL){
   rlang::check_dots_empty0(...)
-  N <- nrow2(data)
-  if (missing(n)){
-    n <- N
+  has_weights <- !rlang::quo_is_null(enquo(weights))
+  if (has_weights){
+    data <- dplyr::mutate(data, !!enquo(weights))
+    weights_var <- tidy_transform_names(safe_ungroup(data),
+                                        !!enquo(weights))
   }
-  # if (!rlang::quo_is_null(enquo(prob))){
-  #   data <- dplyr::mutate(data, !!enquo(prob),
-  #                         .by = {{ .by }})
-  # }
-  slice_info <- df_slice_prepare(data, n = n,
+  slice_info <- df_slice_prepare(data, n, prop,
                                  .by = {{ .by }},
-                                 sort_groups = sort_groups)
+                                 sort_groups = sort_groups,
+                                 bound_n = (missing(n) && missing(prop)) || !replace,
+                                 default_n = nrow2(data))
   seed_exists <- exists(".Random.seed")
   seed_is_null <- is.null(seed)
   if (!seed_is_null){
@@ -167,9 +170,19 @@ fslice_sample <- function(data, ..., n, .by = NULL,
     }
     set.seed(seed)
   }
-  rows <- purrr::map2(slice_info[["rows"]],
-                      slice_info[["slice_sizes"]],
-                      ~ sample2(.x, size = .y, replace = replace))
+  if (has_weights){
+    g <- group_id(data, .by = {{ .by }}, order = sort_groups)
+    weights <- collapse::gsplit(data[[weights_var]], g = g)
+    rows <- purrr::pmap(list(slice_info[["rows"]], slice_info[["slice_sizes"]],
+                             weights),
+                        function(x, y, z) sample2(x, size = y, prob = z,
+                                                  replace = replace))
+  } else {
+    rows <- purrr::map2(slice_info[["rows"]],
+                        slice_info[["slice_sizes"]],
+                        ~ sample2(.x, size = .y, replace = replace))
+  }
+
   if (seed_exists && !seed_is_null){
     .Random.seed <<- old
   } else if (!seed_is_null){
@@ -184,9 +197,27 @@ fslice_sample <- function(data, ..., n, .by = NULL,
   }
   df_row_slice(data, i)
 }
-df_slice_prepare <- function(data, n, .by = NULL, sort_groups = TRUE){
+df_slice_prepare <- function(data, n, prop, .by = NULL, sort_groups = TRUE,
+                             bound_n = TRUE, default_n = 1L){
   N <- nrow2(data)
-  stopifnot(length(n) == 1L)
+  missing_n <- missing(n)
+  missing_prop <- missing(prop)
+  if (!missing_n && !missing_prop){
+    stop("Either n or prop must be supplied, not both.")
+  }
+  if (missing_n && missing_prop){
+    n <- default_n
+    type <- "n"
+  }
+  if (!missing_n && missing_prop){
+    stopifnot(length(n) == 1L)
+    type <- "n"
+  }
+  if (missing_n && !missing_prop){
+    stopifnot(length(prop) == 1L)
+    type <- "prop"
+  }
+
   group_df <- group_collapse(data, .by = {{ .by }},
                              order = sort_groups, sort = sort_groups,
                              loc = TRUE,
@@ -194,13 +225,35 @@ df_slice_prepare <- function(data, n, .by = NULL, sort_groups = TRUE){
                              size = TRUE, start = FALSE, end = FALSE)
   rows <- group_df[[".loc"]]
   group_sizes <- group_df[[".size"]]
-  GN <- max(group_sizes)
-  if (n >= 0){
-    n <- as.integer(min(n, GN))
-    slice_sizes <- pmin(n, group_sizes)
+  if (type == "n"){
+    # USING N
+    n <- as.integer(n)
+    if (bound_n){
+      GN <- max(group_sizes)
+      if (n >= 0){
+        n <- min(n, GN)
+        slice_sizes <- pmin(n, group_sizes)
+      } else {
+        n <- max(n, -GN)
+        slice_sizes <- pmax(0L, group_sizes + n)
+      }
+    } else {
+      slice_sizes <- rep_len(n, length(rows))
+    }
   } else {
-    n <- as.integer(max(n, -GN))
-    slice_sizes <- pmax(0L, group_sizes + n)
+    # USING prop
+    if (bound_n){
+      if (prop >= 0){
+        prop <- min(1, prop)
+        slice_sizes <- floor(prop * group_sizes)
+      } else {
+        prop <- max(-1, prop)
+        slice_sizes <- ceiling( (1 + prop) * group_sizes)
+      }
+    } else {
+      slice_sizes <- prop * group_sizes
+    }
+    slice_sizes <- as.integer(slice_sizes)
   }
   keep <- which(slice_sizes > 0)
   if (length(rows) - length(keep) > 0L){

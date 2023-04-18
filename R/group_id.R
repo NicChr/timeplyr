@@ -5,6 +5,8 @@
 #' *  `add_group_id()` adds an integer column of group IDs.
 #' *  `row_id()` returns an integer vector of row IDs.
 #' *  `add_row_id()` adds an integer column of row IDs.
+#' *  `group_order()` returns the order of the groups.
+#' *  `add_group_order()` adds an integer column of the order of the groups.
 #'
 #' @param data A data frame or vector.
 #' @param ... Additional groups using tidy select notation.
@@ -12,6 +14,8 @@
 #' \bold{THE PHYSICAL ORDER OF THE DATA IS NOT CHANGED.} \cr
 #' When order is `TRUE` (the default) the group IDs will be ordered but not sorted.
 #' If `FALSE` the order of the group IDs will be based on first appearance.
+#' @param decreasing Should the group order be increasing or decreasing?
+#' The default is `FALSE` and is currently only implemented in `group_order()`.
 #' @param .by Alternative way of supplying groups using tidy
 #' select notation. This is kept to be consistent with other functions.
 #' @param .name Name of the added group ID column which should be a
@@ -184,6 +188,55 @@ row_id.data.frame <- function(data, ..., .by = NULL){
 add_row_id <- function(data, ..., .by = NULL, .name = NULL){
   if (is.null(.name)) .name <- new_var_nm(names(data), "row_id")
   data[[.name]] <- row_id.data.frame(data, !!!enquos(...), .by = {{ .by }})
+  data
+}
+#' @rdname group_id
+#' @export
+group_order <- function(data, ..., .by = NULL, decreasing = FALSE){
+  UseMethod("group_order")
+}
+#' @export
+group_order.default <- function(data, ..., .by = NULL, decreasing = FALSE){
+  g <- GRP2(safe_ungroup(data),
+            sort = TRUE,
+            decreasing = decreasing,
+            na.last = TRUE,
+            return.groups = FALSE,
+            return.order = TRUE,
+            method = "auto",
+            call = FALSE)
+  out <- g[["order"]]
+  if (is.null(out)){
+    out <- radix_order(g[["group.id"]])
+  }
+  as.integer(out)
+}
+#' @export
+group_order.data.frame <- function(data, ..., .by = NULL, decreasing = FALSE){
+  vars <- get_group_info(data, !!!enquos(...),
+                         type = "select", .by = {{ .by }})[["all_groups"]]
+  if (length(vars) == 0L){
+    g <- NULL
+    out <- rep_len(1L, nrow2(data))
+  } else {
+    g <- GRP2(collapse::fselect(data, vars),
+              sort = TRUE,
+              decreasing = decreasing,
+              return.groups = FALSE, return.order = TRUE,
+              call = FALSE)
+    out <- g[["order"]]
+    if (is.null(out)){
+      out <- radix_order(g[["group.id"]])
+    }
+  }
+  as.integer(out)
+}
+#' @rdname group_id
+#' @export
+add_group_order <- function(data, ..., .by = NULL, decreasing = FALSE, .name = NULL){
+  if (is.null(.name)) .name <- new_var_nm(names(data), "group_order")
+  data[[.name]] <- group_order.data.frame(data, !!!enquos(...), .by = {{ .by }},
+                                          decreasing = decreasing)
   data
 }
 GRP.Interval <- function(X, ...){

@@ -5,6 +5,8 @@
 \alias{add_group_id}
 \alias{row_id}
 \alias{add_row_id}
+\alias{group_order}
+\alias{add_group_order}
 \title{Fast group and row IDs}
 \usage{
 group_id(data, ..., order = TRUE, .by = NULL, as_qg = FALSE)
@@ -14,6 +16,10 @@ add_group_id(data, ..., order = TRUE, .by = NULL, .name = NULL, as_qg = FALSE)
 row_id(data, ..., .by = NULL)
 
 add_row_id(data, ..., .by = NULL, .name = NULL)
+
+group_order(data, ..., .by = NULL, decreasing = FALSE)
+
+add_group_order(data, ..., .by = NULL, decreasing = FALSE, .name = NULL)
 }
 \arguments{
 \item{data}{A data frame or vector.}
@@ -36,6 +42,9 @@ an integer vector.}
 character vector of length 1.
 If \code{NULL} then a column named "group_id" will be added,
 and if one already exists, a unique name will be used.}
+
+\item{decreasing}{Should the group order be increasing or decreasing?
+The default is \code{FALSE} and is currently only implemented in \code{group_order()}.}
 }
 \description{
 \itemize{
@@ -43,6 +52,8 @@ and if one already exists, a unique name will be used.}
 \item \code{add_group_id()} adds an integer column of group IDs.
 \item \code{row_id()} returns an integer vector of row IDs.
 \item \code{add_row_id()} adds an integer column of row IDs.
+\item \code{group_order()} returns the order of the groups.
+\item \code{add_group_order()} adds an integer column of the order of the groups.
 }
 }
 \examples{
