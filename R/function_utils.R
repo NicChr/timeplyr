@@ -123,7 +123,8 @@ tidy_transform_names2 <- function(data, ...){
 # Updated version of transmute using mutate
 transmute2 <- function(data, ..., .by = NULL){
   group_vars <- get_groups(data, .by = {{ .by }})
-  out <- dplyr::mutate(data, !!!enquos(...), .keep = "none")
+  out <- dplyr::mutate(data, !!!enquos(...),
+                       .by = {{ .by }}, .keep = "none")
   out_nms <- tidy_transform_names(data, !!!enquos(...))
   dplyr::select(out, all_of(c(group_vars, out_nms)))
 }
@@ -669,7 +670,7 @@ df_row_slice <- function(data, i, reconstruct = TRUE){
   if (reconstruct){
     df_reconstruct(vctrs::vec_slice(safe_ungroup(data), i), data)
   } else {
-    vctrs::vec_slice(safe_ungroup(data), i)
+    vctrs::vec_slice(data, i)
   }
 
 }

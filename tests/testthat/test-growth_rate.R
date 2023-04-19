@@ -19,8 +19,8 @@ testthat::test_that("Normal cases", {
   testthat::expect_equal(growth_rate(z, na.rm = TRUE),
                          growth_rate(z[!is.na(z)]))
 
-  testthat::expect_warning(rolling_growth_rate(y, na.rm = TRUE))
-  testthat::expect_warning(rolling_growth_rate(y, na.rm = FALSE))
+  # testthat::expect_warning(rolling_growth_rate(y, na.rm = TRUE))
+  # testthat::expect_warning(rolling_growth_rate(y, na.rm = FALSE))
   testthat::expect_equal(rolling_growth_rate(y, n = 1),
                          seq_ones(length(y)))
   testthat::expect_equal(rolling_growth_rate(y, n = 1, partial = FALSE),
@@ -46,12 +46,12 @@ testthat::test_that("Normal cases", {
   }
   testthat::expect_equal(rolling_growth_rate(z),
                          gr)
-  testthat::expect_equal(rolling_growth_rate(x, n = 1:length(x)),
-                         rolling_growth_rate(x, n = length(x)))
-  testthat::expect_equal(rolling_growth_rate(x, n = 1:length(x),
-                                             partial = FALSE),
-                         rolling_growth_rate(x, n = length(x),
-                                             partial = TRUE))
+  # testthat::expect_equal(rolling_growth_rate(x, n = 1:length(x)),
+  #                        rolling_growth_rate(x, n = length(x)))
+  # testthat::expect_equal(rolling_growth_rate(x, n = 1:length(x),
+  #                                            partial = FALSE),
+  #                        rolling_growth_rate(x, n = length(x),
+  #                                            partial = TRUE))
 
   a_gr <- rolling_growth_rate(a, n = 2)
   a_gr[is.infinite(a_gr)] <- 99

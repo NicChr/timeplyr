@@ -285,3 +285,237 @@ testthat::test_that("fslice_sample", {
                            dplyr::group_by(origin, dest) %>%
                            fslice_sample(n = -10, keep_order = TRUE, seed = 42))
 })
+testthat::test_that("fslice_min", {
+  flights2 <- nycflights13::flights
+  set.seed(81243844)
+  flights2 <- flights2[sample(seq_len(nrow(flights2)),
+                              size = 10^4), ]
+  flights2[["id"]] <- seq_len(nrow(flights2))
+
+  testthat::expect_error(flights2 %>%
+                           fslice_min(1, -1))
+  testthat::expect_equal(flights2 %>%
+                           fslice_min(arr_time, na_rm = FALSE),
+                         flights2 %>%
+                           dplyr::slice_min(arr_time))
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_min(arr_time, na_rm = FALSE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_min(arr_time))
+  testthat::expect_equal(flights2 %>%
+                           fslice_min(arr_time, .by = c(origin, dest),
+                                       sort_groups = FALSE, na_rm = FALSE),
+                         flights2 %>%
+                           dplyr::slice_min(arr_time, by = c(origin, dest)))
+  testthat::expect_equal(flights2 %>%
+                           fslice_min(arr_time, n = 150),
+                         flights2 %>%
+                           dplyr::slice_min(arr_time, n = 150))
+
+  # Prop
+  testthat::expect_equal(flights2 %>%
+                           fslice_min(arr_time, prop = 0, na_rm = FALSE),
+                         flights2 %>%
+                           dplyr::slice_min(arr_time, prop = 0, na_rm = FALSE))
+  testthat::expect_equal(flights2 %>%
+                           fslice_min(arr_time, prop = 1, na_rm = FALSE),
+                         flights2 %>%
+                           dplyr::slice_min(arr_time, prop = 1, na_rm = FALSE))
+  testthat::expect_equal(flights2 %>%
+                           fslice_min(arr_time, prop = 1, na_rm = TRUE),
+                         flights2 %>%
+                           dplyr::slice_min(arr_time, prop = 1, na_rm = TRUE))
+  testthat::expect_equal(flights2 %>%
+                           fslice_min(arr_time, prop = 0.33, na_rm = FALSE),
+                         flights2 %>%
+                           dplyr::slice_min(arr_time, prop = 0.33, na_rm = FALSE))
+  testthat::expect_equal(flights2 %>%
+                           fslice_min(arr_time, prop = 0.33, na_rm = TRUE),
+                         flights2 %>%
+                           dplyr::slice_min(arr_time, prop = 0.33, na_rm = TRUE))
+  testthat::expect_equal(flights2 %>%
+                           fslice_min(arr_time, prop = -0.33, na_rm = TRUE),
+                         flights2 %>%
+                           dplyr::slice_min(arr_time, prop = -0.33, na_rm = TRUE))
+
+
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_min(arr_time, n = 4, na_rm = FALSE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_min(arr_time, n = 4))
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_min(arr_time, n = 4, na_rm = TRUE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_min(arr_time, n = 4, na_rm = TRUE))
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_min(arr_time, n = 4, na_rm = TRUE, with_ties = FALSE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_min(arr_time, n = 4, na_rm = TRUE, with_ties = FALSE))
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_min(arr_time, n = 100, na_rm = TRUE, with_ties = FALSE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_min(arr_time, n = 100, na_rm = TRUE, with_ties = FALSE))
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_min(arr_time, n = 100, na_rm = FALSE, with_ties = FALSE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_min(arr_time, n = 100, na_rm = FALSE, with_ties = FALSE))
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_min(arr_time, n = 4, na_rm = FALSE, keep_order = TRUE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_min(arr_time, n = 4, na_rm = FALSE) %>%
+                           dplyr::arrange(id))
+
+  testthat::expect_equal(flights2 %>%
+                           fslice_min(arr_time, n = -4, na_rm = FALSE, keep_order = TRUE),
+                         flights2 %>%
+                           dplyr::slice_min(arr_time, n = -4) %>%
+                           dplyr::arrange(id))
+  testthat::expect_equal(flights2 %>%
+                           fslice_min(arr_time, n = -4, na_rm = FALSE, keep_order = FALSE),
+                         flights2 %>%
+                           dplyr::slice_min(arr_time, n = -4))
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_min(arr_time, n = -10, na_rm = FALSE, keep_order = FALSE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_min(arr_time, n = -10))
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_min(arr_time, n = -10, na_rm = FALSE, keep_order = TRUE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_min(arr_time, n = -10) %>%
+                           dplyr::arrange(id))
+})
+testthat::test_that("fslice_max", {
+  flights2 <- nycflights13::flights
+  set.seed(81243844)
+  flights2 <- flights2[sample(seq_len(nrow(flights2)),
+                              size = 10^4), ]
+  flights2[["id"]] <- seq_len(nrow(flights2))
+
+  testthat::expect_error(flights2 %>%
+                           fslice_max(1, -1))
+  testthat::expect_equal(flights2 %>%
+                           fslice_max(arr_time, na_rm = FALSE),
+                         flights2 %>%
+                           dplyr::slice_max(arr_time))
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_max(arr_time, na_rm = FALSE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_max(arr_time))
+  testthat::expect_equal(flights2 %>%
+                           fslice_max(arr_time, .by = c(origin, dest),
+                                      sort_groups = FALSE, na_rm = FALSE),
+                         flights2 %>%
+                           dplyr::slice_max(arr_time, by = c(origin, dest)))
+  testthat::expect_equal(flights2 %>%
+                           fslice_max(arr_time, n = 150),
+                         flights2 %>%
+                           dplyr::slice_max(arr_time, n = 150))
+
+  # Prop
+  testthat::expect_equal(flights2 %>%
+                           fslice_max(arr_time, prop = 0, na_rm = FALSE),
+                         flights2 %>%
+                           dplyr::slice_max(arr_time, prop = 0, na_rm = FALSE))
+  testthat::expect_equal(flights2 %>%
+                           fslice_max(arr_time, prop = 1, na_rm = FALSE),
+                         flights2 %>%
+                           dplyr::slice_max(arr_time, prop = 1, na_rm = FALSE))
+  testthat::expect_equal(flights2 %>%
+                           fslice_max(arr_time, prop = 1, na_rm = TRUE),
+                         flights2 %>%
+                           dplyr::slice_max(arr_time, prop = 1, na_rm = TRUE))
+  testthat::expect_equal(flights2 %>%
+                           fslice_max(arr_time, prop = 0.33, na_rm = FALSE),
+                         flights2 %>%
+                           dplyr::slice_max(arr_time, prop = 0.33, na_rm = FALSE))
+  testthat::expect_equal(flights2 %>%
+                           fslice_max(arr_time, prop = 0.33, na_rm = TRUE),
+                         flights2 %>%
+                           dplyr::slice_max(arr_time, prop = 0.33, na_rm = TRUE))
+  testthat::expect_equal(flights2 %>%
+                           fslice_max(arr_time, prop = -0.33, na_rm = TRUE),
+                         flights2 %>%
+                           dplyr::slice_max(arr_time, prop = -0.33, na_rm = TRUE))
+
+
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_max(arr_time, n = 4, na_rm = FALSE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_max(arr_time, n = 4))
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_max(arr_time, n = 4, na_rm = TRUE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_max(arr_time, n = 4, na_rm = TRUE))
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_max(arr_time, n = 4, na_rm = TRUE, with_ties = FALSE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_max(arr_time, n = 4, na_rm = TRUE, with_ties = FALSE))
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_max(arr_time, n = 100, na_rm = TRUE, with_ties = FALSE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_max(arr_time, n = 100, na_rm = TRUE, with_ties = FALSE))
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_max(arr_time, n = 100, na_rm = FALSE, with_ties = FALSE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_max(arr_time, n = 100, na_rm = FALSE, with_ties = FALSE))
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_max(arr_time, n = 4, na_rm = FALSE, keep_order = TRUE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_max(arr_time, n = 4, na_rm = FALSE) %>%
+                           dplyr::arrange(id))
+
+  testthat::expect_equal(flights2 %>%
+                           fslice_max(arr_time, n = -4, na_rm = FALSE, keep_order = TRUE),
+                         flights2 %>%
+                           dplyr::slice_max(arr_time, n = -4) %>%
+                           dplyr::arrange(id))
+  testthat::expect_equal(flights2 %>%
+                           fslice_max(arr_time, n = -4, na_rm = FALSE, keep_order = FALSE),
+                         flights2 %>%
+                           dplyr::slice_max(arr_time, n = -4))
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_max(arr_time, n = -10, na_rm = FALSE, keep_order = FALSE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_max(arr_time, n = -10))
+  testthat::expect_equal(flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           fslice_max(arr_time, n = -10, na_rm = FALSE, keep_order = TRUE),
+                         flights2 %>%
+                           dplyr::group_by(origin, dest) %>%
+                           dplyr::slice_max(arr_time, n = -10) %>%
+                           dplyr::arrange(id))
+})

@@ -5,7 +5,7 @@
 \alias{gseq_len}
 \title{Fast grouped row numbers}
 \usage{
-growid(x, g = x)
+growid(x, g = x, ascending = TRUE)
 
 gseq_len(length, g = NULL)
 }
@@ -14,6 +14,10 @@ gseq_len(length, g = NULL)
 
 \item{g}{Group IDs passed directly to \code{collapse::GRP()}.
 This can be a vector, list or data frame.}
+
+\item{ascending}{When \code{ascending = TRUE} the row IDs are in
+increasing order. When \code{ascending = FALSE} the row IDs are in
+decreasing order.}
 
 \item{length}{Sequence length.}
 }

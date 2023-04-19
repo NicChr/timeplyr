@@ -9,17 +9,25 @@
 \alias{add_group_order}
 \title{Fast group and row IDs}
 \usage{
-group_id(data, ..., order = TRUE, .by = NULL, as_qg = FALSE)
+group_id(data, ..., order = TRUE, ascending = TRUE, .by = NULL, as_qg = FALSE)
 
-add_group_id(data, ..., order = TRUE, .by = NULL, .name = NULL, as_qg = FALSE)
+add_group_id(
+  data,
+  ...,
+  order = TRUE,
+  ascending = TRUE,
+  .by = NULL,
+  .name = NULL,
+  as_qg = FALSE
+)
 
-row_id(data, ..., .by = NULL)
+row_id(data, ..., ascending = TRUE, .by = NULL)
 
-add_row_id(data, ..., .by = NULL, .name = NULL)
+add_row_id(data, ..., ascending = TRUE, .by = NULL, .name = NULL)
 
-group_order(data, ..., .by = NULL, decreasing = FALSE)
+group_order(data, ..., ascending = TRUE, .by = NULL)
 
-add_group_order(data, ..., .by = NULL, decreasing = FALSE, .name = NULL)
+add_group_order(data, ..., ascending = TRUE, .by = NULL, .name = NULL)
 }
 \arguments{
 \item{data}{A data frame or vector.}
@@ -30,6 +38,10 @@ add_group_order(data, ..., .by = NULL, decreasing = FALSE, .name = NULL)
 \bold{THE PHYSICAL ORDER OF THE DATA IS NOT CHANGED.} \cr
 When order is \code{TRUE} (the default) the group IDs will be ordered but not sorted.
 If \code{FALSE} the order of the group IDs will be based on first appearance.}
+
+\item{ascending}{Should the group order be ascending or descending?
+The default is \code{TRUE}. \cr
+For \code{row_id()} this determines if the row IDs are increasing or decreasing.}
 
 \item{.by}{Alternative way of supplying groups using tidy
 select notation. This is kept to be consistent with other functions.}
@@ -42,9 +54,6 @@ an integer vector.}
 character vector of length 1.
 If \code{NULL} then a column named "group_id" will be added,
 and if one already exists, a unique name will be used.}
-
-\item{decreasing}{Should the group order be increasing or decreasing?
-The default is \code{FALSE} and is currently only implemented in \code{group_order()}.}
 }
 \description{
 \itemize{

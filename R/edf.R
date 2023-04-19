@@ -85,9 +85,12 @@ edf <- function(x, g = NULL, wt = NULL){
   } else {
     # Create group IDs
     df <- data.table::data.table(x, g, wt)
-    df[, ("g") := group_id.default(get("g"), order = FALSE, as_qg = FALSE)]
-    df[, ("g1") := group_id.default(get("x"), order = TRUE, as_qg = FALSE)]
-    df[, ("g3") := group_id.default(mget(c("g", "g1")), order = TRUE, as_qg = FALSE)]
+    df[, ("g") := group_id.default(.SD, order = FALSE, as_qg = FALSE),
+       .SDcols = "g"]
+    df[, ("g1") := group_id.default(.SD, order = TRUE, as_qg = FALSE),
+       .SDcols = "x"]
+    df[, ("g3") := group_id.default(.SD, order = TRUE, as_qg = FALSE),
+       .SDcols = c("g", "g1")]
     # Original order
     df[, ("id") := seq_len(.N)]
     # Order if NAs are shifted to the end
@@ -96,7 +99,7 @@ edf <- function(x, g = NULL, wt = NULL){
                                        get("id"))]
     # Sort data in ascending order
     data.table::setorderv(df, cols = "g3")
-    if (n_na > 0) df <- df[!is.na(get("x")), ]
+    if (n_na > 0) df <- df[!is.na(get("x"))]
     # Group sizes
     grp_n2 <- collapse::GRPN(df[["g"]], expand = TRUE)
     times <- collapse::GRPN(df[["g3"]], expand = FALSE)

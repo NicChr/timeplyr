@@ -7,13 +7,19 @@
 #' This can also be calculated using the geometric mean of percent changes.
 #'
 #' @param x Numeric vector.
-#' @param na.rm Should missing values be removed when calculating window? Defaults to \code{FALSE}.
+#' @param na.rm Should missing values be removed when calculating window?
+#' Defaults to \code{FALSE}. When `na.rm = TRUE` the size of the rolling windows
+#' are adjusted to the number of non-`NA` values in each window.
 #' @param log If `TRUE` then growth rates are calculated on the log-scale.
-#' @param inf_fill Numeric value to replace \code{Inf} values with. Default behaviour is to keep \code{Inf} values.
-#' @param n Rolling window size, default is `length(x)` which calculates a rolling growth rate of `x`
+#' @param inf_fill Numeric value to replace \code{Inf} values with.
+#' Default behaviour is to keep \code{Inf} values.
+#' @param n Rolling window size of length 1.
+#' The default is `n = length(x)`
+#' which calculates a simple prolling growth rate of `x`
 #' compared to the starting value.
 #' When `n = 2`, this is equivalent to a rolling basic growth calculation.
-#' @param partial Should rates be calculated outwith the window using partial windows? Default is \code{TRUE}.
+#' @param partial Should rates be calculated outwith the window
+#' using partial windows? Default is \code{TRUE}.
 #' @rdname growth_rate
 #' @export
 growth_rate <- function(x,
@@ -43,21 +49,28 @@ rolling_growth_rate <- function(x, n = length(x),
                                 partial = TRUE,
                                 na.rm = FALSE,
                                 log = FALSE, inf_fill = NULL){
-  # if (na.rm) x <- collapse::na_rm(x)
-  if (!missing(na.rm)) warning("na.rm is currently not implemented.")
   x_len <- length(x)
   n_len <- length(n)
-  if (!isTRUE(n_len == 1 || n_len == x_len)){
-    stop("n must be of length 1 or length(x)")
-  }
-  if (n_len == x_len){
-    x_lagged <- runner::lag_run(x, lag = n - 1)
-  } else if (partial){
-    n <- window_seq(k = n, n = length(x), partial = TRUE)
-    x_lagged <- runner::lag_run(x, lag = n - 1)
+  stopifnot(n_len <= 1)
+  n <- as.integer(n)
+  n <- max(1L, n)
+  # if (!isTRUE(n_len == 1 || n_len == x_len)){
+  #   stop("n must be of length 1 or length(x)")
+  # }
+  # if (n_len == x_len){
+  #   x_lagged <- runner::lag_run(x, lag = n - 1)
+  # } else
+  if (partial){
+    x_lagged <- collapse::flag(x, n = (n - 1))
+    setv(x_lagged, seq_len(n), x[1L], vind1 = TRUE)
+    n <- window_seq(k = n, n = x_len, partial = TRUE)
+    # x_lagged <- runner::lag_run(x, lag = n - 1)
   } else {
     x_lagged <- collapse::flag(x, n = (n - 1))
     n <- rep_len(n, x_len)
+  }
+  if (na.rm){
+    n <- frollsum3(!is.na(x), n = n, adaptive = TRUE)
   }
   if (log){
     gr <- exp(( log(x) - log(x_lagged) ) / (n - 1))

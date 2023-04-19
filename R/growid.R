@@ -12,6 +12,10 @@
 #' @param length Sequence length.
 #' @param g Group IDs passed directly to `collapse::GRP()`.
 #' This can be a vector, list or data frame.
+#' @param ascending When `ascending = TRUE` the row IDs are in
+#' increasing order. When `ascending = FALSE` the row IDs are in
+#' decreasing order.
+#'
 #' @return An integer vector of row IDs
 #' or double if `length > .Machine$integer.max`
 #' If `x` is a vector, a vector `length(x)` will be returned.\cr
@@ -54,7 +58,7 @@
 #'   filter(id1 != id2)
 #' @rdname growid
 #' @export
-growid <- function(x, g = x){
+growid <- function(x, g = x, ascending = TRUE){
   if (is.list(x)){
     if (is_df(x)){
       len <- nrow2(x)
@@ -69,11 +73,22 @@ growid <- function(x, g = x){
   }
   if (is.null(g)){
     out <- seq_len(len)
+    if (!ascending){
+      out <- rev(out)
+    }
   } else {
+    o <- NULL
     g <- GRP2(g, sort = sort, call = FALSE, return.groups = FALSE,
               return.order = FALSE)
+    if (!ascending){
+      if (len > 0L){
+        o <- seq(from = len, to = 1L, by = -1L)
+      }
+    }
     out <- collapse::fcumsum(seq_ones(len),
                              na.rm = FALSE,
+                             check.o = FALSE,
+                             o = o,
                              g = g)
   }
   out

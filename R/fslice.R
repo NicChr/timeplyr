@@ -24,6 +24,10 @@
 #' Columns are specified using tidy-select.
 #' @param n Number of rows.
 #' @param prop Proportion of rows.
+#' @param order_by Variables to order by.
+#' @param with_ties Should ties be kept together? The default is `TRUE`.
+#' @param na_rm Should missing values in `fslice_max()` and `fslice_min()` be kept?
+#' The default is `FALSE`.
 #' @param replace Should `fslice_sample()` sample with or without replacement?
 #' Default is `FALSE`, without replacement.
 #' @param weights Probability weights used in `fslice_sample()`.
@@ -146,6 +150,95 @@ fslice_tail <- function(data, ..., n, prop, .by = NULL,
 }
 #' @rdname fslice
 #' @export
+fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
+                       with_ties = TRUE, na_rm = TRUE,
+                       keep_order = FALSE, sort_groups = TRUE){
+  rlang::check_dots_empty0(...)
+  group_vars <- get_groups(data, .by = {{ .by }})
+  out <- dplyr::mutate(data,
+                       !!enquo(order_by),
+                       .keep = "none",
+                       .by = {{ .by }})
+  order_by_nm <- tidy_transform_names(safe_ungroup(data),
+                                      !!enquo(order_by))
+  row_nm <- new_var_nm(names(out), "row_id")
+  out[[row_nm]] <- seq_along(attr(out, "row.names"))
+  grp_nm <- new_var_nm(names(out), "g")
+  out[[grp_nm]] <- group_id(out, .by = {{ .by }},
+                            order = sort_groups)
+  grp_nm2 <- new_var_nm(names(out), "g")
+  out[[grp_nm2]] <- group_id(out[[order_by_nm]], order = TRUE)
+  # Order by Groups + desc order by var
+  grp_nm3 <- new_var_nm(names(out), "g")
+  out[[grp_nm3]] <- group_id(safe_ungroup(out), all_of(c(grp_nm, grp_nm2)), order = TRUE)
+  out <- df_row_slice(out, radix_order(out[[grp_nm3]]), reconstruct = FALSE)
+
+  out1 <- fslice_head(out, n = n, prop = prop, .by = {{ .by }},
+                      sort_groups = sort_groups)
+  if (with_ties){
+    i <- out[[row_nm]][out[[grp_nm3]] %in% out1[[grp_nm3]]]
+    # i <- df_row_slice(out, which(out[[grp_nm]] %in% out1[[grp_nm]]))[[row_nm]]
+  } else {
+    i <- out1[[row_nm]]
+  }
+  if (na_rm){
+    i2 <- out[[row_nm]][is.na(out[[order_by_nm]])]
+    i <- setdiff(i, i2)
+  }
+  if (is.null(i)){
+    i <- integer(0)
+  }
+  if (keep_order){
+    i <- radix_sort(i)
+  }
+  df_row_slice(data, i)
+}
+#' @rdname fslice
+#' @export
+fslice_max <- function(data, order_by, ..., n, prop, .by = NULL,
+                       with_ties = TRUE, na_rm = TRUE,
+                       keep_order = FALSE, sort_groups = TRUE){
+  rlang::check_dots_empty0(...)
+  group_vars <- get_groups(data, .by = {{ .by }})
+  out <- dplyr::mutate(data,
+                       !!enquo(order_by),
+                       .keep = "none",
+                       .by = {{ .by }})
+  order_by_nm <- tidy_transform_names(safe_ungroup(data),
+                                      !!enquo(order_by))
+  row_nm <- new_var_nm(names(out), "row_id")
+  out[[row_nm]] <- seq_along(attr(out, "row.names"))
+  grp_nm <- new_var_nm(names(out), "g")
+  out[[grp_nm]] <- group_id(out, .by = {{ .by }},
+                            order = sort_groups)
+  grp_nm2 <- new_var_nm(names(out), "g")
+  out[[grp_nm2]] <- group_id(out[[order_by_nm]],
+                             order = TRUE, ascending = FALSE)
+  # Order by Groups + desc order by var
+  grp_nm3 <- new_var_nm(names(out), "g")
+  out[[grp_nm3]] <- group_id(safe_ungroup(out), all_of(c(grp_nm, grp_nm2)), order = TRUE)
+  out <- df_row_slice(out, radix_order(out[[grp_nm3]]), reconstruct = FALSE)
+
+  out1 <- fslice_head(out, n = n, prop = prop, .by = {{ .by }})
+  if (with_ties){
+    i <- out[[row_nm]][out[[grp_nm3]] %in% out1[[grp_nm3]]]
+  } else {
+    i <- out1[[row_nm]]
+  }
+  if (na_rm){
+    i2 <- out[[row_nm]][is.na(out[[order_by_nm]])]
+    i <- setdiff(i, i2)
+  }
+  if (is.null(i)){
+    i <- integer(0)
+  }
+  if (keep_order){
+    i <- radix_sort(i)
+  }
+  df_row_slice(data, i)
+}
+#' @rdname fslice
+#' @export
 fslice_sample <- function(data, ..., n, prop,
                           .by = NULL,
                           keep_order = FALSE, sort_groups = TRUE,
@@ -162,6 +255,8 @@ fslice_sample <- function(data, ..., n, prop,
                                  sort_groups = sort_groups,
                                  bound_n = (missing(n) && missing(prop)) || !replace,
                                  default_n = nrow2(data))
+  group_sizes <- slice_info[["group_sizes"]]
+  slice_sizes <- slice_info[["slice_sizes"]]
   seed_exists <- exists(".Random.seed")
   seed_is_null <- is.null(seed)
   if (!seed_is_null){
@@ -170,25 +265,56 @@ fslice_sample <- function(data, ..., n, prop,
     }
     set.seed(seed)
   }
+  # Pre-allocate a list with lengths = slice sizes
+  rows <- vctrs::vec_chop(collapse::alloc(0L, sum(slice_sizes)),
+                          sizes = slice_sizes)
   if (has_weights){
     g <- group_id(data, .by = {{ .by }}, order = sort_groups)
     weights <- collapse::gsplit(data[[weights_var]], g = g)
-    rows <- purrr::pmap(list(slice_info[["rows"]], slice_info[["slice_sizes"]],
-                             weights),
-                        function(x, y, z) sample2(x, size = y, prob = z,
-                                                  replace = replace))
+    for (i in seq_along(rows)){
+      rows[[i]] <- sample.int(group_sizes[[i]],
+                              size = slice_sizes[[i]],
+                              replace = replace,
+                              prob = weights[[i]])
+    }
+    # 2nd version
+    # rows <- purrr::pmap(list(group_sizes,
+    #                          slice_sizes,
+    #                          weights),
+    #                     function(x, y, z) sample.int(x, size = y,
+    #                                                  replace = replace,
+    #                                                  prob = z))
+    # Original
+    # rows <- purrr::pmap(list(slice_info[["rows"]], slice_info[["slice_sizes"]],
+    #                          weights),
+    #                     function(x, y, z) sample2(x, size = y, prob = z,
+    #                                               replace = replace))
   } else {
-    rows <- purrr::map2(slice_info[["rows"]],
-                        slice_info[["slice_sizes"]],
-                        ~ sample2(.x, size = .y, replace = replace))
+    for (i in seq_along(rows)){
+      rows[[i]] <- sample.int(group_sizes[[i]],
+                              size = slice_sizes[[i]],
+                              replace = replace)
+    }
+    # 2nd Version
+    # rows <- purrr::map2(group_sizes,
+    #                     slice_sizes,
+    #                     ~ sample.int(.x, size = .y, replace = replace))
+    # Original
+    # rows <- purrr::map2(slice_info[["rows"]],
+    #                     slice_info[["slice_sizes"]],
+    #                     ~ sample2(.x, size = .y, replace = replace))
   }
-
+  rows <- unlist(rows, use.names = FALSE, recursive = FALSE)
+  if (length(rows) > 0L){
+    rows <- rows + rep.int(c(0L, cumsum(group_sizes)[-length(group_sizes)]),
+                           times = slice_sizes)
+  }
+  i <- unlist(slice_info[["rows"]], use.names = FALSE, recursive = FALSE)[rows]
   if (seed_exists && !seed_is_null){
     .Random.seed <<- old
   } else if (!seed_is_null){
     remove(.Random.seed, envir = .GlobalEnv)
   }
-  i <- unlist(rows, use.names = FALSE, recursive = FALSE)
   if (is.null(i)){
     i <- integer(0)
   }
@@ -229,7 +355,7 @@ df_slice_prepare <- function(data, n, prop, .by = NULL, sort_groups = TRUE,
     # USING N
     n <- as.integer(n)
     if (bound_n){
-      GN <- max(group_sizes)
+      GN <- collapse::fmax(group_sizes, use.g.names = FALSE, na.rm = FALSE)
       if (n >= 0){
         n <- min(n, GN)
         slice_sizes <- pmin(n, group_sizes)
@@ -264,4 +390,29 @@ df_slice_prepare <- function(data, n, prop, .by = NULL, sort_groups = TRUE,
   list("rows" = rows,
        "group_sizes" = group_sizes,
        "slice_sizes" = slice_sizes)
+}
+slice_info <- function(n, prop, default_n = 1L){
+  missing_n <- missing(n)
+  missing_prop <- missing(prop)
+  if (!missing_n && !missing_prop){
+    stop("Either n or prop must be supplied, not both.")
+  }
+  if (missing_n && missing_prop){
+    n <- default_n
+    type <- "n"
+    prop <- numeric(0)
+  }
+  if (!missing_n && missing_prop){
+    stopifnot(length(n) == 1L)
+    type <- "n"
+    prop <- numeric(0)
+  }
+  if (missing_n && !missing_prop){
+    stopifnot(length(prop) == 1L)
+    type <- "prop"
+    n <- integer(0)
+  }
+  list("n" = n,
+       "prop" = prop,
+       "type" = type)
 }

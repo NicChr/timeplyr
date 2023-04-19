@@ -31,7 +31,6 @@ Suggests:
     nycflights13,
     outbreaks,
     rmarkdown,
-    runner,
     testthat (>= 3.0.0)
 VignetteBuilder: 
     knitr

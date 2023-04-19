@@ -19,17 +19,23 @@ rolling_growth_rate(
 \arguments{
 \item{x}{Numeric vector.}
 
-\item{na.rm}{Should missing values be removed when calculating window? Defaults to \code{FALSE}.}
+\item{na.rm}{Should missing values be removed when calculating window?
+Defaults to \code{FALSE}. When \code{na.rm = TRUE} the size of the rolling windows
+are adjusted to the number of non-\code{NA} values in each window.}
 
 \item{log}{If \code{TRUE} then growth rates are calculated on the log-scale.}
 
-\item{inf_fill}{Numeric value to replace \code{Inf} values with. Default behaviour is to keep \code{Inf} values.}
+\item{inf_fill}{Numeric value to replace \code{Inf} values with.
+Default behaviour is to keep \code{Inf} values.}
 
-\item{n}{Rolling window size, default is \code{length(x)} which calculates a rolling growth rate of \code{x}
+\item{n}{Rolling window size of length 1.
+The default is \code{n = length(x)}
+which calculates a simple prolling growth rate of \code{x}
 compared to the starting value.
 When \code{n = 2}, this is equivalent to a rolling basic growth calculation.}
 
-\item{partial}{Should rates be calculated outwith the window using partial windows? Default is \code{TRUE}.}
+\item{partial}{Should rates be calculated outwith the window
+using partial windows? Default is \code{TRUE}.}
 }
 \description{
 Calculate the rate of percentage change per unit (time) of a numeric vector.

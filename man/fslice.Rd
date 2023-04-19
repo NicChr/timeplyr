@@ -4,6 +4,8 @@
 \alias{fslice}
 \alias{fslice_head}
 \alias{fslice_tail}
+\alias{fslice_min}
+\alias{fslice_max}
 \alias{fslice_sample}
 \title{Faster \code{dplyr::slice()}}
 \usage{
@@ -25,6 +27,32 @@ fslice_tail(
   n,
   prop,
   .by = NULL,
+  keep_order = FALSE,
+  sort_groups = TRUE
+)
+
+fslice_min(
+  data,
+  order_by,
+  ...,
+  n,
+  prop,
+  .by = NULL,
+  with_ties = TRUE,
+  na_rm = TRUE,
+  keep_order = FALSE,
+  sort_groups = TRUE
+)
+
+fslice_max(
+  data,
+  order_by,
+  ...,
+  n,
+  prop,
+  .by = NULL,
+  with_ties = TRUE,
+  na_rm = TRUE,
   keep_order = FALSE,
   sort_groups = TRUE
 )
@@ -60,6 +88,13 @@ If \code{FALSE} the group order is determined by first-appearance in the data.}
 \item{n}{Number of rows.}
 
 \item{prop}{Proportion of rows.}
+
+\item{order_by}{Variables to order by.}
+
+\item{with_ties}{Should ties be kept together? The default is \code{TRUE}.}
+
+\item{na_rm}{Should missing values in \code{fslice_max()} and \code{fslice_min()} be kept?
+The default is \code{FALSE}.}
 
 \item{replace}{Should \code{fslice_sample()} sample with or without replacement?
 Default is \code{FALSE}, without replacement.}
