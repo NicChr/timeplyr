@@ -8,6 +8,18 @@
 #' *  `group_order()` returns the order of the groups.
 #' *  `add_group_order()` adds an integer column of the order of the groups.
 #'
+#' It's important to note that when using `data.frames`, these functions by default assume
+#' no groups.
+#' This means that when no groups are supplied:
+#' * `group_id(iris)` returns a vector of ones
+#' * `row_id(iris)` returns the plain row id numbers
+#' * `group_order(iris) == row_id(iris)`.
+#'
+#' One can specify groups in the second argument like so:
+#' * `group_id(iris, Species)`
+#' * `row_id(iris, dplyr::all_of("Species"))`
+#' * `group_order(iris, contains("width"))`
+#'
 #' @param data A data frame or vector.
 #' @param ... Additional groups using tidy select notation.
 #' @param order Should the groups be ordered?
@@ -206,6 +218,9 @@ group_order <- function(data, ..., ascending = TRUE, .by = NULL){
 }
 #' @export
 group_order.default <- function(data, ..., ascending = TRUE, .by = NULL){
+  # as.integer(collapse::radixorderv(data, decreasing = !ascending,
+  #                                  na.last = TRUE, starts = FALSE,
+  #                                  group.sizes = FALSE, sort = TRUE))
   g <- GRP2(safe_ungroup(data),
             sort = TRUE,
             decreasing = !ascending,
@@ -226,17 +241,19 @@ group_order.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
                          type = "select", .by = {{ .by }})[["all_groups"]]
   if (length(vars) == 0L){
     g <- NULL
-    out <- rep_len(1L, nrow2(data))
+    out <- seq_len(nrow2(data))
   } else {
-    g <- GRP2(collapse::fselect(data, vars),
-              sort = TRUE,
-              decreasing = !ascending,
-              return.groups = FALSE, return.order = TRUE,
-              call = FALSE)
-    out <- g[["order"]]
-    if (is.null(out)){
-      out <- radix_order(g[["group.id"]])
-    }
+    out <- group_order.default(collapse::fselect(data, vars),
+                               ascending = ascending)
+    # g <- GRP2(collapse::fselect(data, vars),
+    #           sort = TRUE,
+    #           decreasing = !ascending,
+    #           return.groups = FALSE, return.order = TRUE,
+    #           call = FALSE)
+    # out <- g[["order"]]
+    # if (is.null(out)){
+    #   out <- radix_order(g[["group.id"]])
+    # }
   }
   as.integer(out)
 }

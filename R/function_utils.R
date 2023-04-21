@@ -112,7 +112,7 @@ harmonic_mean <- function(x, weights = NULL, na.rm = FALSE){
 tidy_transform_names <- function(data, ...){
   names(
     summarise_list(
-      safe_ungroup(data)[1L, , drop = FALSE], !!!enquos(...),
+      df_row_slice(safe_ungroup(data), min(nrow2(data), 1L), reconstruct = FALSE), !!!enquos(...),
       fix.names = TRUE
     )
   )
@@ -157,7 +157,7 @@ summarise_list <- function(data, ..., fix.names = TRUE){
   quo_list <- rlang::eval_tidy(enquos(...), data)
   out <- lapply(quo_list, function(quo) dplyr_summarise(data, !!quo))
   # Remove NULL entries
-  out_sizes <- lengths(out)
+  out_sizes <- lengths(out, use.names = FALSE)
   if (all(out_sizes == 0)){
     return(setnames(list(), character(0)))
   }
@@ -457,9 +457,9 @@ nrow2 <- function(data){
 #   dot_nms
 # }
 # Faster dot nms
-dot_nms <- function(...){
+dot_nms <- function(..., use.names = FALSE){
   unlist((lapply(substitute(as.list(...))[-1L], deparse)),
-         recursive = FALSE, use.names = FALSE)
+         recursive = FALSE, use.names = use.names)
 }
 # Default arguments
 match.call.defaults <- function(...) {
@@ -531,21 +531,37 @@ ffactor <- function(x, levels = NULL, ordered = FALSE, na.exclude = TRUE){
 # it always is
 unique_groups <- function(data, ..., order = sort, sort = TRUE,
                           .by = NULL, .group_id = TRUE){
-  group_vars <- get_groups(data, {{ .by }})
-  extra_vars <- tidy_select_names(data, !!!enquos(...))
-  # Check if group id colname exists
-  grp_nm <- new_var_nm(names(data), "group_id")
-  out <- data %>%
-    dplyr::select(all_of(group_vars), !!!enquos(...)) %>%
-    add_group_id(all_of(extra_vars),
-                 order = order,
-                 .by = {{ .by }}, as_qg = FALSE,
-                 .name = grp_nm)
-  out <- out[!collapse::fduplicated(out[[grp_nm]], all = FALSE), , drop = FALSE]
-  if (sort) out <- out[radix_order(out[[grp_nm]]), , drop = FALSE]
-  if (!.group_id) out[[grp_nm]] <- NULL
-  attr(out, "row.names") <- seq_len(nrow2(out))
+  out <- group_collapse(data, !!!enquos(...),
+                        order = order, sort = sort,
+                        .by = .by,
+                        loc = FALSE,
+                        start = FALSE, end = FALSE,
+                        size = FALSE)
+  if (.group_id){
+    names(out)[names(out) == ".group"] <- "group_id"
+  } else {
+    out[[".group"]] <- NULL
+  }
   out
+
+  # group_vars <- get_groups(data, {{ .by }})
+  # extra_vars <- tidy_select_names(data, !!!enquos(...))
+  # # Check if group id colname exists
+  # grp_nm <- new_var_nm(names(data), "group_id")
+  # out <- data %>%
+  #   dplyr::select(all_of(group_vars), !!!enquos(...)) %>%
+  #   add_group_id(all_of(extra_vars),
+  #                order = order,
+  #                .by = {{ .by }}, as_qg = FALSE,
+  #                .name = grp_nm)
+  # out <- df_row_slice(out, which(!collapse::fduplicated(out[[grp_nm]], all = FALSE)))
+  # if (sort){
+  #   out <- df_row_slice(out, radix_order(out[[grp_nm]]),
+  #                       reconstruct = FALSE)
+  # }
+  # if (!.group_id) out[[grp_nm]] <- NULL
+  # attr(out, "row.names") <- seq_len(nrow2(out))
+  # out
 }
 # Slightly safer way of removing DT cols
 set_rm_cols <- function(DT, cols = NULL){

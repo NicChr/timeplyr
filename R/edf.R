@@ -77,8 +77,8 @@ edf <- function(x, g = NULL, wt = NULL){
       grpn <- collapse::fsum(wt, g = g, use.g.names = FALSE)
       N <- sum(wt)
     }
-    sum_run <- rep(collapse::fcumsum(grpn, na.rm = FALSE),
-                   times = times)
+    sum_run <- rep.int(collapse::fcumsum(grpn, na.rm = FALSE),
+                       times = times)
     out <- sum_run / N
     if (n_na > 0) out <- c(out, rep_len(NA_real_, n_na))
     out <- out[radix_order(x_order)]
@@ -113,10 +113,10 @@ edf <- function(x, g = NULL, wt = NULL){
       N <- gsum(df[["wt"]], g = df[["g"]])
     }
 
-    sum_run <- rep(collapse::fcumsum(grp_n3, na.rm = FALSE,
-                                      g = collapse::funique(df,
-                                                            cols = "g3")[["g"]]),
-                    times)
+    sum_run <- rep.int(collapse::fcumsum(grp_n3, na.rm = FALSE,
+                                         g = collapse::funique(df,
+                                                               cols = "g3")[["g"]]),
+                       times)
     out <- sum_run / N
     # Return using input order
     if (n_na > 0){

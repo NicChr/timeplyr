@@ -187,22 +187,27 @@ get_time_delay <- function(data, origin, end, by = "day",
     quantile_summary <- tidyr::pivot_wider(quantile_summary,
                                            names_from = all_of("quantile_nms"),
                                            values_from = all_of("probs"))
-    delay_summary <- out[, list("n" = .N,
-                                "min" = min(get(delay_nm)),
-                                "max" = max(get(delay_nm)),
-                                "mean" = mean(get(delay_nm)),
-                                "sd" = stats::sd(get(delay_nm)),
-                                "iqr" = stats::quantile(get(delay_nm), 0.75) -
-                                  stats::quantile(get(delay_nm), 0.25),
-                                "mad" = stats::mad(get(delay_nm))),
+    delay_summary <- out[, setnames(unlist(lapply(.SD,
+                                                  function(x) list(.N,
+                                                                   min(x),
+                                                                   max(x),
+                                                                   mean(x),
+                                                                   stats::sd(x),
+                                                                   diff(stats::quantile(x, c(0.25, 0.75)),
+                                                                        lag = 1L),
+                                                                   stats::mad(x))),
+                                           recursive = FALSE, use.names = TRUE),
+                                    c("n", "min", "max", "mean",
+                                      "sd", "iqr", "mad")),
+                         .SDcols = delay_nm,
                          by = grp_nm]
     delay_summary[, ("se") := get("sd")/sqrt(get("n"))]
     delay_summary <- delay_summary %>%
       dplyr::full_join(quantile_summary, by = grp_nm, keep = FALSE) %>%
       dplyr::left_join(grp_df, by = grp_nm) %>%
-      dplyr::arrange(across(all_of(grp_nm))) %>%
-      dplyr::select(all_of(c(group_vars, "n", "min", "max", "mean", "sd",
-                             quantile_nms, "iqr", "mad", "se")))
+      farrange(across(all_of(grp_nm))) %>%
+      collapse::fselect(c(group_vars, "n", "min", "max", "mean", "sd",
+                             quantile_nms, "iqr", "mad", "se"))
   }
 
   # Create delay table

@@ -203,3 +203,97 @@ testthat::test_that("Group locs", {
   testthat::expect_equal(base5$.group, res5$.group)
 
 })
+
+
+testthat::test_that("Row IDs", {
+  flights2 <- fslice_sample(nycflights13::flights,
+                           seed = 9192919)
+  iris2 <- fslice_sample(iris, seed = 098124)
+  base1 <- iris2 %>%
+    dplyr::mutate(id = dplyr::row_number())
+  base2 <- flights2 %>%
+    dplyr::group_by(origin, dest) %>%
+    dplyr::mutate(id = dplyr::row_number())
+  res1 <- iris2 %>%
+    add_row_id()
+  res2 <- flights2 %>%
+    add_row_id(.by = c(origin, dest))
+  res3 <- flights2 %>%
+    add_row_id(origin, dest)
+  res4 <- flights2 %>%
+    dplyr::mutate(row_id = row_id(dplyr::pick(origin, dest),
+                                  dplyr::everything()))
+
+  testthat::expect_equal(row_id.default(flights2),
+                         row_id(flights2, dplyr::everything()))
+  testthat::expect_equal(row_id.default(flights2, ascending = FALSE),
+                         row_id(flights2, dplyr::everything(), ascending = FALSE))
+
+  testthat::expect_equal(base1$id, res1$row_id)
+  testthat::expect_equal(base2$id, res2$row_id)
+  testthat::expect_equal(res2$row_id, res3$row_id)
+  testthat::expect_equal(res2$row_id, res4$row_id)
+
+  testthat::expect_identical(
+    iris2 %>%
+      fslice(0) %>%
+      add_row_id(),
+    iris2 %>%
+      fslice(0) %>%
+      dplyr::mutate(row_id = dplyr::row_number()))
+  testthat::expect_identical(
+    iris2 %>%
+      data.table::as.data.table() %>%
+      fslice(0) %>%
+      add_row_id(),
+    iris2 %>%
+      data.table::as.data.table() %>%
+      dplyr::slice(0) %>%
+      dplyr::mutate(row_id = dplyr::row_number()))
+  testthat::expect_identical(
+    iris2 %>%
+      data.table::as.data.table() %>%
+      dplyr::select() %>%
+      add_row_id(),
+    iris2 %>%
+      dplyr::select() %>%
+      dplyr::mutate(row_id = dplyr::row_number()) %>%
+      data.table::as.data.table())
+})
+
+testthat::test_that("group order", {
+  flights2 <- add_row_id(fslice_sample(nycflights13::flights, seed = 9192919))
+  iris2 <- add_row_id(fslice_sample(iris, seed = 098124))
+  base1 <- iris2 %>%
+    dplyr::arrange(dplyr::desc(Species), Sepal.Length)
+  base2 <- flights2 %>%
+    dplyr::group_by(origin, dest) %>%
+    dplyr::arrange(dest, dplyr::desc(tailnum), origin)
+  base3 <- flights2 %>%
+    dplyr::group_by(origin, dest) %>%
+    dplyr::arrange(dest, dplyr::desc(tailnum), origin,
+                   .by_group = TRUE)
+  res1 <- iris2 %>%
+    dplyr::mutate(Species = dplyr::desc(Species), Sepal.Length) %>%
+    dplyr::slice(group_order(dplyr::pick(Species, Sepal.Length),
+                             dplyr::everything()))
+  res2 <- flights2 %>%
+    dplyr::mutate(tailnum2 = group_id(tailnum),
+                  tailnum = dplyr::desc(dplyr::if_else(is.na(tailnum), NA_integer_, tailnum2))) %>%
+    dplyr::select(-tailnum2) %>%
+    dplyr::mutate(order = group_order(dplyr::pick(dest, tailnum, origin),
+                                      dplyr::everything())) %>%
+    dplyr::slice(.data[["order"]])
+  i <- flights2 %>%
+    dplyr::group_by(origin, dest) %>%
+    dplyr::mutate(tailnum2 = group_id(tailnum),
+                  tailnum = dplyr::desc(dplyr::if_else(is.na(tailnum), NA_integer_, tailnum2))) %>%
+    dplyr::select(-tailnum2) %>%
+    group_order(tailnum)
+  res3 <- flights2 %>%
+    fslice(i)
+
+  testthat::expect_equal(base1$row_id, res1$row_id)
+  testthat::expect_equal(base2$row_id, res2$row_id)
+  testthat::expect_equal(base3$row_id, res3$row_id)
+})

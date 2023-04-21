@@ -26,7 +26,7 @@
 #' @param prop Proportion of rows.
 #' @param order_by Variables to order by.
 #' @param with_ties Should ties be kept together? The default is `TRUE`.
-#' @param na_rm Should missing values in `fslice_max()` and `fslice_min()` be kept?
+#' @param na_rm Should missing values in `fslice_max()` and `fslice_min()` be removed?
 #' The default is `FALSE`.
 #' @param replace Should `fslice_sample()` sample with or without replacement?
 #' Default is `FALSE`, without replacement.
@@ -39,18 +39,28 @@
 #' library(timeplyr)
 #' library(dplyr)
 #' library(nycflights13)
+#' flights <- flights %>%
+#'   group_by(origin, dest)
 #'
-#' \dontrun{
-#' library(microbenchmark)
-#' data(flights)
-#' # This may take a couple of minutes
-#' microbenchmark(fslice(flights, 1:3, .by = c(origin, dest, tailnum)),
-#'                slice(flights, 1:3, .by = c(origin, dest, tailnum)),
-#'                times = 3)
-#' microbenchmark(fslice(flights, 1:3, .by = everything()),
-#'                slice(flights, 1:3, .by = everything()),
-#'                times = 3)
-#' }
+#' # First row repeated for each group
+#' flights %>%
+#'   fslice(1, 1)
+#' # First row per group
+#' flights %>%
+#'   fslice_head(n = 1)
+#' # Last row per group
+#' flights %>%
+#'   fslice_tail(n = 1)
+#' # Earliest flight per group
+#' flights %>%
+#'   fslice_min(time_hour, with_ties = FALSE)
+#' # Last flight per group
+#' flights %>%
+#'   fslice_max(time_hour, with_ties = FALSE)
+#' # Random sample without replacement by group
+#' # (or stratified random sampling)
+#' flights %>%
+#'   fslice_sample()
 #' @rdname fslice
 #' @export
 fslice <- function(data, ..., .by = NULL,
@@ -151,7 +161,7 @@ fslice_tail <- function(data, ..., n, prop, .by = NULL,
 #' @rdname fslice
 #' @export
 fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
-                       with_ties = TRUE, na_rm = TRUE,
+                       with_ties = TRUE, na_rm = FALSE,
                        keep_order = FALSE, sort_groups = TRUE){
   rlang::check_dots_empty0(...)
   group_vars <- get_groups(data, .by = {{ .by }})
@@ -196,7 +206,7 @@ fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
 #' @rdname fslice
 #' @export
 fslice_max <- function(data, order_by, ..., n, prop, .by = NULL,
-                       with_ties = TRUE, na_rm = TRUE,
+                       with_ties = TRUE, na_rm = FALSE,
                        keep_order = FALSE, sort_groups = TRUE){
   rlang::check_dots_empty0(...)
   group_vars <- get_groups(data, .by = {{ .by }})
@@ -219,7 +229,8 @@ fslice_max <- function(data, order_by, ..., n, prop, .by = NULL,
   out[[grp_nm3]] <- group_id(safe_ungroup(out), all_of(c(grp_nm, grp_nm2)), order = TRUE)
   out <- df_row_slice(out, radix_order(out[[grp_nm3]]), reconstruct = FALSE)
 
-  out1 <- fslice_head(out, n = n, prop = prop, .by = {{ .by }})
+  out1 <- fslice_head(out, n = n, prop = prop, .by = {{ .by }},
+                      sort_groups = sort_groups)
   if (with_ties){
     i <- out[[row_nm]][out[[grp_nm3]] %in% out1[[grp_nm3]]]
   } else {

@@ -64,6 +64,22 @@ and if one already exists, a unique name will be used.}
 \item \code{group_order()} returns the order of the groups.
 \item \code{add_group_order()} adds an integer column of the order of the groups.
 }
+
+It's important to note that when using \code{data.frames}, these functions by default assume
+no groups.
+This means that when no groups are supplied:
+\itemize{
+\item \code{group_id(iris)} returns a vector of ones
+\item \code{row_id(iris)} returns the plain row id numbers
+\item \code{group_order(iris) == row_id(iris)}.
+}
+
+One can specify groups in the second argument like so:
+\itemize{
+\item \code{group_id(iris, Species)}
+\item \code{row_id(iris, dplyr::all_of("Species"))}
+\item \code{group_order(iris, contains("width"))}
+}
 }
 \examples{
 library(timeplyr)

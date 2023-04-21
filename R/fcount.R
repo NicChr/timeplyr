@@ -107,7 +107,8 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                                       fill = 0, nan = NaN)
   }
   if (sort){
-    out <- df_row_slice(out, radix_order(out[[name]], decreasing = TRUE))
+    out <- df_row_slice(out, radix_order(out[[name]], decreasing = TRUE),
+                        reconstruct = FALSE)
     # out <- out[radix_order(out[[name]], decreasing = TRUE), , drop = FALSE]
   }
   # Set row.names attr

@@ -39,7 +39,7 @@ fslice_min(
   prop,
   .by = NULL,
   with_ties = TRUE,
-  na_rm = TRUE,
+  na_rm = FALSE,
   keep_order = FALSE,
   sort_groups = TRUE
 )
@@ -52,7 +52,7 @@ fslice_max(
   prop,
   .by = NULL,
   with_ties = TRUE,
-  na_rm = TRUE,
+  na_rm = FALSE,
   keep_order = FALSE,
   sort_groups = TRUE
 )
@@ -93,7 +93,7 @@ If \code{FALSE} the group order is determined by first-appearance in the data.}
 
 \item{with_ties}{Should ties be kept together? The default is \code{TRUE}.}
 
-\item{na_rm}{Should missing values in \code{fslice_max()} and \code{fslice_min()} be kept?
+\item{na_rm}{Should missing values in \code{fslice_max()} and \code{fslice_min()} be removed?
 The default is \code{FALSE}.}
 
 \item{replace}{Should \code{fslice_sample()} sample with or without replacement?
@@ -123,16 +123,26 @@ maximum group size like in \code{dplyr::slice_sample()}.
 library(timeplyr)
 library(dplyr)
 library(nycflights13)
+flights <- flights \%>\%
+  group_by(origin, dest)
 
-\dontrun{
-library(microbenchmark)
-data(flights)
-# This may take a couple of minutes
-microbenchmark(fslice(flights, 1:3, .by = c(origin, dest, tailnum)),
-               slice(flights, 1:3, .by = c(origin, dest, tailnum)),
-               times = 3)
-microbenchmark(fslice(flights, 1:3, .by = everything()),
-               slice(flights, 1:3, .by = everything()),
-               times = 3)
-}
+# First row repeated for each group
+flights \%>\%
+  fslice(1, 1)
+# First row per group
+flights \%>\%
+  fslice_head(n = 1)
+# Last row per group
+flights \%>\%
+  fslice_tail(n = 1)
+# Earliest flight per group
+flights \%>\%
+  fslice_min(time_hour, with_ties = FALSE)
+# Last flight per group
+flights \%>\%
+  fslice_max(time_hour, with_ties = FALSE)
+# Random sample without replacement by group
+# (or stratified random sampling)
+flights \%>\%
+  fslice_sample()
 }
