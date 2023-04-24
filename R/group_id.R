@@ -28,7 +28,9 @@
 #' If `FALSE` the order of the group IDs will be based on first appearance.
 #' @param ascending Should the group order be ascending or descending?
 #' The default is `TRUE`. \cr
-#' For `row_id()` this determines if the row IDs are increasing or decreasing.
+#' For `row_id()` this determines if the row IDs are increasing or decreasing. \cr
+#' \bold{NOTE} - When `order = FALSE`, the `ascending` argument is
+#' ignored. This is something that will be fixed in a later version.
 #' @param .by Alternative way of supplying groups using tidy
 #' select notation. This is kept to be consistent with other functions.
 #' @param .name Name of the added group ID column which should be a

@@ -9,6 +9,7 @@ group_collapse(
   ...,
   order = TRUE,
   sort = FALSE,
+  ascending = TRUE,
   .by = NULL,
   size = TRUE,
   loc = TRUE,

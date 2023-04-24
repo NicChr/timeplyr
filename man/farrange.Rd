@@ -2,9 +2,12 @@
 % Please edit documentation in R/farrange.R
 \name{farrange}
 \alias{farrange}
+\alias{desc}
 \title{A \code{collapse} version of \code{dplyr::arrange()}}
 \usage{
 farrange(data, ..., .by = NULL, .by_group = FALSE)
+
+desc(x)
 }
 \arguments{
 \item{data}{A data frame.}
@@ -21,9 +24,12 @@ variables.}
 This is a fast and near-identical alternative to \code{dplyr::arrange()}
 using the \code{collapse} package.
 
-This function is faster when there are many groups or a large number of
-rows.
+\code{desc()} is like \code{dplyr::desc()} but works faster when
+called directly on vectors. \cr
+You can use \code{desc()} interchangeably with \code{dplyr} and \code{timeplyr}. \cr
+\code{arrange(iris, desc(Species))} uses \code{dplyr}'s version. \cr
+\code{farrange(iris, desc(Species))} uses \code{timeplyr}'s version.
 
-You can use it as you would with dplyr,
-e.g. \code{iris \%>\% farrange(Species, desc(Sepal.Length))}
+\code{farrange()} is faster when there are many groups or a large number of
+rows.
 }

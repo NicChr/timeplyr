@@ -46,6 +46,7 @@
 #' @rdname group_collapse
 #' @export
 group_collapse <- function(data, ..., order = TRUE, sort = FALSE,
+                           ascending = TRUE,
                            .by = NULL,
                            size = TRUE, loc = TRUE,
                            # loc_order = TRUE,
@@ -54,13 +55,14 @@ group_collapse <- function(data, ..., order = TRUE, sort = FALSE,
 }
 #' @export
 group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
+                                   ascending = TRUE,
                                    .by = NULL,
                                    size = TRUE, loc = TRUE,
                                    # loc_order = TRUE,
                                    start = TRUE, end = TRUE){
   g <- GRP2(safe_ungroup(data),
             sort = order,
-            decreasing = FALSE,
+            decreasing = !ascending,
             na.last = TRUE,
             return.groups = TRUE,
             return.order = order || loc,
@@ -74,11 +76,9 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
     #                                   direction = "asc", na_value = "largest")[["loc"]],
     #   .ptype = integer(0)
     # )
-    rowids <- growid(data, g = NULL)
-    out[[".loc"]] <- vctrs::as_list_of(
-      collapse::gsplit(x = rowids, g = g),
-      .ptype = integer(0)
-    )
+    out[[".loc"]] <- collapse::gsplit(NULL, g = g)
+    attr(out[[".loc"]], "ptype") <- integer(0)
+    attr(out[[".loc"]], "class") <- c("vctrs_list_of", "vctrs_vctr", "list")
   }
   # if (loc_order){
   #   gorder <- g[["order"]]
@@ -121,6 +121,7 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
 }
 #' @export
 group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
+                                      ascending = TRUE,
                                       .by = NULL,
                                       size = TRUE, loc = TRUE,
                                       # loc_order = TRUE,
@@ -152,6 +153,7 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
     out <- group_collapse.default(collapse::fselect(data, vars),
                                   order = order, sort = sort,
                                   size = size, loc = loc,
+                                  ascending = ascending,
                                   # loc_order = loc_order,
                                   start = start, end = end)
   }
@@ -161,6 +163,7 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
 }
 #' @export
 group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
+                                      ascending = TRUE,
                                       .by = NULL,
                                       size = TRUE, loc = TRUE,
                                       # loc_order = TRUE,
@@ -170,7 +173,8 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
   if (dots_length(...) == 0 &&
       rlang::quo_is_null(enquo(.by)) &&
       sort &&
-      order){
+      order &&
+      ascending){
     out <- dplyr::group_data(data)
     out_nms <- names(out)
     names(out)[out_nms == ".rows"] <- ".loc"
@@ -203,6 +207,7 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
     out <- group_collapse(safe_ungroup(data), all_of(vars),
                           order = order, sort = sort,
                           size = size, loc = loc,
+                          ascending = ascending,
                           # loc_order = loc_order,
                           start = start, end = end)
     attr(out, ".drop") <- dplyr::group_by_drop_default(data)

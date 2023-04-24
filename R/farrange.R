@@ -4,11 +4,14 @@
 #' This is a fast and near-identical alternative to `dplyr::arrange()`
 #' using the `collapse` package.
 #'
-#' This function is faster when there are many groups or a large number of
-#' rows.
+#' `desc()` is like `dplyr::desc()` but works faster when
+#' called directly on vectors. \cr
+#' You can use `desc()` interchangeably with `dplyr` and `timeplyr`. \cr
+#' `arrange(iris, desc(Species))` uses `dplyr`'s version. \cr
+#' `farrange(iris, desc(Species))` uses `timeplyr`'s version.
 #'
-#' You can use it as you would with dplyr,
-#' e.g. `iris %>% farrange(Species, desc(Sepal.Length))`
+#' `farrange()` is faster when there are many groups or a large number of
+#' rows.
 #'
 #' @param data A data frame.
 #' @param ... Variables to group by.
@@ -39,5 +42,17 @@ farrange <- function(data, ..., .by = NULL, .by_group = FALSE){
     }
     df_row_slice(data, group_order.default(collapse::fselect(out, order_vars)),
                  reconstruct = FALSE)
+  }
+}
+#' @rdname farrange
+#' @export
+desc <- function(x){
+  if (is.numeric(x)){
+    -xtfrm(x)
+  } else {
+    -as.integer(collapse::qG(x, sort = TRUE, na.exclude = TRUE))
+    # g <- group_id.default(x, order = TRUE)
+    # setv(g, collapse::whichNA(x), NA_integer_, vind1 = TRUE)
+    # -vctrs::vec_rank(x, ties = "min", incomplete = "na")
   }
 }

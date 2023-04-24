@@ -48,11 +48,11 @@ lump_categories <- function(x, n = 10, factor = TRUE,
     ranked_categories <- collapse::qtab(x, sort = FALSE, dnn = NULL, na.exclude = TRUE)
     ranked_categories <- ranked_categories[radix_order(ranked_categories,
                                                        decreasing = descending)]
-    top_n_categories <- utils::head(ranked_categories, n = n)
+    top_n_categories <- vec_head(ranked_categories, n = n)
     top_n_categories <- names(top_n_categories[radix_order(top_n_categories,
                                                            decreasing = descending)])
   } else {
-    top_n_categories <- utils::head(x_unique_sorted, n = n)
+    top_n_categories <- vec_head(x_unique_sorted, n = n)
   }
   top_n_category_levels <- as.character(top_n_categories)
   if (length(x_unique) > length(top_n_categories)){
@@ -413,8 +413,7 @@ df_reconstruct <- function(data, template){
         groups <- dplyr::as_tibble(as.list(g[["groups"]]))
       }
 
-      groups[[".rows"]] <- collapse::gsplit(x = seq_len(nrow2(data)),
-                                            g = g)
+      groups[[".rows"]] <- collapse::gsplit(NULL, g = g)
 
       attributes(groups[[".rows"]]) <- attributes(template_attrs[["groups"]][[".rows"]])
       for (a in setdiff(names(attributes(groups)),
@@ -544,24 +543,6 @@ unique_groups <- function(data, ..., order = sort, sort = TRUE,
   }
   out
 
-  # group_vars <- get_groups(data, {{ .by }})
-  # extra_vars <- tidy_select_names(data, !!!enquos(...))
-  # # Check if group id colname exists
-  # grp_nm <- new_var_nm(names(data), "group_id")
-  # out <- data %>%
-  #   dplyr::select(all_of(group_vars), !!!enquos(...)) %>%
-  #   add_group_id(all_of(extra_vars),
-  #                order = order,
-  #                .by = {{ .by }}, as_qg = FALSE,
-  #                .name = grp_nm)
-  # out <- df_row_slice(out, which(!collapse::fduplicated(out[[grp_nm]], all = FALSE)))
-  # if (sort){
-  #   out <- df_row_slice(out, radix_order(out[[grp_nm]]),
-  #                       reconstruct = FALSE)
-  # }
-  # if (!.group_id) out[[grp_nm]] <- NULL
-  # attr(out, "row.names") <- seq_len(nrow2(out))
-  # out
 }
 # Slightly safer way of removing DT cols
 set_rm_cols <- function(DT, cols = NULL){
@@ -583,7 +564,7 @@ new_n_var_nm <- function(data, check = "n"){
 new_var_nm <- function(data, check = ".group.id"){
   data_nms <- names(data)
   if (is.null(data_nms)) data_nms <- data
-  i <- 0L
+  i <- 1L
   grp_nm <- check
   while (check %in% data_nms){
     i <- i + 1L
@@ -600,7 +581,7 @@ recycle_args <- function (..., length, use.names = FALSE){
   dots <- list(...)
   missing_length <- missing(length)
   if (missing_length) {
-    recycle_length <- max(lengths(dots))
+    recycle_length <- max(lengths(dots, use.names = FALSE))
   }
   else {
     recycle_length <- length
@@ -653,7 +634,7 @@ sample2 <- function(x, size = length(x), replace = FALSE, prob = NULL){
   x[sample.int(length(x), size = size, replace = replace, prob = prob)]
 }
 
-setv <- utils::getFromNamespace("setv", "collapse")
+setv <- getFromNamespace("setv", "collapse")
 
 # Some future utils for counts and weights..
 # wt_fun <- function(wt){
@@ -663,7 +644,7 @@ setv <- utils::getFromNamespace("setv", "collapse")
 # quo_name(enquo(wt))
 # quo_is_null()
 
-CJ <- utils::getFromNamespace("CJ", "data.table")
+CJ <- getFromNamespace("CJ", "data.table")
 
 is_whole_number <- function(x){
   if (is.integer(x)) return(TRUE) # If already integer then true
@@ -689,4 +670,35 @@ df_row_slice <- function(data, i, reconstruct = TRUE){
     vctrs::vec_slice(data, i)
   }
 
+}
+# Vctrs version of utils::head/tail
+vec_head <- function(x, n = 1L){
+  stopifnot(length(n) == 1L)
+  N <- vctrs::vec_size(x)
+  if (n >= 0){
+    size <- min(n, N)
+  } else {
+    size <- max(0L, N + n)
+  }
+  vctrs::vec_slice(x, seq_len(size))
+}
+vec_tail <- function(x, n = 1L){
+  stopifnot(length(n) == 1L)
+  N <- vctrs::vec_size(x)
+  if (n >= 0){
+    size <- min(n, N)
+  } else {
+    size <- max(0L, N + n)
+  }
+  vctrs::vec_slice(x, seq.int(from = N - size + 1L, by = 1L, length.out = size))
+}
+getFromNamespace <- function(x, ns, pos = -1, envir = as.environment(pos)){
+  if (missing(ns)) {
+    nm <- attr(envir, "name", exact = TRUE)
+    if (is.null(nm) || !startsWith(nm, "package:"))
+      stop("environment specified is not a package")
+    ns <- asNamespace(substring(nm, 9L))
+  }
+  else ns <- asNamespace(ns)
+  get(x, envir = ns, inherits = FALSE)
 }

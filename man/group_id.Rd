@@ -41,7 +41,9 @@ If \code{FALSE} the order of the group IDs will be based on first appearance.}
 
 \item{ascending}{Should the group order be ascending or descending?
 The default is \code{TRUE}. \cr
-For \code{row_id()} this determines if the row IDs are increasing or decreasing.}
+For \code{row_id()} this determines if the row IDs are increasing or decreasing. \cr
+\bold{NOTE} - When \code{order = FALSE}, the \code{ascending} argument is
+ignored. This is something that will be fixed in a later version.}
 
 \item{.by}{Alternative way of supplying groups using tidy
 select notation. This is kept to be consistent with other functions.}
