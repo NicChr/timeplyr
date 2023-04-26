@@ -98,15 +98,15 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
   if (start){
     out[[".start"]] <- g[["group.starts"]]
     if (is.null(out[[".start"]])){
-      out[[".start"]] <- collapse::fmin(out[[".loc"]],
-                                        use.g.names = FALSE,
-                                        na.rm = FALSE)
+      out[[".start"]] <- as.integer(collapse::fmin(out[[".loc"]],
+                                                   use.g.names = FALSE,
+                                                   na.rm = FALSE))
     }
   }
   if (end){
-    out[[".end"]] <- collapse::fmax(out[[".loc"]],
-                                    use.g.names = FALSE,
-                                    na.rm = FALSE)
+    out[[".end"]] <- as.integer(collapse::fmax(out[[".loc"]],
+                                               use.g.names = FALSE,
+                                               na.rm = FALSE))
   }
   if (!loc){
     out[[".loc"]] <- NULL

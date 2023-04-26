@@ -20,8 +20,8 @@ sequence2 <- function(nvec, from = 1, by = 1){
   by <- rep_len(by, g_len)
   from <- rep_len(from, g_len)
   # Expand
-  by <- rep(by, times = nvec)
-  from <- rep(from, times = nvec)
+  by <- rep.int(by, times = nvec)
+  from <- rep.int(from, times = nvec)
   # Arithmetic
   g_add <- sequence(nvec, from = 1L, by = 1L) - 1L
   from + (g_add * by)

@@ -43,6 +43,7 @@ expansion and aggregation.
 -   `time_count` - Time-based `dplyr::count`
 -   `time_summarise` - Time-based `dplyr::summarise`
 -   `time_mutate` - Time-based `dplyr::mutate`
+-   `time_distinct` - Time-based `dplyr::distinct`
 -   `time_expand` - Time-based `tidyr::expand`
 -   `time_complete` - Time-based `tidyr::complete`
 
@@ -89,6 +90,7 @@ library(tidyverse)
 #> v lubridate 1.9.2     v tidyr     1.3.0
 #> v purrr     1.0.1     
 #> -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+#> x dplyr::desc()   masks timeplyr::desc()
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
 #> i Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
@@ -635,7 +637,7 @@ time_seq(start, as_datetime(end), by = "2 weeks")
 ## `time_seq_v()`
 
 A vectorised version of `time_seq()` Currently it vectorised over from,
-to and num
+to and by
 
 ``` r
 # 3 sequences
@@ -697,11 +699,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2023-W15"
+#> [1] "2023-W17"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W15-1"
+#> [1] "2023-W17-3"
 iso_week(today(), year = FALSE)
-#> [1] "W15"
+#> [1] "W17"
 ```
 
 Helpers like `calendar()`, `create_calendar()` and `add_calendar()` can
@@ -806,7 +808,62 @@ flights %>%
 
 ## Efficient grouped functions
 
-Some functions for data with many groups
+## `group_collapse()`
+
+Collapse your data into unique groups with key information
+
+``` r
+flights %>%
+  group_collapse(origin, dest)
+#> # A tibble: 224 x 7
+#>    origin dest  .group        .loc .start   .end .size
+#>  * <chr>  <chr>  <int> <list<int>>  <int>  <int> <int>
+#>  1 EWR    IAH       35     [3,973]      1 336738  3973
+#>  2 LGA    IAH      188     [2,951]      2 336619  2951
+#>  3 JFK    MIA      123     [3,314]      3 336567  3314
+#>  4 JFK    BQN       94       [599]      4 335788   599
+#>  5 LGA    ATL      157    [10,263]      5 336671 10263
+#>  6 EWR    ORD       56     [6,100]      6 336676  6100
+#>  7 EWR    FLL       27     [3,793]      7 336707  3793
+#>  8 LGA    IAD      187     [1,803]      8 336642  1803
+#>  9 JFK    MCO      121     [5,464]      9 336764  5464
+#> 10 LGA    ORD      205     [8,857]     10 336710  8857
+#> # ... with 214 more rows
+# Sorted (like dplyr::group_data())
+flights %>%
+  group_collapse(origin, dest, sort = TRUE)
+#> # A tibble: 224 x 7
+#>    origin dest  .group        .loc .start   .end .size
+#>  * <chr>  <chr>  <int> <list<int>>  <int>  <int> <int>
+#>  1 EWR    ALB        1       [439]    361 331200   439
+#>  2 EWR    ANC        2         [8] 255456 302527     8
+#>  3 EWR    ATL        3     [5,022]     30 336725  5022
+#>  4 EWR    AUS        4       [968]    440 336715   968
+#>  5 EWR    AVL        5       [265]    212 336461   265
+#>  6 EWR    BDL        6       [443]    364 334280   443
+#>  7 EWR    BNA        7     [2,336]    512 336618  2336
+#>  8 EWR    BOS        8     [5,327]    108 336756  5327
+#>  9 EWR    BQN        9       [297]    720 335753   297
+#> 10 EWR    BTV       10       [931]    307 302836   931
+#> # ... with 214 more rows
+# By order of first appearance
+flights %>%
+  group_collapse(origin, dest, order = FALSE)
+#> # A tibble: 224 x 7
+#>    origin dest  .group        .loc .start   .end .size
+#>  * <chr>  <chr>  <int> <list<int>>  <int>  <int> <int>
+#>  1 EWR    IAH        1     [3,973]      1 336738  3973
+#>  2 LGA    IAH        2     [2,951]      2 336619  2951
+#>  3 JFK    MIA        3     [3,314]      3 336567  3314
+#>  4 JFK    BQN        4       [599]      4 335788   599
+#>  5 LGA    ATL        5    [10,263]      5 336671 10263
+#>  6 EWR    ORD        6     [6,100]      6 336676  6100
+#>  7 EWR    FLL        7     [3,793]      7 336707  3793
+#>  8 LGA    IAD        8     [1,803]      8 336642  1803
+#>  9 JFK    MCO        9     [5,464]      9 336764  5464
+#> 10 LGA    ORD       10     [8,857]     10 336710  8857
+#> # ... with 214 more rows
+```
 
 ## `fcount()`/`fadd_count()`
 
@@ -856,7 +913,7 @@ This calculates sorted and non-sorted group IDs
 ``` r
 flights %>%
   group_by(origin, dest) %>%
-  group_id(sort = FALSE) %>%
+  group_id(order = FALSE) %>%
   unique()
 #>   [1]   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18
 #>  [19]  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36
@@ -935,7 +992,7 @@ flights %>%
 
 ## `fslice()`
 
-Row index slicing (without sorting the data)
+Fast row index slicing with lots of groups
 
 ``` r
 flights %>%
@@ -944,18 +1001,63 @@ flights %>%
 #> # A tibble: 172,983 x 20
 #> # Groups:   origin, dest, tailnum [52,783]
 #>     year month   day dep_time sched_de~1 dep_d~2 arr_t~3 sched~4 arr_d~5 carrier
-#>    <int> <int> <int>    <int>      <int>   <dbl>   <int>   <int>   <dbl> <chr>  
-#>  1  2013     1     1      517        515       2     830     819      11 UA     
-#>  2  2013     1     1      533        529       4     850     830      20 UA     
-#>  3  2013     1     1      542        540       2     923     850      33 AA     
-#>  4  2013     1     1      544        545      -1    1004    1022     -18 B6     
-#>  5  2013     1     1      554        600      -6     812     837     -25 DL     
-#>  6  2013     1     1      554        558      -4     740     728      12 UA     
-#>  7  2013     1     1      555        600      -5     913     854      19 B6     
-#>  8  2013     1     1      557        600      -3     709     723     -14 EV     
-#>  9  2013     1     1      557        600      -3     838     846      -8 B6     
-#> 10  2013     1     1      558        600      -2     753     745       8 AA     
+#>  * <int> <int> <int>    <int>      <int>   <dbl>   <int>   <int>   <dbl> <chr>  
+#>  1  2013     1    30     2224       2000     144    2316    2101     135 EV     
+#>  2  2013     2    17     2012       2010       2    2120    2114       6 EV     
+#>  3  2013     2    26     2356       2000     236      41    2104     217 EV     
+#>  4  2013     3    13     1958       2005      -7    2056    2109     -13 EV     
+#>  5  2013     5    16     2214       2000     134    2307    2112     115 EV     
+#>  6  2013     9     8     2156       2159      -3    2250    2303     -13 EV     
+#>  7  2013     1    26     1614       1620      -6    1706    1724     -18 EV     
+#>  8  2013     2    11       NA       1619      NA      NA    1723      NA EV     
+#>  9  2013     2    17     1604       1609      -5    1715    1713       2 EV     
+#> 10  2013    11     8     2203       2159       4    2250    2301     -11 EV     
 #> # ... with 172,973 more rows, 10 more variables: flight <int>, tailnum <chr>,
+#> #   origin <chr>, dest <chr>, air_time <dbl>, distance <dbl>, hour <dbl>,
+#> #   minute <dbl>, time_hour <dttm>, date <date>, and abbreviated variable names
+#> #   1: sched_dep_time, 2: dep_delay, 3: arr_time, 4: sched_arr_time,
+#> #   5: arr_delay
+flights %>%
+  group_by(origin, dest, tailnum) %>%
+  fslice_head(n = 5)
+#> # A tibble: 172,983 x 20
+#> # Groups:   origin, dest, tailnum [52,783]
+#>     year month   day dep_time sched_de~1 dep_d~2 arr_t~3 sched~4 arr_d~5 carrier
+#>  * <int> <int> <int>    <int>      <int>   <dbl>   <int>   <int>   <dbl> <chr>  
+#>  1  2013     1    30     2224       2000     144    2316    2101     135 EV     
+#>  2  2013     2    17     2012       2010       2    2120    2114       6 EV     
+#>  3  2013     2    26     2356       2000     236      41    2104     217 EV     
+#>  4  2013     3    13     1958       2005      -7    2056    2109     -13 EV     
+#>  5  2013     5    16     2214       2000     134    2307    2112     115 EV     
+#>  6  2013     9     8     2156       2159      -3    2250    2303     -13 EV     
+#>  7  2013     1    26     1614       1620      -6    1706    1724     -18 EV     
+#>  8  2013     2    11       NA       1619      NA      NA    1723      NA EV     
+#>  9  2013     2    17     1604       1609      -5    1715    1713       2 EV     
+#> 10  2013    11     8     2203       2159       4    2250    2301     -11 EV     
+#> # ... with 172,973 more rows, 10 more variables: flight <int>, tailnum <chr>,
+#> #   origin <chr>, dest <chr>, air_time <dbl>, distance <dbl>, hour <dbl>,
+#> #   minute <dbl>, time_hour <dttm>, date <date>, and abbreviated variable names
+#> #   1: sched_dep_time, 2: dep_delay, 3: arr_time, 4: sched_arr_time,
+#> #   5: arr_delay
+# Use keep_order to retain the data input order
+flights %>%
+  group_by(origin, dest, tailnum) %>%
+  fslice_tail(prop = 0.5, keep_order = TRUE)
+#> # A tibble: 153,350 x 20
+#> # Groups:   origin, dest, tailnum [40,633]
+#>     year month   day dep_time sched_de~1 dep_d~2 arr_t~3 sched~4 arr_d~5 carrier
+#>  * <int> <int> <int>    <int>      <int>   <dbl>   <int>   <int>   <dbl> <chr>  
+#>  1  2013     1     2      919        830      49    1135    1038      57 EV     
+#>  2  2013     1     2     1126       1125       1    1333    1325       8 WN     
+#>  3  2013     1     3      603        605      -2     709     705       4 WN     
+#>  4  2013     1     3     1336       1340      -4    1641    1626      15 B6     
+#>  5  2013     1     3     1348       1350      -2    1631    1640      -9 UA     
+#>  6  2013     1     4      628        630      -2    1124    1140     -16 AA     
+#>  7  2013     1     4      712        715      -3    1021    1035     -14 AA     
+#>  8  2013     1     4      716        720      -4     855     840      15 FL     
+#>  9  2013     1     4     1101       1106      -5    1349    1404     -15 UA     
+#> 10  2013     1     4     1249       1235      14    1434    1415      19 MQ     
+#> # ... with 153,340 more rows, 10 more variables: flight <int>, tailnum <chr>,
 #> #   origin <chr>, dest <chr>, air_time <dbl>, distance <dbl>, hour <dbl>,
 #> #   minute <dbl>, time_hour <dttm>, date <date>, and abbreviated variable names
 #> #   1: sched_dep_time, 2: dep_delay, 3: arr_time, 4: sched_arr_time,
@@ -1012,20 +1114,46 @@ flights %>%
 #> # ... with 20,289 more rows
 ```
 
-## `growid()`
+## `row_id()`/`add_row_id()`
 
-Grouped row IDs
+Fast grouped row IDs
 
 ``` r
+iris <- as_tibble(iris)
+range(row_id(iris))
+#> [1]   1 150
 iris %>%
-  mutate(rowid = growid(pick(Species))) %>%
-  pull(rowid)
-#>   [1]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25
-#>  [26] 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50
-#>  [51]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25
-#>  [76] 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50
-#> [101]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25
-#> [126] 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50
+  add_row_id()
+#> # A tibble: 150 x 6
+#>    Sepal.Length Sepal.Width Petal.Length Petal.Width Species row_id
+#>           <dbl>       <dbl>        <dbl>       <dbl> <fct>    <int>
+#>  1          5.1         3.5          1.4         0.2 setosa       1
+#>  2          4.9         3            1.4         0.2 setosa       2
+#>  3          4.7         3.2          1.3         0.2 setosa       3
+#>  4          4.6         3.1          1.5         0.2 setosa       4
+#>  5          5           3.6          1.4         0.2 setosa       5
+#>  6          5.4         3.9          1.7         0.4 setosa       6
+#>  7          4.6         3.4          1.4         0.3 setosa       7
+#>  8          5           3.4          1.5         0.2 setosa       8
+#>  9          4.4         2.9          1.4         0.2 setosa       9
+#> 10          4.9         3.1          1.5         0.1 setosa      10
+#> # ... with 140 more rows
+iris %>% 
+  add_row_id(Species)
+#> # A tibble: 150 x 6
+#>    Sepal.Length Sepal.Width Petal.Length Petal.Width Species row_id
+#>           <dbl>       <dbl>        <dbl>       <dbl> <fct>    <int>
+#>  1          5.1         3.5          1.4         0.2 setosa       1
+#>  2          4.9         3            1.4         0.2 setosa       2
+#>  3          4.7         3.2          1.3         0.2 setosa       3
+#>  4          4.6         3.1          1.5         0.2 setosa       4
+#>  5          5           3.6          1.4         0.2 setosa       5
+#>  6          5.4         3.9          1.7         0.4 setosa       6
+#>  7          4.6         3.4          1.4         0.3 setosa       7
+#>  8          5           3.4          1.5         0.2 setosa       8
+#>  9          4.4         2.9          1.4         0.2 setosa       9
+#> 10          4.9         3.1          1.5         0.1 setosa      10
+#> # ... with 140 more rows
 ```
 
 ## Grouped statistical functions

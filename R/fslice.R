@@ -277,8 +277,9 @@ fslice_sample <- function(data, ..., n, prop,
     set.seed(seed)
   }
   # Pre-allocate a list with lengths = slice sizes
-  rows <- vctrs::vec_chop(collapse::alloc(0L, sum(slice_sizes)),
-                          sizes = slice_sizes)
+  # rows <- vctrs::vec_chop(collapse::alloc(0L, sum(slice_sizes)),
+  #                         sizes = slice_sizes)
+  rows <- vector("list", length(slice_info[["rows"]]))
   if (has_weights){
     g <- group_id(data, .by = {{ .by }}, order = sort_groups)
     weights <- collapse::gsplit(data[[weights_var]], g = g)
@@ -288,32 +289,12 @@ fslice_sample <- function(data, ..., n, prop,
                               replace = replace,
                               prob = weights[[i]])
     }
-    # 2nd version
-    # rows <- purrr::pmap(list(group_sizes,
-    #                          slice_sizes,
-    #                          weights),
-    #                     function(x, y, z) sample.int(x, size = y,
-    #                                                  replace = replace,
-    #                                                  prob = z))
-    # Original
-    # rows <- purrr::pmap(list(slice_info[["rows"]], slice_info[["slice_sizes"]],
-    #                          weights),
-    #                     function(x, y, z) sample2(x, size = y, prob = z,
-    #                                               replace = replace))
   } else {
     for (i in seq_along(rows)){
       rows[[i]] <- sample.int(group_sizes[[i]],
                               size = slice_sizes[[i]],
                               replace = replace)
     }
-    # 2nd Version
-    # rows <- purrr::map2(group_sizes,
-    #                     slice_sizes,
-    #                     ~ sample.int(.x, size = .y, replace = replace))
-    # Original
-    # rows <- purrr::map2(slice_info[["rows"]],
-    #                     slice_info[["slice_sizes"]],
-    #                     ~ sample2(.x, size = .y, replace = replace))
   }
   rows <- unlist(rows, use.names = FALSE, recursive = FALSE)
   if (length(rows) > 0L){
@@ -364,18 +345,17 @@ df_slice_prepare <- function(data, n, prop, .by = NULL, sort_groups = TRUE,
   group_sizes <- group_df[[".size"]]
   if (type == "n"){
     # USING N
-    n <- as.integer(n)
     if (bound_n){
       GN <- collapse::fmax(group_sizes, use.g.names = FALSE, na.rm = FALSE)
       if (n >= 0){
-        n <- min(n, GN)
+        n <- as.integer(min(n, GN))
         slice_sizes <- pmin(n, group_sizes)
       } else {
-        n <- max(n, -GN)
+        n <- as.integer(max(n, -GN))
         slice_sizes <- pmax(0L, group_sizes + n)
       }
     } else {
-      slice_sizes <- rep_len(n, length(rows))
+      slice_sizes <- rep_len(as.integer(n), length(rows))
     }
   } else {
     # USING prop
