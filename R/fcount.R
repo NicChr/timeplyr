@@ -84,15 +84,21 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   if (is.null(name)) name <- new_n_var_nm(out)
   group_id <- out[[grp_nm]]
   # Keep unique groups and sort
-  if (nrow2(out) >= 2L) out <- collapse::funique(out, cols = grp_nm, sort = TRUE)
+  if (nrow2(out) >= 2L){
+    out <- collapse::funique(out, cols = grp_nm, sort = TRUE)
+  }
   N <- nrow2(out)
   # Edge-case, not sure how to fix this
   if (N == 0L && length(all_vars) == 0L){
     N <- 1L
-    out <- df_reconstruct(dplyr::tibble(!!name := 0L), data)
+    nobs <- 0L
+    out <- df_reconstruct(structure(list(),
+                                    .Names = character(0),
+                                    class = "data.frame",
+                                    row.names = c(NA, -1L)),
+                          data)
   } else if (length(wt_var) == 0){
     nobs <- collapse::GRPN(group_id, expand = FALSE)
-    out[[name]] <- nobs
   } else {
     nobs <- collapse::fsum(as.double(wtv),
                            g = group_id,
@@ -103,9 +109,9 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
       nobs <- as.integer(nobs)
     }
     # Replace NA with 0
-    out[[name]] <- data.table::nafill(nobs, type = "const",
-                                      fill = 0, nan = NaN)
+    nobs <- data.table::nafill(nobs, type = "const", fill = 0, nan = NaN)
   }
+  out[[name]] <- nobs
   if (sort){
     out <- df_row_slice(out, radix_order(out[[name]], decreasing = TRUE),
                         reconstruct = FALSE)

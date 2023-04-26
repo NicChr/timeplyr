@@ -91,7 +91,7 @@ group_id.default <- function(data, ..., order = TRUE,
     out <- group2(data)
   }
   if (as_qg && order){
-    out <- collapse::qG(out, sort = TRUE, ordered = FALSE, na.exclude = FALSE)
+    out <- qG2(out, sort = TRUE, ordered = order, na.exclude = FALSE)
   }
   if (!as_qg && !order){
     out <- as.integer(out)
@@ -100,9 +100,13 @@ group_id.default <- function(data, ..., order = TRUE,
 }
 #' @export
 group_id.Interval <- function(data, ..., order = TRUE, ascending = TRUE, as_qg = FALSE){
-  data <- GRP.Interval(data, sort = order, decreasing = !ascending,
-                       call = FALSE, return.groups = FALSE)[["group.id"]]
-  group_id.default(data, ..., order = order, ascending = ascending, as_qg = as_qg)
+  out <- GRP.Interval(data, sort = order, decreasing = !ascending,
+                      call = FALSE, return.groups = FALSE)[["group.id"]]
+  if (as_qg){
+    out <- qG2(out, sort = order, ordered = order, na.exclude = FALSE)
+  }
+  out
+  # group_id.default(out, ..., order = order, ascending = ascending, as_qg = as_qg)
 }
 #' @export
 group_id.data.frame <- function(data, ...,
@@ -152,7 +156,7 @@ group_id.data.frame <- function(data, ...,
                   call = FALSE)[["group.id"]]
     }
   if (as_qg){
-    out <- collapse::qG(out, sort = order, ordered = FALSE, na.exclude = FALSE)
+    out <- qG2(out, sort = order, ordered = order, na.exclude = FALSE)
   } else {
     out <- as.integer(out)
   }
@@ -285,6 +289,15 @@ group2 <- function(X, ...){
     }
   }
   collapse::group(X, ...)
+}
+qG2 <- function(X, sort = TRUE, na.exclude = FALSE, ...){
+  if (is_interval(X)){
+    X <- dplyr::tibble(!!"start" := lubridate::int_start(X),
+                       !!"data" := lubridate::int_length(X))
+    X <- GRP2(X, sort = TRUE, decreasing = FALSE,
+                        call = FALSE, return.groups = FALSE)[["group.id"]]
+  }
+  collapse::qG(X, sort = sort, na.exclude = na.exclude, ...)
 }
 # data frame Wrapper around GRP to convert lubridate intervals to group IDs
 GRP2 <- function(X, ...){

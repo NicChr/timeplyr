@@ -21,6 +21,8 @@
 #' When order is `TRUE` (the default) the group IDs will be ordered but not sorted.
 #' If `FALSE` the order of the group IDs will be based on first appearance.
 #' @param sort Should the data frame be sorted by the groups?
+#' @param ascending Should groups be ordered in ascending order?
+#' Default is `TRUE` and only applies when `order = TRUE`.
 #' @param .by Alternative way of supplying groups using `tidyselect` notation.
 #' This is kept to be consistent with other functions.
 #' @param size Should group sizes be added? Default is `TRUE`.

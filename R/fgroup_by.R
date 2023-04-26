@@ -1,29 +1,20 @@
-# fgroup_by <- function(data, ..., .add = FALSE,
-#                       order = TRUE,
-#                       .by = NULL,
-#                       .drop = dplyr::group_by_drop_default(data)){
-#   if (.add){
-#     group_data <- group_collapse(data, !!!enquos(...),
-#                                  order = order,
-#                                  loc = TRUE, sort = TRUE,
-#                                  size = FALSE,
-#                                  start = FALSE, end = FALSE,
-#                                  .by = NULL)
-#   } else {
-#     group_data <- group_collapse(safe_ungroup(data), !!!enquos(...),
-#                                  order = order,
-#                                  loc = TRUE, sort = TRUE,
-#                                  size = FALSE,
-#                                  start = FALSE, end = FALSE,
-#                                  .by = NULL)
-#   }
-#   group_data[[".group"]] <- NULL
-#   names(group_data)[names(group_data) == ".loc"] <- ".rows"
-#   attr(data, "groups") <- group_data
-#   attr(attr(data, "groups"), ".drop") <- .drop
-#   attr(data, "class") <- c("grouped_df", "tbl_df", "tbl", "data.frame")
-#   data
-# }
+#' `collapse` version of `dplyr::group_by()`
+#'
+#' @description
+#' This works the exact same as `dplyr::group_by()` and typically
+#' performs around the same speed but uses slightly less memory.
+#'
+#' @param data data frame.
+#' @param ... Variables to group by.
+#' @param .add Should groups be added to existing groups?
+#' Default is `FALSE`.
+#' @param order Should groups be ordered? If `FALSE`
+#' groups will be ordered based on first-appearance.
+#' @param .by (Optional). A selection of columns to group by for this operation.
+#' Columns are specified using `tidyselect`.
+#' @param .drop Not currently supported.
+#' Unused factor levels are always dropped.
+#' @export
 fgroup_by <- function(data, ..., .add = FALSE,
                       order = TRUE,
                       .by = NULL,
@@ -54,3 +45,29 @@ fgroup_by <- function(data, ..., .add = FALSE,
   attr(data, "class") <- c("grouped_df", "tbl_df", "tbl", "data.frame")
   data
 }
+# fgroup_by <- function(data, ..., .add = FALSE,
+#                       order = TRUE,
+#                       .by = NULL,
+#                       .drop = dplyr::group_by_drop_default(data)){
+#   if (.add){
+#     group_data <- group_collapse(data, !!!enquos(...),
+#                                  order = order,
+#                                  loc = TRUE, sort = TRUE,
+#                                  size = FALSE,
+#                                  start = FALSE, end = FALSE,
+#                                  .by = NULL)
+#   } else {
+#     group_data <- group_collapse(safe_ungroup(data), !!!enquos(...),
+#                                  order = order,
+#                                  loc = TRUE, sort = TRUE,
+#                                  size = FALSE,
+#                                  start = FALSE, end = FALSE,
+#                                  .by = NULL)
+#   }
+#   group_data[[".group"]] <- NULL
+#   names(group_data)[names(group_data) == ".loc"] <- ".rows"
+#   attr(data, "groups") <- group_data
+#   attr(attr(data, "groups"), ".drop") <- .drop
+#   attr(data, "class") <- c("grouped_df", "tbl_df", "tbl", "data.frame")
+#   data
+# }

@@ -35,7 +35,7 @@ fdistinct <- function(data, ..., .keep_all = FALSE, .by = NULL){
   # out <- fslice(out, vctrs::vec_unique_loc(collapse::fselect(out, dup_vars)))
   g <- group_id(out, all_of(dup_vars),
                  order = TRUE,
-                 as_qg = FALSE)
+                 as_qg = TRUE)
   out <- df_row_slice(out, which(!collapse::fduplicated(g)),
                       reconstruct = FALSE)
   df_reconstruct(out, data)

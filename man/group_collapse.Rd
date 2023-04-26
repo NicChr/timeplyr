@@ -29,6 +29,9 @@ If \code{FALSE} the order of the group IDs will be based on first appearance.}
 
 \item{sort}{Should the data frame be sorted by the groups?}
 
+\item{ascending}{Should groups be ordered in ascending order?
+Default is \code{TRUE} and only applies when \code{order = TRUE}.}
+
 \item{.by}{Alternative way of supplying groups using \code{tidyselect} notation.
 This is kept to be consistent with other functions.}
 

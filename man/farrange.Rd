@@ -2,12 +2,9 @@
 % Please edit documentation in R/farrange.R
 \name{farrange}
 \alias{farrange}
-\alias{desc}
 \title{A \code{collapse} version of \code{dplyr::arrange()}}
 \usage{
 farrange(data, ..., .by = NULL, .by_group = FALSE)
-
-desc(x)
 }
 \arguments{
 \item{data}{A data frame.}

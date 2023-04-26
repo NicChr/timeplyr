@@ -44,15 +44,3 @@ farrange <- function(data, ..., .by = NULL, .by_group = FALSE){
                  reconstruct = FALSE)
   }
 }
-#' @rdname farrange
-#' @export
-desc <- function(x){
-  if (is.numeric(x)){
-    -xtfrm(x)
-  } else {
-    -as.integer(collapse::qG(x, sort = TRUE, na.exclude = TRUE))
-    # g <- group_id.default(x, order = TRUE)
-    # setv(g, collapse::whichNA(x), NA_integer_, vind1 = TRUE)
-    # -vctrs::vec_rank(x, ties = "min", incomplete = "na")
-  }
-}
