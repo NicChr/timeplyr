@@ -524,20 +524,15 @@ sequence3 <- function(nvec, from = 1, by = 1){
   }
   from + (g_add * by)
 }
-# # Like sequence() but excepts end-point argument
-# sequence4 <- function(from, to, by = 1){
-#   seq_len <- time_seq_len(from, to,
-#                           by = by)
-#
-#     by <- recycle_args(by, length = length(seq_len))[[1L]]
-#     from <- recycle_args(from, length = length(seq_len))[[1L]]
-#     g <- rep(seq_len(length(by)), times = seq_len)
-#     by <- rep(by, times = seq_len)
-#     from <- rep(from, times = seq_len)
-#     g_add <- collapse::fcumsum(rep_len(1, length(g)),
-#                                g = g) - 1
-#     from + (g_add * by)
-# }
+# Low-level vectorised seq (only integers)
+seqv.int <- function(from = 1L, to = 1L, by = 1L){
+  sequence( ( (to - from) / by) + 1L, from = from, by = by)
+}
+# Same but handles decimals
+# It is the same as seq_v() but without length checking, etc.
+seqv <- function(from = 1L, to = 1L, by = 1L){
+  sequence2( ( (to - from) / by) + 1L, from = from, by = by)
+}
 # Vectorised time sequence function
 # It is vectorized over from, to and num
 #' @rdname time_seq

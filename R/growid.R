@@ -66,10 +66,8 @@ growid <- function(x, g = x, ascending = TRUE){
       stopifnot(is_list_df_like(x))
       len <- vec_head(collapse::vlengths(x, use.names = FALSE), n = 1L)
     }
-    sort <- TRUE
   } else {
     len <- length(x)
-    sort <- FALSE
   }
   if (is.null(g)){
     out <- seq_len(len)
@@ -78,12 +76,10 @@ growid <- function(x, g = x, ascending = TRUE){
     }
   } else {
     o <- NULL
-    g <- GRP2(g, sort = sort, call = FALSE, return.groups = FALSE,
+    g <- GRP2(g, sort = TRUE, call = FALSE, return.groups = FALSE,
               return.order = FALSE)
     if (!ascending){
-      if (len > 0L){
-        o <- seq(from = len, to = 1L, by = -1L)
-      }
+      o <- seqv.int(from = len, to = 1L, by = -1L)
     }
     out <- collapse::fcumsum(seq_ones(len),
                              na.rm = FALSE,

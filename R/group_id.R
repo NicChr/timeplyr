@@ -106,7 +106,6 @@ group_id.Interval <- function(data, ..., order = TRUE, ascending = TRUE, as_qg =
     out <- qG2(out, sort = order, ordered = order, na.exclude = FALSE)
   }
   out
-  # group_id.default(out, ..., order = order, ascending = ascending, as_qg = as_qg)
 }
 #' @export
 group_id.data.frame <- function(data, ...,
@@ -224,10 +223,6 @@ group_order <- function(data, ..., ascending = TRUE, .by = NULL){
 }
 #' @export
 group_order.default <- function(data, ..., ascending = TRUE, .by = NULL){
-  if (is_interval(data)){
-    data <- GRP.Interval(data, sort = TRUE, call = FALSE,
-                         return.groups = FALSE)[["group.id"]]
-  }
   as.integer(collapse::radixorderv(data, decreasing = !ascending,
                                    na.last = TRUE, starts = FALSE,
                                    group.sizes = FALSE, sort = TRUE))
@@ -245,6 +240,12 @@ group_order.default <- function(data, ..., ascending = TRUE, .by = NULL){
   #   out <- radix_order(g[["group.id"]])
   # }
   # as.integer(out)
+}
+#' @export
+group_order.Interval <- function(data, ..., ascending = TRUE, .by = NULL){
+  data <- GRP.Interval(data, sort = TRUE, call = FALSE,
+                       return.groups = FALSE)[["group.id"]]
+  group_order.default(data, ascending = ascending)
 }
 #' @export
 group_order.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
@@ -274,7 +275,7 @@ group_order.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
     #   out <- radix_order(g[["group.id"]])
     # }
   }
-  as.integer(out)
+  out
 }
 #' @rdname group_id
 #' @export
@@ -327,5 +328,4 @@ GRP2 <- function(X, ...){
             as.list(match.call())[-1L],
             envir = parent.frame())
   }
-  # collapse::GRP(X, ...)
 }

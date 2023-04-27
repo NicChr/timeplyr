@@ -13,11 +13,12 @@ desc(x)
 \item{x}{Vector.}
 }
 \value{
-A numeric vector that orders in ascending or descending order. \cr
+A numeric vector that can be ordered in ascending or descending order. \cr
 Useful in \code{dplyr::arrange()} or \code{farrange()}.
 }
 \description{
-Ascending & Descending order of vector
+An alternate to \code{dplyr::desc()} which is much faster
+for character vectors and factors.
 }
 \examples{
 library(dplyr)
@@ -28,4 +29,9 @@ data(flights)
 flights \%>\%
   fdistinct(dest) \%>\%
   farrange(desc(dest))
+\dontrun{
+library(bench)
+mark(order(dplyr::desc(flights$tailnum)),
+     order(timeplyr::desc(flights$tailnum)))
+}
 }
