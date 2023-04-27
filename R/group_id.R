@@ -224,22 +224,27 @@ group_order <- function(data, ..., ascending = TRUE, .by = NULL){
 }
 #' @export
 group_order.default <- function(data, ..., ascending = TRUE, .by = NULL){
-  # as.integer(collapse::radixorderv(data, decreasing = !ascending,
-  #                                  na.last = TRUE, starts = FALSE,
-  #                                  group.sizes = FALSE, sort = TRUE))
-  g <- GRP2(safe_ungroup(data),
-            sort = TRUE,
-            decreasing = !ascending,
-            na.last = TRUE,
-            return.groups = FALSE,
-            return.order = TRUE,
-            method = "auto",
-            call = FALSE)
-  out <- g[["order"]]
-  if (is.null(out)){
-    out <- radix_order(g[["group.id"]])
+  if (is_interval(data)){
+    data <- GRP.Interval(data, sort = TRUE, call = FALSE,
+                         return.groups = FALSE)[["group.id"]]
   }
-  as.integer(out)
+  as.integer(collapse::radixorderv(data, decreasing = !ascending,
+                                   na.last = TRUE, starts = FALSE,
+                                   group.sizes = FALSE, sort = TRUE))
+  # Alternate method
+  # g <- GRP2(safe_ungroup(data),
+  #           sort = TRUE,
+  #           decreasing = !ascending,
+  #           na.last = TRUE,
+  #           return.groups = FALSE,
+  #           return.order = TRUE,
+  #           method = "auto",
+  #           call = FALSE)
+  # out <- g[["order"]]
+  # if (is.null(out)){
+  #   out <- radix_order(g[["group.id"]])
+  # }
+  # as.integer(out)
 }
 #' @export
 group_order.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
@@ -249,8 +254,16 @@ group_order.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
     g <- NULL
     out <- seq_len(nrow2(data))
   } else {
+    if (has_interval(data, quiet = TRUE)){
+      which_int <- which(vapply(data, FUN = is_interval, FUN.VALUE = logical(1)))
+      for (i in seq_along(which_int)){
+        data[[which_int[[i]]]] <- group_id.Interval(data[[which_int[[i]]]],
+                                                 order = TRUE, as_qg = FALSE)
+      }
+    }
     out <- group_order.default(collapse::fselect(data, vars),
                                ascending = ascending)
+    # Alternate method
     # g <- GRP2(collapse::fselect(data, vars),
     #           sort = TRUE,
     #           decreasing = !ascending,
@@ -290,14 +303,15 @@ group2 <- function(X, ...){
   }
   collapse::group(X, ...)
 }
-qG2 <- function(X, sort = TRUE, na.exclude = FALSE, ...){
-  if (is_interval(X)){
-    X <- dplyr::tibble(!!"start" := lubridate::int_start(X),
-                       !!"data" := lubridate::int_length(X))
-    X <- GRP2(X, sort = TRUE, decreasing = FALSE,
-                        call = FALSE, return.groups = FALSE)[["group.id"]]
+qG2 <- function(x, sort = TRUE, na.exclude = FALSE, ...){
+  if (is_interval(x)){
+    i_na <- collapse::whichNA(x)
+    x <- GRP.Interval(x, sort = sort, call = FALSE, return.groups = FALSE)[["group.id"]]
+    if (na.exclude){
+      setv(x, i_na, NA_integer_, vind1 = TRUE)
+    }
   }
-  collapse::qG(X, sort = sort, na.exclude = na.exclude, ...)
+  collapse::qG(x, sort = sort, na.exclude = na.exclude, ...)
 }
 # data frame Wrapper around GRP to convert lubridate intervals to group IDs
 GRP2 <- function(X, ...){

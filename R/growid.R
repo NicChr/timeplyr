@@ -64,7 +64,7 @@ growid <- function(x, g = x, ascending = TRUE){
       len <- nrow2(x)
     } else {
       stopifnot(is_list_df_like(x))
-      len <- utils::head(collapse::vlengths(x, use.names = FALSE), n = 1L)
+      len <- vec_head(collapse::vlengths(x, use.names = FALSE), n = 1L)
     }
     sort <- TRUE
   } else {

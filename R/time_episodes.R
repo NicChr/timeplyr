@@ -52,6 +52,30 @@
 #' the original data.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
+#' @examples
+#' library(timeplyr)
+#' library(dplyr)
+#' library(nycflights13)
+#' library(lubridate)
+#' library(ggplot2)
+#'
+#' # Say we want to flag origin-destination pairs
+#' # that haven't seen departures or arrivals for a week
+#'
+#' events <- flights %>%
+#'   group_by(origin, dest) %>%
+#'   time_episodes(time = time_hour, by = "week", window = 1)
+#' episodes <- events %>%
+#'   filter(episode_id_group > 1)
+#' nrow(fdistinct(episodes, origin, dest)) # 54 origin-destinations
+#'
+#' # As expected summer months saw the least number of
+#' # dry-periods
+#' episodes %>%
+#'   ungroup() %>%
+#'   time_count(time = episode_start, by = "week", floor_date = TRUE) %>%
+#'   ggplot(aes(x = episode_start, y = n)) +
+#'   geom_bar(stat = "identity")
 #' @export
 time_episodes <- function(data, ..., time, window,
                           by = NULL, type = c("auto", "duration", "period"),
@@ -104,12 +128,13 @@ time_episodes <- function(data, ..., time, window,
                              order = TRUE, as_qg = FALSE)]
   # Sort by groups > case ID > date col
   data.table::setorderv(out, cols = c(grp_nm, time_col), na.last = TRUE)
-  g <- collapse::GRP(out[[grp_nm]], sort = TRUE, call = FALSE, return.groups = FALSE)
+  g <- GRP2(out[[grp_nm]], sort = TRUE, call = FALSE, return.groups = FALSE)
   lag <- min(N, 1L) # Bound lag to >= 0
   date_lag_nm <- new_var_nm(names(out), "date_lag")
-  out[, (date_lag_nm) := collapse::flag(get(time_col),
-                                       n = lag,
-                                       g = g)]
+  out[, (date_lag_nm) := collapse::flag(.SD,
+                                        n = lag,
+                                        g = g),
+      .SDcols = time_col]
   time_elapsed_nm <- new_var_nm(names(out), "time_elapsed")
   out[, (time_elapsed_nm) := time_diff(get(date_lag_nm), get(time_col),
                                                 by = by, type = type)]
@@ -124,9 +149,10 @@ time_episodes <- function(data, ..., time, window,
                                                1L, 0L)]
   # Episode ID at record level
   episode_id_nm <- new_var_nm(names(out), "episode_id")
-  out[, (episode_id_nm) := collapse::fcumsum(get("new_episode"),
+  out[, (episode_id_nm) := collapse::fcumsum(.SD,
                                              g = g,
-                                             na.rm = FALSE)]
+                                             na.rm = FALSE),
+      .SDcols = new_episode_nm]
   # Episode ID at group level
   episode_id_group_nm <- new_var_nm(names(out), "episode_id_group")
   out[, (episode_id_group_nm) := data.table::fifelse(get(new_episode_nm) == 1L,

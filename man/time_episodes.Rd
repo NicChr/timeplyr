@@ -81,3 +81,28 @@ last observation. Time units are specified in the by argument.
 
 \code{data.table} and \code{collapse} are used for speed and efficiency.
 }
+\examples{
+library(timeplyr)
+library(dplyr)
+library(nycflights13)
+library(lubridate)
+library(ggplot2)
+
+# Say we want to flag origin-destination pairs
+# that haven't seen departures or arrivals for a week
+
+events <- flights \%>\%
+  group_by(origin, dest) \%>\%
+  time_episodes(time = time_hour, by = "week", window = 1)
+episodes <- events \%>\%
+  filter(episode_id_group > 1)
+nrow(fdistinct(episodes, origin, dest)) # 54 origin-destinations
+
+# As expected summer months saw the least number of
+# dry-periods
+episodes \%>\%
+  ungroup() \%>\%
+  time_count(time = episode_start, by = "week", floor_date = TRUE) \%>\%
+  ggplot(aes(x = episode_start, y = n)) +
+  geom_bar(stat = "identity")
+}
