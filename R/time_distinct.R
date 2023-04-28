@@ -39,8 +39,6 @@
 #' The rightmost interval will always be closed.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
-#' @param keep_class Logical. If `TRUE` then the class of the input data is retained.
-#' If `FALSE`, which is sometimes faster, a `data.table` is returned.
 #' @param floor_date Should `from` be floored to the nearest unit specified through the `by`
 #' argument? This is particularly useful for starting sequences at the beginning of a week
 #' or month for example.
@@ -61,7 +59,6 @@ time_distinct <- function(data, ..., time = NULL, by = NULL,
                           seq_type = c("auto", "duration", "period"),
                           include_interval = FALSE,
                           .by = NULL,
-                          keep_class = TRUE,
                           floor_date = FALSE,
                           week_start = getOption("lubridate.week.start", 1),
                           roll_month = "preday", roll_dst = "pre",
@@ -87,7 +84,6 @@ time_distinct <- function(data, ..., time = NULL, by = NULL,
                      include_interval = include_interval,
                      .by = all_of(group_vars),
                      .keep = "all",
-                     keep_class = FALSE,
                      floor_date = floor_date,
                      week_start = week_start,
                      roll_month = roll_month, roll_dst = roll_dst,
@@ -95,6 +91,5 @@ time_distinct <- function(data, ..., time = NULL, by = NULL,
   time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
   out <- fdistinct(out, across(dplyr::any_of(c(group_vars, time_var, int_nm, dot_vars))),
             .keep_all = .keep_all)
-  if (keep_class) out <- df_reconstruct(out, safe_ungroup(data))
   out
 }

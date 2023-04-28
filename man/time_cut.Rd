@@ -111,9 +111,8 @@ library(ggplot2)
 library(dplyr)
 
 # Easily create custom time breaks
-set.seed(8192821)
 flights <- nycflights13::flights \%>\%
-  slice_sample(n = 10^3) \%>\%
+  fslice_sample(n = 10^3, seed = 8192821) \%>\%
   select(time_hour) \%>\%
   mutate(date = as_date(time_hour))
 

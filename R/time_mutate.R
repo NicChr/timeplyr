@@ -38,8 +38,6 @@
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
 #' @param .keep Control which columns are retained. See `?dplyr::mutate` for more details.
-#' @param keep_class Logical. If `TRUE` then the class of the input data is retained.
-#' If `FALSE`, which is sometimes faster, a `data.table` is returned.
 #' @param floor_date Should `from` be floored to the nearest unit specified through the `by`
 #' argument? This is particularly useful for starting sequences at the beginning of a week
 #' or month for example.
@@ -78,13 +76,12 @@ time_mutate <- function(data, ..., time = NULL, by = NULL,
                         include_interval = FALSE,
                         .by = NULL,
                         .keep = c("all", "used", "unused", "none"),
-                        keep_class = TRUE,
                         floor_date = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
                         roll_month = "preday", roll_dst = "pre",
                         sort = FALSE){
   group_vars <- get_groups(data, {{ .by }})
-  out <- dplyr::mutate(data,
+  data <- dplyr::mutate(data,
                        !!enquo(time),
                        !!enquo(from),
                        !!enquo(to),
@@ -92,55 +89,81 @@ time_mutate <- function(data, ..., time = NULL, by = NULL,
   time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
   from_var <- tidy_transform_names(safe_ungroup(data), !!enquo(from))
   to_var <- tidy_transform_names(safe_ungroup(data), !!enquo(to))
-  out <- data.table::copy(out)
-  data.table::setDT(out)
   # Add variable to keep track of original order
-  sort_nm <- new_var_nm(out, ".sort.index")
-  out[, (sort_nm) := seq_len(.N)]
+  sort_nm <- new_var_nm(data, ".sort.index")
+  data[[sort_nm]] <- row_id(safe_ungroup(data))
   # Add variable to keep track of group IDs
-  grp_nm <- new_var_nm(out, ".group.id")
-  out[, (grp_nm) := group_id(data, .by = {{ .by }},
-                             order = TRUE, as_qg = FALSE)]
-  int_nm <- new_var_nm(out, "interval")
-  data.table::setorderv(out, cols = c(grp_nm, time_var))
+  grp_nm <- new_var_nm(data, ".group.id")
+  data[[grp_nm]] <- group_id(data, .by = {{ .by }})
+  data <- farrange(data, across(all_of(c(grp_nm, time_var))))
+  int_nm <- character(0)
   if (length(time_var) > 0L){
-    # Expanded time sequences for each group
-    time_expanded <- out %>%
-      time_expand(time = across(all_of(time_var)),
-                  from = across(all_of(from_var)),
-                  to = across(all_of(to_var)),
-                  by = by,
-                  seq_type = seq_type,
-                  sort = TRUE, .by = all_of(c(grp_nm, group_vars)),
-                  floor_date = floor_date, week_start = week_start,
-                  keep_class = FALSE,
-                  expand_type = "nesting") # Irrelevant in this context
-    out[, (time_var) := time_cast(get(time_var), time_expanded[[time_var]])]
-    time_agg_df <- time_agg(time_expanded, out, time = time_var, group_id = grp_nm,
-                            include_interval = include_interval, to = to_var)
-    out[, (time_var) := time_agg_df[[time_var]]]
-    int_nm <- character(0)
-    if (include_interval){
-      if (!keep_class){
-        message("data.table converted to tibble as data.table cannot include interval class")
+    # Function to determine implicit time units
+    granularity <- time_granularity(data[[time_var]], is_sorted = FALSE,
+                                    msg = FALSE)
+    # User supplied unit
+    if (!is.null(by)){
+      unit_info <- unit_guess(by)
+      by_n <- unit_info[["num"]] * unit_info[["scale"]]
+      by_unit <- unit_info[["unit"]]
+    } else {
+      message(paste("Assuming a time granularity of", granularity[["num"]]/granularity[["scale"]],
+                    granularity[["granularity"]], sep = " "))
+      by <- granularity[["num_and_unit"]]
+      by_n <- granularity[["num"]]
+      by_unit <- granularity[["unit"]]
+    }
+    # This checks if time aggregation is necessary
+    seq_by <- setnames(list(by_n), by_unit)
+    aggregate <- needs_aggregation(by = seq_by,
+                                   granularity = setnames(list(
+                                     granularity[["num"]]
+                                   ),
+                                   granularity[["unit"]]))
+    if (aggregate || include_interval){
+      # Expanded time sequences for each group
+      time_expanded <- data %>%
+        safe_ungroup() %>%
+        time_expand(time = across(all_of(time_var)),
+                    from = across(all_of(from_var)),
+                    to = across(all_of(to_var)),
+                    by = by,
+                    seq_type = seq_type,
+                    sort = TRUE, .by = all_of(c(grp_nm, group_vars)),
+                    floor_date = floor_date, week_start = week_start,
+                    keep_class = TRUE,
+                    expand_type = "nesting") # Irrelevant in this context
+      data[[time_var]] <- time_cast(data[[time_var]], time_expanded[[time_var]])
+      time <- data[[time_var]]
+      # Aggregate time using the time sequence data
+      data[[time_var]] <- taggregate(data[[time_var]],
+                                     time_expanded[[time_var]],
+                                     gx = data[[grp_nm]],
+                                     gseq = time_expanded[[grp_nm]])
+      if (include_interval){
+        if (inherits(data, "data.table")){
+          data <- dplyr::as_tibble(data)
+          message("data.table converted to tibble as data.table cannot include interval class")
+        }
+        int_nm <- new_var_nm(names(data), "interval")
+        data[[int_nm]] <- tagg_interval(x = time, xagg = data[[time_var]],
+                                        time_expanded[[time_var]],
+                                        gx = data[[grp_nm]],
+                                        gseq = time_expanded[[grp_nm]])
+        # data[[int_nm]] <- tagg_interval(data[[time_var]], time_expanded[[time_var]],
+        #                                gx = data[[grp_nm]],
+        #                                gseq = time_expanded[[grp_nm]])
       }
-      int_nm <- new_var_nm(out, "interval")
-      out <- dplyr::as_tibble(out)
-      out[[int_nm]] <- time_agg_df[["interval"]]
     }
   }
-  # Sorting
-  if (include_interval){
-    if (!sort) out <- dplyr::arrange(out, .data[[sort_nm]])
-    out <- dplyr::select(out, -all_of(c(grp_nm, sort_nm)))
-  } else {
-    if (!sort) data.table::setorderv(out, cols = sort_nm)
-    out[, (c(grp_nm, sort_nm)) := NULL]
+  if (!sort){
+    data <- farrange(data, across(all_of(sort_nm)))
   }
-  out <- dplyr::mutate(out,
-                       !!!enquos(...),
-                       .by = dplyr::any_of(c(group_vars, time_var, int_nm)),
-                       .keep = .keep)
-  if (keep_class) out <- df_reconstruct(out, data)
-  out
+  data[[grp_nm]] <- NULL
+  data[[sort_nm]] <- NULL
+  out <- dplyr::mutate(safe_ungroup(data),
+                !!!enquos(...),
+                .by = all_of(c(group_vars, time_var, int_nm)),
+                .keep = .keep)
+  df_reconstruct(out, data)
 }

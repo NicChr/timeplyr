@@ -112,7 +112,7 @@ harmonic_mean <- function(x, weights = NULL, na.rm = FALSE){
 tidy_transform_names <- function(data, ...){
   names(
     summarise_list(
-      df_row_slice(safe_ungroup(data), min(nrow2(data), 1L), reconstruct = FALSE), !!!enquos(...),
+      vec_head(safe_ungroup(data), n = 1L), !!!enquos(...),
       fix.names = TRUE
     )
   )

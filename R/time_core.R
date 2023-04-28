@@ -184,7 +184,7 @@ time_summarisev <- function(x, by = NULL, from = NULL, to = NULL,
   out <- time_breaks[time_break_ind]
 
   if (include_interval){
-    time_int <- time_seq_interval(time_breaks, to = to)
+    time_int <- tseq_interval(x = to, time_breaks)
     time_int <- time_int[time_break_ind]
     out <- dplyr::tibble(!!"x" := out,
                          !!"interval" := time_int)
@@ -195,7 +195,7 @@ time_summarisev <- function(x, by = NULL, from = NULL, to = NULL,
     }
     # if (sort) out <- out[radix_order(out[["x"]]), , drop = FALSE]
     if (sort) out <- df_row_slice(out, radix_order(out[["x"]]))
-    if (!lubridate::is.interval(time_int)){
+    if (!is_interval(time_int)){
       attr(out[["interval"]], "start") <- out[["x"]]
     }
   } else {
@@ -276,7 +276,7 @@ time_countv <- function(x, by = NULL, from = NULL, to = NULL,
        vind1 = TRUE)
   # if (use.names && !include_interval) out <- setnames(out, x)
   if (include_interval){
-    time_seq_int <- time_seq_interval(time_breaks, to = .to)
+    time_seq_int <- tseq_interval(x = .to, time_breaks)
     time_int <- time_seq_int[time_break_ind]
     if (complete && length(time_missed) > 0L){
       time_int <- c(time_int, time_seq_int[which(attr(time_seq_int, "start") %in%
@@ -287,13 +287,11 @@ time_countv <- function(x, by = NULL, from = NULL, to = NULL,
                          !!"n" := out)
     if (unique){
       out <- fdistinct(out, .data[["x"]], .keep_all = TRUE)
-      # out <- gunique(out, g = out[["x"]])
     }
     if (sort){
       if (sort) out <- df_row_slice(out, radix_order(out[["x"]]))
-      # out <- out[radix_order(out[["x"]]), , drop = FALSE]
     }
-    if (!lubridate::is.interval(out[["interval"]])){
+    if (!is_interval(out[["interval"]])){
       attr(out[["interval"]], "start") <- out[["x"]]
     }
   } else {

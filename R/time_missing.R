@@ -92,7 +92,6 @@ missing_dates <- function(data){
   d_missing <- function(d){
     d <- lubridate::as_date(convert_common_dates(d))
     d_seq <- time_span(x = d, by = list("days" = 1),
-                       seq_type = "period",
                        is_sorted = FALSE)
     d_seq[!d_seq %in% d]
   }
@@ -106,10 +105,5 @@ missing_dates <- function(data){
 #' @rdname time_missing
 #' @export
 n_time_missing <- function(data, by = NULL){
-  UseMethod("n_time_missing")
-}
-#' @rdname time_missing
-#' @export
-n_time_missing.default <- function(data, by = NULL){
   length(time_missing(data, by = by))
 }

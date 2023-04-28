@@ -153,6 +153,8 @@ time_count <- function(data, ..., time = NULL, by = NULL,
   ts_data <- dplyr::mutate(data,
                            !!!enquos(...),
                            !!enquo(time),
+                           !!enquo(from),
+                           !!enquo(to),
                            !!enquo(wt),
                            .by = {{ .by }},
                            .keep = "none")
@@ -162,6 +164,8 @@ time_count <- function(data, ..., time = NULL, by = NULL,
   # It is important to maintain the first-evaluated result of the expression,
   # As done above
   time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
+  from_var <- tidy_transform_names(data, !!enquo(from))
+  to_var <- tidy_transform_names(data, !!enquo(to))
   wt_var <- tidy_transform_names(safe_ungroup(data), !!enquo(wt))
   if (length(wt_var) > 0L) wtv <- ts_data[[wt_var]]
   group_vars <-  group_info[["dplyr_groups"]]
@@ -177,13 +181,15 @@ time_count <- function(data, ..., time = NULL, by = NULL,
                                    as_qg = FALSE,
                                    .by = {{ .by }})]
     # Determine common bounds
-    ts_data[, c(".from", ".to") := get_from_to(data, time = all_of(time_var),
-                                               from = !!enquo(from),
-                                               to = !!enquo(to),
-                                               .by = {{ .by }})]
+    from_nm <- new_var_nm(names(ts_data), ".from")
+    to_nm <- new_var_nm(c(names(ts_data), from_nm), ".to")
+    ts_data[, c(from_nm, to_nm) := get_from_to(ts_data, time = all_of(time_var),
+                                               from = all_of(from_var),
+                                               to = all_of(to_var),
+                                               .by = all_of(grp_nm))]
     # Order by group vars - time var - additional group vars
     data.table::setorderv(ts_data, cols = c(grp_nm, time_var, extra_group_vars))
-    ts_data <- ts_data[data.table::between(get(time_var), get(".from"), get(".to"),
+    ts_data <- ts_data[data.table::between(get(time_var), get(from_nm), get(to_nm),
                                            incbounds = TRUE, NAbounds = NA), ]
     # Function to determine implicit time units
     granularity <- time_granularity(ts_data[[time_var]], is_sorted = FALSE,
@@ -201,35 +207,37 @@ time_count <- function(data, ..., time = NULL, by = NULL,
       by_unit <- granularity[["unit"]]
     }
     # This checks if time aggregation is necessary
-    aggregate <- needs_aggregation(by = setnames(list(by_n), by_unit),
+    seq_by <- setnames(list(by_n), by_unit)
+    aggregate <- needs_aggregation(by = seq_by,
                                    granularity = setnames(list(
                                      granularity[["num"]]
                                    ),
                                    granularity[["unit"]]))
-    seq_by <- setnames(list(by_n), by_unit)
-    # Expanded time sequences for each group
-    time_expanded <- ts_data %>%
-      time_expand(across(all_of(extra_group_vars)),
-                  time = across(all_of(time_var)),
-                  from = across(all_of(".from")),
-                  to = across(all_of(".to")),
-                  by = seq_by,
-                  seq_type = seq_type,
-                  sort = TRUE, .by = all_of(c(grp_nm, group_vars)),
-                  floor_date = floor_date, week_start = week_start,
-                  keep_class = FALSE,
-                  expand_type = "nesting")
-    # Cast time
-    ts_data[, (time_var) := time_cast(get(time_var),
-                                      time_expanded[[time_var]])]
-    # Save non-aggregate time data for possible interval calculation
-    time <- ts_data[[time_var]]
-    if (aggregate){
-      # Aggregate time using the time sequence data
-      ts_data[, (time_var) := taggregate(ts_data[[time_var]],
-                                         time_expanded[[time_var]],
-                                         gx = ts_data[[grp_nm]],
-                                         gseq = time_expanded[[grp_nm]])]
+    if (aggregate || include_interval || complete){
+      # Expanded time sequences for each group
+      time_expanded <- ts_data %>%
+        time_expand(across(all_of(extra_group_vars)),
+                    time = across(all_of(time_var)),
+                    from = across(all_of(from_nm)),
+                    to = across(all_of(to_nm)),
+                    by = seq_by,
+                    seq_type = seq_type,
+                    sort = TRUE, .by = all_of(c(grp_nm, group_vars)),
+                    floor_date = floor_date, week_start = week_start,
+                    keep_class = FALSE,
+                    expand_type = "nesting")
+      # Cast time
+      ts_data[, (time_var) := time_cast(get(time_var),
+                                        time_expanded[[time_var]])]
+      # Save non-aggregate time data for possible interval calculation
+      time <- ts_data[[time_var]]
+      if (aggregate){
+        # Aggregate time using the time sequence data
+        ts_data[, (time_var) := taggregate(ts_data[[time_var]],
+                                           time_expanded[[time_var]],
+                                           gx = ts_data[[grp_nm]],
+                                           gseq = time_expanded[[grp_nm]])]
+      }
     }
     # Frequency table
     out <- ts_data %>%

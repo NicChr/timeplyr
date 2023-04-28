@@ -10,7 +10,6 @@
 \alias{time_missing.data.frame}
 \alias{missing_dates}
 \alias{n_time_missing}
-\alias{n_time_missing.default}
 \title{Check for missing dates or datetimes in a regular time sequence}
 \usage{
 time_missing(data, by = NULL)
@@ -30,8 +29,6 @@ time_missing(data, by = NULL)
 missing_dates(data)
 
 n_time_missing(data, by = NULL)
-
-\method{n_time_missing}{default}(data, by = NULL)
 }
 \arguments{
 \item{data}{A date or datetime vector or data frame.}

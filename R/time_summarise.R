@@ -54,8 +54,6 @@
 #' The rightmost interval will always be closed.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
-#' @param keep_class Logical. If `TRUE` then the class of the input data is retained.
-#' If `FALSE`, which is sometimes faster, a `data.table` is returned.
 #' @param floor_date Should `from` be floored to the nearest unit specified through the `by`
 #' argument? This is particularly useful for starting sequences at the beginning of a week
 #' or month for example.
@@ -108,13 +106,12 @@ time_summarise <- function(data, ..., time = NULL, by = NULL,
                         seq_type = c("auto", "duration", "period"),
                         include_interval = FALSE,
                         .by = NULL,
-                        keep_class = TRUE,
                         floor_date = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
                         roll_month = "preday", roll_dst = "pre",
                         sort = TRUE){
   int_nm <- new_var_nm(data, "interval")
-  out <- dplyr::distinct(time_mutate(data, !!!enquos(...),
+  out <- fdistinct(time_mutate(data, !!!enquos(...),
               time = !!enquo(time),
               by = by,
               from = !!enquo(from),
@@ -123,7 +120,6 @@ time_summarise <- function(data, ..., time = NULL, by = NULL,
               include_interval = include_interval,
               .by = {{ .by }},
               .keep = "none",
-              keep_class = keep_class,
               floor_date = floor_date,
               week_start = week_start,
               roll_month = roll_month, roll_dst = roll_dst,
@@ -143,7 +139,6 @@ time_reframe <- function(data, ..., time = NULL, by = NULL,
                          seq_type = c("auto", "duration", "period"),
                          include_interval = FALSE,
                          .by = NULL,
-                         keep_class = TRUE,
                          floor_date = FALSE,
                          week_start = getOption("lubridate.week.start", 1),
                          roll_month = "preday", roll_dst = "pre",
@@ -158,13 +153,12 @@ time_reframe <- function(data, ..., time = NULL, by = NULL,
                      include_interval = include_interval,
                      .by = {{ .by }},
                      .keep = "all",
-                     keep_class = FALSE,
                      floor_date = floor_date,
                      week_start = week_start,
                      roll_month = roll_month, roll_dst = roll_dst,
                      sort = sort)
   time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
-  out <- dplyr_summarise(out, !!!enquos(...), .by = dplyr::any_of(c(group_vars, time_var, int_nm)))
-  if (keep_class) out <- df_reconstruct(out, safe_ungroup(data))
-  safe_ungroup(out)
+  out <- dplyr_summarise(safe_ungroup(out), !!!enquos(...),
+                         .by = dplyr::any_of(c(group_vars, time_var, int_nm)))
+  out
 }

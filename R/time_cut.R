@@ -59,9 +59,8 @@
 #' library(dplyr)
 #'
 #' # Easily create custom time breaks
-#' set.seed(8192821)
 #' flights <- nycflights13::flights %>%
-#'   slice_sample(n = 10^3) %>%
+#'   fslice_sample(n = 10^3, seed = 8192821) %>%
 #'   select(time_hour) %>%
 #'   mutate(date = as_date(time_hour))
 #'
@@ -110,8 +109,7 @@ time_cut <- function(x, n = 5, by = NULL,
   from <- bound_from(from, x)
   to <- bound_to(to, x)
   out <- cut_time2(x, c(time_breaks, to + 1))
-  time_labels <- time_seq_levels(time_breaks, g = NULL, to = to,
-                                 fmt = fmt)
+  time_labels <- tseq_levels(x = to, time_breaks, fmt = fmt)
   if (as_factor){
     out <- ffactor(out,
                    levels = as.character(time_breaks),

@@ -15,7 +15,6 @@ time_distinct(
   seq_type = c("auto", "duration", "period"),
   include_interval = FALSE,
   .by = NULL,
-  keep_class = TRUE,
   floor_date = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = "preday",
@@ -65,9 +64,6 @@ The rightmost interval will always be closed.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
-
-\item{keep_class}{Logical. If \code{TRUE} then the class of the input data is retained.
-If \code{FALSE}, which is sometimes faster, a \code{data.table} is returned.}
 
 \item{floor_date}{Should \code{from} be floored to the nearest unit specified through the \code{by}
 argument? This is particularly useful for starting sequences at the beginning of a week

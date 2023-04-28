@@ -108,13 +108,11 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
                        !!enquo(to),
                        .by = {{ .by }},
                        .keep = "none")
-  time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
-  from_var <- tidy_transform_names(safe_ungroup(data), !!enquo(from))
-  to_var <- tidy_transform_names(safe_ungroup(data), !!enquo(to))
+  time_var <- tidy_transform_names(data, !!enquo(time))
+  from_var <- tidy_transform_names(data, !!enquo(from))
+  to_var <- tidy_transform_names(data, !!enquo(to))
   out <- data.table::copy(out)
   data.table::setDT(out)
-  # Messy for now.. This step is to ensure that grouped time sequences
-  # Are built using a custom efficient method
   if (length(time_var) > 0){
     seq_type <- match.arg(seq_type)
     if (is.null(by)){
@@ -127,30 +125,30 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
       by_unit <- unit_info[["unit"]]
     }
     input_seq_type <- seq_type # Save original
-    # if (seq_type == "auto") seq_type <- guess_seq_type(by_unit)
-
-    # Add sorted group ID and sort by it
-    # The reason we're sorting it here is because collapse::fmin()
-    # Returns the minimum per sorted group.
+    # Ordered group ID
     grp_nm <- new_var_nm(out, ".group.id")
-    out[, (grp_nm) := group_id(data, .by = {{ .by }}, order = TRUE, as_qg = FALSE)]
-    # Sort by groups
-    data.table::setorderv(out, cols = grp_nm)
+    out[, (grp_nm) := group_id(data, .by = {{ .by }})]
+    from_nm <- new_var_nm(names(out), ".from")
+    to_nm <- new_var_nm(c(names(out), from_nm), ".to")
+    out[, c(from_nm, to_nm) := get_from_to(out, time = all_of(time_var),
+                                               from = all_of(from_var),
+                                               to = all_of(to_var),
+                                               .by = all_of(grp_nm))]
+    # if (length(from_var) == 0L){
+    #   out[, (from_nm) := gmin(get(time_var),
+    #                           g = get(grp_nm))]
+    # } else {
+    #   out[, (from_nm) := time_cast(get(from_var), get(time_var))]
+    # }
+    # if (length(to_var) == 0L){
+    #   out[, (to_nm) := gmax(get(time_var),
+    #                           g = get(grp_nm))]
+    # } else {
+    #   out[, (to_nm) := time_cast(get(to_var), get(time_var))]
+    # }
     # Unique groups
-    time_tbl <- collapse::funique(out[, c(group_vars, grp_nm), with = FALSE],
+    time_tbl <- collapse::funique(out[, .SD, .SDcols = c(group_vars, grp_nm, from_nm, to_nm)],
                                   cols = grp_nm)
-    from_nm <- new_var_nm(out, ".from")
-    if (length(from_var) == 0L){
-      time_tbl[, (from_nm) := collapse::fmin(out[[time_var]],
-                                           g = out[[grp_nm]],
-                                           na.rm = TRUE,
-                                           use.g.names = FALSE)]
-    } else {
-      time_tbl[, (from_nm) := collapse::funique(out[, c(grp_nm, from_var), with = FALSE],
-                                                cols = grp_nm, sort = FALSE)[[from_var]]]
-      # Cast common types/tz
-      time_tbl[, (from_nm) := time_cast(get(from_nm), out[[time_var]])]
-    }
     # Bit-hacky.. probably better to add a floor_date arg to time_seq_len
     if (floor_date){
       if (is_time(out[[time_var]])){
@@ -162,19 +160,6 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
                                            by_n,
                                            week_start = week_start)]
       }
-    }
-    to_nm <- new_var_nm(out, ".to")
-    if (length(to_var) == 0L){
-      time_tbl[, (to_nm) := collapse::fmax(out[[time_var]],
-                                         g = out[[grp_nm]],
-                                         na.rm = TRUE,
-                                         use.g.names = FALSE)]
-    } else {
-      time_tbl[, (to_nm) := collapse::funique(out[, c(grp_nm, to_var), with = FALSE],
-                                                cols = grp_nm, sort = FALSE)[[to_var]]]
-      # Cast common types/tz
-      time_tbl[, (to_nm) := time_cast(get(to_nm), out[[time_var]])]
-      # time_tbl[, (to_nm) := .to]
     }
     # Reverse by sign in case from > to
     by_nm <- new_var_nm(out, ".by")
@@ -215,12 +200,9 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
                              time_tbl[[to_nm]],
                              by = setnames(list(time_tbl[[by_nm]]),
                                            by_unit),
-                             # units = by_unit,
-                             # num = time_tbl[[by_nm]],
                              roll_month = roll_month,
                              roll_dst = roll_dst,
                              seq_type = seq_type)
-      # if (is_special_case_days) time_seq <- lubridate::as_date(time_seq)
       out <- vctrs::vec_rep_each(time_tbl, time_tbl[[size_nm]])
       data.table::setDT(out)
       out[, (time_var) := time_seq]
@@ -241,15 +223,16 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
         out_n <- nrow2(out)
         expanded_n <- nrow2(expanded_df)
         out <- df_row_slice(out, rep(seq_len(out_n), each = expanded_n))
-        # out <- out[rep(seq_len(out_n), each = expanded_n), , drop = FALSE]
         for (i in seq_len(length(expanded_nms))){
           out[, (expanded_nms[i]) := rep(expanded_df[[expanded_nms[i]]], out_n)][]
         }
         # If data was grouped, we can do a full join on these variables
       } else {
-        out <- merge(out, expanded_df,
-                     all = TRUE, by = group_vars, sort = FALSE,
-                     allow.cartesian = TRUE)
+        if (length(setdiff(expanded_nms, group_vars)) > 0L){
+          out <- merge(out, expanded_df,
+                       all = TRUE, by = group_vars, sort = FALSE,
+                       allow.cartesian = TRUE)
+        }
       }
     }
     if (sort){
