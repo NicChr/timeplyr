@@ -117,24 +117,8 @@ time_interval <- function(from, to){
       from <- rep_len(from, length(out))
     }
     attr(out, "start") <- from
-    # labels <- paste(from, to, sep = " to ")
-    # from <- rep_len(from, length(labels))
-    # to <- rep_len(to, length(labels))
-    # out <- labels
-    # attr(out, "starts") <- from
-    # attr(out, "ends") <- to
   }
   out
-}
-# Time interval from ascending x
-time_interval3 <- function(x, to = NULL, is_sorted = FALSE){
-  time_breaks <- collapse::funique(collapse::na_rm(x), sort = !is_sorted)
-  if (is.null(to)) to <- collapse::fmax(time_breaks, na.rm = TRUE,
-                                        use.g.names = FALSE)
-  time_int <- time_interval(time_breaks, collapse::flag(time_breaks, n = -1))
-  time_int[length(time_int)] <- time_interval(time_breaks[length(time_breaks)], to)
-  time_start <- cut_time2(x, breaks = c(time_breaks, to + 1))
-  time_int[match(time_start, time_breaks)]
 }
 # Time interval from ascending time sequence
 # These 2 functions are weird as to must match the length of the unique groups, not x..
@@ -188,6 +172,7 @@ time_seq_levels <- function(x, to, g = NULL, fmt = NULL){
   }
   out
 }
+
 # Calculates time granularity
 time_diff_gcd <- function(x, is_sorted = FALSE){
   x <- as.double(x)
@@ -678,32 +663,6 @@ window_seq <- function(k, n, partial = TRUE){
 }
 # time_seq_data must be sorted by groups + time
 # data must also be sorted the same way
-# time_cut_grouped2 <- function(time_seq_data, data, time, group_id,
-#                              to){
-#   time_seq_num_max <- as.double(to)
-#   time_seq_list <- collapse::gsplit(time_seq_data[[time]],
-#                                     g = time_seq_data[[group_id]])
-#   time_list <- collapse::gsplit(data[[time]],
-#                                 g = data[[group_id]])
-#   # Change time to numbers
-#   time_seq_list_num <- lapply(time_seq_list, as.double)
-#   time_list_num <- lapply(time_list, as.double)
-#   # Pre-allocate list of aggregated time
-#   time_agg_list <- vector("list", length(time_seq_list))
-#   breaks_list <- vector("list", length(time_seq_list))
-#   seq_lengths <- collapse::vlengths(time_seq_list)
-#   # This loops through each group and aggregates time based on
-#   # The sequences within each group
-#   time_agg_list <- purrr::pmap(list(time_seq_list, time_list_num,
-#                                     time_seq_list_num, time_seq_num_max),
-#                                function(x1, x2, x3, x4) x1[fcut_ind(x2, c(x3, x4 + 1))])
-#   time_agg_v <- unlist(time_agg_list, recursive = FALSE, use.names = FALSE)
-#   time_agg_v <- time_cast(time_agg_v, data[[time]])
-#   setnames(list(time_agg_v,
-#                 unlist(breaks_list, recursive = FALSE, use.names = FALSE),
-#                 vctrs::vec_rep_each(seq_len(length(time_seq_list)), collapse::vlengths(time_agg_list))),
-#            c(time, ".breaks", group_id))
-# }
 time_cut_grouped <- function(time_seq_data, data, time, group_id,
                              to){
   time_seq_num_max <- as.double(to)
@@ -874,4 +833,124 @@ has_interval <- function(data, quiet = FALSE){
             https://github.com/SebKrantz/collapse/issues")
   }
   out
+}
+# time_agg2 <- function(time_seq_data, data, time, g){
+#   by <- dplyr::join_by(!!rlang::sym(g), closest(!!rlang::sym(time) >= !!rlang::sym(time)))
+#   data %>%
+#     dplyr::left_join(time_seq_data, by = by,
+#                      suffix = c(".raw", "")) %>%
+#     dplyr::pull(all_of(stringr::str_c(time, ".raw")))
+#     # dplyr::select(-all_of(stringr::str_c(time, ".raw")))
+# }
+
+# Grouped functions that utilise
+# x - time variable (ascending order)
+# seq - regular time sequence (ascending order)
+# gx - Integer group ID of x (ascending order)
+# gseq - Integer group ID of seq (ascending order)
+
+# Aggregate x to higher time unit based on seq
+taggregate <- function(x, seq, gx, gseq){
+  data <- data.frame(t = x, g = gx)
+  lookup <- data.frame(seq = seq, g = gseq)
+  by <- dplyr::join_by("g", closest("t" >= "seq"))
+  data %>%
+    dplyr::left_join(lookup, by = by, multiple = "any") %>%
+    dplyr::pull(all_of("seq"))
+}
+# taggregate <- function(x, seq, gx, gseq){
+#   dt1 <- data.table::data.table(g = gx, t = x)
+#   dt2 <- data.table::data.table(g = gseq, t = seq)
+#   dt2[dt1, on = c("g", "t"), roll = "nearest"][["t"]]
+#   # data.table::setkeyv(dt1, cols = names(dt1))
+#   # data.table::setkeyv(dt2, cols = names(dt2))
+#   # dt2[dt1, on = "t", roll = "nearest"][["t"]]
+# }
+
+# Convert time sequence to interval
+tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
+  n <- length(x)
+  out <- time_interval(seq, collapse::flag(seq, n = max(-1L, -n), g = gseq))
+  to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
+  end_points <- which(is.na(out) & !is.na(seq))
+  out[end_points] <- time_interval(seq[end_points], to)
+  out
+}
+# Convert time sequence to min max list
+tseq_min_max <- function(x, seq, gx = NULL, gseq = NULL){
+  n <- length(x)
+  end <- collapse::flag(seq, n = max(-1L, -n), g = gseq)
+  to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
+  end_points <- which(is.na(end) & !is.na(seq))
+  setv(end, end_points, to, vind1 = TRUE)
+  list(min = seq, max = end)
+}
+# Time cut levels from ascending time sequence
+tseq_levels <- function(x, seq, gx = NULL, gseq = NULL, fmt = NULL){
+  if (is.null(fmt)){
+    fmt_f <- identity
+  } else {
+    fmt_f <- function(x, ...) format(x, fmt, ...)
+  }
+  n <- length(x)
+  time_breaks_fmt <- fmt_f(seq)
+  out <- stringr::str_c("[",
+                        time_breaks_fmt,
+                        ", ",
+                        collapse::flag(time_breaks_fmt,
+                                       g = gseq, n = max(-1L, -n)),
+                        ")")
+  to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
+  end_points <- which(is.na(out) & !is.na(seq))
+  setv(out, end_points, stringr::str_c("[",
+                                       time_breaks_fmt[end_points],
+                                       ", ",
+                                       fmt_f(to),
+                                       "]"),
+       vind1 = TRUE)
+  out
+}
+# Simple helper to add time min-max vars
+add_min_max <- function(data, ..., time, .by = NULL){
+  time_var <- tidy_select_names(data, !!enquo(time))
+  g <- group_id(data, !!!enquos(...), .by = {{ .by }})
+  g <- GRP2(g, sort = TRUE,
+            return.groups = FALSE,
+            return.order = TRUE,
+            call = FALSE)
+  data[[".from"]] <- gmin(data[[time_var]], g = g)
+  data[[".to"]] <- gmax(data[[time_var]], g = g)
+  data
+}
+# Internal helper to process from/to args
+get_from_to <- function(data, ..., time, from = NULL, to = NULL,
+                        .by = NULL){
+  from_missing <- rlang::quo_is_null(enquo(from))
+  to_missing <- rlang::quo_is_null(enquo(to))
+  time_var <- tidy_select_names(data, !!enquo(time))
+  if (from_missing || to_missing){
+    g <- group_id(data, !!!enquos(...), .by = {{ .by }})
+    g <- GRP2(g, sort = TRUE,
+              return.groups = FALSE,
+              return.order = TRUE,
+              call = FALSE)
+  }
+  if (from_missing){
+    .from <- gmin(data[[time_var]], g = g)
+  } else {
+    .from <- dplyr::mutate(data,
+                           !!".from" := !!enquo(from),
+                           .by = {{ .by }},
+                           .keep = "none")[[".from"]]
+  }
+  if (to_missing){
+    .to <- gmax(data[[time_var]], g = g)
+  } else {
+    .to <- dplyr::mutate(data,
+                         !!".to" := !!enquo(to),
+                         .by = {{ .by }},
+                         .keep = "none")[[".to"]]
+  }
+  list(.from = time_cast(.from, data[[time_var]]),
+       .to = time_cast(.to, data[[time_var]]))
 }

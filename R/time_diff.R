@@ -62,12 +62,15 @@ time_diff <- function(x, y, by,
     if (type == "auto") type <- guess_seq_type(units)
     int <- lubridate::interval(x, y)
     if (as_period || type == "period"){
-      if (as_period) int <- lubridate::as.period(int, unit = units)
-      unit <- period_unit(units)(num) # Vectorised lubridate::period
+      if (as_period){
+        int <- lubridate::as.period(int, unit = units)
+      }
+      unit <- period_unit(units)(abs(num)) # Vectorised lubridate::period
+      out <- sign(num) * (int / unit)
     } else {
       unit <- duration_unit(units)(num)
+      out <- int / unit
     }
-    out <- int / unit
   } else {
     out <- (y - x) / unlist(unname(by))
   }

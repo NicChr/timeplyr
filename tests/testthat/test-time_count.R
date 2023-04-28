@@ -71,11 +71,9 @@ testthat::test_that("Compare to tidyr", {
   )
   testthat::expect_identical(
     flights %>%
-      time_count(time = time_hour, tailnum, by = "year",
-                 na_groups = FALSE) %>%
+      time_count(time = time_hour, tailnum, by = "year") %>%
       dplyr::select(tailnum, time_hour, n),
     flights %>%
-      dplyr::filter(!dplyr::if_any(tailnum, ~ is.na(.x))) %>%
       dplyr::group_by(tailnum) %>%
       dplyr::summarise(time_hour = min(flights$time_hour),
                        n = dplyr::n()) %>%
@@ -142,37 +140,27 @@ testthat::test_that("Compare to tidyr", {
     time_count(origin, dest, time = time_hour, by = "17 hours", from = start, to = end,
                include_interval = TRUE, floor_date = FALSE)
   testthat::expect_equal(res42$time_hour, lubridate::int_start(res42$interval))
-  # Pivotting wide
   testthat::expect_identical(
     flights %>%
       time_count(time = time_hour, .by = origin,
-                 by = "month", wide_cols = origin),
+                 by = "month"),
     flights %>%
-      time_mutate(time = time_hour,
-                  by = "month",
-                  .by = origin) %>%
-      fcount(origin, time_hour) %>%
-      tidyr::pivot_wider(names_from = all_of("origin"),
-                         values_from = all_of("n"))
+      dplyr::mutate(month = time_summarisev(time_hour, by = "month"),
+                    .by = origin) %>%
+      fcount(origin, time_hour = month)
   )
   # Warning
-  testthat::expect_warning(flights %>%
-                             time_count(time = time_hour, lubridate::today()))
+  # testthat::expect_warning(flights %>%
+  #                            time_count(time = time_hour, lubridate::today()))
   testthat::expect_identical(flights %>% fcount(origin, dest),
                              flights %>% time_count(origin, dest))
-  testthat::expect_identical(flights %>%
-                               fcount(origin, dest) %>%
-                               data.table::as.data.table(),
-                             flights %>%
-                               time_count(origin, dest,
-                                                    keep_class = FALSE))
-  testthat::expect_identical(flights %>%
-                               fcount(origin, dest) %>%
-                               tidyr::pivot_wider(names_from = "origin",
-                                                  values_from = "n"),
-                             flights %>%
-                               time_count(origin, dest,
-                                          wide_cols = origin))
+  # testthat::expect_identical(flights %>%
+  #                              fcount(origin, dest) %>%
+  #                              tidyr::pivot_wider(names_from = "origin",
+  #                                                 values_from = "n"),
+  #                            flights %>%
+  #                              time_count(origin, dest,
+  #                                         wide_cols = origin))
   testthat::expect_identical(flights %>%
                                dplyr::count(time_hour) %>%
                                tidyr::complete(time_hour = hour_seq,

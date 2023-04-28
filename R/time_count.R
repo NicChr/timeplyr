@@ -68,8 +68,6 @@
 #' the new column in the output.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
-#' @param wide_cols Variables to pivot into wide format.
-#' To supply multiple variables, use the format `c(var1, var2, var3)`.
 #' @param floor_date Should `from` be floored to the nearest unit
 #' specified through the `by`
 #' argument? This is particularly useful for starting
@@ -82,11 +80,6 @@
 #' the time expansion when days, weeks, months or
 #' years are specified, and `durations`
 #' are used otherwise.
-#' @param values_fill Value to fill implicit missing values.
-#' @param na_groups Should rows with missing or \code{NA} groups be kept?
-#' @param expand_type Type of time expansion to use where
-#' "nesting" finds combinations already present in the data,
-#' "crossing" finds all combinations of values in the group variables.
 #' @param roll_month Control how impossible dates are handled when
 #' month or year arithmetic is involved.
 #' Options are "preday", "boundary", "postday", "full" and "NA".
@@ -150,93 +143,48 @@ time_count <- function(data, ..., time = NULL, by = NULL,
                        wt = NULL, name = NULL,
                        sort = FALSE,
                        .by = NULL,
-                       wide_cols = NULL,
                        floor_date = FALSE,
                        week_start = getOption("lubridate.week.start", 1),
                        seq_type = c("auto", "duration", "period"),
-                       values_fill = NA, na_groups = TRUE,
-                       expand_type = c("nesting", "crossing"),
                        roll_month = "preday", roll_dst = "pre",
                        include_interval = FALSE,
                        keep_class = TRUE){
-  expand_type <- match.arg(expand_type)
   seq_type <- match.arg(seq_type)
   ts_data <- dplyr::mutate(data,
-                    !!!enquos(...),
-                    !!enquo(time),
-                    !!enquo(from),
-                    !!enquo(to),
-                    !!enquo(wt),
-                    .by = {{ .by }},
-                    .keep = "none")
+                           !!!enquos(...),
+                           !!enquo(time),
+                           !!enquo(wt),
+                           .by = {{ .by }},
+                           .keep = "none")
   group_info <- get_group_info(data, !!!enquos(...), type = "data-mask",
                                .by = {{ .by }})
   # Transformed variable names
   # It is important to maintain the first-evaluated result of the expression,
   # As done above
   time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
-  from_var <- tidy_transform_names(safe_ungroup(data), !!enquo(from))
-  to_var <- tidy_transform_names(safe_ungroup(data), !!enquo(to))
   wt_var <- tidy_transform_names(safe_ungroup(data), !!enquo(wt))
   if (length(wt_var) > 0L) wtv <- ts_data[[wt_var]]
   group_vars <-  group_info[["dplyr_groups"]]
   extra_group_vars <- group_info[["extra_groups"]]
   all_group_vars <- group_info[["all_groups"]]
-
-  wide_col_names <- tidy_select_names(data, !!!enquos(wide_cols))
-  if (length(wide_col_names) > 0L && !wide_col_names %in% names(ts_data)){
-    ts_data[[wide_col_names]] <- data[[wide_col_names]]
-  }
-  # Add wide_cols not specified in group_cols to the group_cols vector
-  extra_group_vars <- c(extra_group_vars, setdiff(wide_col_names, extra_group_vars))
-  all_group_vars <- c(all_group_vars, setdiff(wide_col_names, all_group_vars))
-  # Remove time var from group vars
-  extra_group_vars <- setdiff(extra_group_vars, time_var)
-  all_group_vars <- setdiff(all_group_vars, time_var)
-  # Remove dplyr group vars from groups
-  extra_group_vars <- setdiff(extra_group_vars, group_vars)
   N <- nrow2(ts_data)
-  ts_data <- data.table::copy(ts_data)
-  data.table::setDT(ts_data)
-  # Add variable to keep track of group IDs
-  grp_nm <- new_var_nm(ts_data, ".group.id")
-  ts_data[, (grp_nm) := group_id(data, order = TRUE,
-                                 as_qg = FALSE,
-                                 .by = {{ .by }})]
-  # Order by group vars - time var - additional group vars
-  data.table::setorderv(ts_data, cols = c(grp_nm, time_var, extra_group_vars))
   if (length(time_var) > 0){
-    if (any(purrr::map_lgl(ts_data[, all_group_vars, with = FALSE], is_time))){
-      warning("Group variables contain a date/POSIXt object.
-            These will be expanded and may result in impossible time combinations",
-              immediate. = TRUE)
-    }
+    ts_data <- data.table::copy(ts_data)
+    data.table::setDT(ts_data)
+    # Add variable to keep track of group IDs
+    grp_nm <- new_var_nm(ts_data, ".group.id")
+    ts_data[, (grp_nm) := group_id(data, order = TRUE,
+                                   as_qg = FALSE,
+                                   .by = {{ .by }})]
     # Determine common bounds
-    if (length(from_var) == 0L){
-      from_nm <- new_var_nm(ts_data, ".from")
-      ts_data[, (from_nm) := gmin(get(time_var), g = get(grp_nm))]
-    } else {
-      from_nm <- from_var
-    }
-    if (length(to_var) == 0L){
-      to_nm <- new_var_nm(ts_data, ".to")
-      ts_data[, (to_nm) := gmax(get(time_var), g = get(grp_nm))]
-    } else {
-      to_nm <- to_var
-    }
-    # Time cast
-    ts_data[, (from_nm) := time_cast(get(from_nm), get(time_var))]
-    ts_data[, (to_nm) := time_cast(get(to_nm), get(time_var))]
-    if (length(from_var) > 0L || length(to_var) > 0L){
-      ts_data <- ts_data[data.table::between(get(time_var), get(from_nm), get(to_nm),
-                                             incbounds = TRUE, NAbounds = NA), ]
-    }
-  }
-  # Remove rows with any NA
-  if (!na_groups){
-    ts_data <- ts_data[stats::complete.cases(ts_data[, c(time_var, extra_group_vars), with = FALSE])]
-  }
-  if (length(time_var) > 0){
+    ts_data[, c(".from", ".to") := get_from_to(data, time = all_of(time_var),
+                                               from = !!enquo(from),
+                                               to = !!enquo(to),
+                                               .by = {{ .by }})]
+    # Order by group vars - time var - additional group vars
+    data.table::setorderv(ts_data, cols = c(grp_nm, time_var, extra_group_vars))
+    ts_data <- ts_data[data.table::between(get(time_var), get(".from"), get(".to"),
+                                           incbounds = TRUE, NAbounds = NA), ]
     # Function to determine implicit time units
     granularity <- time_granularity(ts_data[[time_var]], is_sorted = FALSE,
                                     msg = FALSE)
@@ -263,104 +211,68 @@ time_count <- function(data, ..., time = NULL, by = NULL,
     time_expanded <- ts_data %>%
       time_expand(across(all_of(extra_group_vars)),
                   time = across(all_of(time_var)),
-                  from = across(all_of(from_nm)),
-                  to = across(all_of(to_nm)),
+                  from = across(all_of(".from")),
+                  to = across(all_of(".to")),
                   by = seq_by,
                   seq_type = seq_type,
                   sort = TRUE, .by = all_of(c(grp_nm, group_vars)),
                   floor_date = floor_date, week_start = week_start,
                   keep_class = FALSE,
-                  expand_type = expand_type)
-      # Cast time
-      ts_data[, (time_var) := time_cast(get(time_var),
-                                        time_expanded[[time_var]])]
-      if (aggregate){
-        # Aggregate time using the time sequence data
-        time_agg_df <- time_agg(time_expanded, ts_data, time = time_var,
-                                group_id = grp_nm,
-                                include_interval = include_interval, to = to_nm)
-        ts_data[, (time_var) := time_agg_df[[time_var]]]
-      }
-      # Frequency table
-      out <- ts_data %>%
-        fcount(across(dplyr::any_of(c(grp_nm, group_vars, time_var,
-                                             extra_group_vars))),
-               wt = across(all_of(wt_var)),
-               name = name)
-      name <- names(out)[length(names(out))]
+                  expand_type = "nesting")
+    # Cast time
+    ts_data[, (time_var) := time_cast(get(time_var),
+                                      time_expanded[[time_var]])]
+    # Save non-aggregate time data for possible interval calculation
+    time <- ts_data[[time_var]]
+    if (aggregate){
+      # Aggregate time using the time sequence data
+      ts_data[, (time_var) := taggregate(ts_data[[time_var]],
+                                         time_expanded[[time_var]],
+                                         gx = ts_data[[grp_nm]],
+                                         gseq = time_expanded[[grp_nm]])]
+    }
+    # Frequency table
+    out <- ts_data %>%
+      fcount(across(dplyr::any_of(c(grp_nm, group_vars, time_var,
+                                    extra_group_vars))),
+             wt = across(all_of(wt_var)),
+             name = name)
+    name <- names(out)[length(names(out))]
 
     # If complete, full-join time sequence df onto ts data
     if (complete){
       out <- merge(out, time_expanded,
-                       all = TRUE, by = names(time_expanded), sort = FALSE)
+                   all = TRUE, by = names(time_expanded), sort = FALSE)
       # Order by groups and time (ascending)
       data.table::setorderv(out, cols = c(grp_nm, time_var, extra_group_vars), na.last = TRUE)
       # Replace NA with 0 as these are counts
       data.table::setnafill(out, cols = name, type = "const", fill = 0, nan = NaN)
     }
-      data.table::setcolorder(out,
-                              neworder = c(grp_nm,
-                                           group_vars,
-                                           time_var,
-                                           extra_group_vars))
-      if (sort){
-        data.table::setorderv(out, cols = name, na.last = TRUE,
-                              order = -1L)
-      }
-      # Messy, need to clean this section in later version
+    if (include_interval){
+      out <- dplyr::as_tibble(out)
+      message("data.table converted to tibble as data.table cannot include interval class")
+
+      int_nm <- new_var_nm(out, "interval")
+      out[[int_nm]] <- tseq_interval(time, time_expanded[[time_var]],
+                                     gx = ts_data[[grp_nm]],
+                                     gseq = time_expanded[[grp_nm]])
+    } else {
+     int_nm <- character(0)
+    }
+    out <- collapse::fselect(out, c(grp_nm,
+                                    group_vars,
+                                    time_var,
+                                    extra_group_vars,
+                                    int_nm,
+                                    name))
+    if (sort){
       if (include_interval){
-        out <- dplyr::as_tibble(out)
-        message("data.table converted to tibble as data.table cannot include interval class")
-
-        int_nm <- new_var_nm(out, "interval")
-        # if (FALSE){
-          # int_df <- fdistinct(time_agg_df,
-          #                           across(all_of(c(time_var, grp_nm, "interval"))))
-          # time_missed_df <- dplyr::anti_join(dplyr::select(out,
-          #                                                  all_of(c(time_var, grp_nm))),
-          #                                    int_df,
-          #                                    by = c(time_var, grp_nm))
-          # which_groups_missed <- which(ts_data[[grp_nm]] %in% time_missed_df[[grp_nm]])
-          # to_agg <- collapse::ffirst(ts_data[[to_nm]][which_groups_missed],
-          #                            g = ts_data[[grp_nm]][which_groups_missed])
-          # # which_time_seq_rows <- which(time_expanded[[grp_nm]] %in% time_missed_df[[grp_nm]])
-          #
-          # time_seq_missed <- which(time_expanded[[grp_nm]] %in% time_missed_df[[grp_nm]])
-          # time_seq_int <- time_seq_interval(time_expanded[[time_var]][time_seq_missed],
-          #                                   g = time_expanded[[grp_nm]][time_seq_missed],
-          #                                   to = to_agg)
-          # time_seq_missed_df <- time_expanded %>%
-          #   dplyr::as_tibble() %>%
-          #   dplyr::mutate(.row.id.temp = dplyr::row_number()) %>%
-          #   dplyr::inner_join(time_missed_df, by = c(time_var, grp_nm))
-          # time_missed_df[[int_nm]] <- time_seq_int[time_seq_missed_df[[".row.id.temp"]]]
-          # int_df <- dplyr::bind_rows(int_df, time_missed_df)
-          # int_df <- dplyr::arrange(int_df, across(all_of(c(grp_nm, time_var))))
-        # } else {
-        to_agg <- collapse::ffirst(ts_data[[to_nm]],
-                                   g = ts_data[[grp_nm]])
-        time_seq_data <- collapse::funique(time_expanded,
-                                           cols = c(grp_nm, time_var))
-        time_int <- time_seq_interval(time_seq_data[[time_var]],
-                                      to = to_agg,
-                                      g = time_seq_data[[grp_nm]])
-        int_df <- dplyr::tibble(!!time_var := time_seq_data[[time_var]],
-                                !!grp_nm := time_seq_data[[grp_nm]],
-                                !!int_nm := time_int)
-        # }
-        out <- out %>%
-          dplyr::left_join(int_df, by = c(grp_nm, time_var)) %>%
-          dplyr::relocate(all_of(name),
-                          .after = all_of(int_nm))
-        out[[grp_nm]] <- NULL
-        if (!lubridate::is.interval(out[[int_nm]])){
-          attr(out[[int_nm]], "start") <- out[[time_var]]
-        }
-
+        out <- df_row_slice(out, radix_order(desc(out[[name]])), reconstruct = FALSE)
       } else {
-        out[, (grp_nm) := NULL] # Remove group ID
+        data.table::setorderv(out, cols = name, order = -1L, na.last = TRUE)
       }
-
+    }
+    out[[grp_nm]] <- NULL # Remove group ID
   } else {
     out <- ts_data %>%
       fcount(across(dplyr::any_of(c(group_vars, extra_group_vars))),
@@ -368,18 +280,6 @@ time_count <- function(data, ..., time = NULL, by = NULL,
              name = name,
              sort = sort)
     name <- names(out)[length(names(out))]
-  }
-  # Pivot wider
-  if (length(wide_col_names) > 0){
-    if (length(time_var) > 0 && time_var %in% wide_col_names && include_interval){
-      wide_col_names <- c("interval", wide_col_names)
-    }
-    out <- out %>%
-      dplyr::mutate(across(all_of(wide_col_names), .fns = as.character)) %>%
-      tidyr::pivot_wider(names_from = all_of(wide_col_names),
-                         values_from = all_of(name),
-                         values_fill = values_fill,
-                         names_sort = FALSE)
   }
   if (keep_class){
     df_reconstruct(out, data)

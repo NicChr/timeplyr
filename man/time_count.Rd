@@ -17,13 +17,9 @@ time_count(
   name = NULL,
   sort = FALSE,
   .by = NULL,
-  wide_cols = NULL,
   floor_date = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   seq_type = c("auto", "duration", "period"),
-  values_fill = NA,
-  na_groups = TRUE,
-  expand_type = c("nesting", "crossing"),
   roll_month = "preday",
   roll_dst = "pre",
   include_interval = FALSE,
@@ -79,9 +75,6 @@ If \code{FALSE} the result is sorted by groups + time + ... groups.}
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
 
-\item{wide_cols}{Variables to pivot into wide format.
-To supply multiple variables, use the format \code{c(var1, var2, var3)}.}
-
 \item{floor_date}{Should \code{from} be floored to the nearest unit
 specified through the \code{by}
 argument? This is particularly useful for starting
@@ -96,14 +89,6 @@ This is only used when \code{floor_date = TRUE}.}
 the time expansion when days, weeks, months or
 years are specified, and \code{durations}
 are used otherwise.}
-
-\item{values_fill}{Value to fill implicit missing values.}
-
-\item{na_groups}{Should rows with missing or \code{NA} groups be kept?}
-
-\item{expand_type}{Type of time expansion to use where
-"nesting" finds combinations already present in the data,
-"crossing" finds all combinations of values in the group variables.}
 
 \item{roll_month}{Control how impossible dates are handled when
 month or year arithmetic is involved.
