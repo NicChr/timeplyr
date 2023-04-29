@@ -52,7 +52,8 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
   if (n_dots > 0){
     out <- dplyr::mutate(out, !!!enquos(...))
   }
-  group_info <- get_group_info(data, !!!enquos(...), type = "data-mask",
+  group_info <- get_group_info(data, !!!enquos(...),
+                               type = "data-mask",
                                .by = {{ .by }})
   group_vars <- group_info[["dplyr_groups"]]
   extra_groups <- group_info[["extra_groups"]]
@@ -70,11 +71,11 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
       out_vars <- dup_vars
     }
   }
-  out <- dplyr::select(out, all_of(out_vars))
+  out <- collapse::fselect(out, out_vars)
   # Groups
   # Add group ID for all groups
   grp_nm <- new_var_nm(names(out), ".group.id")
-  out[[grp_nm]] <- group_id(out, all_of(dup_vars), order = TRUE)
+  out[[grp_nm]] <- group_id(out, .by = all_of(dup_vars))
   n_var_nm <- new_n_var_nm(names(out))
   out[[n_var_nm]] <- collapse::GRPN(out[[grp_nm]], expand = TRUE)
   # out <- dplyr::filter(out, .data[[n_var_nm]] > 1)
@@ -106,7 +107,8 @@ fduplicates2 <- function(data, ..., .keep_all = FALSE,
     out <- out %>%
       dplyr::mutate(!!!enquos(...))
   }
-  group_info <- get_group_info(data, !!!enquos(...), type = "data-mask",
+  group_info <- get_group_info(data, !!!enquos(...),
+                               type = "data-mask",
                                .by = {{ .by }})
   group_vars <- group_info[["dplyr_groups"]]
   extra_groups <- group_info[["extra_groups"]]

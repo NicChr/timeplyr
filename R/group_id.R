@@ -1,27 +1,18 @@
-#' Fast group and row IDs
+#' Fast group IDs
 #'
 #' @description
+#' These are tidy-based functions for calculating group IDs, row IDs and
+#' group orders. \cr
+#'
 #' *  `group_id()` returns an integer vector of group IDs the same size as the data.
-#' *  `add_group_id()` adds an integer column of group IDs.
 #' *  `row_id()` returns an integer vector of row IDs.
-#' *  `add_row_id()` adds an integer column of row IDs.
 #' *  `group_order()` returns the order of the groups.
-#' *  `add_group_order()` adds an integer column of the order of the groups.
 #'
-#' It's important to note that when using `data.frames`, these functions by default assume
-#' no groups.
-#' This means that when no groups are supplied:
-#' * `group_id(iris)` returns a vector of ones
-#' * `row_id(iris)` returns the plain row id numbers
-#' * `group_order(iris) == row_id(iris)`.
-#'
-#' One can specify groups in the second argument like so:
-#' * `group_id(iris, Species)`
-#' * `row_id(iris, dplyr::all_of("Species"))`
-#' * `group_order(iris, contains("width"))`
+#' The `add_` variants add a column of group IDs/row IDs/group orders.
 #'
 #' @param data A data frame or vector.
-#' @param ... Additional groups using tidy select notation.
+#' @param ... Additional groups using tidy `data-masking` rules. \cr
+#' To specify groups using `tidyselect`, simply use the `.by` argument.
 #' @param order Should the groups be ordered?
 #' \bold{THE PHYSICAL ORDER OF THE DATA IS NOT CHANGED.} \cr
 #' When order is `TRUE` (the default) the group IDs will be ordered but not sorted.
@@ -31,8 +22,7 @@
 #' For `row_id()` this determines if the row IDs are increasing or decreasing. \cr
 #' \bold{NOTE} - When `order = FALSE`, the `ascending` argument is
 #' ignored. This is something that will be fixed in a later version.
-#' @param .by Alternative way of supplying groups using tidy
-#' select notation. This is kept to be consistent with other functions.
+#' @param .by Alternative way of supplying groups using `tidyselect` notation.
 #' @param .name Name of the added group ID column which should be a
 #' character vector of length 1.
 #' If `NULL` then a column named "group_id" will be added,
@@ -40,20 +30,44 @@
 #' @param as_qg Should the group IDs be returned as a
 #' collapse "qG" class? The default (`FALSE`) always returns
 #' an integer vector.
+#' @details
+#' It's important to note for `data.frames`, these functions by default assume
+#' no groups unless you supply them.
+#'
+#' This means that when no groups are supplied:
+#' * `group_id(iris)` returns a vector of ones
+#' * `row_id(iris)` returns the plain row id numbers
+#' * `group_order(iris) == row_id(iris)`.
+#'
+#' One can specify groups in the second argument like so:
+#' * `group_id(iris, Species)`
+#' * `row_id(iris, across(all_of("Species")))`
+#' * `group_order(iris, across(where(is.numeric), desc))`
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
 #' library(ggplot2)
 #' group_id(iris) # No groups
 #' group_id(iris, Species) # Species groups
-#' iris %>%
-#'   group_by(Species) %>%
-#'   group_id() # Same thing
-#' group_id(iris, where(is.numeric)) # Groups across numeric values
+#' row_id(iris) # Plain row IDs
+#' row_id(iris, Species) # Row IDs by group
+#' # Order of Species + descending Petal.Width
+#' group_order(iris, Species, desc(Petal.Width))
 #'
+#' # Tidy data-masking/tidyselect can be used
+#' group_id(iris, across(where(is.numeric))) # Groups across numeric values
+#' # Alternatively using tidyselect
+#' group_id(iris, .by = where(is.numeric))
+#'
+#' # Group IDs using a mixtured order
+#' group_id(iris, desc(Species), Sepal.Length, desc(Petal.Width))
+#'
+#' # add_ helpers
 #' iris %>%
-#'   add_group_id(Species) %>%
-#'   distinct(Species, group_id)
+#'   add_group_id(Sepal.Length) %>%
+#'   add_row_id(Sepal.Length) %>%
+#'   add_group_order(Sepal.Length) %>%
+#'   distinct(Sepal.Length, group_id, row_id, group_order)
 #'
 #' mm_mpg <- mpg %>%
 #'   select(manufacturer, model) %>%
@@ -61,7 +75,7 @@
 #'
 #' # Sorted/non-sorted groups
 #' mm_mpg %>%
-#'   add_group_id(everything(),
+#'   add_group_id(across(everything()),
 #'                .name = "sorted_id", order = TRUE) %>%
 #'   add_group_id(manufacturer, model,
 #'                .name = "not_sorted_id", order = FALSE) %>%
@@ -116,21 +130,22 @@ group_id.data.frame <- function(data, ...,
   N <- nrow2(data)
   group_vars <- group_vars(data)
   by_vars <- tidy_select_names(data, {{ .by }})
-  dot_vars <- tidy_select_names(data, !!!enquos(...))
+  if (dots_length(...) > 0){
+    data <- df_reconstruct(
+      dplyr::mutate(
+        safe_ungroup(data), !!!enquos(...)
+      ), data
+    )
+    dot_vars <- tidy_transform_names(data, !!!enquos(...))
+  } else {
+    dot_vars <- character(0)
+  }
   if (length(by_vars) > 0L){
     if (length(group_vars) > 0L){
       stop(".by cannot be used on a grouped_df")
     }
   }
-  select_info <- tidy_select_info(data, all_of(c(group_vars, by_vars)),
-                                  !!!enquos(...))
-  pos <- select_info[["pos"]]
-  in_nms <- select_info[["in_nms"]]
-  out_nms <- select_info[["out_nms"]]
-  data <- collapse::fselect(data, pos)
-  names(data) <- out_nms
-  # Group var might have been renamed, so use select info
-  group_vars2 <- out_nms[match(c(group_vars, by_vars), in_nms)]
+  data <- collapse::fselect(data, c(group_vars, by_vars, dot_vars))
   # by and group vars cannot both be supplied (unless .overwrite = TRUE)
   needs_regrouping <- !isTRUE(order &&
                                 ascending &&
@@ -138,8 +153,9 @@ group_id.data.frame <- function(data, ...,
                                 length(by_vars) == 0L &&
                                 length(dot_vars) == 0L)
     # Usual Method for when data does not contain interval
-    if (length(group_vars2) == 0L &&
-        length(dot_vars) == 0L){
+    if (length(group_vars) == 0L &&
+        length(dot_vars) == 0L &&
+        length(by_vars) == 0L){
       out <- rep_len(1L, N)
       # Method for grouped_df
     } else if (!needs_regrouping){
@@ -196,8 +212,17 @@ row_id.default <- function(data, ..., ascending = TRUE, .by = NULL){
 }
 #' @export
 row_id.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
+  # Use mutate if dots contain expressions
+  if (dots_length(...) > 0){
+    data <- df_reconstruct(
+      dplyr::mutate(
+        safe_ungroup(data), !!!enquos(...)
+      ), data
+    )
+  }
   vars <- get_group_info(data, !!!enquos(...),
-                         type = "select", .by = {{ .by }})[["all_groups"]]
+                         type = "data-mask",
+                         .by = {{ .by }})[["all_groups"]]
   if (length(vars) == 0L){
     g <- NULL
   } else {
@@ -213,7 +238,9 @@ row_id.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
 #' @export
 add_row_id <- function(data, ..., ascending = TRUE, .by = NULL, .name = NULL){
   if (is.null(.name)) .name <- new_var_nm(names(data), "row_id")
-  data[[.name]] <- row_id.data.frame(data, !!!enquos(...), ascending = ascending, .by = {{ .by }})
+  data[[.name]] <- row_id.data.frame(data, !!!enquos(...),
+                                     ascending = ascending,
+                                     .by = {{ .by }})
   data
 }
 #' @rdname group_id
@@ -249,17 +276,24 @@ group_order.Interval <- function(data, ..., ascending = TRUE, .by = NULL){
 }
 #' @export
 group_order.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
+  # Use mutate if dots contain expressions
+  if (dots_length(...) > 0){
+    data <- df_reconstruct(
+      dplyr::mutate(
+        safe_ungroup(data), !!!enquos(...)
+      ), data
+    )
+  }
   vars <- get_group_info(data, !!!enquos(...),
-                         type = "select", .by = {{ .by }})[["all_groups"]]
+                         type = "data-mask",
+                         .by = {{ .by }})[["all_groups"]]
   if (length(vars) == 0L){
-    g <- NULL
     out <- seq_len(nrow2(data))
   } else {
     if (has_interval(data, quiet = TRUE)){
       which_int <- which(vapply(data, FUN = is_interval, FUN.VALUE = logical(1)))
       for (i in seq_along(which_int)){
-        data[[which_int[[i]]]] <- group_id.Interval(data[[which_int[[i]]]],
-                                                 order = TRUE, as_qg = FALSE)
+        data[[which_int[[i]]]] <- group_id.Interval(data[[which_int[[i]]]])
       }
     }
     out <- group_order.default(collapse::fselect(data, vars),

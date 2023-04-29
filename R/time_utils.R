@@ -942,8 +942,9 @@ get_from_to <- function(data, ..., time, from = NULL, to = NULL,
   from_var <- tidy_select_names(data, !!enquo(from))
   to_var <- tidy_select_names(data, !!enquo(to))
   time_var <- tidy_select_names(data, !!enquo(time))
+  dot_vars <- tidy_select_names(data, !!!enquos(...))
   if (length(from_var) == 0L || length(to_var) == 0L){
-    g <- group_id(data, !!!enquos(...), .by = {{ .by }})
+    g <- group_id(data, across(all_of(dot_vars)), .by = {{ .by }})
     g <- GRP2(g, sort = TRUE,
               return.groups = FALSE,
               return.order = TRUE,

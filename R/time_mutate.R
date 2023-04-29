@@ -86,9 +86,9 @@ time_mutate <- function(data, ..., time = NULL, by = NULL,
                        !!enquo(from),
                        !!enquo(to),
                        .by = {{ .by }})
-  time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
-  from_var <- tidy_transform_names(safe_ungroup(data), !!enquo(from))
-  to_var <- tidy_transform_names(safe_ungroup(data), !!enquo(to))
+  time_var <- tidy_transform_names(data, !!enquo(time))
+  from_var <- tidy_transform_names(data, !!enquo(from))
+  to_var <- tidy_transform_names(data, !!enquo(to))
   # Add variable to keep track of original order
   sort_nm <- new_var_nm(data, ".sort.index")
   data[[sort_nm]] <- row_id(safe_ungroup(data))

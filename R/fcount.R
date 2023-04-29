@@ -54,18 +54,20 @@
 #' @export
 fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                    .by = NULL){
-  # Ungrouped mutate
-  out <- data %>%
-    safe_ungroup() %>%
-    dplyr::mutate(!!!enquos(...), !!enquo(wt))
+  n_dots <- dots_length(...)
+  out <- safe_ungroup(data)
+  if (n_dots > 0){
+    out <- dplyr::mutate(out, !!!enquos(...))
+  }
   # Weights
   if (!rlang::quo_is_null(enquo(wt))){
-    wt_var <- tidy_transform_names(safe_ungroup(data), !!enquo(wt))
+    out <- dplyr::mutate(out, !!enquo(wt))
+    wt_var <- tidy_transform_names(data, !!enquo(wt))
   } else {
     wt_var <- character(0)
   }
   if (length(wt_var) > 0L){
-    wtv <- out[[wt_var]]
+    wtv <- data[[wt_var]]
   }
   group_info <- get_group_info(data, !!!enquos(...),
                                type = "data-mask",
@@ -74,13 +76,9 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   data_vars <- group_info[["extra_groups"]]
   all_vars <- group_info[["all_groups"]]
   grp_nm <- new_var_nm(c(group_vars, data_vars), ".group.id")
-  out <- out %>%
-    add_group_id(all_of(all_vars),
-                 order = TRUE,
-                 as_qg = TRUE,
-                 .name = grp_nm) %>%
-    collapse::fselect(c(grp_nm, group_vars, data_vars))
-
+  out[[grp_nm]] <- group_id(out, .by = all_of(all_vars),
+                            order = TRUE, as_qg = TRUE)
+  out <- collapse::fselect(out, c(grp_nm, group_vars, data_vars))
   if (is.null(name)) name <- new_n_var_nm(out)
   group_id <- out[[grp_nm]]
   # Keep unique groups and sort
@@ -115,10 +113,11 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   if (sort){
     out <- df_row_slice(out, radix_order(out[[name]], decreasing = TRUE),
                         reconstruct = FALSE)
-    # out <- out[radix_order(out[[name]], decreasing = TRUE), , drop = FALSE]
   }
-  # Set row.names attr
+  # Remove group id
   out[[grp_nm]] <- NULL
+  # out <- dplyr::dplyr_col_modify(out, setnames(list(NULL), grp_nm))
+  # Set row.names attr
   attr(out, "row.names") <- seq_len(N)
   df_reconstruct(out, data)
 }
@@ -127,10 +126,11 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
 fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                        .by = NULL,
                        keep_class = TRUE){
-  out <- data %>%
-    safe_ungroup() %>%
-    dplyr::mutate(!!!enquos(...))
-
+  n_dots <- dots_length(...)
+  out <- safe_ungroup(data)
+  if (n_dots > 0){
+    out <- dplyr::mutate(out, !!!enquos(...))
+  }
   ncol1 <- ncol(out)
   out <- dplyr::mutate(out, !!enquo(wt))
   ncol2 <- ncol(out)
@@ -142,7 +142,7 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   if (rlang::quo_is_null(enquo(wt))){
     wt_var <- character(0)
   } else {
-    wt_var <- tidy_transform_names(safe_ungroup(data), !!enquo(wt))
+    wt_var <- tidy_transform_names(data, !!enquo(wt))
   }
   if (length(wt_var) > 0L){
     wtv <- out[[wt_var]]
@@ -153,8 +153,8 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                                .by = {{ .by }})
   group_vars <- group_info[["dplyr_groups"]]
   all_vars <- group_info[["all_groups"]]
-
-  group_id <- group_id(out, all_of(all_vars), order = TRUE,
+  group_id <- group_id(out, .by = all_of(all_vars),
+                       order = TRUE,
                        as_qg = TRUE)
   if (is.null(name)) name <- new_n_var_nm(out)
   if (length(wt_var) > 0L){

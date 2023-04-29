@@ -7,7 +7,7 @@
 \alias{add_row_id}
 \alias{group_order}
 \alias{add_group_order}
-\title{Fast group and row IDs}
+\title{Fast group IDs}
 \usage{
 group_id(data, ..., order = TRUE, ascending = TRUE, .by = NULL, as_qg = FALSE)
 
@@ -32,7 +32,8 @@ add_group_order(data, ..., ascending = TRUE, .by = NULL, .name = NULL)
 \arguments{
 \item{data}{A data frame or vector.}
 
-\item{...}{Additional groups using tidy select notation.}
+\item{...}{Additional groups using tidy \code{data-masking} rules. \cr
+To specify groups using \code{tidyselect}, simply use the \code{.by} argument.}
 
 \item{order}{Should the groups be ordered?
 \bold{THE PHYSICAL ORDER OF THE DATA IS NOT CHANGED.} \cr
@@ -45,8 +46,7 @@ For \code{row_id()} this determines if the row IDs are increasing or decreasing.
 \bold{NOTE} - When \code{order = FALSE}, the \code{ascending} argument is
 ignored. This is something that will be fixed in a later version.}
 
-\item{.by}{Alternative way of supplying groups using tidy
-select notation. This is kept to be consistent with other functions.}
+\item{.by}{Alternative way of supplying groups using \code{tidyselect} notation.}
 
 \item{as_qg}{Should the group IDs be returned as a
 collapse "qG" class? The default (\code{FALSE}) always returns
@@ -58,17 +58,20 @@ If \code{NULL} then a column named "group_id" will be added,
 and if one already exists, a unique name will be used.}
 }
 \description{
+These are tidy-based functions for calculating group IDs, row IDs and
+group orders. \cr
 \itemize{
 \item \code{group_id()} returns an integer vector of group IDs the same size as the data.
-\item \code{add_group_id()} adds an integer column of group IDs.
 \item \code{row_id()} returns an integer vector of row IDs.
-\item \code{add_row_id()} adds an integer column of row IDs.
 \item \code{group_order()} returns the order of the groups.
-\item \code{add_group_order()} adds an integer column of the order of the groups.
 }
 
-It's important to note that when using \code{data.frames}, these functions by default assume
-no groups.
+The \code{add_} variants add a column of group IDs/row IDs/group orders.
+}
+\details{
+It's important to note for \code{data.frames}, these functions by default assume
+no groups unless you supply them.
+
 This means that when no groups are supplied:
 \itemize{
 \item \code{group_id(iris)} returns a vector of ones
@@ -79,8 +82,8 @@ This means that when no groups are supplied:
 One can specify groups in the second argument like so:
 \itemize{
 \item \code{group_id(iris, Species)}
-\item \code{row_id(iris, dplyr::all_of("Species"))}
-\item \code{group_order(iris, contains("width"))}
+\item \code{row_id(iris, across(all_of("Species")))}
+\item \code{group_order(iris, across(where(is.numeric), desc))}
 }
 }
 \examples{
@@ -89,14 +92,25 @@ library(dplyr)
 library(ggplot2)
 group_id(iris) # No groups
 group_id(iris, Species) # Species groups
-iris \%>\%
-  group_by(Species) \%>\%
-  group_id() # Same thing
-group_id(iris, where(is.numeric)) # Groups across numeric values
+row_id(iris) # Plain row IDs
+row_id(iris, Species) # Row IDs by group
+# Order of Species + descending Petal.Width
+group_order(iris, Species, desc(Petal.Width))
 
+# Tidy data-masking/tidyselect can be used
+group_id(iris, across(where(is.numeric))) # Groups across numeric values
+# Alternatively using tidyselect
+group_id(iris, .by = where(is.numeric))
+
+# Group IDs using a mixtured order
+group_id(iris, desc(Species), Sepal.Length, desc(Petal.Width))
+
+# add_ helpers
 iris \%>\%
-  add_group_id(Species) \%>\%
-  distinct(Species, group_id)
+  add_group_id(Sepal.Length) \%>\%
+  add_row_id(Sepal.Length) \%>\%
+  add_group_order(Sepal.Length) \%>\%
+  distinct(Sepal.Length, group_id, row_id, group_order)
 
 mm_mpg <- mpg \%>\%
   select(manufacturer, model) \%>\%
@@ -104,7 +118,7 @@ mm_mpg <- mpg \%>\%
 
 # Sorted/non-sorted groups
 mm_mpg \%>\%
-  add_group_id(everything(),
+  add_group_id(across(everything()),
                .name = "sorted_id", order = TRUE) \%>\%
   add_group_id(manufacturer, model,
                .name = "not_sorted_id", order = FALSE) \%>\%

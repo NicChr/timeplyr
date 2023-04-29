@@ -222,12 +222,12 @@ testthat::test_that("Row IDs", {
     add_row_id(origin, dest)
   res4 <- flights2 %>%
     dplyr::mutate(row_id = row_id(dplyr::pick(origin, dest),
-                                  dplyr::everything()))
+                                  .by = dplyr::everything()))
 
   testthat::expect_equal(row_id.default(flights2),
-                         row_id(flights2, dplyr::everything()))
+                         row_id(flights2, .by = dplyr::everything()))
   testthat::expect_equal(row_id.default(flights2, ascending = FALSE),
-                         row_id(flights2, dplyr::everything(), ascending = FALSE))
+                         row_id(flights2, .by = dplyr::everything(), ascending = FALSE))
 
   testthat::expect_equal(base1$id, res1$row_id)
   testthat::expect_equal(base2$id, res2$row_id)
@@ -252,9 +252,9 @@ testthat::test_that("Row IDs", {
       dplyr::mutate(row_id = dplyr::row_number()))
   testthat::expect_identical(
     iris2 %>%
-      data.table::as.data.table() %>%
       dplyr::select() %>%
-      add_row_id(),
+      add_row_id() %>%
+      data.table::as.data.table(),
     iris2 %>%
       dplyr::select() %>%
       dplyr::mutate(row_id = dplyr::row_number()) %>%
@@ -276,13 +276,13 @@ testthat::test_that("group order", {
   res1 <- iris2 %>%
     dplyr::mutate(Species = dplyr::desc(Species), Sepal.Length) %>%
     dplyr::slice(group_order(dplyr::pick(Species, Sepal.Length),
-                             dplyr::everything()))
+                             .by = dplyr::everything()))
   res2 <- flights2 %>%
     dplyr::mutate(tailnum2 = group_id(tailnum),
                   tailnum = dplyr::desc(dplyr::if_else(is.na(tailnum), NA_integer_, tailnum2))) %>%
     dplyr::select(-tailnum2) %>%
     dplyr::mutate(order = group_order(dplyr::pick(dest, tailnum, origin),
-                                      dplyr::everything())) %>%
+                                      .by = dplyr::everything())) %>%
     dplyr::slice(.data[["order"]])
   i <- flights2 %>%
     dplyr::group_by(origin, dest) %>%

@@ -97,15 +97,16 @@ time_episodes <- function(data, ..., time, window,
   out <- data.table::copy(data)
   # Coerce to data table
   data.table::setDT(out)
-  group_info <- get_group_info(data, !!!enquos(...), .by = {{ .by }},
+  group_info <- get_group_info(data, !!!enquos(...),
+                               .by = {{ .by }},
                                type = "data-mask")
   group_vars <- group_info[["dplyr_groups"]]
   extra_groups <- group_info[["extra_groups"]]
   all_groups <- group_info[["all_groups"]]
   sort_nm <- new_var_nm(names(out), ".sort.index")
   out[, (sort_nm) := seq_len(.N)] # Index variable
-  time_col <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
-  window_col <- tidy_transform_names(safe_ungroup(data), !!enquo(window))
+  time_col <- tidy_transform_names(data, !!enquo(time))
+  window_col <- tidy_transform_names(data, !!enquo(window))
   if (length(time_col) == 0){
     stop("Please supply date or datetime for episode calculation")
   }
@@ -124,8 +125,8 @@ time_episodes <- function(data, ..., time, window,
   by <- setnames(list(by_n), by_unit)
   # Create grouped ID variable
   grp_nm <- new_var_nm(out, ".group")
-  out[, (grp_nm) := group_id(data, all_of(extra_groups), .by = {{ .by }},
-                             order = TRUE, as_qg = FALSE)]
+  out[, (grp_nm) := group_id(data, across(all_of(extra_groups)),
+                             .by = {{ .by }})]
   # Sort by groups > case ID > date col
   data.table::setorderv(out, cols = c(grp_nm, time_col), na.last = TRUE)
   g <- GRP2(out[[grp_nm]], sort = TRUE, call = FALSE, return.groups = FALSE)

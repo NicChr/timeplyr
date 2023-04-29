@@ -147,7 +147,7 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
     #   out[, (to_nm) := time_cast(get(to_var), get(time_var))]
     # }
     # Unique groups
-    time_tbl <- collapse::funique(out[, .SD, .SDcols = c(group_vars, grp_nm, from_nm, to_nm)],
+    time_tbl <- collapse::funique(collapse::fselect(out, c(group_vars, grp_nm, from_nm, to_nm)),
                                   cols = grp_nm)
     # Bit-hacky.. probably better to add a floor_date arg to time_seq_len
     if (floor_date){
@@ -271,7 +271,7 @@ time_complete <- function(data, ..., time = NULL, by = NULL, from = NULL, to = N
   seq_type <- match.arg(seq_type)
   group_vars <- get_groups(data, {{ .by }})
   out <- dplyr::mutate(data, !!enquo(time))
-  time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
+  time_var <- tidy_transform_names(data, !!enquo(time))
   out <- data.table::copy(out)
   data.table::setDT(out)
   expanded_df <- time_expand(out,

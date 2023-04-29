@@ -69,7 +69,7 @@ time_distinct <- function(data, ..., time = NULL, by = NULL,
   if (n_dots > 0){
     out <- dplyr::mutate(out, !!!enquos(...))
   }
-  dot_vars <- tidy_transform_names(safe_ungroup(data), !!!enquos(...))
+  dot_vars <- tidy_transform_names(data, !!!enquos(...))
   if (include_interval){
     int_nm <- new_var_nm(out, "interval")
   } else {
@@ -88,7 +88,7 @@ time_distinct <- function(data, ..., time = NULL, by = NULL,
                      week_start = week_start,
                      roll_month = roll_month, roll_dst = roll_dst,
                      sort = sort)
-  time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
+  time_var <- tidy_transform_names(data, !!enquo(time))
   out <- fdistinct(out, across(dplyr::any_of(c(group_vars, time_var, int_nm, dot_vars))),
             .keep_all = .keep_all)
   out

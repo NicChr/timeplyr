@@ -124,7 +124,7 @@ time_summarise <- function(data, ..., time = NULL, by = NULL,
               week_start = week_start,
               roll_month = roll_month, roll_dst = roll_dst,
               sort = sort))
-  time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
+  time_var <- tidy_transform_names(data, !!enquo(time))
   group_info <- get_group_info(data, !!!enquos(...),
                                type = "data-mask",
                                .by = {{ .by }})
@@ -157,7 +157,7 @@ time_reframe <- function(data, ..., time = NULL, by = NULL,
                      week_start = week_start,
                      roll_month = roll_month, roll_dst = roll_dst,
                      sort = sort)
-  time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
+  time_var <- tidy_transform_names(data, !!enquo(time))
   out <- dplyr_summarise(safe_ungroup(out), !!!enquos(...),
                          .by = dplyr::any_of(c(group_vars, time_var, int_nm)))
   out

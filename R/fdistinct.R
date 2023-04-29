@@ -15,12 +15,13 @@ fdistinct <- function(data, ..., .keep_all = FALSE, .by = NULL){
   if (n_dots > 0){
     out <- dplyr::mutate(out, !!!enquos(...))
   }
-  group_info <- get_group_info(data, !!!enquos(...), type = "data-mask",
+  group_info <- get_group_info(data, !!!enquos(...),
+                               type = "data-mask",
                                .by = {{ .by }})
   group_vars <- group_info[["dplyr_groups"]]
   extra_groups <- group_info[["extra_groups"]]
   all_groups <- group_info[["all_groups"]]
-  if (n_dots == 0L){
+  if (n_dots == 0){
     dup_vars <- names(out)
     out_vars <- dup_vars
   } else {
@@ -33,7 +34,7 @@ fdistinct <- function(data, ..., .keep_all = FALSE, .by = NULL){
   }
   out <- collapse::fselect(out, out_vars)
   # out <- fslice(out, vctrs::vec_unique_loc(collapse::fselect(out, dup_vars)))
-  g <- group_id(out, all_of(dup_vars),
+  g <- group_id(out, .by = all_of(dup_vars),
                  order = TRUE,
                  as_qg = TRUE)
   out <- df_row_slice(out, which(!collapse::fduplicated(g)),

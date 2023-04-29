@@ -123,15 +123,12 @@ get_time_delay <- function(data, origin, end, by = "day",
                   !!enquo(end),
                   .by = {{ .by }},
                   .keep = "none")
-  start_time <- tidy_transform_names(safe_ungroup(data),
-                                     !!enquo(origin))
-  end_time <- tidy_transform_names(safe_ungroup(data),
-                                   !!enquo(end))
+  start_time <- tidy_transform_names(data, !!enquo(origin))
+  end_time <- tidy_transform_names(data, !!enquo(end))
   out <- data.table::copy(out)
   data.table::setDT(out)
   grp_nm <- new_var_nm(out, ".group.id")
-  out[, (grp_nm) := group_id(data, .by = {{ .by }},
-                             order = TRUE)]
+  out[, (grp_nm) := group_id(data, .by = {{ .by }})]
   set_rm_cols(out, setdiff(names(out),
                            c(grp_nm, group_vars, start_time, end_time)))
   grp_df <- collapse::funique(out[, c(grp_nm, group_vars),

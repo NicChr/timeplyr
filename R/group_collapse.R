@@ -128,8 +128,13 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
                                       size = TRUE, loc = TRUE,
                                       # loc_order = TRUE,
                                       start = TRUE, end = TRUE){
+  # Use mutate if dots contain expressions
+  if (dots_length(...) > 0){
+    data <- dplyr::mutate(data, !!!enquos(...))
+  }
   vars <- get_group_info(data, !!!enquos(...),
-                         type = "select", .by = {{ .by }})[["all_groups"]]
+                         type = "data-mask",
+                         .by = {{ .by }})[["all_groups"]]
   if (length(vars) == 0L){
     rowids <- seq_len(nrow2(data))
     n <- length(rowids)
@@ -137,7 +142,7 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
     rowids <- list(rowids)[ss]
     out <- dplyr::tibble(!!".group" := integer(ss) + 1L)
     if (loc){
-      out[[".loc"]] <- vctrs::as_list_of(rowids, .ptype = integer(0))
+      out[[".loc"]] <- vctrs::new_list_of(rowids, ptype = integer(0))
     }
     # if (loc_order){
     #   out[[".order"]] <- vctrs::as_list_of(rowids, .ptype = integer(0))
@@ -159,7 +164,6 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
                                   # loc_order = loc_order,
                                   start = start, end = end)
   }
-  # out <- df_reconstruct(out, data)
   attr(out, "row.names") <- seq_len(nrow2(out))
   out
 }
@@ -170,9 +174,10 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
                                       size = TRUE, loc = TRUE,
                                       # loc_order = TRUE,
                                       start = TRUE, end = TRUE){
+  n_dots <- dots_length(...)
   # Special conditions where if met,
   # we can use dplyr grouping structure
-  if (dots_length(...) == 0 &&
+  if (n_dots == 0 &&
       rlang::quo_is_null(enquo(.by)) &&
       sort &&
       order &&
@@ -204,9 +209,18 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
     #                                        .ptype = integer(0))
     # }
   } else {
+    # Use mutate if dots contain expressions
+    if (n_dots > 0){
+      data <- df_reconstruct(
+        dplyr::mutate(
+          safe_ungroup(data), !!!enquos(...)
+        ), data
+      )
+    }
     vars <- get_group_info(data, !!!enquos(...),
-                           type = "select", .by = {{ .by }})[["all_groups"]]
-    out <- group_collapse(safe_ungroup(data), all_of(vars),
+                           type = "data-mask",
+                           .by = {{ .by }})[["all_groups"]]
+    out <- group_collapse(safe_ungroup(data), .by = all_of(vars),
                           order = order, sort = sort,
                           size = size, loc = loc,
                           ascending = ascending,

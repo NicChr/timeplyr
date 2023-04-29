@@ -163,23 +163,22 @@ time_count <- function(data, ..., time = NULL, by = NULL,
   # Transformed variable names
   # It is important to maintain the first-evaluated result of the expression,
   # As done above
-  time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
+  time_var <- tidy_transform_names(data, !!enquo(time))
   from_var <- tidy_transform_names(data, !!enquo(from))
   to_var <- tidy_transform_names(data, !!enquo(to))
-  wt_var <- tidy_transform_names(safe_ungroup(data), !!enquo(wt))
+  wt_var <- tidy_transform_names(data, !!enquo(wt))
   if (length(wt_var) > 0L) wtv <- ts_data[[wt_var]]
   group_vars <-  group_info[["dplyr_groups"]]
   extra_group_vars <- group_info[["extra_groups"]]
   all_group_vars <- group_info[["all_groups"]]
   N <- nrow2(ts_data)
   if (length(time_var) > 0){
+    # ts_data <- collapse::qDT(ts_data[TRUE])
     ts_data <- data.table::copy(ts_data)
     data.table::setDT(ts_data)
     # Add variable to keep track of group IDs
     grp_nm <- new_var_nm(ts_data, ".group.id")
-    ts_data[, (grp_nm) := group_id(data, order = TRUE,
-                                   as_qg = FALSE,
-                                   .by = {{ .by }})]
+    ts_data[, (grp_nm) := group_id(data, .by = {{ .by }})]
     # Determine common bounds
     from_nm <- new_var_nm(names(ts_data), ".from")
     to_nm <- new_var_nm(c(names(ts_data), from_nm), ".to")
@@ -188,6 +187,9 @@ time_count <- function(data, ..., time = NULL, by = NULL,
                                                to = all_of(to_var),
                                                .by = all_of(grp_nm))]
     # Order by group vars - time var - additional group vars
+    # ts_data <- farrange(ts_data,
+    #                     .by = all_of(c(grp_nm, time_var, extra_group_vars)),
+    #                     .by_group = TRUE)
     data.table::setorderv(ts_data, cols = c(grp_nm, time_var, extra_group_vars))
     ts_data <- ts_data[data.table::between(get(time_var), get(from_nm), get(to_nm),
                                            incbounds = TRUE, NAbounds = NA), ]
@@ -252,7 +254,8 @@ time_count <- function(data, ..., time = NULL, by = NULL,
       out <- merge(out, time_expanded,
                    all = TRUE, by = names(time_expanded), sort = FALSE)
       # Order by groups and time (ascending)
-      data.table::setorderv(out, cols = c(grp_nm, time_var, extra_group_vars), na.last = TRUE)
+      data.table::setorderv(out, cols = c(grp_nm, time_var, extra_group_vars),
+                            na.last = TRUE)
       # Replace NA with 0 as these are counts
       data.table::setnafill(out, cols = name, type = "const", fill = 0, nan = NaN)
     }

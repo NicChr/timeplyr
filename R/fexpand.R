@@ -150,15 +150,16 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                           log_limit = log_limit)
       # Add group ID
       grp_nm <- new_var_nm(out1, ".group.id")
-      out1[, (grp_nm) := group_id.default(mget(group_vars), order = FALSE)]
+      out1[, (grp_nm) := group_id.default(.SD, order = FALSE),
+           .SDcols = group_vars]
       data.table::setorderv(out1, cols = grp_nm)
       # Add group IDs for each non-group variable
       # This will allow us to calculate final expanded size
       for (i in seq_along(leftover_grp_nms)){
         assign(paste0("grp_nm_", i),
                new_var_nm(out1, ".group.id"))
-        out1[, (get(paste0("grp_nm_", i))) := group_id.default(get(leftover_grp_nms[[i]]),
-                                                       order = FALSE)]
+        out1[, (get(paste0("grp_nm_", i))) := group_id.default(.SD, order = FALSE),
+             .SDcols = leftover_grp_nms[[i]]]
       }
       group_id_nms <- unlist(mget(paste0("grp_nm_",
                                          seq_len(length(leftover_grp_nms)))),
@@ -284,16 +285,17 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
                          expand_type = expand_type,
                          keep_class = FALSE,
                          log_limit = log_limit)
-  out <- data.table::copy(data)
-  data.table::setDT(out)
+  out <- collapse::qDT(data[TRUE])
   fill_na <- any(!is.na(fill))
   # Full-join
   if (nrow2(expanded_df) > 0 && ncol(expanded_df) > 0){
     out <- merge(out, expanded_df,
-                 all = TRUE, by = names(expanded_df), sort = FALSE)
-    if (sort) data.table::setorderv(out,
-                                    cols = names(expanded_df),
-                                    na.last = TRUE)
+                 all = TRUE,
+                 by = names(expanded_df), sort = FALSE,
+                 allow.cartesian = TRUE)
+    if (sort){
+      data.table::setorderv(out, cols = names(expanded_df), na.last = TRUE)
+    }
   }
   # Replace NA with fill
   if (fill_na){
@@ -305,9 +307,12 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
                                                    get(fill_nms[[i]]))]
     }
   }
-  data.table::setcolorder(out, neworder = c(names(data),
-                                            setdiff(names(out),
-                                                    names(data))))
-  if (keep_class) out <- df_reconstruct(out, data)
+  out_order <- c(names(data),
+                 setdiff(names(out),
+                         names(data)))
+  data.table::setcolorder(out, neworder = out_order)
+  if (keep_class){
+    out <- df_reconstruct(out, data)
+  }
   out
 }

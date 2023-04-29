@@ -169,18 +169,18 @@ fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
                        !!enquo(order_by),
                        .keep = "none",
                        .by = {{ .by }})
-  order_by_nm <- tidy_transform_names(safe_ungroup(data),
-                                      !!enquo(order_by))
+  order_by_nm <- tidy_transform_names(data, !!enquo(order_by))
   row_nm <- new_var_nm(names(out), "row_id")
   out[[row_nm]] <- seq_along(attr(out, "row.names"))
   grp_nm <- new_var_nm(names(out), "g")
   out[[grp_nm]] <- group_id(out, .by = {{ .by }},
                             order = sort_groups)
   grp_nm2 <- new_var_nm(names(out), "g")
-  out[[grp_nm2]] <- group_id(out[[order_by_nm]], order = TRUE)
+  out[[grp_nm2]] <- group_id(out[[order_by_nm]])
   # Order by Groups + desc order by var
   grp_nm3 <- new_var_nm(names(out), "g")
-  out[[grp_nm3]] <- group_id(safe_ungroup(out), all_of(c(grp_nm, grp_nm2)), order = TRUE)
+  out[[grp_nm3]] <- group_id(safe_ungroup(out),
+                             .by = all_of(c(grp_nm, grp_nm2)))
   out <- df_row_slice(out, radix_order(out[[grp_nm3]]), reconstruct = FALSE)
 
   out1 <- fslice_head(out, n = n, prop = prop, .by = {{ .by }},
@@ -214,19 +214,18 @@ fslice_max <- function(data, order_by, ..., n, prop, .by = NULL,
                        !!enquo(order_by),
                        .keep = "none",
                        .by = {{ .by }})
-  order_by_nm <- tidy_transform_names(safe_ungroup(data),
-                                      !!enquo(order_by))
+  order_by_nm <- tidy_transform_names(data, !!enquo(order_by))
   row_nm <- new_var_nm(names(out), "row_id")
   out[[row_nm]] <- seq_along(attr(out, "row.names"))
   grp_nm <- new_var_nm(names(out), "g")
   out[[grp_nm]] <- group_id(out, .by = {{ .by }},
                             order = sort_groups)
   grp_nm2 <- new_var_nm(names(out), "g")
-  out[[grp_nm2]] <- group_id(out[[order_by_nm]],
-                             order = TRUE, ascending = FALSE)
+  out[[grp_nm2]] <- group_id(out[[order_by_nm]], ascending = FALSE)
   # Order by Groups + desc order by var
   grp_nm3 <- new_var_nm(names(out), "g")
-  out[[grp_nm3]] <- group_id(safe_ungroup(out), all_of(c(grp_nm, grp_nm2)), order = TRUE)
+  out[[grp_nm3]] <- group_id(safe_ungroup(out),
+                             .by = all_of(c(grp_nm, grp_nm2)))
   out <- df_row_slice(out, radix_order(out[[grp_nm3]]), reconstruct = FALSE)
 
   out1 <- fslice_head(out, n = n, prop = prop, .by = {{ .by }},
@@ -258,8 +257,7 @@ fslice_sample <- function(data, ..., n, prop,
   has_weights <- !rlang::quo_is_null(enquo(weights))
   if (has_weights){
     data <- dplyr::mutate(data, !!enquo(weights))
-    weights_var <- tidy_transform_names(safe_ungroup(data),
-                                        !!enquo(weights))
+    weights_var <- tidy_transform_names(data, !!enquo(weights))
   }
   slice_info <- df_slice_prepare(data, n, prop,
                                  .by = {{ .by }},
