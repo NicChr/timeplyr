@@ -44,7 +44,7 @@
 #'   group_collapse() # Same thing
 #'
 #' # Group entire data frame
-#' group_collapse(iris, everything())
+#' group_collapse(iris, .by = everything())
 #' @rdname group_collapse
 #' @export
 group_collapse <- function(data, ..., order = TRUE, sort = FALSE,

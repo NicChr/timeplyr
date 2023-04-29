@@ -200,15 +200,15 @@ row_id <- function(data, ..., ascending = TRUE, .by = NULL){
 }
 #' @export
 row_id.default <- function(data, ..., ascending = TRUE, .by = NULL){
-  g <- GRP2(safe_ungroup(data),
-              sort = TRUE,
-              decreasing = FALSE,
-              na.last = TRUE,
-              return.groups = FALSE,
-              return.order = FALSE,
-              method = "auto",
-              call = FALSE)
-  growid(data, g = g, ascending = ascending)
+  # g <- GRP2(safe_ungroup(data),
+  #             sort = TRUE,
+  #             decreasing = FALSE,
+  #             na.last = TRUE,
+  #             return.groups = FALSE,
+  #             return.order = FALSE,
+  #             method = "auto",
+  #             call = FALSE)
+  growid(safe_ungroup(data), ascending = ascending)
 }
 #' @export
 row_id.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
@@ -229,7 +229,7 @@ row_id.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
     g <- GRP2(collapse::fselect(data, vars),
               sort = TRUE,
               decreasing = FALSE,
-              return.groups = FALSE, return.order = FALSE,
+              return.groups = FALSE, return.order = TRUE,
               call = FALSE)
   }
   growid(data, g = g, ascending = ascending)

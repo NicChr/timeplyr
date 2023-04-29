@@ -67,7 +67,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
     wt_var <- character(0)
   }
   if (length(wt_var) > 0L){
-    wtv <- data[[wt_var]]
+    wtv <- out[[wt_var]]
   }
   group_info <- get_group_info(data, !!!enquos(...),
                                type = "data-mask",

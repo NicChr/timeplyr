@@ -33,11 +33,14 @@ fdistinct <- function(data, ..., .keep_all = FALSE, .by = NULL){
     }
   }
   out <- collapse::fselect(out, out_vars)
-  # out <- fslice(out, vctrs::vec_unique_loc(collapse::fselect(out, dup_vars)))
-  g <- group_id(out, .by = all_of(dup_vars),
-                 order = TRUE,
-                 as_qg = TRUE)
-  out <- df_row_slice(out, which(!collapse::fduplicated(g)),
+  # # out <- fslice(out, vctrs::vec_unique_loc(collapse::fselect(out, dup_vars)))
+  # g <- group_id(out, .by = all_of(dup_vars),
+  #                order = TRUE,
+  #                as_qg = TRUE)
+  # out <- df_row_slice(out, which(!collapse::fduplicated(g)),
+  #                     reconstruct = FALSE)
+  out <- df_row_slice(out,
+                      which(growid(collapse::fselect(out, dup_vars)) == 1L),
                       reconstruct = FALSE)
   df_reconstruct(out, data)
 }

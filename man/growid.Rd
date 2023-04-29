@@ -5,15 +5,17 @@
 \alias{gseq_len}
 \title{Fast grouped row numbers}
 \usage{
-growid(x, g = x, ascending = TRUE)
+growid(x, g, ascending = TRUE)
 
 gseq_len(length, g = NULL)
 }
 \arguments{
 \item{x}{A vector or data frame.}
 
-\item{g}{Group IDs passed directly to \code{collapse::GRP()}.
-This can be a vector, list or data frame.}
+\item{g}{(Optional) Group IDs passed directly to \code{collapse::GRP()}.
+This can be a vector, list or data frame. \cr
+To specify no groups, set \code{g = NULL}. \cr
+If g is not supplied, the unique groups of x are used (the default).}
 
 \item{ascending}{When \code{ascending = TRUE} the row IDs are in
 increasing order. When \code{ascending = FALSE} the row IDs are in
@@ -31,8 +33,11 @@ long as the number of unique lengths is \verb{<= 1}.
 }
 \description{
 \code{growid()} is like \code{data.table::rowid()} but uses
-\code{collapse} for the grouping and allows you to specify the
-grouping structure. \cr
+\code{collapse} for the grouping.
+
+For a more  tidyverse friendly version for data frames, see \code{?row_id}.
+}
+\details{
 \code{gseq_len()}is the same but accepts similar arguments to \code{seq_len()} with
 an additional group argument. \cr
 Both produce the same thing, namely a running integer sequence for

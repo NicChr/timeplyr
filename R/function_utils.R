@@ -131,14 +131,39 @@ transmute2 <- function(data, ..., .by = NULL){
 
 # Select variables utilising tidyselect notation
 tidy_select_names <- function(data, ...){
-  names(tidyselect::eval_select(rlang::expr(c(!!!enquos(...))), data = data))
+  if (check_null_dots(...)){
+    character(0)
+  } else {
+    names(tidyselect::eval_select(rlang::expr(c(!!!enquos(...))), data = data))
+  }
+}
+# Select variables utilising tidyselect notation
+tidy_select_pos <- function(data, ...){
+  if (check_null_dots(...)){
+    integer(0)
+  } else {
+    unname(tidyselect::eval_select(rlang::expr(c(!!!enquos(...))), data = data))
+  }
+}
+# Slightly faster dplyr::select, especially when dots are NULL or empty
+select2 <- function(data, ...){
+  if (check_null_dots(...)){
+    pos <- integer(0)
+  } else {
+    pos <- unname(tidyselect::eval_select(rlang::expr(c(!!!enquos(...))), data = data))
+  }
+  collapse::fselect(data, pos)
 }
 # Basic tidyselect information for further manipulation
 # Includes output and input names which might be useful
 tidy_select_info <- function(data, ...){
   data_nms <- names(data)
-  expr <- rlang::expr(c(...))
-  pos <- tidyselect::eval_select(expr, data = data)
+  if (check_null_dots(...)){
+    pos <- setnames(integer(0), character(0))
+  } else {
+    expr <- rlang::expr(c(...))
+    pos <- tidyselect::eval_select(expr, data = data)
+  }
   out_nms <- names(pos)
   pos <- unname(pos)
   renamed <- is.na(match(out_nms, data_nms) != pos)
@@ -356,9 +381,9 @@ get_group_info <- function(data, ..., type = c("select", "data-mask"),
     extra_groups <- character(0)
   } else {
     if (type == "select"){
-      extra_groups <- tidy_select_names(safe_ungroup(data), !!!enquos(...))
+      extra_groups <- tidy_select_names(data, !!!enquos(...))
     } else {
-      extra_groups <- tidy_transform_names(safe_ungroup(data), !!!enquos(...))
+      extra_groups <- tidy_transform_names(data, !!!enquos(...))
     }
   }
 
@@ -380,7 +405,11 @@ df_reconstruct <- function(data, template){
   if (identical(inherits(template, c("data.table", "data.frame"), which = TRUE),
                 c(1L, 2L))){
     attr(data, "groups") <- NULL
-    return(collapse::qDT(safe_ungroup(data)[TRUE], keep.attr = FALSE))
+    if (ncol(data) == 0){
+      return(data.table::copy(data.table::as.data.table(as.data.frame(data))))
+    } else {
+      return(collapse::qDT(safe_ungroup(data)[TRUE], keep.attr = FALSE))
+    }
     # return(collapse::qDT(data.table::copy(data), keep.attr = FALSE))
   }
   if (inherits(template, "grouped_df")){
@@ -457,7 +486,7 @@ nrow2 <- function(data){
 # }
 # Faster dot nms
 dot_nms <- function(..., use.names = FALSE){
-  unlist((lapply(substitute(as.list(...))[-1L], deparse)),
+  unlist(lapply(substitute(as.list(...))[-1L], deparse),
          recursive = FALSE, use.names = use.names)
 }
 # Default arguments
@@ -701,4 +730,42 @@ getFromNamespace <- function(x, ns, pos = -1, envir = as.environment(pos)){
   }
   else ns <- asNamespace(ns)
   get(x, envir = ns, inherits = FALSE)
+}
+# Returns the length or nrows (if list or df)
+vec_length <- function(x){
+  if (is.list(x)){
+    if (is_df(x)){
+      out <- nrow2(x)
+    } else {
+      lens <- collapse::vlengths(x, use.names = FALSE)
+      stopifnot(isTRUE(n_unique(lens) <= 1))
+      out <- vec_head(lens, n = 1L)
+    }
+  } else {
+    out <- length(x)
+  }
+  out
+}
+# Returns the length or nrows (if list or df)
+vec_width <- function(x){
+  if (is.list(x)){
+    if (is_df(x)){
+      out <- collapse::fncol(x)
+    } else {
+      lens <- collapse::vlengths(x, use.names = FALSE)
+      stopifnot(isTRUE(n_unique(lens) <= 1))
+      out <- collapse::fncol(x)
+    }
+  } else {
+    out <- collapse::fncol(x)
+  }
+  out
+}
+check_null_dots <- function(...){
+  # dots_length(...) == 1 &&
+    # is.null(rlang::quo_squash(enquos(...)[[1L]]))
+  squashed_quos <- rlang::quo_squash(enquos(...))
+  length(squashed_quos) == 0L ||
+    (length(squashed_quos) == 1L &&
+       is.null(rlang::quo_get_expr(squashed_quos[[1L]])))
 }

@@ -1,20 +1,25 @@
 #' Fast grouped row numbers
 #'
 #' @description `growid()` is like `data.table::rowid()` but uses
-#' `collapse` for the grouping and allows you to specify the
-#' grouping structure. \cr
+#' `collapse` for the grouping.
+#'
+#' For a more  tidyverse friendly version for data frames, see `?row_id`.
+#'
+#' @param x A vector or data frame.
+#' @param g (Optional) Group IDs passed directly to `collapse::GRP()`.
+#' This can be a vector, list or data frame. \cr
+#' To specify no groups, set `g = NULL`. \cr
+#' If g is not supplied, the unique groups of x are used (the default).
+#' @param ascending When `ascending = TRUE` the row IDs are in
+#' increasing order. When `ascending = FALSE` the row IDs are in
+#' decreasing order.
+#' @param length Sequence length.
+#' @details
 #' `gseq_len()`is the same but accepts similar arguments to `seq_len()` with
 #' an additional group argument. \cr
 #' Both produce the same thing, namely a running integer sequence for
 #' each group that increments by 1 and starts at 1. \cr
 #' This is most useful for calculating row numbers. \cr
-#' @param x A vector or data frame.
-#' @param length Sequence length.
-#' @param g Group IDs passed directly to `collapse::GRP()`.
-#' This can be a vector, list or data frame.
-#' @param ascending When `ascending = TRUE` the row IDs are in
-#' increasing order. When `ascending = FALSE` the row IDs are in
-#' decreasing order.
 #'
 #' @return An integer vector of row IDs
 #' or double if `length > .Machine$integer.max`
@@ -58,16 +63,11 @@
 #'   filter(id1 != id2)
 #' @rdname growid
 #' @export
-growid <- function(x, g = x, ascending = TRUE){
-  if (is.list(x)){
-    if (is_df(x)){
-      len <- nrow2(x)
-    } else {
-      stopifnot(is_list_df_like(x))
-      len <- vec_head(collapse::vlengths(x, use.names = FALSE), n = 1L)
-    }
-  } else {
-    len <- length(x)
+growid <- function(x, g, ascending = TRUE){
+  len <- vec_length(x)
+  if (missing(g)){
+    g <- GRP2(x, sort = TRUE, call = FALSE, return.groups = FALSE,
+              return.order = TRUE)
   }
   if (is.null(g)){
     out <- seq_len(len)
@@ -77,7 +77,7 @@ growid <- function(x, g = x, ascending = TRUE){
   } else {
     o <- NULL
     g <- GRP2(g, sort = TRUE, call = FALSE, return.groups = FALSE,
-              return.order = FALSE)
+              return.order = TRUE)
     if (!ascending){
       o <- seqv.int(from = len, to = 1L, by = -1L)
     }
