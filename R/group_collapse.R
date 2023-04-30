@@ -15,7 +15,8 @@
 #' `tidyselect` is used to specify the groups.
 #'
 #' @param data A data frame or vector.
-#' @param ... Additional groups using `tidyselect` notation.
+#' @param ... Additional groups using tidy `data-masking` rules. \cr
+#' To specify groups using `tidyselect`, simply use the `.by` argument.
 #' @param order Should the groups be ordered?
 #' \bold{THE PHYSICAL ORDER OF THE DATA IS NOT CHANGED.} \cr
 #' When order is `TRUE` (the default) the group IDs will be ordered but not sorted.

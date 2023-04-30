@@ -24,10 +24,11 @@ knitr::opts_chunk$set(
 
 This package provides a set of functions to make working with date and datetime data much easier!
 
-While most time-based packages are designed to work with clean and pre-aggregate data,   
-timeplyr contains a set of tidy tools to complete, expand and summarise both raw and aggregate date/datetime data.
+While most time-based packages are designed to work 
+with clean and pre-aggregate data, timeplyr contains a set of tidy tools to 
+complete, expand and summarise both raw and aggregate date/datetime data.
 
-It introduces no new classes.
+It introduces no new classes. 
 
 ## Installation
 
@@ -454,7 +455,7 @@ flights %>%
   unique()
 flights %>%
   select(origin, dest) %>%
-  add_group_id(everything()) %>%
+  add_group_id(.by = everything()) %>%
   distinct(origin, dest, group_id)
 ```
 

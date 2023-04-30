@@ -4,7 +4,7 @@ Version: 0.1.9.4
 Authors@R: 
     person("Nick", "Christofides", , "nick.christofides.r@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: This package provides a set of class-agnostic functions for
+Description: This package provides a set of tidy functions for
     wrangling, completing and summarising date and datetime data. It
     combines tidyverse-friendly syntax with the efficiency of data.table
     and speed of collapse.

@@ -20,7 +20,8 @@ group_collapse(
 \arguments{
 \item{data}{A data frame or vector.}
 
-\item{...}{Additional groups using \code{tidyselect} notation.}
+\item{...}{Additional groups using tidy \code{data-masking} rules. \cr
+To specify groups using \code{tidyselect}, simply use the \code{.by} argument.}
 
 \item{order}{Should the groups be ordered?
 \bold{THE PHYSICAL ORDER OF THE DATA IS NOT CHANGED.} \cr
