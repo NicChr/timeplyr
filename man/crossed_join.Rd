@@ -35,10 +35,11 @@ Anything >= this results in an error.}
 A data.table or list object.
 }
 \description{
-This function operates like \code{do.call(CJ, ...)} that accepts
+This function operates like \code{do.call(CJ, ...)} and accepts
 a list or data.frame as an argument. \cr
 It has less overhead for small joins, especially when \code{unique = FALSE} and
-\code{as_dt = FALSE}.
+\code{as_dt = FALSE}. \cr
+\code{NA}s are by default sorted last.
 }
 \examples{
 library(timeplyr)

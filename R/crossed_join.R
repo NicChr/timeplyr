@@ -1,9 +1,10 @@
 #' A `do.call()` and `data.table::CJ()` method
 #'
-#' @description This function operates like `do.call(CJ, ...)` that accepts
+#' @description This function operates like `do.call(CJ, ...)` and accepts
 #' a list or data.frame as an argument. \cr
 #' It has less overhead for small joins, especially when `unique = FALSE` and
-#' `as_dt = FALSE`.
+#' `as_dt = FALSE`. \cr
+#' `NA`s are by default sorted last.
 #' @param X A list or data frame.
 #' @param sort Should the expansion be sorted? By default it is `FALSE`.
 #' @param unique Should unique values across each column or list element
@@ -23,12 +24,11 @@
 #' @export
 crossed_join <- function(X, sort = FALSE, unique = TRUE,
                          as_dt = TRUE,
-                         strings_as_factors = FALSE, log_limit = 8){
+                         strings_as_factors = FALSE,
+                         log_limit = 8){
   x_nms <- names(X)
   if (unique){
     X <- lapply(X, function(x) collapse::funique(x, sort = sort))
-  } else if (sort){
-    X <- lapply(X, radix_sort)
   } else {
     X <- as.list(X)
   }
@@ -53,9 +53,19 @@ crossed_join <- function(X, sort = FALSE, unique = TRUE,
   if (!is.null(x_nms)){
     out <- setnames(out, x_nms)
   }
-  if (as_dt){
+  as_dt2 <- as_dt || (sort && !unique)
+  if (as_dt2){
     data.table::setDT(out)
     data.table::setalloccol(out)
+    if (sort){
+      if (!unique){
+        data.table::setorder(out, na.last = TRUE)
+      }
+      data.table::setattr(out, "sorted", names(out))
+    }
+  }
+  if (!as_dt2){
+    out <- as.list(out)
   }
   out
 }
