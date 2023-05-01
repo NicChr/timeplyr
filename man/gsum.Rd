@@ -39,14 +39,15 @@ gnobs(x, g = NULL, ...)
 \arguments{
 \item{x}{An atomic vector.}
 
-\item{g}{Group IDs passed directly to \code{GRP2()}.
+\item{g}{Group IDs passed directly to \code{collapse::GRP()}.
 This can be a vector, list or data frame.}
 
 \item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
 
 \item{...}{Additional parameters passed on to the collapse package
-equivalents, \code{fsum()}, \code{fmean()}, \code{fmin()}, and \code{fmax()},
-\code{fsd()}, \code{fvar()}, \code{fmode()}, \code{fmedian()}, \code{ffirst()}, \code{flast()}}
+equivalents, \code{fsum()}, \code{fmean()}, \code{fmin()}, \code{fmax()},
+\code{fsd()}, \code{fvar()}, \code{fmode()}, \code{fmedian()}, \code{ffirst()}, \code{flast()} and
+\code{fnobs()}}
 }
 \description{
 These functions are wrappers around the collapse equivalents

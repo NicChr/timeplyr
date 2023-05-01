@@ -4,12 +4,13 @@
 #' but always return a vector the same length and same order as x.\cr
 #' They all accept group IDs for grouped calculations.
 #' @param x An atomic vector.
-#' @param g Group IDs passed directly to `GRP2()`.
+#' @param g Group IDs passed directly to `collapse::GRP()`.
 #' This can be a vector, list or data frame.
 #' @param na.rm Should `NA` values be removed? Default is `TRUE`.
 #' @param ... Additional parameters passed on to the collapse package
-#' equivalents, `fsum()`, `fmean()`, `fmin()`, and `fmax()`,
-#' `fsd()`, `fvar()`, `fmode()`, `fmedian()`, `ffirst()`, `flast()`
+#' equivalents, `fsum()`, `fmean()`, `fmin()`, `fmax()`,
+#' `fsd()`, `fvar()`, `fmode()`, `fmedian()`, `ffirst()`, `flast()` and
+#' `fnobs()`
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -52,260 +53,90 @@
 #' @rdname gsum
 #' @export
 gsum <- function(x, g = NULL, na.rm = TRUE, ...){
-  if (!is.null(g)){
-    g <- GRP2(g, sort = TRUE, na.last = TRUE,
-                       return.groups = FALSE)
-    gorder <- g[["order"]]
-    if (is.null(gorder)){
-      gorder <- radix_order(g[["group.id"]])
-    }
-    # if (is.null(g[["order"]])){
-    #   gorder <- radix_order(g[["group.id"]])
-    # } else {
-    #   gorder <- g[["order"]]
-    # }
-  }
-  out <- collapse::fsum(x,
-                        g = g,
-                        use.g.names = FALSE,
-                        na.rm = na.rm,
-                        ...)
-  if (length(g) == 0L){
-    rep_len(out, length(x))
-  } else {
-    out <- rep(out, times = g[["group.sizes"]])
-    out[radix_order(gorder)]
-  }
+  collapse::fsum(x, g = g, use.g.names = FALSE,
+                 na.rm = na.rm, TRA = "replace_fill", ...)
 }
 #' @rdname gsum
 #' @export
 gmean <- function(x, g = NULL, na.rm = TRUE, ...){
-  if (!is.null(g)){
-    g <- GRP2(g, sort = TRUE, na.last = TRUE,
-                       return.groups = FALSE)
-    gorder <- g[["order"]]
-    if (is.null(gorder)){
-      gorder <- radix_order(g[["group.id"]])
-    }
-  }
-  out <- collapse::fmean(x,
-                        g = g,
-                        use.g.names = FALSE,
-                        na.rm = na.rm,
-                        ...)
-  if (length(g) == 0L){
-    rep_len(out, length(x))
-  } else {
-    out <- rep(out, times = g[["group.sizes"]])
-    out[radix_order(gorder)]
-  }
+  collapse::fmean(x, g = g, use.g.names = FALSE,
+                 na.rm = na.rm, TRA = "replace_fill", ...)
 }
 #' @rdname gsum
 #' @export
 gmin <- function(x, g = NULL, na.rm = TRUE, ...){
-  if (!is.null(g)){
-    g <- GRP2(g, sort = TRUE, na.last = TRUE,
-                       return.groups = FALSE)
-    gorder <- g[["order"]]
-    if (is.null(gorder)){
-      gorder <- radix_order(g[["group.id"]])
-    }
-  }
-  out <- collapse::fmin(x,
-                        g = g,
-                        use.g.names = FALSE,
-                        na.rm = na.rm,
-                        ...)
-  if (length(g) == 0L){
-    rep_len(out, length(x))
-  } else {
-    out <- rep(out, times = g[["group.sizes"]])
-    out[radix_order(gorder)]
-  }
+  collapse::fmin(x, g = g, use.g.names = FALSE,
+                  na.rm = na.rm, TRA = "replace_fill", ...)
 }
 #' @rdname gsum
 #' @export
 gmax <- function(x, g = NULL, na.rm = TRUE, ...){
-  if (!is.null(g)){
-    g <- GRP2(g, sort = TRUE, na.last = TRUE,
-                       return.groups = FALSE)
-    gorder <- g[["order"]]
-    if (is.null(gorder)){
-      gorder <- radix_order(g[["group.id"]])
-    }
-  }
-  out <- collapse::fmax(x,
-                        g = g,
-                        use.g.names = FALSE,
-                        na.rm = na.rm,
-                        ...)
-  if (length(g) == 0L){
-    rep_len(out, length(x))
-  } else {
-    out <- rep(out, times = g[["group.sizes"]])
-    out[radix_order(gorder)]
-  }
+  collapse::fmax(x, g = g, use.g.names = FALSE,
+                 na.rm = na.rm, TRA = "replace_fill", ...)
 }
 #' @rdname gsum
 #' @export
 gsd <- function(x, g = NULL, na.rm = TRUE, ...){
-  if (!is.null(g)){
-    g <- GRP2(g, sort = TRUE, na.last = TRUE,
-                       return.groups = FALSE)
-    gorder <- g[["order"]]
-    if (is.null(gorder)){
-      gorder <- radix_order(g[["group.id"]])
-    }
-  }
-  out <- collapse::fsd(x,
-                        g = g,
-                        use.g.names = FALSE,
-                        na.rm = na.rm,
-                        ...)
-  if (length(g) == 0L){
-    rep_len(out, length(x))
-  } else {
-    out <- rep(out, times = g[["group.sizes"]])
-    out[radix_order(gorder)]
-  }
+  collapse::fsd(x, g = g, use.g.names = FALSE,
+                 na.rm = na.rm, TRA = "replace_fill", ...)
 }
 #' @rdname gsum
 #' @export
 gvar <- function(x, g = NULL, na.rm = TRUE, ...){
-  if (!is.null(g)){
-    g <- GRP2(g, sort = TRUE, na.last = TRUE,
-                       return.groups = FALSE)
-    gorder <- g[["order"]]
-    if (is.null(gorder)){
-      gorder <- radix_order(g[["group.id"]])
-    }
-  }
-  out <- collapse::fvar(x,
-                       g = g,
-                       use.g.names = FALSE,
-                       na.rm = na.rm,
-                       ...)
-  if (length(g) == 0L){
-    rep_len(out, length(x))
-  } else {
-    out <- rep(out, times = g[["group.sizes"]])
-    out[radix_order(gorder)]
-  }
+  collapse::fvar(x, g = g, use.g.names = FALSE,
+                 na.rm = na.rm, TRA = "replace_fill", ...)
 }
 #' @rdname gsum
 #' @export
 gmode <- function(x, g = NULL, na.rm = TRUE, ...){
-  if (!is.null(g)){
-    g <- GRP2(g, sort = TRUE, na.last = TRUE,
-                       return.groups = FALSE)
-    gorder <- g[["order"]]
-    if (is.null(gorder)){
-      gorder <- radix_order(g[["group.id"]])
-    }
-  }
-  out <- collapse::fmode(x,
-                        g = g,
-                        use.g.names = FALSE,
-                        na.rm = na.rm,
-                        ...)
-  if (length(g) == 0L){
-    rep_len(out, length(x))
-  } else {
-    out <- rep(out, times = g[["group.sizes"]])
-    out[radix_order(gorder)]
-  }
+  collapse::fmode(x, g = g, use.g.names = FALSE,
+                 na.rm = na.rm, TRA = "replace_fill", ...)
 }
 #' @rdname gsum
 #' @export
 gmedian <- function(x, g = NULL, na.rm = TRUE, ...){
-  if (!is.null(g)){
-    g <- GRP2(g, sort = TRUE, na.last = TRUE,
-                       return.groups = FALSE)
-    gorder <- g[["order"]]
-    if (is.null(gorder)){
-      gorder <- radix_order(g[["group.id"]])
-    }
-  }
-  out <- collapse::fmedian(x,
-                         g = g,
-                         use.g.names = FALSE,
-                         na.rm = na.rm,
-                         ...)
-  if (length(g) == 0L){
-    rep_len(out, length(x))
-  } else {
-    out <- rep(out, times = g[["group.sizes"]])
-    out[radix_order(gorder)]
-  }
+  collapse::fmedian(x, g = g, use.g.names = FALSE,
+                 na.rm = na.rm, TRA = "replace_fill", ...)
 }
 #' @rdname gsum
 #' @export
 gfirst <- function(x, g = NULL, na.rm = TRUE, ...){
-  if (!is.null(g)){
-    g <- GRP2(g, sort = TRUE, na.last = TRUE,
-                       return.groups = FALSE)
-    gorder <- g[["order"]]
-    if (is.null(gorder)){
-      gorder <- radix_order(g[["group.id"]])
-    }
-  }
-  out <- collapse::ffirst(x,
-                           g = g,
-                           use.g.names = FALSE,
-                           na.rm = na.rm,
-                           ...)
-  if (length(g) == 0L){
-    rep_len(out, length(x))
-  } else {
-    out <- rep(out, times = g[["group.sizes"]])
-    out[radix_order(gorder)]
-  }
+  collapse::ffirst(x, g = g, use.g.names = FALSE,
+                 na.rm = na.rm, TRA = "replace_fill", ...)
 }
 #' @rdname gsum
 #' @export
 glast <- function(x, g = NULL, na.rm = TRUE, ...){
-  if (!is.null(g)){
-    g <- GRP2(g, sort = TRUE, na.last = TRUE,
-                       return.groups = FALSE)
-    gorder <- g[["order"]]
-    if (is.null(gorder)){
-      gorder <- radix_order(g[["group.id"]])
-    }
-  }
-  out <- collapse::flast(x,
-                          g = g,
-                          use.g.names = FALSE,
-                          na.rm = na.rm,
-                          ...)
-  if (length(g) == 0L){
-    rep_len(out, length(x))
-  } else {
-    out <- rep(out, times = g[["group.sizes"]])
-    out[radix_order(gorder)]
-  }
+  collapse::flast(x, g = g, use.g.names = FALSE,
+                 na.rm = na.rm, TRA = "replace_fill", ...)
 }
 #' @rdname gsum
 #' @export
 gnobs <- function(x, g = NULL, ...){
-  if (!is.null(g)){
-    g <- GRP2(g, sort = TRUE, na.last = TRUE,
-                       return.groups = FALSE)
-    gorder <- g[["order"]]
-    if (is.null(gorder)){
-      gorder <- radix_order(g[["group.id"]])
-    }
-  }
-  out <- collapse::fnobs(x,
-                         g = g,
-                         use.g.names = FALSE,
-                         ...)
-  if (length(g) == 0L){
-    rep_len(out, length(x))
-  } else {
-    out <- rep(out, times = g[["group.sizes"]])
-    out[radix_order(gorder)]
-  }
+  collapse::fnobs(x, g = g, use.g.names = FALSE,
+                  TRA = "replace_fill", ...)
 }
+# Version 3
+# gsum <- function(x, g = NULL, ...){
+#   if (!is.null(g)){
+#     g <- GRP2(g, sort = TRUE, na.last = TRUE,
+#               return.groups = FALSE)
+#     gorder <- g[["order"]]
+#     if (is.null(gorder)){
+#       gorder <- radix_order(g[["group.id"]])
+#     }
+#   }
+#   out <- collapse::fsum(x,
+#                          g = g,
+#                          use.g.names = FALSE,
+#                          ...)
+#   if (length(g) == 0L){
+#     rep_len(out, length(x))
+#   } else {
+#     out <- rep(out, times = g[["group.sizes"]])
+#     out[radix_order(gorder)]
+#   }
+# }
 # version 2
 # gsum <- function(x, g = NULL, na.rm = TRUE, ...){
 #   if (!is.null(g)){

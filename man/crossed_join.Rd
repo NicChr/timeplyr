@@ -2,12 +2,13 @@
 % Please edit documentation in R/crossed_join.R
 \name{crossed_join}
 \alias{crossed_join}
-\title{A wrapper around \code{do.call()} and \code{data.table::CJ()}}
+\title{A \code{do.call()} and \code{data.table::CJ()} method}
 \usage{
 crossed_join(
   X,
   sort = FALSE,
   unique = TRUE,
+  as_dt = TRUE,
   strings_as_factors = FALSE,
   log_limit = 8
 )
@@ -20,6 +21,9 @@ crossed_join(
 \item{unique}{Should unique values across each column or list element
 be taken? By default this is \code{TRUE}.}
 
+\item{as_dt}{Should result be a \code{data.table}?
+By default this is \code{TRUE}. If \code{FALSE} a list is returned.}
+
 \item{strings_as_factors}{Should strings be converted to factors before
 expansion? The default is \code{FALSE} but setting to \code{TRUE} can offer
 a significant speed improvement.}
@@ -28,12 +32,13 @@ a significant speed improvement.}
 Anything >= this results in an error.}
 }
 \value{
-A data.table object
+A data.table or list object.
 }
 \description{
-This is a wrapper around \code{data.table::CJ()} that accepts
-a list or data.frame as an argument.
-It also uses collapse to retrieve unique values if \code{unique = TRUE}.
+This function operates like \code{do.call(CJ, ...)} that accepts
+a list or data.frame as an argument. \cr
+It has less overhead for small joins, especially when \code{unique = FALSE} and
+\code{as_dt = FALSE}.
 }
 \examples{
 library(timeplyr)

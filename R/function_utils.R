@@ -131,56 +131,100 @@ transmute2 <- function(data, ..., .by = NULL){
 
 # Select variables utilising tidyselect notation
 tidy_select_names <- function(data, ...){
-  if (check_null_dots(...)){
-    character(0)
-  } else {
-    names(tidyselect::eval_select(rlang::expr(c(!!!enquos(...))), data = data))
-  }
+  names(tidy_select_pos(data, !!!enquos(...)))
 }
 # Select variables utilising tidyselect notation
 tidy_select_pos <- function(data, ...){
   if (check_null_dots(...)){
-    integer(0)
+    setnames(integer(0), character(0))
   } else {
-    unname(tidyselect::eval_select(rlang::expr(c(!!!enquos(...))), data = data))
+    tidyselect::eval_select(rlang::expr(c(!!!enquos(...))), data = data)
   }
 }
 # Slightly faster dplyr::select, especially when dots are NULL or empty
 select2 <- function(data, ...){
-  if (check_null_dots(...)){
-    pos <- integer(0)
-  } else {
-    pos <- unname(tidyselect::eval_select(rlang::expr(c(!!!enquos(...))), data = data))
-  }
-  collapse::fselect(data, pos)
+  collapse::fselect(data, tidy_select_pos(data, !!!enquos(...)))
 }
 # Basic tidyselect information for further manipulation
 # Includes output and input names which might be useful
 tidy_select_info <- function(data, ...){
   data_nms <- names(data)
-  if (check_null_dots(...)){
-    pos <- setnames(integer(0), character(0))
-  } else {
-    expr <- rlang::expr(c(...))
-    pos <- tidyselect::eval_select(expr, data = data)
-  }
+  group_vars <- group_vars(data)
+  pos <- tidy_select_pos(data, !!!enquos(...))
   out_nms <- names(pos)
   pos <- unname(pos)
+  in_nms <- data_nms[pos]
   renamed <- is.na(match(out_nms, data_nms) != pos)
   list("pos" = pos,
        "out_nms" = out_nms,
-       "in_nms" = data_nms[pos],
+       "in_nms" = in_nms,
        "renamed" = renamed)
+       # "groups" = out_nms[group_vars %in% in_nms]
 }
 
 # This works like dplyr::summarise but evaluates each expression
 # independently, and on the ungrouped data.
 # The result is always a list.
 # Useful way of returning the column names after supplying data-masking variables too
+# summarise_list <- function(data, ..., fix.names = TRUE){
+#   if (inherits(data, "grouped_df")) data <- dplyr::ungroup(data)
+#   quo_list <- rlang::eval_tidy(enquos(...), data)
+#   out <- lapply(quo_list, function(quo) dplyr_summarise(data, !!quo))
+#   # Remove NULL entries
+#   out_sizes <- lengths(out, use.names = FALSE)
+#   if (all(out_sizes == 0)){
+#     return(setnames(list(), character(0)))
+#   }
+#   out <- out[out_sizes > 0]
+#   # Outer names
+#   outer_nms <- names(out)
+#   # Lengths of each list
+#   out_sizes <- lengths(out)
+#   # Expand list elements that have multiple elements
+#   which_less_than2 <- which(out_sizes < 2)
+#   which_greater_than1 <- which(out_sizes > 1)
+#   out1 <- out[which_less_than2]
+#   out2 <- out[which_greater_than1]
+#   out_order <- radix_order(c(which_less_than2, rep(which_greater_than1,
+#                                              out_sizes[which_greater_than1])))
+#   outer_nms <- c(outer_nms[which_less_than2],
+#                  rep(outer_nms[which_greater_than1],
+#                      out_sizes[which_greater_than1]))[out_order]
+#   out2 <- unlist(out2, recursive = FALSE)
+#   out1 <- unlist(unname(out1), recursive = FALSE)
+#   inner_nms <- c(names(out1), names(out2))[out_order]
+#   out <- c(out1, out2)[out_order]
+#   out_lengths <- lengths(out)
+#   if (fix.names){
+#     final_nms <- character(length(out))
+#     for (i in seq_along(out)){
+#       if (outer_nms[[i]] == ""){
+#         final_nms[[i]] <- inner_nms[[i]]
+#       } else {
+#         final_nms[[i]] <- outer_nms[[i]]
+#       }
+#     }
+#     names(out) <- final_nms
+#   }
+#   out
+# }
 summarise_list <- function(data, ..., fix.names = TRUE){
   if (inherits(data, "grouped_df")) data <- dplyr::ungroup(data)
   quo_list <- rlang::eval_tidy(enquos(...), data)
-  out <- lapply(quo_list, function(quo) dplyr_summarise(data, !!quo))
+  # Special case when identity function is used
+  quo_nms <- vapply(quo_list, rlang::as_label, character(1))
+  out <- vector("list", length(quo_list))
+  quo_data_pos <- which(quo_nms %in% names(data))
+  quo_data_nms <- quo_nms[quo_data_pos]
+  quo_other_pos <- setdiff(seq_along(out), quo_data_pos)
+  data_pos <- match(quo_data_nms, names(data))
+  for (i in seq_along(quo_data_pos)){
+    out[[quo_data_pos[[i]]]] <- collapse::fselect(data, data_pos[[i]])
+  }
+  # out[quo_data_pos] <- as.list(collapse::fselect(data, data_pos))
+  out[quo_other_pos] <- lapply(quo_list[quo_other_pos],
+                               function(quo) dplyr_summarise(data, !!quo))
+  names(out) <- names(quo_nms)
   # Remove NULL entries
   out_sizes <- lengths(out, use.names = FALSE)
   if (all(out_sizes == 0)){
@@ -197,7 +241,7 @@ summarise_list <- function(data, ..., fix.names = TRUE){
   out1 <- out[which_less_than2]
   out2 <- out[which_greater_than1]
   out_order <- radix_order(c(which_less_than2, rep(which_greater_than1,
-                                             out_sizes[which_greater_than1])))
+                                                   out_sizes[which_greater_than1])))
   outer_nms <- c(outer_nms[which_less_than2],
                  rep(outer_nms[which_greater_than1],
                      out_sizes[which_greater_than1]))[out_order]
@@ -427,8 +471,7 @@ df_reconstruct <- function(data, template){
       if (has_interval(collapse::fselect(safe_ungroup(data), out_groups), quiet = TRUE)){
         grp_nm <- new_var_nm(out_groups, "g")
         groups <- collapse::fselect(safe_ungroup(data), out_groups)
-        g <- group_id.default(groups,
-                      order = TRUE, as_qg = FALSE)
+        g <- group_id.default(groups)
         groups <- groups %>%
           dplyr::mutate(!!grp_nm := g) %>%
           dplyr::distinct(across(all_of(grp_nm)), .keep_all = TRUE) %>%
@@ -443,7 +486,6 @@ df_reconstruct <- function(data, template){
       }
 
       groups[[".rows"]] <- collapse::gsplit(NULL, g = g)
-
       attributes(groups[[".rows"]]) <- attributes(template_attrs[["groups"]][[".rows"]])
       for (a in setdiff(names(attributes(groups)),
                         c("row.names", "class", "names"))){
@@ -644,6 +686,7 @@ radix_sort <- function(x, na.last = TRUE, ...){
   x[radix_order(x, na.last = na.last, ...)]
 }
 # Creates a sequence of ones.
+# This is used primarily for sums
 seq_ones <- function(length){
   if (length <= .Machine$integer.max){
     rep_len(1L, length)
@@ -674,6 +717,7 @@ setv <- getFromNamespace("setv", "collapse")
 # quo_is_null()
 
 CJ <- getFromNamespace("CJ", "data.table")
+# Ccj <- getFromNamespace("Ccj", "data.table")
 
 is_whole_number <- function(x){
   if (is.integer(x)) return(TRUE) # If already integer then true
@@ -746,7 +790,7 @@ vec_length <- function(x){
   }
   out
 }
-# Returns the length or nrows (if list or df)
+# Returns the width or ncol (if list or df)
 vec_width <- function(x){
   if (is.list(x)){
     if (is_df(x)){
@@ -761,11 +805,46 @@ vec_width <- function(x){
   }
   out
 }
+# Checks whether dots are empty or contain NULL
+# Returns TRUE if so, otherwise FALSE
+# Used primarily to speed up dplyr::select()
 check_null_dots <- function(...){
-  # dots_length(...) == 1 &&
-    # is.null(rlang::quo_squash(enquos(...)[[1L]]))
   squashed_quos <- rlang::quo_squash(enquos(...))
   length(squashed_quos) == 0L ||
     (length(squashed_quos) == 1L &&
        is.null(rlang::quo_get_expr(squashed_quos[[1L]])))
+}
+# Wrapper around expand.grid without factors and df coercion
+# Sorting mimics CJ()
+CJ2 <- function(...){
+  nargs <- length(args <- list(...))
+  if (!nargs){
+    return(list())
+  }
+  if (nargs == 1L && is.list(a1 <- args[[1L]]))
+    nargs <- length(args <- a1)
+  if (nargs == 0L){
+    return(list())
+  }
+  out <- vector("list", nargs)
+  iArgs <- seq_len(nargs)
+  rep.fac <- 1L
+  d <- lengths(args, use.names = FALSE)
+  orep <- prod(d)
+  if (orep == 0L){
+    for (i in iArgs){
+      out[[i]] <- args[[i]][FALSE]
+    }
+  }
+  else {
+    for (i in seqv.int(from = nargs, to = 1L, by = -1L)) {
+      x <- args[[i]]
+      nx <- length(x)
+      orep <- orep/nx
+      x <- x[rep.int(rep.int(seq_len(nx), rep.int(rep.fac, nx)), orep)]
+      out[[i]] <- x
+      rep.fac <- rep.fac * nx
+    }
+  }
+  out
 }

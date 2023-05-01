@@ -319,17 +319,10 @@ ftseq <- function(from, to, units, num = 1,
                                  seq_type = seq_type,
                                  as_period = FALSE)
       if (seq_type == "duration"){
-        out_length <- time_seq_len(from, to, by = by,
-                                   seq_type = "duration",
-                                   as_period = FALSE)
         time_unit <- duration_unit(units)(x = num)
         num_seconds <- as.double(time_unit)
-        from <- time_cast(from, lubridate::POSIXct(0, tz = tz))
         out <- duration_seq(from, length = out_length, duration = num_seconds)
       } else {
-        out_length <- time_seq_len(from, to, by = by,
-                                   seq_type = "period",
-                                   as_period = FALSE)
         unit <- substr(units, 1L, nchar(units) -1L)
         out <- period_seq(from, out_length, unit,
                           num = num,

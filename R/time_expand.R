@@ -190,11 +190,7 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
                                                              by_unit),
                                                seq_type = seq_type)]
       expanded_nrow <- sum(time_tbl[[size_nm]])
-      if (log10(expanded_nrow) >= log_limit){
-        stop(paste0("Requested expansion results in >= ",
-                    expanded_nrow,
-                    " rows, aborting."))
-      }
+      expand_check(expanded_nrow, log_limit)
       # Vectorised time sequence
       time_seq <- time_seq_v(time_tbl[[from_nm]],
                              time_tbl[[to_nm]],
@@ -272,8 +268,7 @@ time_complete <- function(data, ..., time = NULL, by = NULL, from = NULL, to = N
   group_vars <- get_groups(data, {{ .by }})
   out <- dplyr::mutate(data, !!enquo(time))
   time_var <- tidy_transform_names(data, !!enquo(time))
-  out <- data.table::copy(out)
-  data.table::setDT(out)
+  out <- collapse::qDT(out[TRUE])
   expanded_df <- time_expand(out,
                            !!!enquos(...),
                            time = across(all_of(time_var)),
@@ -296,10 +291,12 @@ time_complete <- function(data, ..., time = NULL, by = NULL, from = NULL, to = N
     }
     out <- merge(out, expanded_df,
                  all = TRUE, by = names(expanded_df), sort = FALSE)
-    if (sort) data.table::setorderv(out, cols = c(group_vars, time_var,
-                                                  setdiff(names(expanded_df),
-                                                          c(group_vars, time_var))),
-                                    na.last = TRUE)
+    if (sort){
+      data.table::setorderv(out, cols = c(group_vars, time_var,
+                                          setdiff(names(expanded_df),
+                                                  c(group_vars, time_var))),
+                            na.last = TRUE)
+    }
   }
   # Replace NA with fill
   if (any(!is.na(fill))){

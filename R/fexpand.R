@@ -104,9 +104,9 @@
 #' @rdname fexpand
 #' @export
 fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
-                    sort = TRUE, .by = NULL,
-                    keep_class = TRUE,
-                    log_limit = 8){
+                     sort = TRUE, .by = NULL,
+                     keep_class = TRUE,
+                     log_limit = 8){
   expand_type <- match.arg(expand_type)
   group_vars <- get_groups(data, {{ .by }})
   summarise_vars <- summarise_list(data, !!!enquos(...))
@@ -171,35 +171,43 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                                        use.g.names = FALSE, na.rm = FALSE)
       sizes <- rowProds(out_temp)
       expanded_nrow <- sum(sizes)
-      if (log10(expanded_nrow) >= log_limit){
-        stop("Requested expansion results in >= ",
-             expanded_nrow,
-             " rows, aborting.")
-      }
-      out2 <- collapse::collapv(out1, FUN = function(x) list(collapse::funique(x)),
-                                by = grp_nm,
-                                cols = group_id_nms)
-      data.table::setkeyv(out2, cols = grp_nm)
-      # out2 <- out1[, lapply(.SD, function(x) list(collapse::funique(x))),
-      #              keyby = grp_nm, .SDcols = group_id_nms]
-      out <- out2[, do.call(expand.grid,
-                            args = c(unlist(mget(group_id_nms), recursive = FALSE,
-                                            use.names = FALSE),
-                                     list(KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))),
-                  keyby = grp_nm]
-      # data.table::setkeyv(out1, cols = grp_nm)
-      # out <- out1[, do.call(expand.grid,
-      #                       args = c(lapply(.SD, collapse::funique.default),
-      #                                list(KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))),
-      #             keyby = grp_nm, .SDcols = group_id_nms]
+      expand_check(expanded_nrow, log_limit)
+      # out <- out1[, do.call(crossed_join,
+      #                args = list(X = .SD,
+      #                            unique = TRUE,
+      #                            strings_as_factors = FALSE,
+      #                            as_dt = FALSE)),
+      #      keyby = grp_nm,
+      #      .SDcols = group_id_nms]
+      # out2 <- collapse::collapv(out1, FUN = function(x) list(collapse::funique(x)),
+      #                           by = grp_nm,
+      #                           cols = group_id_nms)
+      # data.table::setkeyv(out2, cols = grp_nm)
+      # out <- out1[, .Call(Ccj, lapply(.SD, collapse::funique)),
+      #             keyby = grp_nm,
+      #             .SDcols = group_id_nms]
+      data.table::setkeyv(out1, cols = grp_nm)
+      out2 <- out1[, lapply(.SD, function(x) list(collapse::funique(x))),
+                   keyby = grp_nm,
+                   .SDcols = group_id_nms]
+      # # This is fastest but can't get it to work in the package
+      # out <- out2[, .Call(Ccj, unlist(.SD, recursive = FALSE, use.names = FALSE)),
+      #             keyby = grp_nm,
+      #             .SDcols = group_id_nms]
+      out <- out2[, do.call(CJ2,
+                            args = unlist(.SD,
+                                          recursive = FALSE,
+                                          use.names = FALSE)),
+                  keyby = grp_nm,
+                  .SDcols = group_id_nms]
       data.table::setnames(out, new = c(grp_nm, leftover_grp_nms))
       for (i in seq_along(group_id_nms)){
         out[, (leftover_grp_nms[[i]]) := out1[[leftover_grp_nms[[i]]]][match(out[[leftover_grp_nms[[i]]]],
-                                                                         out1[[group_id_nms[[i]]]])]]
+                                                                             out1[[group_id_nms[[i]]]])]]
       }
       for (i in seq_along(group_vars)){
         out[, (group_vars[[i]]) := out1[[group_vars[[i]]]][match(out[[grp_nm]],
-                                                             out1[[grp_nm]])]]
+                                                                 out1[[grp_nm]])]]
       }
       out[, (grp_nm) := NULL][]
       if (sort) data.table::setorderv(out,
@@ -224,7 +232,7 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
     X_nms <- rep_len("Var", length(X))
     X_nms <- paste0(X_nms, seq_len(length(X)))
   }
-  X_lens <- collapse::vlengths(X)
+  X_lens <- collapse::vlengths(X, use.names = FALSE)
   # If N is not supplied, then calculate N iff all list lengths are equal
   if (missing(N)){
     N <- unique(X_lens)
@@ -237,7 +245,8 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
   df <- data.table::as.data.table(X[X_nms %in% data_nms])
   n_data <- nrow2(df)
   if (n_data > 0L){
-    df <- fdistinct(df)
+    # df <- fdistinct(df)
+    df <- collapse::funique(df)
     # The below runs out of memory if qG class is present???
     n_data <- nrow2(df)
   }
@@ -247,13 +256,11 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
   n_other <- prod(collapse::vlengths(X_other, use.names = FALSE))
   n_other <- max(n_other, 1, na.rm = TRUE)
   expanded_n <- prod(c(n_data, n_other), na.rm = TRUE)
-  if (log10(expanded_n) >= log_limit) stop("Requested expansion results in >= ",
-                                           expanded_n,
-                                           " rows, aborting.")
+  expand_check(expanded_n, log_limit)
   # Nested cross-join
   grp_seq <- seq_len(n_data)
   if (nrow2(df) == 0L){
-    out <- do.call(CJ, args = c(X_other, list(sorted = FALSE, unique = FALSE)))
+    out <- crossed_join(X_other, unique = FALSE)
   } else {
     out <- df_row_slice(df, rep(grp_seq, each = n_other))
     # out <- df[rep(grp_seq, each = n_other), , drop = FALSE]
@@ -290,9 +297,8 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
   # Full-join
   if (nrow2(expanded_df) > 0 && ncol(expanded_df) > 0){
     out <- merge(out, expanded_df,
-                 all = TRUE,
-                 by = names(expanded_df), sort = FALSE,
-                 allow.cartesian = TRUE)
+                 all = TRUE, by = names(expanded_df),
+                 allow.cartesian = TRUE, sort = FALSE)
     if (sort){
       data.table::setorderv(out, cols = names(expanded_df), na.last = TRUE)
     }
@@ -315,4 +321,11 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
     out <- df_reconstruct(out, data)
   }
   out
+}
+expand_check <- function(N, log_limit){
+  if (log10(N) >= log_limit || N > .Machine$integer.max){
+    stop("Requested expansion results in >= ",
+         N,
+         " rows, aborting.")
+  }
 }
