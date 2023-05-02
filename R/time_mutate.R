@@ -164,7 +164,7 @@ time_mutate <- function(data, ..., time = NULL, by = NULL,
   data[[grp_nm]] <- NULL
   data[[sort_nm]] <- NULL
   out <- dplyr::mutate(safe_ungroup(data),
-                !!!enquos(...),
+                ...,
                 .by = all_of(c(group_vars, time_var, int_nm)),
                 .keep = .keep)
   df_reconstruct(out, data)

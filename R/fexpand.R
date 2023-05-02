@@ -114,7 +114,7 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                      log_limit = 8){
   expand_type <- match.arg(expand_type)
   group_vars <- get_groups(data, {{ .by }})
-  summarise_vars <- summarise_list(data, !!!enquos(...))
+  summarise_vars <- summarise_list(data, ...)
   grps_missed <- setdiff(group_vars, names(summarise_vars))
   # Add group vars to summary list
   if (length(grps_missed) > 0){
@@ -292,7 +292,7 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
   expand_type <- match.arg(expand_type)
   group_vars <- get_groups(data, {{ .by }})
   expanded_df <- fexpand(data,
-                         !!!enquos(...),
+                         ...,
                          sort = FALSE, .by = {{ .by }},
                          expand_type = expand_type,
                          keep_class = FALSE,

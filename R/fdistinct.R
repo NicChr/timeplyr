@@ -13,9 +13,9 @@ fdistinct <- function(data, ..., .keep_all = FALSE, .by = NULL){
   n_dots <- dots_length(...)
   out <- safe_ungroup(data)
   if (n_dots > 0){
-    out <- dplyr::mutate(out, !!!enquos(...))
+    out <- dplyr::mutate(out, ...)
   }
-  group_info <- get_group_info(data, !!!enquos(...),
+  group_info <- get_group_info(data, ...,
                                type = "data-mask",
                                .by = {{ .by }})
   group_vars <- group_info[["dplyr_groups"]]

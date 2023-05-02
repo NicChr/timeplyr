@@ -50,9 +50,9 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
   n_dots <- dots_length(...)
   out <- safe_ungroup(data)
   if (n_dots > 0){
-    out <- dplyr::mutate(out, !!!enquos(...))
+    out <- dplyr::mutate(out, ...)
   }
-  group_info <- get_group_info(data, !!!enquos(...),
+  group_info <- get_group_info(data, ...,
                                type = "data-mask",
                                .by = {{ .by }})
   group_vars <- group_info[["dplyr_groups"]]
@@ -105,9 +105,9 @@ fduplicates2 <- function(data, ..., .keep_all = FALSE,
   out <- safe_ungroup(data)
   if (n_dots > 0){
     out <- out %>%
-      dplyr::mutate(!!!enquos(...))
+      dplyr::mutate(...)
   }
-  group_info <- get_group_info(data, !!!enquos(...),
+  group_info <- get_group_info(data, ...,
                                type = "data-mask",
                                .by = {{ .by }})
   group_vars <- group_info[["dplyr_groups"]]

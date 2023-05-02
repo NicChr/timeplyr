@@ -23,9 +23,9 @@ fgroup_by <- function(data, ..., .add = FALSE,
   init_group_vars <- group_vars(data)
   data <- safe_ungroup(data)
   if (n_dots > 0){
-    data <- dplyr::mutate(data, !!!enquos(...))
+    data <- dplyr::mutate(data, ...)
   }
-  group_info <- get_group_info(data, !!!enquos(...),
+  group_info <- get_group_info(data, ...,
                                .by = {{ .by }},
                                type = "data-mask")
   group_vars <- group_info[["dplyr_groups"]]
@@ -57,10 +57,10 @@ fgroup_by <- function(data, ..., .add = FALSE,
 #     data <- safe_ungroup(data)
 #   }
 #   if (n_dots > 0){
-#     data <- dplyr::mutate(data, !!!enquos(...),
+#     data <- dplyr::mutate(data, ...,
 #                           .by = {{ .by }})
 #   }
-#   group_info <- get_group_info(data, !!!enquos(...),
+#   group_info <- get_group_info(data, ...,
 #                                .by = {{ .by }},
 #                                type = "data-mask")
 #   group_vars <- group_info[["dplyr_groups"]]

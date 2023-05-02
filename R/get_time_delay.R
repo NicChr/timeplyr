@@ -177,27 +177,48 @@ get_time_delay <- function(data, origin, end, by = "day",
                                    with = FALSE]
 
   } else {
+    setkeyv2(out, grp_nm, physical = FALSE)
     quantile_summary <- out[, list("quantile_nms" = quantile_nms,
-                                   "probs" = stats::quantile(get(delay_nm),
-                                                             probs = probs)),
+                                   "probs" = collapse::fquantile(get(delay_nm),
+                                                                 probs = probs, names = FALSE)),
                             by = grp_nm]
     quantile_summary <- tidyr::pivot_wider(quantile_summary,
                                            names_from = all_of("quantile_nms"),
                                            values_from = all_of("probs"))
-    delay_summary <- out[, setnames(unlist(lapply(.SD,
-                                                  function(x) list(.N,
-                                                                   min(x),
-                                                                   max(x),
-                                                                   mean(x),
-                                                                   stats::sd(x),
-                                                                   diff(stats::quantile(x, c(0.25, 0.75)),
-                                                                        lag = 1L),
-                                                                   stats::mad(x))),
-                                           recursive = FALSE, use.names = TRUE),
-                                    c("n", "min", "max", "mean",
-                                      "sd", "iqr", "mad")),
-                         .SDcols = delay_nm,
-                         by = grp_nm]
+    delay_summary <- collapse::collapv(out, by = grp_nm,
+                                       cols = delay_nm,
+                                       FUN = list(collapse::fnobs,
+                                                  collapse::fmin,
+                                                  collapse::fmax,
+                                                  collapse::fmean,
+                                                  collapse::fsd,
+                                                  function(x){
+                                                    diff(collapse::fquantile(x,
+                                                                             c(0.25, 0.75),
+                                                                             names = FALSE),
+                                                                   lag = 1L)
+                                                    },
+                                                  function(x){
+                                                    1.4826 * collapse::fmedian(abs(x - collapse::fmedian(x)))
+                                                    }))
+    data.table::setnames(delay_summary, c(grp_nm, "n", "min", "max", "mean", "sd", "iqr", "mad"))
+    # delay_summary <- out[, setnames(unlist(lapply(.SD,
+    #                                               function(x) list(.N,
+    #                                                                collapse::fmin(x),
+    #                                                                collapse::fmax(x),
+    #                                                                collapse::fmean(x),
+    #                                                                collapse::fsd(x),
+    #                                                                diff(collapse::fquantile(x,
+    #                                                                                         probs = c(0.25, 0.75)),
+    #                                                                     lag = 1L),
+    #                                                                function(x){
+    #                                                                  1.4826 * collapse::fmedian(abs(x - collapse::fmedian(x)))
+    #                                                                })),
+    #                                        recursive = FALSE, use.names = TRUE),
+    #                                 c("n", "min", "max", "mean",
+    #                                   "sd", "iqr", "mad")),
+    #                      .SDcols = delay_nm,
+    #                      by = grp_nm]
     delay_summary[, ("se") := get("sd")/sqrt(get("n"))]
     delay_summary <- delay_summary %>%
       dplyr::full_join(quantile_summary, by = grp_nm, keep = FALSE) %>%

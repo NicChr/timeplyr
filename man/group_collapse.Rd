@@ -11,6 +11,7 @@ group_collapse(
   sort = FALSE,
   ascending = TRUE,
   .by = NULL,
+  id = TRUE,
   size = TRUE,
   loc = TRUE,
   start = TRUE,
@@ -35,6 +36,8 @@ Default is \code{TRUE} and only applies when \code{order = TRUE}.}
 
 \item{.by}{Alternative way of supplying groups using \code{tidyselect} notation.
 This is kept to be consistent with other functions.}
+
+\item{id}{Should group IDs be added? Default is \code{TRUE}.}
 
 \item{size}{Should group sizes be added? Default is \code{TRUE}.}
 

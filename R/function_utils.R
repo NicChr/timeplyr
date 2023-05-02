@@ -1,15 +1,5 @@
 #' @noRd
 
-
-# Lightning fast monotonic checks
-# is_monotonic_increasing <- function(x){
-#   isTRUE(all(x == cummax(x)))
-# }
-# is_monotonic_decreasing <- function(x){
-#   isTRUE(all(x == cummin(x)))
-# }
-
-
 frequencies <- function(x){
   collapse::GRPN(x, expand = TRUE)
 }
@@ -112,45 +102,45 @@ harmonic_mean <- function(x, weights = NULL, na.rm = FALSE){
 tidy_transform_names <- function(data, ...){
   names(
     summarise_list(
-      vec_head(safe_ungroup(data), n = 1L), !!!enquos(...),
+      vec_head(safe_ungroup(data), n = 1L), ...,
       fix.names = TRUE
     )
   )
 }
 tidy_transform_names2 <- function(data, ...){
-  names(dplyr::transmute(data, !!!enquos(...)))
+  names(dplyr::transmute(data, ...))
 }
 # Updated version of transmute using mutate
 transmute2 <- function(data, ..., .by = NULL){
   group_vars <- get_groups(data, .by = {{ .by }})
-  out <- dplyr::mutate(data, !!!enquos(...),
+  out <- dplyr::mutate(data, ...,
                        .by = {{ .by }}, .keep = "none")
-  out_nms <- tidy_transform_names(data, !!!enquos(...))
+  out_nms <- tidy_transform_names(data, ...)
   dplyr::select(out, all_of(c(group_vars, out_nms)))
 }
 
 # Select variables utilising tidyselect notation
 tidy_select_names <- function(data, ...){
-  names(tidy_select_pos(data, !!!enquos(...)))
+  names(tidy_select_pos(data, ...))
 }
 # Select variables utilising tidyselect notation
 tidy_select_pos <- function(data, ...){
   if (check_null_dots(...)){
     setnames(integer(0), character(0))
   } else {
-    tidyselect::eval_select(rlang::expr(c(!!!enquos(...))), data = data)
+    tidyselect::eval_select(rlang::expr(c(...)), data = data)
   }
 }
 # Slightly faster dplyr::select, especially when dots are NULL or empty
 select2 <- function(data, ...){
-  collapse::fselect(data, unname(tidy_select_pos(data, !!!enquos(...))))
+  collapse::fselect(data, unname(tidy_select_pos(data, ...)))
 }
 # Basic tidyselect information for further manipulation
 # Includes output and input names which might be useful
 tidy_select_info <- function(data, ...){
   data_nms <- names(data)
   group_vars <- group_vars(data)
-  pos <- tidy_select_pos(data, !!!enquos(...))
+  pos <- tidy_select_pos(data, ...)
   out_nms <- names(pos)
   pos <- unname(pos)
   in_nms <- data_nms[pos]
@@ -425,9 +415,9 @@ get_group_info <- function(data, ..., type = c("select", "data-mask"),
     extra_groups <- character(0)
   } else {
     if (type == "select"){
-      extra_groups <- tidy_select_names(data, !!!enquos(...))
+      extra_groups <- tidy_select_names(data, ...)
     } else {
-      extra_groups <- tidy_transform_names(data, !!!enquos(...))
+      extra_groups <- tidy_transform_names(data, ...)
     }
   }
 
@@ -574,26 +564,7 @@ ffactor <- function(x, levels = NULL, ordered = FALSE, na.exclude = TRUE){
   }
   out
 }
-# Like group_keys but the result is grouped
-# Sort controls whether or not the data frame gets sorted by
-# the group, not if the group is itself sorted, which in this case
-# it always is
-unique_groups <- function(data, ..., order = sort, sort = TRUE,
-                          .by = NULL, .group_id = TRUE){
-  out <- group_collapse(data, !!!enquos(...),
-                        order = order, sort = sort,
-                        .by = .by,
-                        loc = FALSE,
-                        start = FALSE, end = FALSE,
-                        size = FALSE)
-  if (.group_id){
-    names(out)[names(out) == ".group"] <- "group_id"
-  } else {
-    out[[".group"]] <- NULL
-  }
-  out
 
-}
 # Slightly safer way of removing DT cols
 set_rm_cols <- function(DT, cols = NULL){
  if (length(intersect(cols, names(DT))) > 0L) DT[, (cols) := NULL]

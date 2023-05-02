@@ -88,7 +88,7 @@ time_episodes <- function(data, ..., time, window,
   }
   start_nms <- data.table::copy(names(data))
   data <- data %>%
-    dplyr::mutate(!!!enquos(...),
+    dplyr::mutate(...,
                   !!enquo(time),
                   !!enquo(window),
                   .by = {{ .by }},
@@ -97,7 +97,7 @@ time_episodes <- function(data, ..., time, window,
   out <- data.table::copy(data)
   # Coerce to data table
   data.table::setDT(out)
-  group_info <- get_group_info(data, !!!enquos(...),
+  group_info <- get_group_info(data, ...,
                                .by = {{ .by }},
                                type = "data-mask")
   group_vars <- group_info[["dplyr_groups"]]

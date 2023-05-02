@@ -336,7 +336,7 @@ df_slice_prepare <- function(data, n, prop, .by = NULL, sort_groups = TRUE,
 
   group_df <- group_collapse(data, .by = {{ .by }},
                              order = sort_groups, sort = sort_groups,
-                             loc = TRUE,
+                             id = FALSE, loc = TRUE,
                              # loc_order = FALSE,
                              size = TRUE, start = FALSE, end = FALSE)
   rows <- group_df[[".loc"]]

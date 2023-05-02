@@ -190,7 +190,7 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
       data.table::setDT(out)
       out[, (time_var) := time_seq]
       expanded_df <- fexpand(data,
-                             !!!enquos(...),
+                             ...,
                              expand_type = expand_type,
                              keep_class = FALSE,
                              sort = FALSE, .by = {{ .by }},
@@ -226,7 +226,7 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
     }
   } else {
     out <- fexpand(data,
-                   !!!enquos(...),
+                   ...,
                    expand_type = expand_type,
                    keep_class = keep_class,
                    sort = sort, .by = {{ .by }},
@@ -258,7 +258,7 @@ time_complete <- function(data, ..., time = NULL, by = NULL, from = NULL, to = N
   time_var <- tidy_transform_names(data, !!enquo(time))
   out <- qDT2(out)
   expanded_df <- time_expand(out,
-                           !!!enquos(...),
+                           ...,
                            time = across(all_of(time_var)),
                            by = by, from = !!enquo(from),
                            to = !!enquo(to),

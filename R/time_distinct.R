@@ -67,9 +67,9 @@ time_distinct <- function(data, ..., time = NULL, by = NULL,
   group_vars <- get_groups(data, .by = {{ .by }})
   out <- safe_ungroup(data)
   if (n_dots > 0){
-    out <- dplyr::mutate(out, !!!enquos(...))
+    out <- dplyr::mutate(out, ...)
   }
-  dot_vars <- tidy_transform_names(data, !!!enquos(...))
+  dot_vars <- tidy_transform_names(data, ...)
   if (include_interval){
     int_nm <- new_var_nm(out, "interval")
   } else {

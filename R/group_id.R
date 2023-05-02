@@ -133,10 +133,10 @@ group_id.data.frame <- function(data, ...,
   if (dots_length(...) > 0){
     data <- df_reconstruct(
       dplyr::mutate(
-        safe_ungroup(data), !!!enquos(...)
+        safe_ungroup(data), ...
       ), data
     )
-    dot_vars <- tidy_transform_names(data, !!!enquos(...))
+    dot_vars <- tidy_transform_names(data, ...)
   } else {
     dot_vars <- character(0)
   }
@@ -186,7 +186,7 @@ add_group_id <- function(data, ...,
                          .name = NULL,
                          as_qg = FALSE){
   if (is.null(.name)) .name <- new_var_nm(names(data), "group_id")
-  data[[.name]] <- group_id.data.frame(data, !!!enquos(...),
+  data[[.name]] <- group_id.data.frame(data, ...,
                                        order = order,
                                        ascending = ascending,
                                        .by = {{ .by }},
@@ -216,11 +216,11 @@ row_id.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
   if (dots_length(...) > 0){
     data <- df_reconstruct(
       dplyr::mutate(
-        safe_ungroup(data), !!!enquos(...)
+        safe_ungroup(data), ...
       ), data
     )
   }
-  vars <- get_group_info(data, !!!enquos(...),
+  vars <- get_group_info(data, ...,
                          type = "data-mask",
                          .by = {{ .by }})[["all_groups"]]
   if (length(vars) == 0L){
@@ -238,7 +238,7 @@ row_id.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
 #' @export
 add_row_id <- function(data, ..., ascending = TRUE, .by = NULL, .name = NULL){
   if (is.null(.name)) .name <- new_var_nm(names(data), "row_id")
-  data[[.name]] <- row_id.data.frame(data, !!!enquos(...),
+  data[[.name]] <- row_id.data.frame(data, ...,
                                      ascending = ascending,
                                      .by = {{ .by }})
   data
@@ -280,11 +280,11 @@ group_order.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
   if (dots_length(...) > 0){
     data <- df_reconstruct(
       dplyr::mutate(
-        safe_ungroup(data), !!!enquos(...)
+        safe_ungroup(data), ...
       ), data
     )
   }
-  vars <- get_group_info(data, !!!enquos(...),
+  vars <- get_group_info(data, ...,
                          type = "data-mask",
                          .by = {{ .by }})[["all_groups"]]
   if (length(vars) == 0L){
@@ -315,7 +315,7 @@ group_order.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
 #' @export
 add_group_order <- function(data, ..., ascending = TRUE, .by = NULL, .name = NULL){
   if (is.null(.name)) .name <- new_var_nm(names(data), "group_order")
-  data[[.name]] <- group_order.data.frame(data, !!!enquos(...), .by = {{ .by }},
+  data[[.name]] <- group_order.data.frame(data, ..., .by = {{ .by }},
                                           ascending = ascending)
   data
 }

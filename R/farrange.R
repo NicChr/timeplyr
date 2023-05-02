@@ -27,15 +27,15 @@ farrange <- function(data, ..., .by = NULL, .by_group = FALSE){
   } else {
     # Ungrouped mutate
     out <- dplyr::mutate(safe_ungroup(data),
-                         across(all_of(group_vars)), !!!enquos(...),
+                         across(all_of(group_vars)), ...,
                          .keep = "none")
     if (.by_group){
-      group_info <- get_group_info(data, !!!enquos(...),
+      group_info <- get_group_info(data, ...,
                                    type = "data-mask",
                                    .by = {{ .by }})
       order_vars <- group_info[["all_groups"]]
     } else {
-      group_info <- get_group_info(safe_ungroup(data), !!!enquos(...),
+      group_info <- get_group_info(safe_ungroup(data), ...,
                                    type = "data-mask",
                                    .by = NULL)
       order_vars <- group_info[["extra_groups"]]

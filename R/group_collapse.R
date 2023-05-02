@@ -26,6 +26,7 @@
 #' Default is `TRUE` and only applies when `order = TRUE`.
 #' @param .by Alternative way of supplying groups using `tidyselect` notation.
 #' This is kept to be consistent with other functions.
+#' @param id Should group IDs be added? Default is `TRUE`.
 #' @param size Should group sizes be added? Default is `TRUE`.
 #' @param loc Should group locations be added? Default is `TRUE`.
 #' @param start Should group start locations be added? Default is `TRUE`.
@@ -50,7 +51,7 @@
 #' @export
 group_collapse <- function(data, ..., order = TRUE, sort = FALSE,
                            ascending = TRUE,
-                           .by = NULL,
+                           .by = NULL, id = TRUE,
                            size = TRUE, loc = TRUE,
                            # loc_order = TRUE,
                            start = TRUE, end = TRUE){
@@ -59,7 +60,7 @@ group_collapse <- function(data, ..., order = TRUE, sort = FALSE,
 #' @export
 group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
                                    ascending = TRUE,
-                                   .by = NULL,
+                                   .by = NULL, id = TRUE,
                                    size = TRUE, loc = TRUE,
                                    # loc_order = TRUE,
                                    start = TRUE, end = TRUE){
@@ -72,8 +73,11 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
             method = "auto",
             call = FALSE)
   out <- dplyr::as_tibble(as.list(g[["groups"]]))
-  out[[".group"]] <- seq_len(nrow2(out))
-  if (loc || start || end){
+  if (id){
+    out[[".group"]] <- seq_len(nrow2(out))
+  }
+  include_loc <- loc || start || end
+  if (include_loc){
     # out[[".loc"]] <- vctrs::as_list_of(
     #   vctrs::vec_locate_sorted_groups(g[["group.id"]],
     #                                   direction = "asc", na_value = "largest")[["loc"]],
@@ -109,31 +113,33 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
                                                use.g.names = FALSE,
                                                na.rm = FALSE))
   }
-  if (!loc){
+  if (!loc && include_loc){
     out[[".loc"]] <- NULL
   }
   if (size){
     out[[".size"]] <- g[["group.sizes"]]
   }
   if (!sort && order){
-    out <- df_row_slice(out, data.table::frank(collapse::funique(g[["group.id"]], sort = FALSE),
-                                               ties.method = "first"),
+    out <- df_row_slice(out, collapse::funique(g[["group.id"]], sort = FALSE),
                         reconstruct = FALSE)
+    # out <- df_row_slice(out, data.table::frank(collapse::funique(g[["group.id"]], sort = FALSE),
+    #                                            ties.method = "first"),
+    #                     reconstruct = FALSE)
   }
   out
 }
 #' @export
 group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
                                       ascending = TRUE,
-                                      .by = NULL,
+                                      .by = NULL, id = TRUE,
                                       size = TRUE, loc = TRUE,
                                       # loc_order = TRUE,
                                       start = TRUE, end = TRUE){
   # Use mutate if dots contain expressions
   if (dots_length(...) > 0){
-    data <- dplyr::mutate(data, !!!enquos(...))
+    data <- dplyr::mutate(data, ...)
   }
-  vars <- get_group_info(data, !!!enquos(...),
+  vars <- get_group_info(data, ...,
                          type = "data-mask",
                          .by = {{ .by }})[["all_groups"]]
   if (length(vars) == 0L){
@@ -157,9 +163,13 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
     if (size){
       out[[".size"]] <- n[ss]
     }
+    if (!id){
+      out[[".group"]] <- NULL
+    }
   } else {
     out <- group_collapse.default(collapse::fselect(data, vars),
                                   order = order, sort = sort,
+                                  id = id,
                                   size = size, loc = loc,
                                   ascending = ascending,
                                   # loc_order = loc_order,
@@ -171,7 +181,7 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
 #' @export
 group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
                                       ascending = TRUE,
-                                      .by = NULL,
+                                      .by = NULL, id = TRUE,
                                       size = TRUE, loc = TRUE,
                                       # loc_order = TRUE,
                                       start = TRUE, end = TRUE){
@@ -186,7 +196,9 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
     out <- dplyr::group_data(data)
     out_nms <- names(out)
     names(out)[out_nms == ".rows"] <- ".loc"
-    out[[".group"]] <- seq_len(nrow2(out))
+    if (id){
+      out[[".group"]] <- seq_len(nrow2(out))
+    }
     ncol <- ncol(out)
     out <- out[, c(seq_len(ncol - 2L), ncol, ncol - 1L), drop = FALSE]
     if (start){
@@ -214,15 +226,16 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
     if (n_dots > 0){
       data <- df_reconstruct(
         dplyr::mutate(
-          safe_ungroup(data), !!!enquos(...)
+          safe_ungroup(data), ...
         ), data
       )
     }
-    vars <- get_group_info(data, !!!enquos(...),
+    vars <- get_group_info(data, ...,
                            type = "data-mask",
                            .by = {{ .by }})[["all_groups"]]
     out <- group_collapse(safe_ungroup(data), .by = all_of(vars),
                           order = order, sort = sort,
+                          id = id,
                           size = size, loc = loc,
                           ascending = ascending,
                           # loc_order = loc_order,

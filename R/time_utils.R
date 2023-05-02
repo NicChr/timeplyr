@@ -884,6 +884,14 @@ tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
 # Interval from x, aggregate x, and seq
 tagg_interval <- function(xagg, x, seq, gagg = NULL, gx = NULL, gseq = NULL){
   int <- tseq_interval(x = x, seq = seq, gx = gx, gseq = gseq)
+  # agg_df <- data.table::data.table(t = xagg,
+  #                                  g = gagg)
+  # int_df <- data.table::data.table(t = seq,
+  #                                  g = gseq,
+  #                                  interval = int)
+  # agg_df[int_df, ("interval") := get("interval"),
+  #        on = names(agg_df),
+  #        mult = "first"][["interval"]]
   agg_df <- dplyr::tibble(t = xagg,
                           g = gagg)
   int_df <- dplyr::tibble(t = seq,
@@ -930,7 +938,7 @@ tseq_levels <- function(x, seq, gx = NULL, gseq = NULL, fmt = NULL){
 }
 # Simple helper to add time min-max vars
 add_from_to <- function(data, ..., time, .by = NULL){
-  from_to_list <- get_from_to(data, !!!enquos(...),
+  from_to_list <- get_from_to(data, ...,
                               time = !!enquo(time),
                               .by = {{ .by }})
   from_nm <- new_var_nm(names(data), ".from")
@@ -947,7 +955,7 @@ get_from_to <- function(data, ..., time, from = NULL, to = NULL,
   from_var <- tidy_select_names(data, !!enquo(from))
   to_var <- tidy_select_names(data, !!enquo(to))
   time_var <- tidy_select_names(data, !!enquo(time))
-  dot_vars <- tidy_select_names(data, !!!enquos(...))
+  dot_vars <- tidy_select_names(data, ...)
   if (length(from_var) == 0L || length(to_var) == 0L){
     g <- group_id(data, across(all_of(dot_vars)), .by = {{ .by }})
     g <- GRP2(g, sort = TRUE,

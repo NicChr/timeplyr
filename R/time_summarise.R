@@ -111,7 +111,7 @@ time_summarise <- function(data, ..., time = NULL, by = NULL,
                         roll_month = "preday", roll_dst = "pre",
                         sort = TRUE){
   int_nm <- new_var_nm(data, "interval")
-  out <- fdistinct(time_mutate(data, !!!enquos(...),
+  out <- fdistinct(time_mutate(data, ...,
               time = !!enquo(time),
               by = by,
               from = !!enquo(from),
@@ -125,7 +125,7 @@ time_summarise <- function(data, ..., time = NULL, by = NULL,
               roll_month = roll_month, roll_dst = roll_dst,
               sort = sort))
   time_var <- tidy_transform_names(data, !!enquo(time))
-  group_info <- get_group_info(data, !!!enquos(...),
+  group_info <- get_group_info(data, ...,
                                type = "data-mask",
                                .by = {{ .by }})
   group_vars <-  group_info[["dplyr_groups"]]
@@ -158,7 +158,7 @@ time_reframe <- function(data, ..., time = NULL, by = NULL,
                      roll_month = roll_month, roll_dst = roll_dst,
                      sort = sort)
   time_var <- tidy_transform_names(data, !!enquo(time))
-  out <- dplyr_summarise(safe_ungroup(out), !!!enquos(...),
+  out <- dplyr_summarise(safe_ungroup(out), ...,
                          .by = dplyr::any_of(c(group_vars, time_var, int_nm)))
   out
 }
