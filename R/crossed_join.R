@@ -16,10 +16,12 @@
 #' a significant speed improvement.
 #' @param log_limit The maximum log10 limit for expanded number of rows.
 #' Anything >= this results in an error.
+#' @details An important note is that currently `NA`s
+#' are sorted last and therefore a key is not set.
 #' @return A data.table or list object.
 #' @examples
 #' library(timeplyr)
-#' crossed_join(list(1:10, 11:20))
+#' crossed_join(list(1:3, -2:2))
 #' crossed_join(iris, sort = TRUE)
 #' @export
 crossed_join <- function(X, sort = FALSE, unique = TRUE,
@@ -44,7 +46,7 @@ crossed_join <- function(X, sort = FALSE, unique = TRUE,
                              function(x) collapse::qF(x,
                                                       sort = FALSE,
                                                       ordered = FALSE,
-                                                      na.exclude = FALSE))
+                                                      na.exclude = TRUE))
     }
   }
   # out <- .Call(Ccj, X)
@@ -61,10 +63,9 @@ crossed_join <- function(X, sort = FALSE, unique = TRUE,
       if (!unique){
         data.table::setorder(out, na.last = TRUE)
       }
-      data.table::setattr(out, "sorted", names(out))
     }
   }
-  if (!as_dt2){
+  if (!as_dt && (sort && !unique)){
     out <- as.list(out)
   }
   out

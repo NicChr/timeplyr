@@ -111,8 +111,7 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
   time_var <- tidy_transform_names(data, !!enquo(time))
   from_var <- tidy_transform_names(data, !!enquo(from))
   to_var <- tidy_transform_names(data, !!enquo(to))
-  out <- data.table::copy(out)
-  data.table::setDT(out)
+  out <- qDT2(out)
   if (length(time_var) > 0){
     seq_type <- match.arg(seq_type)
     if (is.null(by)){
@@ -134,18 +133,6 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
                                                from = all_of(from_var),
                                                to = all_of(to_var),
                                                .by = all_of(grp_nm))]
-    # if (length(from_var) == 0L){
-    #   out[, (from_nm) := gmin(get(time_var),
-    #                           g = get(grp_nm))]
-    # } else {
-    #   out[, (from_nm) := time_cast(get(from_var), get(time_var))]
-    # }
-    # if (length(to_var) == 0L){
-    #   out[, (to_nm) := gmax(get(time_var),
-    #                           g = get(grp_nm))]
-    # } else {
-    #   out[, (to_nm) := time_cast(get(to_var), get(time_var))]
-    # }
     # Unique groups
     time_tbl <- collapse::funique(collapse::fselect(out, c(group_vars, grp_nm, from_nm, to_nm)),
                                   cols = grp_nm)
@@ -220,7 +207,7 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
         expanded_n <- nrow2(expanded_df)
         out <- df_row_slice(out, rep(seq_len(out_n), each = expanded_n))
         for (i in seq_len(length(expanded_nms))){
-          out[, (expanded_nms[i]) := rep(expanded_df[[expanded_nms[i]]], out_n)][]
+          out[, (expanded_nms[i]) := rep(expanded_df[[expanded_nms[i]]], out_n)]
         }
         # If data was grouped, we can do a full join on these variables
       } else {
@@ -235,7 +222,7 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
       sort_nms <- c(group_vars, time_var,
         setdiff(names(out),
                 c(group_vars, time_var)))
-      data.table::setorderv(out, cols = sort_nms, na.last = TRUE)
+      setorderv2(out, cols = sort_nms)
     }
   } else {
     out <- fexpand(data,
@@ -247,9 +234,10 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
     keep_class <- FALSE
   }
   if (keep_class){
-    out <- df_reconstruct(out, data)
+    df_reconstruct(out, data)
+  } else {
+    out[]
   }
-  out
 }
 #' @rdname time_expand
 #' @export
@@ -268,7 +256,7 @@ time_complete <- function(data, ..., time = NULL, by = NULL, from = NULL, to = N
   group_vars <- get_groups(data, {{ .by }})
   out <- dplyr::mutate(data, !!enquo(time))
   time_var <- tidy_transform_names(data, !!enquo(time))
-  out <- collapse::qDT(out[TRUE])
+  out <- qDT2(out)
   expanded_df <- time_expand(out,
                            !!!enquos(...),
                            time = across(all_of(time_var)),
@@ -292,10 +280,9 @@ time_complete <- function(data, ..., time = NULL, by = NULL, from = NULL, to = N
     out <- merge(out, expanded_df,
                  all = TRUE, by = names(expanded_df), sort = FALSE)
     if (sort){
-      data.table::setorderv(out, cols = c(group_vars, time_var,
+      setorderv2(out, cols = c(group_vars, time_var,
                                           setdiff(names(expanded_df),
-                                                  c(group_vars, time_var))),
-                            na.last = TRUE)
+                                                  c(group_vars, time_var))))
     }
   }
   # Replace NA with fill

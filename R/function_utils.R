@@ -143,7 +143,7 @@ tidy_select_pos <- function(data, ...){
 }
 # Slightly faster dplyr::select, especially when dots are NULL or empty
 select2 <- function(data, ...){
-  collapse::fselect(data, tidy_select_pos(data, !!!enquos(...)))
+  collapse::fselect(data, unname(tidy_select_pos(data, !!!enquos(...))))
 }
 # Basic tidyselect information for further manipulation
 # Includes output and input names which might be useful
@@ -505,27 +505,6 @@ df_reconstruct <- function(data, template){
 nrow2 <- function(data){
   length(attr(data, "row.names"))
 }
-# Returns list of named ... expressions
-# dot_nms <- function(..., fix.names = FALSE){
-#   dot_nms <- purrr::map_chr(substitute(as.list(...))[-1], rlang::expr_deparse)
-#   if (fix.names){
-#     nms_dot_nms <- names(dot_nms)
-#     out_nms <- character(length(dot_nms))
-#     if (length(nms_dot_nms) > 0){
-#       for (i in seq_along(dot_nms)){
-#         if (nms_dot_nms[i] == ""){
-#           out_nms[i] <- dot_nms[i]
-#         } else {
-#           out_nms[i] <- nms_dot_nms[i]
-#         }
-#       }
-#     } else {
-#       out_nms <- unname(dot_nms)
-#     }
-#     names(dot_nms) <- out_nms
-#   }
-#   dot_nms
-# }
 # Faster dot nms
 dot_nms <- function(..., use.names = FALSE){
   unlist(lapply(substitute(as.list(...))[-1L], deparse),
@@ -816,30 +795,29 @@ check_null_dots <- function(...){
 }
 # Wrapper around expand.grid without factors and df coercion
 # Sorting mimics CJ()
-CJ2 <- function(...){
-  nargs <- length(args <- list(...))
-  if (!nargs){
-    return(list())
-  }
-  if (nargs == 1L && is.list(a1 <- args[[1L]]))
-    nargs <- length(args <- a1)
+CJ2 <- function(X){
+  stopifnot(is.list(X))
+  nargs <- length(X)
   if (nargs == 0L){
     return(list())
+  }
+  if (nargs == 1L){
+    return(list(X[[1L]]))
   }
   out <- vector("list", nargs)
   iArgs <- seq_len(nargs)
   rep.fac <- 1L
-  d <- lengths(args, use.names = FALSE)
+  d <- lengths(X, use.names = FALSE)
   orep <- prod(d)
   if (orep == 0L){
     for (i in iArgs){
-      out[[i]] <- args[[i]][FALSE]
+      out[[i]] <- X[[i]][FALSE]
     }
   }
   else {
     for (i in seqv.int(from = nargs, to = 1L, by = -1L)) {
-      x <- args[[i]]
-      nx <- length(x)
+      x <- X[[i]]
+      nx <- length(X[[i]])
       orep <- orep/nx
       x <- x[rep.int(rep.int(seq_len(nx), rep.int(rep.fac, nx)), orep)]
       out[[i]] <- x
@@ -847,4 +825,63 @@ CJ2 <- function(...){
     }
   }
   out
+}
+# CJ2 <- function(...){
+#   nargs <- length(args <- list(...))
+#   if (!nargs){
+#     return(list())
+#   }
+#   if (nargs == 1L && is.list(a1 <- args[[1L]]))
+#     nargs <- length(args <- a1)
+#   if (nargs == 0L){
+#     return(list())
+#   }
+#   out <- vector("list", nargs)
+#   iArgs <- seq_len(nargs)
+#   rep.fac <- 1L
+#   d <- lengths(args, use.names = FALSE)
+#   orep <- prod(d)
+#   if (orep == 0L){
+#     for (i in iArgs){
+#       out[[i]] <- args[[i]][FALSE]
+#     }
+#   }
+#   else {
+#     for (i in seqv.int(from = nargs, to = 1L, by = -1L)) {
+#       x <- args[[i]]
+#       nx <- length(x)
+#       orep <- orep/nx
+#       x <- x[rep.int(rep.int(seq_len(nx), rep.int(rep.fac, nx)), orep)]
+#       out[[i]] <- x
+#       rep.fac <- rep.fac * nx
+#     }
+#   }
+#   out
+# }
+# key and sort with na.last argument
+#
+# When cols = character(0) nothing is changed
+# When cols = NULL the key is removed
+setorderv2 <- function(x, cols, order = 1L, na.last = TRUE){
+  if (length(cols) > 0L){
+    data.table::setorderv(x, cols = cols, order = order, na.last = na.last)
+  }
+}
+setkeyv2 <- function(x, cols, verbose = getOption("datatable.verbose"),
+                     physical = TRUE){
+  if (is.null(cols)){
+    data.table::setkeyv(x, cols = NULL, verbose = verbose, physical = physical)
+  } else {
+    stopifnot(is.character(cols))
+    if (length(cols) > 0L){
+      data.table::setkeyv(x,
+                          cols = cols,
+                          verbose = verbose,
+                          physical = physical)
+    }
+  }
+}
+# Temporary solution until collapse release CRAN version with fix
+qDT2 <- function(X){
+  df_reconstruct(X, data.table::as.data.table(list()))
 }

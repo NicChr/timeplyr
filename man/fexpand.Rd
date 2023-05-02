@@ -9,7 +9,7 @@ fexpand(
   data,
   ...,
   expand_type = c("crossing", "nesting"),
-  sort = TRUE,
+  sort = FALSE,
   .by = NULL,
   keep_class = TRUE,
   log_limit = 8
@@ -31,23 +31,28 @@ fcomplete(
 
 \item{...}{Variables to expand}
 
-\item{expand_type}{Type of expansion to use where "nesting" finds combinations already present in the data
-(exactly the same as using \code{distinct()} but \code{fexpand()} allows new variables to be created on the fly
+\item{expand_type}{Type of expansion to use where "nesting"
+finds combinations already present in the data
+(exactly the same as using \code{distinct()} but \code{fexpand()}
+allows new variables to be created on the fly
 and columns are sorted in the order given.
 "crossing" finds all combinations of values in the group variables.}
 
-\item{sort}{Logical. If \code{TRUE} expanded/completed variables are sorted.}
+\item{sort}{Logical. If \code{TRUE} expanded/completed variables are sorted.
+The default is \code{FALSE}.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
 
-\item{keep_class}{Logical. If \code{TRUE} then the class of the input data is retained.
+\item{keep_class}{Logical.
+If \code{TRUE} then the class of the input data is retained.
 If \code{FALSE}, which is sometimes faster, a \code{data.table} is returned.}
 
 \item{log_limit}{The maximum log10 number of rows that can be expanded.
 Anything exceeding this will throw an error.}
 
-\item{fill}{A named list containing value-name pairs to fill the named implicit missing values.}
+\item{fill}{A named list containing value-name pairs
+to fill the named implicit missing values.}
 }
 \description{
 For un-grouped data \code{fexpand()} is similar in speed to \code{tidyr::expand()}.

@@ -40,15 +40,20 @@
 #'
 #' @param data A data frame
 #' @param ... Variables to expand
-#' @param expand_type Type of expansion to use where "nesting" finds combinations already present in the data
-#' (exactly the same as using `distinct()` but `fexpand()` allows new variables to be created on the fly
+#' @param expand_type Type of expansion to use where "nesting"
+#' finds combinations already present in the data
+#' (exactly the same as using `distinct()` but `fexpand()`
+#' allows new variables to be created on the fly
 #' and columns are sorted in the order given.
 #' "crossing" finds all combinations of values in the group variables.
-#' @param fill A named list containing value-name pairs to fill the named implicit missing values.
+#' @param fill A named list containing value-name pairs
+#' to fill the named implicit missing values.
 #' @param sort Logical. If `TRUE` expanded/completed variables are sorted.
+#' The default is `FALSE`.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
-#' @param keep_class Logical. If `TRUE` then the class of the input data is retained.
+#' @param keep_class Logical.
+#' If `TRUE` then the class of the input data is retained.
 #' If `FALSE`, which is sometimes faster, a `data.table` is returned.
 #' @param log_limit The maximum log10 number of rows that can be expanded.
 #' Anything exceeding this will throw an error.
@@ -104,7 +109,7 @@
 #' @rdname fexpand
 #' @export
 fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
-                     sort = TRUE, .by = NULL,
+                     sort = FALSE, .by = NULL,
                      keep_class = TRUE,
                      log_limit = 8){
   expand_type <- match.arg(expand_type)
@@ -152,7 +157,7 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
       grp_nm <- new_var_nm(out1, ".group.id")
       out1[, (grp_nm) := group_id.default(.SD, order = FALSE),
            .SDcols = group_vars]
-      data.table::setorderv(out1, cols = grp_nm)
+      setorderv2(out1, cols = grp_nm)
       # Add group IDs for each non-group variable
       # This will allow us to calculate final expanded size
       for (i in seq_along(leftover_grp_nms)){
@@ -182,10 +187,6 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
       # out2 <- collapse::collapv(out1, FUN = function(x) list(collapse::funique(x)),
       #                           by = grp_nm,
       #                           cols = group_id_nms)
-      # data.table::setkeyv(out2, cols = grp_nm)
-      # out <- out1[, .Call(Ccj, lapply(.SD, collapse::funique)),
-      #             keyby = grp_nm,
-      #             .SDcols = group_id_nms]
       data.table::setkeyv(out1, cols = grp_nm)
       out2 <- out1[, lapply(.SD, function(x) list(collapse::funique(x))),
                    keyby = grp_nm,
@@ -194,12 +195,15 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
       # out <- out2[, .Call(Ccj, unlist(.SD, recursive = FALSE, use.names = FALSE)),
       #             keyby = grp_nm,
       #             .SDcols = group_id_nms]
-      out <- out2[, do.call(CJ2,
-                            args = unlist(.SD,
-                                          recursive = FALSE,
-                                          use.names = FALSE)),
-                  keyby = grp_nm,
-                  .SDcols = group_id_nms]
+      # out <- out2[, do.call(CJ2,
+      #                       args = unlist(.SD,
+      #                                     recursive = FALSE,
+      #                                     use.names = FALSE)),
+      #             keyby = grp_nm,
+      #             .SDcols = group_id_nms]
+      out <- out2[, CJ2(unlist(.SD, recursive = FALSE, use.names = FALSE)),
+           keyby = grp_nm,
+           .SDcols = group_id_nms]
       data.table::setnames(out, new = c(grp_nm, leftover_grp_nms))
       for (i in seq_along(group_id_nms)){
         out[, (leftover_grp_nms[[i]]) := out1[[leftover_grp_nms[[i]]]][match(out[[leftover_grp_nms[[i]]]],
@@ -210,19 +214,22 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                                                                  out1[[grp_nm]])]]
       }
       out[, (grp_nm) := NULL][]
-      if (sort) data.table::setorderv(out,
-                                      cols = c(group_vars, leftover_grp_nms),
-                                      na.last = TRUE)
+      if (sort){
+        setorderv2(out, cols = c(group_vars, leftover_grp_nms))
+      }
     }
     # If no groups then cross-join everything
     else {
-      out <- crossed_join(summarise_vars, sort = sort, unique = TRUE,
+      out <- crossed_join(summarise_vars, sort = sort,
+                          unique = TRUE,
                           log_limit = log_limit)
     }
   }
   if (length(out_nms) == 0L) out_nms <- NULL
   data.table::setcolorder(out, out_nms)
-  if (keep_class) out <- df_reconstruct(out, data)
+  if (keep_class){
+    out <- df_reconstruct(out, data)
+  }
   out
 }
 # Nested join, recycling newly created variables with data variables
@@ -272,9 +279,7 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
     }
   }
   if (sort){
-    if (length(names(out)) > 0L){
-      data.table::setorderv(out, cols = names(out), na.last = TRUE)
-    }
+    setorderv2(out, cols = names(out))
   }
   out
 }
@@ -292,7 +297,7 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
                          expand_type = expand_type,
                          keep_class = FALSE,
                          log_limit = log_limit)
-  out <- collapse::qDT(data[TRUE])
+  out <- qDT2(data)
   fill_na <- any(!is.na(fill))
   # Full-join
   if (nrow2(expanded_df) > 0 && ncol(expanded_df) > 0){
@@ -300,7 +305,7 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
                  all = TRUE, by = names(expanded_df),
                  allow.cartesian = TRUE, sort = FALSE)
     if (sort){
-      data.table::setorderv(out, cols = names(expanded_df), na.last = TRUE)
+      setorderv2(out, cols = names(expanded_df))
     }
   }
   # Replace NA with fill

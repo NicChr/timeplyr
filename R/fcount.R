@@ -26,7 +26,6 @@
 #'  it'll use `nnn`, and so on, adding `n`s until it gets a new name.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
-#' @param keep_class (Deprecated). This argument is no longer used.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -124,8 +123,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
 #' @rdname fcount
 #' @export
 fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
-                       .by = NULL,
-                       keep_class = TRUE){
+                       .by = NULL){
   n_dots <- dots_length(...)
   out <- safe_ungroup(data)
   if (n_dots > 0){

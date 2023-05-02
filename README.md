@@ -698,11 +698,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2023-W17"
+#> [1] "2023-W18"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W17-7"
+#> [1] "2023-W18-2"
 iso_week(today(), year = FALSE)
-#> [1] "W17"
+#> [1] "W18"
 ```
 
 Helpers like `calendar()`, `create_calendar()` and `add_calendar()` can
@@ -979,16 +979,16 @@ flights %>%
 #> # Groups:   origin [3]
 #>    origin dest  carrier
 #>  * <chr>  <chr> <chr>  
-#>  1 EWR    ALB   9E     
-#>  2 EWR    ALB   AA     
-#>  3 EWR    ALB   AS     
-#>  4 EWR    ALB   B6     
-#>  5 EWR    ALB   DL     
-#>  6 EWR    ALB   EV     
-#>  7 EWR    ALB   MQ     
-#>  8 EWR    ALB   OO     
-#>  9 EWR    ALB   UA     
-#> 10 EWR    ALB   US     
+#>  1 EWR    IAH   UA     
+#>  2 EWR    IAH   B6     
+#>  3 EWR    IAH   AA     
+#>  4 EWR    IAH   MQ     
+#>  5 EWR    IAH   DL     
+#>  6 EWR    IAH   US     
+#>  7 EWR    IAH   EV     
+#>  8 EWR    IAH   AS     
+#>  9 EWR    IAH   WN     
+#> 10 EWR    IAH   9E     
 #> # i 2,606 more rows
 ```
 

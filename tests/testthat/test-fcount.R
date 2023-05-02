@@ -139,12 +139,12 @@ testthat::test_that("Compare to dplyr, add_count", {
   testthat::expect_identical(iris %>%
                                dplyr::mutate(interval = lubridate::interval(
                                  lubridate::today(), lubridate::today())) %>%
-                               fadd_count(keep_class = TRUE),
+                               fadd_count(),
                              iris %>%
                                dplyr::mutate(interval = lubridate::interval(
                                  lubridate::today(), lubridate::today())) %>%
                                dplyr::add_count())
-  testthat::expect_identical(iris %>% fadd_count(keep_class = FALSE),
+  testthat::expect_identical(iris %>% fadd_count(),
                              iris %>%
                                # data.table::as.data.table() %>%
                                dplyr::mutate(n = dplyr::n()))

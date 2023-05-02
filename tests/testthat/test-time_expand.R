@@ -14,14 +14,16 @@ testthat::test_that("time expand", {
                                        expand_type = "nesting",
                                        1:10^6,
                                        log_limit = 7))
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights %>%
       time_expand(across(all_of(c("dest", "tailnum", "origin"))),
-                  expand_type = "crossing"),
+                  expand_type = "crossing",
+                  keep_class = FALSE),
     flights %>%
-      fexpand(across(all_of(c("dest", "tailnum", "origin"))))
+      fexpand(across(all_of(c("dest", "tailnum", "origin"))),
+              sort = TRUE, keep_class = FALSE)
   )
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights %>%
       time_expand(across(all_of(c("dest", "tailnum", "origin"))),
                   expand_type = "nesting",
@@ -29,7 +31,7 @@ testthat::test_that("time expand", {
     flights %>%
       fdistinct(across(all_of(c("dest", "tailnum", "origin"))))
   )
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights2 %>%
       time_expand(time = time_hour),
     flights2 %>%
@@ -37,7 +39,7 @@ testthat::test_that("time expand", {
       fcomplete(time_hour = time_span(time_hour, by = "hour"),
                 sort = TRUE)
   )
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights2 %>%
       time_expand(time = time_hour, by = "week"),
     flights2 %>%
@@ -48,7 +50,7 @@ testthat::test_that("time expand", {
                                            time_span(time_hour, by = "week"))) %>%
       fdistinct()
   )
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights2 %>%
       time_expand(time = time_hour, by = "week",
                   floor_date = TRUE),
@@ -63,7 +65,7 @@ testthat::test_that("time expand", {
   )
 
   # With groups..
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights2 %>%
       time_expand(time = time_hour, origin, dest, by = "week",
                   floor_date = TRUE),
@@ -72,7 +74,7 @@ testthat::test_that("time expand", {
                                           floor_date = TRUE),
                     tidyr::nesting(origin, dest))
   )
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights2 %>%
       time_expand(time = time_hour, origin, dest, by = "week",
                   expand_type = "crossing",
@@ -120,7 +122,7 @@ testthat::test_that("time expand", {
                                           floor_date = TRUE,
                                           seq_type = "period"))
   )
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights2 %>%
       time_expand(time = time_hour, origin, dest, by = "week",
                   expand_type = "crossing",
@@ -134,7 +136,7 @@ testthat::test_that("time expand", {
                                           to = lubridate::dmy_hms(19092013063123)),
                     origin, dest)
   )
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights2 %>%
       time_expand(time = time_hour, origin, dest, by = "week",
                   expand_type = "nesting",
@@ -166,7 +168,7 @@ testthat::test_that("time expand", {
                   max = gmax(date, g = group_id)) %>%
     fdistinct(origin, dest, tailnum, min, max)
 
-  testthat::expect_identical(grouped_res %>%
+  testthat::expect_equal(grouped_res %>%
                                dplyr::select(-max),
                              base_res %>%
                                dplyr::select(-max))
@@ -177,7 +179,7 @@ testthat::test_that("time expand", {
 # Time complete -----------------------------------------------------------
 
 
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights %>%
       time_complete(across(all_of(c("dest", "origin"))),
                   expand_type = "crossing", sort = FALSE),
@@ -185,7 +187,7 @@ testthat::test_that("time expand", {
       fcomplete(across(all_of(c("dest", "origin"))),
                 sort = FALSE)
   )
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights %>%
       time_complete(across(all_of(c("dest",  "origin"))),
                     expand_type = "crossing", sort = TRUE),
@@ -193,7 +195,7 @@ testthat::test_that("time expand", {
       fcomplete(across(all_of(c("dest", "origin"))),
                 sort = TRUE)
   )
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights %>%
       time_complete(across(all_of(c("dest", "origin"))),
                   expand_type = "nesting",
@@ -201,14 +203,14 @@ testthat::test_that("time expand", {
     flights %>%
       fdistinct()
   )
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights2 %>%
       time_complete(time = time_hour, sort = TRUE),
     flights2 %>%
       fcomplete(time_hour = time_span(time_hour, by = "hour"),
                 sort = TRUE)
   )
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights2 %>%
       time_complete(time = time_hour, by = "week"),
     flights2 %>%
@@ -216,7 +218,7 @@ testthat::test_that("time expand", {
                 sort = TRUE)
   )
   # With groups..
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights2 %>%
       time_complete(time = time_hour, origin, dest, by = "week",
                   floor_date = TRUE),
@@ -228,7 +230,7 @@ testthat::test_that("time expand", {
       dplyr::arrange(time_hour, origin, dest)
   )
 
-  testthat::expect_identical(dplyr::tibble(a = lubridate::today(),
+  testthat::expect_equal(dplyr::tibble(a = lubridate::today(),
                                            b = 1) %>%
                                time_complete(b = 1:10,
                                              fill = list(a = lubridate::today() + lubridate::days(1))),

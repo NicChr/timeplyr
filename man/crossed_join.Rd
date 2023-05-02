@@ -41,8 +41,12 @@ It has less overhead for small joins, especially when \code{unique = FALSE} and
 \code{as_dt = FALSE}. \cr
 \code{NA}s are by default sorted last.
 }
+\details{
+An important note is that currently \code{NA}s
+are sorted last and therefore a key is not set.
+}
 \examples{
 library(timeplyr)
-crossed_join(list(1:10, 11:20))
+crossed_join(list(1:3, -2:2))
 crossed_join(iris, sort = TRUE)
 }

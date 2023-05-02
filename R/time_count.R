@@ -190,7 +190,7 @@ time_count <- function(data, ..., time = NULL, by = NULL,
     # ts_data <- farrange(ts_data,
     #                     .by = all_of(c(grp_nm, time_var, extra_group_vars)),
     #                     .by_group = TRUE)
-    data.table::setorderv(ts_data, cols = c(grp_nm, time_var, extra_group_vars))
+    setorderv2(ts_data, cols = c(grp_nm, time_var, extra_group_vars))
     ts_data <- ts_data[data.table::between(get(time_var), get(from_nm), get(to_nm),
                                            incbounds = TRUE, NAbounds = NA), ]
     # Function to determine implicit time units
@@ -254,8 +254,7 @@ time_count <- function(data, ..., time = NULL, by = NULL,
       out <- merge(out, time_expanded,
                    all = TRUE, by = names(time_expanded), sort = FALSE)
       # Order by groups and time (ascending)
-      data.table::setorderv(out, cols = c(grp_nm, time_var, extra_group_vars),
-                            na.last = TRUE)
+      setorderv2(out, cols = c(grp_nm, time_var, extra_group_vars))
       # Replace NA with 0 as these are counts
       data.table::setnafill(out, cols = name, type = "const", fill = 0, nan = NaN)
     }
@@ -280,7 +279,7 @@ time_count <- function(data, ..., time = NULL, by = NULL,
       if (include_interval){
         out <- df_row_slice(out, radix_order(desc(out[[name]])), reconstruct = FALSE)
       } else {
-        data.table::setorderv(out, cols = name, order = -1L, na.last = TRUE)
+        setorderv2(out, cols = name, order = -1L)
       }
     }
     out[[grp_nm]] <- NULL # Remove group ID

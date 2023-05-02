@@ -128,7 +128,7 @@ time_episodes <- function(data, ..., time, window,
   out[, (grp_nm) := group_id(data, across(all_of(extra_groups)),
                              .by = {{ .by }})]
   # Sort by groups > case ID > date col
-  data.table::setorderv(out, cols = c(grp_nm, time_col), na.last = TRUE)
+  setorderv2(out, cols = c(grp_nm, time_col))
   g <- GRP2(out[[grp_nm]], sort = TRUE, call = FALSE, return.groups = FALSE)
   lag <- min(N, 1L) # Bound lag to >= 0
   date_lag_nm <- new_var_nm(names(out), "date_lag")
