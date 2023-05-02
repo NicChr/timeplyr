@@ -850,22 +850,27 @@ has_interval <- function(data, quiet = FALSE){
 # gseq - Integer group ID of seq (ascending order)
 
 # Aggregate x to higher time unit based on seq
-taggregate <- function(x, seq, gx, gseq){
-  data <- data.frame(t = x, g = gx)
-  lookup <- data.frame(seq = seq, g = gseq)
-  by <- dplyr::join_by("g", closest("t" >= "seq"))
-  data %>%
-    dplyr::left_join(lookup, by = by, multiple = "any") %>%
-    dplyr::pull(all_of("seq"))
-}
-# taggregate <- function(x, seq, gx, gseq){
-#   dt1 <- data.table::data.table(g = gx, t = x)
-#   dt2 <- data.table::data.table(g = gseq, t = seq)
-#   dt2[dt1, on = c("g", "t"), roll = "nearest"][["t"]]
-#   # data.table::setkeyv(dt1, cols = names(dt1))
-#   # data.table::setkeyv(dt2, cols = names(dt2))
-#   # dt2[dt1, on = "t", roll = "nearest"][["t"]]
+# taggregate2 <- function(x, seq, gx, gseq){
+#   data <- data.frame(t = x, g = gx)
+#   lookup <- data.frame(seq = seq, g = gseq)
+#   by <- dplyr::join_by("g", closest("t" >= "seq"))
+#   data %>%
+#     dplyr::left_join(lookup, by = by, multiple = "any") %>%
+#     dplyr::pull(all_of("seq"))
 # }
+taggregate <- function(x, seq, gx = NULL, gseq = NULL){
+  dt1 <- data.table::data.table(g = gx, t = x)
+  dt2 <- data.table::data.table(g = gseq, t = seq)
+  data.table::setattr(dt1, "sorted", names(dt1))
+  data.table::setattr(dt2, "sorted", names(dt2))
+  # setkeyv2(dt1, cols = names(dt1))
+  # setkeyv2(dt2, cols = names(dt2))
+  dt1[dt2, ("tagg") := .SD, .SDcols = "t", mult = "first",
+      roll = -Inf, on = names(dt1)]
+  # dt1[dt2, ("tagg") := .SD, .SDcols = "t", mult = "first", on = .(g, t >= t)]
+  data.table::setnafill(dt1, cols = "tagg", type = "locf")
+  dt1[["tagg"]]
+}
 
 # Convert time sequence to interval
 tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
@@ -877,14 +882,14 @@ tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
   out
 }
 # Interval from x, aggregate x, and seq
-tagg_interval <- function(xagg, x, seq, gx = NULL, gseq = NULL){
+tagg_interval <- function(xagg, x, seq, gagg = NULL, gx = NULL, gseq = NULL){
   int <- tseq_interval(x = x, seq = seq, gx = gx, gseq = gseq)
-  x_df <- dplyr::tibble(t = xagg,
-                        g = gx)
+  agg_df <- dplyr::tibble(t = xagg,
+                          g = gagg)
   int_df <- dplyr::tibble(t = seq,
                           g = gseq,
                           interval = int)
-  x_df %>%
+  agg_df %>%
     dplyr::left_join(int_df, by = c("g", "t"),
                      multiple = "any") %>%
     dplyr::pull(all_of("interval"))

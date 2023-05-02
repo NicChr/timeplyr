@@ -6,9 +6,9 @@ testthat::test_that("Test desc/asc", {
                                   origin, dest,
                                   desc(time_hour),
                                   asc(arr_time)),
-                         dplyr::arrange(flights, asc(flight),
+                         dplyr::arrange(flights, flight,
                                   desc(tailnum),
                                   origin, dest,
                                   desc(time_hour),
-                                  asc(arr_time)))
+                                  arr_time))
 })

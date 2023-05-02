@@ -263,9 +263,19 @@ time_count <- function(data, ..., time = NULL, by = NULL,
       message("data.table converted to tibble as data.table cannot include interval class")
 
       int_nm <- new_var_nm(out, "interval")
-      out[[int_nm]] <- tseq_interval(time, time_expanded[[time_var]],
-                                     gx = ts_data[[grp_nm]],
-                                     gseq = time_expanded[[grp_nm]])
+      if (!aggregate && complete){
+        out[[int_nm]] <- tseq_interval(out[[time_var]],
+                                       time_expanded[[time_var]],
+                                       gx = out[[grp_nm]],
+                                       gseq = time_expanded[[grp_nm]])
+      } else {
+        out[[int_nm]] <- tagg_interval(x = time,
+                                       xagg = out[[time_var]],
+                                       seq = time_expanded[[time_var]],
+                                       gagg = out[[grp_nm]],
+                                       gx = ts_data[[grp_nm]],
+                                       gseq = time_expanded[[grp_nm]])
+      }
     } else {
      int_nm <- character(0)
     }

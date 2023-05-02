@@ -146,8 +146,10 @@ time_mutate <- function(data, ..., time = NULL, by = NULL,
           message("data.table converted to tibble as data.table cannot include interval class")
         }
         int_nm <- new_var_nm(names(data), "interval")
-        data[[int_nm]] <- tagg_interval(x = time, xagg = data[[time_var]],
-                                        time_expanded[[time_var]],
+        data[[int_nm]] <- tagg_interval(x = time,
+                                        xagg = data[[time_var]],
+                                        seq = time_expanded[[time_var]],
+                                        gagg = data[[grp_nm]],
                                         gx = data[[grp_nm]],
                                         gseq = time_expanded[[grp_nm]])
         # data[[int_nm]] <- tagg_interval(data[[time_var]], time_expanded[[time_var]],
