@@ -9,8 +9,7 @@ gunique(x, g = NULL, sort = FALSE)
 \arguments{
 \item{x}{A vector or data frame.}
 
-\item{g}{Group IDs passed directly to \code{collapse::GRP()}.
-This can be a vector, list or data frame.}
+\item{g}{Group IDs passed directly to \code{collapse::GRP()}.}
 
 \item{sort}{Should unique values be sorted?
 The default is \code{FALSE}.}

@@ -81,11 +81,11 @@ time_mutate <- function(data, ..., time = NULL, by = NULL,
                         roll_month = "preday", roll_dst = "pre",
                         sort = FALSE){
   group_vars <- get_groups(data, {{ .by }})
-  data <- dplyr::mutate(data,
-                       !!enquo(time),
-                       !!enquo(from),
-                       !!enquo(to),
-                       .by = {{ .by }})
+  data <- mutate2(data,
+                  !!enquo(time),
+                  !!enquo(from),
+                  !!enquo(to),
+                  .by = {{ .by }})
   time_var <- tidy_transform_names(data, !!enquo(time))
   from_var <- tidy_transform_names(data, !!enquo(from))
   to_var <- tidy_transform_names(data, !!enquo(to))
@@ -152,9 +152,6 @@ time_mutate <- function(data, ..., time = NULL, by = NULL,
                                         gagg = data[[grp_nm]],
                                         gx = data[[grp_nm]],
                                         gseq = time_expanded[[grp_nm]])
-        # data[[int_nm]] <- tagg_interval(data[[time_var]], time_expanded[[time_var]],
-        #                                gx = data[[grp_nm]],
-        #                                gseq = time_expanded[[grp_nm]])
       }
     }
   }

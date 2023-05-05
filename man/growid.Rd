@@ -38,7 +38,8 @@ long as the number of unique lengths is \verb{<= 1}.
 For a more  tidyverse friendly version for data frames, see \code{?row_id}.
 }
 \details{
-\code{gseq_len()}is the same but accepts similar arguments to \code{seq_len()} with
+\code{gseq_len()}is the same as \code{growid()}
+but accepts similar arguments to \code{seq_len()} with
 an additional group argument. \cr
 Both produce the same thing, namely a running integer sequence for
 each group that increments by 1 and starts at 1. \cr
@@ -62,8 +63,10 @@ growid(flights) > 1
 growid(flights$year, g = NULL)
 
 # Comparison to rowidv()
-all.equal(rowidv(flights),
-          growid(flights))
+\dontrun{
+  bench::mark(rowidv(flights),
+              growid(flights))
+}
 
 # Comparison to dplyr
 flights \%>\%

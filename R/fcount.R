@@ -56,7 +56,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   n_dots <- dots_length(...)
   out <- safe_ungroup(data)
   if (n_dots > 0){
-    out <- dplyr::mutate(out, ...)
+    out <- mutate2(out, ...)
   }
   # Weights
   if (!rlang::quo_is_null(enquo(wt))){
@@ -127,7 +127,7 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   n_dots <- dots_length(...)
   out <- safe_ungroup(data)
   if (n_dots > 0){
-    out <- dplyr::mutate(out, ...)
+    out <- mutate2(out, ...)
   }
   ncol1 <- ncol(out)
   out <- dplyr::mutate(out, !!enquo(wt))

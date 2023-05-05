@@ -21,26 +21,27 @@
 #' variables.
 #' @export
 farrange <- function(data, ..., .by = NULL, .by_group = FALSE){
+  n_dots <- dots_length(...)
   group_vars <- get_groups(data, .by = {{ .by }})
-  if ( ( length(group_vars) + dots_length(...) ) == 0){
+  if ( ( length(group_vars) + n_dots ) == 0){
     data
   } else {
-    # Ungrouped mutate
-    out <- dplyr::mutate(safe_ungroup(data),
-                         across(all_of(group_vars)), ...,
-                         .keep = "none")
-    if (.by_group){
-      group_info <- get_group_info(data, ...,
-                                   type = "data-mask",
-                                   .by = {{ .by }})
-      order_vars <- group_info[["all_groups"]]
-    } else {
-      group_info <- get_group_info(safe_ungroup(data), ...,
-                                   type = "data-mask",
-                                   .by = NULL)
-      order_vars <- group_info[["extra_groups"]]
+    out <- safe_ungroup(data)
+    if (n_dots > 0){
+      # Ungrouped mutate
+      out <- mutate2(out, ...)
+      dot_vars <- tidy_transform_names(data, ...)
     }
-    df_row_slice(data, group_order.default(collapse::fselect(out, order_vars)),
-                 reconstruct = FALSE)
+    if (.by_group){
+      order_vars <- c(group_vars, dot_vars)
+    } else {
+      order_vars <- dot_vars
+    }
+    gorder <- group_order.default(collapse::fselect(out, order_vars))
+    if (is_strictly_increasing(gorder)){
+      data
+    } else {
+      df_row_slice(data, gorder, reconstruct = FALSE)
+    }
   }
 }

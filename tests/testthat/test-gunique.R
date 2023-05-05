@@ -19,6 +19,12 @@ testthat::expect_equal(gunique(x, g = g),
 #                        dplyr::distinct(dplyr::select(iris)))
 testthat::expect_equal(flights,
                        gunique(flights))
+# testthat::expect_error(flights %>%
+#                          dplyr::select(year, month, day) %>%
+#                          gunique(g = g1))
+# testthat::expect_error(flights %>%
+#                          dplyr::select(year, month, day) %>%
+#                          gunique(g = g2))
 testthat::expect_equal(flights %>%
                          dplyr::mutate(g1) %>%
                          dplyr::group_by(g1) %>%
@@ -37,5 +43,4 @@ testthat::expect_equal(flights %>%
                        flights %>%
                          dplyr::select(year, month, day) %>%
                          gunique(g = g2))
-
 })

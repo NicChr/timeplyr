@@ -3,6 +3,10 @@
 frequencies <- function(x){
   collapse::GRPN(x, expand = TRUE)
 }
+
+is_strictly_increasing <- function(x){
+  isTRUE(all(x == cummax(x)))
+}
 # Cumulative group sizes
 # grp_sizes_cumulative <- function(x){
 #   grp <- collapse::group(x, group.sizes = TRUE)
@@ -65,7 +69,7 @@ lump_categories <- function(x, n = 10, factor = TRUE,
 }
 # Memory efficient n unique
 n_unique <- function(x, na.rm = FALSE){
-  if (lubridate::is.interval(x)){
+  if (is_interval(x)){
     dplyr::n_distinct(x, na.rm = na.rm)
   } else {
     collapse::fndistinct(x, na.rm = na.rm)
@@ -110,14 +114,6 @@ tidy_transform_names <- function(data, ...){
 tidy_transform_names2 <- function(data, ...){
   names(dplyr::transmute(data, ...))
 }
-# Updated version of transmute using mutate
-transmute2 <- function(data, ..., .by = NULL){
-  group_vars <- get_groups(data, .by = {{ .by }})
-  out <- dplyr::mutate(data, ...,
-                       .by = {{ .by }}, .keep = "none")
-  out_nms <- tidy_transform_names(data, ...)
-  dplyr::select(out, all_of(c(group_vars, out_nms)))
-}
 
 # Select variables utilising tidyselect notation
 tidy_select_names <- function(data, ...){
@@ -135,6 +131,85 @@ tidy_select_pos <- function(data, ...){
 select2 <- function(data, ...){
   collapse::fselect(data, unname(tidy_select_pos(data, ...)))
 }
+# Updated version of transmute using mutate
+transmute2 <- function(data, ..., .by = NULL){
+  group_vars <- get_groups(data, .by = {{ .by }})
+  out <- dplyr::mutate(data, ...,
+                       .by = {{ .by }}, .keep = "none")
+  out_nms <- tidy_transform_names(data, ...)
+  dplyr::select(out, all_of(c(group_vars, out_nms)))
+}
+# mutate with a special case when all expressions are just selected columns.
+# mutate2 <- dplyr::mutate
+mutate2 <- function(data, ..., .by = NULL,
+                    .keep = c("all", "used", "unused", "none"),
+                    .before = NULL,
+                    .after = NULL){
+  dots <- enquos(...)
+  dot_nms <- names(dots)
+  nes <- nzchar(dot_nms) # Non-empty string
+  before_quo <- enquo(.before)
+  after_quo <- enquo(.after)
+  .keep <- match.arg(.keep)
+  quos_info <- quos_expr_info(dots, data)
+  expr_is_null <- quos_info[["is_null"]]
+  if (any(expr_is_null) > 0){
+    dots <- dots[!expr_is_null]
+  }
+  if (length(dots) == 0L || (
+    !any(nes) &&
+    all(quos_info[["is_identity"]]) &&
+    .keep == "all" &&
+    rlang::quo_is_null(before_quo) &&
+    rlang::quo_is_null(after_quo))){
+    data
+  } else {
+    dplyr::mutate(data, !!!dots, .keep = .keep,
+                  .before = !!before_quo,
+                  .after = !!after_quo,
+                  .by = {{ .by }})
+  }
+}
+# mutate2 <- function(data, ..., .by = NULL,
+#                     .keep = c("all", "used", "unused", "none"),
+#                     .before = NULL,
+#                     .after = NULL){
+#   dots <- enquos(...)
+#   dot_nms <- names(dots)
+#   nes <- nzchar(dot_nms) # Non-empty string
+#   before_quo <- enquo(.before)
+#   after_quo <- enquo(.after)
+#   .keep <- match.arg(.keep)
+#   # Identity vars
+#   expr_text <- setnames(character(length(dots)), dot_nms)
+#   is_null <- setnames(logical(length(dots)), dot_nms)
+#   for (i in seq_along(dots)){
+#     expr_text[[i]] <- rlang::expr_name(rlang::quo_get_expr(dots[[i]]))
+#     is_null[[i]] <- rlang::quo_is_null(dots[[i]])
+#   }
+#   is_null <- is_null & names(is_null) == ""
+#   dots <- dots[!is_null]
+#   # quo_nms <- vapply(dots, function(x) rlang::expr_name(rlang::quo_get_expr(x)),
+#   #                   character(1))
+#   # # Null expressions
+#   # dots_is_null <- vapply(dots, rlang::quo_is_null, logical(1))
+#   # dots_is_null <- dots_is_null & names(dots_is_null) == ""
+#   # dots <- dots[!dots_is_null]
+#   dots_identity <- expr_text %in% names(data)
+#   if (length(dots) == 0L || (
+#     all(dots_identity) &&
+#     .keep == "all" &&
+#     rlang::quo_is_null(before_quo) &&
+#     rlang::quo_is_null(after_quo) &&
+#     !any(nes))){
+#     data
+#   } else {
+#     dplyr::mutate(data, !!!dots, .keep = .keep,
+#                   .before = !!before_quo,
+#                   .after = !!after_quo,
+#                   .by = {{ .by }})
+#   }
+# }
 # Basic tidyselect information for further manipulation
 # Includes output and input names which might be useful
 tidy_select_info <- function(data, ...){
@@ -399,7 +474,9 @@ get_groups <- function(data, .by = NULL){
     by_groups <- tidy_select_names(data, {{ .by }})
   }
   if (length(by_groups) > 0L){
-    if (length(dplyr_groups) > 0L) stop(".by cannot be used on a grouped_df")
+    if (length(dplyr_groups) > 0L){
+      stop(".by cannot be used on a grouped_df")
+    }
     by_groups
   } else {
     dplyr_groups
@@ -639,9 +716,9 @@ radix_sort <- function(x, na.last = TRUE, ...){
 # This is used primarily for sums
 seq_ones <- function(length){
   if (length <= .Machine$integer.max){
-    rep_len(1L, length)
+    alloc(1L, length)
   } else {
-    rep_len(1, length)
+    alloc(1, length)
   }
 }
 # Drop leading zeroes
@@ -657,7 +734,8 @@ sample2 <- function(x, size = length(x), replace = FALSE, prob = NULL){
 }
 
 setv <- getFromNamespace("setv", "collapse")
-
+alloc <- getFromNamespace("alloc", "collapse")
+fcumsum <- getFromNamespace("fcumsum", "collapse")
 # Some future utils for counts and weights..
 # wt_fun <- function(wt){
 #   rlang::expr(sum(!!enquo(wt), na.rm = TRUE))
@@ -692,7 +770,6 @@ df_row_slice <- function(data, i, reconstruct = TRUE){
   } else {
     vctrs::vec_slice(data, i)
   }
-
 }
 # Vctrs version of utils::head/tail
 vec_head <- function(x, n = 1L){
@@ -714,16 +791,6 @@ vec_tail <- function(x, n = 1L){
     size <- max(0L, N + n)
   }
   vctrs::vec_slice(x, seq.int(from = N - size + 1L, by = 1L, length.out = size))
-}
-getFromNamespace <- function(x, ns, pos = -1, envir = as.environment(pos)){
-  if (missing(ns)) {
-    nm <- attr(envir, "name", exact = TRUE)
-    if (is.null(nm) || !startsWith(nm, "package:"))
-      stop("environment specified is not a package")
-    ns <- asNamespace(substring(nm, 9L))
-  }
-  else ns <- asNamespace(ns)
-  get(x, envir = ns, inherits = FALSE)
 }
 # Returns the length or nrows (if list or df)
 vec_length <- function(x){
@@ -755,6 +822,16 @@ vec_width <- function(x){
   }
   out
 }
+getFromNamespace <- function(x, ns, pos = -1, envir = as.environment(pos)){
+  if (missing(ns)) {
+    nm <- attr(envir, "name", exact = TRUE)
+    if (is.null(nm) || !startsWith(nm, "package:"))
+      stop("environment specified is not a package")
+    ns <- asNamespace(substring(nm, 9L))
+  }
+  else ns <- asNamespace(ns)
+  get(x, envir = ns, inherits = FALSE)
+}
 # Checks whether dots are empty or contain NULL
 # Returns TRUE if so, otherwise FALSE
 # Used primarily to speed up dplyr::select()
@@ -762,7 +839,8 @@ check_null_dots <- function(...){
   squashed_quos <- rlang::quo_squash(enquos(...))
   length(squashed_quos) == 0L ||
     (length(squashed_quos) == 1L &&
-       is.null(rlang::quo_get_expr(squashed_quos[[1L]])))
+       rlang::quo_is_null(squashed_quos[[1L]]))
+       # is.null(rlang::quo_get_expr(squashed_quos[[1L]])))
 }
 # Wrapper around expand.grid without factors and df coercion
 # Sorting mimics CJ()
@@ -786,7 +864,7 @@ CJ2 <- function(X){
     }
   }
   else {
-    for (i in seqv.int(from = nargs, to = 1L, by = -1L)) {
+    for (i in seq.int(from = nargs, to = 1L, by = -1L)) {
       x <- X[[i]]
       nx <- length(X[[i]])
       orep <- orep/nx
@@ -797,38 +875,6 @@ CJ2 <- function(X){
   }
   out
 }
-# CJ2 <- function(...){
-#   nargs <- length(args <- list(...))
-#   if (!nargs){
-#     return(list())
-#   }
-#   if (nargs == 1L && is.list(a1 <- args[[1L]]))
-#     nargs <- length(args <- a1)
-#   if (nargs == 0L){
-#     return(list())
-#   }
-#   out <- vector("list", nargs)
-#   iArgs <- seq_len(nargs)
-#   rep.fac <- 1L
-#   d <- lengths(args, use.names = FALSE)
-#   orep <- prod(d)
-#   if (orep == 0L){
-#     for (i in iArgs){
-#       out[[i]] <- args[[i]][FALSE]
-#     }
-#   }
-#   else {
-#     for (i in seqv.int(from = nargs, to = 1L, by = -1L)) {
-#       x <- args[[i]]
-#       nx <- length(x)
-#       orep <- orep/nx
-#       x <- x[rep.int(rep.int(seq_len(nx), rep.int(rep.fac, nx)), orep)]
-#       out[[i]] <- x
-#       rep.fac <- rep.fac * nx
-#     }
-#   }
-#   out
-# }
 # key and sort with na.last argument
 #
 # When cols = character(0) nothing is changed
@@ -856,3 +902,48 @@ setkeyv2 <- function(x, cols, verbose = getOption("datatable.verbose"),
 qDT2 <- function(X){
   df_reconstruct(X, data.table::as.data.table(list()))
 }
+# exprs that are identity expressions
+# identity_quos <- function(data, ...){
+#   quo_list <- rlang::eval_tidy(enquos(...), data)
+#   # Special case when identity function is used
+#   # quo_nms <- vapply(quo_list, rlang::as_label, character(1))
+#   quo_data_pos <- which(quos_is_identity(quo_list, data))
+#   # which_across <- which(stringr::str_detect(quo_nms, "^across\\(|^dplyr::across\\("))
+#   # across_quo_nms <- quo_nms[which_across]
+#   # across_removed <- stringr::str_remove_all(across_quo_nms, "^across\\(|\\){1}$")
+#   quo_list[quo_data_pos]
+# }
+# quos_is_identity <- function(quos, data){
+#   # quo_nms <- vapply(quos, rlang::as_label, character(1))
+#   quo_nms <- vapply(dots, function(x) rlang::expr_name(rlang::quo_get_expr(x)),
+#          character(1))
+#   quo_nms %in% names(data)
+# }
+quos_expr_info <- function(quos, data){
+  quo_nms <- names(quos)
+  expr_text <- setnames(character(length(quos)), quo_nms)
+  expr_is_null <- setnames(logical(length(quos)), quo_nms)
+  for (i in seq_along(quos)){
+    expr_text[[i]] <- rlang::expr_name(rlang::quo_get_expr(quos[[i]]))
+    expr_is_null[[i]] <- rlang::quo_is_null(quos[[i]])
+  }
+  expr_is_identity <- expr_text %in% names(data) & names(expr_is_null) == ""
+  list(text = expr_text,
+       is_null = expr_is_null,
+       is_identity = expr_is_identity)
+
+}
+# Somewhat safer check of the .by arg
+# e.g mutate(group_by(iris, Species), .by = any_of("okay"))
+# Should not produce an error with this check
+check_by <- function(data, .by){
+  if (!rlang::quo_is_null(enquo(.by))){
+    if (inherits(data, "grouped_df")){
+      by_nms <- tidy_select_names(data, {{ .by }})
+      if (length(by_nms) > 0L){
+        stop(".by cannot be used on a grouped_df")
+      }
+    }
+  }
+}
+

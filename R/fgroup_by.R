@@ -23,7 +23,7 @@ fgroup_by <- function(data, ..., .add = FALSE,
   init_group_vars <- group_vars(data)
   data <- safe_ungroup(data)
   if (n_dots > 0){
-    data <- dplyr::mutate(data, ...)
+    data <- mutate2(data, ...)
   }
   group_info <- get_group_info(data, ...,
                                .by = {{ .by }},
@@ -37,10 +37,10 @@ fgroup_by <- function(data, ..., .add = FALSE,
   }
   group_data <- group_collapse(data, .by = all_of(groups),
                                order = order,
+                               id = FALSE,
                                loc = TRUE, sort = TRUE,
                                size = FALSE,
                                start = FALSE, end = FALSE)
-  group_data[[".group"]] <- NULL
   names(group_data)[names(group_data) == ".loc"] <- ".rows"
   attr(data, "groups") <- group_data
   attr(attr(data, "groups"), ".drop") <- .drop

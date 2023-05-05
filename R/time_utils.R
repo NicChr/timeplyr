@@ -264,10 +264,15 @@ seconds_to_unit <- function(x){
 }
 # No string guessing at all
 guess_seq_type <- function(units){
-  if (units %in% c("days", "weeks", "months", "years")){
+  if (units %in% c("days", "weeks", "months", "years",
+                   .extra_time_units)){
     "period"
-  } else {
+  } else if (units %in% c("picoseconds", "nanoseconds",
+                          "microseconds", "milliseconds",
+                          "seconds", "minutes", "hours")){
     "duration"
+  } else {
+   "numeric"
   }
 }
 # date_formats_to_try <- c("%Y-%m-%d", "%Y/%m/%d", "%Y%m%d",
@@ -981,4 +986,20 @@ get_from_to <- function(data, ..., time, from = NULL, to = NULL,
   }
   list(.from = .from,
        .to = .to)
+}
+time_add2 <- function(x, y, type, roll_month = "preday", roll_dst = "pre"){
+  unit_info <- unit_guess(y)
+  units <- unit_info[["unit"]]
+  num <- unit_info[["num"]]
+  scale <- unit_info[["scale"]]
+  num <- num * scale
+  if (type == "period"){
+    unit <- substr(units, 1L, nchar(units) -1L)
+    time_add(x, periods = setnames(list(num), unit),
+             roll_month = roll_month, roll_dst = roll_dst)
+  } else if (type == "duration"){
+    x + duration_unit(units)(num)
+  } else {
+   x + y
+  }
 }

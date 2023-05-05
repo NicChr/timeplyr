@@ -125,8 +125,7 @@ get_time_delay <- function(data, origin, end, by = "day",
                   .keep = "none")
   start_time <- tidy_transform_names(data, !!enquo(origin))
   end_time <- tidy_transform_names(data, !!enquo(end))
-  out <- data.table::copy(out)
-  data.table::setDT(out)
+  out <- qDT2(out)
   grp_nm <- new_var_nm(out, ".group.id")
   out[, (grp_nm) := group_id(data, .by = {{ .by }})]
   set_rm_cols(out, setdiff(names(out),
@@ -142,7 +141,7 @@ get_time_delay <- function(data, origin, end, by = "day",
   out[, (delay_nm) := time_diff(get(start_time), get(end_time),
                                     by = setnames(list(by_n), by_unit),
                                     type = "duration")]
-  n_miss_delays <- sum(is.na(out[[delay_nm]]))
+  n_miss_delays <- collapse::fnobs(out[[delay_nm]])
   if (n_miss_delays > 0){
     warning(paste(n_miss_delays, "missing observations will be
                   removed before calculation.",

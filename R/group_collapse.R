@@ -137,7 +137,7 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
                                       start = TRUE, end = TRUE){
   # Use mutate if dots contain expressions
   if (dots_length(...) > 0){
-    data <- dplyr::mutate(data, ...)
+    data <- mutate2(data, ...)
   }
   vars <- get_group_info(data, ...,
                          type = "data-mask",
@@ -186,21 +186,20 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
                                       # loc_order = TRUE,
                                       start = TRUE, end = TRUE){
   n_dots <- dots_length(...)
+  group_vars <- dplyr::group_vars(data)
+  # Error checking on .by
+  check_by(data, .by = {{ .by }})
   # Special conditions where if met,
   # we can use dplyr grouping structure
-  if (n_dots == 0 &&
-      rlang::quo_is_null(enquo(.by)) &&
-      sort &&
-      order &&
-      ascending){
+  if (n_dots == 0 && order && ascending && sort){
     out <- dplyr::group_data(data)
     out_nms <- names(out)
     names(out)[out_nms == ".rows"] <- ".loc"
     if (id){
       out[[".group"]] <- seq_len(nrow2(out))
+      ncol <- ncol(out)
+      out <- out[, c(seq_len(ncol - 2L), ncol, ncol - 1L), drop = FALSE]
     }
-    ncol <- ncol(out)
-    out <- out[, c(seq_len(ncol - 2L), ncol, ncol - 1L), drop = FALSE]
     if (start){
       out[[".start"]] <- collapse::fmin(out[[".loc"]],
                                         use.g.names = FALSE, na.rm = FALSE)
@@ -223,17 +222,13 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
     # }
   } else {
     # Use mutate if dots contain expressions
+    data <- safe_ungroup(data)
     if (n_dots > 0){
-      data <- df_reconstruct(
-        dplyr::mutate(
-          safe_ungroup(data), ...
-        ), data
-      )
+      data <- mutate2(data, ...)
+      dot_vars <- tidy_transform_names(data, ...)
+      group_vars <- c(group_vars, dot_vars)
     }
-    vars <- get_group_info(data, ...,
-                           type = "data-mask",
-                           .by = {{ .by }})[["all_groups"]]
-    out <- group_collapse(safe_ungroup(data), .by = all_of(vars),
+    out <- group_collapse(data, .by = all_of(group_vars),
                           order = order, sort = sort,
                           id = id,
                           size = size, loc = loc,

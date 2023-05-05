@@ -105,7 +105,7 @@ group_id.default <- function(data, ..., order = TRUE,
     out <- group2(data)
   }
   if (as_qg && order){
-    out <- qG2(out, sort = TRUE, ordered = order, na.exclude = FALSE)
+    out <- qG2(out, sort = TRUE, ordered = FALSE, na.exclude = FALSE)
   }
   if (!as_qg && !order){
     out <- as.integer(out)
@@ -117,7 +117,7 @@ group_id.Interval <- function(data, ..., order = TRUE, ascending = TRUE, as_qg =
   out <- GRP.Interval(data, sort = order, decreasing = !ascending,
                       call = FALSE, return.groups = FALSE)[["group.id"]]
   if (as_qg){
-    out <- qG2(out, sort = order, ordered = order, na.exclude = FALSE)
+    out <- qG2(out, sort = order, ordered = FALSE, na.exclude = FALSE)
   }
   out
 }
@@ -128,52 +128,61 @@ group_id.data.frame <- function(data, ...,
                                 .by = NULL,
                                 as_qg = FALSE){
   N <- nrow2(data)
-  group_vars <- group_vars(data)
-  by_vars <- tidy_select_names(data, {{ .by }})
-  if (dots_length(...) > 0){
-    data <- df_reconstruct(
-      dplyr::mutate(
-        safe_ungroup(data), ...
-      ), data
-    )
-    dot_vars <- tidy_transform_names(data, ...)
+  n_dots <- dots_length(...)
+  if (n_dots > 0){
+    data <- mutate2(data, ...)
+  }
+  group_info <- get_group_info(data, ...,
+                               type = "data-mask",
+                               .by = {{ .by }})
+  all_groups <- group_info[["all_groups"]]
+  data <- collapse::fselect(data, all_groups)
+  # Usual Method for when data does not contain interval
+  if (length(all_groups) == 0L){
+    out <- alloc(1L, N)
+    # Method for grouped_df
   } else {
-    dot_vars <- character(0)
+    out <- GRP2(data,
+                sort = order,
+                decreasing = !ascending,
+                na.last = TRUE,
+                return.groups = FALSE,
+                return.order = FALSE,
+                method = "auto",
+                call = FALSE)[["group.id"]]
   }
-  if (length(by_vars) > 0L){
-    if (length(group_vars) > 0L){
-      stop(".by cannot be used on a grouped_df")
-    }
-  }
-  data <- collapse::fselect(data, c(group_vars, by_vars, dot_vars))
-  # by and group vars cannot both be supplied (unless .overwrite = TRUE)
-  needs_regrouping <- !isTRUE(order &&
-                                ascending &&
-                                length(group_vars) > 0L &&
-                                length(by_vars) == 0L &&
-                                length(dot_vars) == 0L)
-    # Usual Method for when data does not contain interval
-    if (length(group_vars) == 0L &&
-        length(dot_vars) == 0L &&
-        length(by_vars) == 0L){
-      out <- rep_len(1L, N)
-      # Method for grouped_df
-    } else if (!needs_regrouping){
-      out <- dplyr::group_indices(data)
-    } else {
-      out <- GRP2(safe_ungroup(data),
-                  sort = order,
-                  decreasing = !ascending,
-                  na.last = TRUE,
-                  return.groups = FALSE,
-                  return.order = FALSE,
-                  method = "auto",
-                  call = FALSE)[["group.id"]]
-    }
   if (as_qg){
-    out <- qG2(out, sort = order, ordered = order, na.exclude = FALSE)
+    out <- qG2(out, sort = order, ordered = FALSE, na.exclude = FALSE)
+  }
+  out
+}
+#' @export
+group_id.grouped_df <- function(data, ...,
+                                order = TRUE,
+                                ascending = TRUE,
+                                .by = NULL,
+                                as_qg = FALSE){
+  n_dots <- dots_length(...)
+  group_vars <- dplyr::group_vars(data)
+  # Error checking on .by
+  check_by(data, .by = {{ .by }})
+  if (n_dots == 0 && order && ascending){
+    out <- dplyr::group_indices(data)
+    if (as_qg){
+      out <- structure(out,
+                       "N.groups" = n_unique(out),
+                       "class" = c("qG", "na.included"))
+    }
   } else {
-    out <- as.integer(out)
+    data <- safe_ungroup(data)
+    if (n_dots > 0){
+      data <- mutate2(data, ...)
+      dot_vars <- tidy_transform_names(data, ...)
+      group_vars <- c(group_vars, dot_vars)
+    }
+    out <- group_id(data, .by = all_of(group_vars),
+                    order = order, ascending = ascending,
+                    as_qg = as_qg)
   }
   out
 }
@@ -215,7 +224,7 @@ row_id.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
   # Use mutate if dots contain expressions
   if (dots_length(...) > 0){
     data <- df_reconstruct(
-      dplyr::mutate(
+      mutate2(
         safe_ungroup(data), ...
       ), data
     )
@@ -250,9 +259,9 @@ group_order <- function(data, ..., ascending = TRUE, .by = NULL){
 }
 #' @export
 group_order.default <- function(data, ..., ascending = TRUE, .by = NULL){
-  as.integer(collapse::radixorderv(data, decreasing = !ascending,
-                                   na.last = TRUE, starts = FALSE,
-                                   group.sizes = FALSE, sort = TRUE))
+  as.integer(radixorderv2(data, decreasing = !ascending,
+                          na.last = TRUE, starts = FALSE,
+                          group.sizes = FALSE, sort = TRUE))
   # Alternate method
   # g <- GRP2(safe_ungroup(data),
   #           sort = TRUE,
@@ -263,10 +272,14 @@ group_order.default <- function(data, ..., ascending = TRUE, .by = NULL){
   #           method = "auto",
   #           call = FALSE)
   # out <- g[["order"]]
-  # if (is.null(out)){
-  #   out <- radix_order(g[["group.id"]])
+  # for (a in names(attributes(out))){
+  #   attr(out, a) <- NULL
   # }
-  # as.integer(out)
+  # if (is.null(out)){
+  #   radix_order(g[["group.id"]])
+  # } else {
+  #  out
+  # }
 }
 #' @export
 group_order.Interval <- function(data, ..., ascending = TRUE, .by = NULL){
@@ -279,7 +292,7 @@ group_order.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
   # Use mutate if dots contain expressions
   if (dots_length(...) > 0){
     data <- df_reconstruct(
-      dplyr::mutate(
+      mutate2(
         safe_ungroup(data), ...
       ), data
     )
@@ -290,12 +303,6 @@ group_order.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
   if (length(vars) == 0L){
     out <- seq_len(nrow2(data))
   } else {
-    if (has_interval(data, quiet = TRUE)){
-      which_int <- which(vapply(data, FUN = is_interval, FUN.VALUE = logical(1)))
-      for (i in seq_along(which_int)){
-        data[[which_int[[i]]]] <- group_id.Interval(data[[which_int[[i]]]])
-      }
-    }
     out <- group_order.default(collapse::fselect(data, vars),
                                ascending = ascending)
     # Alternate method
@@ -319,22 +326,46 @@ add_group_order <- function(data, ..., ascending = TRUE, .by = NULL, .name = NUL
                                           ascending = ascending)
   data
 }
+group_sort <- function(data, ..., ascending = TRUE, .by = NULL){
+  UseMethod("group_sort")
+}
+group_sort.default <- function(data, ..., ascending = TRUE, .by = NULL){
+  gorder <- group_order.default(data, ascending = ascending)
+  if (is_strictly_increasing(gorder)){
+    data
+  } else {
+    vctrs::vec_slice(data, gorder)
+  }
+}
+group_sort.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
+  n_dots <- dots_length(...)
+  out <- safe_ungroup(data)
+  group_vars <- get_groups(data, .by = {{  .by }})
+  if (n_dots > 0){
+    out <- mutate2(out, ...)
+    dot_vars <- tidy_transform_names(out, ...)
+    group_vars <- c(group_vars, dot_vars)
+  }
+  gorder <- group_order.default(collapse::fselect(out, group_vars),
+                        ascending = ascending)
+  if (length(group_vars) == 0L || is_strictly_increasing(gorder)){
+    data
+  } else {
+    vctrs::vec_slice(data, gorder)
+  }
+}
 GRP.Interval <- function(X, ...){
-  X <- dplyr::tibble(!!"start" := lubridate::int_start(X),
-                     !!"data" := lubridate::int_length(X))
+  X <- list("start" = lubridate::int_start(X),
+            "data" = lubridate::int_length(X))
   collapse::GRP(X, ...)
 }
 group2 <- function(X, ...){
   if (is_interval(X)){
-    X <- dplyr::tibble(!!"start" := lubridate::int_start(X),
-                       !!"data" := lubridate::int_length(X))
+    X <- list("start" = lubridate::int_start(X),
+              "data" = lubridate::int_length(X))
   }
-  if (is_df(X) && has_interval(X, quiet = TRUE)){
-    which_int <- which(vapply(X, FUN = is_interval, FUN.VALUE = logical(1)))
-    for (i in seq_along(which_int)){
-      X[[which_int[[i]]]] <- group_id.Interval(X[[which_int[[i]]]],
-                                               order = FALSE, as_qg = FALSE)
-    }
+  if (is.list(X) && has_interval(X, quiet = TRUE)){
+    X <- mutate_intervals_to_ids(X)
   }
   collapse::group(X, ...)
 }
@@ -350,16 +381,26 @@ qG2 <- function(x, sort = TRUE, na.exclude = FALSE, ...){
 }
 # data frame Wrapper around GRP to convert lubridate intervals to group IDs
 GRP2 <- function(X, ...){
-  if (is_df(X) && has_interval(X, quiet = TRUE)){
-    which_int <- which(vapply(X, FUN = is_interval, FUN.VALUE = logical(1)))
-    for (i in seq_along(which_int)){
-      X[[which_int[[i]]]] <- group_id.Interval(X[[which_int[[i]]]],
-                                               order = TRUE, as_qg = FALSE)
-    }
-    collapse::GRP(X, ...)
-  } else {
-    do.call(get("GRP", asNamespace("collapse")),
-            as.list(match.call())[-1L],
-            envir = parent.frame())
+  args <- as.list(match.call())[-1]
+  if (is.list(X) && has_interval(X, quiet = TRUE)){
+    X <- mutate_intervals_to_ids(X)
+    args[["X"]] <- X
   }
+  do.call(get("GRP", asNamespace("collapse")),
+          args, envir = parent.frame())
+}
+# Mutate interval columns to group IDs
+mutate_intervals_to_ids <- function(data){
+  which_int <- which(vapply(data, FUN = is_interval, FUN.VALUE = logical(1)))
+  for (i in seq_along(which_int)){
+    data[[which_int[[i]]]] <- group_id.Interval(data[[which_int[[i]]]],
+                                                order = TRUE, as_qg = FALSE)
+  }
+  data
+}
+radixorderv2 <- function(x, ...){
+  if (is.list(x) && has_interval(x, quiet = TRUE)){
+    x <- mutate_intervals_to_ids(x)
+  }
+  collapse::radixorderv(x, ...)
 }

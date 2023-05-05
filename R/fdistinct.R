@@ -13,7 +13,7 @@ fdistinct <- function(data, ..., .keep_all = FALSE, .by = NULL){
   n_dots <- dots_length(...)
   out <- safe_ungroup(data)
   if (n_dots > 0){
-    out <- dplyr::mutate(out, ...)
+    out <- mutate2(out, ...)
   }
   group_info <- get_group_info(data, ...,
                                type = "data-mask",

@@ -150,14 +150,14 @@ time_count <- function(data, ..., time = NULL, by = NULL,
                        include_interval = FALSE,
                        keep_class = TRUE){
   seq_type <- match.arg(seq_type)
-  ts_data <- dplyr::mutate(data,
-                           ...,
-                           !!enquo(time),
-                           !!enquo(from),
-                           !!enquo(to),
-                           !!enquo(wt),
-                           .by = {{ .by }},
-                           .keep = "none")
+  ts_data <- mutate2(data,
+                     ...,
+                     !!enquo(time),
+                     !!enquo(from),
+                     !!enquo(to),
+                     !!enquo(wt),
+                     .by = {{ .by }},
+                     .keep = "none")
   group_info <- get_group_info(data, ..., type = "data-mask",
                                .by = {{ .by }})
   # Transformed variable names

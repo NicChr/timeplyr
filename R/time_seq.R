@@ -193,13 +193,10 @@ time_seq <- function(from, to, by, length.out = NULL,
     if (seq_type == "auto") seq_type <- guess_seq_type(by_unit)
     ### After this we will always have both length and by
     if (missing_from){
-      if (seq_type == "period"){
-        from <- time_add(to, periods = setnames(list(-(by_n * length.out) + by_n),
-                                              substr(by_unit, 1L, nchar(by_unit) -1L)),
-                           roll_month = roll_month, roll_dst = roll_dst)
-      } else {
-        from <- to - (time_unit * length.out) + time_unit
-      }
+      from <- time_add2(to, setnames(list(-(by_n * length.out) + by_n),
+                                     by_unit),
+                        type = seq_type,
+                        roll_month = roll_month, roll_dst = roll_dst)
       if (floor_date){
         from <- time_floor(from, by = by_unit,
                            week_start = week_start)

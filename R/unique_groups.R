@@ -35,5 +35,4 @@ unique_groups <- function(data, ..., order = TRUE, sort = order,
                  id = FALSE, loc = FALSE,
                  start = FALSE, end = FALSE,
                  size = FALSE)
-
 }

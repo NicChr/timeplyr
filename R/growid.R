@@ -15,7 +15,8 @@
 #' decreasing order.
 #' @param length Sequence length.
 #' @details
-#' `gseq_len()`is the same but accepts similar arguments to `seq_len()` with
+#' `gseq_len()`is the same as `growid()`
+#' but accepts similar arguments to `seq_len()` with
 #' an additional group argument. \cr
 #' Both produce the same thing, namely a running integer sequence for
 #' each group that increments by 1 and starts at 1. \cr
@@ -45,8 +46,10 @@
 #' growid(flights$year, g = NULL)
 #'
 #' # Comparison to rowidv()
-#' all.equal(rowidv(flights),
-#'           growid(flights))
+#' \dontrun{
+#'   bench::mark(rowidv(flights),
+#'               growid(flights))
+#' }
 #'
 #' # Comparison to dplyr
 #' flights %>%
@@ -79,13 +82,13 @@ growid <- function(x, g, ascending = TRUE){
     g <- GRP2(g, sort = TRUE, call = FALSE, return.groups = FALSE,
               return.order = TRUE)
     if (!ascending){
-      o <- seqv.int(from = len, to = 1L, by = -1L)
+      o <- seq.int(from = len, to = 1L, by = -1L)
     }
-    out <- collapse::fcumsum(seq_ones(len),
-                             na.rm = FALSE,
-                             check.o = FALSE,
-                             o = o,
-                             g = g)
+    out <- fcumsum(seq_ones(len),
+                   na.rm = FALSE,
+                   check.o = FALSE,
+                   o = o,
+                   g = g)
   }
   out
 }
@@ -97,8 +100,8 @@ gseq_len <- function(length, g = NULL){
   }  else {
     g <- GRP2(g, sort = TRUE,
               call = FALSE, return.groups = FALSE)
-    collapse::fcumsum(seq_ones(length),
-                      na.rm = FALSE,
-                      g = g)
+    fcumsum(seq_ones(length),
+            na.rm = FALSE,
+            g = g)
   }
 }
