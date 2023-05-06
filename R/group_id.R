@@ -399,6 +399,10 @@ mutate_intervals_to_ids <- function(data){
   data
 }
 radixorderv2 <- function(x, ...){
+  if (is_interval(x)){
+    x <- list("start" = lubridate::int_start(x),
+              "data" = lubridate::int_length(x))
+  }
   if (is.list(x) && has_interval(x, quiet = TRUE)){
     x <- mutate_intervals_to_ids(x)
   }

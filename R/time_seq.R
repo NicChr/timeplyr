@@ -294,7 +294,7 @@ ftseq <- function(from, to, units, num = 1,
   stopifnot(length(units) == 1L)
   by <- setnames(list(num), units)
   if (is_time(from) && is_time(to)){
-    seq_type <- match.arg(seq_type)
+    seq_type <- rlang::arg_match0(seq_type, c("auto", "duration", "period"))
     set_time_cast(from, to)
     is_special_case_days <- is_special_case_days(from = from,
                                                  to = to,
@@ -428,18 +428,21 @@ period_seq_v <- function(from, to, units, num = 1,
   if (length(from) == 0L || length(to) == 0L || length(seq_len) == 0L){
    return(from[0L])
   }
-  period_df <- data.table::as.data.table(mget(c("from", "num", "seq_len")))
+  period_df <- recycle_args(from, num, seq_len, use.names = TRUE)
+  data.table::setDT(period_df)
+  # period_df <- data.table::as.data.table(mget(c("from", "num", "seq_len")))
   period_df[, ("row_id") := seq_len(.N)]
   # We want to eliminate unnecessary grouped calculations
   # To do so we need to collapse identical groups and just repeat their sequences based on number of duplicates
-  period_df[, ("g") := group_id.default(mget(c("from", "num", "seq_len")),
-                                        order = FALSE)]
+  period_df[, ("g") := group_id.default(.SD, order = FALSE),
+            .SDcols = c("from", "num", "seq_len")]
   period_df[, ("n") := collapse::GRPN(get("g"), expand = TRUE)]
 
   # It's important the result is properly ordered
   # So let's store the correct order before collapsing
   data.table::setorderv(period_df, cols = "g")
-  out_order <- radix_order(rep(period_df[["row_id"]], period_df[["seq_len"]]))
+  out_order <- radix_order(rep.int(period_df[["row_id"]],
+                                   period_df[["seq_len"]]))
 
   # Collapse the data frame into unique combinations of length, from, and num
   period_df <- collapse::funique(period_df, cols = "g")
@@ -447,7 +450,7 @@ period_seq_v <- function(from, to, units, num = 1,
   data.table::setkeyv(period_df, cols = "g")
 
   # Setting up vector arithmetic
-  g <- rep(period_df[["g"]], times = period_df[["seq_len"]])
+  g <- rep.int(period_df[["g"]], times = period_df[["seq_len"]])
   num <- sequence3(period_df[["seq_len"]], from = 1, by = period_df[["num"]]) - 1
   # Split these by group
   by <- collapse::gsplit(num, g = g, use.g.names = FALSE)
@@ -507,11 +510,11 @@ sequence3 <- function(nvec, from = 1, by = 1){
   if (out_len <= .Machine$integer.max){
     g_add <- sequence(nvec, from = 1L, by = 1L) - 1L
   } else {
-    g <- rep(seq_len(g_len), times = nvec)
-    g_add <- collapse::fcumsum(rep_len(1, out_len),
-                               check.o = FALSE,
-                               na.rm = FALSE,
-                               g = g) - 1
+    g <- rep.int(seq_len(g_len), times = nvec)
+    g_add <- fcumsum(rep_len(1, out_len),
+                     check.o = FALSE,
+                     na.rm = FALSE,
+                     g = g) - 1
   }
   from + (g_add * by)
 }

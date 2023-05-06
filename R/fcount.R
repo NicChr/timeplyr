@@ -75,11 +75,17 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   data_vars <- group_info[["extra_groups"]]
   all_vars <- group_info[["all_groups"]]
   grp_nm <- new_var_nm(c(group_vars, data_vars), ".group.id")
-  out[[grp_nm]] <- group_id(out, .by = all_of(all_vars),
-                            order = TRUE, as_qg = TRUE)
+  if (length(all_vars) == 0L){
+    g <- alloc(1L, nrow2(out))
+  } else {
+    g <- group_id.default(collapse::fselect(out, all_vars),
+                          order = TRUE, as_qg = TRUE)
+  }
+  out[[grp_nm]] <- g
+  # out[[grp_nm]] <- group_id(out, .by = all_of(all_vars),
+  #                                   order = TRUE, as_qg = TRUE)
   out <- collapse::fselect(out, c(grp_nm, group_vars, data_vars))
   if (is.null(name)) name <- new_n_var_nm(out)
-  group_id <- out[[grp_nm]]
   # Keep unique groups and sort
   if (nrow2(out) >= 2L){
     out <- collapse::funique(out, cols = grp_nm, sort = TRUE)
@@ -95,10 +101,10 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                                     row.names = c(NA, -1L)),
                           data)
   } else if (length(wt_var) == 0){
-    nobs <- collapse::GRPN(group_id, expand = FALSE)
+    nobs <- collapse::GRPN(g, expand = FALSE)
   } else {
     nobs <- collapse::fsum(as.double(wtv),
-                           g = group_id,
+                           g = g,
                            na.rm = TRUE,
                            use.g.names = FALSE,
                            fill = FALSE)

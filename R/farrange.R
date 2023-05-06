@@ -31,6 +31,8 @@ farrange <- function(data, ..., .by = NULL, .by_group = FALSE){
       # Ungrouped mutate
       out <- mutate2(out, ...)
       dot_vars <- tidy_transform_names(data, ...)
+    } else {
+      dot_vars <- character(0)
     }
     if (.by_group){
       order_vars <- c(group_vars, dot_vars)

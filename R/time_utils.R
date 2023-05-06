@@ -549,16 +549,14 @@ numeric_unit <- function(units){
 #   }
 # }
 # Functional that returns time unit function
-time_unit <- function(units, type = c("duration", "period")){
+time_unit <- function(units, type = c("duration", "period", "numeric")){
+  type <- rlang::arg_match0(type, c("duration", "period", "numeric"))
   if (units == "numeric"){
     numeric_unit(units)
+  } else if (type == "duration"){
+    duration_unit(units)
   } else {
-    type <- match.arg(type)
-    if (type == "duration"){
-      duration_unit(units)
-    } else {
-      period_unit(units)
-    }
+    period_unit(units)
   }
 }
 # Coerce pair of dates/datetimes to the most informative

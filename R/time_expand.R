@@ -102,12 +102,12 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
                         log_limit = 8){
   expand_type <- match.arg(expand_type)
   group_vars <- get_groups(data, {{ .by }})
-  out <- dplyr::mutate(data,
-                       !!enquo(time),
-                       !!enquo(from),
-                       !!enquo(to),
-                       .by = {{ .by }},
-                       .keep = "none")
+  out <- mutate2(data,
+                 !!enquo(time),
+                 !!enquo(from),
+                 !!enquo(to),
+                 .by = {{ .by }},
+                 .keep = "none")
   time_var <- tidy_transform_names(data, !!enquo(time))
   from_var <- tidy_transform_names(data, !!enquo(from))
   to_var <- tidy_transform_names(data, !!enquo(to))
