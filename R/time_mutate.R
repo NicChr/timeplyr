@@ -95,7 +95,7 @@ time_mutate <- function(data, ..., time = NULL, by = NULL,
   # Add variable to keep track of group IDs
   grp_nm <- new_var_nm(data, ".group.id")
   data[[grp_nm]] <- group_id(data, .by = {{ .by }})
-  data <- farrange(data, across(all_of(c(grp_nm, time_var))))
+  data <- farrange(data, .cols = c(grp_nm, time_var))
   int_nm <- character(0)
   if (length(time_var) > 0L){
     # Function to determine implicit time units
@@ -156,11 +156,11 @@ time_mutate <- function(data, ..., time = NULL, by = NULL,
     }
   }
   if (!sort){
-    data <- farrange(data, across(all_of(sort_nm)))
+    data <- farrange(data, .cols = sort_nm)
   }
   data[[grp_nm]] <- NULL
   data[[sort_nm]] <- NULL
-  out <- dplyr::mutate(safe_ungroup(data),
+  out <- mutate2(safe_ungroup(data),
                 ...,
                 .by = all_of(c(group_vars, time_var, int_nm)),
                 .keep = .keep)

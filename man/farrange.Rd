@@ -4,18 +4,22 @@
 \alias{farrange}
 \title{A \code{collapse} version of \code{dplyr::arrange()}}
 \usage{
-farrange(data, ..., .by = NULL, .by_group = FALSE)
+farrange(data, ..., .by = NULL, .by_group = FALSE, .cols = NULL)
 }
 \arguments{
 \item{data}{A data frame.}
 
-\item{...}{Variables to group by.}
+\item{...}{Variables to arrange by.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
-Columns are specified using tidy-select.}
+Columns are specified using \code{tidyselect}.}
 
 \item{.by_group}{If \code{TRUE} the sorting will be first done by the group
 variables.}
+
+\item{.cols}{(Optional) alternative to \code{...} that accepts
+a named character vector or numeric vector.
+If speed is an expensive resource, it is recommended to use this.}
 }
 \description{
 This is a fast and near-identical alternative to \code{dplyr::arrange()}
@@ -23,6 +27,12 @@ using the \code{collapse} package.
 
 \code{desc()} is like \code{dplyr::desc()} but works faster when
 called directly on vectors. \cr
+}
+\details{
+\code{farrange()} is inspired by \code{collapse::roworder()} but also supports
+\code{dplyr} style \code{data-masking} which makes it a
+closer replacement to \code{dplyr::arrange()}.
+
 You can use \code{desc()} interchangeably with \code{dplyr} and \code{timeplyr}. \cr
 \code{arrange(iris, desc(Species))} uses \code{dplyr}'s version. \cr
 \code{farrange(iris, desc(Species))} uses \code{timeplyr}'s version.

@@ -9,7 +9,15 @@
 \alias{add_group_order}
 \title{Fast group IDs}
 \usage{
-group_id(data, ..., order = TRUE, ascending = TRUE, .by = NULL, as_qg = FALSE)
+group_id(
+  data,
+  ...,
+  order = TRUE,
+  ascending = TRUE,
+  .by = NULL,
+  .cols = NULL,
+  as_qg = FALSE
+)
 
 add_group_id(
   data,
@@ -17,17 +25,25 @@ add_group_id(
   order = TRUE,
   ascending = TRUE,
   .by = NULL,
+  .cols = NULL,
   .name = NULL,
   as_qg = FALSE
 )
 
-row_id(data, ..., ascending = TRUE, .by = NULL)
+row_id(data, ..., ascending = TRUE, .by = NULL, .cols = NULL)
 
-add_row_id(data, ..., ascending = TRUE, .by = NULL, .name = NULL)
+add_row_id(data, ..., ascending = TRUE, .by = NULL, .cols = NULL, .name = NULL)
 
-group_order(data, ..., ascending = TRUE, .by = NULL)
+group_order(data, ..., ascending = TRUE, .by = NULL, .cols = NULL)
 
-add_group_order(data, ..., ascending = TRUE, .by = NULL, .name = NULL)
+add_group_order(
+  data,
+  ...,
+  ascending = TRUE,
+  .by = NULL,
+  .cols = NULL,
+  .name = NULL
+)
 }
 \arguments{
 \item{data}{A data frame or vector.}
@@ -47,6 +63,10 @@ For \code{row_id()} this determines if the row IDs are increasing or decreasing.
 ignored. This is something that will be fixed in a later version.}
 
 \item{.by}{Alternative way of supplying groups using \code{tidyselect} notation.}
+
+\item{.cols}{(Optional) alternative to \code{...} that accepts
+a named character vector or numeric vector.
+If speed is an expensive resource, it is recommended to use this.}
 
 \item{as_qg}{Should the group IDs be returned as a
 collapse "qG" class? The default (\code{FALSE}) always returns

@@ -222,9 +222,9 @@ get_time_delay <- function(data, origin, end, by = "day",
     delay_summary <- delay_summary %>%
       dplyr::full_join(quantile_summary, by = grp_nm, keep = FALSE) %>%
       dplyr::left_join(grp_df, by = grp_nm) %>%
-      farrange(across(all_of(grp_nm))) %>%
-      collapse::fselect(c(group_vars, "n", "min", "max", "mean", "sd",
-                             quantile_nms, "iqr", "mad", "se"))
+      farrange(.cols = grp_nm) %>%
+      fselect(.cols = c(group_vars, "n", "min", "max", "mean", "sd",
+                        quantile_nms, "iqr", "mad", "se"))
   }
 
   # Create delay table

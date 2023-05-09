@@ -6,44 +6,58 @@
 #'
 #' `desc()` is like `dplyr::desc()` but works faster when
 #' called directly on vectors. \cr
+#'
+#' @param data A data frame.
+#' @param ... Variables to arrange by.
+#' @param .by (Optional). A selection of columns to group by for this operation.
+#' Columns are specified using `tidyselect`.
+#' @param .by_group If `TRUE` the sorting will be first done by the group
+#' variables.
+#' @param .cols (Optional) alternative to `...` that accepts
+#' a named character vector or numeric vector.
+#' If speed is an expensive resource, it is recommended to use this.
+#' @details
+#' `farrange()` is inspired by `collapse::roworder()` but also supports
+#' `dplyr` style `data-masking` which makes it a
+#' closer replacement to `dplyr::arrange()`.
+#'
 #' You can use `desc()` interchangeably with `dplyr` and `timeplyr`. \cr
 #' `arrange(iris, desc(Species))` uses `dplyr`'s version. \cr
 #' `farrange(iris, desc(Species))` uses `timeplyr`'s version.
 #'
 #' `farrange()` is faster when there are many groups or a large number of
 #' rows.
-#'
-#' @param data A data frame.
-#' @param ... Variables to group by.
-#' @param .by (Optional). A selection of columns to group by for this operation.
-#' Columns are specified using tidy-select.
-#' @param .by_group If `TRUE` the sorting will be first done by the group
-#' variables.
 #' @export
-farrange <- function(data, ..., .by = NULL, .by_group = FALSE){
-  n_dots <- dots_length(...)
-  group_vars <- get_groups(data, .by = {{ .by }})
-  if ( ( length(group_vars) + n_dots ) == 0){
+farrange <- function(data, ..., .by = NULL, .by_group = FALSE,
+                     .cols = NULL){
+  group_info <- group_info(if (.by_group){
     data
   } else {
-    out <- safe_ungroup(data)
-    if (n_dots > 0){
-      # Ungrouped mutate
-      out <- mutate2(out, ...)
-      dot_vars <- tidy_transform_names(data, ...)
-    } else {
-      dot_vars <- character(0)
-    }
-    if (.by_group){
-      order_vars <- c(group_vars, dot_vars)
-    } else {
-      order_vars <- dot_vars
-    }
-    gorder <- group_order.default(collapse::fselect(out, order_vars))
-    if (is_strictly_increasing(gorder)){
-      data
-    } else {
-      df_row_slice(data, gorder, reconstruct = FALSE)
-    }
+    safe_ungroup(data)
+  }, ..., .by = {{ .by }},
+  .cols = .cols,
+  ungroup = TRUE,
+  rename = FALSE)
+  dot_vars <- group_info[["extra_groups"]]
+  all_vars <- group_info[["all_groups"]]
+  if (length(all_vars) == 0L){
+    return(data)
+  }
+  if (.by_group){
+    order_vars <- all_vars
+  } else {
+    order_vars <- dot_vars
+  }
+  out_order <- as.integer(
+    radixorderv2(
+      collapse::fselect(group_info[["data"]], order_vars),
+      decreasing = FALSE, na.last = TRUE, starts = FALSE,
+      group.sizes = FALSE, sort = TRUE
+    )
+  )
+  if (!is.unsorted(out_order)){
+    data
+  } else {
+    df_row_slice(data, out_order, reconstruct = FALSE)
   }
 }

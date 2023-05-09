@@ -15,6 +15,9 @@
 #' @param sort Should the data frame be sorted by the groups?
 #' @param .by Alternative way of supplying groups using `tidyselect` notation.
 #' This is kept to be consistent with other functions.
+#' @param .cols (Optional) alternative to `...` that accepts
+#' a named character vector or numeric vector.
+#' If speed is an expensive resource, it is recommended to use this.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -28,10 +31,10 @@
 #'   unique_groups(across(contains("width"), round))
 #' @export
 unique_groups <- function(data, ..., order = TRUE, sort = order,
-                          .by = NULL){
+                          .by = NULL, .cols = NULL){
   group_collapse(data, ...,
                  order = order, sort = sort,
-                 .by = {{ .by }},
+                 .by = {{ .by }}, .cols = .cols,
                  id = FALSE, loc = FALSE,
                  start = FALSE, end = FALSE,
                  size = FALSE)

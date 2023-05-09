@@ -10,6 +10,7 @@ fgroup_by(
   .add = FALSE,
   order = TRUE,
   .by = NULL,
+  .cols = NULL,
   .drop = dplyr::group_by_drop_default(data)
 )
 }
@@ -26,6 +27,10 @@ groups will be ordered based on first-appearance.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using \code{tidyselect}.}
+
+\item{.cols}{(Optional) alternative to \code{...} that accepts
+a named character vector or numeric vector.
+If speed is an expensive resource, it is recommended to use this.}
 
 \item{.drop}{Not currently supported.
 Unused factor levels are always dropped.}

@@ -4,7 +4,7 @@
 \alias{fdistinct}
 \title{Find distinct rows}
 \usage{
-fdistinct(data, ..., .keep_all = FALSE, .by = NULL)
+fdistinct(data, ..., .keep_all = FALSE, .by = NULL, .cols = NULL)
 }
 \arguments{
 \item{data}{A data frame.}
@@ -16,6 +16,10 @@ default is \code{FALSE}.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
+
+\item{.cols}{(Optional) alternative to \code{...} that accepts
+a named character vector or numeric vector.
+If speed is an expensive resource, it is recommended to use this.}
 }
 \description{
 Like \code{dplyr::distinct()} but faster when lots of

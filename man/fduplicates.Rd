@@ -12,7 +12,8 @@ fduplicates(
   .both_ways = FALSE,
   .add_count = FALSE,
   .keep_na = TRUE,
-  .by = NULL
+  .by = NULL,
+  .cols = NULL
 )
 
 fduplicates2(
@@ -45,6 +46,10 @@ The default is \code{TRUE}.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
+
+\item{.cols}{(Optional) alternative to \code{...} that accepts
+a named character vector or numeric vector.
+If speed is an expensive resource, it is recommended to use this.}
 }
 \description{
 This function works like \code{dplyr::distinct()} in its handling of

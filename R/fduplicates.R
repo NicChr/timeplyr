@@ -21,6 +21,9 @@
 #' The default is `TRUE`.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
+#' @param .cols (Optional) alternative to `...` that accepts
+#' a named character vector or numeric vector.
+#' If speed is an expensive resource, it is recommended to use this.
 #' @examples
 #' library(dplyr)
 #' library(timeplyr)
@@ -46,21 +49,18 @@
 #' @export
 fduplicates <- function(data, ..., .keep_all = FALSE,
                         .both_ways = FALSE, .add_count = FALSE,
-                        .keep_na = TRUE, .by = NULL){
+                        .keep_na = TRUE,
+                        .by = NULL, .cols = NULL){
   n_dots <- dots_length(...)
-  out <- safe_ungroup(data)
-  if (n_dots > 0){
-    out <- mutate2(out, ...)
-  }
-  group_info <- get_group_info(data, ...,
-                               type = "data-mask",
-                               .by = {{ .by }})
-  group_vars <- group_info[["dplyr_groups"]]
-  extra_groups <- group_info[["extra_groups"]]
+  group_info <- group_info(data, ..., .by = {{ .by }},
+                           .cols = .cols,
+                           ungroup = TRUE,
+                           rename = TRUE)
   all_groups <- group_info[["all_groups"]]
+  out <- group_info[["data"]]
   out_nms <- names(out)
   # If no variables selected then all variables used
-  if (n_dots == 0){
+  if (n_dots == 0 && is.null(.cols)){
     dup_vars <- out_nms
     out_vars <- dup_vars
   } else {
@@ -75,7 +75,7 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
   # Groups
   # Add group ID for all groups
   grp_nm <- new_var_nm(names(out), ".group.id")
-  out[[grp_nm]] <- group_id(out, .by = all_of(dup_vars))
+  out[[grp_nm]] <- group_id(out, .cols = dup_vars)
   n_var_nm <- new_n_var_nm(names(out))
   out[[n_var_nm]] <- collapse::GRPN(out[[grp_nm]], expand = TRUE)
   # out <- dplyr::filter(out, .data[[n_var_nm]] > 1)
@@ -113,7 +113,7 @@ fduplicates2 <- function(data, ..., .keep_all = FALSE,
   group_vars <- group_info[["dplyr_groups"]]
   extra_groups <- group_info[["extra_groups"]]
   all_groups <- group_info[["all_groups"]]
-  if (n_dots == 0L){
+  if (n_dots == 0){
     dup_vars <- names(out)
     out_vars <- dup_vars
   } else {

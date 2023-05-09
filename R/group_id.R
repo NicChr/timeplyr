@@ -23,6 +23,9 @@
 #' \bold{NOTE} - When `order = FALSE`, the `ascending` argument is
 #' ignored. This is something that will be fixed in a later version.
 #' @param .by Alternative way of supplying groups using `tidyselect` notation.
+#' @param .cols (Optional) alternative to `...` that accepts
+#' a named character vector or numeric vector.
+#' If speed is an expensive resource, it is recommended to use this.
 #' @param .name Name of the added group ID column which should be a
 #' character vector of length 1.
 #' If `NULL` then a column named "group_id" will be added,
@@ -85,13 +88,14 @@
 group_id <- function(data, ...,
                      order = TRUE,
                      ascending = TRUE,
-                     .by = NULL,
+                     .by = NULL, .cols = NULL,
                      as_qg = FALSE){
   UseMethod("group_id")
 }
 #' @export
 group_id.default <- function(data, ..., order = TRUE,
-                             ascending = TRUE, as_qg = FALSE){
+                             ascending = TRUE,
+                             as_qg = FALSE){
   if (order){
     out <- GRP2(safe_ungroup(data),
                 sort = TRUE,
@@ -105,7 +109,9 @@ group_id.default <- function(data, ..., order = TRUE,
     out <- group2(data)
   }
   if (as_qg && order){
-    out <- qG2(out, sort = TRUE, ordered = FALSE, na.exclude = FALSE)
+    out <- integer_to_qg(out)
+    # out <- collapse::qG(out, sort = TRUE, ordered = FALSE,
+    #                     na.exclude = FALSE))
   }
   if (!as_qg && !order){
     out <- as.integer(out)
@@ -113,11 +119,12 @@ group_id.default <- function(data, ..., order = TRUE,
   out
 }
 #' @export
-group_id.Interval <- function(data, ..., order = TRUE, ascending = TRUE, as_qg = FALSE){
+group_id.Interval <- function(data, ..., order = TRUE,
+                              ascending = TRUE, as_qg = FALSE){
   out <- GRP.Interval(data, sort = order, decreasing = !ascending,
                       call = FALSE, return.groups = FALSE)[["group.id"]]
   if (as_qg){
-    out <- qG2(out, sort = order, ordered = FALSE, na.exclude = FALSE)
+    out <- integer_to_qg(out)
   }
   out
 }
@@ -125,24 +132,32 @@ group_id.Interval <- function(data, ..., order = TRUE, ascending = TRUE, as_qg =
 group_id.data.frame <- function(data, ...,
                                 order = TRUE,
                                 ascending = TRUE,
-                                .by = NULL,
+                                .by = NULL, .cols = NULL,
                                 as_qg = FALSE){
   N <- nrow2(data)
-  n_dots <- dots_length(...)
-  if (n_dots > 0){
-    data <- mutate2(data, ...)
-  }
-  group_info <- get_group_info(data, ...,
-                               type = "data-mask",
-                               .by = {{ .by }})
+  # n_dots <- dots_length(...)
+  # group_vars <- get_groups(data, .by = {{ .by }})
+  # check_cols(n_dots = n_dots, .cols = .cols)
+  # dot_vars <- character(0)
+  # if (n_dots > 0){
+  #   data <- mutate2(data, ...)
+  #   dot_vars <- tidy_transform_names(data, ...)
+  # }
+  # if (!is.null(.cols)){
+  #   dot_vars <- unique(col_select_names(data, .cols = unname(.cols)))
+  # }
+  # all_groups <- c(group_vars, dot_vars)
+  group_info <- group_info(data, ..., .by = {{ .by }},
+                           .cols = .cols,
+                           ungroup = TRUE,
+                           rename = FALSE)
   all_groups <- group_info[["all_groups"]]
-  data <- collapse::fselect(data, all_groups)
   # Usual Method for when data does not contain interval
   if (length(all_groups) == 0L){
     out <- alloc(1L, N)
     # Method for grouped_df
   } else {
-    out <- GRP2(data,
+    out <- GRP2(group_info[["data"]], by = all_groups,
                 sort = order,
                 decreasing = !ascending,
                 na.last = TRUE,
@@ -152,7 +167,7 @@ group_id.data.frame <- function(data, ...,
                 call = FALSE)[["group.id"]]
   }
   if (as_qg){
-    out <- qG2(out, sort = order, ordered = FALSE, na.exclude = FALSE)
+    out <- integer_to_qg(out)
   }
   out
 }
@@ -160,27 +175,23 @@ group_id.data.frame <- function(data, ...,
 group_id.grouped_df <- function(data, ...,
                                 order = TRUE,
                                 ascending = TRUE,
-                                .by = NULL,
+                                .by = NULL, .cols = NULL,
                                 as_qg = FALSE){
   n_dots <- dots_length(...)
-  group_vars <- dplyr::group_vars(data)
   # Error checking on .by
   check_by(data, .by = {{ .by }})
-  if (n_dots == 0 && order && ascending){
+  if (n_dots == 0 && is.null(.cols) && order && ascending){
     out <- dplyr::group_indices(data)
     if (as_qg){
-      out <- structure(out,
-                       "N.groups" = n_unique(out),
-                       "class" = c("qG", "na.included"))
+      out <- integer_to_qg(out)
     }
   } else {
-    data <- safe_ungroup(data)
-    if (n_dots > 0){
-      data <- mutate2(data, ...)
-      dot_vars <- tidy_transform_names(data, ...)
-      group_vars <- c(group_vars, dot_vars)
-    }
-    out <- group_id(data, .by = all_of(group_vars),
+    group_info <- group_info(data, ..., .by = {{ .by }},
+                             .cols = .cols,
+                             ungroup = TRUE,
+                             rename = FALSE)
+    all_groups <- group_info[["all_groups"]]
+    out <- group_id(group_info[["data"]], .cols = all_groups,
                     order = order, ascending = ascending,
                     as_qg = as_qg)
   }
@@ -191,24 +202,26 @@ group_id.grouped_df <- function(data, ...,
 add_group_id <- function(data, ...,
                          order = TRUE,
                          ascending = TRUE,
-                         .by = NULL,
+                         .by = NULL, .cols = NULL,
                          .name = NULL,
                          as_qg = FALSE){
   if (is.null(.name)) .name <- new_var_nm(names(data), "group_id")
-  data[[.name]] <- group_id.data.frame(data, ...,
-                                       order = order,
-                                       ascending = ascending,
-                                       .by = {{ .by }},
-                                       as_qg = as_qg)
+  data[[.name]] <- group_id(data, ...,
+                            order = order,
+                            ascending = ascending,
+                            .by = {{ .by }},
+                            .cols = .cols,
+                            as_qg = as_qg)
   data
 }
 #' @rdname group_id
 #' @export
-row_id <- function(data, ..., ascending = TRUE, .by = NULL){
+row_id <- function(data, ..., ascending = TRUE,
+                   .by = NULL, .cols = NULL){
   UseMethod("row_id")
 }
 #' @export
-row_id.default <- function(data, ..., ascending = TRUE, .by = NULL){
+row_id.default <- function(data, ..., ascending = TRUE){
   # g <- GRP2(safe_ungroup(data),
   #             sort = TRUE,
   #             decreasing = FALSE,
@@ -220,22 +233,29 @@ row_id.default <- function(data, ..., ascending = TRUE, .by = NULL){
   growid(safe_ungroup(data), ascending = ascending)
 }
 #' @export
-row_id.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
-  # Use mutate if dots contain expressions
-  if (dots_length(...) > 0){
-    data <- df_reconstruct(
-      mutate2(
-        safe_ungroup(data), ...
-      ), data
-    )
-  }
-  vars <- get_group_info(data, ...,
-                         type = "data-mask",
-                         .by = {{ .by }})[["all_groups"]]
+row_id.data.frame <- function(data, ...,
+                              ascending = TRUE,
+                              .by = NULL, .cols = NULL){
+  N <- nrow2(data)
+  # n_dots <- dots_length(...)
+  # if (n_dots > 0){
+  #   data <- mutate2(data, ...)
+  # }
+  # group_info <- get_group_info(data, ...,
+  #                              type = "data-mask",
+  #                              .by = {{ .by }},
+  #                              .cols = .cols)
+  # vars <- group_info[["all_groups"]]
+  group_info <- group_info(data, ..., .by = {{ .by }},
+                           .cols = .cols,
+                           ungroup = TRUE,
+                           rename = FALSE)
+  data <- group_info[["data"]]
+  vars <- group_info[["all_groups"]]
   if (length(vars) == 0L){
     g <- NULL
   } else {
-    g <- GRP2(collapse::fselect(data, vars),
+    g <- GRP2(data, by = vars,
               sort = TRUE,
               decreasing = FALSE,
               return.groups = FALSE, return.order = TRUE,
@@ -243,22 +263,49 @@ row_id.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
   }
   growid(data, g = g, ascending = ascending)
 }
+#' @export
+row_id.grouped_df <- function(data, ...,
+                              ascending = TRUE,
+                              .by = NULL, .cols = NULL){
+  # n_dots <- dots_length(...)
+  # group_vars <- get_groups(data, .by = {{ .by }})
+  # data <- safe_ungroup(data)
+  # dot_vars <- character(0)
+  # if (n_dots > 0){
+  #   data <- mutate2(data, ...)
+  #   dot_vars <- tidy_transform_names(data, ...)
+  # }
+  # if (!is.null(.cols)){
+  #   dot_vars <- unique(col_select_names(data, .cols = unname(.cols)))
+  # }
+  # all_groups <- c(group_vars, dot_vars)
+  group_info <- group_info(data, ..., .by = {{ .by }},
+                           .cols = .cols,
+                           ungroup = TRUE,
+                           rename = FALSE)
+  all_groups <- group_info[["all_groups"]]
+  row_id(group_info[["data"]], .cols = all_groups,
+         ascending = ascending)
+}
 #' @rdname group_id
 #' @export
-add_row_id <- function(data, ..., ascending = TRUE, .by = NULL, .name = NULL){
+add_row_id <- function(data, ..., ascending = TRUE,
+                       .by = NULL, .cols = NULL,
+                       .name = NULL){
   if (is.null(.name)) .name <- new_var_nm(names(data), "row_id")
-  data[[.name]] <- row_id.data.frame(data, ...,
-                                     ascending = ascending,
-                                     .by = {{ .by }})
+  data[[.name]] <- row_id(data, ...,
+                          ascending = ascending,
+                          .by = {{ .by }}, .cols = .cols)
   data
 }
 #' @rdname group_id
 #' @export
-group_order <- function(data, ..., ascending = TRUE, .by = NULL){
+group_order <- function(data, ..., ascending = TRUE,
+                        .by = NULL, .cols = NULL){
   UseMethod("group_order")
 }
 #' @export
-group_order.default <- function(data, ..., ascending = TRUE, .by = NULL){
+group_order.default <- function(data, ..., ascending = TRUE){
   as.integer(radixorderv2(data, decreasing = !ascending,
                           na.last = TRUE, starts = FALSE,
                           group.sizes = FALSE, sort = TRUE))
@@ -282,78 +329,91 @@ group_order.default <- function(data, ..., ascending = TRUE, .by = NULL){
   # }
 }
 #' @export
-group_order.Interval <- function(data, ..., ascending = TRUE, .by = NULL){
-  data <- GRP.Interval(data, sort = TRUE, call = FALSE,
-                       return.groups = FALSE)[["group.id"]]
-  group_order.default(data, ascending = ascending)
+group_order.Interval <- function(data, ..., ascending = TRUE){
+  g <- GRP.Interval(data, sort = TRUE, call = FALSE,
+                    return.groups = FALSE)[["group.id"]]
+  group_order(g, ascending = ascending)
 }
 #' @export
-group_order.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
-  # Use mutate if dots contain expressions
-  if (dots_length(...) > 0){
-    data <- df_reconstruct(
-      mutate2(
-        safe_ungroup(data), ...
-      ), data
-    )
-  }
-  vars <- get_group_info(data, ...,
-                         type = "data-mask",
-                         .by = {{ .by }})[["all_groups"]]
-  if (length(vars) == 0L){
-    out <- seq_len(nrow2(data))
+group_order.data.frame <- function(data, ..., ascending = TRUE,
+                                   .by = NULL, .cols = NULL){
+  N <- nrow2(data)
+  # n_dots <- dots_length(...)
+  # group_vars <- get_groups(data, .by = {{ .by }})
+  # check_cols(n_dots = n_dots, .cols = .cols)
+  # data <- safe_ungroup(data)
+  # dot_vars <- character(0)
+  # if (n_dots > 0){
+  #   data <- mutate2(data, ...)
+  #   dot_vars <- tidy_transform_names(data, ...)
+  # }
+  # if (!is.null(.cols)){
+  #   dot_vars <- unique(col_select_names(data, .cols = unname(.cols)))
+  # }
+  # all_groups <- c(group_vars, dot_vars)
+  group_info <- group_info(data, ..., .by = {{ .by }},
+                           .cols = .cols,
+                           ungroup = TRUE,
+                           rename = FALSE)
+  all_groups <- group_info[["all_groups"]]
+  if (length(all_groups) == 0L){
+    if (ascending){
+      out <- seq_len(N)
+    } else {
+      out <- seq.int(from = N,
+                     to = min(N, 1L),
+                     by = -1L)
+    }
   } else {
-    out <- group_order.default(collapse::fselect(data, vars),
-                               ascending = ascending)
-    # Alternate method
-    # g <- GRP2(collapse::fselect(data, vars),
-    #           sort = TRUE,
-    #           decreasing = !ascending,
-    #           return.groups = FALSE, return.order = TRUE,
-    #           call = FALSE)
-    # out <- g[["order"]]
-    # if (is.null(out)){
-    #   out <- radix_order(g[["group.id"]])
-    # }
+    out <- as.integer(radixorderv2(collapse::fselect(group_info[["data"]],
+                                                     all_groups),
+                                   decreasing = !ascending,
+                                   na.last = TRUE, starts = FALSE,
+                                   group.sizes = FALSE, sort = TRUE))
   }
   out
 }
+#' @export
+group_order.grouped_df <- group_order.data.frame
 #' @rdname group_id
 #' @export
-add_group_order <- function(data, ..., ascending = TRUE, .by = NULL, .name = NULL){
+add_group_order <- function(data, ..., ascending = TRUE,
+                            .by = NULL, .cols = NULL,
+                            .name = NULL){
   if (is.null(.name)) .name <- new_var_nm(names(data), "group_order")
-  data[[.name]] <- group_order.data.frame(data, ..., .by = {{ .by }},
-                                          ascending = ascending)
+  data[[.name]] <- group_order(data, ...,
+                               .by = {{ .by }}, .cols = .cols,
+                               ascending = ascending)
   data
 }
-group_sort <- function(data, ..., ascending = TRUE, .by = NULL){
-  UseMethod("group_sort")
-}
-group_sort.default <- function(data, ..., ascending = TRUE, .by = NULL){
-  gorder <- group_order.default(data, ascending = ascending)
-  if (is_strictly_increasing(gorder)){
-    data
-  } else {
-    vctrs::vec_slice(data, gorder)
-  }
-}
-group_sort.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
-  n_dots <- dots_length(...)
-  out <- safe_ungroup(data)
-  group_vars <- get_groups(data, .by = {{  .by }})
-  if (n_dots > 0){
-    out <- mutate2(out, ...)
-    dot_vars <- tidy_transform_names(out, ...)
-    group_vars <- c(group_vars, dot_vars)
-  }
-  gorder <- group_order.default(collapse::fselect(out, group_vars),
-                        ascending = ascending)
-  if (length(group_vars) == 0L || is_strictly_increasing(gorder)){
-    data
-  } else {
-    vctrs::vec_slice(data, gorder)
-  }
-}
+# group_sort <- function(data, ..., ascending = TRUE, .by = NULL){
+#   UseMethod("group_sort")
+# }
+# group_sort.default <- function(data, ..., ascending = TRUE, .by = NULL){
+#   gorder <- group_order.default(data, ascending = ascending)
+#   if (is_strictly_increasing(gorder)){
+#     data
+#   } else {
+#     vctrs::vec_slice(data, gorder)
+#   }
+# }
+# group_sort.data.frame <- function(data, ..., ascending = TRUE, .by = NULL){
+#   n_dots <- dots_length(...)
+#   out <- safe_ungroup(data)
+#   group_vars <- get_groups(data, .by = {{  .by }})
+#   if (n_dots > 0){
+#     out <- mutate2(out, ...)
+#     dot_vars <- tidy_transform_names(out, ...)
+#     group_vars <- c(group_vars, dot_vars)
+#   }
+#   gorder <- group_order.default(collapse::fselect(out, group_vars),
+#                         ascending = ascending)
+#   if (length(group_vars) == 0L || is_strictly_increasing(gorder)){
+#     data
+#   } else {
+#     vctrs::vec_slice(data, gorder)
+#   }
+# }
 GRP.Interval <- function(X, ...){
   X <- list("start" = lubridate::int_start(X),
             "data" = lubridate::int_length(X))

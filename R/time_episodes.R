@@ -88,11 +88,11 @@ time_episodes <- function(data, ..., time, window,
   }
   start_nms <- data.table::copy(names(data))
   data <- data %>%
-    dplyr::mutate(...,
-                  !!enquo(time),
-                  !!enquo(window),
-                  .by = {{ .by }},
-                  .keep = .keep)
+    mutate2(...,
+            !!enquo(time),
+            !!enquo(window),
+            .by = {{ .by }},
+            .keep = .keep)
   # Copy data frame
   out <- data.table::copy(data)
   # Coerce to data table
@@ -125,7 +125,7 @@ time_episodes <- function(data, ..., time, window,
   by <- setnames(list(by_n), by_unit)
   # Create grouped ID variable
   grp_nm <- new_var_nm(out, ".group")
-  out[, (grp_nm) := group_id(data, across(all_of(extra_groups)),
+  out[, (grp_nm) := group_id(data, .cols = extra_groups,
                              .by = {{ .by }})]
   # Sort by groups > case ID > date col
   setorderv2(out, cols = c(grp_nm, time_col))
@@ -150,9 +150,9 @@ time_episodes <- function(data, ..., time, window,
                                                1L, 0L)]
   # Episode ID at record level
   episode_id_nm <- new_var_nm(names(out), "episode_id")
-  out[, (episode_id_nm) := collapse::fcumsum(.SD,
-                                             g = g,
-                                             na.rm = FALSE),
+  out[, (episode_id_nm) := fcumsum(.SD,
+                                   g = g,
+                                   na.rm = FALSE),
       .SDcols = new_episode_nm]
   # Episode ID at group level
   episode_id_group_nm <- new_var_nm(names(out), "episode_id_group")

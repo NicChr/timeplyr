@@ -8,20 +8,20 @@
 #' default is `FALSE`.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
+#' @param .cols (Optional) alternative to `...` that accepts
+#' a named character vector or numeric vector.
+#' If speed is an expensive resource, it is recommended to use this.
 #' @export
-fdistinct <- function(data, ..., .keep_all = FALSE, .by = NULL){
+fdistinct <- function(data, ..., .keep_all = FALSE,
+                      .by = NULL, .cols = NULL){
   n_dots <- dots_length(...)
-  out <- safe_ungroup(data)
-  if (n_dots > 0){
-    out <- mutate2(out, ...)
-  }
-  group_info <- get_group_info(data, ...,
-                               type = "data-mask",
-                               .by = {{ .by }})
-  group_vars <- group_info[["dplyr_groups"]]
-  extra_groups <- group_info[["extra_groups"]]
+  group_info <- group_info(data, ..., .by = {{ .by }},
+                           .cols = .cols,
+                           ungroup = TRUE,
+                           rename = TRUE)
   all_groups <- group_info[["all_groups"]]
-  if (n_dots == 0){
+  out <- group_info[["data"]]
+  if (n_dots == 0 && is.null(.cols)){
     dup_vars <- names(out)
     out_vars <- dup_vars
   } else {

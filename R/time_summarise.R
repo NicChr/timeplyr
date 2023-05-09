@@ -110,27 +110,30 @@ time_summarise <- function(data, ..., time = NULL, by = NULL,
                         week_start = getOption("lubridate.week.start", 1),
                         roll_month = "preday", roll_dst = "pre",
                         sort = TRUE){
-  int_nm <- new_var_nm(data, "interval")
   out <- fdistinct(time_mutate(data, ...,
-              time = !!enquo(time),
-              by = by,
-              from = !!enquo(from),
-              to = !!enquo(to),
-              seq_type = seq_type,
-              include_interval = include_interval,
-              .by = {{ .by }},
-              .keep = "none",
-              floor_date = floor_date,
-              week_start = week_start,
-              roll_month = roll_month, roll_dst = roll_dst,
-              sort = sort))
+                               time = !!enquo(time),
+                               by = by,
+                               from = !!enquo(from),
+                               to = !!enquo(to),
+                               seq_type = seq_type,
+                               include_interval = include_interval,
+                               .by = {{ .by }},
+                               .keep = "none",
+                               floor_date = floor_date,
+                               week_start = week_start,
+                               roll_month = roll_month, roll_dst = roll_dst,
+                               sort = sort))
   time_var <- tidy_transform_names(data, !!enquo(time))
   group_info <- get_group_info(data, ...,
                                type = "data-mask",
                                .by = {{ .by }})
   group_vars <-  group_info[["dplyr_groups"]]
   extra_group_vars <- group_info[["extra_groups"]]
-  dplyr::select(out, dplyr::any_of(c(group_vars, time_var, int_nm, extra_group_vars)))
+  int_nm <- character(0)
+  if (include_interval){
+    int_nm <- new_var_nm(c(group_vars, time_var, extra_group_vars), "interval")
+  }
+  fselect(out, .cols = c(group_vars, time_var, int_nm, extra_group_vars))
 }
 #' @rdname time_summarise
 #' @export

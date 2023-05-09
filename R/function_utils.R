@@ -119,30 +119,89 @@ tidy_transform_names <- function(data, ...){
 # tidy_select_pos <- function(data, ...){
 #   tidyselect::eval_select(rlang::expr(c(...)), data = data)
 # }
-tidy_select_pos <- function(data, ..., cols = NULL){
+
+# Fast way of getting named col positions
+col_select_pos <- function(data, .cols = character(0)){
+  data_nms <- names(data)
+  nm_seq <- seq_along(data_nms)
+  # Method for when cols is supplied
+  if (is.numeric(.cols)){
+    # out <- nm_seq[match(nm_seq, .cols)]
+    out <- match(.cols, nm_seq, nomatch = NA_integer_)
+  } else if (is.character(.cols)){
+    # out <- nm_seq[match(data_nms, .cols)]
+    out <- match(.cols, data_nms, nomatch = NA_integer_)
+  } else {
+    stop(".cols must be a numeric or character vector")
+  }
+  out_na <- is.na(out)
+  if (any(out_na)){
+    first_na_col <- .cols[which(out_na)[1L]]
+    if (is.numeric(first_na_col)){
+      stop(paste("Location", first_na_col, "doesn't exist",
+                 sep = " "))
+    } else {
+      stop(paste("Column", first_na_col, "doesn't exist",
+                 sep = " "))
+    }
+  }
+  out_nms <- names(.cols)
+  if (is.null(out_nms)){
+    names(out) <- data_nms[out]
+  } else {
+    out_nms[out_nms == ""] <- data_nms[out[out_nms == ""]]
+    names(out) <- out_nms
+  }
+  out
+}
+col_select_names <- function(data, ..., .cols = NULL){
+  names(col_select_pos(data, ..., .cols = .cols))
+}
+# (Internal) Fast col rename
+col_rename <- function(data, .cols = integer(0)){
+  if (length(.cols) == 0L){
+    return(data)
+  }
+  data_nms <- names(data)
+  if (is.character(.cols)){
+   pos <- setnames(match(.cols, data_nms),
+                   names(.cols))
+  } else {
+   pos <- .cols
+  }
+  # Use the below for more consistency
+  # pos <- col_select_pos(data, .cols = .cols)
+  out_nms <- names(pos)
+  renamed <- is.na(match(out_nms, data_nms) != pos)
+  renamed_pos <- pos[renamed]
+  names(data)[renamed_pos] <- out_nms[renamed]
+  data
+}
+tidy_select_pos <- function(data, ..., .cols = NULL){
   data_nms <- names(data)
   # Method for when cols is supplied
-  if (!is.null(cols)){
-    return(col_select_pos(data, cols))
-  }
-  # group_vars <- group_vars(data)
-  # group_pos <- setnames(match(group_vars, data_nms),
-  #                       group_vars)
-  quo_select_info <- quo_select_info(enquos(...), data)
-  quo_text <- quo_select_info[["quo_text"]]
-  if (all(quo_select_info[["is_char_var"]])){
-    out <- col_select_pos(data, quo_text)
-  } else if (all(quo_select_info[["is_num_var"]])){
-    out <- col_select_pos(data, as.double(quo_text))
+  if (!is.null(.cols)){
+    out <- col_select_pos(data, .cols)
   } else {
-    out <- tidyselect::eval_select(rlang::expr(c(...)), data = data)
+    # If exact cols are specified, faster to use
+    # col_select_pos()
+    quo_select_info <- quo_select_info(enquos(...), data)
+    quo_text <- quo_select_info[["quo_text"]]
+    if (all(quo_select_info[["is_char_var"]])){
+      out <- col_select_pos(data, quo_text)
+    } else if (all(quo_select_info[["is_num_var"]])){
+      out <- col_select_pos(data, as.double(quo_text))
+      # Otherwise we use tidyselect
+    } else {
+      out <- tidyselect::eval_select(rlang::expr(c(...)), data = data)
+    }
   }
   is_dup <- collapse::fduplicated(list(names(out), unname(out)))
   out <- out[!is_dup]
-  # # Add group vars missed
-  # groups_missed <- setdiff(unname(group_pos), unname(out))
-  # out <- c(groups_missed, out)
-  # out_nms <- c(data_nms[groups_missed], names(cols))
+  if (anyDuplicated(names(out)) > 0){
+    # Use tidyselect for error
+    tidyselect::eval_select(rlang::expr(c(...)), data = data)
+  }
   out
 }
 # tidy_select_pos <- function(data, ..., cols = NULL){
@@ -164,15 +223,14 @@ tidy_select_pos <- function(data, ..., cols = NULL){
 #   out[!is_dup]
 # }
 # Select variables utilising tidyselect notation
-tidy_select_names <- function(data, ..., cols = NULL){
-  names(tidy_select_pos(data, ..., cols = cols))
+tidy_select_names <- function(data, ..., .cols = NULL){
+  names(tidy_select_pos(data, ..., .cols = .cols))
 }
 # Basic tidyselect information for further manipulation
 # Includes output and input names which might be useful
-tidy_select_info <- function(data, ..., cols = NULL){
+tidy_select_info <- function(data, ..., .cols = NULL){
   data_nms <- names(data)
-  group_vars <- group_vars(data)
-  pos <- tidy_select_pos(data, ..., cols = cols)
+  pos <- tidy_select_pos(data, ..., .cols = .cols)
   out_nms <- names(pos)
   pos <- unname(pos)
   in_nms <- data_nms[pos]
@@ -182,37 +240,12 @@ tidy_select_info <- function(data, ..., cols = NULL){
        "in_nms" = in_nms,
        "renamed" = renamed)
 }
-# faster dplyr::select in some cases
-select2 <- function(data, ..., cols = NULL){
-  data_nms <- names(data)
-  group_vars <- group_vars(data)
-  group_pos <- setnames(match(group_vars, data_nms),
-                        group_vars)
-  pos <- tidy_select_pos(data, ..., cols = cols)
-  pos_nms <- names(pos)
-  # Add group vars missed
-  groups_missed <- setdiff(unname(group_pos), unname(pos))
-  if (length(groups_missed) > 0L){
-    pos <- c(groups_missed, pos)
-    names(pos) <- c(data_nms[groups_missed], pos_nms)
-  }
-  renamed_groups <- pos[pos %in% group_pos &
-                          !names(pos) %in% names(group_pos)]
-  if (length(renamed_groups) > 0L){
-    original_nms <- data_nms[unname(renamed_groups)]
-
-    names(attr(data, "groups"))[
-      match(original_nms,
-            names(attr(data, "groups")))] <- names(renamed_groups)
-  }
-  collapse::fselect(data, pos)
-}
 # Updated version of transmute using mutate
 transmute2 <- function(data, ..., .by = NULL){
   group_vars <- get_groups(data, .by = {{ .by }})
   out <- mutate2(data, ..., .by = {{ .by }}, .keep = "none")
   out_nms <- tidy_transform_names(data, ...)
-  select2(out, cols = c(group_vars, out_nms))
+  collapse::fselect(out, c(group_vars, out_nms))
 }
 # mutate with a special case when all expressions are just selected columns.
 # mutate2 <- dplyr::mutate
@@ -400,7 +433,7 @@ mutate2 <- function(data, ..., .by = NULL,
 #   out
 # }
 summarise_list <- function(data, ..., fix.names = TRUE){
-  if (inherits(data, "grouped_df")) data <- dplyr::ungroup(data)
+  data <- safe_ungroup(data)
   dots <- enquos(...)
   quo_info <- quo_summarise_info(dots, data)
   quo_text <- quo_info[["quo_text"]]
@@ -414,11 +447,16 @@ summarise_list <- function(data, ..., fix.names = TRUE){
   data_pos <- match(quo_data_nms, names(data))
   # Where expressions are identity function, just select
   for (i in seq_along(quo_identity_pos)){
-    out[[quo_identity_pos[[i]]]] <- collapse::fselect(data, data_pos[[i]])
+    out[[quo_identity_pos[[i]]]] <- collapse::get_vars(data, vars = data_pos[[i]],
+                                                       return = "data",
+                                                       regex = FALSE,
+                                                       rename = TRUE)
   }
   # For all other expressions, use reframe()
-  out[quo_other_pos] <- lapply(dots[quo_other_pos],
-                               function(quo) dplyr_summarise(data, !!quo))
+  if (length(quo_other_pos) > 0L){
+    out[quo_other_pos] <- lapply(dots[quo_other_pos],
+                                 function(quo) dplyr_summarise(data, !!quo))
+  }
   names(out) <- quo_info[["quo_nms"]]
   # Remove NULL entries
   out_sizes <- lengths(out, use.names = FALSE)
@@ -446,7 +484,7 @@ summarise_list <- function(data, ..., fix.names = TRUE){
   out1 <- unlist(unname(out1), recursive = FALSE)
   inner_nms <- c(names(out1), names(out2))[out_order]
   out <- c(out1, out2)[out_order]
-  out_lengths <- lengths(out)
+  out_lengths <- lengths(out, use.names = FALSE)
   # Fix names so that list names are always output names and not empty
   if (fix.names){
     final_nms <- character(length(out))
@@ -623,25 +661,34 @@ get_groups <- function(data, .by = NULL){
 # This function is for functions like count() where extra groups need
 # to be created
 get_group_info <- function(data, ..., type = c("select", "data-mask"),
-                           .by = NULL){
+                           .by = NULL, .cols = NULL){
   type <- rlang::arg_match0(type, c("select", "data-mask"))
+  n_dots <- dots_length(...)
+  check_cols(n_dots = n_dots, .cols = .cols)
   group_vars <- get_groups(data, {{ .by }})
-  if (dots_length(...) == 0L){
-    extra_groups <- character(0)
-  } else {
-    if (type == "select"){
-      extra_groups <- tidy_select_names(data, ...)
+  # Usual method
+  if (length(.cols) == 0L){
+    if (n_dots == 0){
+      extra_groups <- character(0)
     } else {
-      extra_groups <- tidy_transform_names(data, ...)
+      if (type == "select"){
+        extra_groups <- tidy_select_names(data, ...)
+      } else {
+        extra_groups <- tidy_transform_names(data, ...)
+      }
     }
+    # Using .cols
+  } else {
+    extra_groups <- tidy_select_names(data, .cols = .cols)
+    # extra_groups <- names(col_select_pos(data, .cols = .cols))
   }
-
   extra_groups <- setdiff(extra_groups, group_vars)
   all_groups <- c(group_vars, extra_groups)
   list("dplyr_groups" = group_vars,
        "extra_groups" = extra_groups,
        "all_groups" = all_groups)
 }
+
 
 # A collapse version of dplyr_reconstruct,
 # fast when lots of groups are involved
@@ -668,19 +715,21 @@ df_reconstruct <- function(data, template){
     if (length(out_groups) == 0L){
       template_attrs[["class"]] <- setdiff(template_attrs[["class"]], "grouped_df")
       template_attrs[["groups"]] <- NULL
-    } else if (!inherits(data, "grouped_df") || !identical(template_attrs[["groups"]], data_attrs[["groups"]])){
+    } else if (!inherits(data, "grouped_df") ||
+               !isTRUE(all.equal(template_attrs[["groups"]],
+                                 data_attrs[["groups"]]))){
       # Sloppy workaround to account for the fact that collapse doesn't
       # correctly group lubridate intervals
       # This is due to the fact that durations don't uniquely identify
       # start and end points.
-      if (has_interval(collapse::fselect(safe_ungroup(data), out_groups), quiet = TRUE)){
+      if (has_interval(fselect(safe_ungroup(data), .cols = out_groups), quiet = TRUE)){
         grp_nm <- new_var_nm(out_groups, "g")
-        groups <- collapse::fselect(safe_ungroup(data), out_groups)
+        groups <- fselect(safe_ungroup(data), .cols = out_groups)
         g <- group_id.default(groups)
+        groups[[grp_nm]] <- g
         groups <- groups %>%
-          dplyr::mutate(!!grp_nm := g) %>%
-          dplyr::distinct(across(all_of(grp_nm)), .keep_all = TRUE) %>%
-          dplyr::arrange(across(all_of(grp_nm)))
+          fdistinct(.cols = grp_nm, .keep_all = TRUE) %>%
+          farrange(.cols = grp_nm)
         groups[[grp_nm]] <- NULL
       } else {
         g <- collapse::GRP(safe_ungroup(data), by = out_groups,
@@ -702,7 +751,8 @@ df_reconstruct <- function(data, template){
     }
   }
   template_attrs[["names"]] <- names(data)
-  template_attrs[["row.names"]] <- data_attrs[["row.names"]]
+  template_attrs[["row.names"]] <- .row_names_info(data, type = 0L)
+  # template_attrs[["row.names"]] <- data_attrs[["row.names"]]
   attributes(data) <- template_attrs
   data
 }
@@ -743,7 +793,9 @@ dplyr_summarise <- function(...){
 # Safe ungroup for any data type
 safe_ungroup <- function(data){
   if (inherits(data, "grouped_df")){
-   dplyr::ungroup(data)
+   attr(data, "groups") <- NULL
+   attr(data, "class") <- c("tbl_df", "tbl", "data.frame")
+   data
   } else {
     data
   }
@@ -1062,20 +1114,20 @@ qDT2 <- function(X){
 #        is_exact_col = is_exact_col)
 # }
 # quo info for data-masking type functions
-quos_expr_info <- function(quos, data){
-  quo_nms <- names(quos)
-  expr_text <- setnames(character(length(quos)), quo_nms)
-  expr_is_null <- setnames(logical(length(quos)), quo_nms)
-  for (i in seq_along(quos)){
-    expr_text[[i]] <- rlang::expr_name(rlang::quo_get_expr(quos[[i]]))
-    expr_is_null[[i]] <- rlang::quo_is_null(quos[[i]])
-  }
-  expr_is_identity <- expr_text %in% names(data) & names(expr_is_null) == ""
-  expr_is_null <- expr_is_null & names(expr_is_null) == ""
-  list(text = expr_text,
-       is_null = expr_is_null,
-       is_identity = expr_is_identity)
-}
+# quos_expr_info <- function(quos, data){
+#   quo_nms <- names(quos)
+#   expr_text <- setnames(character(length(quos)), quo_nms)
+#   expr_is_null <- setnames(logical(length(quos)), quo_nms)
+#   for (i in seq_along(quos)){
+#     expr_text[[i]] <- rlang::expr_name(rlang::quo_get_expr(quos[[i]]))
+#     expr_is_null[[i]] <- rlang::quo_is_null(quos[[i]])
+#   }
+#   expr_is_identity <- expr_text %in% names(data) & names(expr_is_null) == ""
+#   expr_is_null <- expr_is_null & names(expr_is_null) == ""
+#   list(text = expr_text,
+#        is_null = expr_is_null,
+#        is_identity = expr_is_identity)
+# }
 quo_null <- function(quos){
   vapply(quos, FUN = rlang::quo_is_null,
          FUN.VALUE = logical(1))
@@ -1118,37 +1170,20 @@ check_by <- function(data, .by){
     }
   }
 }
-# Named column positions
-col_select_pos <- function(data, cols = character(0)){
-  data_nms <- names(data)
-  # Method for when cols is supplied
-  if (is.numeric(cols)){
-    out <- match(cols, seq_along(data), nomatch = NA_integer_)
-  } else if (is.character(cols)){
-    out <- match(cols, data_nms, nomatch = NA_integer_)
-  } else {
-    stop("cols must be a numeric or character vector")
+check_cols <- function(n_dots, .cols = NULL){
+  if (n_dots > 0 && !is.null(.cols)){
+    stop("Cannot supply variables through ... and .cols, use one argument.")
   }
-  out_na <- is.na(out)
-  if (any(out_na)){
-    first_na_col <- cols[which(out_na)[1L]]
-    if (is.numeric(first_na_col)){
-      stop(paste("Location", first_na_col, "doesn't exist",
-                 sep = " "))
-    } else {
-      stop(paste("Column", first_na_col, "doesn't exist",
-                 sep = " "))
-    }
-  }
-  out_nms <- names(cols)
-  if (is.null(out_nms)){
-    names(out) <- data_nms[out]
-  } else {
-    out_nms[out_nms == ""] <- data_nms[out[out_nms == ""]]
-    names(out) <- out_nms
-  }
-  out
 }
+# check_cols <- function(data, ..., .cols = NULL){
+#   n_dots <- dots_length(...)
+#   cols_null <- rlang::quo_is_null(enquo(.cols))
+#   out <- n_dots == 0 && !cols_null
+#   if (n_dots > 0 && !cols_null){
+#     stop("Specify variables through ... or .cols, not both.")
+#   }
+#   out
+# }
 # Quosure text/var check for select()
 # NULL is removed.
 quo_select_info <- function(quos, data){
@@ -1163,7 +1198,7 @@ quo_select_info <- function(quos, data){
   quo_text <- quo_text[!quo_is_null]
   quo_nms <- quo_nms[!quo_is_null]
   is_char_var <- quo_text %in% names(data)
-  is_num_var <- quo_text %in% as.character(seq_along(data))
+  is_num_var <- quo_text %in% as.character(seq_along(quo_nms))
   list(quo_nms = quo_nms,
        quo_text = quo_text,
        is_num_var = is_num_var,
@@ -1203,4 +1238,43 @@ quo_summarise_info <- function(quos, data){
   list(quo_nms = quo_nms,
        quo_text = unname(quo_text),
        is_identity = is_identity)
+}
+integer_to_qg <- function(x){
+  attr(x, "N.groups") <- collapse::fndistinct(x, na.rm = FALSE)
+  attr(x, "class") <- c("qG", "na.included")
+  x
+}
+group_info <- function(data, ..., .by = NULL, .cols = NULL,
+                           ungroup = TRUE, rename = TRUE){
+  n_dots <- dots_length(...)
+  check_cols(n_dots = n_dots, .cols = .cols)
+  group_vars <- get_groups(data, {{ .by }})
+  extra_groups <- character(0)
+  if (ungroup){
+    out <- safe_ungroup(data)
+  } else {
+    out <- data
+  }
+  # Data-masking for dots expressions
+  if (n_dots > 0){
+    if (ungroup){
+      out <- mutate2(out, ...)
+    } else {
+      out <- mutate2(out, ..., .by = {{ .by }})
+    }
+    extra_groups <- tidy_transform_names(data, ...)
+  }
+  if (!is.null(.cols)){
+    col_pos <- col_select_pos(out, .cols = .cols)
+    extra_groups <- unique(names(col_pos))
+    if (rename){
+      out <- col_rename(out, col_pos)
+    }
+  }
+  extra_groups <- setdiff(extra_groups, group_vars)
+  all_groups <- c(group_vars, extra_groups)
+  list("data" = out,
+       "dplyr_groups" = group_vars,
+       "extra_groups" = extra_groups,
+       "all_groups" = all_groups)
 }

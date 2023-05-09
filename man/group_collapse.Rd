@@ -11,6 +11,7 @@ group_collapse(
   sort = FALSE,
   ascending = TRUE,
   .by = NULL,
+  .cols = NULL,
   id = TRUE,
   size = TRUE,
   loc = TRUE,
@@ -37,6 +38,10 @@ Default is \code{TRUE} and only applies when \code{order = TRUE}.}
 \item{.by}{Alternative way of supplying groups using \code{tidyselect} notation.
 This is kept to be consistent with other functions.}
 
+\item{.cols}{(Optional) alternative to \code{...} that accepts
+a named character vector or numeric vector.
+If speed is an expensive resource, it is recommended to use this.}
+
 \item{id}{Should group IDs be added? Default is \code{TRUE}.}
 
 \item{size}{Should group sizes be added? Default is \code{TRUE}.}
@@ -61,7 +66,12 @@ In addition to group locations, group sizes and start indices are returned.
 \item \code{collapse} is used to obtain the grouping structure, which is very fast.
 }
 
-\code{tidyselect} is used to specify the groups.
+There are 3 ways to specify the groups:
+\itemize{
+\item Using \code{...} which utilises \code{tidy} \code{data-masking}.
+\item Using \code{.by} which utilises \code{tidyselect}.
+\item Using \code{.cols} which accepts a named character/integer vector.
+}
 }
 \examples{
 library(timeplyr)

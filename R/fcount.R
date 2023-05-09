@@ -26,6 +26,9 @@
 #'  it'll use `nnn`, and so on, adding `n`s until it gets a new name.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
+#' @param .cols (Optional) alternative to `...` that accepts
+#' a named character vector or numeric vector.
+#' If speed is an expensive resource, it is recommended to use this.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -52,15 +55,16 @@
 #' @importFrom timechange time_add
 #' @export
 fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
-                   .by = NULL){
-  n_dots <- dots_length(...)
-  out <- safe_ungroup(data)
-  if (n_dots > 0){
-    out <- mutate2(out, ...)
-  }
+                   .by = NULL, .cols = NULL){
+  group_info <- group_info(data, ..., .by = {{ .by }},
+                           .cols = .cols,
+                           ungroup = TRUE,
+                           rename = TRUE)
+  out <- group_info[["data"]]
+  all_vars <- group_info[["all_groups"]]
   # Weights
   if (!rlang::quo_is_null(enquo(wt))){
-    out <- dplyr::mutate(out, !!enquo(wt))
+    out <- mutate2(out, !!enquo(wt))
     wt_var <- tidy_transform_names(data, !!enquo(wt))
   } else {
     wt_var <- character(0)
@@ -68,23 +72,15 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   if (length(wt_var) > 0L){
     wtv <- out[[wt_var]]
   }
-  group_info <- get_group_info(data, ...,
-                               type = "data-mask",
-                               .by = {{ .by }})
-  group_vars <- group_info[["dplyr_groups"]]
-  data_vars <- group_info[["extra_groups"]]
-  all_vars <- group_info[["all_groups"]]
-  grp_nm <- new_var_nm(c(group_vars, data_vars), ".group.id")
+  grp_nm <- new_var_nm(all_vars, ".group.id")
   if (length(all_vars) == 0L){
     g <- alloc(1L, nrow2(out))
   } else {
-    g <- group_id.default(collapse::fselect(out, all_vars),
+    g <- group_id.default(fselect(out, .cols = all_vars),
                           order = TRUE, as_qg = TRUE)
   }
   out[[grp_nm]] <- g
-  # out[[grp_nm]] <- group_id(out, .by = all_of(all_vars),
-  #                                   order = TRUE, as_qg = TRUE)
-  out <- collapse::fselect(out, c(grp_nm, group_vars, data_vars))
+  out <- fselect(out, .cols = c(grp_nm, all_vars))
   if (is.null(name)) name <- new_n_var_nm(out)
   # Keep unique groups and sort
   if (nrow2(out) >= 2L){
@@ -121,43 +117,38 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   }
   # Remove group id
   out[[grp_nm]] <- NULL
-  # out <- dplyr::dplyr_col_modify(out, setnames(list(NULL), grp_nm))
-  # Set row.names attr
+  # # Set row.names attr
   attr(out, "row.names") <- seq_len(N)
   df_reconstruct(out, data)
 }
 #' @rdname fcount
 #' @export
 fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
-                       .by = NULL){
-  n_dots <- dots_length(...)
-  out <- safe_ungroup(data)
-  if (n_dots > 0){
-    out <- mutate2(out, ...)
-  }
-  ncol1 <- ncol(out)
-  out <- dplyr::mutate(out, !!enquo(wt))
-  ncol2 <- ncol(out)
-  if (ncol2 == ncol1){
-    has_wt <- TRUE
-  } else {
-    has_wt <- FALSE
-  }
+                       .by = NULL, .cols = NULL){
+  group_info <- group_info(data, ..., .by = {{ .by }},
+                           .cols = .cols,
+                           ungroup = TRUE,
+                           rename = TRUE)
+  out <- group_info[["data"]]
+  all_vars <- group_info[["all_groups"]]
   if (rlang::quo_is_null(enquo(wt))){
     wt_var <- character(0)
   } else {
+    ncol1 <- ncol(out)
+    out <- mutate2(out, !!enquo(wt))
+    ncol2 <- ncol(out)
+    if (ncol2 == ncol1){
+      has_wt <- TRUE
+    } else {
+      has_wt <- FALSE
+    }
     wt_var <- tidy_transform_names(data, !!enquo(wt))
+    if (length(wt_var) > 0L){
+      wtv <- out[[wt_var]]
+      if (!has_wt) out[[wt_var]] <- NULL
+    }
   }
-  if (length(wt_var) > 0L){
-    wtv <- out[[wt_var]]
-    if (!has_wt) out[[wt_var]] <- NULL
-  }
-  group_info <- get_group_info(data, ...,
-                               type = "data-mask",
-                               .by = {{ .by }})
-  group_vars <- group_info[["dplyr_groups"]]
-  all_vars <- group_info[["all_groups"]]
-  group_id <- group_id(out, .by = all_of(all_vars),
+  group_id <- group_id(out, .cols = all_vars,
                        order = TRUE,
                        as_qg = TRUE)
   if (is.null(name)) name <- new_n_var_nm(out)
@@ -167,14 +158,15 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                    g = group_id,
                    na.rm = TRUE)
     # Replace NA with 0
-    nobs[is.na(nobs)] <- 0
+    nobs <- data.table::nafill(nobs, type = "const", fill = 0, nan = NaN)
     if (all(nobs <= .Machine$integer.max, na.rm = TRUE)){
       nobs <- as.integer(nobs)
     }
   } else {
     nobs <- collapse::GRPN(group_id, expand = TRUE)
   }
-  out[[name]] <- nobs
+  out <- dplyr::dplyr_col_modify(out, cols = setnames(list(nobs),
+                                                name))
   if (sort){
     out <- df_row_slice(out, radix_order(out[[name]],
                                          decreasing = TRUE),

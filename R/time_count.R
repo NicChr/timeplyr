@@ -243,8 +243,8 @@ time_count <- function(data, ..., time = NULL, by = NULL,
     }
     # Frequency table
     out <- ts_data %>%
-      fcount(across(dplyr::any_of(c(grp_nm, group_vars, time_var,
-                                    extra_group_vars))),
+      fcount(.cols = c(grp_nm, group_vars, time_var,
+                                    extra_group_vars),
              wt = across(all_of(wt_var)),
              name = name)
     name <- names(out)[length(names(out))]
@@ -279,12 +279,12 @@ time_count <- function(data, ..., time = NULL, by = NULL,
     } else {
      int_nm <- character(0)
     }
-    out <- collapse::fselect(out, c(grp_nm,
-                                    group_vars,
-                                    time_var,
-                                    extra_group_vars,
-                                    int_nm,
-                                    name))
+    out <- fselect(out, .cols = c(grp_nm,
+                                  group_vars,
+                                  time_var,
+                                  extra_group_vars,
+                                  int_nm,
+                                  name))
     if (sort){
       if (include_interval){
         out <- df_row_slice(out, radix_order(desc(out[[name]])), reconstruct = FALSE)
@@ -295,7 +295,7 @@ time_count <- function(data, ..., time = NULL, by = NULL,
     out[[grp_nm]] <- NULL # Remove group ID
   } else {
     out <- ts_data %>%
-      fcount(across(dplyr::any_of(c(group_vars, extra_group_vars))),
+      fcount(.cols = c(group_vars, extra_group_vars),
              wt = across(all_of(wt_var)),
              name = name,
              sort = sort)

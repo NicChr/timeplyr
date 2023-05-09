@@ -109,7 +109,8 @@
 #' @rdname fexpand
 #' @export
 fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
-                     sort = FALSE, .by = NULL,
+                     sort = FALSE,
+                    .by = NULL,
                      keep_class = TRUE,
                      log_limit = 8){
   expand_type <- match.arg(expand_type)

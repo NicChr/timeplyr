@@ -5,9 +5,25 @@
 \alias{fadd_count}
 \title{A fast replacement to dplyr::count()}
 \usage{
-fcount(data, ..., wt = NULL, sort = FALSE, name = NULL, .by = NULL)
+fcount(
+  data,
+  ...,
+  wt = NULL,
+  sort = FALSE,
+  name = NULL,
+  .by = NULL,
+  .cols = NULL
+)
 
-fadd_count(data, ..., wt = NULL, sort = FALSE, name = NULL, .by = NULL)
+fadd_count(
+  data,
+  ...,
+  wt = NULL,
+  sort = FALSE,
+  name = NULL,
+  .by = NULL,
+  .cols = NULL
+)
 }
 \arguments{
 \item{data}{A data frame.}
@@ -31,6 +47,10 @@ it'll use \code{nnn}, and so on, adding \code{n}s until it gets a new name.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
+
+\item{.cols}{(Optional) alternative to \code{...} that accepts
+a named character vector or numeric vector.
+If speed is an expensive resource, it is recommended to use this.}
 }
 \description{
 This is a fast and near-identical alternative to dplyr::count() using the \code{collapse} package.

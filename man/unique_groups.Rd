@@ -4,7 +4,7 @@
 \alias{unique_groups}
 \title{Alternative to \code{dplyr::group_keys()}}
 \usage{
-unique_groups(data, ..., order = TRUE, sort = order, .by = NULL)
+unique_groups(data, ..., order = TRUE, sort = order, .by = NULL, .cols = NULL)
 }
 \arguments{
 \item{data}{Data frame.}
@@ -21,6 +21,10 @@ If \code{FALSE} the order of the group IDs will be based on first appearance.}
 
 \item{.by}{Alternative way of supplying groups using \code{tidyselect} notation.
 This is kept to be consistent with other functions.}
+
+\item{.cols}{(Optional) alternative to \code{...} that accepts
+a named character vector or numeric vector.
+If speed is an expensive resource, it is recommended to use this.}
 }
 \description{
 This works like \code{dplyr::group_keys()} but offers more

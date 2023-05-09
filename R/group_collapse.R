@@ -12,7 +12,10 @@
 #'
 #' * `collapse` is used to obtain the grouping structure, which is very fast.
 #'
-#' `tidyselect` is used to specify the groups.
+#' There are 3 ways to specify the groups:
+#'  *  Using `...` which utilises `tidy` `data-masking`.
+#'  * Using `.by` which utilises `tidyselect`.
+#'  * Using `.cols` which accepts a named character/integer vector.
 #'
 #' @param data A data frame or vector.
 #' @param ... Additional groups using tidy `data-masking` rules. \cr
@@ -26,6 +29,9 @@
 #' Default is `TRUE` and only applies when `order = TRUE`.
 #' @param .by Alternative way of supplying groups using `tidyselect` notation.
 #' This is kept to be consistent with other functions.
+#' @param .cols (Optional) alternative to `...` that accepts
+#' a named character vector or numeric vector.
+#' If speed is an expensive resource, it is recommended to use this.
 #' @param id Should group IDs be added? Default is `TRUE`.
 #' @param size Should group sizes be added? Default is `TRUE`.
 #' @param loc Should group locations be added? Default is `TRUE`.
@@ -51,7 +57,8 @@
 #' @export
 group_collapse <- function(data, ..., order = TRUE, sort = FALSE,
                            ascending = TRUE,
-                           .by = NULL, id = TRUE,
+                           .by = NULL, .cols = NULL,
+                           id = TRUE,
                            size = TRUE, loc = TRUE,
                            # loc_order = TRUE,
                            start = TRUE, end = TRUE){
@@ -60,7 +67,7 @@ group_collapse <- function(data, ..., order = TRUE, sort = FALSE,
 #' @export
 group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
                                    ascending = TRUE,
-                                   .by = NULL, id = TRUE,
+                                   id = TRUE,
                                    size = TRUE, loc = TRUE,
                                    # loc_order = TRUE,
                                    start = TRUE, end = TRUE){
@@ -131,17 +138,18 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
 #' @export
 group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
                                       ascending = TRUE,
-                                      .by = NULL, id = TRUE,
+                                      .by = NULL, .cols = NULL,
+                                      id = TRUE,
                                       size = TRUE, loc = TRUE,
                                       # loc_order = TRUE,
                                       start = TRUE, end = TRUE){
-  # Use mutate if dots contain expressions
-  if (dots_length(...) > 0){
-    data <- mutate2(data, ...)
-  }
-  vars <- get_group_info(data, ...,
-                         type = "data-mask",
-                         .by = {{ .by }})[["all_groups"]]
+  N <- nrow2(data)
+  group_info <- group_info(data, ..., .by = {{ .by }},
+                           .cols = .cols,
+                           ungroup = TRUE,
+                           rename = TRUE)
+  data <- group_info[["data"]]
+  vars <- group_info[["all_groups"]]
   if (length(vars) == 0L){
     rowids <- seq_len(nrow2(data))
     n <- length(rowids)
@@ -181,17 +189,17 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
 #' @export
 group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
                                       ascending = TRUE,
-                                      .by = NULL, id = TRUE,
+                                      .by = NULL, .cols = NULL,
+                                      id = TRUE,
                                       size = TRUE, loc = TRUE,
                                       # loc_order = TRUE,
                                       start = TRUE, end = TRUE){
   n_dots <- dots_length(...)
-  group_vars <- dplyr::group_vars(data)
   # Error checking on .by
   check_by(data, .by = {{ .by }})
   # Special conditions where if met,
   # we can use dplyr grouping structure
-  if (n_dots == 0 && order && ascending && sort){
+  if (n_dots == 0 && is.null(.cols) && order && ascending && sort){
     out <- dplyr::group_data(data)
     out_nms <- names(out)
     names(out)[out_nms == ".rows"] <- ".loc"
@@ -221,20 +229,31 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
     #                                        .ptype = integer(0))
     # }
   } else {
-    # Use mutate if dots contain expressions
-    data <- safe_ungroup(data)
-    if (n_dots > 0){
-      data <- mutate2(data, ...)
-      dot_vars <- tidy_transform_names(data, ...)
-      group_vars <- c(group_vars, dot_vars)
-    }
-    out <- group_collapse(data, .by = all_of(group_vars),
-                          order = order, sort = sort,
-                          id = id,
-                          size = size, loc = loc,
-                          ascending = ascending,
-                          # loc_order = loc_order,
-                          start = start, end = end)
+    # group_vars <- get_groups(data, .by = {{ .by }})
+    # # Use mutate if dots contain expressions
+    # data <- safe_ungroup(data)
+    # dot_vars <- character(0)
+    # if (n_dots > 0){
+    #   data <- mutate2(data, ...)
+    #   dot_vars <- tidy_transform_names(data, ...)
+    # }
+    # if (!is.null(.cols)){
+    #   dot_vars <- unique(col_select_names(data, .cols = unname(.cols)))
+    # }
+    # all_vars <- c(group_vars, dot_vars)
+    group_info <- group_info(data, ..., .by = {{ .by }},
+                             .cols = .cols,
+                             ungroup = TRUE,
+                             rename = TRUE)
+    all_groups <- group_info[["all_groups"]]
+    out <- group_collapse.default(collapse::fselect(group_info[["data"]], all_groups),
+                                  order = order, sort = sort,
+                                  id = id,
+                                  size = size, loc = loc,
+                                  ascending = ascending,
+                                  # loc_order = loc_order,
+                                  start = start, end = end)
+    attr(out, "row.names") <- seq_len(nrow2(out))
     attr(out, ".drop") <- dplyr::group_by_drop_default(data)
   }
   out

@@ -66,10 +66,11 @@ time_distinct <- function(data, ..., time = NULL, by = NULL,
   n_dots <- dots_length(...)
   group_vars <- get_groups(data, .by = {{ .by }})
   out <- safe_ungroup(data)
+  dot_vars <- character(0)
   if (n_dots > 0){
-    out <- dplyr::mutate(out, ...)
+    out <- mutate2(out, ...)
+    dot_vars <- tidy_transform_names(data, ...)
   }
-  dot_vars <- tidy_transform_names(data, ...)
   if (include_interval){
     int_nm <- new_var_nm(out, "interval")
   } else {
