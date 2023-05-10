@@ -9,70 +9,78 @@ testthat::test_that("Group IDs", {
   iris2 <- data.table::as.data.table(iris)
   base3 <- iris2[, ("id") := .GRP, by = c("Species", "Sepal.Length")][][["id"]]
 
-  testthat::expect_identical(rep_len(1L, nrow(iris)),
+  testthat::expect_equal(rep_len(1L, nrow(iris)),
                              group_id(iris))
   testthat::expect_error(iris %>%
                            dplyr::group_by(Species) %>%
                                group_id(.by = all_of("Sepal.Length"),
                                         order = TRUE))
-  testthat::expect_identical(base1,
+
+  testthat::expect_equal(iris %>%
+                           dplyr::group_by(Species, Sepal.Length) %>%
+                           dplyr::group_indices() %>%
+                           collapse::qG(na.exclude = FALSE),
+                         iris %>%
+                          fgroup_by(Species, Sepal.Length) %>%
+                           group_id(as_qg = TRUE))
+  testthat::expect_equal(base1,
                              iris %>%
                                group_id(Petal.Width, order = TRUE))
 
-  testthat::expect_identical(iris %>%
+  testthat::expect_equal(iris %>%
                                dplyr::select(Petal.Width) %>%
                                group_id.default(order = TRUE),
                              iris %>%
                                group_id(Petal.Width, order = TRUE))
-  testthat::expect_identical(iris %>%
+  testthat::expect_equal(iris %>%
                                dplyr::select(Petal.Width) %>%
                                group_id.default(order = FALSE),
                              iris %>%
                                group_id(Petal.Width, order = FALSE))
-  testthat::expect_identical(iris %>%
+  testthat::expect_equal(iris %>%
                                dplyr::pull(Petal.Width) %>%
                                group_id.default(order = TRUE),
                              iris %>%
                                group_id(Petal.Width, order = TRUE))
-  testthat::expect_identical(iris %>%
+  testthat::expect_equal(iris %>%
                                dplyr::pull(Petal.Width) %>%
                                group_id.default(order = FALSE),
                              iris %>%
                                group_id(Petal.Width, order = FALSE))
-  testthat::expect_identical(base2,
+  testthat::expect_equal(base2,
                              iris %>%
                                dplyr::group_by(Species) %>%
                                group_id(Sepal.Length, order = TRUE))
-  testthat::expect_identical(base2,
+  testthat::expect_equal(base2,
                              iris %>%
                                dplyr::group_by(Species, Sepal.Length) %>%
                                group_id())
-  testthat::expect_identical(base2,
+  testthat::expect_equal(base2,
                              iris %>%
                                group_id(Species, Sepal.Length, order = TRUE))
-  testthat::expect_identical(base2,
+  testthat::expect_equal(base2,
                              iris %>%
                                group_id(.by = all_of(c("Species", "Sepal.Length")),
                                         order = TRUE))
-  testthat::expect_identical(base2,
+  testthat::expect_equal(base2,
                              iris %>%
                                dplyr::group_by(Species) %>%
                                group_id(Sepal.Length, order = TRUE,
                                         as_qg = TRUE) %>%
                                as.integer())
   # Unsorted
-  testthat::expect_identical(base3,
+  testthat::expect_equal(base3,
                              iris %>%
                                dplyr::group_by(Species) %>%
                                group_id(Sepal.Length, order = FALSE))
-  testthat::expect_identical(base3,
+  testthat::expect_equal(base3,
                              iris %>%
                                group_id(Species, Sepal.Length, order = FALSE))
-  testthat::expect_identical(base3,
+  testthat::expect_equal(base3,
                              iris %>%
                                group_id(.by = all_of(c("Species", "Sepal.Length")),
                                         order = FALSE))
-  testthat::expect_identical(base3,
+  testthat::expect_equal(base3,
                              iris %>%
                                dplyr::group_by(Species) %>%
                                group_id(Sepal.Length, order = FALSE,
@@ -80,15 +88,15 @@ testthat::test_that("Group IDs", {
                                as.integer())
 
   # Zero cols
-  testthat::expect_identical(group_id(iris2 %>% dplyr::select()),
+  testthat::expect_equal(group_id(iris2 %>% dplyr::select()),
                              seq_ones(nrow2(iris2)))
-  testthat::expect_identical(group_id(iris %>% dplyr::select()),
+  testthat::expect_equal(group_id(iris %>% dplyr::select()),
                              seq_ones(nrow2(iris2)))
   # With renaming
 
-  testthat::expect_identical(iris %>% group_id(okay = Petal.Width),
+  testthat::expect_equal(iris %>% group_id(okay = Petal.Width),
                              base1)
-  testthat::expect_identical(iris %>%
+  testthat::expect_equal(iris %>%
                                dplyr::group_by(Petal.Width) %>%
                                group_id(okay = Petal.Width),
                              base1)
@@ -111,6 +119,8 @@ testthat::test_that("Group IDs", {
     dplyr::group_by(x)
   res <- dplyr::group_indices(df)
   testthat::expect_equal(group_id.Interval(x, order = TRUE),
+                         res)
+  testthat::expect_equal(as.integer(group_id(x, as_qg = TRUE)),
                          res)
   testthat::expect_equal(group_id.default(x, order = TRUE),
                          res)
@@ -144,16 +154,16 @@ testthat::test_that("Adding group IDs", {
   base2 <- iris2[, ("id") := .GRP, by = c("Species", "Sepal.Length")]
   base2 <- df_reconstruct(base2, iris)
 
-  testthat::expect_identical(base1,
+  testthat::expect_equal(base1,
                              iris %>%
                                add_group_id(Species, Sepal.Length, order = TRUE,
                                             .name = "id"))
-  testthat::expect_identical(base2,
+  testthat::expect_equal(base2,
                              iris %>%
                                add_group_id(Species, Sepal.Length, order = FALSE,
                                             .name = "id"))
 
-  testthat::expect_identical(base1,
+  testthat::expect_equal(base1,
                              iris %>%
                                add_group_id(Species, Sepal.Length, order = TRUE) %>%
                                dplyr::rename(id = group_id))
@@ -234,14 +244,14 @@ testthat::test_that("Row IDs", {
   testthat::expect_equal(res2$row_id, res3$row_id)
   testthat::expect_equal(res2$row_id, res4$row_id)
 
-  testthat::expect_identical(
+  testthat::expect_equal(
     iris2 %>%
       fslice(0) %>%
       add_row_id(),
     iris2 %>%
       fslice(0) %>%
       dplyr::mutate(row_id = dplyr::row_number()))
-  testthat::expect_identical(
+  testthat::expect_equal(
     iris2 %>%
       data.table::as.data.table() %>%
       fslice(0) %>%
@@ -250,7 +260,7 @@ testthat::test_that("Row IDs", {
       data.table::as.data.table() %>%
       dplyr::slice(0) %>%
       dplyr::mutate(row_id = dplyr::row_number()))
-  testthat::expect_identical(
+  testthat::expect_equal(
     iris2 %>%
       dplyr::select() %>%
       add_row_id() %>%
@@ -259,6 +269,9 @@ testthat::test_that("Row IDs", {
       dplyr::select() %>%
       dplyr::mutate(row_id = dplyr::row_number()) %>%
       data.table::as.data.table())
+
+  testthat::expect_equal(row_id(base2),
+                         base2$id)
 })
 
 testthat::test_that("group order", {

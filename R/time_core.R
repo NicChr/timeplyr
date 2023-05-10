@@ -186,15 +186,17 @@ time_summarisev <- function(x, by = NULL, from = NULL, to = NULL,
   if (include_interval){
     time_int <- tseq_interval(x = to, time_breaks)
     time_int <- time_int[time_break_ind]
-    out <- dplyr::tibble(!!"x" := out,
-                         !!"interval" := time_int)
+    out <- list("x" = out,
+                "interval" = time_int)
+    out <- list_to_tibble(out)
     # Unique and sorting
     if (unique){
-      out <- fdistinct(out, .data[["x"]], .keep_all = TRUE)
+      out <- fdistinct(out, .cols = "x", .keep_all = TRUE)
       # out <- gunique(out, g = out[["x"]])
     }
-    # if (sort) out <- out[radix_order(out[["x"]]), , drop = FALSE]
-    if (sort) out <- df_row_slice(out, radix_order(out[["x"]]))
+    if (sort){
+      out <- farrange(out, .cols = "x")
+    }
     if (!is_interval(time_int)){
       attr(out[["interval"]], "start") <- out[["x"]]
     }
@@ -282,14 +284,17 @@ time_countv <- function(x, by = NULL, from = NULL, to = NULL,
       time_int <- c(time_int, time_seq_int[which(attr(time_seq_int, "start") %in%
                                                    time_cast(time_missed, attr(time_seq_int, "start")))])
     }
-    out <- dplyr::tibble(!!"x" := x,
-                         !!"interval" := time_int,
-                         !!"n" := out)
+    out <- list("x" = x,
+                "interval" = time_int,
+                "n" = out)
+    out <- list_to_tibble(out)
     if (unique){
-      out <- fdistinct(out, .data[["x"]], .keep_all = TRUE)
+      out <- fdistinct(out, .cols = "x", .keep_all = TRUE)
     }
     if (sort){
-      if (sort) out <- df_row_slice(out, radix_order(out[["x"]]))
+      if (sort){
+        out <- farrange(out, .cols = "x")
+      }
     }
     if (!is_interval(out[["interval"]])){
       attr(out[["interval"]], "start") <- out[["x"]]

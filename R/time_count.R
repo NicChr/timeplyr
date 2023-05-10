@@ -287,7 +287,7 @@ time_count <- function(data, ..., time = NULL, by = NULL,
                                   name))
     if (sort){
       if (include_interval){
-        out <- df_row_slice(out, radix_order(desc(out[[name]])), reconstruct = FALSE)
+        out <- farrange(out, desc(.data[[name]]))
       } else {
         setorderv2(out, cols = name, order = -1L)
       }

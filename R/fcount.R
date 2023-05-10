@@ -56,12 +56,14 @@
 #' @export
 fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                    .by = NULL, .cols = NULL){
+  group_vars <- group_vars(data)
   group_info <- group_info(data, ..., .by = {{ .by }},
                            .cols = .cols,
                            ungroup = TRUE,
                            rename = TRUE)
   out <- group_info[["data"]]
   all_vars <- group_info[["all_groups"]]
+  N <- nrow2(data)
   # Weights
   if (!rlang::quo_is_null(enquo(wt))){
     out <- mutate2(out, !!enquo(wt))
@@ -74,18 +76,34 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   }
   grp_nm <- new_var_nm(all_vars, ".group.id")
   if (length(all_vars) == 0L){
-    g <- alloc(1L, nrow2(out))
-  } else {
-    g <- group_id.default(fselect(out, .cols = all_vars),
-                          order = TRUE, as_qg = TRUE)
+    g <- list(group.starts = min(1L, N),
+              group.sizes = N)
+    # If data is grouped and no extra groups supplied..
   }
-  out[[grp_nm]] <- g
-  out <- fselect(out, .cols = c(grp_nm, all_vars))
+  else if (length(group_vars) > 0L &&
+             length(group_vars) == length(all_vars)){
+    # g <- GRP2(data, by = all_vars, sort = TRUE)
+    gdata <- attr(data, "groups")
+    g <- list(group.starts = collapse::ffirst(gdata[[".rows"]],
+                                              use.g.names = FALSE),
+              group.sizes = collapse::vlengths(gdata[[".rows"]],
+                                               use.names = FALSE))
+  }
+  else {
+    g <- GRP2(out, by = all_vars, sort = TRUE)
+  }
+  # This is a collapse bug.
+  # g$group.starts is not returned if x is in sorted order
+  if (is.null(g[["group.starts"]])){
+    g[["group.starts"]] <- seq_len(N)
+  }
+  out <- fselect(out, .cols = all_vars)
   if (is.null(name)) name <- new_n_var_nm(out)
   # Keep unique groups and sort
-  if (nrow2(out) >= 2L){
-    out <- collapse::funique(out, cols = grp_nm, sort = TRUE)
-  }
+  # if (nrow2(out) >= 2L){
+  #   out <- collapse::funique(out, cols = grp_nm, sort = TRUE)
+  # }
+  out <- vctrs::vec_slice(out, g[["group.starts"]])
   N <- nrow2(out)
   # Edge-case, not sure how to fix this
   if (N == 0L && length(all_vars) == 0L){
@@ -97,7 +115,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                                     row.names = c(NA, -1L)),
                           data)
   } else if (length(wt_var) == 0){
-    nobs <- collapse::GRPN(g, expand = FALSE)
+    nobs <- g[["group.sizes"]]
   } else {
     nobs <- collapse::fsum(as.double(wtv),
                            g = g,
@@ -112,13 +130,9 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   }
   out[[name]] <- nobs
   if (sort){
-    out <- df_row_slice(out, radix_order(out[[name]], decreasing = TRUE),
-                        reconstruct = FALSE)
+      out <- vctrs::vec_slice(out, radix_order(out[[name]],
+                                               decreasing = TRUE))
   }
-  # Remove group id
-  out[[grp_nm]] <- NULL
-  # # Set row.names attr
-  attr(out, "row.names") <- seq_len(N)
   df_reconstruct(out, data)
 }
 #' @rdname fcount

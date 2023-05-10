@@ -895,11 +895,11 @@ tagg_interval <- function(xagg, x, seq, gagg = NULL, gx = NULL, gseq = NULL){
   # agg_df[int_df, ("interval") := get("interval"),
   #        on = names(agg_df),
   #        mult = "first"][["interval"]]
-  agg_df <- dplyr::tibble(t = xagg,
-                          g = gagg)
-  int_df <- dplyr::tibble(t = seq,
-                          g = gseq,
-                          interval = int)
+  agg_df <- list_to_tibble(list(t = xagg,
+                                g = gagg))
+  int_df <- list_to_tibble(list(t = seq,
+                                g = gseq,
+                                interval = int))
   agg_df %>%
     dplyr::left_join(int_df, by = c("g", "t"),
                      multiple = "any") %>%

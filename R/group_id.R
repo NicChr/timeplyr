@@ -110,8 +110,6 @@ group_id.default <- function(data, ..., order = TRUE,
   }
   if (as_qg && order){
     out <- integer_to_qg(out)
-    # out <- collapse::qG(out, sort = TRUE, ordered = FALSE,
-    #                     na.exclude = FALSE))
   }
   if (!as_qg && !order){
     out <- as.integer(out)
@@ -135,18 +133,6 @@ group_id.data.frame <- function(data, ...,
                                 .by = NULL, .cols = NULL,
                                 as_qg = FALSE){
   N <- nrow2(data)
-  # n_dots <- dots_length(...)
-  # group_vars <- get_groups(data, .by = {{ .by }})
-  # check_cols(n_dots = n_dots, .cols = .cols)
-  # dot_vars <- character(0)
-  # if (n_dots > 0){
-  #   data <- mutate2(data, ...)
-  #   dot_vars <- tidy_transform_names(data, ...)
-  # }
-  # if (!is.null(.cols)){
-  #   dot_vars <- unique(col_select_names(data, .cols = unname(.cols)))
-  # }
-  # all_groups <- c(group_vars, dot_vars)
   group_info <- group_info(data, ..., .by = {{ .by }},
                            .cols = .cols,
                            ungroup = TRUE,
@@ -222,14 +208,6 @@ row_id <- function(data, ..., ascending = TRUE,
 }
 #' @export
 row_id.default <- function(data, ..., ascending = TRUE){
-  # g <- GRP2(safe_ungroup(data),
-  #             sort = TRUE,
-  #             decreasing = FALSE,
-  #             na.last = TRUE,
-  #             return.groups = FALSE,
-  #             return.order = FALSE,
-  #             method = "auto",
-  #             call = FALSE)
   growid(safe_ungroup(data), ascending = ascending)
 }
 #' @export
@@ -237,15 +215,6 @@ row_id.data.frame <- function(data, ...,
                               ascending = TRUE,
                               .by = NULL, .cols = NULL){
   N <- nrow2(data)
-  # n_dots <- dots_length(...)
-  # if (n_dots > 0){
-  #   data <- mutate2(data, ...)
-  # }
-  # group_info <- get_group_info(data, ...,
-  #                              type = "data-mask",
-  #                              .by = {{ .by }},
-  #                              .cols = .cols)
-  # vars <- group_info[["all_groups"]]
   group_info <- group_info(data, ..., .by = {{ .by }},
                            .cols = .cols,
                            ungroup = TRUE,
@@ -267,18 +236,6 @@ row_id.data.frame <- function(data, ...,
 row_id.grouped_df <- function(data, ...,
                               ascending = TRUE,
                               .by = NULL, .cols = NULL){
-  # n_dots <- dots_length(...)
-  # group_vars <- get_groups(data, .by = {{ .by }})
-  # data <- safe_ungroup(data)
-  # dot_vars <- character(0)
-  # if (n_dots > 0){
-  #   data <- mutate2(data, ...)
-  #   dot_vars <- tidy_transform_names(data, ...)
-  # }
-  # if (!is.null(.cols)){
-  #   dot_vars <- unique(col_select_names(data, .cols = unname(.cols)))
-  # }
-  # all_groups <- c(group_vars, dot_vars)
   group_info <- group_info(data, ..., .by = {{ .by }},
                            .cols = .cols,
                            ungroup = TRUE,
@@ -330,27 +287,17 @@ group_order.default <- function(data, ..., ascending = TRUE){
 }
 #' @export
 group_order.Interval <- function(data, ..., ascending = TRUE){
-  g <- GRP.Interval(data, sort = TRUE, call = FALSE,
-                    return.groups = FALSE)[["group.id"]]
-  group_order(g, ascending = ascending)
+  # g <- GRP.Interval(data, sort = TRUE, call = FALSE,
+  #                   return.groups = FALSE)[["group.id"]]
+  # group_order(g, ascending = ascending)
+  x <- list("start" = lubridate::int_start(x),
+            "data" = lubridate::int_length(x))
+  as.integer(collapse::radixorderv(x, decreasing = !ascending))
 }
 #' @export
 group_order.data.frame <- function(data, ..., ascending = TRUE,
                                    .by = NULL, .cols = NULL){
   N <- nrow2(data)
-  # n_dots <- dots_length(...)
-  # group_vars <- get_groups(data, .by = {{ .by }})
-  # check_cols(n_dots = n_dots, .cols = .cols)
-  # data <- safe_ungroup(data)
-  # dot_vars <- character(0)
-  # if (n_dots > 0){
-  #   data <- mutate2(data, ...)
-  #   dot_vars <- tidy_transform_names(data, ...)
-  # }
-  # if (!is.null(.cols)){
-  #   dot_vars <- unique(col_select_names(data, .cols = unname(.cols)))
-  # }
-  # all_groups <- c(group_vars, dot_vars)
   group_info <- group_info(data, ..., .by = {{ .by }},
                            .cols = .cols,
                            ungroup = TRUE,

@@ -79,7 +79,7 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
             return.order = order || loc,
             method = "auto",
             call = FALSE)
-  out <- dplyr::as_tibble(as.list(g[["groups"]]))
+  out <- list_to_tibble(as.list(g[["groups"]]))
   if (id){
     out[[".group"]] <- seq_len(nrow2(out))
   }
@@ -110,15 +110,29 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
   if (start){
     out[[".start"]] <- g[["group.starts"]]
     if (is.null(out[[".start"]])){
-      out[[".start"]] <- as.integer(collapse::fmin(out[[".loc"]],
-                                                   use.g.names = FALSE,
-                                                   na.rm = FALSE))
+      out[[".start"]] <- as.integer(
+        unlist(
+          collapse::fmin(
+            out[[".loc"]],
+            use.g.names = FALSE,
+            na.rm = FALSE
+          )
+        , use.names = FALSE, recursive = FALSE
+        )
+      )
     }
   }
   if (end){
-    out[[".end"]] <- as.integer(collapse::fmax(out[[".loc"]],
-                                               use.g.names = FALSE,
-                                               na.rm = FALSE))
+    out[[".end"]] <- as.integer(
+      unlist(
+        collapse::fmax(
+          out[[".loc"]],
+          use.g.names = FALSE,
+          na.rm = FALSE
+        )
+        , use.names = FALSE, recursive = FALSE
+      )
+    )
   }
   if (!loc && include_loc){
     out[[".loc"]] <- NULL
@@ -229,18 +243,6 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
     #                                        .ptype = integer(0))
     # }
   } else {
-    # group_vars <- get_groups(data, .by = {{ .by }})
-    # # Use mutate if dots contain expressions
-    # data <- safe_ungroup(data)
-    # dot_vars <- character(0)
-    # if (n_dots > 0){
-    #   data <- mutate2(data, ...)
-    #   dot_vars <- tidy_transform_names(data, ...)
-    # }
-    # if (!is.null(.cols)){
-    #   dot_vars <- unique(col_select_names(data, .cols = unname(.cols)))
-    # }
-    # all_vars <- c(group_vars, dot_vars)
     group_info <- group_info(data, ..., .by = {{ .by }},
                              .cols = .cols,
                              ungroup = TRUE,

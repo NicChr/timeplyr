@@ -60,10 +60,10 @@ fselect <- function(data, ..., .cols = NULL){
                      regex = FALSE,
                      rename = TRUE)
 }
-# frename <- function(data, ..., .cols = NULL){
-#   if (is.null(.cols)){
-#     dplyr::rename(data, ...)
-#   } else {
-#     col_rename(data, .cols = .cols)
-#   }
-# }
+frename <- function(data, ..., .cols = NULL){
+  if (is.null(.cols)){
+    dplyr::rename(data, ...)
+  } else {
+    col_rename(data, .cols = .cols)
+  }
+}

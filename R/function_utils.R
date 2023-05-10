@@ -734,11 +734,10 @@ df_reconstruct <- function(data, template){
       } else {
         g <- collapse::GRP(safe_ungroup(data), by = out_groups,
                               sort = TRUE, decreasing = FALSE, na.last = TRUE,
-                           return.order = FALSE,
+                              return.order = FALSE,
                               return.groups = TRUE, call = FALSE)
-        groups <- dplyr::as_tibble(as.list(g[["groups"]]))
+        groups <- list_to_tibble(as.list(g[["groups"]]))
       }
-
       groups[[".rows"]] <- collapse::gsplit(NULL, g = g)
       attributes(groups[[".rows"]]) <- attributes(template_attrs[["groups"]][[".rows"]])
       for (a in setdiff(names(attributes(groups)),
@@ -956,8 +955,11 @@ pair_unique <- function(x, y){
 # Row slice
 df_row_slice <- function(data, i, reconstruct = TRUE){
   if (reconstruct){
+    # df_reconstruct(collapse::fsubset.data.frame(safe_ungroup(data), subset = i),
+    #                data)
     df_reconstruct(vctrs::vec_slice(safe_ungroup(data), i), data)
   } else {
+    # collapse::fsubset.data.frame(data, subset = i)
     vctrs::vec_slice(data, i)
   }
 }
@@ -1277,4 +1279,17 @@ group_info <- function(data, ..., .by = NULL, .cols = NULL,
        "dplyr_groups" = group_vars,
        "extra_groups" = extra_groups,
        "all_groups" = all_groups)
+}
+conditional_sort <- function(x){
+  if (is.unsorted(x)){
+    radix_sort(x)
+  } else {
+    x
+  }
+}
+# x must be named
+list_to_tibble <- function(x){
+  attr(x, "class") <- c("tbl_df", "tbl", "data.frame")
+  attr(x, "row.names") <- .set_row_names(collapse::fnrow(x))
+  x
 }

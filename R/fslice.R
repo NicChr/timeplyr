@@ -77,7 +77,6 @@ fslice <- function(data, ..., .by = NULL,
   # Groups
   group_vars <- get_groups(data, .by = {{ .by }})
   if (length(group_vars) == 0L){
-    g <- NULL
     i <- n[data.table::between(n, -N, N)]
   } else {
       group_df <- group_collapse(data, .by = {{ .by }},
@@ -110,7 +109,7 @@ fslice <- function(data, ..., .by = NULL,
       }
   }
   if (keep_order){
-    i <- radix_sort(i)
+    i <- conditional_sort(i)
   }
   df_row_slice(data, i)
 }
@@ -133,7 +132,7 @@ fslice_head <- function(data, ..., n, prop, .by = NULL,
     i <- integer(0)
   }
   if (keep_order){
-    i <- radix_sort(i)
+    i <- conditional_sort(i)
   }
   df_row_slice(data, i)
 }
@@ -154,7 +153,7 @@ fslice_tail <- function(data, ..., n, prop, .by = NULL,
     i <- integer(0)
   }
   if (keep_order){
-    i <- radix_sort(i)
+    i <- conditional_sort(i)
   }
   df_row_slice(data, i)
 }
@@ -165,10 +164,10 @@ fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
                        keep_order = FALSE, sort_groups = TRUE){
   rlang::check_dots_empty0(...)
   group_vars <- get_groups(data, .by = {{ .by }})
-  out <- dplyr::mutate(data,
-                       !!enquo(order_by),
-                       .keep = "none",
-                       .by = {{ .by }})
+  out <- mutate2(data,
+                 !!enquo(order_by),
+                 .keep = "none",
+                 .by = {{ .by }})
   order_by_nm <- tidy_transform_names(data, !!enquo(order_by))
   row_nm <- new_var_nm(names(out), "row_id")
   out[[row_nm]] <- seq_along(attr(out, "row.names"))
@@ -180,9 +179,8 @@ fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
   # Order by Groups + desc order by var
   grp_nm3 <- new_var_nm(names(out), "g")
   out[[grp_nm3]] <- group_id(safe_ungroup(out),
-                             .by = all_of(c(grp_nm, grp_nm2)))
-  out <- df_row_slice(out, radix_order(out[[grp_nm3]]), reconstruct = FALSE)
-
+                             .cols = c(grp_nm, grp_nm2))
+  out <- farrange(out, .cols = grp_nm3)
   out1 <- fslice_head(out, n = n, prop = prop, .by = {{ .by }},
                       sort_groups = sort_groups)
   if (with_ties){
@@ -199,7 +197,7 @@ fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
     i <- integer(0)
   }
   if (keep_order){
-    i <- radix_sort(i)
+    i <- conditional_sort(i)
   }
   df_row_slice(data, i)
 }
@@ -210,10 +208,10 @@ fslice_max <- function(data, order_by, ..., n, prop, .by = NULL,
                        keep_order = FALSE, sort_groups = TRUE){
   rlang::check_dots_empty0(...)
   group_vars <- get_groups(data, .by = {{ .by }})
-  out <- dplyr::mutate(data,
-                       !!enquo(order_by),
-                       .keep = "none",
-                       .by = {{ .by }})
+  out <- mutate2(data,
+                 !!enquo(order_by),
+                 .keep = "none",
+                 .by = {{ .by }})
   order_by_nm <- tidy_transform_names(data, !!enquo(order_by))
   row_nm <- new_var_nm(names(out), "row_id")
   out[[row_nm]] <- seq_along(attr(out, "row.names"))
@@ -225,8 +223,8 @@ fslice_max <- function(data, order_by, ..., n, prop, .by = NULL,
   # Order by Groups + desc order by var
   grp_nm3 <- new_var_nm(names(out), "g")
   out[[grp_nm3]] <- group_id(safe_ungroup(out),
-                             .by = all_of(c(grp_nm, grp_nm2)))
-  out <- df_row_slice(out, radix_order(out[[grp_nm3]]), reconstruct = FALSE)
+                             .cols = c(grp_nm, grp_nm2))
+  out <- farrange(out, .cols = grp_nm3)
 
   out1 <- fslice_head(out, n = n, prop = prop, .by = {{ .by }},
                       sort_groups = sort_groups)
@@ -243,7 +241,7 @@ fslice_max <- function(data, order_by, ..., n, prop, .by = NULL,
     i <- integer(0)
   }
   if (keep_order){
-    i <- radix_sort(i)
+    i <- conditional_sort(i)
   }
   df_row_slice(data, i)
 }
@@ -309,7 +307,7 @@ fslice_sample <- function(data, ..., n, prop,
     i <- integer(0)
   }
   if (keep_order){
-    i <- radix_sort(i)
+    i <- conditional_sort(i)
   }
   df_row_slice(data, i)
 }

@@ -1,4 +1,5 @@
 testthat::test_that("farrange", {
+  testthat::expect_equal(iris, farrange(iris))
   flights2 <- add_row_id(fslice_sample(nycflights13::flights, seed = 9192919))
   iris2 <- add_row_id(fslice_sample(iris, seed = 098124))
   base1 <- iris2 %>%
