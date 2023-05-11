@@ -58,6 +58,6 @@ farrange <- function(data, ..., .by = NULL, .by_group = FALSE,
   if (!is.unsorted(out_order)){
     data
   } else {
-    df_row_slice(data, out_order, reconstruct = FALSE)
+    df_row_slice(data, out_order)
   }
 }

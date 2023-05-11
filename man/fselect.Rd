@@ -2,7 +2,7 @@
 % Please edit documentation in R/fselect.R
 \name{fselect}
 \alias{fselect}
-\title{Fast \code{dplyr::select()}}
+\title{Fast \code{dplyr::select()}/\code{dplyr::rename()}}
 \usage{
 fselect(data, ..., .cols = NULL)
 }

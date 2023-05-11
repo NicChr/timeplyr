@@ -13,7 +13,7 @@ BugReports: https://github.com/NicChr/timeplyr/issues
 Depends:
     R (>= 3.5.0)
 Imports:
-    collapse (>= 1.9.3),
+    collapse (>= 1.9.5),
     data.table (>= 1.14.8),
     dplyr (>= 1.1.0),
     ggplot2 (>= 3.4.0),

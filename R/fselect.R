@@ -1,4 +1,4 @@
-#' Fast `dplyr::select()`
+#' Fast `dplyr::select()`/`dplyr::rename()`
 #'
 #' @description `fselect()` operates the exact same way as `dplyr::select()` and
 #' can be used naturally with `tidyselect` helpers.
@@ -60,10 +60,8 @@ fselect <- function(data, ..., .cols = NULL){
                      regex = FALSE,
                      rename = TRUE)
 }
+#' @export
 frename <- function(data, ..., .cols = NULL){
-  if (is.null(.cols)){
-    dplyr::rename(data, ...)
-  } else {
-    col_rename(data, .cols = .cols)
-  }
+  pos <- tidy_select_pos(data, ..., .cols = .cols)
+  col_rename(data, .cols = pos)
 }

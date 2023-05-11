@@ -20,16 +20,17 @@ gunique <- function(x, g = NULL, sort = FALSE){
               return.order = TRUE)
 
   } else {
-    g <- GRP2(list(group_id.default(x), group_id.default(g)),
+    g <- GRP2(list(group_id.default(x, order = TRUE),
+                   group_id.default(g, order = TRUE)),
+              sort = TRUE,
               return.groups = TRUE, call = FALSE,
               return.order = TRUE)
-    # g <- GRP2(list(x, g),
-    #           return.groups = TRUE, call = FALSE,
-    #           return.order = TRUE)
   }
   if (sort){
-    vctrs::vec_slice(x, g[["group.starts"]])
+    collapse::fsubset(x, GRP_starts(g))
+    # vctrs::vec_slice(x, GRP_starts(g))
   } else {
-    vctrs::vec_slice(x, which(growid(x, g = g) == 1))
+    collapse::fsubset(x, growid(x, g = g) == 1L)
+    # vctrs::vec_slice(x, which(growid(x, g = g) == 1))
   }
 }

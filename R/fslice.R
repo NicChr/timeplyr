@@ -169,22 +169,21 @@ fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
                  .keep = "none",
                  .by = {{ .by }})
   order_by_nm <- tidy_transform_names(data, !!enquo(order_by))
+  g1 <- group_id(out, .by = {{ .by }}, order = sort_groups)
+  # out <- safe_ungroup(out)
   row_nm <- new_var_nm(names(out), "row_id")
-  out[[row_nm]] <- seq_along(attr(out, "row.names"))
-  grp_nm <- new_var_nm(names(out), "g")
-  out[[grp_nm]] <- group_id(out, .by = {{ .by }},
-                            order = sort_groups)
-  grp_nm2 <- new_var_nm(names(out), "g")
-  out[[grp_nm2]] <- group_id(out[[order_by_nm]])
+  out <- dplyr::dplyr_col_modify(out, setnames(list(seq_along(attr(out, "row.names"))),
+                                               row_nm))
+  g2 <- group_id(out[[order_by_nm]])
   # Order by Groups + desc order by var
-  grp_nm3 <- new_var_nm(names(out), "g")
-  out[[grp_nm3]] <- group_id(safe_ungroup(out),
-                             .cols = c(grp_nm, grp_nm2))
-  out <- farrange(out, .cols = grp_nm3)
+  grp_nm <- new_var_nm(names(out), "g")
+  out <- dplyr::dplyr_col_modify(out, setnames(list(group_id(list(g1, g2))),
+                                               grp_nm))
+  out <- farrange(out, .cols = grp_nm)
   out1 <- fslice_head(out, n = n, prop = prop, .by = {{ .by }},
                       sort_groups = sort_groups)
   if (with_ties){
-    i <- out[[row_nm]][out[[grp_nm3]] %in% out1[[grp_nm3]]]
+    i <- out[[row_nm]][out[[grp_nm]] %in% out1[[grp_nm]]]
     # i <- df_row_slice(out, which(out[[grp_nm]] %in% out1[[grp_nm]]))[[row_nm]]
   } else {
     i <- out1[[row_nm]]

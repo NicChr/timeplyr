@@ -197,7 +197,6 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
                                   # loc_order = loc_order,
                                   start = start, end = end)
   }
-  attr(out, "row.names") <- seq_len(nrow2(out))
   out
 }
 #' @export
@@ -255,7 +254,6 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
                                   ascending = ascending,
                                   # loc_order = loc_order,
                                   start = start, end = end)
-    attr(out, "row.names") <- seq_len(nrow2(out))
     attr(out, ".drop") <- dplyr::group_by_drop_default(data)
   }
   out

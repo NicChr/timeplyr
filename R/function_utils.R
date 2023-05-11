@@ -163,14 +163,14 @@ col_rename <- function(data, .cols = integer(0)){
     return(data)
   }
   data_nms <- names(data)
-  if (is.character(.cols)){
-   pos <- setnames(match(.cols, data_nms),
-                   names(.cols))
-  } else {
-   pos <- .cols
-  }
+  # if (is.character(.cols)){
+  #  pos <- setnames(match(.cols, data_nms),
+  #                  names(.cols))
+  # } else {
+  #  pos <- .cols
+  # }
   # Use the below for more consistency
-  # pos <- col_select_pos(data, .cols = .cols)
+  pos <- col_select_pos(data, .cols = .cols)
   out_nms <- names(pos)
   renamed <- is.na(match(out_nms, data_nms) != pos)
   renamed_pos <- pos[renamed]
@@ -179,6 +179,7 @@ col_rename <- function(data, .cols = integer(0)){
 }
 tidy_select_pos <- function(data, ..., .cols = NULL){
   data_nms <- names(data)
+  check_cols(dots_length(...), .cols = .cols)
   # Method for when cols is supplied
   if (!is.null(.cols)){
     out <- col_select_pos(data, .cols)
@@ -715,9 +716,7 @@ df_reconstruct <- function(data, template){
     if (length(out_groups) == 0L){
       template_attrs[["class"]] <- setdiff(template_attrs[["class"]], "grouped_df")
       template_attrs[["groups"]] <- NULL
-    } else if (!inherits(data, "grouped_df") ||
-               !isTRUE(all.equal(template_attrs[["groups"]],
-                                 data_attrs[["groups"]]))){
+    } else {
       # Sloppy workaround to account for the fact that collapse doesn't
       # correctly group lubridate intervals
       # This is due to the fact that durations don't uniquely identify
@@ -1292,4 +1291,22 @@ list_to_tibble <- function(x){
   attr(x, "class") <- c("tbl_df", "tbl", "data.frame")
   attr(x, "row.names") <- .set_row_names(collapse::fnrow(x))
   x
+}
+# Extract group starts from GRP object safely
+GRP_starts <- function(GRP){
+  out <- GRP[["group.starts"]]
+  if (is.null(out)){
+    loc <- collapse::gsplit(NULL, g = GRP)
+    out <- as.integer(
+      unlist(
+        collapse::fmin(
+          loc,
+          use.g.names = FALSE,
+          na.rm = FALSE
+        )
+        , use.names = FALSE, recursive = FALSE
+      )
+    )
+  }
+  out
 }

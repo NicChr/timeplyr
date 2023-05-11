@@ -92,18 +92,19 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   else {
     g <- GRP2(out, by = all_vars, sort = TRUE)
   }
+  gstarts <- GRP_starts(g)
   # This is a collapse bug.
   # g$group.starts is not returned if x is in sorted order
-  if (is.null(g[["group.starts"]])){
-    g[["group.starts"]] <- seq_len(N)
-  }
+  # if (is.null(g[["group.starts"]])){
+  #   g[["group.starts"]] <- seq_len(length(g[["group.sizes"]]))
+  # }
   out <- fselect(out, .cols = all_vars)
   if (is.null(name)) name <- new_n_var_nm(out)
   # Keep unique groups and sort
   # if (nrow2(out) >= 2L){
   #   out <- collapse::funique(out, cols = grp_nm, sort = TRUE)
   # }
-  out <- vctrs::vec_slice(out, g[["group.starts"]])
+  out <- vctrs::vec_slice(out, gstarts)
   N <- nrow2(out)
   # Edge-case, not sure how to fix this
   if (N == 0L && length(all_vars) == 0L){
