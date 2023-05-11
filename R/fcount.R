@@ -78,6 +78,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   if (length(all_vars) == 0L){
     g <- list(group.starts = min(1L, N),
               group.sizes = N)
+              # group.id = 1L)
     # If data is grouped and no extra groups supplied..
   }
   else if (length(group_vars) > 0L &&
@@ -88,6 +89,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                                               use.g.names = FALSE),
               group.sizes = collapse::vlengths(gdata[[".rows"]],
                                                use.names = FALSE))
+              # group.id = seq_along(gdata[[".rows"]]))
   }
   else {
     g <- GRP2(out, by = all_vars, sort = TRUE)

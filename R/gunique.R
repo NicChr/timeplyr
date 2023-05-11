@@ -15,22 +15,23 @@
 gunique <- function(x, g = NULL, sort = FALSE){
   gnull <- is.null(g)
   if (gnull){
-    g <- GRP2(x, sort = TRUE,
+    g <- GRP2(x,
+              sort = sort,
               return.groups = TRUE, call = FALSE,
               return.order = TRUE)
-
   } else {
-    g <- GRP2(list(group_id.default(x, order = TRUE),
-                   group_id.default(g, order = TRUE)),
-              sort = TRUE,
+    g <- GRP2(list(group_id.default(x, order = sort),
+                   group_id.default(g, order = sort)),
+              sort = sort,
               return.groups = TRUE, call = FALSE,
               return.order = TRUE)
   }
-  if (sort){
-    collapse::fsubset(x, GRP_starts(g))
-    # vctrs::vec_slice(x, GRP_starts(g))
-  } else {
-    collapse::fsubset(x, growid(x, g = g) == 1L)
-    # vctrs::vec_slice(x, which(growid(x, g = g) == 1))
-  }
+  vec_slice2(x, GRP_starts(g))
+  # if (sort){
+  #   collapse::fsubset(x, GRP_starts(g))
+  #   # vctrs::vec_slice(x, GRP_starts(g))
+  # } else {
+  #   collapse::fsubset(x, growid(x, g = g) == 1L)
+  #   # vctrs::vec_slice(x, which(growid(x, g = g) == 1))
+  # }
 }

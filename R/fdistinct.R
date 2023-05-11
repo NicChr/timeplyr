@@ -33,14 +33,35 @@ fdistinct <- function(data, ..., .keep_all = FALSE,
     }
   }
   out <- fselect(out, .cols = out_vars)
+  # Method 1 - Using vctrs
   # # out <- fslice(out, vctrs::vec_unique_loc(collapse::fselect(out, dup_vars)))
-  # g <- group_id(out, .by = all_of(dup_vars),
+  # Method 2 - Using group ID integer + duplicated()
+  # g <- group_id(out, .cols = dup_vars,
   #                order = TRUE,
   #                as_qg = TRUE)
   # out <- df_row_slice(out, which(!collapse::fduplicated(g)),
   #                     reconstruct = FALSE)
-  out <- df_row_slice(out,
-                      which(growid(fselect(out, .cols = dup_vars)) == 1L),
-                      reconstruct = FALSE)
+  # Method 3 - Using GRP() + group_starts, though things need to be reordered
+  # g <- GRP2(fselect(out, .cols = dup_vars),
+  #           sort = TRUE,
+  #           return.groups = FALSE, call = FALSE,
+  #           return.order = FALSE)
+  # i <- GRP_starts(g)[collapse::funique(g[["group.id"]], sort = FALSE)]
+  # out <- df_row_slice(out, i, reconstruct = FALSE)
+  # Method 4 - Using grouped row numbers
+  # out <- df_row_slice(out,
+  #                     growid(fselect(out, .cols = dup_vars)) == 1L,
+  #                     reconstruct = FALSE)
+  g <- GRP2(fselect(out, .cols = dup_vars),
+            sort = TRUE,
+            return.groups = FALSE, call = FALSE,
+            return.order = TRUE)
+  iunique <- fcumsum(seq_ones(nrow2(out)), g = g, na.rm = FALSE) == 1L
+  # if (sort){
+  #   i <- GRP_starts(g)
+  # } else {
+  #   i <- fcumsum(seq_ones(nrow2(out)), g = g, na.rm = FALSE) == 1L
+  # }
+  out <- df_row_slice(out, iunique, reconstruct = FALSE)
   df_reconstruct(out, data)
 }

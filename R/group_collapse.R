@@ -219,7 +219,7 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
     if (id){
       out[[".group"]] <- seq_len(nrow2(out))
       ncol <- ncol(out)
-      out <- out[, c(seq_len(ncol - 2L), ncol, ncol - 1L), drop = FALSE]
+      out <- fselect(out, .cols = c(seq_len(ncol - 2L), ncol, ncol - 1L))
     }
     if (start){
       out[[".start"]] <- collapse::fmin(out[[".loc"]],

@@ -163,14 +163,15 @@ fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
                        with_ties = TRUE, na_rm = FALSE,
                        keep_order = FALSE, sort_groups = TRUE){
   rlang::check_dots_empty0(...)
-  group_vars <- get_groups(data, .by = {{ .by }})
-  out <- mutate2(data,
+  grp_nm1 <- new_var_nm(names(data), "g")
+  g1 <- group_id(data, .by = {{ .by }}, order = sort_groups)
+  out <- safe_ungroup(data)
+  out[[grp_nm1]] <- g1
+  out <- mutate2(out,
                  !!enquo(order_by),
                  .keep = "none",
-                 .by = {{ .by }})
+                 .by = all_of(grp_nm1))
   order_by_nm <- tidy_transform_names(data, !!enquo(order_by))
-  g1 <- group_id(out, .by = {{ .by }}, order = sort_groups)
-  # out <- safe_ungroup(out)
   row_nm <- new_var_nm(names(out), "row_id")
   out <- dplyr::dplyr_col_modify(out, setnames(list(seq_along(attr(out, "row.names"))),
                                                row_nm))
@@ -180,7 +181,7 @@ fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
   out <- dplyr::dplyr_col_modify(out, setnames(list(group_id(list(g1, g2))),
                                                grp_nm))
   out <- farrange(out, .cols = grp_nm)
-  out1 <- fslice_head(out, n = n, prop = prop, .by = {{ .by }},
+  out1 <- fslice_head(out, n = n, prop = prop, .by = all_of(grp_nm1),
                       sort_groups = sort_groups)
   if (with_ties){
     i <- out[[row_nm]][out[[grp_nm]] %in% out1[[grp_nm]]]

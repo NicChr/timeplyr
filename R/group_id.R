@@ -192,13 +192,13 @@ add_group_id <- function(data, ...,
                          .name = NULL,
                          as_qg = FALSE){
   if (is.null(.name)) .name <- new_var_nm(names(data), "group_id")
-  data[[.name]] <- group_id(data, ...,
-                            order = order,
-                            ascending = ascending,
-                            .by = {{ .by }},
-                            .cols = .cols,
-                            as_qg = as_qg)
-  data
+  dplyr::dplyr_col_modify(data, setnames(list(group_id(data, ...,
+                                                       order = order,
+                                                       ascending = ascending,
+                                                       .by = {{ .by }},
+                                                       .cols = .cols,
+                                                       as_qg = as_qg)),
+                                         .name))
 }
 #' @rdname group_id
 #' @export
@@ -250,10 +250,10 @@ add_row_id <- function(data, ..., ascending = TRUE,
                        .by = NULL, .cols = NULL,
                        .name = NULL){
   if (is.null(.name)) .name <- new_var_nm(names(data), "row_id")
-  data[[.name]] <- row_id(data, ...,
-                          ascending = ascending,
-                          .by = {{ .by }}, .cols = .cols)
-  data
+  dplyr::dplyr_col_modify(data, setnames(list(row_id(data, ...,
+                                                     ascending = ascending,
+                                                     .by = {{ .by }}, .cols = .cols)),
+                                         .name))
 }
 #' @rdname group_id
 #' @export
@@ -328,10 +328,10 @@ add_group_order <- function(data, ..., ascending = TRUE,
                             .by = NULL, .cols = NULL,
                             .name = NULL){
   if (is.null(.name)) .name <- new_var_nm(names(data), "group_order")
-  data[[.name]] <- group_order(data, ...,
-                               .by = {{ .by }}, .cols = .cols,
-                               ascending = ascending)
-  data
+  dplyr::dplyr_col_modify(data, setnames(list(group_order(data, ...,
+                                                          .by = {{ .by }}, .cols = .cols,
+                                                          ascending = ascending)),
+                                         .name))
 }
 # group_sort <- function(data, ..., ascending = TRUE, .by = NULL){
 #   UseMethod("group_sort")

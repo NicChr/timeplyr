@@ -52,13 +52,7 @@ fselect <- function(data, ..., .cols = NULL){
               names(attr(data, "groups")))] <- names(renamed_groups)
     }
   }
-  if (length(pos) == 0L){
-    pos <- 0L
-  }
-  collapse::get_vars(data, vars = pos,
-                     return = "data",
-                     regex = FALSE,
-                     rename = TRUE)
+  collapse::ss(col_rename(data, .cols = pos), j = unname(pos))
 }
 #' @export
 frename <- function(data, ..., .cols = NULL){

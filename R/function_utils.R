@@ -159,22 +159,23 @@ col_select_names <- function(data, ..., .cols = NULL){
 }
 # (Internal) Fast col rename
 col_rename <- function(data, .cols = integer(0)){
-  if (length(.cols) == 0L){
+  out_nms <- names(.cols)
+  if (length(out_nms) == 0L){
     return(data)
   }
   data_nms <- names(data)
-  # if (is.character(.cols)){
-  #  pos <- setnames(match(.cols, data_nms),
-  #                  names(.cols))
-  # } else {
-  #  pos <- .cols
-  # }
+  if (is.character(.cols)){
+   pos <- setnames(match(.cols, data_nms),
+                   out_nms)
+  } else {
+   pos <- .cols
+  }
   # Use the below for more consistency
-  pos <- col_select_pos(data, .cols = .cols)
-  out_nms <- names(pos)
+  # pos <- col_select_pos(data, .cols = .cols)
+  # out_nms <- names(pos)
   renamed <- is.na(match(out_nms, data_nms) != pos)
   renamed_pos <- pos[renamed]
-  names(data)[renamed_pos] <- out_nms[renamed]
+  attr(data, "names")[renamed_pos] <- out_nms[renamed]
   data
 }
 tidy_select_pos <- function(data, ..., .cols = NULL){
@@ -750,9 +751,39 @@ df_reconstruct <- function(data, template){
   }
   template_attrs[["names"]] <- names(data)
   template_attrs[["row.names"]] <- .row_names_info(data, type = 0L)
-  # template_attrs[["row.names"]] <- data_attrs[["row.names"]]
   attributes(data) <- template_attrs
   data
+}
+# Row slice
+df_row_slice <- function(data, i, reconstruct = TRUE){
+  if (has_interval(data)){
+    if (is.logical(i)){
+      i <- which(i)
+    }
+    .slice <- vctrs::vec_slice
+  } else {
+    .slice <- ss2
+  }
+  if (reconstruct){
+    df_reconstruct(.slice(safe_ungroup(data), i), data)
+  } else {
+    .slice(data, i)
+  }
+}
+vec_slice2 <- function(x, i){
+  if (is.logical(i)){
+    i <- which(i)
+  }
+  if (is_interval(x)){
+   vctrs::vec_slice(x, i)
+  } else if (is_df(x) && has_interval(x)){
+    vctrs::vec_slice(x, i)
+  } else {
+    ss2(x, i)
+  }
+}
+ss2 <- function(x, i, j){
+  collapse::ss(x, i = i, j = j, check = FALSE)
 }
 # Faster version of nrow specifically for data frames
 nrow2 <- function(data){
@@ -950,17 +981,6 @@ is_list_df_like <- function(X){
 }
 pair_unique <- function(x, y){
   ( ( (x + y + 1) * (x + y) ) / 2 ) + x
-}
-# Row slice
-df_row_slice <- function(data, i, reconstruct = TRUE){
-  if (reconstruct){
-    # df_reconstruct(collapse::fsubset.data.frame(safe_ungroup(data), subset = i),
-    #                data)
-    df_reconstruct(vctrs::vec_slice(safe_ungroup(data), i), data)
-  } else {
-    # collapse::fsubset.data.frame(data, subset = i)
-    vctrs::vec_slice(data, i)
-  }
 }
 # Vctrs version of utils::head/tail
 vec_head <- function(x, n = 1L){
