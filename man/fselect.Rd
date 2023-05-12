@@ -2,9 +2,12 @@
 % Please edit documentation in R/fselect.R
 \name{fselect}
 \alias{fselect}
+\alias{frename}
 \title{Fast \code{dplyr::select()}/\code{dplyr::rename()}}
 \usage{
 fselect(data, ..., .cols = NULL)
+
+frename(data, ..., .cols = NULL)
 }
 \arguments{
 \item{data}{A data frame.}

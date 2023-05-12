@@ -126,10 +126,14 @@ col_select_pos <- function(data, .cols = character(0)){
   nm_seq <- seq_along(data_nms)
   # Method for when cols is supplied
   if (is.numeric(.cols)){
-    # out <- nm_seq[match(nm_seq, .cols)]
+    rng_sign <- check_range_sign(.cols)
+    if (rng_sign == -1){
+      .cols <- setdiff(nm_seq, abs(.cols))
+    } else {
+      .cols <- .cols[.cols != 0]
+    }
     out <- match(.cols, nm_seq, nomatch = NA_integer_)
   } else if (is.character(.cols)){
-    # out <- nm_seq[match(data_nms, .cols)]
     out <- match(.cols, data_nms, nomatch = NA_integer_)
   } else {
     stop(".cols must be a numeric or character vector")
@@ -159,6 +163,7 @@ col_select_names <- function(data, ..., .cols = NULL){
 }
 # (Internal) Fast col rename
 col_rename <- function(data, .cols = integer(0)){
+  .cols <- .cols[nzchar(names(.cols))]
   out_nms <- names(.cols)
   if (length(out_nms) == 0L){
     return(data)
@@ -171,8 +176,6 @@ col_rename <- function(data, .cols = integer(0)){
    pos <- .cols
   }
   # Use the below for more consistency
-  # pos <- col_select_pos(data, .cols = .cols)
-  # out_nms <- names(pos)
   renamed <- is.na(match(out_nms, data_nms) != pos)
   renamed_pos <- pos[renamed]
   attr(data, "names")[renamed_pos] <- out_nms[renamed]
@@ -300,11 +303,13 @@ mutate2 <- function(data, ..., .by = NULL,
   before_quo <- enquo(.before)
   after_quo <- enquo(.after)
   .keep <- rlang::arg_match0(.keep, c("all", "used", "unused", "none"))
+  has_dup_names <- anyDuplicated(names(data)) > 0
   quo_info <- quo_mutate_info(dots, data)
   quo_nms <- quo_info[["quo_nms"]]
   quo_text <- quo_info[["quo_text"]]
   is_identity <- quo_info[["is_identity"]]
   if (all(is_identity) &&
+      !has_dup_names &&
     .keep %in% c("all", "none") &&
     rlang::quo_is_null(before_quo) &&
     rlang::quo_is_null(after_quo)){
@@ -690,7 +695,40 @@ get_group_info <- function(data, ..., type = c("select", "data-mask"),
        "extra_groups" = extra_groups,
        "all_groups" = all_groups)
 }
-
+group_info <- function(data, ..., .by = NULL, .cols = NULL,
+                       ungroup = TRUE, rename = TRUE){
+  n_dots <- dots_length(...)
+  check_cols(n_dots = n_dots, .cols = .cols)
+  group_vars <- get_groups(data, {{ .by }})
+  extra_groups <- character(0)
+  if (ungroup){
+    out <- safe_ungroup(data)
+  } else {
+    out <- data
+  }
+  # Data-masking for dots expressions
+  if (n_dots > 0){
+    if (ungroup){
+      out <- mutate2(out, ...)
+    } else {
+      out <- mutate2(out, ..., .by = {{ .by }})
+    }
+    extra_groups <- tidy_transform_names(data, ...)
+  }
+  if (!is.null(.cols)){
+    col_pos <- col_select_pos(out, .cols = .cols)
+    extra_groups <- unique(names(col_pos))
+    if (rename){
+      out <- col_rename(out, col_pos)
+    }
+  }
+  extra_groups <- setdiff(extra_groups, group_vars)
+  all_groups <- c(group_vars, extra_groups)
+  list("data" = out,
+       "dplyr_groups" = group_vars,
+       "extra_groups" = extra_groups,
+       "all_groups" = all_groups)
+}
 
 # A collapse version of dplyr_reconstruct,
 # fast when lots of groups are involved
@@ -722,9 +760,9 @@ df_reconstruct <- function(data, template){
       # correctly group lubridate intervals
       # This is due to the fact that durations don't uniquely identify
       # start and end points.
-      if (has_interval(fselect(safe_ungroup(data), .cols = out_groups), quiet = TRUE)){
+      if (has_interval(collapse::fselect(safe_ungroup(data), out_groups), quiet = TRUE)){
         grp_nm <- new_var_nm(out_groups, "g")
-        groups <- fselect(safe_ungroup(data), .cols = out_groups)
+        groups <- collapse::fselect(safe_ungroup(data), out_groups)
         g <- group_id.default(groups)
         groups[[grp_nm]] <- g
         groups <- groups %>%
@@ -756,13 +794,13 @@ df_reconstruct <- function(data, template){
 }
 # Row slice
 df_row_slice <- function(data, i, reconstruct = TRUE){
-  if (has_interval(data)){
+  if (collapse::fncol(data) == 0L || has_interval(data)){
     if (is.logical(i)){
       i <- which(i)
     }
     .slice <- vctrs::vec_slice
   } else {
-    .slice <- ss2
+    .slice <- collapse::ss
   }
   if (reconstruct){
     df_reconstruct(.slice(safe_ungroup(data), i), data)
@@ -771,20 +809,21 @@ df_row_slice <- function(data, i, reconstruct = TRUE){
   }
 }
 vec_slice2 <- function(x, i){
-  if (is.logical(i)){
-    i <- which(i)
+  if (is_df(x)){
+    return(df_row_slice(x, i))
   }
   if (is_interval(x)){
+    if (is.logical(i)){
+      i <- which(i)
+    }
    vctrs::vec_slice(x, i)
-  } else if (is_df(x) && has_interval(x)){
-    vctrs::vec_slice(x, i)
   } else {
-    ss2(x, i)
+    collapse::ss(x, i)
   }
 }
-ss2 <- function(x, i, j){
-  collapse::ss(x, i = i, j = j, check = FALSE)
-}
+# ss2 <- function(x, i, j){
+#   collapse::ss(x, i = i, j = j, check = FALSE)
+# }
 # Faster version of nrow specifically for data frames
 nrow2 <- function(data){
   length(attr(data, "row.names"))
@@ -1260,45 +1299,6 @@ quo_summarise_info <- function(quos, data){
        quo_text = unname(quo_text),
        is_identity = is_identity)
 }
-integer_to_qg <- function(x){
-  attr(x, "N.groups") <- collapse::fndistinct(x, na.rm = FALSE)
-  attr(x, "class") <- c("qG", "na.included")
-  x
-}
-group_info <- function(data, ..., .by = NULL, .cols = NULL,
-                           ungroup = TRUE, rename = TRUE){
-  n_dots <- dots_length(...)
-  check_cols(n_dots = n_dots, .cols = .cols)
-  group_vars <- get_groups(data, {{ .by }})
-  extra_groups <- character(0)
-  if (ungroup){
-    out <- safe_ungroup(data)
-  } else {
-    out <- data
-  }
-  # Data-masking for dots expressions
-  if (n_dots > 0){
-    if (ungroup){
-      out <- mutate2(out, ...)
-    } else {
-      out <- mutate2(out, ..., .by = {{ .by }})
-    }
-    extra_groups <- tidy_transform_names(data, ...)
-  }
-  if (!is.null(.cols)){
-    col_pos <- col_select_pos(out, .cols = .cols)
-    extra_groups <- unique(names(col_pos))
-    if (rename){
-      out <- col_rename(out, col_pos)
-    }
-  }
-  extra_groups <- setdiff(extra_groups, group_vars)
-  all_groups <- c(group_vars, extra_groups)
-  list("data" = out,
-       "dplyr_groups" = group_vars,
-       "extra_groups" = extra_groups,
-       "all_groups" = all_groups)
-}
 conditional_sort <- function(x){
   if (is.unsorted(x)){
     radix_sort(x)
@@ -1306,7 +1306,9 @@ conditional_sort <- function(x){
     x
   }
 }
-# x must be named
+# named_list to tibble
+# No duplicate name checking or any checking
+# To be used with caution
 list_to_tibble <- function(x){
   attr(x, "class") <- c("tbl_df", "tbl", "data.frame")
   attr(x, "row.names") <- .set_row_names(collapse::fnrow(x))
@@ -1316,7 +1318,7 @@ list_to_tibble <- function(x){
 GRP_starts <- function(GRP){
   out <- GRP[["group.starts"]]
   if (is.null(out)){
-    loc <- collapse::gsplit(NULL, g = GRP)
+    loc <- GRP_list_loc(GRP)
     out <- as.integer(
       unlist(
         collapse::fmin(
@@ -1329,4 +1331,21 @@ GRP_starts <- function(GRP){
     )
   }
   out
+}
+# Making this because of a bug when gsplit(NULL, GRP(x, sort = FALSE))
+GRP_list_loc <- function(GRP){
+  if (length(GRP[["group.id"]]) == 0L){
+    list()
+  } else {
+   collapse::gsplit(NULL, g = GRP)
+  }
+}
+# Check if signs are all equal
+# Special function to handle -0 selection
+check_range_sign <- function(x){
+  out <- sum(sign(1/x))
+  if (abs(out) != length(x)){
+    stop("Can't mix negative and positive locations")
+  }
+  sign(out)
 }

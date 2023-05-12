@@ -1,6 +1,6 @@
 Package: timeplyr
 Title: Date and datetime extension to dplyr
-Version: 0.1.9.6
+Version: 0.1.9.7
 Authors@R: 
     person("Nick", "Christofides", , "nick.christofides.r@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
@@ -13,7 +13,7 @@ BugReports: https://github.com/NicChr/timeplyr/issues
 Depends:
     R (>= 3.5.0)
 Imports:
-    collapse (>= 1.9.5),
+    collapse (>= 1.9.3),
     data.table (>= 1.14.8),
     dplyr (>= 1.1.0),
     ggplot2 (>= 3.4.0),

@@ -32,7 +32,7 @@ fdistinct <- function(data, ..., .keep_all = FALSE,
       out_vars <- dup_vars
     }
   }
-  out <- fselect(out, .cols = out_vars)
+  out <- collapse::fselect(out, out_vars)
   # Method 1 - Using vctrs
   # # out <- fslice(out, vctrs::vec_unique_loc(collapse::fselect(out, dup_vars)))
   # Method 2 - Using group ID integer + duplicated()
@@ -52,7 +52,7 @@ fdistinct <- function(data, ..., .keep_all = FALSE,
   # out <- df_row_slice(out,
   #                     growid(fselect(out, .cols = dup_vars)) == 1L,
   #                     reconstruct = FALSE)
-  g <- GRP2(fselect(out, .cols = dup_vars),
+  g <- GRP2(collapse::fselect(out, dup_vars),
             sort = TRUE,
             return.groups = FALSE, call = FALSE,
             return.order = TRUE)

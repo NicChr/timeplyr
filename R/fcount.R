@@ -80,8 +80,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
               group.sizes = N)
               # group.id = 1L)
     # If data is grouped and no extra groups supplied..
-  }
-  else if (length(group_vars) > 0L &&
+  } else if (length(group_vars) > 0L &&
              length(group_vars) == length(all_vars)){
     # g <- GRP2(data, by = all_vars, sort = TRUE)
     gdata <- attr(data, "groups")
@@ -90,23 +89,16 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
               group.sizes = collapse::vlengths(gdata[[".rows"]],
                                                use.names = FALSE))
               # group.id = seq_along(gdata[[".rows"]]))
+    if (is.null(g[["group.starts"]])){
+      g[["group.starts"]] <- integer(0)
+    }
   }
   else {
     g <- GRP2(out, by = all_vars, sort = TRUE)
   }
-  gstarts <- GRP_starts(g)
-  # This is a collapse bug.
-  # g$group.starts is not returned if x is in sorted order
-  # if (is.null(g[["group.starts"]])){
-  #   g[["group.starts"]] <- seq_len(length(g[["group.sizes"]]))
-  # }
-  out <- fselect(out, .cols = all_vars)
+  out <- collapse::fselect(out, all_vars)
   if (is.null(name)) name <- new_n_var_nm(out)
-  # Keep unique groups and sort
-  # if (nrow2(out) >= 2L){
-  #   out <- collapse::funique(out, cols = grp_nm, sort = TRUE)
-  # }
-  out <- vctrs::vec_slice(out, gstarts)
+  out <- df_row_slice(out, GRP_starts(g), reconstruct = FALSE)
   N <- nrow2(out)
   # Edge-case, not sure how to fix this
   if (N == 0L && length(all_vars) == 0L){
@@ -133,8 +125,8 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   }
   out[[name]] <- nobs
   if (sort){
-      out <- vctrs::vec_slice(out, radix_order(out[[name]],
-                                               decreasing = TRUE))
+      out <- df_row_slice(out, radix_order(out[[name]],
+                                           decreasing = TRUE))
   }
   df_reconstruct(out, data)
 }

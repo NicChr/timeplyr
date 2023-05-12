@@ -825,15 +825,14 @@ is_interval <- function(x){
   inherits(x, "Interval")
 }
 # Check if data has lubridate interval
-has_interval <- function(data, quiet = FALSE){
+has_interval <- function(data, quiet = TRUE){
   # out <- any(purrr::map_lgl(data, lubridate::is.interval))
   out <- any(vapply(data, FUN = is_interval,
                     FUN.VALUE = logical(1)))
   if (out && !quiet){
-    message("A variable of class 'interval' exists.
-    The grouping will be done using 'dplyr' until the issue is fixed.
-            You can report the issue at
-            https://github.com/SebKrantz/collapse/issues")
+    message("A variable of class 'Interval' exists.
+    The grouping will be done using 'dplyr'.
+            See https://github.com/SebKrantz/collapse/issues/418")
   }
   out
 }
@@ -887,14 +886,6 @@ tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
 # Interval from x, aggregate x, and seq
 tagg_interval <- function(xagg, x, seq, gagg = NULL, gx = NULL, gseq = NULL){
   int <- tseq_interval(x = x, seq = seq, gx = gx, gseq = gseq)
-  # agg_df <- data.table::data.table(t = xagg,
-  #                                  g = gagg)
-  # int_df <- data.table::data.table(t = seq,
-  #                                  g = gseq,
-  #                                  interval = int)
-  # agg_df[int_df, ("interval") := get("interval"),
-  #        on = names(agg_df),
-  #        mult = "first"][["interval"]]
   agg_df <- list_to_tibble(list(t = xagg,
                                 g = gagg))
   int_df <- list_to_tibble(list(t = seq,
@@ -953,14 +944,12 @@ add_from_to <- function(data, ..., time, .by = NULL){
 # Internal helper to process from/to args
 get_from_to <- function(data, ..., time, from = NULL, to = NULL,
                         .by = NULL){
-  # from_missing <- rlang::quo_is_null(enquo(from))
-  # to_missing <- rlang::quo_is_null(enquo(to))
   from_var <- tidy_select_names(data, !!enquo(from))
   to_var <- tidy_select_names(data, !!enquo(to))
   time_var <- tidy_select_names(data, !!enquo(time))
   dot_vars <- tidy_select_names(data, ...)
   if (length(from_var) == 0L || length(to_var) == 0L){
-    g <- group_id(data, across(all_of(dot_vars)), .by = {{ .by }})
+    g <- group_id(data, .cols = dot_vars, .by = {{ .by }})
     g <- GRP2(g, sort = TRUE,
               return.groups = FALSE,
               return.order = TRUE,
@@ -975,12 +964,6 @@ get_from_to <- function(data, ..., time, from = NULL, to = NULL,
     .to <- gmax(data[[time_var]], g = g)
   } else {
     .to <- time_cast(data[[to_var]], data[[time_var]])
-    # .to <- dplyr::mutate(data,
-    #                      !!enquo(to),
-    #                      .by = {{ .by }},
-    #                      .keep = "none")
-    # to_nm <- tidy_transform_names(data, !!enquo(to))
-    # .to <- time_cast(.to[[to_nm]], data[[time_var]])
   }
   list(.from = .from,
        .to = .to)

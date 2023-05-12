@@ -72,12 +72,18 @@ calendar <- function(x, label = TRUE,
   epiyear <- as.integer(lubridate::epiyear(time_seq))
   epiweek <- as.integer(lubridate::epiweek(time_seq))
   wday <- as.integer(lubridate::wday(time_seq, week_start = week_start))
+  out_nms <- c(name, "year", "quarter", "month",
+               "month_l", "week", "day", "yday", "isoyear",
+               "isoweek", "isoday", "epiyear", "epiweek",
+               "wday", "wday_l",
+               "hour", "minute", "second")
   if (label){
     wday_l <- lubridate::wday(time_seq, week_start = week_start, label = TRUE)
     month_l <- lubridate::month(time_seq, label = TRUE, abbr = TRUE)
   } else {
     wday_l <- NULL
     month_l <- NULL
+    out_nms <- setdiff(out_nms, c("wday_l", "month_l"))
   }
   if (is_datetime(time_seq)){
     hour <- lubridate::hour(time_seq)
@@ -87,10 +93,14 @@ calendar <- function(x, label = TRUE,
     hour <- NULL
     minute <- NULL
     second <- NULL
+    out_nms <- setdiff(out_nms, c("hour", "minute", "second"))
   }
-  dplyr::tibble(!!name := x, year, quarter, month, month_l, week, day,
-                yday, isoyear, isoweek, isoday, epiyear, epiweek, wday, wday_l,
-                hour, minute, second)
+  out <- list(x, year, quarter, month, month_l, week, day,
+              yday, isoyear, isoweek, isoday, epiyear, epiweek, wday, wday_l,
+              hour, minute, second)
+  out_is_null <- vapply(out, FUN = is.null, FUN.VALUE = logical(1))
+  out <- out[!out_is_null]
+  list_to_tibble(setnames(out, out_nms))
 }
 #' @rdname calendar
 #' @export
@@ -106,11 +116,11 @@ add_calendar <- function(data, time = NULL, label = TRUE,
       message(paste0("Using ", time_var))
     }
   } else {
-    data <- dplyr::mutate(data, !!enquo(time))
-    time_var <- tidy_transform_names(safe_ungroup(data), !!enquo(time))
+    data <- mutate2(data, !!enquo(time))
+    time_var <- tidy_transform_names(data, !!enquo(time))
   }
-  calendar <- calendar(data[[time_var]], label = label, week_start = week_start,
-                       fiscal_start = fiscal_start)[, -1, drop = FALSE]
+  calendar <- fselect(calendar(data[[time_var]], label = label, week_start = week_start,
+                       fiscal_start = fiscal_start), .cols = -1L)
   data <- tbl_append2(data, calendar, suffix = ".y", quiet = FALSE)
   data
 }

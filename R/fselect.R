@@ -52,8 +52,10 @@ fselect <- function(data, ..., .cols = NULL){
               names(attr(data, "groups")))] <- names(renamed_groups)
     }
   }
-  collapse::ss(col_rename(data, .cols = pos), j = unname(pos))
+  collapse::ss(col_rename(data, .cols = pos), j = unname(pos),
+               check = FALSE)
 }
+#' @rdname fselect
 #' @export
 frename <- function(data, ..., .cols = NULL){
   pos <- tidy_select_pos(data, ..., .cols = .cols)

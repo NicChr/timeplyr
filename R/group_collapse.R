@@ -85,12 +85,7 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
   }
   include_loc <- loc || start || end
   if (include_loc){
-    # out[[".loc"]] <- vctrs::as_list_of(
-    #   vctrs::vec_locate_sorted_groups(g[["group.id"]],
-    #                                   direction = "asc", na_value = "largest")[["loc"]],
-    #   .ptype = integer(0)
-    # )
-    out[[".loc"]] <- collapse::gsplit(NULL, g = g)
+    out[[".loc"]] <- GRP_list_loc(g)
     attr(out[[".loc"]], "ptype") <- integer(0)
     attr(out[[".loc"]], "class") <- c("vctrs_list_of", "vctrs_vctr", "list")
   }
@@ -165,11 +160,10 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
   data <- group_info[["data"]]
   vars <- group_info[["all_groups"]]
   if (length(vars) == 0L){
-    rowids <- seq_len(nrow2(data))
-    n <- length(rowids)
-    ss <- min(nrow2(data), 1L)
+    rowids <- seq_len(N)
+    ss <- min(N, 1L)
     rowids <- list(rowids)[ss]
-    out <- dplyr::tibble(!!".group" := integer(ss) + 1L)
+    out <- list_to_tibble(list(".group" = integer(ss) + 1L))
     if (loc){
       out[[".loc"]] <- vctrs::new_list_of(rowids, ptype = integer(0))
     }
@@ -180,10 +174,10 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
       out[[".start"]] <- integer(ss) + 1L
     }
     if (end){
-      out[[".end"]] <- integer(ss) + n
+      out[[".end"]] <- integer(ss) + N
     }
     if (size){
-      out[[".size"]] <- n[ss]
+      out[[".size"]] <- N[ss]
     }
     if (!id){
       out[[".group"]] <- NULL

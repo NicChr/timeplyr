@@ -233,17 +233,7 @@ row_id.data.frame <- function(data, ...,
   growid(data, g = g, ascending = ascending)
 }
 #' @export
-row_id.grouped_df <- function(data, ...,
-                              ascending = TRUE,
-                              .by = NULL, .cols = NULL){
-  group_info <- group_info(data, ..., .by = {{ .by }},
-                           .cols = .cols,
-                           ungroup = TRUE,
-                           rename = FALSE)
-  all_groups <- group_info[["all_groups"]]
-  row_id(group_info[["data"]], .cols = all_groups,
-         ascending = ascending)
-}
+row_id.grouped_df <- row_id.data.frame
 #' @rdname group_id
 #' @export
 add_row_id <- function(data, ..., ascending = TRUE,
@@ -287,11 +277,7 @@ group_order.default <- function(data, ..., ascending = TRUE){
 }
 #' @export
 group_order.Interval <- function(data, ..., ascending = TRUE){
-  # g <- GRP.Interval(data, sort = TRUE, call = FALSE,
-  #                   return.groups = FALSE)[["group.id"]]
-  # group_order(g, ascending = ascending)
-  x <- list("start" = lubridate::int_start(x),
-            "data" = lubridate::int_length(x))
+  x <- interval_separate(x)
   as.integer(collapse::radixorderv(x, decreasing = !ascending))
 }
 #' @export
@@ -362,14 +348,12 @@ add_group_order <- function(data, ..., ascending = TRUE,
 #   }
 # }
 GRP.Interval <- function(X, ...){
-  X <- list("start" = lubridate::int_start(X),
-            "data" = lubridate::int_length(X))
+  X <- interval_separate(X)
   collapse::GRP(X, ...)
 }
 group2 <- function(X, ...){
   if (is_interval(X)){
-    X <- list("start" = lubridate::int_start(X),
-              "data" = lubridate::int_length(X))
+    X <- interval_separate(X)
   }
   if (is.list(X) && has_interval(X, quiet = TRUE)){
     X <- mutate_intervals_to_ids(X)
@@ -405,13 +389,24 @@ mutate_intervals_to_ids <- function(data){
   }
   data
 }
+interval_separate <- function(x){
+  list("start" = lubridate::int_start(x),
+       "data" = lubridate::int_length(x))
+}
 radixorderv2 <- function(x, ...){
   if (is_interval(x)){
-    x <- list("start" = lubridate::int_start(x),
-              "data" = lubridate::int_length(x))
+    x <- interval_separate(x)
   }
   if (is.list(x) && has_interval(x, quiet = TRUE)){
     x <- mutate_intervals_to_ids(x)
   }
   collapse::radixorderv(x, ...)
+}
+integer_to_qg <- function(x, n_groups = NULL){
+  if (is.null(n_groups)){
+    n_groups <- collapse::fndistinct(x, na.rm = FALSE)
+  }
+  attr(x, "N.groups") <- n_groups
+  attr(x, "class") <- c("qG", "na.included")
+  x
 }

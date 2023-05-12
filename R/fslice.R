@@ -69,11 +69,8 @@ fslice <- function(data, ..., .by = NULL,
   N <- nrow2(data)
   n <- unlist(dots, recursive = TRUE, use.names = FALSE)
   if (length(n) == 0L) n <- 0L
+  range_sign <- check_range_sign(n)
   n <- as.integer(n)
-  range_sign <- sign(collapse::frange(n, na.rm = FALSE))
-  if (sum(abs(range_sign)) != abs(sum(range_sign))){
-    stop("Can't mix negative and positive locations")
-  }
   # Groups
   group_vars <- get_groups(data, .by = {{ .by }})
   if (length(group_vars) == 0L){
@@ -81,7 +78,7 @@ fslice <- function(data, ..., .by = NULL,
   } else {
       group_df <- group_collapse(data, .by = {{ .by }},
                                  order = sort_groups, sort = sort_groups,
-                                 loc = TRUE,
+                                 id = FALSE, loc = TRUE,
                                  # loc_order = FALSE,
                                  size = TRUE, start = FALSE, end = FALSE)
       # Constrain n to <= max GRPN
@@ -89,7 +86,7 @@ fslice <- function(data, ..., .by = NULL,
       n <- n[data.table::between(n, -GN, GN)]
       rows <- group_df[[".loc"]]
       row_lens <- group_df[[".size"]]
-      if (sum(range_sign) >= 0){
+      if (range_sign >= 1){
         size <- pmin(max(n), row_lens)
       } else {
         size <- pmax(0L, row_lens - max(abs(n)))
@@ -185,7 +182,6 @@ fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
                       sort_groups = sort_groups)
   if (with_ties){
     i <- out[[row_nm]][out[[grp_nm]] %in% out1[[grp_nm]]]
-    # i <- df_row_slice(out, which(out[[grp_nm]] %in% out1[[grp_nm]]))[[row_nm]]
   } else {
     i <- out1[[row_nm]]
   }
@@ -207,29 +203,26 @@ fslice_max <- function(data, order_by, ..., n, prop, .by = NULL,
                        with_ties = TRUE, na_rm = FALSE,
                        keep_order = FALSE, sort_groups = TRUE){
   rlang::check_dots_empty0(...)
-  group_vars <- get_groups(data, .by = {{ .by }})
-  out <- mutate2(data,
+  grp_nm1 <- new_var_nm(names(data), "g")
+  g1 <- group_id(data, .by = {{ .by }}, order = sort_groups)
+  out <- safe_ungroup(data)
+  out[[grp_nm1]] <- g1
+  out <- mutate2(out,
                  !!enquo(order_by),
                  .keep = "none",
-                 .by = {{ .by }})
+                 .by = all_of(grp_nm1))
   order_by_nm <- tidy_transform_names(data, !!enquo(order_by))
   row_nm <- new_var_nm(names(out), "row_id")
   out[[row_nm]] <- seq_along(attr(out, "row.names"))
-  grp_nm <- new_var_nm(names(out), "g")
-  out[[grp_nm]] <- group_id(out, .by = {{ .by }},
-                            order = sort_groups)
-  grp_nm2 <- new_var_nm(names(out), "g")
-  out[[grp_nm2]] <- group_id(out[[order_by_nm]], ascending = FALSE)
+  g2 <- group_id(out[[order_by_nm]], ascending = FALSE)
   # Order by Groups + desc order by var
-  grp_nm3 <- new_var_nm(names(out), "g")
-  out[[grp_nm3]] <- group_id(safe_ungroup(out),
-                             .cols = c(grp_nm, grp_nm2))
-  out <- farrange(out, .cols = grp_nm3)
-
-  out1 <- fslice_head(out, n = n, prop = prop, .by = {{ .by }},
+  grp_nm <- new_var_nm(names(out), "g")
+  out[[grp_nm]] <- group_id(list(g1, g2))
+  out <- farrange(out, .cols = grp_nm)
+  out1 <- fslice_head(out, n = n, prop = prop, .by = all_of(grp_nm1),
                       sort_groups = sort_groups)
   if (with_ties){
-    i <- out[[row_nm]][out[[grp_nm3]] %in% out1[[grp_nm3]]]
+    i <- out[[row_nm]][out[[grp_nm]] %in% out1[[grp_nm]]]
   } else {
     i <- out1[[row_nm]]
   }
@@ -254,7 +247,7 @@ fslice_sample <- function(data, ..., n, prop,
   rlang::check_dots_empty0(...)
   has_weights <- !rlang::quo_is_null(enquo(weights))
   if (has_weights){
-    data <- dplyr::mutate(data, !!enquo(weights))
+    data <- mutate2(data, !!enquo(weights))
     weights_var <- tidy_transform_names(data, !!enquo(weights))
   }
   slice_info <- df_slice_prepare(data, n, prop,
@@ -279,18 +272,14 @@ fslice_sample <- function(data, ..., n, prop,
   if (has_weights){
     g <- group_id(data, .by = {{ .by }}, order = sort_groups)
     weights <- collapse::gsplit(data[[weights_var]], g = g)
-    for (i in seq_along(rows)){
-      rows[[i]] <- sample.int(group_sizes[[i]],
-                              size = slice_sizes[[i]],
-                              replace = replace,
-                              prob = weights[[i]])
-    }
   } else {
-    for (i in seq_along(rows)){
-      rows[[i]] <- sample.int(group_sizes[[i]],
-                              size = slice_sizes[[i]],
-                              replace = replace)
-    }
+    weights <- NULL
+  }
+  for (i in seq_along(rows)){
+    rows[[i]] <- sample.int(group_sizes[[i]],
+                            size = slice_sizes[[i]],
+                            replace = replace,
+                            prob = weights[[i]])
   }
   rows <- unlist(rows, use.names = FALSE, recursive = FALSE)
   if (length(rows) > 0L){
@@ -343,7 +332,7 @@ df_slice_prepare <- function(data, n, prop, .by = NULL, sort_groups = TRUE,
     # USING N
     if (bound_n){
       GN <- collapse::fmax(group_sizes, use.g.names = FALSE, na.rm = FALSE)
-      if (n >= 0){
+      if (sign(1/n) >= 1){
         n <- as.integer(min(n, GN))
         slice_sizes <- pmin(n, group_sizes)
       } else {
@@ -356,7 +345,7 @@ df_slice_prepare <- function(data, n, prop, .by = NULL, sort_groups = TRUE,
   } else {
     # USING prop
     if (bound_n){
-      if (prop >= 0){
+      if (sign(1/prop) >= 1){
         prop <- min(1, prop)
         slice_sizes <- floor(prop * group_sizes)
       } else {
