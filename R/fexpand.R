@@ -298,7 +298,7 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
                          expand_type = expand_type,
                          keep_class = FALSE,
                          log_limit = log_limit)
-  out <- qDT2(data)
+  out <- list_to_DT(data)
   fill_na <- any(!is.na(fill))
   # Full-join
   if (nrow2(expanded_df) > 0 && ncol(expanded_df) > 0){

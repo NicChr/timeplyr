@@ -91,10 +91,10 @@ time_mutate <- function(data, ..., time = NULL, by = NULL,
   to_var <- tidy_transform_names(data, !!enquo(to))
   # Add variable to keep track of original order
   sort_nm <- new_var_nm(data, ".sort.index")
-  data[[sort_nm]] <- row_id(safe_ungroup(data))
+  data <- dplyr::dplyr_col_modify(data, setnames(list(row_id(safe_ungroup(data))), sort_nm))
   # Add variable to keep track of group IDs
   grp_nm <- new_var_nm(data, ".group.id")
-  data[[grp_nm]] <- group_id(data, .by = {{ .by }})
+  data <- add_group_id(data, .by = {{ .by }}, .name = grp_nm)
   data <- farrange(data, .cols = c(grp_nm, time_var))
   int_nm <- character(0)
   if (length(time_var) > 0L){
@@ -133,16 +133,24 @@ time_mutate <- function(data, ..., time = NULL, by = NULL,
                     floor_date = floor_date, week_start = week_start,
                     keep_class = TRUE,
                     expand_type = "nesting") # Irrelevant in this context
-      data[[time_var]] <- time_cast(data[[time_var]], time_expanded[[time_var]])
+      data <- dplyr::dplyr_col_modify(data, setnames(
+        list(
+          time_cast(data[[time_var]], time_expanded[[time_var]])
+        ), time_var)
+      )
       time <- data[[time_var]]
       # Aggregate time using the time sequence data
-      data[[time_var]] <- taggregate(data[[time_var]],
-                                     time_expanded[[time_var]],
-                                     gx = data[[grp_nm]],
-                                     gseq = time_expanded[[grp_nm]])
+      data <- dplyr::dplyr_col_modify(data, setnames(
+        list(
+          taggregate(data[[time_var]],
+                     time_expanded[[time_var]],
+                     gx = data[[grp_nm]],
+                     gseq = time_expanded[[grp_nm]])
+        ), time_var)
+      )
       if (include_interval){
         if (inherits(data, "data.table")){
-          data <- dplyr::as_tibble(data)
+          data <- list_to_tibble(data)
           message("data.table converted to tibble as data.table cannot include interval class")
         }
         int_nm <- new_var_nm(names(data), "interval")
@@ -158,8 +166,7 @@ time_mutate <- function(data, ..., time = NULL, by = NULL,
   if (!sort){
     data <- farrange(data, .cols = sort_nm)
   }
-  data[[grp_nm]] <- NULL
-  data[[sort_nm]] <- NULL
+  data <- df_rm_cols(data, c(grp_nm, sort_nm))
   out <- mutate2(safe_ungroup(data),
                 ...,
                 .by = all_of(c(group_vars, time_var, int_nm)),

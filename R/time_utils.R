@@ -107,6 +107,18 @@ unit_parse <- function(x){
               "scale" = scale)
   out
 }
+time_by_get <- function(x, by = NULL, is_sorted = FALSE){
+  if (is.null(by)){
+    unit_info <- time_granularity(x, is_sorted = is_sorted)
+    by_n <- unit_info[["num"]]
+    by_unit <- unit_info[["unit"]]
+  } else {
+    unit_info <- unit_guess(by)
+    by_n <- unit_info[["num"]] * unit_info[["scale"]]
+    by_unit <- unit_info[["unit"]]
+  }
+  setnames(list(by_n), by_unit)
+}
 # Creates interval even using num
 time_interval <- function(from, to){
   if (is_time(from) && is_time(to)){
@@ -861,8 +873,8 @@ has_interval <- function(data, quiet = TRUE){
 #     dplyr::pull(all_of("seq"))
 # }
 taggregate <- function(x, seq, gx = NULL, gseq = NULL){
-  dt1 <- data.table::data.table(g = gx, t = x)
-  dt2 <- data.table::data.table(g = gseq, t = seq)
+  dt1 <- list_to_DT(list(g = gx, t = x))
+  dt2 <- list_to_DT(list(g = gseq, t = seq))
   data.table::setattr(dt1, "sorted", names(dt1))
   data.table::setattr(dt2, "sorted", names(dt2))
   # setkeyv2(dt1, cols = names(dt1))
@@ -944,16 +956,17 @@ add_from_to <- function(data, ..., time, .by = NULL){
 # Internal helper to process from/to args
 get_from_to <- function(data, ..., time, from = NULL, to = NULL,
                         .by = NULL){
-  from_var <- tidy_select_names(data, !!enquo(from))
-  to_var <- tidy_select_names(data, !!enquo(to))
-  time_var <- tidy_select_names(data, !!enquo(time))
+  from_var <- col_select_names(data, .cols = from)
+  to_var <- col_select_names(data, .cols = to)
+  time_var <- col_select_names(data, .cols = time)
   dot_vars <- tidy_select_names(data, ...)
   if (length(from_var) == 0L || length(to_var) == 0L){
-    g <- group_id(data, .cols = dot_vars, .by = {{ .by }})
-    g <- GRP2(g, sort = TRUE,
-              return.groups = FALSE,
-              return.order = TRUE,
-              call = FALSE)
+    g <- group_id(data, .cols = dot_vars, .by = {{ .by }},
+                  as_qg = TRUE)
+    g <- collapse::GRP(g, sort = TRUE,
+                       return.groups = FALSE,
+                       return.order = TRUE,
+                       call = FALSE)
   }
   if (length(from_var) == 0L){
     .from <- gmin(data[[time_var]], g = g)

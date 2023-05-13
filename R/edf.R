@@ -113,9 +113,9 @@ edf <- function(x, g = NULL, wt = NULL){
       N <- gsum(df[["wt"]], g = df[["g"]])
     }
 
-    sum_run <- rep.int(collapse::fcumsum(grp_n3, na.rm = FALSE,
-                                         g = collapse::funique(df,
-                                                               cols = "g3")[["g"]]),
+    sum_run <- rep.int(fcumsum(grp_n3, na.rm = FALSE,
+                               g = collapse::funique(df,
+                                                     cols = "g3")[["g"]]),
                        times)
     out <- sum_run / N
     # Return using input order

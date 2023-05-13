@@ -86,7 +86,7 @@ time_episodes <- function(data, ..., time, window,
   } else {
     .keep <- "used"
   }
-  start_nms <- data.table::copy(names(data))
+  start_nms <- names(data)
   data <- data %>%
     mutate2(...,
             !!enquo(time),
@@ -95,8 +95,8 @@ time_episodes <- function(data, ..., time, window,
             .keep = .keep)
   # Copy data frame
   out <- data.table::copy(data)
-  # Coerce to data table
   data.table::setDT(out)
+  # out <- list_to_DT(data)
   group_info <- get_group_info(data, ...,
                                .by = {{ .by }},
                                type = "data-mask")
@@ -113,23 +113,16 @@ time_episodes <- function(data, ..., time, window,
   if (length(window_col) == 0){
     stop("Please supply window for episode calculation")
   }
-  if (is.null(by)){
-    unit_info <- time_granularity(data[[time_col]], is_sorted = FALSE)
-    by_n <- unit_info[["num"]]
-    by_unit <- unit_info[["unit"]]
-  } else {
-    unit_info <- unit_guess(by)
-    by_n <- unit_info[["num"]] * unit_info[["scale"]]
-    by_unit <- unit_info[["unit"]]
-  }
-  by <- setnames(list(by_n), by_unit)
+  time_by <- time_by_get(out[[time_col]], by = by)
   # Create grouped ID variable
   grp_nm <- new_var_nm(out, ".group")
   out[, (grp_nm) := group_id(data, .cols = extra_groups,
-                             .by = {{ .by }})]
+                             .by = {{ .by }}, as_qg = TRUE)]
   # Sort by groups > case ID > date col
   setorderv2(out, cols = c(grp_nm, time_col))
-  g <- GRP2(out[[grp_nm]], sort = TRUE, call = FALSE, return.groups = FALSE)
+  # out <- farrange(out, .cols = c(grp_nm, time_col))
+  g <- collapse::GRP(out[[grp_nm]], sort = TRUE, call = FALSE,
+                     return.groups = FALSE)
   lag <- min(N, 1L) # Bound lag to >= 0
   date_lag_nm <- new_var_nm(names(out), "date_lag")
   out[, (date_lag_nm) := collapse::flag(.SD,
@@ -138,7 +131,7 @@ time_episodes <- function(data, ..., time, window,
       .SDcols = time_col]
   time_elapsed_nm <- new_var_nm(names(out), "time_elapsed")
   out[, (time_elapsed_nm) := time_diff(get(date_lag_nm), get(time_col),
-                                                by = by, type = type)]
+                                                by = time_by, type = type)]
   # Row IDs per subject
   subject_row_id_nm <- new_var_nm(names(out), "subject_row_id")
   out[, (subject_row_id_nm) := gseq_len(N, g = g)]
@@ -162,8 +155,9 @@ time_episodes <- function(data, ..., time, window,
   # Get min episode dates for each subject + episode
   episode_start_nm <- new_var_nm(names(out), "episode_start")
   out[, (episode_start_nm) := gmin(get(time_col),
-                                   g = mget(c(all_groups, episode_id_nm)),
-                                   na.rm = TRUE)]
+                                   g = .SD,
+                                   na.rm = TRUE),
+                                   .SDcols = c(all_groups, episode_id_nm)]
   # Remove uneccessary cols
   set_rm_cols(out, c(date_lag_nm, subject_row_id_nm, new_episode_nm, grp_nm))
   # Newly added cols
@@ -171,6 +165,7 @@ time_episodes <- function(data, ..., time, window,
   if (.add){
     # Sort by initial order
     data.table::setorderv(out, cols = sort_nm)
+    # out <- farrange(out, .cols = sort_nm)
   }
   # Remove sort ID col
   set_rm_cols(out, sort_nm)

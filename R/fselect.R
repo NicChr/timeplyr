@@ -9,8 +9,9 @@
 #' @param data A data frame.
 #' @param ... Variables to select using `tidyselect`.
 #' See `?dplyr::select` for more info.
-#' @param .cols (Optional) alternative to `...` that accepts
-#' a named character vector or numeric vector.
+#' @param .cols (Optional) faster alternative to `...` that accepts
+#' a named character vector or numeric vector. \cr
+#' No checks on duplicates column names are done when using `.cols`. \cr
 #' If speed is an expensive resource, it is recommended to use this.
 #' @examples
 #' \dontrun{

@@ -153,7 +153,9 @@ col_select_pos <- function(data, .cols = character(0)){
   if (is.null(out_nms)){
     names(out) <- data_nms[out]
   } else {
-    out_nms[out_nms == ""] <- data_nms[out[out_nms == ""]]
+    es <- !nzchar(out_nms)
+    out_nms[es] <- data_nms[out[es]]
+    # out_nms[out_nms == ""] <- data_nms[out[out_nms == ""]]
     names(out) <- out_nms
   }
   out
@@ -162,6 +164,25 @@ col_select_names <- function(data, ..., .cols = NULL){
   names(col_select_pos(data, ..., .cols = .cols))
 }
 # (Internal) Fast col rename
+# col_rename <- function(data, .cols = integer(0)){
+#   .cols <- .cols[nzchar(names(.cols))]
+#   out_nms <- names(.cols)
+#   if (length(out_nms) == 0L){
+#     return(data)
+#   }
+#   data_nms <- names(data)
+#   if (is.character(.cols)){
+#    pos <- setnames(match(.cols, data_nms),
+#                    out_nms)
+#   } else {
+#    pos <- .cols
+#   }
+#   # Use the below for more consistency
+#   renamed <- is.na(match(out_nms, data_nms) != pos)
+#   renamed_pos <- pos[renamed]
+#   attr(data, "names")[renamed_pos] <- out_nms[renamed]
+#   data
+# }
 col_rename <- function(data, .cols = integer(0)){
   .cols <- .cols[nzchar(names(.cols))]
   out_nms <- names(.cols)
@@ -170,15 +191,14 @@ col_rename <- function(data, .cols = integer(0)){
   }
   data_nms <- names(data)
   if (is.character(.cols)){
-   pos <- setnames(match(.cols, data_nms),
-                   out_nms)
+    pos <- setnames(match(.cols, data_nms),
+                    out_nms)
   } else {
-   pos <- .cols
+    pos <- .cols
   }
-  # Use the below for more consistency
-  renamed <- is.na(match(out_nms, data_nms) != pos)
-  renamed_pos <- pos[renamed]
-  attr(data, "names")[renamed_pos] <- out_nms[renamed]
+  pos_nms <- names(pos)
+  renamed <- data_nms[pos] != pos_nms
+  attr(data, "names")[pos[renamed]] <- out_nms[renamed]
   data
 }
 tidy_select_pos <- function(data, ..., .cols = NULL){
@@ -192,20 +212,24 @@ tidy_select_pos <- function(data, ..., .cols = NULL){
     # col_select_pos()
     quo_select_info <- quo_select_info(enquos(...), data)
     quo_text <- quo_select_info[["quo_text"]]
-    if (all(quo_select_info[["is_char_var"]])){
+    all_char <- all(quo_select_info[["is_char_var"]])
+    all_num <- all(quo_select_info[["is_num_var"]])
+    if (all_char){
       out <- col_select_pos(data, quo_text)
-    } else if (all(quo_select_info[["is_num_var"]])){
+    } else if (all_num){
       out <- col_select_pos(data, as.double(quo_text))
       # Otherwise we use tidyselect
     } else {
       out <- tidyselect::eval_select(rlang::expr(c(...)), data = data)
     }
-  }
-  is_dup <- collapse::fduplicated(list(names(out), unname(out)))
-  out <- out[!is_dup]
-  if (anyDuplicated(names(out)) > 0){
-    # Use tidyselect for error
-    tidyselect::eval_select(rlang::expr(c(...)), data = data)
+    if (all_char || all_num){
+      is_dup <- collapse::fduplicated(list(names(out), unname(out)))
+      out <- out[!is_dup]
+      if (anyDuplicated(names(out)) > 0){
+        # Use tidyselect for error
+        tidyselect::eval_select(rlang::expr(c(...)), data = data)
+      }
+    }
   }
   out
 }
@@ -648,6 +672,14 @@ group_vars <- function(x){
   }
   out
 }
+# Faster group_data() but shows same error msg
+group_data <- function(x){
+  if (inherits(x, "grouped_df")){
+    attr(x, "groups")
+  } else {
+    dplyr::group_data(x)
+  }
+}
 # This function returns the groups of a data frame
 get_groups <- function(data, .by = NULL){
   dplyr_groups <- group_vars(data)
@@ -668,26 +700,18 @@ get_groups <- function(data, .by = NULL){
 # This function is for functions like count() where extra groups need
 # to be created
 get_group_info <- function(data, ..., type = c("select", "data-mask"),
-                           .by = NULL, .cols = NULL){
+                           .by = NULL){
   type <- rlang::arg_match0(type, c("select", "data-mask"))
   n_dots <- dots_length(...)
-  check_cols(n_dots = n_dots, .cols = .cols)
   group_vars <- get_groups(data, {{ .by }})
-  # Usual method
-  if (length(.cols) == 0L){
-    if (n_dots == 0){
-      extra_groups <- character(0)
-    } else {
-      if (type == "select"){
-        extra_groups <- tidy_select_names(data, ...)
-      } else {
-        extra_groups <- tidy_transform_names(data, ...)
-      }
-    }
-    # Using .cols
+  if (n_dots == 0){
+    extra_groups <- character(0)
   } else {
-    extra_groups <- tidy_select_names(data, .cols = .cols)
-    # extra_groups <- names(col_select_pos(data, .cols = .cols))
+    if (type == "select"){
+      extra_groups <- tidy_select_names(data, ...)
+    } else {
+      extra_groups <- tidy_transform_names(data, ...)
+    }
   }
   extra_groups <- setdiff(extra_groups, group_vars)
   all_groups <- c(group_vars, extra_groups)
@@ -716,13 +740,19 @@ group_info <- function(data, ..., .by = NULL, .cols = NULL,
     extra_groups <- tidy_transform_names(data, ...)
   }
   if (!is.null(.cols)){
-    col_pos <- col_select_pos(out, .cols = .cols)
-    extra_groups <- unique(names(col_pos))
+    pos <- col_select_pos(out, .cols = .cols)
+    # Remove group vars from pos
+    pos <- pos[!pos %in% match(group_vars, names(data))]
     if (rename){
-      out <- col_rename(out, col_pos)
+      extra_groups <- names(pos)
+      renamed <- is.na(match(extra_groups, names(out)) != pos)
+      renamed_pos <- pos[renamed]
+      attr(out, "names")[renamed_pos] <- extra_groups[renamed]
+    } else {
+      extra_groups <- names(out)[pos]
     }
   }
-  extra_groups <- setdiff(extra_groups, group_vars)
+  extra_groups <- extra_groups[match(extra_groups, group_vars, 0L) == 0L]
   all_groups <- c(group_vars, extra_groups)
   list("data" = out,
        "dplyr_groups" = group_vars,
@@ -741,12 +771,7 @@ df_reconstruct <- function(data, template){
   if (identical(inherits(template, c("data.table", "data.frame"), which = TRUE),
                 c(1L, 2L))){
     attr(data, "groups") <- NULL
-    if (ncol(data) == 0){
-      return(data.table::copy(data.table::as.data.table(as.data.frame(data))))
-    } else {
-      return(collapse::qDT(safe_ungroup(data)[TRUE], keep.attr = FALSE))
-    }
-    # return(collapse::qDT(data.table::copy(data), keep.attr = FALSE))
+    return(list_to_DT(safe_ungroup(data)))
   }
   if (inherits(template, "grouped_df")){
     template_groups <- setdiff(names(template_attrs[["groups"]]), ".rows")
@@ -820,6 +845,10 @@ vec_slice2 <- function(x, i){
   } else {
     collapse::ss(x, i)
   }
+}
+df_rm_cols <- function(data, .cols){
+  dplyr::dplyr_col_modify(data, setnames(vector("list", length(.cols)),
+                                         .cols))
 }
 # ss2 <- function(x, i, j){
 #   collapse::ss(x, i = i, j = j, check = FALSE)
@@ -1313,6 +1342,15 @@ list_to_tibble <- function(x){
   attr(x, "class") <- c("tbl_df", "tbl", "data.frame")
   attr(x, "row.names") <- .set_row_names(collapse::fnrow(x))
   x
+}
+list_to_DT <- function(x){
+  is_null <- vapply(x, FUN = is.null, FUN.VALUE = logical(1))
+  x <- collapse::ss(x, j = !is_null)
+  if (collapse::fncol(x) == 0L){
+    data.table::as.data.table(x)
+  } else {
+    collapse::qDT(x[TRUE])
+  }
 }
 # Extract group starts from GRP object safely
 GRP_starts <- function(GRP){

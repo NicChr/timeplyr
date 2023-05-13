@@ -125,7 +125,7 @@ get_time_delay <- function(data, origin, end, by = "day",
             .keep = "none")
   start_time <- tidy_transform_names(data, !!enquo(origin))
   end_time <- tidy_transform_names(data, !!enquo(end))
-  out <- qDT2(out)
+  out <- list_to_DT(out)
   grp_nm <- new_var_nm(out, ".group.id")
   out[, (grp_nm) := group_id(data, .by = {{ .by }})]
   set_rm_cols(out, setdiff(names(out),

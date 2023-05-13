@@ -111,27 +111,21 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
   time_var <- tidy_transform_names(data, !!enquo(time))
   from_var <- tidy_transform_names(data, !!enquo(from))
   to_var <- tidy_transform_names(data, !!enquo(to))
-  out <- qDT2(out)
+  out <- list_to_DT(out)
   if (length(time_var) > 0){
     seq_type <- match.arg(seq_type)
-    if (is.null(by)){
-      unit_info <- time_granularity(out[[time_var]], is_sorted = FALSE)
-      by_n <- unit_info[["num"]]
-      by_unit <- unit_info[["unit"]]
-    } else {
-      unit_info <- unit_guess(by)
-      by_n <- unit_info[["num"]] * unit_info[["scale"]]
-      by_unit <- unit_info[["unit"]]
-    }
+    time_by <- time_by_get(out[[time_var]], by = by)
+    by_unit <- names(time_by)
+    by_n <- time_by[[1L]]
     input_seq_type <- seq_type # Save original
     # Ordered group ID
     grp_nm <- new_var_nm(out, ".group.id")
     out[, (grp_nm) := group_id(data, .by = {{ .by }})]
     from_nm <- new_var_nm(names(out), ".from")
     to_nm <- new_var_nm(c(names(out), from_nm), ".to")
-    out[, c(from_nm, to_nm) := get_from_to(out, time = all_of(time_var),
-                                               from = all_of(from_var),
-                                               to = all_of(to_var),
+    out[, c(from_nm, to_nm) := get_from_to(out, time = time_var,
+                                               from = from_var,
+                                               to = to_var,
                                                .by = all_of(grp_nm))]
     # Unique groups
     time_tbl <- collapse::funique(collapse::fselect(out, c(group_vars, grp_nm, from_nm, to_nm)),
@@ -254,9 +248,9 @@ time_complete <- function(data, ..., time = NULL, by = NULL, from = NULL, to = N
   expand_type <- match.arg(expand_type)
   seq_type <- match.arg(seq_type)
   group_vars <- get_groups(data, {{ .by }})
-  out <- dplyr::mutate(data, !!enquo(time))
+  out <- mutate2(data, !!enquo(time))
   time_var <- tidy_transform_names(data, !!enquo(time))
-  out <- qDT2(out)
+  out <- list_to_DT(out)
   expanded_df <- time_expand(out,
                            ...,
                            time = across(all_of(time_var)),

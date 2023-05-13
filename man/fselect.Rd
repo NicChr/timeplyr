@@ -15,8 +15,9 @@ frename(data, ..., .cols = NULL)
 \item{...}{Variables to select using \code{tidyselect}.
 See \code{?dplyr::select} for more info.}
 
-\item{.cols}{(Optional) alternative to \code{...} that accepts
-a named character vector or numeric vector.
+\item{.cols}{(Optional) faster alternative to \code{...} that accepts
+a named character vector or numeric vector. \cr
+No checks on duplicates column names are done when using \code{.cols}. \cr
 If speed is an expensive resource, it is recommended to use this.}
 }
 \description{

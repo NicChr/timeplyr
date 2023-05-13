@@ -116,15 +116,7 @@ time_expandv <- function(x, by = NULL, from = NULL, to = NULL,
                       week_start = getOption("lubridate.week.start", 1),
                       roll_month = "preday", roll_dst = "pre"){
   stopifnot(is_time_or_num(x))
-  if (is.null(by)){
-    unit_info <- time_granularity(x, is_sorted = is_sorted)
-    by_n <- unit_info[["num"]]
-    by_unit <- unit_info[["unit"]]
-  } else {
-    unit_info <- unit_guess(by)
-    by_n <- unit_info[["num"]] * unit_info[["scale"]]
-    by_unit <- unit_info[["unit"]]
-  }
+  time_by <- time_by_get(x, by = by, is_sorted = is_sorted)
   if (is.null(from) || is.null(to)){
     x_range <- collapse::frange(x, na.rm = TRUE)
   }
@@ -137,7 +129,7 @@ time_expandv <- function(x, by = NULL, from = NULL, to = NULL,
   # Make sure from/to are datetimes if x is datetime
   from <- time_cast(from, x)
   to <- time_cast(to, x)
-  ftseq(from = from, to = to, units = by_unit, num = by_n,
+  ftseq(from = from, to = to, units = names(time_by), num = time_by[[1L]],
         seq_type = seq_type, floor_date = floor_date,
         week_start = week_start,
         roll_month = roll_month, roll_dst = roll_dst)
@@ -222,16 +214,7 @@ time_countv <- function(x, by = NULL, from = NULL, to = NULL,
                         roll_month = "preday", roll_dst = "pre"){
   stopifnot(is_time_or_num(x))
   x_na <- which(is.na(x))
-  if (is.null(by)){
-    unit_info <- time_granularity(x, is_sorted = is_sorted)
-    by_n <- unit_info[["num"]]
-    by_unit <- unit_info[["unit"]]
-    by <- setnames(list(by_n), by_unit)
-  } else {
-    unit_info <- unit_guess(by)
-    by_n <- unit_info[["num"]] * unit_info[["scale"]]
-    by_unit <- unit_info[["unit"]]
-  }
+  time_by <- time_by_get(x, by = by, is_sorted = is_sorted)
   if (is.null(from)){
     .from <- collapse::fmin(x, na.rm = TRUE, use.g.names = FALSE)
   } else {
@@ -246,7 +229,9 @@ time_countv <- function(x, by = NULL, from = NULL, to = NULL,
     x <- x[data.table::between(x, .from, .to, incbounds = TRUE, NAbounds = NA)]
   }
   # Time sequence
-  time_breaks <- ftseq(from = .from, to = .to, units = by_unit, num = by_n,
+  time_breaks <- ftseq(from = .from, to = .to,
+                       units = names(time_by),
+                       num = time_by[[1L]],
                        seq_type = seq_type, floor_date = floor_date,
                        week_start = week_start,
                        roll_month = roll_month, roll_dst = roll_dst)

@@ -97,19 +97,20 @@ group_id.default <- function(data, ..., order = TRUE,
                              ascending = TRUE,
                              as_qg = FALSE){
   if (order){
-    out <- GRP2(safe_ungroup(data),
+    g <- GRP2(safe_ungroup(data),
                 sort = TRUE,
                 decreasing = !ascending,
                 na.last = TRUE,
                 return.groups = FALSE,
                 return.order = FALSE,
                 method = "auto",
-                call = FALSE)[["group.id"]]
+                call = FALSE)
+    out <- g[["group.id"]]
   } else {
     out <- group2(data)
   }
   if (as_qg && order){
-    out <- integer_to_qg(out)
+    out <- integer_to_qg(out, g[["N.groups"]])
   }
   if (!as_qg && !order){
     out <- as.integer(out)
@@ -119,10 +120,11 @@ group_id.default <- function(data, ..., order = TRUE,
 #' @export
 group_id.Interval <- function(data, ..., order = TRUE,
                               ascending = TRUE, as_qg = FALSE){
-  out <- GRP.Interval(data, sort = order, decreasing = !ascending,
-                      call = FALSE, return.groups = FALSE)[["group.id"]]
+  g <- GRP.Interval(data, sort = order, decreasing = !ascending,
+                      call = FALSE, return.groups = FALSE)
+  out <- g[["group.id"]]
   if (as_qg){
-    out <- integer_to_qg(out)
+    out <- integer_to_qg(out, g[["N.groups"]])
   }
   out
 }
@@ -141,19 +143,22 @@ group_id.data.frame <- function(data, ...,
   # Usual Method for when data does not contain interval
   if (length(all_groups) == 0L){
     out <- alloc(1L, N)
+    n_groups <- min(N, 1L)
     # Method for grouped_df
   } else {
-    out <- GRP2(group_info[["data"]], by = all_groups,
+    g <- GRP2(group_info[["data"]], by = all_groups,
                 sort = order,
                 decreasing = !ascending,
                 na.last = TRUE,
                 return.groups = FALSE,
                 return.order = FALSE,
                 method = "auto",
-                call = FALSE)[["group.id"]]
+                call = FALSE)
+    out <- g[["group.id"]]
+    n_groups <- g[["N.groups"]]
   }
   if (as_qg){
-    out <- integer_to_qg(out)
+    out <- integer_to_qg(out, n_groups)
   }
   out
 }
@@ -169,7 +174,7 @@ group_id.grouped_df <- function(data, ...,
   if (n_dots == 0 && is.null(.cols) && order && ascending){
     out <- dplyr::group_indices(data)
     if (as_qg){
-      out <- integer_to_qg(out)
+      out <- integer_to_qg(out, nrow2(group_data(data)))
     }
   } else {
     group_info <- group_info(data, ..., .by = {{ .by }},
@@ -362,13 +367,16 @@ group2 <- function(X, ...){
 }
 qG2 <- function(x, sort = TRUE, na.exclude = FALSE, ...){
   if (is_interval(x)){
-    i_na <- collapse::whichNA(x)
-    x <- GRP.Interval(x, sort = sort, call = FALSE, return.groups = FALSE)[["group.id"]]
+    g <- GRP.Interval(x, sort = sort, call = FALSE, return.groups = FALSE)
+    out <- g[["group.id"]]
     if (na.exclude){
-      setv(x, i_na, NA_integer_, vind1 = TRUE)
+      setv(out, collapse::whichNA(x), NA_integer_, vind1 = TRUE)
     }
+    out <- integer_to_qg(out, g[["N.groups"]])
+  } else {
+    out <- collapse::qG(x, sort = sort, na.exclude = na.exclude, ...)
   }
-  collapse::qG(x, sort = sort, na.exclude = na.exclude, ...)
+  out
 }
 # data frame Wrapper around GRP to convert lubridate intervals to group IDs
 GRP2 <- function(X, ...){

@@ -182,9 +182,9 @@ time_count <- function(data, ..., time = NULL, by = NULL,
     # Determine common bounds
     from_nm <- new_var_nm(names(ts_data), ".from")
     to_nm <- new_var_nm(c(names(ts_data), from_nm), ".to")
-    ts_data[, c(from_nm, to_nm) := get_from_to(ts_data, time = all_of(time_var),
-                                               from = all_of(from_var),
-                                               to = all_of(to_var),
+    ts_data[, c(from_nm, to_nm) := get_from_to(ts_data, time = time_var,
+                                               from = from_var,
+                                               to = to_var,
                                                .by = all_of(grp_nm))]
     # Order by group vars - time var - additional group vars
     # ts_data <- farrange(ts_data,
