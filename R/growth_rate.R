@@ -54,6 +54,7 @@ rolling_growth_rate <- function(x, n = length(x),
   stopifnot(n_len <= 1)
   n <- as.integer(n)
   n <- max(1L, n)
+  n <- min(x_len, n)
   # if (!isTRUE(n_len == 1 || n_len == x_len)){
   #   stop("n must be of length 1 or length(x)")
   # }

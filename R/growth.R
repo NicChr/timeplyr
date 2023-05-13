@@ -81,6 +81,8 @@ rolling_growth <- function(x, n = 1, lag = n, na.rm = FALSE, partial = TRUE,
   stopifnot(length(n) == 1)
   stopifnot(length(lag) == 1)
   stopifnot(n >= 1)
+  n <- min(length(x), n)
+  lag <- min(length(x), lag)
   if (!na.rm && is.null(weights) && is.null(offset)){
     roll <- function(...) frollsum3(...)
   } else {
@@ -142,13 +144,13 @@ rolling_growth <- function(x, n = 1, lag = n, na.rm = FALSE, partial = TRUE,
     # Growth of value compared to lagged value
     growth <- numerator / denominator
     # 0/0 = NaN and assume 0 to 0 events represents no growth, i.e GR = 1.
-    collapse::setv(growth, which(numerator == 0 & denominator == 0), 1, vind1 = TRUE)
+    setv(growth, which(numerator == 0 & denominator == 0), 1, vind1 = TRUE)
   }
   # NA/0 remains NA
   if (!is.null(inf_fill)){
     if (is.na(inf_fill)) inf_fill <- NA_real_
     # Any growth change from 0 is replaced with inf_fill
-    collapse::setv(growth, which(is.infinite(growth)), inf_fill, vind1 = TRUE)
+    setv(growth, which(is.infinite(growth)), inf_fill, vind1 = TRUE)
   }
   growth
 }

@@ -57,23 +57,29 @@ time_diff <- function(x, y, by,
                                                  num = num,
                                                  seq_type = type)
     if (is_special_case_days && !as_period){
-      return(as.double(difftime(y, x, units = units)) / num)
+      if (units == "weeks"){
+        num <- num * 7
+      }
+      return(( as.double(y) - as.double(x) ) / num)
     }
     if (type == "auto") type <- guess_seq_type(units)
-    int <- lubridate::interval(x, y)
     if (as_period || type == "period"){
+      int <- lubridate::interval(x, y)
       if (as_period){
         int <- lubridate::as.period(int, unit = units)
       }
       unit <- period_unit(units)(abs(num)) # Vectorised lubridate::period
       out <- sign(num) * (int / unit)
     } else {
-      unit <- duration_unit(units)(num)
+      unit <- as.double(duration_unit(units)(num))
+      x <- as.double(lubridate::with_tz(x, tzone = "UTC"))
+      y <- as.double(lubridate::with_tz(y, tzone = "UTC"))
+      out <- (y - x) / unit
       # out <- as.double(unclass(as.POSIXct(y)) - unclass(as.POSIXct(x))) / as.double(unit)
-      out <- int / unit
+      # out <- int / unit
     }
   } else {
-    out <- (y - x) / unlist(unname(by))
+    out <- (y - x) / unlist(unname(by), use.names = FALSE)
   }
   out
 }

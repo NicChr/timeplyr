@@ -892,10 +892,8 @@ safe_ungroup <- function(data){
   if (inherits(data, "grouped_df")){
    attr(data, "groups") <- NULL
    attr(data, "class") <- c("tbl_df", "tbl", "data.frame")
-   data
-  } else {
-    data
   }
+  data
 }
 # Fast factor()
 ffactor <- function(x, levels = NULL, ordered = FALSE, na.exclude = TRUE){
