@@ -55,6 +55,7 @@ rolling_growth_rate <- function(x, n = length(x),
   n <- as.integer(n)
   n <- max(1L, n)
   n <- min(x_len, n)
+  lag <- max(0L, n - 1L)
   # if (!isTRUE(n_len == 1 || n_len == x_len)){
   #   stop("n must be of length 1 or length(x)")
   # }
@@ -62,12 +63,12 @@ rolling_growth_rate <- function(x, n = length(x),
   #   x_lagged <- runner::lag_run(x, lag = n - 1)
   # } else
   if (partial){
-    x_lagged <- collapse::flag(x, n = (n - 1))
-    setv(x_lagged, seq_len(n), x[1L], vind1 = TRUE)
+    x_lagged <- collapse::flag(x, n = lag)
+    setv(x_lagged, seq_len(n), vec_head(x), vind1 = TRUE)
     n <- window_seq(k = n, n = x_len, partial = TRUE)
     # x_lagged <- runner::lag_run(x, lag = n - 1)
   } else {
-    x_lagged <- collapse::flag(x, n = (n - 1))
+    x_lagged <- collapse::flag(x, n = lag)
     n <- rep_len(n, x_len)
   }
   if (na.rm){
