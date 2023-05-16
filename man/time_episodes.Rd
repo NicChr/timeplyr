@@ -8,8 +8,9 @@ time_episodes(
   data,
   ...,
   time,
-  window,
+  window = 1,
   by = NULL,
+  event_id = NULL,
   type = c("auto", "duration", "period"),
   .add = FALSE,
   .by = NULL
@@ -44,11 +45,23 @@ then arithmetic is used, e.g \code{by = 1}.
 This is also vectorized where applicable.
 }}
 
+\item{event_id}{\bold{Not currently used} \cr
+(Optional) Column that encodes which rows are the event,
+and which aren't. By default \code{time_episodes()}
+assumes every observation (row) is an event
+but this need not be the case. \cr
+\code{event_id} must be a named list of length 1 where the values of the
+list element represent the event. For example, if your events were coded as
+\code{0} and \code{1} in a variable named "event" where \code{1} represents the event,
+you would supply \code{event_id = list(event = 1)}.}
+
 \item{type}{Time difference type, auto, duration, period.}
 
-\item{.add}{Should episodic variables be added to the data? If \code{FALSE} (the default),
+\item{.add}{Should episodic variables be added to the data?
+If \code{FALSE} (the default),
 then only the relevant variables are returned, ordered by groups + time.
-If \code{TRUE}, the episodic variables are added to the original data, in the order of
+If \code{TRUE}, the episodic variables are added to the original data,
+in the order of
 the original data.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.

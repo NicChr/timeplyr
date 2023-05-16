@@ -847,8 +847,17 @@ vec_slice2 <- function(x, i){
   }
 }
 df_rm_cols <- function(data, .cols){
-  dplyr::dplyr_col_modify(data, setnames(vector("list", length(.cols)),
-                                         .cols))
+  cols_to_remove <- col_select_names(data, .cols = .cols)
+  dplyr::dplyr_col_modify(data, setnames(vector("list", length(cols_to_remove)),
+                                         cols_to_remove))
+}
+df_seq_along <- function(data, along = c("rows", "cols")){
+  along <- rlang::arg_match0(along, c("rows", "cols"))
+  if (along == "rows"){
+    seq_along(attr(data, "row.names"))
+  } else {
+    seq_along(names(data))
+  }
 }
 # ss2 <- function(x, i, j){
 #   collapse::ss(x, i = i, j = j, check = FALSE)
@@ -926,11 +935,6 @@ ffactor <- function(x, levels = NULL, ordered = FALSE, na.exclude = TRUE){
   }
   out
 }
-
-# Slightly safer way of removing DT cols
-set_rm_cols <- function(DT, cols = NULL){
- if (length(intersect(cols, names(DT))) > 0L) DT[, (cols) := NULL]
-}
 # Checks if dataset has variable named "n" and adds n
 # Until it finds unique var name.
 # Recursive implementation.
@@ -995,6 +999,7 @@ radix_order <- function(x, na.last = TRUE, ...){
 }
 # Wrapper around order() to use radix sort
 radix_sort <- function(x, na.last = TRUE, ...){
+  # sort(x, na.last = na.last, ..., method = "radix")
   x[radix_order(x, na.last = na.last, ...)]
 }
 # Creates a sequence of ones.
@@ -1021,6 +1026,7 @@ sample2 <- function(x, size = length(x), replace = FALSE, prob = NULL){
 setv <- getFromNamespace("setv", "collapse")
 alloc <- getFromNamespace("alloc", "collapse")
 fcumsum <- getFromNamespace("fcumsum", "collapse")
+set <- getFromNamespace("set", "data.table")
 # Some future utils for counts and weights..
 # wt_fun <- function(wt){
 #   rlang::expr(sum(!!enquo(wt), na.rm = TRUE))
@@ -1121,8 +1127,9 @@ check_null_dots <- function(...){
 }
 # Wrapper around expand.grid without factors and df coercion
 # Sorting mimics CJ()
+# Overhead is small for small joins
 CJ2 <- function(X){
-  stopifnot(is.list(X))
+  if (!is.list(X)) stop("X must be a list")
   nargs <- length(X)
   if (nargs == 0L){
     return(list())
@@ -1173,6 +1180,18 @@ setkeyv2 <- function(x, cols, verbose = getOption("datatable.verbose"),
                           verbose = verbose,
                           physical = physical)
     }
+  }
+}
+# Slightly safer way of removing DT cols
+set_rm_cols <- function(DT, cols = NULL){
+  if (is.character(cols)){
+    length_check <- length(intersect(cols, names(DT))) > 0L
+  } else {
+    cols <- as.integer(cols)
+    length_check <- length(intersect(cols, seq_along(DT))) > 0L
+  }
+  if (length_check){
+    set(DT, j = cols, value = NULL)
   }
 }
 # Temporary solution until collapse release CRAN version with fix
@@ -1333,17 +1352,20 @@ conditional_sort <- function(x){
     x
   }
 }
-# named_list to tibble
-# No duplicate name checking or any checking
-# To be used with caution
+# list to tibble/DT
+# No checks are done so use with caution
+# Cannot contain duplicate names, NULL elements,
+# or different length list elements
 list_to_tibble <- function(x){
+  N <- collapse::fnrow(x)
   attr(x, "class") <- c("tbl_df", "tbl", "data.frame")
-  attr(x, "row.names") <- .set_row_names(collapse::fnrow(x))
+  attr(x, "row.names") <- .set_row_names(N)
   x
 }
 list_to_DT <- function(x){
-  is_null <- vapply(x, FUN = is.null, FUN.VALUE = logical(1))
-  x <- collapse::ss(x, j = !is_null)
+  # is_null <- vapply(x, FUN = is.null, FUN.VALUE = logical(1),
+  #                   USE.NAMES = FALSE)
+  # x <- collapse::ss(x, j = !is_null, check = FALSE)
   if (collapse::fncol(x) == 0L){
     data.table::as.data.table(x)
   } else {

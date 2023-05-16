@@ -222,6 +222,7 @@ time_seq <- function(from, to, by, length.out = NULL,
     #   out <- date_seq(from = from, length.out = length.out, by = by_n)
     # } else
     if (seq_type == "duration"){
+      from <- lubridate::as_datetime(from)
       out <- duration_seq(from = from,
                            length = length.out,
                            duration = duration_unit(by_unit)(by_n))
@@ -258,22 +259,15 @@ time_seq <- function(from, to, by, length.out = NULL,
 time_seq_len <- function(from, to, by,
                          seq_type = c("auto", "duration", "period"),
                          as_period = FALSE){
-  unit_info <- unit_guess(by)
-  units <- unit_info[["unit"]]
-  num <- unit_info[["num"]]
-  scale <- unit_info[["scale"]]
-  num <- num * scale
-  time_diff <- abs(time_diff(from, to, by = setnames(list(num), units),
+  tdiff <- time_diff(from, to, by = time_by_list(by),
                          type = seq_type,
-                         as_period = as_period))
-  # Handles a special case when by is zero or exceeds integer limit
-  if (length(time_diff) > 0L && (
-    any(num == 0) || max(time_diff) > .Machine$integer.max
-    )){
-    trunc(time_diff) + 1
+                         as_period = as_period)
+  if (length(tdiff) == 0L || (collapse::fmax(tdiff) + 1) <= .Machine$integer.max){
+    out <- abs(as.integer(tdiff)) + 1L
   } else {
-    as.integer(time_diff) + 1L
+    out <- abs(tdiff) + 1
   }
+  out
 }
 # Wrapper around seq.Date() to handle zero length from
 date_seq <- function(from, ...){
@@ -316,6 +310,7 @@ ftseq <- function(from, to, units, num = 1,
                                  seq_type = seq_type,
                                  as_period = FALSE)
       if (seq_type == "duration"){
+        from <- lubridate::as_datetime(from)
         time_unit <- duration_unit(units)(x = num)
         num_seconds <- as.double(time_unit)
         out <- duration_seq(from, length = out_length, duration = num_seconds)
@@ -335,13 +330,11 @@ ftseq <- function(from, to, units, num = 1,
   }
   out
 }
-# This is purely for speed purposes
 duration_seq <- function(from, length, duration){
-  # stopifnot(is_datetime(from))
-  if (!is_datetime(from)){
-    from <- lubridate::as_datetime(from, tz = lubridate::tz(from))
+  if (length(from) == 0L){
+    if (!is_datetime(from)) stop("from must be a datetime")
+    return(from)
   }
-  if (length(from) == 0L) return(from)
   seq.POSIXt(from = from,
              length.out = length, by = as.double(duration))
 }
@@ -349,9 +342,13 @@ duration_seq <- function(from, length, duration){
 # of a specified length and unit increment
 period_seq <- function(from, length, unit, num = 1,
                        roll_month = "preday", roll_dst = "pre"){
-  if (length(from) == 0L) return(from)
+  if (length(from) == 0L){
+    length <- 0L
+  }
   int_seq <- seq_len(length) - 1L
-  if (length == 0L) from <- from[0L]
+  if (length == 0L){
+    from <- from[0L]
+  }
   time_add(from, periods = setnames(list(num * int_seq),
                                                        unit),
                        roll_month = roll_month, roll_dst = roll_dst)
@@ -379,7 +376,7 @@ date_seq_v <- function(from, to, units = c("days", "weeks"), num = 1){
     units <- "days"
     num <- num * 7
   }
-  seq_len <- time_seq_len(from, to, setnames(list(num), units))
+  seq_len <- time_seq_len(from, to, by = setnames(list(num), units))
   time_seq <- sequence3(seq_len,
                         from = as.double(from),
                         by = num)
@@ -447,7 +444,7 @@ period_seq_v <- function(from, to, units, num = 1,
   # Collapse the data frame into unique combinations of length, from, and num
   period_df <- collapse::funique(period_df, cols = "g")
   # Add key for optimised aggregation
-  data.table::setkeyv(period_df, cols = "g")
+  # data.table::setkeyv(period_df, cols = "g")
 
   # Setting up vector arithmetic
   g <- rep.int(period_df[["g"]], times = period_df[["seq_len"]])
@@ -455,48 +452,44 @@ period_seq_v <- function(from, to, units, num = 1,
   # Split these by group
   by <- collapse::gsplit(num, g = g, use.g.names = FALSE)
   # Repeat these by the group counts
-  which_n_gt_1 <- which(period_df[["n"]] > 1)
+  group_counts <- period_df[["n"]]
+  which_n_gt_1 <- which(group_counts > 1)
   by[which_n_gt_1] <- purrr::map2(by[which_n_gt_1],
-                                  period_df[["n"]][which_n_gt_1],
-                                  function(x, y) rep(x, y))
-  period_df[, ("by") := by]
-  out <- period_df[, list("time" = time_add(get("from"),
-                                     periods = setnames(as.list(get("by")), unit),
-                                     roll_month = roll_month,
-                                     roll_dst = roll_dst)),
-            keyby = "g"][["time"]]
+                                  group_counts[which_n_gt_1],
+                                  function(x, y) rep.int(x, y))
+  # Alternate method, works similarly
+  # period_df[, ("by") := by]
+  # out <- period_df[, list("time" = time_add(get("from"),
+  #                                    periods = setnames(as.list(get("by")), unit),
+  #                                    roll_month = roll_month,
+  #                                    roll_dst = roll_dst)),
+  #           keyby = "g"][["time"]]
+  out_sizes <- as.integer(period_df[["seq_len"]] * group_counts)
+  # Counter to keep track of which indices to replace
+  init <- 0L
+  from <- period_df[["from"]]
+  # Initialise output
+  out <- rep_len(from[0L],
+                sum(out_sizes))
+  # Setnames on the list for timechange::time_add
+  by <- setnames(by, rep_len(unit, length(by)))
+  for (i in df_seq_along(period_df)){
+    setv(out, seq_len(out_sizes[[i]]) + init,
+         time_add(from[[i]],
+                  periods = by[i],
+                  roll_month = roll_month,
+                  roll_dst = roll_dst),
+         vind1 = TRUE)
+    init <- init + out_sizes[[i]]
+  }
   out[out_order]
 }
-# # Period sequence vectorised over from, to and num
-# period_seq_v2 <- function(from, to, units, num = 1,
-#                          roll_month = "preday", roll_dst = "pre"){
-#   units <- match.arg(units, .period_units)
-#   seq_len <- time_seq_len(from, to, by = setnames(list(num), units),
-#                           seq_type = "period")
-#   unit <- substr(units, 1L, nchar(units) -1L)
-#   time_seq <- Vectorize(period_seq,
-#                         vectorize.args = c("from", "length", "num"),
-#                         SIMPLIFY = FALSE,
-#                         USE.NAMES = FALSE)(from,
-#                                            length = seq_len,
-#                                            unit = unit,
-#                                            num = num,
-#                                            roll_month = roll_month,
-#                                            roll_dst = roll_dst)
-#   # Concatenate the lists into vector
-#   purrr::list_c(time_seq)
-# }
 # Base sequence vectorized over from and to
 seq_v <- function(from, to, by = 1){
   seq_len <- time_seq_len(from, to, by = by)
   sequence3(seq_len, from = from, by = by)
 }
 # Like sequence() but slower and works with decimal numbers
-# Weirdly enough sequence() seems less precise than this?
-# example:
-# x <- Sys.time()
-# seq.POSIXt(x, x + dseconds(112), by = 1) - time_cast(sequence(113, from = as.double(x), by =1 ), x)
-# seq.POSIXt(x, x + dseconds(112), by = 1) - time_cast(sequence3(113, from = as.double(x), by =1 ), x)
 sequence3 <- function(nvec, from = 1, by = 1){
   out_len <- sum(nvec)
   g_len <- length(nvec)

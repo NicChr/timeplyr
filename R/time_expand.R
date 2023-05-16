@@ -191,9 +191,9 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
                              log_limit = log_limit)
       expanded_nms <- names(expanded_df)
       # Join our time sequence (table) with our non-grouped expanded table
-      out[, c(grp_nm, from_nm, to_nm,
-              size_nm,
-              by_nm) := NULL]
+      set_rm_cols(out, c(grp_nm, from_nm, to_nm,
+                        size_nm,
+                        by_nm))
     if (nrow2(expanded_df) > 0L){
       # If there are no common cols, just cross join them
       if (length(intersect(group_vars, expanded_nms)) == 0L){

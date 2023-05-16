@@ -259,7 +259,7 @@ time_count <- function(data, ..., time = NULL, by = NULL,
       data.table::setnafill(out, cols = name, type = "const", fill = 0, nan = NaN)
     }
     if (include_interval){
-      out <- dplyr::as_tibble(out)
+      out <- list_to_tibble(as.list(out))
       message("data.table converted to tibble as data.table cannot include interval class")
 
       int_nm <- new_var_nm(out, "interval")

@@ -17,7 +17,7 @@ testthat::test_that("Testing time episodes", {
                  .name = "id2")
   testthat::expect_error(time_episodes(flights))
   testthat::expect_error(time_episodes(flights, window = 100))
-  testthat::expect_error(time_episodes(flights, time = time_hour))
+  # testthat::expect_error(time_episodes(flights, time = time_hour))
   base1 <- structure(list(episode_id = c(1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L,
                                          5L, 5L, 6L, 6L, NA),
                           episode_id_group = c(0L, 1L, 0L, 2L, 0L, 3L, 0L, 4L, 0L, 5L, 0L, 6L, NA),

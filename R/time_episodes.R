@@ -45,10 +45,21 @@
 #' * Numeric vector. If by is a numeric vector and x is not a date/datetime,
 #' then arithmetic is used, e.g `by = 1`.
 #' This is also vectorized where applicable.
+#' @param event_id \bold{Not currently used} \cr
+#' (Optional) Column that encodes which rows are the event,
+#' and which aren't. By default `time_episodes()`
+#' assumes every observation (row) is an event
+#' but this need not be the case. \cr
+#' `event_id` must be a named list of length 1 where the values of the
+#' list element represent the event. For example, if your events were coded as
+#' `0` and `1` in a variable named "event" where `1` represents the event,
+#' you would supply `event_id = list(event = 1)`.
 #' @param type Time difference type, auto, duration, period.
-#' @param .add Should episodic variables be added to the data? If `FALSE` (the default),
+#' @param .add Should episodic variables be added to the data?
+#' If `FALSE` (the default),
 #' then only the relevant variables are returned, ordered by groups + time.
-#' If `TRUE`, the episodic variables are added to the original data, in the order of
+#' If `TRUE`, the episodic variables are added to the original data,
+#' in the order of
 #' the original data.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
@@ -77,8 +88,10 @@
 #'   ggplot(aes(x = episode_start, y = n)) +
 #'   geom_bar(stat = "identity")
 #' @export
-time_episodes <- function(data, ..., time, window,
-                          by = NULL, type = c("auto", "duration", "period"),
+time_episodes <- function(data, ..., time, window = 1,
+                          by = NULL,
+                          event_id = NULL,
+                          type = c("auto", "duration", "period"),
                           .add = FALSE, .by = NULL){
   N <- nrow2(data)
   if (.add){

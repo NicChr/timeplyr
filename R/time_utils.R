@@ -107,17 +107,22 @@ unit_parse <- function(x){
               "scale" = scale)
   out
 }
+time_by_list <- function(time_by){
+  unit_info <- unit_guess(time_by)
+  units <- unit_info[["unit"]]
+  num <- unit_info[["num"]] * unit_info[["scale"]]
+  setnames(list(num), units)
+}
 time_by_get <- function(x, by = NULL, is_sorted = FALSE){
   if (is.null(by)){
     unit_info <- time_granularity(x, is_sorted = is_sorted)
     by_n <- unit_info[["num"]]
     by_unit <- unit_info[["unit"]]
+    out <- setnames(list(by_n), by_unit)
   } else {
-    unit_info <- unit_guess(by)
-    by_n <- unit_info[["num"]] * unit_info[["scale"]]
-    by_unit <- unit_info[["unit"]]
+    out <- time_by_list(by)
   }
-  setnames(list(by_n), by_unit)
+  out
 }
 # Creates interval even using num
 time_interval <- function(from, to){
@@ -656,8 +661,8 @@ bound_to <- function(to, x){
 }
 # Get rolling window sizes, including partial
 window_seq <- function(k, n, partial = TRUE){
-  stopifnot(length(k) == 1L,
-            length(n) == 1L)
+  if (length(k) != 1L) stop("k must be of length 1.")
+  if (length(n) != 1L) stop("n must be of length 1.")
   if (n > .Machine[["integer.max"]]){
     stop("n must not be greater than .Machine$integer.max")
   }
@@ -838,9 +843,9 @@ is_interval <- function(x){
 }
 # Check if data has lubridate interval
 has_interval <- function(data, quiet = TRUE){
-  # out <- any(purrr::map_lgl(data, lubridate::is.interval))
   out <- any(vapply(data, FUN = is_interval,
                     FUN.VALUE = logical(1)))
+  # out <- any(collapse::vclasses(flights, use.names = FALSE) == "Interval")
   if (out && !quiet){
     message("A variable of class 'Interval' exists.
     The grouping will be done using 'dplyr'.
@@ -873,8 +878,8 @@ has_interval <- function(data, quiet = TRUE){
 #     dplyr::pull(all_of("seq"))
 # }
 taggregate <- function(x, seq, gx = NULL, gseq = NULL){
-  dt1 <- list_to_DT(list(g = gx, t = x))
-  dt2 <- list_to_DT(list(g = gseq, t = seq))
+  dt1 <- data.table::data.table(g = gx, t = x)
+  dt2 <- data.table::data.table(g = gseq, t = seq)
   data.table::setattr(dt1, "sorted", names(dt1))
   data.table::setattr(dt2, "sorted", names(dt2))
   # setkeyv2(dt1, cols = names(dt1))

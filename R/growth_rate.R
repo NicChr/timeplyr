@@ -29,7 +29,7 @@ growth_rate <- function(x,
   if (na.rm) x <- x[x_not_na]
   n <- length(x)
   x_n <- x[n]
-  x_1 <- x[1L]
+  x_1 <- x[min(n, 1L)]
   if (isTRUE(x_n == 0 && x_1 == 0)) return(1)
   if (log){
     gr <- exp(( log(x_n) - log(x_1) ) / (n - 1))

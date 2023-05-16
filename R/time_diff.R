@@ -42,13 +42,11 @@
 time_diff <- function(x, y, by,
                       type = c("auto", "duration", "period"),
                       as_period = FALSE){
-  type <- match.arg(type)
+  type <- rlang::arg_match0(type, c("auto", "duration", "period"))
   if (is_time(x) && is_time(y)){
-    unit_info <- unit_guess(by)
-    units <- unit_info[["unit"]]
-    num <- unit_info[["num"]]
-    scale <- unit_info[["scale"]]
-    num <- num * scale
+    tby <- time_by_list(by)
+    units <- names(tby)
+    num <- tby[[1L]]
     # Common but special case where from/to are whole days
     # and type is "auto"
     is_special_case_days <- is_special_case_days(from = x,
@@ -75,11 +73,10 @@ time_diff <- function(x, y, by,
       x <- as.double(lubridate::with_tz(x, tzone = "UTC"))
       y <- as.double(lubridate::with_tz(y, tzone = "UTC"))
       out <- (y - x) / unit
-      # out <- as.double(unclass(as.POSIXct(y)) - unclass(as.POSIXct(x))) / as.double(unit)
       # out <- int / unit
     }
   } else {
-    out <- (y - x) / unlist(unname(by), use.names = FALSE)
+    out <- (y - x) / unlist(by, use.names = FALSE, recursive = FALSE)
   }
   out
 }

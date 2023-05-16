@@ -10,9 +10,11 @@
 #' To specify groups using `tidyselect`, simply use the `.by` argument.
 #' @param order Should the groups be ordered?
 #' \bold{THE PHYSICAL ORDER OF THE DATA IS NOT CHANGED.} \cr
-#' When order is `TRUE` (the default) the group IDs will be ordered but not sorted.
+#' When order is `TRUE` (the default) the group IDs will be ordered
+#' only sorted if `sort = TRUE`.
 #' If `FALSE` the order of the group IDs will be based on first appearance.
 #' @param sort Should the data frame be sorted by the groups?
+#' Default is `TRUE`.
 #' @param .by Alternative way of supplying groups using `tidyselect` notation.
 #' This is kept to be consistent with other functions.
 #' @param .cols (Optional) alternative to `...` that accepts

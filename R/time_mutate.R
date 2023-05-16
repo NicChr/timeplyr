@@ -150,7 +150,7 @@ time_mutate <- function(data, ..., time = NULL, by = NULL,
       )
       if (include_interval){
         if (inherits(data, "data.table")){
-          data <- list_to_tibble(data)
+          data <- list_to_tibble(as.list(data))
           message("data.table converted to tibble as data.table cannot include interval class")
         }
         int_nm <- new_var_nm(names(data), "interval")

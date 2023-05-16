@@ -214,7 +214,7 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
         out[, (group_vars[[i]]) := out1[[group_vars[[i]]]][match(out[[grp_nm]],
                                                                  out1[[grp_nm]])]]
       }
-      out[, (grp_nm) := NULL][]
+      set_rm_cols(out, grp_nm)
       if (sort){
         setorderv2(out, cols = c(group_vars, leftover_grp_nms))
       }

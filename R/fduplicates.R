@@ -90,7 +90,7 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
     out <- collapse::na_omit(out, cols = dup_vars, prop = 1)
   }
   # Remove added group id cols
-  out[[grp_nm]] <- NULL
+  out <- df_rm_cols(out, .cols = grp_nm)
   df_reconstruct(out, data)
 }
 #' @rdname fduplicates

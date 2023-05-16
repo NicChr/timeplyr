@@ -14,10 +14,12 @@ To specify groups using \code{tidyselect}, simply use the \code{.by} argument.}
 
 \item{order}{Should the groups be ordered?
 \bold{THE PHYSICAL ORDER OF THE DATA IS NOT CHANGED.} \cr
-When order is \code{TRUE} (the default) the group IDs will be ordered but not sorted.
+When order is \code{TRUE} (the default) the group IDs will be ordered
+only sorted if \code{sort = TRUE}.
 If \code{FALSE} the order of the group IDs will be based on first appearance.}
 
-\item{sort}{Should the data frame be sorted by the groups?}
+\item{sort}{Should the data frame be sorted by the groups?
+Default is \code{TRUE}.}
 
 \item{.by}{Alternative way of supplying groups using \code{tidyselect} notation.
 This is kept to be consistent with other functions.}
