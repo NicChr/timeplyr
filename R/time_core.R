@@ -161,17 +161,23 @@ time_summarisev <- function(x, by = NULL, from = NULL, to = NULL,
                             week_start = getOption("lubridate.week.start", 1),
                             roll_month = "preday", roll_dst = "pre",
                             include_interval = FALSE){
-  # # We need to bound from and to based on range of x
-  from <- bound_from(from, x)
-  to <- bound_to(to, x)
+  if (is.null(from) || is.null(to)){
+    x_range <- collapse::frange(x, na.rm = TRUE)
+  }
+  if (is.null(from)){
+    from <- x_range[[1L]]
+  }
+  if (is.null(to)){
+    to <- x_range[[2L]]
+  }
   # Time sequence
-  time_breaks <- time_span(x, by = by, from = from, to = to,
-                           seq_type = seq_type, is_sorted = is_sorted,
-                           floor_date = floor_date, week_start = week_start,
-                           roll_month = roll_month, roll_dst = roll_dst)
+  time_breaks <- time_expandv(x, by = by, from = from, to = to,
+                              seq_type = seq_type, is_sorted = is_sorted,
+                              floor_date = floor_date, week_start = week_start,
+                              roll_month = roll_month, roll_dst = roll_dst)
   # time_breaks <- time_cast(time_breaks, x)
   # Cut time
-  time_break_ind <- fcut_ind(x, c(time_breaks, to + 1))
+  time_break_ind <- fcut_ind(x, time_breaks)
   # Time breaks subset on cut indices
   out <- time_breaks[time_break_ind]
 
@@ -238,7 +244,7 @@ time_countv <- function(x, by = NULL, from = NULL, to = NULL,
   # time_breaks <- time_cast(time_breaks, x)
   out_len <- length(x)
   # Aggregate time/cut time
-  time_break_ind <- fcut_ind(x, c(time_breaks, to + 1))
+  time_break_ind <- fcut_ind(x, time_breaks)
   # Time breaks subset on cut indices
   x <- time_breaks[time_break_ind]
 

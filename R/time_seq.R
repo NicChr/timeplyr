@@ -259,20 +259,62 @@ time_seq <- function(from, to, by, length.out = NULL,
 time_seq_len <- function(from, to, by,
                          seq_type = c("auto", "duration", "period"),
                          as_period = FALSE){
-  tdiff <- time_diff(from, to, by = time_by_list(by),
+  tby <- time_by_list(by)
+  tdiff <- abs(time_diff(from, to, by = tby,
                          type = seq_type,
-                         as_period = as_period)
+                         as_period = as_period))
+  # Accounting for when from - to / by = 0 / 0
+  tdiff[is.nan(tdiff)] <- 0
+  # tdiff[tby[[1L]] == 0 & from == to] <- 0
   if (length(tdiff) == 0L || (collapse::fmax(tdiff) + 1) <= .Machine$integer.max){
-    out <- abs(as.integer(tdiff)) + 1L
+    as.integer(tdiff) + 1L
   } else {
-    out <- abs(tdiff) + 1
+    tdiff + 1
+  }
+}
+#' @rdname time_seq
+#' @export
+time_seq_v <- function(from, to, by,
+                       seq_type = c("auto", "duration", "period"),
+                       roll_month = "preday", roll_dst = "pre"){
+  unit_info <- unit_guess(by)
+  units <- unit_info[["unit"]]
+  num <- unit_info[["num"]]
+  scale <- unit_info[["scale"]]
+  num <- num * scale
+  if (is_time(from) && is_time(to)){
+    seq_type <- match.arg(seq_type)
+    set_time_cast(from, to)
+    is_special_case_days <- is_special_case_days(from = from,
+                                                 to = to,
+                                                 unit = units,
+                                                 num = num,
+                                                 seq_type = seq_type)
+    if (seq_type == "auto") seq_type <- guess_seq_type(units)
+    if (is_special_case_days){
+      out <- date_seq_v(from, to, units = units, num = num)
+    } else if (seq_type == "period"){
+      out <- period_seq_v(from, to, units = units, num = num,
+                          roll_month = roll_month, roll_dst = roll_dst)
+
+    } else {
+      out <- duration_seq_v(from, to, units = units, num = num)
+    }
+  } else {
+    out <- seq_v(from, to, by = num)
   }
   out
 }
-# Wrapper around seq.Date() to handle zero length from
-date_seq <- function(from, ...){
+# faster seq.Date() and handles zero length from differently
+# by must be numeric
+date_seq <- function(from, to, by = 1L){
   if (length(from) == 0L) return(from)
-  seq.Date(from, ...)
+  out <- seq.int(from = as.double(from),
+                 to = as.double(to),
+                 by = by)
+  attr(out, "class") <- "Date"
+  out
+  # seq.Date(from, ...)
 }
 # ftseq differs from time_seq() in that it doesn't accept missing arguments,
 # (except) for non time from/to, always has a start and end point,
@@ -282,23 +324,21 @@ ftseq <- function(from, to, units, num = 1,
                   floor_date = FALSE,
                   week_start = getOption("lubridate.week.start", 1),
                   seq_type = c("auto", "duration", "period"),
-                  roll_month = "preday", roll_dst = "pre",
-                  tz = lubridate::tz(from)){
-  stopifnot(length(num) == 1L)
-  stopifnot(length(units) == 1L)
-  by <- setnames(list(num), units)
-  if (is_time(from) && is_time(to)){
+                  roll_month = "preday", roll_dst = "pre"){
+  if (length(num) != 1L) stop("num must be of length 1.")
+  if (length(units) != 1L) stop("num must be of length 1.")
     seq_type <- rlang::arg_match0(seq_type, c("auto", "duration", "period"))
-    set_time_cast(from, to)
     is_special_case_days <- is_special_case_days(from = from,
                                                  to = to,
                                                  unit = units,
                                                  num = num,
                                                  seq_type = seq_type)
-    if (floor_date) from <- time_floor(from, by = units,
-                                       week_start = week_start)
     if (seq_type == "auto") seq_type <- guess_seq_type(units)
     if (is_special_case_days){
+      if (floor_date){
+        from <- time_floor(from, by = setnames(list(1), units),
+                                         week_start = week_start)
+      }
       if (units == "weeks"){
         units <- "days"
         num <- num * 7
@@ -306,30 +346,39 @@ ftseq <- function(from, to, units, num = 1,
       out <- date_seq(from, to = to, by = num)
       # out <- date_seq(from, length = out_length, by = round(num_seconds / 86400))
     } else {
-      out_length <- time_seq_len(from, to, by = by,
-                                 seq_type = seq_type,
-                                 as_period = FALSE)
+      tby <- setnames(list(num), units)
       if (seq_type == "duration"){
-        from <- lubridate::as_datetime(from)
-        time_unit <- duration_unit(units)(x = num)
-        num_seconds <- as.double(time_unit)
-        out <- duration_seq(from, length = out_length, duration = num_seconds)
-      } else {
+        from <- as_datetime2(from)
+        to <- as_datetime2(to)
+        if (floor_date){
+          from <- time_floor(from, by = setnames(list(1), units),
+                             week_start = week_start)
+        }
+        num_seconds <- unit_to_seconds(tby)
+        out <- duration_seq2(from = from, to = to, duration = num_seconds)
+      } else if (seq_type == "period"){
+        if (floor_date){
+          from <- time_floor(from, by = setnames(list(1), units),
+                             week_start = week_start)
+        }
+        out_length <- time_seq_len(from, to, by = tby,
+                                   seq_type = "period",
+                                   as_period = FALSE)
         unit <- substr(units, 1L, nchar(units) -1L)
         out <- period_seq(from, out_length, unit,
                           num = num,
                           roll_month = roll_month, roll_dst = roll_dst)
+      } else {
+        if (floor_date){
+          from <- time_floor(from, by = num,
+                             week_start = week_start)
+        }
+        out <- seq(from = from, to = to, by = num)
       }
     }
-    if (length(tz) > 0 && lubridate::tz(out) != tz){
-      out <- lubridate::with_tz(out, tzone = tz)
-    }
-  } else {
-    if (floor_date) from <- time_floor(from, by = num)
-    out <- seq(from = from, to = to, by = num)
-  }
   out
 }
+# datetime sequence using from + length + by
 duration_seq <- function(from, length, duration){
   if (length(from) == 0L){
     if (!is_datetime(from)) stop("from must be a datetime")
@@ -337,6 +386,22 @@ duration_seq <- function(from, length, duration){
   }
   seq.POSIXt(from = from,
              length.out = length, by = as.double(duration))
+}
+# datetime sequence using from + to + by
+duration_seq2 <- function(from, to, duration){
+  if (length(from) == 0L){
+    if (!is_datetime(from)){
+      stop("to must be a datetime")
+    }
+    return(from)
+  }
+  if (length(to) == 0L){
+    if (!is_datetime(to)){
+      stop("to must be a datetime")
+    }
+    return(to)
+  }
+  seq.POSIXt(from = from, to = to, by = as.double(duration))
 }
 # This will always calculate an increasing or decreasing sequence
 # of a specified length and unit increment
@@ -380,7 +445,9 @@ date_seq_v <- function(from, to, units = c("days", "weeks"), num = 1){
   time_seq <- sequence3(seq_len,
                         from = as.double(from),
                         by = num)
-  lubridate::as_date(time_seq)
+  attr(time_seq, "class") <- "Date"
+  time_seq
+  # lubridate::as_date(time_seq)
 }
 # Period sequence vectorised over from, to and num
 # period_seq_v3 <- function(from, to, units, num = 1,
@@ -484,76 +551,3 @@ period_seq_v <- function(from, to, units, num = 1,
   }
   out[out_order]
 }
-# Base sequence vectorized over from and to
-seq_v <- function(from, to, by = 1){
-  seq_len <- time_seq_len(from, to, by = by)
-  sequence3(seq_len, from = from, by = by)
-}
-# Like sequence() but slower and works with decimal numbers
-sequence3 <- function(nvec, from = 1, by = 1){
-  out_len <- sum(nvec)
-  g_len <- length(nvec)
-  # Recycle
-  by <- rep_len(by, g_len)
-  from <- rep_len(from, g_len)
-  # Expand
-  by <- rep(by, times = nvec)
-  from <- rep(from, times = nvec)
-  # Arithmetic
-  if (out_len <= .Machine$integer.max){
-    g_add <- sequence(nvec, from = 1L, by = 1L) - 1L
-  } else {
-    g <- rep.int(seq_len(g_len), times = nvec)
-    g_add <- fcumsum(rep_len(1, out_len),
-                     check.o = FALSE,
-                     na.rm = FALSE,
-                     g = g) - 1
-  }
-  from + (g_add * by)
-}
-# Low-level vectorised seq (only integers)
-seqv.int <- function(from = 1L, to = 1L, by = 1L){
-  sequence( ( (to - from) / by) + 1L, from = from, by = by)
-}
-# Same but handles decimals
-# It is the same as seq_v() but without length checking, etc.
-seqv <- function(from = 1L, to = 1L, by = 1L){
-  sequence2( ( (to - from) / by) + 1L, from = from, by = by)
-}
-# Vectorised time sequence function
-# It is vectorized over from, to and num
-#' @rdname time_seq
-#' @export
-time_seq_v <- function(from, to, by,
-                       seq_type = c("auto", "duration", "period"),
-                       roll_month = "preday", roll_dst = "pre"){
-  unit_info <- unit_guess(by)
-  units <- unit_info[["unit"]]
-  num <- unit_info[["num"]]
-  scale <- unit_info[["scale"]]
-  num <- num * scale
-  if (is_time(from) && is_time(to)){
-    seq_type <- match.arg(seq_type)
-    set_time_cast(from, to)
-    is_special_case_days <- is_special_case_days(from = from,
-                                                 to = to,
-                                                 unit = units,
-                                                 num = num,
-                                                 seq_type = seq_type)
-    if (seq_type == "auto") seq_type <- guess_seq_type(units)
-    if (is_special_case_days){
-      out <- date_seq_v(from, to, units = units, num = num)
-    } else if (seq_type == "period"){
-      out <- period_seq_v(from, to, units = units, num = num,
-                          roll_month = roll_month, roll_dst = roll_dst)
-
-    } else {
-      out <- duration_seq_v(from, to, units = units, num = num)
-    }
-  } else {
-    out <- seq_v(from, to, by = num)
-  }
-  out
-}
-
-

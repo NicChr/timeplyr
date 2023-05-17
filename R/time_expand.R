@@ -182,7 +182,7 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
                              seq_type = seq_type)
       out <- vctrs::vec_rep_each(time_tbl, time_tbl[[size_nm]])
       data.table::setDT(out)
-      out[, (time_var) := time_seq]
+      data.table::set(out, j = time_var, value = time_seq)
       expanded_df <- fexpand(data,
                              ...,
                              expand_type = expand_type,
@@ -230,7 +230,7 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
   if (keep_class){
     df_reconstruct(out, data)
   } else {
-    out[]
+    out
   }
 }
 #' @rdname time_expand

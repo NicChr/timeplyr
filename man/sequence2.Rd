@@ -2,9 +2,15 @@
 % Please edit documentation in R/sequence2.R
 \name{sequence2}
 \alias{sequence2}
+\alias{sequence_id}
+\alias{seq_v}
 \title{Extension to \code{base::sequence()} that handles decimals}
 \usage{
-sequence2(nvec, from = 1, by = 1)
+sequence2(nvec, from = 1L, by = 1L)
+
+sequence_id(nvec)
+
+seq_v(from = 1L, to = 1L, by = 1L)
 }
 \arguments{
 \item{nvec}{Vector of sequence lengths.}
@@ -12,9 +18,14 @@ sequence2(nvec, from = 1, by = 1)
 \item{from}{Start of sequence(s).}
 
 \item{by}{Unit increment of sequence(s).}
+
+\item{to}{End of sequence(s).}
 }
 \description{
-Extension to \code{base::sequence()} that handles decimals
+\code{seq_v()} is an alternate specification that instead accepts
+the arguments \code{from}, \code{to} and \code{by}.
+\code{sequence_id()} is a helper function to efficiently group
+each sequence by returning unique IDs along the sequences. \cr
 }
 \examples{
 library(timeplyr)

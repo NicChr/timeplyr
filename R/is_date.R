@@ -10,17 +10,16 @@ is_date <- function(x){
 #' @rdname is_date
 #' @export
 is_datetime <- function(x){
- inherits(x, c("POSIXt", "POSIXct", "POSIXlt"))
+  inherits(x, "POSIXt")
 }
 #' @rdname is_date
 #' @export
 is_time <- function(x){
-  inherits(x, c("Date", "POSIXt", "POSIXct", "POSIXlt"))
+  inherits(x, c("Date", "POSIXt"))
 }
 #' @rdname is_date
 #' @export
 is_time_or_num <- function(x){
   inherits(x, c("integer", "numeric",
-                "Date", "POSIXt", "POSIXct", "POSIXlt")) ||
-    isTRUE(typeof(x) %in% c("integer", "double"))
+                "Date", "POSIXt", "yearmon"))
 }

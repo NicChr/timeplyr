@@ -119,16 +119,15 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
   grps_missed <- setdiff(group_vars, names(summarise_vars))
   # Add group vars to summary list
   if (length(grps_missed) > 0){
-    summarise_vars <- c(purrr::set_names
-                        (
-                          purrr::map(
-                            grps_missed, function(x) purrr::pluck(
-                              dplyr_summarise(
-                                safe_ungroup(data), across(all_of(x))
-                              ), 1)
-                          ), grps_missed
-                        ),
-                        summarise_vars)
+    summarise_vars <- c(setnames(
+      lapply(
+        grps_missed, function(x) purrr::pluck(
+          dplyr_summarise(
+            safe_ungroup(data), across(all_of(x))
+          ), 1)
+      ), grps_missed
+    ),
+    summarise_vars)
   }
   # Re-order list so that groups are first
   summarise_vars <- summarise_vars[c(group_vars,
@@ -207,12 +206,14 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
            .SDcols = group_id_nms]
       data.table::setnames(out, new = c(grp_nm, leftover_grp_nms))
       for (i in seq_along(group_id_nms)){
-        out[, (leftover_grp_nms[[i]]) := out1[[leftover_grp_nms[[i]]]][match(out[[leftover_grp_nms[[i]]]],
-                                                                             out1[[group_id_nms[[i]]]])]]
+        data.table::set(out, j = leftover_grp_nms[[i]],
+                        value = out1[[leftover_grp_nms[[i]]]][match(out[[leftover_grp_nms[[i]]]],
+                                                                    out1[[group_id_nms[[i]]]])])
       }
       for (i in seq_along(group_vars)){
-        out[, (group_vars[[i]]) := out1[[group_vars[[i]]]][match(out[[grp_nm]],
-                                                                 out1[[grp_nm]])]]
+        data.table::set(out, j = group_vars[[i]],
+                        value = out1[[group_vars[[i]]]][match(out[[grp_nm]],
+                                                              out1[[grp_nm]])])
       }
       set_rm_cols(out, grp_nm)
       if (sort){
@@ -275,7 +276,8 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
     if (length(X_other) > 0L){
       rep_times <- nrow2(out) / collapse::vlengths(X_other, use.names = FALSE)
       for (i in seq_along(X_other)){
-        out[, (other_nms[i]) := rep(X_other[[i]], rep_times[i])][]
+        data.table::set(out, j = other_nms[i],
+                        value = rep(X_other[[i]], rep_times[i]))
       }
     }
   }

@@ -57,11 +57,9 @@ unit_guess <- function(x){
       # If the unit is something exotic,
       # The num needs to be scaled correctly
       if (unit %in% .extra_time_units){
-        if (unit %in% .extra_time_units){
-          exotic_info <- convert_exotic_units(unit)
-          scale <- exotic_info[["scale"]]
-          unit <- exotic_info[["unit"]]
-        }
+        exotic_info <- convert_exotic_units(unit)
+        scale <- exotic_info[["scale"]]
+        unit <- exotic_info[["unit"]]
       }
       # num <- num * scale
       out <- list("unit" = unit,

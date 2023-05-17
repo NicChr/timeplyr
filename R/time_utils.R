@@ -7,13 +7,14 @@ unit_match_stop <- function(units = .time_units){
 # is needed to seperate out the numbers
 # This is handy with loops to reduce overhead
 unit_list_match <- function(l){
-  stopifnot(length(l) == 1L)
-  unit <- unit_match(names(l))
+  if (length(l) != 1L) stop("l must of a list of length 1.")
   if (names(l) == "numeric") {
     unit <- "numeric"
+  } else {
+    unit <- rlang::arg_match0(names(l), .time_units)
   }
   if (is.na(unit)) unit_match_stop()
-  if (length(unit) == 0L) stop("unit list must be named")
+  # if (length(unit) == 0L) stop("unit list must be named")
   num <- l[[1L]]
   scale <- 1L
   if (unit %in% .extra_time_units){
@@ -31,32 +32,33 @@ convert_exotic_units <- function(x){
   scales <- c(2, 3, 18, 4, 5, 10, 15, 20, 100, 1000)
   base_units <- c("weeks", "months", "weeks",
                   rep_len("years", 7L))
-  scale <- scales[pmatch(x, .extra_time_units,
-                         nomatch = NA_real_,
-                         duplicates.ok = FALSE)]
-  units <- base_units[pmatch(x, .extra_time_units,
-                             nomatch = NA_character_,
-                             duplicates.ok = FALSE)]
-  list("unit" = units,
-       "scale" = scale)
+  match_i <- match(x, .extra_time_units,
+                   nomatch = NA_integer_)
+  list("unit" = base_units[match_i],
+       "scale" = scales[match_i])
 }
 # Partial unit matching
 unit_match <- function(x){
-  stopifnot(length(x) == 1L)
-  # Normal lubridate units
-  match_index1 <- pmatch(x, .duration_units,
+  if (length(x) != 1L) stop("x must be of length 1.")
+  units <- .time_units
+  match_i <- pmatch(x, units,
                   nomatch = NA_character_,
                   duplicates.ok = FALSE)
-  if (is.na(match_index1)){
-    # Exotic units
-    match_index2 <- pmatch(x, .extra_time_units,
-                           nomatch = NA_character_,
-                           duplicates.ok = FALSE)
-    .extra_time_units[match_index2]
-
-  } else {
-    .duration_units[match_index1]
-  }
+  .time_units[match_i]
+  # # Normal lubridate units
+  # match_index1 <- pmatch(x, .duration_units,
+  #                 nomatch = NA_character_,
+  #                 duplicates.ok = FALSE)
+  # if (is.na(match_index1)){
+  #   # Exotic units
+  #   match_index2 <- pmatch(x, .extra_time_units,
+  #                          nomatch = NA_character_,
+  #                          duplicates.ok = FALSE)
+  #   .extra_time_units[match_index2]
+  #
+  # } else {
+  #   .duration_units[match_index1]
+  # }
 }
 # Unit string parsing
 unit_parse <- function(x){
@@ -279,6 +281,35 @@ seconds_to_unit <- function(x){
   list("unit" = unit,
        "scale" = scale)
 }
+unit_to_seconds <- function(x){
+  unit_info <- unit_guess(x)
+  unit <- unit_info[["unit"]]
+  num <- unit_info[["num"]] * unit_info[["scale"]]
+  if (unit == "picoseconds"){
+    scale <- 1/1000/1000/1000/1000
+  } else if (unit == "nanoseconds"){
+    scale <- 1/1000/1000/1000
+  } else if (unit == "microseconds"){
+    scale <- 1/1000/1000
+  } else if (unit == "milliseconds"){
+    scale <- 1/1000
+  }  else if (unit == "seconds"){
+    scale <- 1
+  } else if (unit == "minutes"){
+    scale <- 60
+  } else if (unit == "hours"){
+    scale <- 3600
+  } else if (unit == "days"){
+    scale <- 86400
+  } else if (unit == "weeks"){
+    scale <- 604800
+  } else if (unit == "months"){
+    scale <- 2629800
+  } else if (unit == "years"){
+    scale <- 31557600
+  }
+  num * scale
+}
 # No string guessing at all
 guess_seq_type <- function(units){
   if (units %in% c("days", "weeks", "months", "years",
@@ -425,8 +456,8 @@ time_unit_info <- function(time_unit){
     out <- attributes(unclass(time_unit))
     seconds <- lubridate::second(time_unit)
     out[["second"]] <- seconds
-    sum_rng <- purrr::map(out, ~ sum(abs(collapse::frange(.x, na.rm = TRUE))))
-    keep <- purrr::map_lgl(sum_rng, ~ isTRUE(.x > 0))
+    sum_rng <- lapply(out, function(x) sum(abs(collapse::frange(x, na.rm = TRUE))))
+    keep <- vapply(sum_rng, function(x) isTRUE(x > 0), logical(1))
     if (sum(keep) == 0){
       out["second"]
     } else {
@@ -613,15 +644,15 @@ time_c <- function(...){
 # This coerces x into template class
 time_cast <- function(x, template){
   if (is.null(x) || is.null(template)) return(x)
-  # stopifnot(is_time_or_num(x))
-  # else if (is_date(template) && !is_date(x) && !is_datetime(x)){
-  #   lubridate::as_date(x)
-  # }
   if (is_datetime(template) && !is_datetime(x)){
     lubridate::with_tz(lubridate::as_datetime(x),
                        tzone = lubridate::tz(template))
   } else if (is_datetime(x) && is_datetime(template)){
-    lubridate::with_tz(x, tzone = lubridate::tz(template))
+    if (lubridate::tz(x) != lubridate::tz(template)){
+      lubridate::with_tz(x, tzone = lubridate::tz(template))
+    } else {
+      x
+    }
   } else if (is_date(template) && !is_date(x) && !is_datetime(x)){
     lubridate::as_date(x)
   }
@@ -629,6 +660,13 @@ time_cast <- function(x, template){
     as_yearmon(x)
   } else {
     x
+  }
+}
+as_datetime2 <- function(x){
+  if (is_datetime(x)){
+    x
+  } else {
+    lubridate::as_datetime(x)
   }
 }
 # This bounds start point based on x vector
@@ -640,8 +678,7 @@ bound_from <- function(from, x){
   } else {
     from <- time_cast(from, x) # Cast to as datetime if x is
     # Bound from by the minimum of x
-    from <- collapse::fmax(c(x_min, from),
-                           use.g.names = FALSE)
+    from <- max(x_min, from)
   }
   from
 }
@@ -654,8 +691,7 @@ bound_to <- function(to, x){
   } else {
     to <- time_cast(to, x) # Cast to as datetime if x is
     # Bound to by the maximum of x
-    to <- collapse::fmin(c(x_max, to),
-                         use.g.names = FALSE)
+    to <- min(x_max, to)
   }
   to
 }

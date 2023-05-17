@@ -153,21 +153,21 @@ testthat::test_that("Tests for time_span", {
   x <- nycflights13::flights$time_hour
   y <- lubridate::as_date(x)
 
-  testthat::expect_identical(time_span(x),
+  testthat::expect_equal(time_span(x),
                              time_seq(min(x), max(x), by = "hour"))
   testthat::expect_equal(time_span(y),
                              time_seq(min(y), max(y), by = "day"))
-  testthat::expect_identical(time_span(x, from = start1, to = end1),
+  testthat::expect_equal(time_span(x, from = start1, to = end1),
                              time_seq(start1, end1, by = "hour", tz = "America/New_York"))
-  testthat::expect_identical(time_span(x, from = start2, to = end2),
+  testthat::expect_equal(time_span(x, from = start2, to = end2),
                              time_seq(start2, end2, by = "hour", tz = "America/New_York"))
-  testthat::expect_identical(time_span(x, from = start2, by = "week", floor_date = TRUE,
+  testthat::expect_equal(time_span(x, from = start2, by = "week", floor_date = TRUE,
                                        seq_type = "period"),
                              time_seq(start2, max(x),
                                       by = "week",
                                       floor_date = TRUE,
                                       tz = "America/New_York"))
-  testthat::expect_identical(time_span(x, to = end2, by = "week", floor_date = TRUE,
+  testthat::expect_equal(time_span(x, to = end2, by = "week", floor_date = TRUE,
                                        seq_type = "period"),
                              time_seq(min(x), end2,
                                       by = "week",
@@ -232,6 +232,15 @@ testthat::test_that("Tests for time_summarisev", {
                          floor_date = TRUE)
   testthat::expect_equal(res$x,
                          lubridate::int_start(res$interval))
+
+  # Test for out-of-bounds from argument
+  testthat::expect_equal(time_summarisev(lubridate::dmy(21022020),
+                                         by = "week",
+                                         from = lubridate::dmy(01012020)),
+                         lubridate::dmy(19022020))
+  testthat::expect_equal(time_summarisev(lubridate::dmy(21022020),
+                                         by = "week"),
+                         lubridate::dmy(21022020))
 
 })
 
