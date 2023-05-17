@@ -201,6 +201,16 @@ col_rename <- function(data, .cols = integer(0)){
   attr(data, "names")[pos[renamed]] <- out_nms[renamed]
   data
 }
+# col_select <- function(data, .cols){
+#   out <- vector("list", length(.cols))
+#   for (i in seq_along(.cols)){
+#     out[[i]] <- collapse::ss(data, j = unname(.cols))
+#   }
+#   attributes(out)[names(attributes(out)) != "names"]  <-
+#     attributes(data)[names(attributes(out)) != "names"]
+#   names(out) <- names(.cols)
+#   out
+# }
 tidy_select_pos <- function(data, ..., .cols = NULL){
   data_nms <- names(data)
   check_cols(dots_length(...), .cols = .cols)
