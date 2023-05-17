@@ -53,7 +53,9 @@ fselect <- function(data, ..., .cols = NULL){
               names(attr(data, "groups")))] <- names(renamed_groups)
     }
   }
-  setnames(collapse::ss(data, j = unname(pos)), names(pos))
+  out <- collapse::ss(data, j = unname(pos))
+  attr(out, "names") <- names(pos)
+  out
 }
 #' @rdname fselect
 #' @export
