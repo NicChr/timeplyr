@@ -125,7 +125,9 @@ time_seq <- function(from, to, by, length.out = NULL,
   missing_len <- is.null(length.out)
   seq_type <- match.arg(seq_type)
   input_seq_type <- seq_type
-  if (!missing_len) stopifnot(sign(length.out) >= 0)
+  if (!missing_len && !sign(length.out) >= 0){
+    stop("length.out must be positive")
+  }
   n_args <- (4 - sum(c(missing_from, missing_to, missing_by, missing_len)))
   if (n_args < 3){
       stop("Please supply 3 from either from, to, length.out and by")
@@ -134,10 +136,10 @@ time_seq <- function(from, to, by, length.out = NULL,
     warning("from, to, by and length.out have all been specified,
             the result may be unpredictable.")
   }
-  if (!missing_from) stopifnot(length(from) <= 1L)
-  if (!missing_to) stopifnot(length(to) <= 1L)
-  if (!missing_by) stopifnot(length(by) <= 1L)
-  if (!missing_len) stopifnot(length(length.out) <= 1L)
+  if (!missing_from) if (length(from) > 1L) stop("from must be of length 1")
+  if (!missing_to) if (length(to) > 1L) stop("to must be of length 1")
+  if (!missing_by) if (length(by) > 1L) stop("by must be of length 1")
+  if (!missing_len) if (length(length.out) > 1L) stop("length.out must be of length 1")
   from_and_to <- !missing_from && !missing_to
   from_and_length <- !missing_from && !missing_len
   to_and_length <- !missing_to && !missing_len
@@ -156,10 +158,10 @@ time_seq <- function(from, to, by, length.out = NULL,
       unit_info <- unit_guess(by)
       by_n <- unit_info[["num"]] * unit_info[["scale"]]
       by_unit <- unit_info[["unit"]]
+      tby <- setnames(list(by_n), by_unit)
       # Guess seq type
       if (seq_type == "auto") seq_type <- guess_seq_type(by_unit)
     }
-    # seq_type <- match.arg(seq_type)
     # Help the user by converting very common date formats
     if (!missing_from) from <- convert_common_dates(from)
     if (!missing_to) to <- convert_common_dates(to)
@@ -174,20 +176,19 @@ time_seq <- function(from, to, by, length.out = NULL,
       unit_info <- time_unit_info(time_unit)
       by_n <- unname(unit_info)[[1L]]
       by_unit <- paste0(names(unit_info), "s")
+      tby <- setnames(list(by_n), by_unit)
       if (floor_date){
         warning("Ambiguous how to floor from. Please supply the by argument.")
       }
       # From, to, by, no length
-    } else if (from_and_to && !missing_by && missing_len){
-      time_unit <- time_unit(by_unit, type = seq_type)(by_n)
-      if (floor_date) from <- time_floor(from, by = by_unit,
-                                         week_start = week_start)
-      length.out <- time_seq_len(from, to, by = by, seq_type = input_seq_type)
-
-    } else if (missing_from){
-      time_unit <- time_unit(by_unit, type = seq_type)(by_n)
-    } else {
-      time_unit <- time_unit(by_unit, type = seq_type)(by_n)
+    }
+  if (from_and_to && !missing_by && missing_len){
+      if (floor_date){
+        from <- time_floor2(from, by = tby,
+                            week_start = week_start)
+      }
+      length.out <- time_seq_len(from, to, by = tby,
+                                 seq_type = input_seq_type)
     }
     # Guess seq type
     if (seq_type == "auto") seq_type <- guess_seq_type(by_unit)
@@ -198,34 +199,25 @@ time_seq <- function(from, to, by, length.out = NULL,
                         type = seq_type,
                         roll_month = roll_month, roll_dst = roll_dst)
       if (floor_date){
-        from <- time_floor(from, by = by_unit,
-                           week_start = week_start)
+        from <- time_floor2(from, by = tby,
+                            week_start = week_start)
       }
     }
     if (missing_to){
       if (floor_date){
-        from <- time_floor(from, by = by_unit,
+        from <- time_floor2(from, by = tby,
                            week_start = week_start)
       }
     }
     if (!missing_to && length(from) > 0L && length(to) > 0L && to < from){
       by_n <- -abs(by_n)
+      tby[[1L]] <- by_n
     }
-    # # Special case where everything is based on days
-    # special_case_days <- is_special_case_days(from = from, to = lubridate::Date(0),
-    #                                           unit = by_unit, num = by_n, seq_type = input_seq_type)
-    # if (special_case_days){
-    #   if (by_unit == "weeks"){
-    #     by_unit <- "days"
-    #     by_n <- by_n * 7
-    #   }
-    #   out <- date_seq(from = from, length.out = length.out, by = by_n)
-    # } else
     if (seq_type == "duration"){
-      from <- lubridate::as_datetime(from)
-      out <- duration_seq(from = from,
+      out <- duration_seq(from = as_datetime2(from),
                            length = length.out,
-                           duration = duration_unit(by_unit)(by_n))
+                          duration = duration_unit(by_unit)(by_n))
+                           # duration = unit_to_seconds(tby))
     } else {
         out <- period_seq(from = from,
                              length = length.out,
@@ -244,7 +236,7 @@ time_seq <- function(from, to, by, length.out = NULL,
       args[["from"]] <- time_floor(from, by = by)
     }
     if (!missing_by){
-      by <- unlist(unname(by))
+      by <- unlist(unname(by), recursive = FALSE, use.names = FALSE)
       if (from_and_to && length(from) > 0L && length(to) > 0L && to < from){
         by <- -abs(by)
       }
@@ -277,12 +269,12 @@ time_seq_len <- function(from, to, by,
 time_seq_v <- function(from, to, by,
                        seq_type = c("auto", "duration", "period"),
                        roll_month = "preday", roll_dst = "pre"){
-  unit_info <- unit_guess(by)
-  units <- unit_info[["unit"]]
-  num <- unit_info[["num"]]
-  scale <- unit_info[["scale"]]
-  num <- num * scale
   if (is_time(from) && is_time(to)){
+    unit_info <- unit_guess(by)
+    units <- unit_info[["unit"]]
+    num <- unit_info[["num"]]
+    scale <- unit_info[["scale"]]
+    num <- num * scale
     seq_type <- match.arg(seq_type)
     set_time_cast(from, to)
     is_special_case_days <- is_special_case_days(from = from,
@@ -301,7 +293,8 @@ time_seq_v <- function(from, to, by,
       out <- duration_seq_v(from, to, units = units, num = num)
     }
   } else {
-    out <- seq_v(from, to, by = num)
+    out <- seq_v(from = from, to = to,
+                 by = unlist(by, recursive = FALSE, use.names = FALSE))
   }
   out
 }
@@ -309,6 +302,9 @@ time_seq_v <- function(from, to, by,
 # by must be numeric
 date_seq <- function(from, to, by = 1L){
   if (length(from) == 0L) return(from)
+  if (!is_date(from) || !is_date(to)){
+    stop("from and to must be dates")
+  }
   out <- seq.int(from = as.double(from),
                  to = as.double(to),
                  by = by)

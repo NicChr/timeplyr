@@ -2,13 +2,13 @@
 % Please edit documentation in R/sequence2.R
 \name{sequence2}
 \alias{sequence2}
-\alias{sequence_id}
+\alias{seq_id}
 \alias{seq_v}
 \title{Extension to \code{base::sequence()} that handles decimals}
 \usage{
 sequence2(nvec, from = 1L, by = 1L)
 
-sequence_id(nvec)
+seq_id(nvec)
 
 seq_v(from = 1L, to = 1L, by = 1L)
 }
@@ -24,7 +24,7 @@ seq_v(from = 1L, to = 1L, by = 1L)
 \description{
 \code{seq_v()} is an alternate specification that instead accepts
 the arguments \code{from}, \code{to} and \code{by}.
-\code{sequence_id()} is a helper function to efficiently group
+\code{seq_id()} is a helper function to efficiently group
 each sequence by returning unique IDs along the sequences. \cr
 }
 \examples{

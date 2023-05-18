@@ -42,8 +42,8 @@
 time_diff <- function(x, y, by,
                       type = c("auto", "duration", "period"),
                       as_period = FALSE){
-  type <- rlang::arg_match0(type, c("auto", "duration", "period"))
   if (is_time(x) && is_time(y)){
+    type <- rlang::arg_match0(type, c("auto", "duration", "period"))
     tby <- time_by_list(by)
     units <- names(tby)
     num <- tby[[1L]]
@@ -69,10 +69,10 @@ time_diff <- function(x, y, by,
       unit <- period_unit(units)(abs(num)) # Vectorised lubridate::period
       out <- sign(num) * (int / unit)
     } else {
-      unit <- as.double(duration_unit(units)(num))
-      x <- as.double(lubridate::with_tz(x, tzone = "UTC"))
-      y <- as.double(lubridate::with_tz(y, tzone = "UTC"))
-      out <- (y - x) / unit
+      # unit <- duration_unit(units)(num)
+      x <- as.double(as_datetime2(x))
+      y <- as.double(as_datetime2(y))
+      out <- (y - x) / unit_to_seconds(tby)
       # out <- int / unit
     }
   } else {

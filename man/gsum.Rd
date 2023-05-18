@@ -34,7 +34,7 @@ gfirst(x, g = NULL, na.rm = TRUE, ...)
 
 glast(x, g = NULL, na.rm = TRUE, ...)
 
-gnobs(x, g = NULL, ...)
+gnobs(x, g = NULL, na.rm = TRUE, ...)
 }
 \arguments{
 \item{x}{An atomic vector.}

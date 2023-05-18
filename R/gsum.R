@@ -112,7 +112,7 @@ glast <- function(x, g = NULL, na.rm = TRUE, ...){
 }
 #' @rdname gsum
 #' @export
-gnobs <- function(x, g = NULL, ...){
+gnobs <- function(x, g = NULL, na.rm = TRUE, ...){
   collapse::fnobs(x, g = g, use.g.names = FALSE,
                   TRA = "replace_fill", ...)
 }

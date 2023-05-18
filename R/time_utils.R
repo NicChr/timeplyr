@@ -242,9 +242,15 @@ time_granularity <- function(x, is_sorted = FALSE, msg = TRUE){
 # Converts seconds to duration unit
 # Scale is in comparison to seconds
 seconds_to_unit <- function(x){
-  if (length(x) == 0L) return(list("unit" = character(0),
-                                   "scale" = numeric(0)))
-  if (x >= 0 && x < 1/1000/1000/1000){
+  if (length(x) == 0L){
+    return(list("unit" = character(0),
+                "scale" = numeric(0)))
+  }
+  x <- abs(x)
+  if (x == 0){
+    unit <- "seconds"
+    scale <- 1
+  } else if (x > 0 && x < 1/1000/1000/1000){
     unit <- "picoseconds"
     scale <- 1/1000/1000/1000/1000
   } else if (x >= 1/1000/1000/1000 && x < 1/1000/1000){
@@ -355,7 +361,7 @@ period_by <- function(from, to, length){
   sec_diff <- time_diff(from, to,
                         by = list("seconds" = 1), type = "period")
   out <- lubridate::seconds_to_period(sec_diff / (length - 1))
-  period_info <- as.data.frame(time_unit_info(out))
+  period_info <- collapse::qDF(time_unit_info(out))
   n_unique_slots <- ncol(period_info) - rowSums(period_info == 0)
   which_multi <- which(n_unique_slots > 1)
   out[which_multi] <- seconds_unit(
@@ -916,10 +922,9 @@ has_interval <- function(data, quiet = TRUE){
 taggregate <- function(x, seq, gx = NULL, gseq = NULL){
   dt1 <- data.table::data.table(g = gx, t = x)
   dt2 <- data.table::data.table(g = gseq, t = seq)
+  # Set key directly as inputs should all be pre-sorted.
   data.table::setattr(dt1, "sorted", names(dt1))
   data.table::setattr(dt2, "sorted", names(dt2))
-  # setkeyv2(dt1, cols = names(dt1))
-  # setkeyv2(dt2, cols = names(dt2))
   dt1[dt2, ("tagg") := .SD, .SDcols = "t", mult = "first",
       roll = -Inf, on = names(dt1)]
   # dt1[dt2, ("tagg") := .SD, .SDcols = "t", mult = "first", on = .(g, t >= t)]
@@ -939,11 +944,11 @@ tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
 # Interval from x, aggregate x, and seq
 tagg_interval <- function(xagg, x, seq, gagg = NULL, gx = NULL, gseq = NULL){
   int <- tseq_interval(x = x, seq = seq, gx = gx, gseq = gseq)
-  agg_df <- list_to_tibble(list(t = xagg,
-                                g = gagg))
-  int_df <- list_to_tibble(list(t = seq,
-                                g = gseq,
-                                interval = int))
+  agg_df <- dplyr::tibble(t = xagg,
+                          g = gagg)
+  int_df <- dplyr::tibble(t = seq,
+                          g = gseq,
+                          interval = int)
   agg_df %>%
     dplyr::left_join(int_df, by = c("g", "t"),
                      multiple = "any") %>%
@@ -982,17 +987,6 @@ tseq_levels <- function(x, seq, gx = NULL, gseq = NULL, fmt = NULL){
                                        "]"),
        vind1 = TRUE)
   out
-}
-# Simple helper to add time min-max vars
-add_from_to <- function(data, ..., time, .by = NULL){
-  from_to_list <- get_from_to(data, ...,
-                              time = !!enquo(time),
-                              .by = {{ .by }})
-  from_nm <- new_var_nm(names(data), ".from")
-  to_nm <- new_var_nm(c(names(data), from_nm), ".to")
-  data[[from_nm]] <- from_to_list[[".from"]]
-  data[[to_nm]] <- from_to_list[[".to"]]
-  data
 }
 # Internal helper to process from/to args
 get_from_to <- function(data, ..., time, from = NULL, to = NULL,
@@ -1036,5 +1030,13 @@ time_add2 <- function(x, y, type, roll_month = "preday", roll_dst = "pre"){
     x + duration_unit(units)(num)
   } else {
    x + y
+  }
+}
+# Custom time flooring..
+time_floor2 <- function(x, by, week_start = getOption("lubridate.week.start", 1)){
+  if (names(by) == "numeric"){
+    time_floor(x, by = by[[1L]], week_start = week_start)
+  } else {
+    time_floor(x, by = setnames(list(1), names(by)), week_start = week_start)
   }
 }

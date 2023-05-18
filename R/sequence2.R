@@ -2,7 +2,7 @@
 #'
 #' `seq_v()` is an alternate specification that instead accepts
 #' the arguments `from`, `to` and `by`.
-#' `sequence_id()` is a helper function to efficiently group
+#' `seq_id()` is a helper function to efficiently group
 #' each sequence by returning unique IDs along the sequences. \cr
 #'
 #' @param nvec Vector of sequence lengths.
@@ -44,7 +44,7 @@ sequence2 <- function(nvec, from = 1L, by = 1L){
   if (out_is_int){
     g_add <- sequence(nvec, from = 1L, by = 1L) - 1L
   } else {
-    g <- sequence_id(nvec)
+    g <- seq_id(nvec)
     g_add <- fcumsum(seq_ones(out_len),
                      check.o = FALSE,
                      na.rm = FALSE,
@@ -54,7 +54,7 @@ sequence2 <- function(nvec, from = 1L, by = 1L){
 }
 #' @rdname sequence2
 #' @export
-sequence_id <- function(nvec){
+seq_id <- function(nvec){
   rep.int(seq_along(nvec), times = nvec)
 }
 #' @rdname sequence2
