@@ -2,12 +2,12 @@
 % Please edit documentation in R/stat_summarise.R
 \name{stat_summarise}
 \alias{stat_summarise}
-\title{Fast statistical summary for data frames.}
+\title{Fast grouped statistical summary for data frames.}
 \usage{
 stat_summarise(
   data,
   ...,
-  stat = "mean",
+  stat = .stat_fns[1L],
   .names = NULL,
   na.rm = TRUE,
   .by = NULL,
@@ -24,9 +24,13 @@ Tidy data-masking applies.}
 
 \item{stat}{A character vector of statistical summaries to apply.
 This can be one or more of the following: \cr
-"min", "max", "mean", "first", "last", "sd", "var", "mode", "median", "nobs".}
+"n", "min", "max", "mean", "first", "last", "sd",
+"var", "mode", "median", "nobs".}
 
-\item{.names}{See \code{?dplyr::across} for more details.}
+\item{.names}{An optional glue specification passed to \code{stringr::glue()}.
+If \code{.names = NULL}, then in the case of 1 variable, the function name
+is used, i.e .names = \code{"{.fn}"} and in the case of \verb{>=1} variables,
+\code{"{.col}_{.fn}"} is used.}
 
 \item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
 
@@ -61,6 +65,6 @@ library(timeplyr)
 library(dplyr)
 iris \%>\%
   stat_summarise(Sepal.Length, Sepal.Width,
-                 stat = c("min", "max", "mean"),
+                 stat = c("n", "min", "max", "mean"),
                  .by = Species)
 }

@@ -11,11 +11,6 @@
 #' equivalents, `fsum()`, `fmean()`, `fmin()`, `fmax()`,
 #' `fsd()`, `fvar()`, `fmode()`, `fmedian()`, `ffirst()`, `flast()` and
 #' `fnobs()`
-#' @details
-#' `gnobs()` is an exception as `collapse::fnobs()` calculates the number of
-#' non-missing values and therefore does not accept an `na.rm`.
-#' Because of this, additional functionality has been added to
-#' return the group sizes when `na.rm = FALSE`.
 #'
 #' @examples
 #' library(timeplyr)
@@ -118,34 +113,34 @@ glast <- function(x, g = NULL, na.rm = TRUE, ...){
 }
 #' @rdname gsum
 #' @export
-gnobs <- function(x, g = NULL, na.rm = TRUE, ...){
-  if (na.rm){
-    out <- collapse::fnobs(x, g = g, use.g.names = FALSE,
-                           TRA = "replace_fill", ...)
-  } else {
-    if (is.null(g)){
-      N <- vctrs::vec_size(x)
-      nobs <- alloc(N, N)
-    } else {
-      nobs <- collapse::GRPN(g, expand = TRUE)
-    }
-    if (is.matrix(x)){
-      out <- matrix(rep.int(nobs, collapse::fncol(x)),
-                    nrow = collapse::fnrow(x),
-                    ncol = collapse::fncol(x))
-      rownames(out) <- rownames(x)
-      colnames(out) <- colnames(x)
-    } else if (is.list(x)){
-      out <- x
-      for (i in collapse::seq_col(x)){
-        out[[i]] <- nobs
-      }
-    } else {
-      out <- nobs
-    }
-  }
-  out
+gnobs <- function(x, g = NULL, ...){
+  collapse::fnobs(x, g = g, use.g.names = FALSE,
+                  TRA = "replace_fill", ...)
 }
+# Not useful for users but useful in summaries
+# gnrow <- function(x, g = NULL, na.rm = FALSE){
+#   if (is.null(g)){
+#     N <- vctrs::vec_size(x)
+#     nobs <- alloc(N, N)
+#   } else {
+#     nobs <- collapse::GRPN(g, expand = TRUE)
+#   }
+#   if (is.matrix(x)){
+#     out <- matrix(rep.int(nobs, collapse::fncol(x)),
+#                   nrow = collapse::fnrow(x),
+#                   ncol = collapse::fncol(x))
+#     rownames(out) <- rownames(x)
+#     colnames(out) <- colnames(x)
+#   } else if (is.list(x)){
+#     out <- x
+#     for (i in collapse::seq_col(x)){
+#       out[[i]] <- nobs
+#     }
+#   } else {
+#     out <- nobs
+#   }
+#   out
+# }
 # Version 3
 # gsum <- function(x, g = NULL, ...){
 #   if (!is.null(g)){

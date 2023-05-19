@@ -34,7 +34,7 @@ gfirst(x, g = NULL, na.rm = TRUE, ...)
 
 glast(x, g = NULL, na.rm = TRUE, ...)
 
-gnobs(x, g = NULL, na.rm = TRUE, ...)
+gnobs(x, g = NULL, ...)
 }
 \arguments{
 \item{x}{An atomic vector.}
@@ -53,12 +53,6 @@ equivalents, \code{fsum()}, \code{fmean()}, \code{fmin()}, \code{fmax()},
 These functions are wrappers around the collapse equivalents
 but always return a vector the same length and same order as x.\cr
 They all accept group IDs for grouped calculations.
-}
-\details{
-\code{gnobs()} is an exception as \code{collapse::fnobs()} calculates the number of
-non-missing values and therefore does not accept an \code{na.rm}.
-Because of this, additional functionality has been added to
-return the group sizes when \code{na.rm = FALSE}.
 }
 \examples{
 library(timeplyr)

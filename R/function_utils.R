@@ -1066,7 +1066,9 @@ pair_unique <- function(x, y){
 }
 # Vctrs version of utils::head/tail
 vec_head <- function(x, n = 1L){
-  stopifnot(length(n) == 1L)
+  if (length(n) != 1L){
+    stop("n must be of length 1.")
+  }
   N <- vctrs::vec_size(x)
   if (n >= 0){
     size <- min(n, N)
@@ -1076,7 +1078,9 @@ vec_head <- function(x, n = 1L){
   vctrs::vec_slice(x, seq_len(size))
 }
 vec_tail <- function(x, n = 1L){
-  stopifnot(length(n) == 1L)
+  if (length(n) != 1L){
+    stop("n must be of length 1.")
+  }
   N <- vctrs::vec_size(x)
   if (n >= 0){
     size <- min(n, N)
@@ -1091,10 +1095,16 @@ vec_length <- function(x){
     if (is_df(x)){
       out <- nrow2(x)
     } else {
-      lens <- collapse::vlengths(x, use.names = FALSE)
-      stopifnot(isTRUE(n_unique(lens) <= 1))
-      out <- vec_head(lens, n = 1L)
+      # out <- collapse::fnrow(x)
+      out <- unique(collapse::vlengths(x, use.names = FALSE))
+      if (length(out) > 1L){
+        stop("x must be a vector, matrix, data frame or list with equal lengths")
+      }
+      # stopifnot(isTRUE(n_unique(lens) <= 1))
+      # out <- vec_head(lens, n = 1L)
     }
+  } else if (is.array(x)){
+    out <- dim(x)[1L]
   } else {
     out <- length(x)
   }
@@ -1106,10 +1116,14 @@ vec_width <- function(x){
     if (is_df(x)){
       out <- collapse::fncol(x)
     } else {
-      lens <- collapse::vlengths(x, use.names = FALSE)
-      stopifnot(isTRUE(n_unique(lens) <= 1))
+      lens <- unique(collapse::vlengths(x, use.names = FALSE))
+      if (length(lens) > 1L){
+        stop("x must be a vector, matrix, data frame or list with equal lengths")
+      }
       out <- collapse::fncol(x)
     }
+  } else if (is.array(x)) {
+    out <- dim(x)[2L]
   } else {
     out <- collapse::fncol(x)
   }

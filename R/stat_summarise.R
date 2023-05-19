@@ -1,4 +1,4 @@
-#' Fast statistical summary for data frames.
+#' Fast grouped statistical summary for data frames.
 #'
 #' @description
 #' `collapse` and `data.table` are used for the calculations.
@@ -8,8 +8,12 @@
 #' Tidy data-masking applies.
 #' @param stat A character vector of statistical summaries to apply.
 #' This can be one or more of the following: \cr
-#' "min", "max", "mean", "first", "last", "sd", "var", "mode", "median", "nobs".
-#' @param .names See `?dplyr::across` for more details.
+#' "n", "min", "max", "mean", "first", "last", "sd",
+#' "var", "mode", "median", "nobs".
+#' @param .names An optional glue specification passed to `stringr::glue()`.
+#' If `.names = NULL`, then in the case of 1 variable, the function name
+#' is used, i.e .names = `"{.fn}"` and in the case of `>=1` variables,
+#' `"{.col}_{.fn}"` is used.
 #' @param na.rm Should `NA` values be removed? Default is `TRUE`.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
@@ -33,17 +37,16 @@
 #' library(dplyr)
 #' iris %>%
 #'   stat_summarise(Sepal.Length, Sepal.Width,
-#'                  stat = c("min", "max", "mean"),
+#'                  stat = c("n", "min", "max", "mean"),
 #'                  .by = Species)
 #' @rdname stat_summarise
 #' @export
-stat_summarise <- function(data, ..., stat = "mean",
+stat_summarise <- function(data, ..., stat = .stat_fns[1L],
                            .names = NULL,
                            na.rm = TRUE, .by = NULL, .cols = NULL,
                            sort = TRUE,
                            keep_class = TRUE){
-  funs <- c("min", "max", "mean", "first", "last", "sd", "var", "mode",
-            "median", "nobs")
+  funs <- .stat_fns
   if (!is.character(stat)){
     stop("stat must be a character vector")
   }
@@ -77,12 +80,20 @@ stat_summarise <- function(data, ..., stat = "mean",
     ), gstarts
   )
   out <- list_to_DT(out)
+  if ("n" %in% stat){
+    n_nm <- new_n_var_nm(names(out))
+    data.table::set(out, j = n_nm,
+                    value = fn(data, g = g))
+    stat <- setdiff(stat, "n")
+    data.table::setcolorder(out, c(group_vars, n_nm, dot_vars))
+  }
   var_nms <- across_col_names(.cols = dot_vars,
                               .fns = stat,
                               .names = NULL)
   out_nms <- across_col_names(.cols = dot_vars,
                               .fns = stat,
                               .names = .names)
+
   k <- 0L
   for (.col in dot_vars){
     for (s in stat){
@@ -108,8 +119,8 @@ stat_summarise <- function(data, ..., stat = "mean",
 across_col_names <- function(.cols = NULL, .fns = NULL,
                              .names = NULL){
   nms_null <- is.null(.names)
-  if (length(.fns) == 1L && nms_null){
-    out <- .cols
+  if (length(.cols) == 1L && nms_null){
+    out <- .fns
   } else {
     out <- character(length(.cols) * length(.fns))
     init <- 0L
@@ -135,3 +146,5 @@ across_col_names <- function(.cols = NULL, .fns = NULL,
   }
   out
 }
+.stat_fns <- c("n", "min", "max", "mean", "median",
+               "sd", "var", "mode", "first", "last", "nobs")
