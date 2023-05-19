@@ -8,10 +8,12 @@ stat_summarise(
   data,
   ...,
   stat = "mean",
+  .names = NULL,
   na.rm = TRUE,
   .by = NULL,
   .cols = NULL,
-  sort = TRUE
+  sort = TRUE,
+  keep_class = TRUE
 )
 }
 \arguments{
@@ -24,6 +26,8 @@ Tidy data-masking applies.}
 This can be one or more of the following: \cr
 "min", "max", "mean", "first", "last", "sd", "var", "mode", "median", "nobs".}
 
+\item{.names}{See \code{?dplyr::across} for more details.}
+
 \item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
@@ -34,6 +38,10 @@ a named character vector or numeric vector.
 If speed is an expensive resource, it is recommended to use this.}
 
 \item{sort}{Should groups be sorted? Default is \code{TRUE}.}
+
+\item{keep_class}{Logical. If \code{TRUE} then the class of
+the input data is retained.
+If \code{FALSE}, which is sometimes faster, a \code{data.table} is returned.}
 }
 \value{
 A summary data frame containing the summary values for each group.
