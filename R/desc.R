@@ -24,8 +24,7 @@
 #' @rdname desc
 #' @export
 asc <- function(x){
-  if (inherits(x, c("integer", "numeric",
-                    "Date", "POSIXt", "POSIXct", "POSIXlt"))){
+  if (is_time_or_num(x)){
     xtfrm(x)
   } else {
     as.integer(qG2(x, sort = TRUE, na.exclude = TRUE))

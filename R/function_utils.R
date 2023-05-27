@@ -751,8 +751,10 @@ group_info <- function(data, ..., .by = NULL, .cols = NULL,
   }
   if (!is.null(.cols)){
     pos <- col_select_pos(out, .cols = .cols)
+    group_pos <- pos %in% match(group_vars, names(data))
+    # & names(pos) %in% group_vars
     # Remove group vars from pos
-    pos <- pos[!pos %in% match(group_vars, names(data))]
+    pos <- pos[!group_pos]
     if (rename){
       extra_groups <- names(pos)
       renamed <- is.na(match(extra_groups, names(out)) != pos)
@@ -896,7 +898,7 @@ match.call.defaults <- function(...) {
 # Temporary check to see if user has dplyr::reframe
 dplyr_reframe_exists <- function(){
   .reframe <- try(dplyr::reframe, silent = TRUE)
-  exists(".reframe")
+  exists(".reframe", inherits = FALSE)
 }
 # Use reframe if user has it otherwise summarise
 dplyr_summarise <- function(...){

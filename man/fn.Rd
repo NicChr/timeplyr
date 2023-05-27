@@ -3,20 +3,24 @@
 \name{fn}
 \alias{fn}
 \alias{gn}
-\title{Alternative to \code{dplyr::n()}}
+\title{Grouped observation counts - \bold{Questioning}}
 \usage{
-fn(..., g = NULL, use.g.names = FALSE)
+fn(..., g = NULL, sort = TRUE, use.g.names = FALSE)
 
 gn(..., g = NULL)
 }
 \arguments{
 \item{...}{Template with which to calculate group sizes.
-This can be left unused as long as g is not NULL.
+This can be left unused as long as g is not \code{NULL}.
 If a data frame or matrix is supplied,
 the number of rows by group \code{g} is calculated.
 If a vector is supplied, the group-wise lengths are calculated.}
 
-\item{g}{Object to be used as groups, passed directly to \code{collapse::GRP()}.}
+\item{g}{Object to be used for grouping,
+passed directly to \code{collapse::GRP()}.}
+
+\item{sort}{Should the grouped count be ordered by the sorted groups?
+If \code{FALSE} the result is ordered by groups of first appearance.}
 
 \item{use.g.names}{If \code{TRUE} group names are added to the result as names.
 This only applies to \code{fn()}.}
@@ -25,7 +29,7 @@ This only applies to \code{fn()}.}
 An integer vector of row sizes.
 }
 \description{
-Alternative to \code{dplyr::n()}
+Grouped observation counts - \bold{Questioning}
 }
 \details{
 \code{fn()} and \code{gn()} efficiently calculate numbers of rows
@@ -44,7 +48,9 @@ gn(mpg)
 gn(mpg, g = mpg$manufacturer)
 
 library(data.table)
-dt <- data.table(g = sample.int(10^5))
+dt <- data.table(g = sample.int(10, size = 10^5, replace = TRUE))
 dt[, .N, by = g] # Usual DT method
-dt[, list(g, N = fn(g = g))] # Using fn()
+dt[, list(N = fn(g = g, sort = F))] # Using fn
+fcount(dt, g) # fcount (preferred)
+stat_summarise(dt, .by = g) # stat_summarise
 }

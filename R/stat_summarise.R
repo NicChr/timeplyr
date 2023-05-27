@@ -79,6 +79,9 @@ stat_summarise <- function(data, ..., stat = .stat_fns[1L],
       data, .cols = c(group_vars, dot_vars)
     ), gstarts
   )
+  if (collapse::fnrow(out) == 0L && length(group_vars) == 0L){
+    out[1L, ] <- NA
+  }
   out <- list_to_DT(out)
   if ("n" %in% stat){
     n_nm <- new_n_var_nm(names(out))
@@ -87,9 +90,11 @@ stat_summarise <- function(data, ..., stat = .stat_fns[1L],
     stat <- setdiff(stat, "n")
     data.table::setcolorder(out, c(group_vars, n_nm, dot_vars))
   }
+  # New names
   var_nms <- across_col_names(.cols = dot_vars,
                               .fns = stat,
                               .names = NULL)
+  # Output names
   out_nms <- across_col_names(.cols = dot_vars,
                               .fns = stat,
                               .names = .names)
@@ -105,10 +110,10 @@ stat_summarise <- function(data, ..., stat = .stat_fns[1L],
                                                       use.g.names = FALSE))
     }
   }
+  set_rm_cols(out, setdiff(dot_vars, var_nms))
   data.table::setnames(out,
                        old = var_nms,
                        new = out_nms)
-  set_rm_cols(out, setdiff(dot_vars, out_nms))
   if (keep_class){
     df_reconstruct(out, template)
   } else {
@@ -146,5 +151,6 @@ across_col_names <- function(.cols = NULL, .fns = NULL,
   }
   out
 }
+#' @export
 .stat_fns <- c("n", "min", "max", "mean", "median",
                "sd", "var", "mode", "first", "last", "nobs")

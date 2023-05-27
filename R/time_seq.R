@@ -423,7 +423,7 @@ duration_seq_v <- function(from, to, units, num = 1){
   seq_len <- time_seq_len(from, to, setnames(list(num),
                                              units),
                           seq_type = "duration")
-  time_seq <- sequence3(seq_len,
+  time_seq <- sequence2(seq_len,
                         from = as.double(from),
                         by = num_seconds)
   time_cast(time_seq, from)
@@ -438,7 +438,7 @@ date_seq_v <- function(from, to, units = c("days", "weeks"), num = 1){
     num <- num * 7
   }
   seq_len <- time_seq_len(from, to, by = setnames(list(num), units))
-  time_seq <- sequence3(seq_len,
+  time_seq <- sequence2(seq_len,
                         from = as.double(from),
                         by = num)
   attr(time_seq, "class") <- "Date"
@@ -511,7 +511,7 @@ period_seq_v <- function(from, to, units, num = 1,
 
   # Setting up vector arithmetic
   g <- rep.int(period_df[["g"]], times = period_df[["seq_len"]])
-  num <- sequence3(period_df[["seq_len"]], from = 1, by = period_df[["num"]]) - 1
+  num <- sequence2(period_df[["seq_len"]], from = 1, by = period_df[["num"]]) - 1
   # Split these by group
   by <- collapse::gsplit(num, g = g, use.g.names = FALSE)
   # Repeat these by the group counts
