@@ -7,32 +7,35 @@
 stat_summarise(
   data,
   ...,
-  stat = .stat_fns[1L],
-  .names = NULL,
+  stat = c("n", "nmiss", "min", "max", "mean"),
   na.rm = TRUE,
-  .by = NULL,
-  .cols = NULL,
   sort = TRUE,
-  keep_class = TRUE
+  .names = NULL,
+  .by = NULL,
+  .cols = NULL
 )
 }
 \arguments{
 \item{data}{A data frame.}
 
-\item{...}{Variables used to calculate the min/max values.
+\item{...}{Variables to apply the statistical functions to.
 Tidy data-masking applies.}
 
 \item{stat}{A character vector of statistical summaries to apply.
 This can be one or more of the following: \cr
-"n", "min", "max", "mean", "first", "last", "sd",
-"var", "mode", "median", "nobs".}
-
-\item{.names}{An optional glue specification passed to \code{stringr::glue()}.
-If \code{.names = NULL}, then in the case of 1 variable, the function name
-is used, i.e .names = \code{"{.fn}"} and in the case of \verb{>=1} variables,
-\code{"{.col}_{.fn}"} is used.}
+"n", "nmiss", "min", "max", "mean", "first", "last", "sd",
+"var", "mode", "median".}
 
 \item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
+
+\item{sort}{Should groups be sorted? Default is \code{TRUE}.}
+
+\item{.names}{An optional glue specification passed to \code{stringr::glue()}.
+If \code{.names = NULL}, then when there is 1 variable, the function name
+is used, i.e \code{.names = "{.fn}"}, when there are multiple variables and
+1 function, the variable names are used, i.e, \code{.names = "{.col}"}
+and in the case of multiple variables and functions.
+\code{"{.col}_{.fn}"} is used.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
@@ -40,15 +43,9 @@ Columns are specified using tidy-select.}
 \item{.cols}{(Optional) alternative to \code{...} that accepts
 a named character vector or numeric vector.
 If speed is an expensive resource, it is recommended to use this.}
-
-\item{sort}{Should groups be sorted? Default is \code{TRUE}.}
-
-\item{keep_class}{Logical. If \code{TRUE} then the class of
-the input data is retained.
-If \code{FALSE}, which is sometimes faster, a \code{data.table} is returned.}
 }
 \value{
-A summary data frame containing the summary values for each group.
+A summary \code{data.table} containing the summary values for each group.
 }
 \description{
 \code{collapse} and \code{data.table} are used for the calculations.

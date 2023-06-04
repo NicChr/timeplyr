@@ -1038,7 +1038,17 @@ sample2 <- function(x, size = length(x), replace = FALSE, prob = NULL){
 setv <- getFromNamespace("setv", "collapse")
 alloc <- getFromNamespace("alloc", "collapse")
 fcumsum <- getFromNamespace("fcumsum", "collapse")
-set <- getFromNamespace("set", "data.table")
+# set <- getFromNamespace("set", "data.table")
+fsum <- getFromNamespace("fsum", "collapse")
+fmin <- getFromNamespace("fmin", "collapse")
+fmax<- getFromNamespace("fmax", "collapse")
+fmean <- getFromNamespace("fmean", "collapse")
+fmode <- getFromNamespace("fmode", "collapse")
+fsd <- getFromNamespace("fsd", "collapse")
+fvar <- getFromNamespace("fvar", "collapse")
+fmedian <- getFromNamespace("fmedian", "collapse")
+ffirst <- getFromNamespace("ffirst", "collapse")
+flast <- getFromNamespace("flast", "collapse")
 # Some future utils for counts and weights..
 # wt_fun <- function(wt){
 #   rlang::expr(sum(!!enquo(wt), na.rm = TRUE))
@@ -1217,7 +1227,7 @@ set_rm_cols <- function(DT, cols = NULL){
     length_check <- length(intersect(cols, seq_along(DT))) > 0L
   }
   if (length_check){
-    set(DT, j = cols, value = NULL)
+    data.table::set(DT, j = cols, value = NULL)
   }
 }
 # Temporary solution until collapse release CRAN version with fix
@@ -1396,6 +1406,16 @@ list_to_DT <- function(x){
     data.table::as.data.table(x)
   } else {
     collapse::qDT(x[TRUE])
+  }
+}
+as_DT <- function(x){
+  if (inherits(x, "data.table")){
+    x
+  } else if (inherits(x, "data.frame") &&
+             collapse::fncol(x) > 0L){
+    collapse::qDT(x[TRUE])
+  } else {
+    data.table::as.data.table(x)
   }
 }
 # Extract group starts from GRP object safely

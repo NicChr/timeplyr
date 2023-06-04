@@ -2,29 +2,27 @@
 #'
 #' @description
 #' `collapse` and `data.table` are used for the calculations.
-#'
 #' @param data A data frame.
-#' @param ... Variables used to calculate the min/max values.
+#' @param ... Variables to apply the statistical functions to.
 #' Tidy data-masking applies.
 #' @param stat A character vector of statistical summaries to apply.
 #' This can be one or more of the following: \cr
-#' "n", "min", "max", "mean", "first", "last", "sd",
-#' "var", "mode", "median", "nobs".
-#' @param .names An optional glue specification passed to `stringr::glue()`.
-#' If `.names = NULL`, then in the case of 1 variable, the function name
-#' is used, i.e .names = `"{.fn}"` and in the case of `>=1` variables,
-#' `"{.col}_{.fn}"` is used.
+#' "n", "nmiss", "min", "max", "mean", "first", "last", "sd",
+#' "var", "mode", "median".
 #' @param na.rm Should `NA` values be removed? Default is `TRUE`.
+#' @param sort Should groups be sorted? Default is `TRUE`.
+#' @param .names An optional glue specification passed to `stringr::glue()`.
+#' If `.names = NULL`, then when there is 1 variable, the function name
+#' is used, i.e `.names = "{.fn}"`, when there are multiple variables and
+#' 1 function, the variable names are used, i.e, `.names = "{.col}"`
+#' and in the case of multiple variables and functions.
+#' `"{.col}_{.fn}"` is used.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
 #' @param .cols (Optional) alternative to `...` that accepts
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
-#' @param sort Should groups be sorted? Default is `TRUE`.
-#' @param keep_class Logical. If `TRUE` then the class of
-#' the input data is retained.
-#' If `FALSE`, which is sometimes faster, a `data.table` is returned.
-#' @return A summary data frame containing the summary values for each group.
+#' @return A summary `data.table` containing the summary values for each group.
 #' @details
 #'
 #' `stat_summarise()` can apply multiple functions to multiple variables.
@@ -41,11 +39,10 @@
 #'                  .by = Species)
 #' @rdname stat_summarise
 #' @export
-stat_summarise <- function(data, ..., stat = .stat_fns[1L],
-                           .names = NULL,
-                           na.rm = TRUE, .by = NULL, .cols = NULL,
-                           sort = TRUE,
-                           keep_class = TRUE){
+stat_summarise <- function(data, ...,
+                           stat = c("n", "nmiss", "min", "max", "mean"),
+                           na.rm = TRUE, sort = TRUE,
+                           .names = NULL, .by = NULL, .cols = NULL){
   funs <- .stat_fns
   if (!is.character(stat)){
     stop("stat must be a character vector")
@@ -55,8 +52,9 @@ stat_summarise <- function(data, ..., stat = .stat_fns[1L],
                 paste(funs, collapse = ", ")))
   }
   stat_to_collapse_fun <- function(stat){
-    get(paste0("f", stat),
-        asNamespace("collapse"))
+    get(paste0("f", stat))
+    # get(paste0("f", stat),
+    #     asNamespace("collapse"))
   }
   group_info <- group_info(data, ..., .by = {{ .by }},
                            .cols = .cols,
@@ -64,7 +62,6 @@ stat_summarise <- function(data, ..., stat = .stat_fns[1L],
                            rename = TRUE)
   group_vars <- group_info[["dplyr_groups"]]
   dot_vars <- group_info[["extra_groups"]]
-  template <- vec_head(data)
   data <- group_info[["data"]]
   if (length(group_vars) == 0L){
     g <- NULL
@@ -82,7 +79,7 @@ stat_summarise <- function(data, ..., stat = .stat_fns[1L],
   if (collapse::fnrow(out) == 0L && length(group_vars) == 0L){
     out[1L, ] <- NA
   }
-  out <- list_to_DT(out)
+  out <- as_DT(out)
   if ("n" %in% stat){
     n_nm <- new_n_var_nm(names(out))
     data.table::set(out, j = n_nm,
@@ -114,19 +111,17 @@ stat_summarise <- function(data, ..., stat = .stat_fns[1L],
   data.table::setnames(out,
                        old = var_nms,
                        new = out_nms)
-  if (keep_class){
-    df_reconstruct(out, template)
-  } else {
-    out
-  }
+  out
 }
 # Recreate column names from the .names arg of dplyr::across()
 across_col_names <- function(.cols = NULL, .fns = NULL,
                              .names = NULL){
   nms_null <- is.null(.names)
-  if (length(.cols) == 1L && nms_null){
+  if (nms_null && length(.cols) == 1L){
     out <- .fns
-  } else {
+  } else if (nms_null && length(.fns) == 1L){
+    out <- .cols
+    } else {
     out <- character(length(.cols) * length(.fns))
     init <- 0L
     .fn <- .fns
@@ -152,5 +147,5 @@ across_col_names <- function(.cols = NULL, .fns = NULL,
   out
 }
 #' @export
-.stat_fns <- c("n", "min", "max", "mean", "median",
-               "sd", "var", "mode", "first", "last", "nobs")
+.stat_fns <- c("n", "nmiss", "min", "max", "mean", "median",
+               "sd", "var", "mode", "first", "last")

@@ -11,7 +11,6 @@
 #' equivalents, `fsum()`, `fmean()`, `fmin()`, `fmax()`,
 #' `fsd()`, `fvar()`, `fmode()`, `fmedian()`, `ffirst()`, `flast()` and
 #' `fnobs()`
-#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -117,30 +116,6 @@ gnobs <- function(x, g = NULL, ...){
   collapse::fnobs(x, g = g, use.g.names = FALSE,
                   TRA = "replace_fill", ...)
 }
-# Not useful for users but useful in summaries
-# gnrow <- function(x, g = NULL, na.rm = FALSE){
-#   if (is.null(g)){
-#     N <- vctrs::vec_size(x)
-#     nobs <- alloc(N, N)
-#   } else {
-#     nobs <- collapse::GRPN(g, expand = TRUE)
-#   }
-#   if (is.matrix(x)){
-#     out <- matrix(rep.int(nobs, collapse::fncol(x)),
-#                   nrow = collapse::fnrow(x),
-#                   ncol = collapse::fncol(x))
-#     rownames(out) <- rownames(x)
-#     colnames(out) <- colnames(x)
-#   } else if (is.list(x)){
-#     out <- x
-#     for (i in collapse::seq_col(x)){
-#       out[[i]] <- nobs
-#     }
-#   } else {
-#     out <- nobs
-#   }
-#   out
-# }
 # Version 3
 # gsum <- function(x, g = NULL, ...){
 #   if (!is.null(g)){

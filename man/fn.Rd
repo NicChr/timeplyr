@@ -2,12 +2,9 @@
 % Please edit documentation in R/fn.R
 \name{fn}
 \alias{fn}
-\alias{gn}
 \title{Grouped observation counts - \bold{Questioning}}
 \usage{
 fn(..., g = NULL, sort = TRUE, use.g.names = FALSE)
-
-gn(..., g = NULL)
 }
 \arguments{
 \item{...}{Template with which to calculate group sizes.
