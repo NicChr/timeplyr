@@ -15,7 +15,7 @@
 #' Default behaviour is to keep \code{Inf} values.
 #' @param n Rolling window size of length 1.
 #' The default is `n = length(x)`
-#' which calculates a simple prolling growth rate of `x`
+#' which calculates a simple rolling growth rate of `x`
 #' compared to the starting value.
 #' When `n = 2`, this is equivalent to a rolling basic growth calculation.
 #' @param partial Should rates be calculated outwith the window

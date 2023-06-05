@@ -52,3 +52,6 @@ library(dplyr)
 iris \%>\%
   q_summary(Sepal.Length, .by = Species)
 }
+\seealso{
+\link[timeplyr]{stat_summarise}
+}

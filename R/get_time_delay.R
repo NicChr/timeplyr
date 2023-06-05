@@ -149,87 +149,38 @@ get_time_delay <- function(data, origin, end, by = "day",
   }
   # Remove outliers
   out <- out[data.table::between(get(delay_nm), min_delay, max_delay,
-                          incbounds = TRUE, NAbounds = NA), ]
+                                 incbounds = TRUE, NAbounds = NA), ]
   out <- out[!is.na(get(delay_nm)), ]
-  quantile_prcnts <- round(probs * 100)
-  quantile_nms <- paste0(rep_len("p", length(probs)), quantile_prcnts)
-  if (nrow2(out) == 0L){
-    quantile_summary <- setnames(data.table::as.data.table(
-      matrix(
-        rep_len(NA_real_, length(probs)),
-        ncol = length(probs))
-      ), quantile_nms)
-    group_df <- dplyr::add_row(out[, group_vars, with = FALSE])
-    delay_summary <- data.table::data.table("n" = 0L,
-                                            "min" = NA_real_,
-                                            "max" = NA_real_,
-                                            "mean" = NA_real_,
-                                            "sd" = NA_real_,
-                                            "iqr" = NA_real_,
-                                            "mad" = NA_real_,
-                                            "se" = NA_real_)
-    delay_summary <- dplyr::bind_cols(delay_summary, group_df)
-    delay_summary <- dplyr::bind_cols(delay_summary, quantile_summary)
-    delay_summary <- delay_summary[,
-                                   c(group_vars, "n", "min", "max", "mean", "sd",
-                                     quantile_nms, "iqr", "mad", "se"),
-                                   with = FALSE]
-
-  } else {
-    setkeyv2(out, grp_nm)
-    if (length(probs) == 0L){
-      quantile_summary <- out[, list("quantile_nms" = quantile_nms,
-                                     "probs" = collapse::fquantile(get(delay_nm),
-                                                                   probs = probs,
-                                                                   names = FALSE)),
-                              by = grp_nm]
-    } else {
-      quantile_summary <- collapse::fsummarise(
-        collapse::fgroup_by(
-          out, grp_nm
-        ),
-        across(.cols = delay_nm,
-               .names = "probs",
-               list(probs = function(x)
-                 collapse::fquantile(x, probs = probs,
-                                     names = FALSE)))
-      )
-      data.table::set(quantile_summary,
-                      j = "quantile_nms",
-                      value = rep(quantile_nms,
-                                  nrow2(quantile_summary) / length(probs)))
+  # Quantile summary
+  iqr_p_missed <- setdiff(c(0.25, 0.75), probs)
+  if (length(iqr_p_missed) > 0L){
+    for (iqr_p in iqr_p_missed){
+      probs <- c(probs, iqr_p)
     }
-    quantile_summary <- tidyr::pivot_wider(quantile_summary,
-                                           names_from = all_of("quantile_nms"),
-                                           values_from = all_of("probs"))
-    delay_summary <- stat_summarise(out, .cols = delay_nm,
-                                    .by = all_of(grp_nm),
-                                    stat = c("n", "min", "max",
-                                             "mean", "sd"),
-                                    sort = TRUE)
-    delay_summary[, (c("iqr", "mad")) := fselect(
-      collapse::collapv(out, by = grp_nm, cols = delay_nm,
-                        FUN = list(function(x){
-                          diff(collapse::fquantile(x,
-                                                   c(0.25, 0.75),
-                                                   names = FALSE),
-                               lag = 1L)
-                        },
-                        function(x){
-                          1.4826 * collapse::fmedian(abs(x - collapse::fmedian(x)))
-                        })),
-      .cols = -1L
-    )]
-    delay_summary[, ("se") := get("sd")/sqrt(get("n"))]
-    delay_summary <- delay_summary %>%
-      dplyr::bind_cols(fselect(quantile_summary,
-                               .cols = -match(grp_nm, names(quantile_summary)))) %>%
-      dplyr::left_join(grp_df, by = grp_nm) %>%
-      farrange(.cols = grp_nm) %>%
-      fselect(.cols = c(group_vars, "n", "min", "max", "mean", "sd",
-                        quantile_nms, "iqr", "mad", "se"))
   }
-
+  q_prcnts <- round(probs * 100)
+  q_nms <- paste0(rep_len("p", length(probs)), q_prcnts)
+  quantile_summary <- q_summary(out, .by = all_of(grp_nm),
+                                .cols = delay_nm, probs = probs,
+                                pivot = "wide", sort = TRUE)
+  # Descriptive statistical summary
+  delay_summary <- stat_summarise(out, .cols = delay_nm,
+                                  .by = all_of(grp_nm),
+                                  stat = c("n", "min", "max",
+                                           "mean", "sd"),
+                                  sort = TRUE)
+  delay_summary[, ("se") := get("sd")/sqrt(get("n"))]
+  delay_summary[, (q_nms) := quantile_summary[, (q_nms), with = FALSE]]
+  delay_summary[, ("iqr") := get("p75") - get("p25")]
+  if (length(group_vars) > 0L){
+    delay_summary[grp_df, (group_vars) := mget(group_vars),
+                  on = grp_nm, allow.cartesian = FALSE]
+  }
+  data.table::setorderv(delay_summary, grp_nm)
+  set_rm_cols(delay_summary, c(grp_nm, iqr_p_missed))
+  data.table::setcolorder(delay_summary,
+                          neworder = c(group_vars, "n", "min", "max", "mean", "sd",
+                                       q_nms, "iqr", "se"))
   # Create delay table
   min_delay <- max(min(out[[delay_nm]]),
                    min_delay)

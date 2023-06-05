@@ -30,6 +30,7 @@
 #' `stat_summarise()` is equivalent to \cr
 #' `data %>% group_by(...) %>% summarise(across(..., list(...)))` \cr
 #' but is faster and more efficient and accepts limited statistical functions.
+#' @seealso \link[timeplyr]{q_summary}
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)

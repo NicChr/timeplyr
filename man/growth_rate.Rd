@@ -30,7 +30,7 @@ Default behaviour is to keep \code{Inf} values.}
 
 \item{n}{Rolling window size of length 1.
 The default is \code{n = length(x)}
-which calculates a simple prolling growth rate of \code{x}
+which calculates a simple rolling growth rate of \code{x}
 compared to the starting value.
 When \code{n = 2}, this is equivalent to a rolling basic growth calculation.}
 

@@ -65,3 +65,6 @@ iris \%>\%
                  stat = c("n", "min", "max", "mean"),
                  .by = Species)
 }
+\seealso{
+\link[timeplyr]{q_summary}
+}

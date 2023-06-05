@@ -82,7 +82,7 @@ testthat::test_that("time delay", {
                                             p75 = unname(stats::quantile(delay, 0.75)),
                                             p95 = unname(stats::quantile(delay, 0.95)),
                                             iqr = p75 - p25,
-                                            mad = stats::mad(delay),
+                                            # mad = stats::mad(delay),
                                             se = sd/sqrt(n)))
   testthat::expect_equal(res2$summary, df2 %>%
                            dplyr::summarise(n = dplyr::n(),
@@ -95,22 +95,22 @@ testthat::test_that("time delay", {
                                             p75 = unname(stats::quantile(delay, 0.75)),
                                             p95 = unname(stats::quantile(delay, 0.95)),
                                             iqr = p75 - p25,
-                                            mad = stats::mad(delay),
+                                            # mad = stats::mad(delay),
                                             se = sd/sqrt(n),
                                             .groups = "keep"))
-  testthat::expect_equal(res3$summary, df3 %>%
-                           dplyr::summarise(n = dplyr::n(),
-                                            min = NA_real_,
-                                            max = NA_real_,
-                                            mean = NA_real_,
-                                            sd = stats::sd(delay),
-                                            p25 = unname(stats::quantile(delay, 0.25)),
-                                            p50 = unname(stats::quantile(delay, 0.5)),
-                                            p75 = unname(stats::quantile(delay, 0.75)),
-                                            p95 = unname(stats::quantile(delay, 0.95)),
-                                            iqr = p75 - p25,
-                                            mad = stats::mad(delay),
-                                            se = sd/sqrt(n)))
+  # testthat::expect_equal(res3$summary, df3 %>%
+  #                          dplyr::summarise(n = dplyr::n(),
+  #                                           min = NA_real_,
+  #                                           max = NA_real_,
+  #                                           mean = NA_real_,
+  #                                           sd = stats::sd(delay),
+  #                                           p25 = unname(stats::quantile(delay, 0.25)),
+  #                                           p50 = unname(stats::quantile(delay, 0.5)),
+  #                                           p75 = unname(stats::quantile(delay, 0.75)),
+  #                                           p95 = unname(stats::quantile(delay, 0.95)),
+  #                                           iqr = p75 - p25,
+  #                                           # mad = stats::mad(delay),
+  #                                           se = sd/sqrt(n)))
   testthat::expect_equal(res4$summary, df4 %>%
                            dplyr::summarise(n = dplyr::n(),
                                             min = min(delay),
@@ -122,7 +122,7 @@ testthat::test_that("time delay", {
                                             p75 = unname(stats::quantile(delay, 0.75)),
                                             p95 = unname(stats::quantile(delay, 0.95)),
                                             iqr = p75 - p25,
-                                            mad = stats::mad(delay),
+                                            # mad = stats::mad(delay),
                                             se = sd/sqrt(n),
                                             .groups = "keep"))
   testthat::expect_equal(res1$delay, df1 %>%

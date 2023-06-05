@@ -17,6 +17,7 @@
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
 #' @return A `data.table` containing the quantile values for each group.
+#' @seealso \link[timeplyr]{stat_summarise}
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -49,7 +50,7 @@ q_summary <- function(data, ...,
   # Add group ID to df
   out[[grp_nm]] <- g
   out <- as_DT(out)
-  if (nrow2(out) == 0L){
+  if (nrow2(out) == 0L || length(probs) == 0L){
     if (wide){
       q_df <- matrix(integer(0), ncol = length(quantile_nms), nrow = 0)
       colnames(q_df) <- quantile_nms
@@ -97,21 +98,21 @@ q_summary <- function(data, ...,
         # Bind group variables
         q_df[, (group_vars) := grp_df[, setdiff(names(grp_df), grp_nm),
                                       with = FALSE]]
-        data.table::setcolorder(q_df, neworder = c(group_vars,
-                                                   setdiff(names(q_df),
-                                                           group_vars)))
       }
+      data.table::setcolorder(q_df, neworder = c(group_vars,
+                                                 setdiff(names(q_df),
+                                                         group_vars)))
     } else {
       # Join group variables
       if (length(group_vars) > 0L){
         q_df[grp_df, (group_vars) := mget(group_vars),
              on = grp_nm, allow.cartesian = FALSE]
-        data.table::setcolorder(q_df, neworder = c(group_vars,
-                                                   setdiff(names(q_df),
-                                                           c(group_vars,
-                                                             dot_vars)),
-                                                   dot_vars))
       }
+      data.table::setcolorder(q_df, neworder = c(group_vars,
+                                                 setdiff(names(q_df),
+                                                         c(group_vars,
+                                                           dot_vars)),
+                                                 dot_vars))
     }
     # Remove group ID variable
     set_rm_cols(q_df, grp_nm)
