@@ -63,7 +63,7 @@ q_summary <- function(data, ...,
     grp_df <- collapse::funique(fselect(out, .cols = c(grp_nm, group_vars)),
                                 cols = grp_nm, sort = sort)
     # Quantile calculation
-    # Alternate method using data.table
+    # data.table method
     q_df <- out[, lapply(.SD, function(x) collapse::.quantile(x,
                                                               probs = probs)),
                 by = grp_nm,
@@ -71,6 +71,7 @@ q_summary <- function(data, ...,
     if (sort){
       data.table::setkeyv(q_df, grp_nm)
     }
+    # collapse method
     # out <- collapse::fgroup_by(out, grp_nm, sort = sort)
     # q_df <- collapse::fsummarise(
     #   out,
@@ -85,7 +86,7 @@ q_summary <- function(data, ...,
     data.table::set(q_df,
                     j = "q_nms",
                     value = rep(quantile_nms, times = nrow2(q_df) / length(probs)))
-    cast_formula <- as.formula(paste0(grp_nm, " ~ q_nms"))
+    cast_formula <- stats::as.formula(paste0(grp_nm, " ~ q_nms"))
     # if wide is true then pivot wider
     if (wide){
       q_df[, ("q_nms") := factor(get("q_nms"),

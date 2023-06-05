@@ -11,6 +11,8 @@ fnmiss(x, g = NULL, ...)
 
 \item{g}{Object to be used for grouping,
 passed directly to \code{collapse::GRP()}.}
+
+\item{...}{Additional arguments passed onto \code{collapse::fsum}.}
 }
 \description{
 A wrapper around \code{fsum(is.na(x))} to calculate

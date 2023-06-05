@@ -37,6 +37,7 @@ aligns a bit more closely with the \code{collapse} statistical functions. \cr
 match the size and order of your data.
 }
 \examples{
+\dontrun{
 library(timeplyr)
 library(ggplot2)
 fn(mpg)
@@ -50,4 +51,5 @@ dt[, .N, by = g] # Usual DT method
 dt[, list(N = fn(g = g, sort = F))] # Using fn
 fcount(dt, g) # fcount (preferred)
 stat_summarise(dt, .by = g) # stat_summarise
+}
 }

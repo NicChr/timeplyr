@@ -19,6 +19,7 @@
 #' This only applies to `fn()`.
 #' @return An integer vector of row sizes.
 #' @examples
+#' \dontrun{
 #' library(timeplyr)
 #' library(ggplot2)
 #' fn(mpg)
@@ -32,6 +33,7 @@
 #' dt[, list(N = fn(g = g, sort = F))] # Using fn
 #' fcount(dt, g) # fcount (preferred)
 #' stat_summarise(dt, .by = g) # stat_summarise
+#' }
 fn <- function(..., g = NULL, sort = TRUE, use.g.names = FALSE){
   n_dots <- dots_length(...)
   if (n_dots > 1){
