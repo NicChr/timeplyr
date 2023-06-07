@@ -25,11 +25,14 @@
 #' * Numeric vector. If by is a numeric vector and x is not a date/datetime,
 #' then arithmetic is used, e.g `by = 1`.
 #' This is also vectorized where applicable.
-#' @param min_delay The minimum acceptable delay, all delays less than this are removed before calculation.
+#' @param min_delay The minimum acceptable delay,
+#' all delays less than this are removed before calculation.
 #' Default is `min_delay = -Inf`.
-#' @param max_delay The maximum acceptable delay, all delays greater than this are removed before calculation.
+#' @param max_delay The maximum acceptable delay,
+#' all delays greater than this are removed before calculation.
 #' Default is `max_delay = Inf`.
-#' @param probs Probabilities used in the quantile summary. Default is `probs = c(0.25, 0.5, 0.75, 0.95)`.
+#' @param probs Probabilities used in the quantile summary.
+#' Default is `probs = c(0.25, 0.5, 0.75, 0.95)`.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
 #' @param include_plot Should a `ggplot` graph of delay distributions be included in the output?
@@ -179,7 +182,8 @@ get_time_delay <- function(data, origin, end, by = "day",
   data.table::setorderv(delay_summary, grp_nm)
   set_rm_cols(delay_summary, c(grp_nm, iqr_p_missed))
   data.table::setcolorder(delay_summary,
-                          neworder = c(group_vars, "n", "min", "max", "mean", "sd",
+                          neworder = c(group_vars, "n", "min",
+                                       "max", "mean", "sd",
                                        q_nms, "iqr", "se"))
   # Create delay table
   min_delay <- max(min(out[[delay_nm]]),
@@ -202,12 +206,13 @@ get_time_delay <- function(data, origin, end, by = "day",
     delay_tbl[, ("cumulative") := fcumsum(get("n"),
                                           g = get(grp_nm),
                                           na.rm = TRUE)]
-    delay_tbl[, ("edf") :=
-                get("cumulative") / sum(get("n")), by = grp_nm]
     # delay_tbl[, ("edf") :=
-    #             get("cumulative") / gsum(get("n"),
-    #                                      g = get(grp_nm),
-    #                                      na.rm = FALSE)]
+    #             get("cumulative") / sum(get("n")), by = grp_nm]
+    delay_tbl[, ("edf") :=
+                get("cumulative") / gsum(get("n"),
+                                         g = get(grp_nm),
+                                         na.rm = FALSE,
+                                         fill = TRUE)]
     # delay_tbl[, ("edf") := edf(get(delay_nm),
     #                            g = get(grp_nm),
     #                            wt = get("n"))]
@@ -253,20 +258,28 @@ get_time_delay <- function(data, origin, end, by = "day",
     }
     delay_summary_plot <- out %>%
       ggplot2::ggplot(ggplot2::aes(x = .data[[delay_nm]])) +
-      ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(ndensity)), binwidth = 1,
+      ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(ndensity)),
+                              binwidth = 1,
                               fill = "white", col = "black", alpha = 0.75) +
-      ggplot2::geom_density(ggplot2::aes(y = ggplot2::after_stat(scaled)), fill = "#3F3685", alpha = 0.3,
+      ggplot2::geom_density(ggplot2::aes(y = ggplot2::after_stat(scaled)),
+                            fill = "#3F3685", alpha = 0.3,
                             bw = bw, ...) +
       ggplot2::stat_ecdf(col = "#0078D4") +
       ggplot2::theme_minimal() +
-      ggplot2::scale_x_continuous(n.breaks = 8, labels = function(x) num_fmt(x, digits = 2, big.mark = ",",
-                                                                             drop_leading_zeros = FALSE,
-                                                                             format = "f", flag = "",
-                                                                             drop0trailing = TRUE)) +
-      ggplot2::scale_y_continuous(n.breaks = 5, labels = function(x) num_fmt(x, digits = 2, big.mark = ",",
-                                                                             drop_leading_zeros = TRUE,
-                                                                             format = "fg", flag = "#",
-                                                                             drop0trailing = TRUE)) +
+      ggplot2::scale_x_continuous(n.breaks = 8,
+                                  labels = function(x){
+                                    num_fmt(x, digits = 2, big.mark = ",",
+                                            drop_leading_zeros = FALSE,
+                                            format = "f", flag = "",
+                                            drop0trailing = TRUE)
+                                  }) +
+      ggplot2::scale_y_continuous(n.breaks = 5,
+                                  labels = function(x){
+                                    num_fmt(x, digits = 2, big.mark = ",",
+                                            drop_leading_zeros = TRUE,
+                                            format = "fg", flag = "#",
+                                            drop0trailing = TRUE)
+                                  }) +
       ggplot2::labs(x = paste("Delay", plot_unit_text, sep = " "),
                     y = "Normalized density and ECDF",
                     title = paste0("Empirical distribution of time delay\nbetween ",

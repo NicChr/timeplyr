@@ -11,7 +11,7 @@ q_summary(
   type = 7L,
   pivot = c("wide", "long"),
   na.rm = TRUE,
-  sort = FALSE,
+  sort = TRUE,
   .by = NULL,
   .cols = NULL
 )
@@ -49,8 +49,26 @@ A \code{data.table} containing the quantile values for each group.
 \examples{
 library(timeplyr)
 library(dplyr)
+# Standard quantiles
+iris \%>\%
+  q_summary(Sepal.Length)
+# Quantiles by species
 iris \%>\%
   q_summary(Sepal.Length, .by = Species)
+# Quantiles by species across multiple columns
+iris \%>\%
+  q_summary(Sepal.Length, Sepal.Width,
+            probs = c(0, 1),
+            .by = Species)
+# Long format if one desires, useful for ggplot2
+iris \%>\%
+  q_summary(Sepal.Length, pivot = "long",
+            .by = Species)
+# Example with lots of groups
+set.seed(20230606)
+df <- data.frame(x = rnorm(10^5),
+                 g = sample.int(10^5, replace = TRUE))
+q_summary(df, x, .by = g, sort = FALSE)
 }
 \seealso{
 \link[timeplyr]{stat_summarise}

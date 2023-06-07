@@ -42,13 +42,16 @@ then arithmetic is used, e.g \code{by = 1}.
 This is also vectorized where applicable.
 }}
 
-\item{min_delay}{The minimum acceptable delay, all delays less than this are removed before calculation.
+\item{min_delay}{The minimum acceptable delay,
+all delays less than this are removed before calculation.
 Default is \code{min_delay = -Inf}.}
 
-\item{max_delay}{The maximum acceptable delay, all delays greater than this are removed before calculation.
+\item{max_delay}{The maximum acceptable delay,
+all delays greater than this are removed before calculation.
 Default is \code{max_delay = Inf}.}
 
-\item{probs}{Probabilities used in the quantile summary. Default is \code{probs = c(0.25, 0.5, 0.75, 0.95)}.}
+\item{probs}{Probabilities used in the quantile summary.
+Default is \code{probs = c(0.25, 0.5, 0.75, 0.95)}.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}

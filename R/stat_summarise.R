@@ -34,10 +34,18 @@
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
+#' stat_df <- iris %>%
+#'   stat_summarise(Sepal.Length, .by = Species)
+#' # Join quantile info too
+#' q_df <- iris %>%
+#'   q_summary(Sepal.Length, .by = Species)
+#' summary_df <- stat_df[q_df, on = "Species"]
+#'
+#' # Multiple cols
 #' iris %>%
-#'   stat_summarise(Sepal.Length, Sepal.Width,
-#'                  stat = c("n", "min", "max", "mean"),
-#'                  .by = Species)
+#'   group_by(Species) %>%
+#'   stat_summarise(across(contains("Width")),
+#'             stat = c("min", "max", "mean", "sd"))
 #' @rdname stat_summarise
 #' @export
 stat_summarise <- function(data, ...,
