@@ -60,7 +60,7 @@ q_summary <- function(data, ...,
     stop("Please supply at least 1 non-group variable to ...")
   }
   out <- group_info[["data"]]
-  q_prcnts <- round(probs * 100)
+  q_prcnts <- probs * 100
   quantile_nms <- paste0(rep_len("p", length(probs)), q_prcnts)
   quantile_nms <- factor(quantile_nms, levels = quantile_nms)
   # Group ID
