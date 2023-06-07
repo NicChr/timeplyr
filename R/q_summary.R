@@ -91,7 +91,8 @@ q_summary <- function(data, ...,
     q_df <- out[, lapply(.SD, function(x) collapse::fquantile(x,
                                                               probs = probs,
                                                               names = FALSE,
-                                                              na.rm = na.rm
+                                                              na.rm = na.rm,
+                                                              check.o = FALSE
                                                               # o = get(".qorder"),
                                                               # check.o = TRUE
                                                               )),
