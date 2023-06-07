@@ -121,8 +121,7 @@ q_summary <- function(data, ...,
       # q_df <- q_df[grp_df]
       if (length(group_vars) > 0L){
         # Bind group variables
-        q_df[, (group_vars) := grp_df[, setdiff(names(grp_df), grp_nm),
-                                      with = FALSE]]
+        q_df[, (group_vars) := fselect(grp_df, .cols = setdiff(names(grp_df), grp_nm))]
       }
       out_nms <- c(group_vars,
                    setdiff(names(q_df),
@@ -130,8 +129,7 @@ q_summary <- function(data, ...,
     } else {
       # Join group variables
       if (length(group_vars) > 0L){
-        q_df[, (group_vars) := grp_df[, setdiff(names(grp_df), grp_nm),
-                                      with = FALSE][
+        q_df[, (group_vars) := fselect(grp_df, .cols = setdiff(names(grp_df), grp_nm))[
                                         rep(seq_len(.N),
                                             each = length(quantile_nms))
                                       ]]
