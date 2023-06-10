@@ -71,5 +71,5 @@ df <- data.frame(x = rnorm(10^5),
 q_summary(df, x, .by = g, sort = FALSE)
 }
 \seealso{
-\link[timeplyr]{stat_summarise}
+\link[timeplyr]{stat_summary}
 }

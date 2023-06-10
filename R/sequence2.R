@@ -1,9 +1,9 @@
 #' Extension to `base::sequence()` that handles decimals
 #'
-#' `seq_v()` is an alternate specification that instead accepts
-#' the arguments `from`, `to` and `by`.
-#' `seq_id()` is a helper function to efficiently group
-#' each sequence by returning unique IDs along the sequences. \cr
+#' `seq_v()` is a vectorised version of `seq()` that strictly accepts
+#' only the arguments `from`, `to` and `by`.
+#' `seq_id()` is a helper function to efficiently return unique IDs for
+#' each sequence.
 #'
 #' @param nvec Vector of sequence lengths.
 #' @param from Start of sequence(s).
@@ -30,19 +30,21 @@ sequence2 <- function(nvec, from = 1L, by = 1L){
     return(sequence(nvec = nvec, from = from, by = by))
   }
   g_len <- length(nvec)
-  # Recycle
-  if (length(by) != g_len){
-    by <- rep_len(by, g_len)
-  }
-  if (length(from) != g_len){
+  if (length(from) > 1L){
+    # Recycle
     from <- rep_len(from, g_len)
+    # Expand
+    from <- rep.int(from, times = nvec)
   }
-  # Expand
-  by <- rep.int(by, times = nvec)
-  from <- rep.int(from, times = nvec)
+  if (length(by) > 1L){
+    # Recycle
+    by <- rep_len(by, g_len)
+    # Expand
+    by <- rep.int(by, times = nvec)
+  }
   # Arithmetic
   if (out_is_int){
-    g_add <- sequence(nvec, from = 1L, by = 1L) - 1L
+    g_add <- sequence(nvec, from = 0L, by = 1L)
   } else {
     g <- seq_id(nvec)
     g_add <- fcumsum(seq_ones(out_len),
@@ -61,7 +63,7 @@ seq_id <- function(nvec){
 #' @export
 seq_v <- function(from = 1L, to = 1L, by = 1L){
   # size <- seq_size(from = from, to = to, by = by)
-  # sequence3(size, from = from, by = by)
+  # sequence2(size, from = from, by = by)
   sequence2( ( (to - from) / by) + 1L, from = from, by = by)
 }
 seq_size <- function(from, to, by = 1L){
@@ -73,11 +75,4 @@ seq_size <- function(from, to, by = 1L){
 seqv.int <- function(from = 1L, to = 1L, by = 1L){
   sequence( ( (to - from) / by) + 1L, from = from, by = by)
 }
-# Same but handles decimals
-# It is the same as seq_v() but without length checking, etc.
-seqv <- function(from = 1L, to = 1L, by = 1L){
-  sequence2( ( (to - from) / by) + 1L, from = from, by = by)
-}
-# Will remove sequence3 at a later point
-sequence3 <- sequence2
 

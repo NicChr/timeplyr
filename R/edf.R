@@ -77,7 +77,7 @@ edf <- function(x, g = NULL, wt = NULL){
       grpn <- collapse::fsum(wt, g = g, use.g.names = FALSE)
       N <- sum(wt)
     }
-    sum_run <- rep.int(collapse::fcumsum(grpn, na.rm = FALSE),
+    sum_run <- rep.int(fcumsum(grpn, na.rm = FALSE),
                        times = times)
     out <- sum_run / N
     if (n_na > 0) out <- c(out, rep_len(NA_real_, n_na))

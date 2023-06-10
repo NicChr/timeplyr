@@ -22,10 +22,10 @@ seq_v(from = 1L, to = 1L, by = 1L)
 \item{to}{End of sequence(s).}
 }
 \description{
-\code{seq_v()} is an alternate specification that instead accepts
-the arguments \code{from}, \code{to} and \code{by}.
-\code{seq_id()} is a helper function to efficiently group
-each sequence by returning unique IDs along the sequences. \cr
+\code{seq_v()} is a vectorised version of \code{seq()} that strictly accepts
+only the arguments \code{from}, \code{to} and \code{by}.
+\code{seq_id()} is a helper function to efficiently return unique IDs for
+each sequence.
 }
 \examples{
 library(timeplyr)

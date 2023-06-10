@@ -19,7 +19,7 @@ testthat::test_that("Group IDs", {
   testthat::expect_equal(iris %>%
                            dplyr::group_by(Species, Sepal.Length) %>%
                            dplyr::group_indices() %>%
-                           collapse::qG(na.exclude = FALSE),
+                           collapse::qG(ordered = TRUE, na.exclude = FALSE),
                          iris %>%
                           fgroup_by(Species, Sepal.Length) %>%
                            group_id(as_qg = TRUE))
@@ -186,7 +186,7 @@ testthat::test_that("Group locs", {
   base3 <- flights %>%
     dplyr::group_by(origin, dest) %>%
     dplyr::group_data() %>%
-    dplyr::mutate(.group = growid(., NULL))
+    dplyr::mutate(.group = frowid(., NULL))
   base4 <- base2 %>%
     dplyr::mutate(.group = seq_len(nrow(base2)))
   base5 <- base4

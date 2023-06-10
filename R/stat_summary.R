@@ -25,9 +25,9 @@
 #' @return A summary `data.table` containing the summary values for each group.
 #' @details
 #'
-#' `stat_summarise()` can apply multiple functions to multiple variables.
+#' `stat_summary()` can apply multiple functions to multiple variables.
 #'
-#' `stat_summarise()` is equivalent to \cr
+#' `stat_summary()` is equivalent to \cr
 #' `data %>% group_by(...) %>% summarise(across(..., list(...)))` \cr
 #' but is faster and more efficient and accepts limited statistical functions.
 #' @seealso \link[timeplyr]{q_summary}
@@ -35,23 +35,24 @@
 #' library(timeplyr)
 #' library(dplyr)
 #' stat_df <- iris %>%
-#'   stat_summarise(Sepal.Length, .by = Species)
+#'   stat_summary(Sepal.Length, .by = Species)
 #' # Join quantile info too
 #' q_df <- iris %>%
 #'   q_summary(Sepal.Length, .by = Species)
-#' summary_df <- stat_df[q_df, on = "Species"]
+#' summary_df <- left_join(stat_df, q_df, by = "Species")
+#' summary_df
 #'
 #' # Multiple cols
 #' iris %>%
 #'   group_by(Species) %>%
-#'   stat_summarise(across(contains("Width")),
+#'   stat_summary(across(contains("Width")),
 #'             stat = c("min", "max", "mean", "sd"))
-#' @rdname stat_summarise
+#' @rdname stat_summary
 #' @export
-stat_summarise <- function(data, ...,
-                           stat = c("n", "nmiss", "min", "max", "mean"),
-                           na.rm = TRUE, sort = TRUE,
-                           .names = NULL, .by = NULL, .cols = NULL){
+stat_summary <- function(data, ...,
+                         stat = c("n", "nmiss", "min", "max", "mean"),
+                         na.rm = TRUE, sort = TRUE,
+                         .names = NULL, .by = NULL, .cols = NULL){
   funs <- .stat_fns
   if (!is.character(stat)){
     stop("stat must be a character vector")
@@ -122,6 +123,9 @@ stat_summarise <- function(data, ...,
                        new = out_nms)
   out
 }
+#' @rdname stat_summary
+#' @export
+stat_summarise <- stat_summary
 # Recreate column names from the .names arg of dplyr::across()
 across_col_names <- function(.cols = NULL, .fns = NULL,
                              .names = NULL){

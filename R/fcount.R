@@ -78,20 +78,19 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   if (length(all_vars) == 0L){
     g <- list(group.starts = min(1L, N),
               group.sizes = N)
-              # group.id = 1L)
     # If data is grouped and no extra groups supplied..
   } else if (length(group_vars) > 0L &&
              length(group_vars) == length(all_vars)){
-    # g <- GRP2(data, by = all_vars, sort = TRUE)
-    gdata <- attr(data, "groups")
-    g <- list(group.starts = collapse::ffirst(gdata[[".rows"]],
-                                              use.g.names = FALSE),
-              group.sizes = collapse::vlengths(gdata[[".rows"]],
-                                               use.names = FALSE))
-              # group.id = seq_along(gdata[[".rows"]]))
-    if (is.null(g[["group.starts"]])){
-      g[["group.starts"]] <- integer(0)
-    }
+    gdata <- group_data(data)
+    g <- list(group.starts = as.integer(
+      unlist(
+        collapse::ffirst(gdata[[".rows"]],
+                         use.g.names = FALSE),
+        use.names = FALSE, recursive = FALSE
+      )
+    ),
+    group.sizes = collapse::vlengths(gdata[[".rows"]],
+                                     use.names = FALSE))
   }
   else {
     g <- GRP2(out, by = all_vars, sort = TRUE)
@@ -117,7 +116,9 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                            na.rm = TRUE,
                            use.g.names = FALSE,
                            fill = FALSE)
-    if (all(collapse::na_rm(nobs) <= .Machine$integer.max)){
+    if (length(nobs) == 0L || (
+      collapse::fmax(nobs, na.rm = TRUE) <= .Machine$integer.max
+    )){
       nobs <- as.integer(nobs)
     }
     # Replace NA with 0

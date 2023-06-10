@@ -17,7 +17,7 @@
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
 #' @return A `data.table` containing the quantile values for each group.
-#' @seealso \link[timeplyr]{stat_summarise}
+#' @seealso \link[timeplyr]{stat_summary}
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)

@@ -110,7 +110,7 @@ group_id.default <- function(data, ..., order = TRUE,
     out <- group2(data)
   }
   if (as_qg && order){
-    out <- integer_to_qg(out, g[["N.groups"]])
+    out <- group_id_to_qg(out, n_groups = g[["N.groups"]], ordered = TRUE)
   }
   if (!as_qg && !order){
     out <- as.integer(out)
@@ -124,7 +124,8 @@ group_id.Interval <- function(data, ..., order = TRUE,
                       call = FALSE, return.groups = FALSE)
   out <- g[["group.id"]]
   if (as_qg){
-    out <- integer_to_qg(out, g[["N.groups"]])
+    out <- group_id_to_qg(out, n_groups = g[["N.groups"]],
+                          ordered = order)
   }
   out
 }
@@ -158,7 +159,8 @@ group_id.data.frame <- function(data, ...,
     n_groups <- g[["N.groups"]]
   }
   if (as_qg){
-    out <- integer_to_qg(out, n_groups)
+    out <- group_id_to_qg(out, n_groups = n_groups,
+                          ordered = order)
   }
   out
 }
@@ -174,7 +176,8 @@ group_id.grouped_df <- function(data, ...,
   if (n_dots == 0 && is.null(.cols) && order && ascending){
     out <- dplyr::group_indices(data)
     if (as_qg){
-      out <- integer_to_qg(out, nrow2(group_data(data)))
+      out <- group_id_to_qg(out, n_groups = nrow2(group_data(data)),
+                            ordered = order)
     }
   } else {
     group_info <- group_info(data, ..., .by = {{ .by }},
@@ -213,7 +216,7 @@ row_id <- function(data, ..., ascending = TRUE,
 }
 #' @export
 row_id.default <- function(data, ..., ascending = TRUE){
-  growid(safe_ungroup(data), ascending = ascending)
+  frowid(safe_ungroup(data), ascending = ascending)
 }
 #' @export
 row_id.data.frame <- function(data, ...,
@@ -235,7 +238,7 @@ row_id.data.frame <- function(data, ...,
               return.groups = FALSE, return.order = TRUE,
               call = FALSE)
   }
-  growid(data, g = g, ascending = ascending)
+  frowid(data, g = g, ascending = ascending)
 }
 #' @export
 row_id.grouped_df <- row_id.data.frame
@@ -372,7 +375,7 @@ qG2 <- function(x, sort = TRUE, na.exclude = FALSE, ...){
     if (na.exclude){
       setv(out, collapse::whichNA(x), NA_integer_, vind1 = TRUE)
     }
-    out <- integer_to_qg(out, g[["N.groups"]])
+    out <- group_id_to_qg(out, g[["N.groups"]])
   } else {
     out <- collapse::qG(x, sort = sort, na.exclude = na.exclude, ...)
   }
@@ -410,11 +413,44 @@ radixorderv2 <- function(x, ...){
   }
   collapse::radixorderv(x, ...)
 }
-integer_to_qg <- function(x, n_groups = NULL){
+group_id_to_qg <- function(x, n_groups = NULL, ordered = FALSE){
   if (is.null(n_groups)){
     n_groups <- collapse::fndistinct(x, na.rm = FALSE)
   }
   attr(x, "N.groups") <- n_groups
-  attr(x, "class") <- c("qG", "na.included")
+  if (ordered){
+    attr(x, "class") <- c("ordered", "qG", "na.included")
+  } else {
+    attr(x, "class") <- c("qG", "na.included")
+  }
   x
 }
+# group_id_to_GRP <- function(x, ordered = TRUE, return_order = FALSE){
+#   if (length(x) == 0L){
+#     g_sizes <- integer(0)
+#   } else {
+#     g_sizes <- collapse::fnobs(x, g = x, use.g.names = FALSE)
+#   }
+#   n_groups <- length(g_sizes)
+#   if (ordered){
+#     sorted <- !is.unsorted(x)
+#     # Placeholder
+#     # if (return_order){
+#     #
+#     # }
+#   } else {
+#     sorted <- NA
+#   }
+#   out <- list("N.groups" = n_groups,
+#               "group.id" = x,
+#               "group.sizes" = g_sizes,
+#               "groups" = NULL,
+#               "group.vars" = NULL,
+#               "ordered" = c("ordered" = ordered,
+#                             "sorted" = sorted),
+#               "order" = NULL,
+#               "group.starts" = NULL,
+#               "call" = NULL)
+#   class(out) <- "GRP"
+#   out
+# }

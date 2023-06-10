@@ -2,94 +2,98 @@
 % Please edit documentation in R/time_episodes.R
 \name{time_episodes}
 \alias{time_episodes}
-\title{Episodic calculation of time-to-event data}
+\title{Episodic calculation of time-since-event data}
 \usage{
 time_episodes(
   data,
-  ...,
   time,
-  window = 1,
-  by = NULL,
-  event_id = NULL,
+  window = 1L,
+  time_by = NULL,
+  event = NULL,
   type = c("auto", "duration", "period"),
-  .add = FALSE,
   .by = NULL
 )
 }
 \arguments{
 \item{data}{A data frame.}
 
-\item{...}{(Optional) Groups. This can for example be individual IDs.}
-
 \item{time}{Date or datetime variable to perform episodic window calculation.}
 
 \item{window}{Numeric variable defining the episode threshold.
-Must be greater than 0.
 Observations with a period >= window since the last observation
 are defined as a new episode.
+By default, every event is classed as a new episode, which can be useful
+when analysis time-since-event data. \cr
 A vector of window values may be supplied.}
 
-\item{by}{Time units used to calculate episode flags.
-If \code{by} is \code{NULL} then a heuristic will try and estimate the highest
+\item{time_by}{Time units used to calculate episode flags.
+If \code{time_by} is \code{NULL} then a heuristic will try and estimate the highest
 order time unit associated with the time variable.
 If specified, then by must be one of the three:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
-\code{by = "days"} or \code{by = "2 weeks"}
+\code{time_by = "days"} or \code{time_by = "2 weeks"}
 \item named list of length one, the unit being the name, and
 the number the value of the list, e.g. \code{list("days" = 7)}.
 For the vectorized time functions, you can supply multiple values,
 e.g. \code{list("days" = 1:10)}.
 \item Numeric vector. If by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{by = 1}.
+then arithmetic is used, e.g \code{time_by = 1}.
 This is also vectorized where applicable.
 }}
 
-\item{event_id}{\bold{Not currently used} \cr
-(Optional) Column that encodes which rows are the event,
-and which aren't. By default \code{time_episodes()}
+\item{event}{(Optional) List that encodes which rows are events,
+and which aren't.
+By default \code{time_episodes()}
 assumes every observation (row) is an event
 but this need not be the case. \cr
-\code{event_id} must be a named list of length 1 where the values of the
+\code{event} must be a named list of length 1 where the values of the
 list element represent the event. For example, if your events were coded as
-\code{0} and \code{1} in a variable named "event" where \code{1} represents the event,
-you would supply \code{event_id = list(event = 1)}.}
+\code{0} and \code{1} in a variable named "evt" where \code{1} represents the event,
+you would supply \code{event = list(evt = 1)}.}
 
-\item{type}{Time difference type, auto, duration, period.}
-
-\item{.add}{Should episodic variables be added to the data?
-If \code{FALSE} (the default),
-then only the relevant variables are returned, ordered by groups + time.
-If \code{TRUE}, the episodic variables are added to the original data,
-in the order of
-the original data.}
+\item{type}{Time difference type, auto, duration, period.
+With larger data, it is recommended to use \code{type = "duration"} for
+speed and efficiency.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
-Columns are specified using tidy-select.}
+Columns are specified using tidy-select.,}
+}
+\value{
+A \code{data.frame} in the same order as it was given.
 }
 \description{
 This function calculates episodic flag
 variables
 based on a pre-defined episode threshold of a chosen time unit.
-This can for example consist of a data frame of infections by date and thus
-new episodes can be seen as reinfections. \cr
+}
+\details{
+An example of episodic analysis can include disease infections over time
+where episodes can be seen as reinfections, where a reinfection is defined
+as a positive result after a pre-determined number of days since a
+subject's last positive result.
+
+To perform simple time-since-event analysis, set \code{window} to \code{0}, which is
+the default.
 
 4 Key variables will be calculated:
 \itemize{
-\item \bold{episode_id} - An integer variable signifying
+\item \bold{ep_id} - An integer variable signifying
 which episode each record/observation belongs to.
 This is an increasing integer starting at 1.
 In the infections scenario, 1 are positives within the
 first episode of infection,
 2 are positives within the second episode of infection.
-\item \bold{episode_id_group} - An integer variable signifying the first
-instance of each new episode for each group.
+\item \bold{ep_id_new} - An integer variable signifying the first
+instance of each episode.]
 This is an increasing integer starting at 0 where
-0 signifies between-episode observations and >= 1
+0 signifies within-episode observations and >= 1
 signifies each first instance of that episode.
-\item \bold{time_elapsed} - The time elapsed since each group's
-last observation. Time units are specified in the by argument.
-\item \bold{episode_start} - Start date/datetime of the episode.
+\item \bold{t_elapsed} - The time elapsed since the last episode.
+On the occurrence of a new episode, this will be the time since
+the previous episode.
+Time units are specified in the by argument.
+\item \bold{ep_start} - Start date/datetime of the episode.
 }
 
 \code{data.table} and \code{collapse} are used for speed and efficiency.
@@ -105,17 +109,18 @@ library(ggplot2)
 # that haven't seen departures or arrivals for a week
 
 events <- flights \%>\%
+  mutate(date = as_date(time_hour)) \%>\%
   group_by(origin, dest) \%>\%
-  time_episodes(time = time_hour, by = "week", window = 1)
+  time_episodes(date, time_by = "week", window = 1)
 episodes <- events \%>\%
-  filter(episode_id_group > 1)
-nrow(fdistinct(episodes, origin, dest)) # 54 origin-destinations
+  filter(ep_id_new > 1)
+nrow(fdistinct(episodes, origin, dest)) # 55 origin-destinations
 
 # As expected summer months saw the least number of
 # dry-periods
 episodes \%>\%
   ungroup() \%>\%
-  time_count(time = episode_start, by = "week", floor_date = TRUE) \%>\%
-  ggplot(aes(x = episode_start, y = n)) +
+  time_count(time = ep_start, by = "week", floor_date = TRUE) \%>\%
+  ggplot(aes(x = ep_start, y = n)) +
   geom_bar(stat = "identity")
 }

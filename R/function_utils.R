@@ -180,7 +180,7 @@ col_select_names <- function(data, ..., .cols = NULL){
 #   # Use the below for more consistency
 #   renamed <- is.na(match(out_nms, data_nms) != pos)
 #   renamed_pos <- pos[renamed]
-#   attr(data, "names")[renamed_pos] <- out_nms[renamed]
+#   names(data)[renamed_pos] <- out_nms[renamed]
 #   data
 # }
 col_rename <- function(data, .cols = integer(0)){
@@ -198,7 +198,7 @@ col_rename <- function(data, .cols = integer(0)){
   }
   pos_nms <- names(pos)
   renamed <- data_nms[pos] != pos_nms
-  attr(data, "names")[pos[renamed]] <- out_nms[renamed]
+  names(data)[pos[renamed]] <- out_nms[renamed]
   data
 }
 # col_select <- function(data, .cols){
@@ -644,6 +644,19 @@ tbl_append2 <- function(x, y,
   }
   z
 }
+set_bind_cols <- function(x, y,
+                          suffix = ".y"){
+  if (missing(y)) return(x)
+  x_nms <- names(x)
+  y_nms <- names(y)
+  common_cols <- intersect(x_nms, y_nms)
+  suffix <- rep_len(suffix, length(common_cols))
+  new_col_nms <- paste0(common_cols, suffix)
+  y_nms[y_nms %in% common_cols] <- new_col_nms
+  names(y) <- y_nms
+  data.table::set(x, j = y_nms, value = y)[]
+  # [, (y_nms) := y][]
+}
 # Fast top n
 top_n <- function(x, n, na.rm = FALSE, with_ties = TRUE, sort = TRUE){
   n <- min(length(x), n)
@@ -759,7 +772,7 @@ group_info <- function(data, ..., .by = NULL, .cols = NULL,
       extra_groups <- names(pos)
       renamed <- is.na(match(extra_groups, names(out)) != pos)
       renamed_pos <- pos[renamed]
-      attr(out, "names")[renamed_pos] <- extra_groups[renamed]
+      names(out)[renamed_pos] <- extra_groups[renamed]
     } else {
       extra_groups <- names(out)[pos]
     }

@@ -1,6 +1,6 @@
 #' Fast grouped row numbers
 #'
-#' @description `growid()` is like `data.table::rowid()` but uses
+#' @description `frowid()` is like `data.table::rowid()` but uses
 #' `collapse` for the grouping.
 #'
 #' For a more  tidyverse friendly version for data frames, see `?row_id`.
@@ -15,7 +15,7 @@
 #' decreasing order.
 #' @param length Sequence length.
 #' @details
-#' `gseq_len()`is the same as `growid()`
+#' `gseq_len()`is the same as `frowid()`
 #' but accepts similar arguments to `seq_len()` with
 #' an additional group argument. \cr
 #' Both produce the same thing, namely a running integer sequence for
@@ -35,27 +35,27 @@
 #' library(nycflights13)
 #'
 #' # Simple row numbers
-#' growid(flights, g = NULL)
+#' frowid(flights, g = NULL)
 #' # Row numbers by origin
-#' growid(flights, g = flights$origin)
+#' frowid(flights, g = flights$origin)
 #'
 #' # Fast duplicate rows
-#' growid(flights) > 1
+#' frowid(flights) > 1
 #'
 #' # On vectors, this is like base::seq_len()
-#' growid(flights$year, g = NULL)
+#' frowid(flights$year, g = NULL)
 #'
 #' # Comparison to rowidv()
 #' \dontrun{
 #'   bench::mark(rowidv(flights),
-#'               growid(flights))
+#'               frowid(flights))
 #' }
 #'
 #' # Comparison to dplyr
 #' flights %>%
 #'   mutate(id1 = row_number(),
 #'          .by = c(origin, dest)) %>%
-#'   mutate(id2 = growid(pick(origin, dest))) %>%
+#'   mutate(id2 = frowid(pick(origin, dest))) %>%
 #'   filter(id1 != id2)
 #'
 #' flights %>%
@@ -64,9 +64,9 @@
 #'   add_group_id(origin, dest) %>%
 #'   mutate(id2 = gseq_len(nrow(.), g = group_id)) %>%
 #'   filter(id1 != id2)
-#' @rdname growid
+#' @rdname frowid
 #' @export
-growid <- function(x, g, ascending = TRUE){
+frowid <- function(x, g, ascending = TRUE){
   len <- vec_length(x)
   if (missing(g)){
     g <- GRP2(x, sort = TRUE, call = FALSE, return.groups = FALSE,
@@ -81,18 +81,30 @@ growid <- function(x, g, ascending = TRUE){
     o <- NULL
     g <- GRP2(g, sort = TRUE, call = FALSE, return.groups = FALSE,
               return.order = TRUE)
-    if (!ascending){
-      o <- seq.int(from = len, to = 1L, by = -1L)
+    # If groups are sorted we can use sequence()
+    if (isTRUE(g[["ordered"]][["sorted"]])){
+      if (ascending){
+        out <- sequence2(g[["group.sizes"]])
+      } else {
+        out <- sequence2(g[["group.sizes"]],
+                         from = g[["group.sizes"]],
+                         by = -1L)
+      }
+
+    } else {
+      if (!ascending){
+        o <- seq.int(from = len, to = min(1L, len), by = -1L)
+      }
+      out <- fcumsum(seq_ones(len),
+                     na.rm = FALSE,
+                     check.o = FALSE,
+                     o = o,
+                     g = g)
     }
-    out <- fcumsum(seq_ones(len),
-                   na.rm = FALSE,
-                   check.o = FALSE,
-                   o = o,
-                   g = g)
   }
   out
 }
-#' @rdname growid
+#' @rdname frowid
 #' @export
 gseq_len <- function(length, g = NULL){
   if (is.null(g)){
