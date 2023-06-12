@@ -441,97 +441,97 @@ testthat::test_that("Testing time episodes", {
                                              window = 240) %>%
                                fcount(id2, ep_id,
                                       ep_id_new, ep_start))
-  # testthat::expect_identical(base1,
-  #                            flights %>%
-  #                              time_episodes(.by = id1, time = time_hour,
-  #                                            time_by = "hour",
-  #                                            window = 7,
-  #                                            .add = TRUE) %>%
-  #                              fcount(ep_id, ep_id_new))
-  # testthat::expect_identical(base2,
-  #                            flights %>%
-  #                              time_episodes(.by = id2, time = time_hour,
-  #                                            time_by = "hour",
-  #                                            window = 240,
-  #                                            .add = TRUE) %>%
-  #                              fcount(ep_id, ep_id_new))
-  # testthat::expect_identical(base3,
-  #                            flights %>%
-  #                              time_episodes(.by = id1, time = time_hour,
-  #                                            time_by = "hour",
-  #                                            window = 7,
-  #                                            .add = TRUE) %>%
-  #                              fcount(id1, ep_id,
-  #                                     ep_id_new, ep_start))
-  # testthat::expect_identical(base4,
-  #                            flights %>%
-  #                              time_episodes(.by = id2, time = time_hour,
-  #                                            time_by = "hour",
-  #                                            window = 240,
-  #                                            .add = TRUE) %>%
-  #                              fcount(id2, ep_id,
-  #                                     ep_id_new, ep_start))
-  # # Grouped
-  # testthat::expect_identical(base1,
-  #                            flights %>%
-  #                              time_episodes(.by = id1, time = time_hour,
-  #                                            time_by = "hour",
-  #                                            window = 7,
-  #                                            .add = TRUE) %>%
-  #                              fcount(ep_id, ep_id_new))
-  # testthat::expect_identical(base2,
-  #                            flights %>%
-  #                              time_episodes(.by = id2, time = time_hour,
-  #                                            time_by = "hour",
-  #                                            window = 240,
-  #                                            .add = TRUE) %>%
-  #                              fcount(ep_id, ep_id_new))
-  # testthat::expect_identical(base3,
-  #                            flights %>%
-  #                              time_episodes(.by = id1, time = time_hour,
-  #                                            time_by = "hour",
-  #                                            window = 7,
-  #                                            .add = TRUE) %>%
-  #                              fcount(id1, ep_id,
-  #                                     ep_id_new, ep_start))
-  # testthat::expect_identical(base4,
-  #                            flights %>%
-  #                              time_episodes(.by = id2, time = time_hour,
-  #                                            time_by = "hour",
-  #                                            window = 240,
-  #                                            .add = TRUE) %>%
-  #                              fcount(id2, ep_id,
-  #                                     ep_id_new, ep_start))
-  #
-  # # Check that the order hasn't changed with .add = TRUE
-  # testthat::expect_identical(flights$id,
-  #                            flights %>%
-  #                              time_episodes(.by = id1, time = time_hour,
-  #                                            time_by = "hour",
-  #                                            window = 7,
-  #                                            .add = TRUE) %>%
-  #                              dplyr::pull(id))
-  # testthat::expect_identical(flights$id,
-  #                            flights %>%
-  #                              time_episodes(.by = id2, time = time_hour,
-  #                                            time_by = "hour",
-  #                                            window = 240,
-  #                                            .add = TRUE) %>%
-  #                              dplyr::pull(id))
-  # testthat::expect_identical(flights$id,
-  #                            flights %>%
-  #                              time_episodes(.by = id1, time = time_hour,
-  #                                            time_by = "hour",
-  #                                            window = 7,
-  #                                            .add = TRUE) %>%
-  #                              dplyr::pull(id))
-  # testthat::expect_identical(flights$id,
-  #                            flights %>%
-  #                              time_episodes(.by = id2, time = time_hour,
-  #                                            time_by = "hour",
-  #                                            window = 240,
-  #                                            .add = TRUE) %>%
-  #                              dplyr::pull(id))
+  testthat::expect_identical(base1,
+                             flights %>%
+                               time_episodes(.by = id1, time = time_hour,
+                                             time_by = "hour",
+                                             window = 7,
+                                             .add = TRUE) %>%
+                               fcount(ep_id, ep_id_new))
+  testthat::expect_identical(base2,
+                             flights %>%
+                               time_episodes(.by = id2, time = time_hour,
+                                             time_by = "hour",
+                                             window = 240,
+                                             .add = TRUE) %>%
+                               fcount(ep_id, ep_id_new))
+  testthat::expect_identical(base3,
+                             flights %>%
+                               time_episodes(.by = id1, time = time_hour,
+                                             time_by = "hour",
+                                             window = 7,
+                                             .add = TRUE) %>%
+                               fcount(id1, ep_id,
+                                      ep_id_new, ep_start))
+  testthat::expect_identical(base4,
+                             flights %>%
+                               time_episodes(.by = id2, time = time_hour,
+                                             time_by = "hour",
+                                             window = 240,
+                                             .add = TRUE) %>%
+                               fcount(id2, ep_id,
+                                      ep_id_new, ep_start))
+  # Grouped
+  testthat::expect_identical(base1,
+                             flights %>%
+                               time_episodes(.by = id1, time = time_hour,
+                                             time_by = "hour",
+                                             window = 7,
+                                             .add = TRUE) %>%
+                               fcount(ep_id, ep_id_new))
+  testthat::expect_identical(base2,
+                             flights %>%
+                               time_episodes(.by = id2, time = time_hour,
+                                             time_by = "hour",
+                                             window = 240,
+                                             .add = TRUE) %>%
+                               fcount(ep_id, ep_id_new))
+  testthat::expect_identical(base3,
+                             flights %>%
+                               time_episodes(.by = id1, time = time_hour,
+                                             time_by = "hour",
+                                             window = 7,
+                                             .add = TRUE) %>%
+                               fcount(id1, ep_id,
+                                      ep_id_new, ep_start))
+  testthat::expect_identical(base4,
+                             flights %>%
+                               time_episodes(.by = id2, time = time_hour,
+                                             time_by = "hour",
+                                             window = 240,
+                                             .add = TRUE) %>%
+                               fcount(id2, ep_id,
+                                      ep_id_new, ep_start))
+
+  # Check that the order hasn't changed
+  testthat::expect_identical(flights$id,
+                             flights %>%
+                               time_episodes(.by = id1, time = time_hour,
+                                             time_by = "hour",
+                                             window = 7,
+                                             .add = TRUE) %>%
+                               dplyr::pull(id))
+  testthat::expect_identical(flights$id,
+                             flights %>%
+                               time_episodes(.by = id2, time = time_hour,
+                                             time_by = "hour",
+                                             window = 240,
+                                             .add = TRUE) %>%
+                               dplyr::pull(id))
+  testthat::expect_identical(flights$id,
+                             flights %>%
+                               time_episodes(.by = id1, time = time_hour,
+                                             time_by = "hour",
+                                             window = 7,
+                                             .add = TRUE) %>%
+                               dplyr::pull(id))
+  testthat::expect_identical(flights$id,
+                             flights %>%
+                               time_episodes(.by = id2, time = time_hour,
+                                             time_by = "hour",
+                                             window = 240,
+                                             .add = TRUE) %>%
+                               dplyr::pull(id))
   testthat::expect_identical(flights %>%
                                fslice(0) %>%
                                time_episodes(.by = id2, time = time_hour,

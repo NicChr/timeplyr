@@ -163,7 +163,7 @@ get_time_delay <- function(data, origin, end, by = "day",
   }
   q_prcnts <- round(probs * 100)
   q_nms <- paste0(rep_len("p", length(probs)), q_prcnts)
-  quantile_summary <- q_summary(out, .by = all_of(grp_nm),
+  quantile_summary <- q_summarise(out, .by = all_of(grp_nm),
                                 .cols = delay_nm, probs = probs,
                                 pivot = "wide", sort = TRUE)
   # Descriptive statistical summary

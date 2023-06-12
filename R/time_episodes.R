@@ -27,6 +27,11 @@
 #' * Numeric vector. If by is a numeric vector and x is not a date/datetime,
 #' then arithmetic is used, e.g `time_by = 1`.
 #' This is also vectorized where applicable.
+#' @param .add 	Should episodic variables be added to the data? \cr
+#' If `FALSE` (the default), then only the relevant variables are returned. \cr
+#' If `TRUE`, the episodic variables are added to the original data using
+#' `dplyr::bind_cols()`. \cr
+#' In both cases, the order of the data is unchanged.
 #' @param event (\bold{Optional}) List that encodes which rows are events,
 #' and which aren't.
 #' By default `time_episodes()`
@@ -99,6 +104,7 @@
 #' @export
 time_episodes <- function(data, time, window = 0L,
                           time_by = NULL,
+                          .add = FALSE,
                           event = NULL,
                           type = c("auto", "duration", "period"),
                           .by = NULL){
@@ -186,18 +192,26 @@ time_episodes <- function(data, time, window = 0L,
                 gid = grp_nm,
                 event = event_id_nm,
                 window = window_col)
-  # Newly added episodic columns
-  new_cols <- c("t_elapsed", "ep_start", "ep_id", "ep_id_new")
   # Remove window variable
   set_rm_cols(out, window_col)
+  # Newly added episodic columns
+  new_cols <- c("t_elapsed", "ep_start", "ep_id", "ep_id_new")
   # Sort by initial order
   setorderv2(out, cols = sort_nm)
   # Remove sort ID col
   set_rm_cols(out, sort_nm)
-  out_nms <- c(group_vars, time_col, event_col, new_cols)
-  # Set the column order
-  out <- fselect(out, .cols = out_nms)
-  df_reconstruct(out, data)
+  if (.add){
+    if (!window_col %in% start_nms){
+      # Remove window variable
+      data <- dplyr::dplyr_col_modify(data, cols = setnames(list(NULL), window_col))
+    }
+   dplyr::bind_cols(data, fselect(out, .cols = new_cols))
+  } else {
+    out_nms <- c(group_vars, time_col, event_col, new_cols)
+    # Set the column order
+    out <- fselect(out, .cols = out_nms)
+    df_reconstruct(out, data)
+  }
 }
 # Internal helper to calculate time episodes
 # Data must be sorted by groups + time

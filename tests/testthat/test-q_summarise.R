@@ -2,13 +2,13 @@ testthat::test_that("grouped quantile tests", {
   flights <- nycflights13::flights
   x <- unname(stats::quantile(flights$arr_delay, na.rm = TRUE))
   testthat::expect_error(flights %>%
-                           q_summary())
+                           q_summarise())
   testthat::expect_equal(flights %>%
-    q_summary(arr_delay, pivot = "long") %>%
+    q_summarise(arr_delay, pivot = "long") %>%
       dplyr::pull(arr_delay),
     x)
   testthat::expect_equal(flights %>%
-    q_summary(arr_delay) %>%
+    q_summarise(arr_delay) %>%
     unlist() %>%
     unname(),
     x)
@@ -19,7 +19,7 @@ testthat::test_that("grouped quantile tests", {
                        unname(stats::quantile(arr_delay, na.rm = TRUE,
                                        probs = seq(0, 1, 0.2)))),
   flights %>%
-    q_summary(arr_delay, .by = origin, sort = TRUE,
+    q_summarise(arr_delay, .by = origin, sort = TRUE,
               probs = seq(0, 1, 0.2),
               pivot = "long") %>%
     dplyr::select(origin, arr_delay) %>%
@@ -38,7 +38,7 @@ testthat::test_that("grouped quantile tests", {
                            transmute2(origin, .quantile = rep(q_nms, 3),
                                      arr_delay),
                          flights %>%
-                           q_summary(arr_delay, pivot = "long", .by = origin,
+                           q_summarise(arr_delay, pivot = "long", .by = origin,
                                      sort = FALSE) %>%
                            as.list() %>%
                            list_to_tibble()
@@ -53,7 +53,7 @@ testthat::test_that("grouped quantile tests", {
                            tidyr::pivot_wider(names_from = .quantile,
                                               values_from = arr_delay),
                          flights %>%
-                           q_summary(arr_delay, pivot = "wide", .by = origin,
+                           q_summarise(arr_delay, pivot = "wide", .by = origin,
                                      sort = FALSE) %>%
                            as.list() %>%
                            list_to_tibble()
@@ -61,7 +61,7 @@ testthat::test_that("grouped quantile tests", {
   testthat::expect_equal(
     flights %>%
       fslice(0) %>%
-      q_summary(arr_delay),
+      q_summarise(arr_delay),
     data.table::data.table(p0 = numeric(0),
                            p25 = numeric(0),
                            p50 = numeric(0),
@@ -71,7 +71,7 @@ testthat::test_that("grouped quantile tests", {
   testthat::expect_equal(
     flights %>%
       fslice(0) %>%
-      q_summary(arr_delay, pivot = "long"),
+      q_summarise(arr_delay, pivot = "long"),
     data.table::data.table(.quantile = q_nms)
   )
 })

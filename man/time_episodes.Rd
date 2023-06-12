@@ -9,6 +9,7 @@ time_episodes(
   time,
   window = 0L,
   time_by = NULL,
+  .add = FALSE,
   event = NULL,
   type = c("auto", "duration", "period"),
   .by = NULL
@@ -43,6 +44,12 @@ e.g. \code{list("days" = 1:10)}.
 then arithmetic is used, e.g \code{time_by = 1}.
 This is also vectorized where applicable.
 }}
+
+\item{.add}{Should episodic variables be added to the data? \cr
+If \code{FALSE} (the default), then only the relevant variables are returned. \cr
+If \code{TRUE}, the episodic variables are added to the original data using
+\code{dplyr::bind_cols()}. \cr
+In both cases, the order of the data is unchanged.}
 
 \item{event}{(\bold{Optional}) List that encodes which rows are events,
 and which aren't.

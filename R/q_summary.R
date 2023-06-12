@@ -1,4 +1,4 @@
-#' Fast grouped quantiles.
+#' Fast grouped quantile summary
 #'
 #' @description
 #' `collapse` and `data.table` are used for the calculations.
@@ -17,32 +17,32 @@
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
 #' @return A `data.table` containing the quantile values for each group.
-#' @seealso \link[timeplyr]{stat_summary}
+#' @seealso \link[timeplyr]{stat_summarise}
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
 #' # Standard quantiles
 #' iris %>%
-#'   q_summary(Sepal.Length)
+#'   q_summarise(Sepal.Length)
 #' # Quantiles by species
 #' iris %>%
-#'   q_summary(Sepal.Length, .by = Species)
+#'   q_summarise(Sepal.Length, .by = Species)
 #' # Quantiles by species across multiple columns
 #' iris %>%
-#'   q_summary(Sepal.Length, Sepal.Width,
+#'   q_summarise(Sepal.Length, Sepal.Width,
 #'             probs = c(0, 1),
 #'             .by = Species)
 #' # Long format if one desires, useful for ggplot2
 #' iris %>%
-#'   q_summary(Sepal.Length, pivot = "long",
+#'   q_summarise(Sepal.Length, pivot = "long",
 #'             .by = Species)
 #' # Example with lots of groups
 #' set.seed(20230606)
 #' df <- data.frame(x = rnorm(10^5),
 #'                  g = sample.int(10^5, replace = TRUE))
-#' q_summary(df, x, .by = g, sort = FALSE)
+#' q_summarise(df, x, .by = g, sort = FALSE)
 #' @export
-q_summary <- function(data, ...,
+q_summarise <- function(data, ...,
                       probs = seq(0, 1, 0.25),
                       type = 7L,
                       pivot = c("wide", "long"),
