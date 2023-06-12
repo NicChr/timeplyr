@@ -126,8 +126,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   }
   out[[name]] <- nobs
   if (sort){
-      out <- df_row_slice(out, radix_order(out[[name]],
-                                           decreasing = TRUE))
+    out <- farrange(out, desc(.data[[name]]))
   }
   df_reconstruct(out, data)
 }

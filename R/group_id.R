@@ -113,7 +113,7 @@ group_id.default <- function(data, ..., order = TRUE,
     out <- group_id_to_qg(out, n_groups = g[["N.groups"]], ordered = TRUE)
   }
   if (!as_qg && !order){
-    out <- as.integer(out)
+    out <- qg_to_integer(out)
   }
   out
 }
@@ -423,6 +423,11 @@ group_id_to_qg <- function(x, n_groups = NULL, ordered = FALSE){
   } else {
     attr(x, "class") <- c("qG", "na.included")
   }
+  x
+}
+# Efficiently convert qG to integer
+qg_to_integer <- function(x){
+  attributes(x) <- NULL
   x
 }
 # group_id_to_GRP <- function(x, ordered = TRUE, return_order = FALSE){

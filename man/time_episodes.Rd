@@ -7,7 +7,7 @@
 time_episodes(
   data,
   time,
-  window = 1L,
+  window = 0L,
   time_by = NULL,
   event = NULL,
   type = c("auto", "duration", "period"),
@@ -17,14 +17,16 @@ time_episodes(
 \arguments{
 \item{data}{A data frame.}
 
-\item{time}{Date or datetime variable to perform episodic window calculation.}
+\item{time}{Date or datetime variable to use for the episode calculation.
+Supply the variable using \code{tidyselect} notation.}
 
 \item{window}{Numeric variable defining the episode threshold.
 Observations with a period >= window since the last observation
 are defined as a new episode.
 By default, every event is classed as a new episode, which can be useful
 when analysis time-since-event data. \cr
-A vector of window values may be supplied.}
+A vector of window values may be supplied.
+Tidy \code{data-masking} applies.}
 
 \item{time_by}{Time units used to calculate episode flags.
 If \code{time_by} is \code{NULL} then a heuristic will try and estimate the highest
@@ -42,7 +44,7 @@ then arithmetic is used, e.g \code{time_by = 1}.
 This is also vectorized where applicable.
 }}
 
-\item{event}{(Optional) List that encodes which rows are events,
+\item{event}{(\bold{Optional}) List that encodes which rows are events,
 and which aren't.
 By default \code{time_episodes()}
 assumes every observation (row) is an event
@@ -57,7 +59,7 @@ With larger data, it is recommended to use \code{type = "duration"} for
 speed and efficiency.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
-Columns are specified using tidy-select.,}
+Columns are specified using \code{tidyselect}.}
 }
 \value{
 A \code{data.frame} in the same order as it was given.
@@ -83,9 +85,9 @@ which episode each record/observation belongs to.
 This is an increasing integer starting at 1.
 In the infections scenario, 1 are positives within the
 first episode of infection,
-2 are positives within the second episode of infection.
+2 are positives within the second episode of infection and so on.
 \item \bold{ep_id_new} - An integer variable signifying the first
-instance of each episode.]
+instance of each episode.
 This is an increasing integer starting at 0 where
 0 signifies within-episode observations and >= 1
 signifies each first instance of that episode.

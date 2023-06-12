@@ -48,14 +48,14 @@ farrange <- function(data, ..., .by = NULL, .by_group = FALSE,
   } else {
     order_vars <- dot_vars
   }
-  out_order <- as.integer(
-    radixorderv2(
-      collapse::fselect(group_info[["data"]], order_vars),
-      decreasing = FALSE, na.last = TRUE, starts = FALSE,
-      group.sizes = FALSE, sort = TRUE
-    )
+  out_order <- radixorderv2(
+    collapse::fselect(group_info[["data"]], order_vars),
+    decreasing = FALSE, na.last = TRUE, starts = FALSE,
+    group.sizes = FALSE, sort = TRUE
   )
-  if (!is.unsorted(out_order)){
+  sorted <- attr(out_order, "sorted")
+  attributes(out_order) <- NULL
+  if (isTRUE(sorted)){
     data
   } else {
     df_row_slice(data, out_order)
