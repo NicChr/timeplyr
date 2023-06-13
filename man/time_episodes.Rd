@@ -11,6 +11,7 @@ time_episodes(
   time_by = NULL,
   .add = FALSE,
   event = NULL,
+  roll_window = TRUE,
   type = c("auto", "duration", "period"),
   .by = NULL
 )
@@ -60,6 +61,15 @@ but this need not be the case. \cr
 list element represent the event. For example, if your events were coded as
 \code{0} and \code{1} in a variable named "evt" where \code{1} represents the event,
 you would supply \code{event = list(evt = 1)}.}
+
+\item{roll_window}{Logical.
+Should episodes be calculated using a rolling or fixed window?
+If \code{TRUE}, an amount of time must have passed (\verb{>= window})
+since the last event, with each effectively resetting the time at which
+you start counting. \cr
+If \code{FALSE}, the elapsed time is fixed and
+episodes are defined based on how much time has
+passed since the first episode.}
 
 \item{type}{Time difference type, auto, duration, period.
 With larger data, it is recommended to use \code{type = "duration"} for

@@ -41,6 +41,14 @@
 #' list element represent the event. For example, if your events were coded as
 #' `0` and `1` in a variable named "evt" where `1` represents the event,
 #' you would supply `event = list(evt = 1)`.
+#' @param roll_window Logical.
+#' Should episodes be calculated using a rolling or fixed window?
+#' If `TRUE`, an amount of time must have passed (`>= window`)
+#' since the last event, with each effectively resetting the time at which
+#' you start counting. \cr
+#' If `FALSE`, the elapsed time is fixed and
+#' episodes are defined based on how much time has
+#' passed since the first episode.
 #' @param type Time difference type, auto, duration, period.
 #' With larger data, it is recommended to use `type = "duration"` for
 #' speed and efficiency.
@@ -106,6 +114,7 @@ time_episodes <- function(data, time, window = 0L,
                           time_by = NULL,
                           .add = FALSE,
                           event = NULL,
+                          roll_window = TRUE,
                           type = c("auto", "duration", "period"),
                           .by = NULL){
   N <- nrow2(data)

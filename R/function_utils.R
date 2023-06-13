@@ -1421,6 +1421,24 @@ list_to_DT <- function(x){
     collapse::qDT(x[TRUE])
   }
 }
+# Faster (and stricter)
+fenframe <- function(x, name = "name", value = "value"){
+  if (!vctrs::vec_is(x) || is_df(x)){
+    stop("x must be a vector")
+  }
+  x_nms <- names(x)
+  if (is.null(x_nms)){
+    out <- list(unname(x))
+    names(out) <- name
+  } else {
+    out <- list(x_nms,
+                unname(x))
+    names(out) <- c(name, value)
+  }
+  attr(out, "class") <- c("tbl_df", "tbl", "data.frame")
+  attr(out, "row.names") <- .set_row_names(length(x))
+  out
+}
 as_DT <- function(x){
   if (inherits(x, "data.table")){
     x
@@ -1465,4 +1483,16 @@ check_range_sign <- function(x){
     stop("Can't mix negative and positive locations")
   }
   sign(out)
+}
+# Collapse/vctrs style complete rate
+prop_complete <- function(x){
+  1 - (fnmiss(x, use.g.names = FALSE) / vec_length(x))
+}
+pluck_row <- function(x, i = 1L, j = names(x)){
+  if (length(i) != 1L){
+    stop("i must be of length 1")
+  }
+  x <- collapse::ss(as_DT(x), i = i, j = j)
+  data.table::melt(x, measure.vars = names(x),
+                   value.name = "value")[["value"]]
 }

@@ -78,6 +78,7 @@ q_summarise <- function(data, ...,
       q_df <- data.table::as.data.table(q_df)
     } else {
       q_df <- data.table::data.table(.quantile = quantile_nms)
+      data.table::set(q_df, j = dot_vars, value = NA_real_)
     }
   } else {
     # out <- farrange(out, .cols = c(grp_nm, dot_vars))
