@@ -70,11 +70,11 @@ fskim <- function(data){
                   value = NA_character_)
   if (N > 0L && length(which_lgl) > 0){
     data.table::set(lgl_out, j = "n_missing",
-                    value = DT_pluck_row(lgl_data[, lapply(.SD, fnmiss)]))
+                    value = pluck_row(lgl_data[, lapply(.SD, fnmiss)]))
     data.table::set(lgl_out, j = "prop_complete",
-                    value = DT_pluck_row(lgl_data[, lapply(.SD, prop_complete)]))
+                    value = pluck_row(lgl_data[, lapply(.SD, prop_complete)]))
     data.table::set(lgl_out, j = "n_true",
-                    value = DT_pluck_row(lgl_data[, lapply(.SD, collapse::fsum)]))
+                    value = pluck_row(lgl_data[, lapply(.SD, collapse::fsum)]))
     data.table::set(lgl_out, j = "n_false",
                     value = N - lgl_out[["n_missing"]] - lgl_out[["n_true"]])
     data.table::set(lgl_out, j = "prop_true",
@@ -82,13 +82,13 @@ fskim <- function(data){
     data.table::set(lgl_out, j = "first", value = collapse::ffirst(lgl_data))
     data.table::set(lgl_out, j = "last", value = collapse::flast(lgl_data))
     data.table::set(lgl_out, j = "head",
-                    value = DT_pluck_row(lgl_data[, lapply(.SD,
+                    value = pluck_row(lgl_data[, lapply(.SD,
                                                            function(x){
                                                              paste(vec_head(x, n = 5),
                                                                    collapse = ", ")
                                                            })]))
     data.table::set(lgl_out, j = "tail",
-                    value = DT_pluck_row(lgl_data[, lapply(.SD,
+                    value = pluck_row(lgl_data[, lapply(.SD,
                                                            function(x){
                                                              paste(vec_tail(x, n = 5),
                                                                    collapse = ", ")
@@ -115,9 +115,9 @@ fskim <- function(data){
                   value = NA_character_)
   if (N > 0L && length(which_num) > 0){
     data.table::set(num_out, j = "n_missing",
-                    value = DT_pluck_row(num_data[, lapply(.SD, fnmiss)]))
+                    value = pluck_row(num_data[, lapply(.SD, fnmiss)]))
     data.table::set(num_out, j = "prop_complete",
-                    value = DT_pluck_row(num_data[, lapply(.SD, prop_complete)]))
+                    value = pluck_row(num_data[, lapply(.SD, prop_complete)]))
     data.table::set(num_out, j = "mean", value = collapse::fmean(num_data))
     # Add quantiles
     q_summary <- q_summarise(num_data, .cols = names(num_data),
@@ -126,7 +126,7 @@ fskim <- function(data){
     for (i in df_seq_along(q_summary, along = "rows")){
       data.table::set(num_out,
                       j = as.character(q_summary[[".quantile"]][i]),
-                      value = DT_pluck_row(fselect(q_summary,
+                      value = pluck_row(fselect(q_summary,
                                                    .cols = setdiff(names(q_summary),
                                                                    ".quantile")),
                                            i))
@@ -136,13 +136,13 @@ fskim <- function(data){
     data.table::set(num_out, j = "first", value = collapse::ffirst(num_data))
     data.table::set(num_out, j = "last", value = collapse::flast(num_data))
     data.table::set(num_out, j = "head",
-                    value = DT_pluck_row(num_data[, lapply(.SD,
+                    value = pluck_row(num_data[, lapply(.SD,
                                                            function(x){
                                                              paste(vec_head(x, n = 5),
                                                                    collapse = ", ")
                                                              })]))
     data.table::set(num_out, j = "tail",
-                    value = DT_pluck_row(num_data[, lapply(.SD,
+                    value = pluck_row(num_data[, lapply(.SD,
                                                            function(x){
                                                              paste(vec_tail(x, n = 5),
                                                                    collapse = ", ")
@@ -170,25 +170,25 @@ fskim <- function(data){
                   value = NA_character_)
   if (N > 0L && length(which_date) > 0){
     data.table::set(date_out, j = "n_missing",
-                    value = DT_pluck_row(date_data[, lapply(.SD, fnmiss)]))
+                    value = pluck_row(date_data[, lapply(.SD, fnmiss)]))
     data.table::set(date_out, j = "prop_complete",
-                    value = DT_pluck_row(date_data[, lapply(.SD, prop_complete)]))
+                    value = pluck_row(date_data[, lapply(.SD, prop_complete)]))
     data.table::set(date_out, j = "min",
-                    value = DT_pluck_row(date_data[, lapply(.SD, collapse::fmin)]))
+                    value = pluck_row(date_data[, lapply(.SD, collapse::fmin)]))
     data.table::set(date_out, j = "max",
-                    value = DT_pluck_row(date_data[, lapply(.SD, collapse::fmax)]))
+                    value = pluck_row(date_data[, lapply(.SD, collapse::fmax)]))
     data.table::set(date_out, j = "first",
-                    value = DT_pluck_row(date_data[, lapply(.SD, collapse::ffirst)]))
+                    value = pluck_row(date_data[, lapply(.SD, collapse::ffirst)]))
     data.table::set(date_out, j = "last",
-                    value = DT_pluck_row(date_data[, lapply(.SD, collapse::ffirst)]))
+                    value = pluck_row(date_data[, lapply(.SD, collapse::ffirst)]))
     data.table::set(date_out, j = "head",
-                    value = DT_pluck_row(date_data[, lapply(.SD,
+                    value = pluck_row(date_data[, lapply(.SD,
                                                            function(x){
                                                              paste(vec_head(x, n = 5),
                                                                    collapse = ", ")
                                                            })]))
     data.table::set(date_out, j = "tail",
-                    value = DT_pluck_row(date_data[, lapply(.SD,
+                    value = pluck_row(date_data[, lapply(.SD,
                                                            function(x){
                                                              paste(vec_tail(x, n = 5),
                                                                    collapse = ", ")
@@ -216,25 +216,25 @@ fskim <- function(data){
                   value = NA_character_)
   if (N > 0L && length(which_datetime) > 0){
     data.table::set(datetime_out, j = "n_missing",
-                    value = DT_pluck_row(datetime_data[, lapply(.SD, fnmiss)]))
+                    value = pluck_row(datetime_data[, lapply(.SD, fnmiss)]))
   data.table::set(datetime_out, j = "prop_complete",
-                  value = DT_pluck_row(datetime_data[, lapply(.SD, prop_complete)]))
+                  value = pluck_row(datetime_data[, lapply(.SD, prop_complete)]))
   data.table::set(datetime_out, j = "min",
-                  value = DT_pluck_row(datetime_data[, lapply(.SD, collapse::fmin)]))
+                  value = pluck_row(datetime_data[, lapply(.SD, collapse::fmin)]))
   data.table::set(datetime_out, j = "max",
-                  value = DT_pluck_row(datetime_data[, lapply(.SD, collapse::fmax)]))
+                  value = pluck_row(datetime_data[, lapply(.SD, collapse::fmax)]))
   data.table::set(datetime_out, j = "first",
-                  value = DT_pluck_row(datetime_data[, lapply(.SD, collapse::ffirst)]))
+                  value = pluck_row(datetime_data[, lapply(.SD, collapse::ffirst)]))
   data.table::set(datetime_out, j = "last",
-                  value = DT_pluck_row(datetime_data[, lapply(.SD, collapse::flast)]))
+                  value = pluck_row(datetime_data[, lapply(.SD, collapse::flast)]))
   data.table::set(datetime_out, j = "head",
-                  value = DT_pluck_row(datetime_data[, lapply(.SD,
+                  value = pluck_row(datetime_data[, lapply(.SD,
                                                          function(x){
                                                            paste(vec_head(x, n = 5),
                                                                  collapse = ", ")
                                                          })]))
   data.table::set(datetime_out, j = "tail",
-                  value = DT_pluck_row(datetime_data[, lapply(.SD,
+                  value = pluck_row(datetime_data[, lapply(.SD,
                                                          function(x){
                                                            paste(vec_tail(x, n = 5),
                                                                  collapse = ", ")
@@ -259,25 +259,25 @@ fskim <- function(data){
                   value = NA_character_)
   if (N > 0L && length(which_cat) > 0){
     data.table::set(cat_out, j = "n_missing",
-                    value = DT_pluck_row(cat_data[, lapply(.SD, fnmiss)]))
+                    value = pluck_row(cat_data[, lapply(.SD, fnmiss)]))
     data.table::set(cat_out, j = "prop_complete",
-                    value = DT_pluck_row(cat_data[, lapply(.SD, prop_complete)]))
+                    value = pluck_row(cat_data[, lapply(.SD, prop_complete)]))
     data.table::set(cat_out, j = "min",
-                    value = DT_pluck_row(cat_data[, lapply(.SD, collapse::fmin)]))
+                    value = pluck_row(cat_data[, lapply(.SD, collapse::fmin)]))
     data.table::set(cat_out, j = "max",
-                    value = DT_pluck_row(cat_data[, lapply(.SD, collapse::fmax)]))
+                    value = pluck_row(cat_data[, lapply(.SD, collapse::fmax)]))
     data.table::set(cat_out, j = "first",
-                    value = DT_pluck_row(cat_data[, lapply(.SD, collapse::ffirst)]))
+                    value = pluck_row(cat_data[, lapply(.SD, collapse::ffirst)]))
     data.table::set(cat_out, j = "last",
-                    value = DT_pluck_row(cat_data[, lapply(.SD, collapse::flast)]))
+                    value = pluck_row(cat_data[, lapply(.SD, collapse::flast)]))
     data.table::set(cat_out, j = "head",
-                    value = DT_pluck_row(cat_data[, lapply(.SD,
+                    value = pluck_row(cat_data[, lapply(.SD,
                                                            function(x){
                                                              paste(vec_head(x, n = 5),
                                                                    collapse = ", ")
                                                            })]))
     data.table::set(cat_out, j = "tail",
-                    value = DT_pluck_row(cat_data[, lapply(.SD,
+                    value = pluck_row(cat_data[, lapply(.SD,
                                                            function(x){
                                                              paste(vec_tail(x, n = 5),
                                                                    collapse = ", ")

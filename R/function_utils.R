@@ -7,14 +7,6 @@ frequencies <- function(x){
 is_strictly_increasing <- function(x){
   isTRUE(all(x == cummax(x)))
 }
-# Cumulative group sizes
-# grp_sizes_cumulative <- function(x){
-#   grp <- collapse::group(x, group.sizes = TRUE)
-#   grpn <- collapse::GRPN(grp, expand = FALSE)
-#   grpn_cum <- collapse::fcumsum(grpn, na.rm = FALSE)
-#   out <- grpn_cum[match(as.integer(grp), seq_len(length(grpn)))]
-#   out
-# }
 
 lump_categories <- function(x, n = 10, factor = TRUE,
                             sort = c("frequency", "values"),
@@ -74,11 +66,6 @@ n_unique <- function(x, na.rm = FALSE){
   } else {
     collapse::fndistinct(x, na.rm = na.rm)
   }
-  # out <- collapse::fnunique(x)
-  # if (na.rm && length(collapse::whichNA(x)) > 0L){
-  #   out <- out - 1L
-  # }
-  # out
 }
 
 is_length_one <- function(x){
@@ -160,29 +147,11 @@ col_select_pos <- function(data, .cols = character(0)){
   }
   out
 }
+# Tidyselect col names
 col_select_names <- function(data, ..., .cols = NULL){
   names(col_select_pos(data, ..., .cols = .cols))
 }
 # (Internal) Fast col rename
-# col_rename <- function(data, .cols = integer(0)){
-#   .cols <- .cols[nzchar(names(.cols))]
-#   out_nms <- names(.cols)
-#   if (length(out_nms) == 0L){
-#     return(data)
-#   }
-#   data_nms <- names(data)
-#   if (is.character(.cols)){
-#    pos <- setnames(match(.cols, data_nms),
-#                    out_nms)
-#   } else {
-#    pos <- .cols
-#   }
-#   # Use the below for more consistency
-#   renamed <- is.na(match(out_nms, data_nms) != pos)
-#   renamed_pos <- pos[renamed]
-#   names(data)[renamed_pos] <- out_nms[renamed]
-#   data
-# }
 col_rename <- function(data, .cols = integer(0)){
   .cols <- .cols[nzchar(names(.cols))]
   out_nms <- names(.cols)
@@ -201,16 +170,7 @@ col_rename <- function(data, .cols = integer(0)){
   names(data)[pos[renamed]] <- out_nms[renamed]
   data
 }
-# col_select <- function(data, .cols){
-#   out <- vector("list", length(.cols))
-#   for (i in seq_along(.cols)){
-#     out[[i]] <- collapse::ss(data, j = unname(.cols))
-#   }
-#   attributes(out)[names(attributes(out)) != "names"]  <-
-#     attributes(data)[names(attributes(out)) != "names"]
-#   names(out) <- names(.cols)
-#   out
-# }
+# Tidyselect col positions with names
 tidy_select_pos <- function(data, ..., .cols = NULL){
   data_nms <- names(data)
   check_cols(dots_length(...), .cols = .cols)
@@ -243,24 +203,6 @@ tidy_select_pos <- function(data, ..., .cols = NULL){
   }
   out
 }
-# tidy_select_pos <- function(data, ..., cols = NULL){
-#   data_nms <- names(data)
-#   # Method for when cols is supplied
-#   if (!is.null(cols)){
-#     return(col_select_pos(data, cols))
-#   }
-#   quo_select_info <- quo_select_info(enquos(...), data)
-#   quo_text <- quo_select_info[["quo_text"]]
-#   if (all(quo_select_info[["is_char_var"]])){
-#     out <- col_select_pos(data, quo_text)
-#   } else if (all(quo_select_info[["is_num_var"]])){
-#     out <- col_select_pos(data, as.double(quo_text))
-#   } else {
-#     out <- tidyselect::eval_select(rlang::expr(c(...)), data = data)
-#   }
-#   is_dup <- collapse::fduplicated(list(names(out), unname(out)))
-#   out[!is_dup]
-# }
 # Select variables utilising tidyselect notation
 tidy_select_names <- function(data, ..., .cols = NULL){
   names(tidy_select_pos(data, ..., .cols = .cols))
@@ -287,48 +229,6 @@ transmute2 <- function(data, ..., .by = NULL){
   collapse::fselect(out, c(group_vars, out_nms))
 }
 # mutate with a special case when all expressions are just selected columns.
-# mutate2 <- dplyr::mutate
-# mutate2 <- function(data, ..., .by = NULL,
-#                     .keep = c("all", "used", "unused", "none"),
-#                     .before = NULL,
-#                     .after = NULL){
-#   dots <- enquos(...)
-#   dot_nms <- names(dots)
-#   nes <- nzchar(dot_nms) # Non-empty string
-#   before_quo <- enquo(.before)
-#   after_quo <- enquo(.after)
-#   .keep <- rlang::arg_match0(.keep, c("all", "used", "unused", "none"))
-#   quos_info <- quos_expr_info(dots, data)
-#   expr_is_null <- quos_info[["is_null"]]
-#   expr_is_identity <- quos_info[["is_identity"]]
-#   expr_text <- quos_info[["text"]]
-#   if (any(expr_is_null) > 0){
-#     dots <- dots[!expr_is_null]
-#     expr_is_identity <- expr_is_identity[!expr_is_null]
-#     expr_text <- expr_text[!expr_is_null]
-#   }
-#   if (length(dots) == 0L || (
-#     !any(nes) &&
-#     all(expr_is_identity) &&
-#     .keep %in% c("all", "none") &&
-#     rlang::quo_is_null(before_quo) &&
-#     rlang::quo_is_null(after_quo))){
-#     if (.keep == "all"){
-#       data
-#     } else {
-#       group_vars <- get_groups(data, .by = {{ .by }})
-#       other_vars <- intersect(names(data), expr_text)
-#       other_vars <- setdiff(other_vars, group_vars)
-#       out_vars <- c(group_vars, other_vars)
-#       collapse::fselect(data, out_vars)
-#     }
-#   } else {
-#     dplyr::mutate(data, !!!dots, .keep = .keep,
-#                   .before = !!before_quo,
-#                   .after = !!after_quo,
-#                   .by = {{ .by }})
-#   }
-# }
 mutate2 <- function(data, ..., .by = NULL,
                     .keep = c("all", "used", "unused", "none"),
                     .before = NULL,
@@ -399,67 +299,6 @@ mutate2 <- function(data, ..., .by = NULL,
 #   inner_nms <- c(names(out1), names(out2))[out_order]
 #   out <- c(out1, out2)[out_order]
 #   out_lengths <- lengths(out)
-#   if (fix.names){
-#     final_nms <- character(length(out))
-#     for (i in seq_along(out)){
-#       if (outer_nms[[i]] == ""){
-#         final_nms[[i]] <- inner_nms[[i]]
-#       } else {
-#         final_nms[[i]] <- outer_nms[[i]]
-#       }
-#     }
-#     names(out) <- final_nms
-#   }
-#   out
-# }
-# summarise_list <- function(data, ..., fix.names = TRUE){
-#   if (inherits(data, "grouped_df")) data <- dplyr::ungroup(data)
-#   quo_list <- enquos(...)
-#   quo_exprs <- quo_exprs(quo_list)
-#   # Check for dots referencing exact cols (identity)
-#   out <- vector("list", length(quo_list))
-#   quo_nms <- expr_nms(quo_exprs)
-#   quo_identity <- quo_nms %in% names(data) & names(quo_list) == ""
-#   quo_identity_pos <- which(quo_identity)
-#   quo_data_nms <- quo_nms[quo_identity_pos]
-#   quo_other_pos <- which(!quo_identity)
-#   data_pos <- match(quo_data_nms, names(data))
-#   # Where expressions are identity function, just select
-#   for (i in seq_along(quo_identity_pos)){
-#     out[[quo_identity_pos[[i]]]] <- collapse::fselect(data, data_pos[[i]])
-#   }
-#   # For all other expressions, use reframe()
-#   out[quo_other_pos] <- lapply(quo_list[quo_other_pos],
-#                                function(quo) dplyr_summarise(data, !!quo))
-#   names(out) <- names(quo_nms)
-#   # Remove NULL entries
-#   out_sizes <- lengths(out, use.names = FALSE)
-#   if (all(out_sizes == 0)){
-#     return(setnames(list(), character(0)))
-#   }
-#   # The below code takes columns of data frame summaries
-#   # and flattens them into separate list elements basically.
-#   out <- out[out_sizes > 0]
-#   # Outer names
-#   outer_nms <- names(out)
-#   # Lengths of each list
-#   out_sizes <- lengths(out)
-#   # Expand list elements that have multiple elements
-#   which_less_than2 <- which(out_sizes < 2)
-#   which_greater_than1 <- which(out_sizes > 1)
-#   out1 <- out[which_less_than2]
-#   out2 <- out[which_greater_than1]
-#   out_order <- order(c(which_less_than2, rep(which_greater_than1,
-#                                              out_sizes[which_greater_than1])))
-#   outer_nms <- c(outer_nms[which_less_than2],
-#                  rep(outer_nms[which_greater_than1],
-#                      out_sizes[which_greater_than1]))[out_order]
-#   out2 <- unlist(out2, recursive = FALSE)
-#   out1 <- unlist(unname(out1), recursive = FALSE)
-#   inner_nms <- c(names(out1), names(out2))[out_order]
-#   out <- c(out1, out2)[out_order]
-#   out_lengths <- lengths(out)
-#   # Fix names so that list names are always output names and not empty
 #   if (fix.names){
 #     final_nms <- character(length(out))
 #     for (i in seq_along(out)){
@@ -644,6 +483,7 @@ tbl_append2 <- function(x, y,
   }
   z
 }
+# Data.table version of bind_cols, needs more work
 set_bind_cols <- function(x, y,
                           suffix = ".y"){
   if (missing(y)) return(x)
@@ -655,7 +495,6 @@ set_bind_cols <- function(x, y,
   y_nms[y_nms %in% common_cols] <- new_col_nms
   names(y) <- y_nms
   data.table::set(x, j = y_nms, value = y)[]
-  # [, (y_nms) := y][]
 }
 # Fast top n
 top_n <- function(x, n, na.rm = FALSE, with_ties = TRUE, sort = TRUE){
@@ -1247,52 +1086,10 @@ set_rm_cols <- function(DT, cols = NULL){
 qDT2 <- function(X){
   df_reconstruct(X, data.table::as.data.table(list()))
 }
-# quos_select_info <- function(quos, data){
-#   quo_nms <- names(quos)
-#   quo_text <- setnames(character(length(quos)), quo_nms)
-#   quo_is_null <- setnames(logical(length(quos)), quo_nms)
-#   for (i in seq_along(quos)){
-#     quo_text[[i]] <- rlang::expr_text(rlang::quo_get_expr(quos[[i]]))
-#     quo_is_null[[i]] <- rlang::quo_is_null(quos[[i]])
-#   }
-#   is_exact_col <- quo_text %in% names(data)
-#   # reg1 <- "^all_of\\(['\"](.*)['\"]\\)$"
-#   # # reg2 <- "^all_of\\(c\\(['\"](.*)['\"]\\)\\)$"
-#   # # reg3 <- "^all_of\\(c\\(['\"](?<!,)(.*)(?!,)['\"]\\)\\)$"
-#   # reg2 <- "^all_of\\((c\\(['\"].+['\"](?:, *['\"].+['\"])*\\))\\)$"
-#   # valid2 <- stringr::str_detect(quo_text, reg2)
-#   # valid1 <- stringr::str_detect(quo_text, reg1) &
-#   #   !valid2
-#   # sub(reg1, "\\1", quo_text[valid1])
-#   list(text = quo_text,
-#        is_null = quo_is_null,
-#        is_exact_col = is_exact_col)
-# }
-# quo info for data-masking type functions
-# quos_expr_info <- function(quos, data){
-#   quo_nms <- names(quos)
-#   expr_text <- setnames(character(length(quos)), quo_nms)
-#   expr_is_null <- setnames(logical(length(quos)), quo_nms)
-#   for (i in seq_along(quos)){
-#     expr_text[[i]] <- rlang::expr_name(rlang::quo_get_expr(quos[[i]]))
-#     expr_is_null[[i]] <- rlang::quo_is_null(quos[[i]])
-#   }
-#   expr_is_identity <- expr_text %in% names(data) & names(expr_is_null) == ""
-#   expr_is_null <- expr_is_null & names(expr_is_null) == ""
-#   list(text = expr_text,
-#        is_null = expr_is_null,
-#        is_identity = expr_is_identity)
-# }
 quo_null <- function(quos){
   vapply(quos, FUN = rlang::quo_is_null,
          FUN.VALUE = logical(1))
 }
-# quo_nms <- function(quos){
-#   vapply(quos,
-#          FUN = function(x) rlang::expr_name(rlang::quo_get_expr(x)),
-#          FUN.VALUE = character(1))
-#
-# }
 expr_nms <- function(exprs){
     vapply(exprs,
            FUN = rlang::expr_name,
@@ -1330,15 +1127,6 @@ check_cols <- function(n_dots, .cols = NULL){
     stop("Cannot supply variables through ... and .cols, use one argument.")
   }
 }
-# check_cols <- function(data, ..., .cols = NULL){
-#   n_dots <- dots_length(...)
-#   cols_null <- rlang::quo_is_null(enquo(.cols))
-#   out <- n_dots == 0 && !cols_null
-#   if (n_dots > 0 && !cols_null){
-#     stop("Specify variables through ... or .cols, not both.")
-#   }
-#   out
-# }
 # Quosure text/var check for select()
 # NULL is removed.
 quo_select_info <- function(quos, data){
@@ -1421,7 +1209,9 @@ list_to_DT <- function(x){
     collapse::qDT(x[TRUE])
   }
 }
-# Faster (and stricter)
+# Faster (and stricter) tibble::enframe
+# Turns named vector to 2-column data frame
+# or unnamed vector to 1-column data frame
 fenframe <- function(x, name = "name", value = "value"){
   if (!vctrs::vec_is(x) || is_df(x)){
     stop("x must be a vector")
@@ -1439,6 +1229,7 @@ fenframe <- function(x, name = "name", value = "value"){
   attr(out, "row.names") <- .set_row_names(length(x))
   out
 }
+# Convert to data table
 as_DT <- function(x){
   if (inherits(x, "data.table")){
     x
@@ -1488,11 +1279,15 @@ check_range_sign <- function(x){
 prop_complete <- function(x){
   1 - (fnmiss(x, use.g.names = FALSE) / vec_length(x))
 }
+# Pluck data frame row
 pluck_row <- function(x, i = 1L, j = names(x)){
   if (length(i) != 1L){
     stop("i must be of length 1")
   }
-  x <- collapse::ss(as_DT(x), i = i, j = j)
+  if (length(j) == 0L){
+    stop("length(j) must be >= 1")
+  }
+  x <- as_DT(collapse::ss(x, i = i, j = j))
   data.table::melt(x, measure.vars = names(x),
                    value.name = "value")[["value"]]
 }

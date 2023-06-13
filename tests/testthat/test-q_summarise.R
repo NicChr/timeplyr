@@ -72,7 +72,8 @@ testthat::test_that("grouped quantile tests", {
     flights %>%
       fslice(0) %>%
       q_summarise(arr_delay, pivot = "long"),
-    data.table::data.table(.quantile = q_nms)
+    data.table::data.table(.quantile = q_nms,
+                           arr_delay = NA_real_)
   )
 })
 
