@@ -1277,7 +1277,7 @@ check_range_sign <- function(x){
 }
 # Collapse/vctrs style complete rate
 prop_complete <- function(x){
-  1 - (fnmiss(x, use.g.names = FALSE) / vec_length(x))
+  1 - (fnmiss(x) / vec_length(x))
 }
 # Pluck data frame row
 pluck_row <- function(x, i = 1L, j = names(x)){

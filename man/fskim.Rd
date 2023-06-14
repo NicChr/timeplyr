@@ -4,10 +4,13 @@
 \alias{fskim}
 \title{Fast alternative to \code{skimr::skim()}}
 \usage{
-fskim(data)
+fskim(data, hist = FALSE)
 }
 \arguments{
 \item{data}{A data frame.}
+
+\item{hist}{Logical. If \code{TRUE}, histogram spark graphs are produced
+in the numeric summary.}
 }
 \value{
 A list of length 7 with the elements:
@@ -23,7 +26,13 @@ A list of length 7 with the elements:
 }
 \description{
 Inspired by the brilliant \code{skimr} package, this is a fast
-alternative that provides an un-grouped by-column data frame summary.
+alternative that provides an un-grouped data frame summary.
+}
+\details{
+\code{collapse} is used to compute the summary statistics and
+\code{data.table} is used to wrangle the data frames. \cr
+Character vectors are internally converted to factors using
+\code{collapse::qF()}.
 }
 \examples{
 library(timeplyr)
