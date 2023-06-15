@@ -1258,6 +1258,14 @@ GRP_starts <- function(GRP){
   }
   out
 }
+# Extract group order from GRP object safely
+GRP_order <- function(GRP){
+ out <- GRP[["order"]]
+ if (is.null(out)){
+   out <- collapse::radixorderv(GRP[["group.id"]])
+ }
+ out
+}
 # Making this because of a bug when gsplit(NULL, GRP(x, sort = FALSE))
 GRP_list_loc <- function(GRP){
   if (length(GRP[["group.id"]]) == 0L){

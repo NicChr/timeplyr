@@ -1040,3 +1040,126 @@ time_floor2 <- function(x, by, week_start = getOption("lubridate.week.start", 1)
     time_floor(x, by = setnames(list(1), names(by)), week_start = week_start)
   }
 }
+### Grouped time elapsed ###
+# Cumulatively how much time has passed since index time or previous time
+
+time_elapsed <- function(x, time_by = NULL, g = NULL,
+                         time_type = c("auto", "duration", "period"),
+                         rolling = FALSE, fill = 0){
+  time_by <- time_by_get(x, by = time_by, is_sorted = FALSE)
+  if (rolling){
+    if (is.null(g)){
+      gstarts <- min(1L, length(x))
+    } else {
+      # We need to sort by groups to use lags
+      g <- GRP2(g, sort = TRUE, return.groups = FALSE, return.order = TRUE)
+      gorder <- GRP_order(g)
+      g <- g[["group.id"]][gorder]
+      g <- collapse::GRP(g, return.groups = FALSE, return.order = FALSE)
+      gstarts <- GRP_starts(g)
+      # Sort x by groups, but keep within-group order
+      x <- x[gorder]
+    }
+    x_lag <- collapse::flag(x, n = min(1L, length(x)), g = g)
+    out <- time_diff(x_lag, x, by = time_by, type = time_type)
+    if (!is.na(fill)){
+      setv(out, gstarts, fill, vind1 = TRUE)
+    }
+    # Sort back to original order
+    if (!is.null(g)){
+      out <- out[collapse::radixorderv(gorder)]
+    }
+  } else {
+    # Index time
+    x_lag <- gfirst(x, g = g, na.rm = FALSE)
+    out <- time_diff(x_lag, x, by = time_by, type = time_type)
+  }
+  out
+}
+# This runs through x which should be positive-valued and increasing.
+# Once x >= threshold, a flag 1 is created and threshold is reset by adding x
+# to the initial threshold.
+# roll_time_threshold <- function(x, threshold = 1){
+#   out <- integer(length(x))
+#   if (length(threshold) != 1L){
+#     stop("threshold must be of length 1")
+#   }
+#   x_na <- is.na(x)
+#   init_threshold <- threshold
+#   for (i in seq_along(x)){
+#     if (!x_na[i] && x[i] >= threshold){
+#       setv(out, i, 1L, vind1 = TRUE)
+#       threshold <- init_threshold + x[i]
+#     }
+#   }
+#   # # Replace with NA
+#   setv(out, which(x_na), NA, vind1 = TRUE)
+#   out
+# }
+# roll_time_threshold <- function(x, threshold = 1){
+#   out <- integer(length(x))
+#   x_is_na <- is.na(x)
+#   which_not_na <- collapse::whichv(x_is_na, FALSE)
+#   # Replace NA
+#   setv(out, which(x_is_na), NA_integer_, vind1 = TRUE)
+#   init_threshold <- threshold
+#   # Skip over NA values
+#   for (i in which_not_na){
+#     if (x[i] >= threshold){
+#       setv(out, i, 1L, vind1 = TRUE)
+#       threshold <- init_threshold + x[i]
+#     }
+#   }
+#   out
+# }
+# roll_time_threshold <- function(x, threshold = 1){
+#   out <- integer(length(x))
+#   init_threshold <- threshold
+#   for (i in seq_along(x)){
+#     if (x[i] >= threshold){
+#       out[i] <- 1L
+#       threshold <- init_threshold + x[i]
+#     }
+#   }
+#   out
+# }
+
+# This is working but assumes x is a process that must be temporally increasing
+# i.e a time series
+# time_elapsed <- function(x, time_by = NULL, g = NULL,
+#                          rolling = FALSE,
+#                          type = c("auto", "duration", "period"),
+#                          is_sorted = FALSE){
+#   time_by <- time_by_get(x, by = time_by, is_sorted = is_sorted)
+#   if (rolling){
+#     if (is_sorted){
+#       # Lagged time
+#       x_lag <- collapse::flag(x, g = g, n = min(length(x), 1L))
+#       out <- time_diff(x_lag, x, by = time_by, type = type)
+#     } else {
+#       if (is.null(g)){
+#         gorder <- radixorderv2(x)
+#         gstarts <- min(1L, length(x))
+#       } else {
+#         g <- GRP2(g, return.groups = FALSE, return.order = TRUE)
+#         gorder <- radixorderv2(list(g[["group.id"]], x))
+#         g <- g[["group.id"]][gorder]
+#         gstarts <- GRP_starts(
+#           collapse::GRP(g, return.groups = FALSE, return.order = FALSE)
+#         )
+#       }
+#       x <- x[gorder]
+#       x_lag <- collapse::flag(x, n = min(1L, length(x)), g = g)
+#       out <- time_diff(x_lag, x, by = time_by, type = type)
+#       setv(out, gstarts, 0, vind1 = TRUE)
+#       out <- out[collapse::radixorderv(gorder)]
+#     }
+#   } else {
+#     # Index time
+#     x_lag <- gmin(x, g = g, na.rm = TRUE)
+#     out <- time_diff(x_lag, x, by = time_by, type = type)
+#   }
+#   out
+# }
+
+

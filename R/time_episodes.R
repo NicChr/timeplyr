@@ -7,13 +7,6 @@
 #' @param data A data frame.
 #' @param time Date or datetime variable to use for the episode calculation.
 #' Supply the variable using `tidyselect` notation.
-#' @param window Numeric variable defining the episode threshold.
-#' Observations with a period >= window since the last observation
-#' are defined as a new episode.
-#' By default, every event is classed as a new episode, which can be useful
-#' when analysis time-since-event data. \cr
-#' A vector of window values may be supplied.
-#' Tidy `data-masking` applies.
 #' @param time_by Time units used to calculate episode flags.
 #' If `time_by` is `NULL` then a heuristic will try and estimate the highest
 #' order time unit associated with the time variable.
@@ -27,6 +20,25 @@
 #' * Numeric vector. If by is a numeric vector and x is not a date/datetime,
 #' then arithmetic is used, e.g `time_by = 1`.
 #' This is also vectorized where applicable.
+#' @param window Numeric variable defining the episode threshold.
+#' When `rolling = TRUE` events with a
+#' `t_elapsed >= window` since the last event
+#' are defined as a new episode. \cr
+#' When `rolling = FALSE` events with a
+#' `t_elapsed >= window` since the first event of the corresponding episode
+#' are defined as a new episode. \cr
+#' By default, `window = 0` which assigns every event to a new episode.
+#' A vector of window values may be supplied.
+#' Tidy `data-masking` applies.
+#' @param roll_episode Logical.
+#' Should episodes be calculated using a rolling or fixed window?
+#' If `TRUE`, an amount of time must have passed (`>= window`)
+#' since the last event, with each new event
+#' effectively resetting the time at which
+#' you start counting. \cr
+#' If `FALSE`, the elapsed time is fixed and
+#' new episodes are defined based on how much time has
+#' passed since the first event of each episode.
 #' @param .add 	Should episodic variables be added to the data? \cr
 #' If `FALSE` (the default), then only the relevant variables are returned. \cr
 #' If `TRUE`, the episodic variables are added to the original data using
@@ -41,42 +53,42 @@
 #' list element represent the event. For example, if your events were coded as
 #' `0` and `1` in a variable named "evt" where `1` represents the event,
 #' you would supply `event = list(evt = 1)`.
-#' @param roll_window Logical.
-#' Should episodes be calculated using a rolling or fixed window?
-#' If `TRUE`, an amount of time must have passed (`>= window`)
-#' since the last event, with each effectively resetting the time at which
-#' you start counting. \cr
-#' If `FALSE`, the elapsed time is fixed and
-#' episodes are defined based on how much time has
-#' passed since the first episode.
-#' @param type Time difference type, auto, duration, period.
-#' With larger data, it is recommended to use `type = "duration"` for
+#' @param time_type Time type, either "auto", "duration" or "period".
+#' With larger data, it is recommended to use `time_type = "duration"` for
 #' speed and efficiency.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using `tidyselect`.
 #' @return
 #' A `data.frame` in the same order as it was given.
 #' @details
-#' An example of episodic analysis can include disease infections over time
-#' where episodes can be seen as reinfections, where a reinfection is defined
-#' as a positive result after a pre-determined number of days since a
-#' subject's last positive result.
+#' `time_episodes()` calculates the time elapsed (rolling or fixed) between
+#' successive events, and flags these events as episodes based on how much
+#' time has passed.
+#'
+#' An example of episodic analysis can include disease infections over time.
+#'
+#' In this example, a positive test result represents an \bold{event} and \cr
+#' a new infection represents a new \bold{episode}.
+#'
+#' It is assumed that after a pre-determined amount of time, a positive result
+#' represents a new episode of infection.
 #'
 #' To perform simple time-since-event analysis, set `window` to `0`, which is
 #' the default.
 #'
 #' 4 Key variables will be calculated:
 #' * \bold{ep_id} - An integer variable signifying
-#' which episode each record/observation belongs to.
-#' This is an increasing integer starting at 1.
+#' which episode each event belongs to. \cr
+#' Non-events are assigned `NA`. \cr
+#' `ep_id` is an increasing integer starting at 1.
 #' In the infections scenario, 1 are positives within the
 #' first episode of infection,
 #' 2 are positives within the second episode of infection and so on.
 #' * \bold{ep_id_new} - An integer variable signifying the first
 #' instance of each episode.
-#' This is an increasing integer starting at 0 where
+#' This is an increasing integer where
 #' 0 signifies within-episode observations and >= 1
-#' signifies each first instance of that episode.
+#' signifies the first instance of that numbered episode.
 #' * \bold{t_elapsed} - The time elapsed since the last episode.
 #' On the occurrence of a new episode, this will be the time since
 #' the previous episode.
@@ -110,12 +122,12 @@
 #'   ggplot(aes(x = ep_start, y = n)) +
 #'   geom_bar(stat = "identity")
 #' @export
-time_episodes <- function(data, time, window = 0L,
-                          time_by = NULL,
+time_episodes <- function(data, time, time_by = NULL,
+                          window = 0L,
+                          roll_episode = TRUE,
                           .add = FALSE,
                           event = NULL,
-                          roll_window = TRUE,
-                          type = c("auto", "duration", "period"),
+                          time_type = c("auto", "duration", "period"),
                           .by = NULL){
   N <- nrow2(data)
   start_nms <- names(data)
@@ -196,11 +208,12 @@ time_episodes <- function(data, time, window = 0L,
   # Calculation by reference (data.table set notation)
   calc_episodes(out, time = time_col,
                 time_by = time_by,
-                type = type,
+                time_type = time_type,
                 g = g,
                 gid = grp_nm,
                 event = event_id_nm,
-                window = window_col)
+                window = window_col,
+                roll_episode = roll_episode)
   # Remove window variable
   set_rm_cols(out, window_col)
   # Newly added episodic columns
@@ -227,45 +240,83 @@ time_episodes <- function(data, time, window = 0L,
 calc_episodes <- function(data,
                           time, # time col
                           time_by, # time unit (days, etc)
-                          type, # Type (duration/period)
+                          time_type, # time_type (duration/period)
                           g, # GRP object
                           gid, # group id col
                           event, # Event col
-                          window){ # Window col
+                          window, # Window col
+                          roll_episode){ # Should episode calc be rolling?
   N <- nrow2(data)
   lag <- min(N, 1L) # Bound lag to >= 0
+  time_na <- vctrs::vec_init(data[[time]]) # time NA with correct class
 
   ##### (More efficient) METHOD assuming all rows are events #####
 
   if (length(event) == 0L){
     roll_event_id_nm <- character(0)
-    time_lag_nm <- new_var_nm(data, "date_lag")
-    # Calculating elapsed time
+    time_lag_nm <- character(0)
+    # By-group row numbers
+    group_row_id_nm <- new_var_nm(data, "group_row_id")
     data.table::set(data,
-                    j = time_lag_nm,
-                    value = collapse::flag(data[[time]],
-                                           n = lag,
-                                           g = g))
-    # Time difference
-    data.table::set(data,
-                    j = "t_elapsed",
-                    value = time_diff(data[[time_lag_nm]], data[[time]],
-                                      by = time_by, type = type))
-    # Row IDs per subject
-    subject_row_id_nm <- new_var_nm(data, "subject_row_id")
-    data.table::set(data,
-                    j = subject_row_id_nm,
+                    j = group_row_id_nm,
                     value = frowid(g[["group.id"]], g = g))
-    # Binary variable indicating if new episode or not
-    new_episode_nm <- new_var_nm(data, "new_episode")
-    # The first event is always a new episode
-    # Events where t_elapsed >= window are new episodes
-    data.table::set(data,
-                    j = new_episode_nm,
-                    value = data.table::fifelse(
-                      data[[subject_row_id_nm]] == 1L |
-                        data[["t_elapsed"]] >=
-                        data[[window]], 1L, 0L))
+    if (roll_episode){
+      # Time elapsed
+      data.table::set(data,
+                      j = "t_elapsed",
+                      value = time_elapsed(data[[time]], g = g,
+                                           time_by = time_by,
+                                           fill = NA,
+                                           time_type = time_type,
+                                           rolling = TRUE))
+      # Binary variable indicating if new episode or not
+      new_episode_nm <- new_var_nm(data, "new_episode")
+      # The first event is always a new episode
+      # Events where t_elapsed >= window are new episodes
+      data.table::set(data,
+                      j = new_episode_nm,
+                      value = data.table::fifelse(
+                        data[[group_row_id_nm]] == 1L |
+                          data[["t_elapsed"]] >=
+                          data[[window]], 1L, 0L))
+    } else {
+      # First check that there is a unique threshold value for each group.
+      window_n <- data %>%
+        fselect(.cols = c(gid, window)) %>%
+        collapse::funique()
+      thresholds <- window_n[[window]]
+      if (nrow2(window_n) > n_unique(window_n[[gid]])){
+        stop("When roll_episode = FALSE, window must have a unique value per group")
+      }
+      # Time elapsed
+      data.table::set(data,
+                      j = "t_elapsed",
+                      value = time_elapsed(data[[time]], g = g,
+                                           time_by = time_by,
+                                           fill = NA,
+                                           time_type = time_type,
+                                           rolling = FALSE))
+      # Ensure that the time elapsed for first events is NA
+      which_first_event <- collapse::whichv(data[[group_row_id_nm]], 1L)
+      data.table::set(data,
+                      i = which_first_event,
+                      j = "t_elapsed",
+                      value = time_na)
+      # Binary variable indicating if new episode or not
+      new_episode_nm <- new_var_nm(data, "new_episode")
+      data[, (new_episode_nm) :=
+             lapply(.SD, function(x){
+               roll_time_threshold(x,
+                                   threshold = thresholds[.GRP])
+             }),
+           .SDcols = time,
+           by = gid]
+      # The first event is always a new episode
+      data.table::set(data,
+                      i = which_first_event,
+                      j = new_episode_nm,
+                      value = 1L)
+    }
     # Episode ID at record level
     data.table::set(data, j = "ep_id",
                     value = fcumsum(data[[new_episode_nm]],
@@ -293,8 +344,7 @@ calc_episodes <- function(data,
     ## This method needs a lot of improvement! ##
 
     time_lag_nm <- new_var_nm(data, "date_lag")
-    subject_row_id_nm <- character(0)
-    time_na <- vctrs::vec_init(data[[time]]) # time NA with correct class
+    group_row_id_nm <- character(0)
     is_event <- data[[event]] == 1L # Logical
     which_time_na <- collapse::whichNA(data[[time]]) # Which time are NA
     # Method:
@@ -306,7 +356,8 @@ calc_episodes <- function(data,
                                                 time_na))
     # NA fill the dates by group
     data[, (time_lag_nm) :=
-           vctrs::vec_fill_missing(.SD, direction = "down"),
+           lapply(.SD, function(x)
+             vctrs::vec_fill_missing(x, direction = "down")),
          .SDcols = time_lag_nm,
          by = gid]
     # Replace incorrectly filled time with NA
@@ -322,16 +373,31 @@ calc_episodes <- function(data,
                                                                n = lag,
                                                                g = g),
                                                 data[[time_lag_nm]]))
+    if (roll_episode){
+      # Time difference
+      data.table::set(data,
+                      j = "t_elapsed",
+                      value = time_diff(data[[time_lag_nm]], data[[time]],
+                                        by = time_by, type = time_type))
+    } else {
+      # Time difference
+      data.table::set(data,
+                      j = "t_elapsed",
+                      value = time_elapsed(data[[time]], g = g,
+                                           time_by = time_by,
+                                           time_type = time_type,
+                                           rolling = FALSE))
+    }
     # Cumulative sum of event ID
     roll_event_id_nm <- new_var_nm(data, ".event.rolling.id")
     data.table::set(data,
                     j = roll_event_id_nm,
                     value = fcumsum(data[[event]], g = g, na.rm = TRUE))
-    # Time difference
+    # Ensure that the time elapsed for first events is NA
     data.table::set(data,
+                    i = collapse::whichv(data[[roll_event_id_nm]], 1L),
                     j = "t_elapsed",
-                    value = time_diff(data[[time_lag_nm]], data[[time]],
-                                      by = time_by, type = type))
+                    value = time_na)
     # Binary variable indicating if new episode or not
     new_episode_nm <- new_var_nm(data, "new_episode")
     # The first event is always a new episode
@@ -371,7 +437,7 @@ calc_episodes <- function(data,
   }
   # Remove unnecessary cols
   set_rm_cols(data, c(time_lag_nm, event, roll_event_id_nm,
-                     subject_row_id_nm, new_episode_nm))
+                     group_row_id_nm, new_episode_nm))
 }
 
 # Faster but less readable code and less memory efficient.
@@ -403,9 +469,9 @@ calc_episodes <- function(data,
 #                     value = time_diff(data[[time_lag_nm]], data[[time]],
 #                                       by = time_by, type = type))
 #     # Row IDs per subject
-#     subject_row_id_nm <- new_var_nm(data, "subject_row_id")
+#     group_row_id_nm <- new_var_nm(data, "group_row_id")
 #     data.table::set(data,
-#                     j = subject_row_id_nm,
+#                     j = group_row_id_nm,
 #                     value = frowid(g[["group.id"]], g = g))
 #     # Binary variable indicating if new episode or not
 #     new_episode_nm <- new_var_nm(data, "new_episode")
@@ -414,7 +480,7 @@ calc_episodes <- function(data,
 #     data.table::set(data,
 #                     j = new_episode_nm,
 #                     value = data.table::fifelse(
-#                       data[[subject_row_id_nm]] == 1L |
+#                       data[[group_row_id_nm]] == 1L |
 #                         data[["t_elapsed"]] >=
 #                         data[[window]], 1L, 0L))
 #     # Episode ID at record level
@@ -444,7 +510,7 @@ calc_episodes <- function(data,
 #     ## This method needs a lot of improvement! ##
 #
 #     time_lag_nm <- new_var_nm(data, "date_lag")
-#     subject_row_id_nm <- character(0)
+#     group_row_id_nm <- character(0)
 #     time_na <- vctrs::vec_init(data[[time]]) # time NA with correct class
 #     is_event <- data[[event]] == 1L # Logical
 #     # Method:
@@ -470,14 +536,14 @@ calc_episodes <- function(data,
 #                                                                g = g),
 #                                                 data[[time_lag_nm]]))
 #     # Row IDs per subject
-#     subject_row_id_nm <- new_var_nm(data, "subject_row_id")
+#     group_row_id_nm <- new_var_nm(data, "group_row_id")
 #     data.table::set(data,
-#                     j = subject_row_id_nm,
+#                     j = group_row_id_nm,
 #                     value = frowid(g[["group.id"]], g = g))
 #
 #     # At row ID 1 for each subject, make the lagged time NA
 #     data.table::set(data,
-#                     i = collapse::whichv(data[[subject_row_id_nm]], 1L),
+#                     i = collapse::whichv(data[[group_row_id_nm]], 1L),
 #                     j = time_lag_nm,
 #                     value = time_na)
 #     # Number of total events by group
@@ -547,5 +613,5 @@ calc_episodes <- function(data,
 #   }
 #   # Remove unnecessary cols
 #   set_rm_cols(data, c(time_lag_nm, event, roll_event_id_nm,
-#                       subject_row_id_nm, new_episode_nm))
+#                       group_row_id_nm, new_episode_nm))
 # }

@@ -455,7 +455,7 @@ fspark_bar <- function(x){
   paste0(out, collapse = "")
 }
 # Fast skimr::inline_hist
-finline_hist <- function(x){
+finline_hist <- function(x, n_bins = 5L){
   if (length(x) < 1L){
    return(" ")
   }
@@ -468,8 +468,8 @@ finline_hist <- function(x){
   if (collapse::allv(collapse::na_rm(x), 0)){
     x <- x + 1
   }
-  hist_dt <- tabulate(cut(x, 8L, labels = FALSE),
-                      nbins = 8L)
+  hist_dt <- tabulate(cut(x, n_bins, labels = FALSE),
+                      nbins = n_bins)
   hist_dt <- hist_dt / max(hist_dt)
   fspark_bar(hist_dt)
 }

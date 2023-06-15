@@ -47,6 +47,7 @@
 #' @importFrom data.table :=
 #' @importFrom data.table .N
 #' @importFrom data.table .SD
+#' @importFrom data.table .GRP
 #' @importFrom dplyr .data
 #' @importFrom dplyr across
 #' @importFrom dplyr all_of

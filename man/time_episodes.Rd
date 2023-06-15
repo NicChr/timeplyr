@@ -7,12 +7,12 @@
 time_episodes(
   data,
   time,
-  window = 0L,
   time_by = NULL,
+  window = 0L,
+  roll_episode = TRUE,
   .add = FALSE,
   event = NULL,
-  roll_window = TRUE,
-  type = c("auto", "duration", "period"),
+  time_type = c("auto", "duration", "period"),
   .by = NULL
 )
 }
@@ -21,14 +21,6 @@ time_episodes(
 
 \item{time}{Date or datetime variable to use for the episode calculation.
 Supply the variable using \code{tidyselect} notation.}
-
-\item{window}{Numeric variable defining the episode threshold.
-Observations with a period >= window since the last observation
-are defined as a new episode.
-By default, every event is classed as a new episode, which can be useful
-when analysis time-since-event data. \cr
-A vector of window values may be supplied.
-Tidy \code{data-masking} applies.}
 
 \item{time_by}{Time units used to calculate episode flags.
 If \code{time_by} is \code{NULL} then a heuristic will try and estimate the highest
@@ -46,6 +38,27 @@ then arithmetic is used, e.g \code{time_by = 1}.
 This is also vectorized where applicable.
 }}
 
+\item{window}{Numeric variable defining the episode threshold.
+When \code{rolling = TRUE} events with a
+\code{t_elapsed >= window} since the last event
+are defined as a new episode. \cr
+When \code{rolling = FALSE} events with a
+\code{t_elapsed >= window} since the first event of the corresponding episode
+are defined as a new episode. \cr
+By default, \code{window = 0} which assigns every event to a new episode.
+A vector of window values may be supplied.
+Tidy \code{data-masking} applies.}
+
+\item{roll_episode}{Logical.
+Should episodes be calculated using a rolling or fixed window?
+If \code{TRUE}, an amount of time must have passed (\verb{>= window})
+since the last event, with each new event
+effectively resetting the time at which
+you start counting. \cr
+If \code{FALSE}, the elapsed time is fixed and
+new episodes are defined based on how much time has
+passed since the first event of each episode.}
+
 \item{.add}{Should episodic variables be added to the data? \cr
 If \code{FALSE} (the default), then only the relevant variables are returned. \cr
 If \code{TRUE}, the episodic variables are added to the original data using
@@ -62,17 +75,8 @@ list element represent the event. For example, if your events were coded as
 \code{0} and \code{1} in a variable named "evt" where \code{1} represents the event,
 you would supply \code{event = list(evt = 1)}.}
 
-\item{roll_window}{Logical.
-Should episodes be calculated using a rolling or fixed window?
-If \code{TRUE}, an amount of time must have passed (\verb{>= window})
-since the last event, with each effectively resetting the time at which
-you start counting. \cr
-If \code{FALSE}, the elapsed time is fixed and
-episodes are defined based on how much time has
-passed since the first episode.}
-
-\item{type}{Time difference type, auto, duration, period.
-With larger data, it is recommended to use \code{type = "duration"} for
+\item{time_type}{Time type, either "auto", "duration" or "period".
+With larger data, it is recommended to use \code{time_type = "duration"} for
 speed and efficiency.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
@@ -87,10 +91,17 @@ variables
 based on a pre-defined episode threshold of a chosen time unit.
 }
 \details{
-An example of episodic analysis can include disease infections over time
-where episodes can be seen as reinfections, where a reinfection is defined
-as a positive result after a pre-determined number of days since a
-subject's last positive result.
+\code{time_episodes()} calculates the time elapsed (rolling or fixed) between
+successive events, and flags these events as episodes based on how much
+time has passed.
+
+An example of episodic analysis can include disease infections over time.
+
+In this example, a positive test result represents an \bold{event} and \cr
+a new infection represents a new \bold{episode}.
+
+It is assumed that after a pre-determined amount of time, a positive result
+represents a new episode of infection.
 
 To perform simple time-since-event analysis, set \code{window} to \code{0}, which is
 the default.
@@ -98,16 +109,17 @@ the default.
 4 Key variables will be calculated:
 \itemize{
 \item \bold{ep_id} - An integer variable signifying
-which episode each record/observation belongs to.
-This is an increasing integer starting at 1.
+which episode each event belongs to. \cr
+Non-events are assigned \code{NA}. \cr
+\code{ep_id} is an increasing integer starting at 1.
 In the infections scenario, 1 are positives within the
 first episode of infection,
 2 are positives within the second episode of infection and so on.
 \item \bold{ep_id_new} - An integer variable signifying the first
 instance of each episode.
-This is an increasing integer starting at 0 where
+This is an increasing integer where
 0 signifies within-episode observations and >= 1
-signifies each first instance of that episode.
+signifies the first instance of that numbered episode.
 \item \bold{t_elapsed} - The time elapsed since the last episode.
 On the occurrence of a new episode, this will be the time since
 the previous episode.

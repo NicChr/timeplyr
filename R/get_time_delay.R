@@ -173,7 +173,7 @@ get_time_delay <- function(data, origin, end, by = "day",
                                            "mean", "sd"),
                                   sort = TRUE)
   delay_summary[, ("se") := get("sd")/sqrt(get("n"))]
-  delay_summary[, (q_nms) := quantile_summary[, (q_nms), with = FALSE]]
+  delay_summary[, (q_nms) := fselect(quantile_summary, .cols = q_nms)]
   delay_summary[, ("iqr") := get("p75") - get("p25")]
   if (length(group_vars) > 0L){
     delay_summary[grp_df, (group_vars) := mget(group_vars),
