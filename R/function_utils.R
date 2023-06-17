@@ -1240,21 +1240,27 @@ as_DT <- function(x){
     data.table::as.data.table(x)
   }
 }
-# Extract group starts from GRP object safely
+# Extract group starts from GRP object safely and efficiently
 GRP_starts <- function(GRP){
   out <- GRP[["group.starts"]]
   if (is.null(out)){
-    loc <- GRP_list_loc(GRP)
-    out <- as.integer(
-      unlist(
-        collapse::fmin(
-          loc,
-          use.g.names = FALSE,
-          na.rm = FALSE
+    if (GRP_is_sorted(GRP)){
+      GRP_sizes <- GRP[["group.sizes"]]
+      out <- collapse::fcumsum(c(rep_len(1L, min(length(GRP_sizes), 1L)),
+                                 GRP_sizes[-length(GRP_sizes)]))
+    } else {
+      loc <- GRP_list_loc(GRP)
+      out <- as.integer(
+        unlist(
+          collapse::fmin(
+            loc,
+            use.g.names = FALSE,
+            na.rm = FALSE
+          )
+          , use.names = FALSE, recursive = FALSE
         )
-        , use.names = FALSE, recursive = FALSE
       )
-    )
+    }
   }
   out
 }
@@ -1262,7 +1268,11 @@ GRP_starts <- function(GRP){
 GRP_order <- function(GRP){
  out <- GRP[["order"]]
  if (is.null(out)){
-   out <- collapse::radixorderv(GRP[["group.id"]])
+   if (GRP_is_sorted(GRP)){
+     out <- seq_along(GRP[["group.id"]])
+   } else {
+     out <- collapse::radixorderv(GRP[["group.id"]])
+   }
  }
  out
 }
@@ -1273,6 +1283,11 @@ GRP_list_loc <- function(GRP){
   } else {
    collapse::gsplit(NULL, g = GRP)
   }
+}
+# Logical is GRP sorted
+GRP_is_sorted <- function(GRP){
+  GRP_ordered <- GRP[["ordered"]]
+  isTRUE(GRP_ordered[names(GRP_ordered) == "sorted"])
 }
 # Check if signs are all equal
 # Special function to handle -0 selection
@@ -1298,4 +1313,23 @@ pluck_row <- function(x, i = 1L, j = names(x)){
   x <- as_DT(collapse::ss(x, i = i, j = j))
   data.table::melt(x, measure.vars = names(x),
                    value.name = "value")[["value"]]
+}
+# Base R version of purrr::pluck, alternative to [[
+fpluck <- function(x, .cols = NULL, .default = NULL){
+  if (is.null(.cols)){
+   return(x)
+  }
+  if (length(.cols) != 1L){
+    stop(".cols must have length 1")
+  }
+  if (is.numeric(.cols)){
+    icol <- match(.cols, seq_along(x))
+  } else {
+    icol <- match(.cols, names(x))
+  }
+  # If no match just return .default
+  if (is.na(icol)){
+    return(.default)
+  }
+  x[[icol]]
 }

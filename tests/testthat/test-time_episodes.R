@@ -544,4 +544,49 @@ testthat::test_that("Testing time episodes", {
                                             ep_id = integer(0),
                                             ep_id_new = integer(0)),
                                        row.names = integer(0), class = c("tbl_df", "tbl", "data.frame")))
+  set.seed(93)
+  x <- sample(1:500, 20, T)
+  g <- sample(1:2, 20, T)
+  x[sample.int(20, 7)] <- NA
+  names(x) <- g
+  df <- fenframe(x)
+
+  df <- df %>%
+    farrange(name, value) %>%
+    dplyr::mutate(telapsed1 = time_elapsed(value, time_by = 1, rolling = TRUE, g = name),
+                  telapsed2 = time_elapsed(value, time_by = 1, rolling = FALSE, g = name)) %>%
+    fgroup_by(name)
+
+  # Rolling
+  # When window = 100
+  # res is
+  df$res1 <- c(1, 2, 0, 0, 3, 0, NA, NA, NA, NA, NA,
+                1, 2, 0, 0, 3, 0, 0, NA, NA)
+  testthat::expect_equal(
+    df %>%
+      time_episodes(value, roll_episode = TRUE, window = 100, .add = TRUE) %>%
+      safe_ungroup() %>%
+      fcount(res1 == ep_id_new),
+    list_to_tibble(list("res1 == ep_id_new" = c(TRUE, NA),
+                        "n" = c(13L, 7L)))
+  )
+
+  # Fixed episode
+  # When window = 200
+  # res is
+  df$res2 <- c(1, 0, 2, 0, 0, 3, NA, NA, NA, NA, NA,
+                1, 0, 2, 0, 0, 0, 3, NA, NA)
+
+  testthat::expect_equal(
+    df %>%
+      time_episodes(value, roll_episode = FALSE, window = 200,
+                    .add = TRUE) %>%
+      safe_ungroup() %>%
+      fcount(res2 == ep_id_new),
+    list_to_tibble(list("res2 == ep_id_new" = c(TRUE, NA),
+                        "n" = c(13L, 7L)))
+  )
+
 })
+
+

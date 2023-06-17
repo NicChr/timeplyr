@@ -367,28 +367,28 @@ df_slice_prepare <- function(data, n, prop, .by = NULL, sort_groups = TRUE,
        "group_sizes" = group_sizes,
        "slice_sizes" = slice_sizes)
 }
-slice_info <- function(n, prop, default_n = 1L){
-  missing_n <- missing(n)
-  missing_prop <- missing(prop)
-  if (!missing_n && !missing_prop){
-    stop("Either n or prop must be supplied, not both.")
-  }
-  if (missing_n && missing_prop){
-    n <- default_n
-    type <- "n"
-    prop <- numeric(0)
-  }
-  if (!missing_n && missing_prop){
-    stopifnot(length(n) == 1L)
-    type <- "n"
-    prop <- numeric(0)
-  }
-  if (missing_n && !missing_prop){
-    stopifnot(length(prop) == 1L)
-    type <- "prop"
-    n <- integer(0)
-  }
-  list("n" = n,
-       "prop" = prop,
-       "type" = type)
-}
+# slice_info <- function(n, prop, default_n = 1L){
+#   missing_n <- missing(n)
+#   missing_prop <- missing(prop)
+#   if (!missing_n && !missing_prop){
+#     stop("Either n or prop must be supplied, not both.")
+#   }
+#   if (missing_n && missing_prop){
+#     n <- default_n
+#     type <- "n"
+#     prop <- numeric(0)
+#   }
+#   if (!missing_n && missing_prop){
+#     stopifnot(length(n) == 1L)
+#     type <- "n"
+#     prop <- numeric(0)
+#   }
+#   if (missing_n && !missing_prop){
+#     stopifnot(length(prop) == 1L)
+#     type <- "prop"
+#     n <- integer(0)
+#   }
+#   list("n" = n,
+#        "prop" = prop,
+#        "type" = type)
+# }

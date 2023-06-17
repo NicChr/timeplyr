@@ -10,6 +10,7 @@ time_episodes(
   time_by = NULL,
   window = 0L,
   roll_episode = TRUE,
+  fill = 0,
   .add = FALSE,
   event = NULL,
   time_type = c("auto", "duration", "period"),
@@ -51,13 +52,16 @@ Tidy \code{data-masking} applies.}
 
 \item{roll_episode}{Logical.
 Should episodes be calculated using a rolling or fixed window?
-If \code{TRUE}, an amount of time must have passed (\verb{>= window})
+If \code{TRUE} (the default), an amount of time must have passed (\verb{>= window})
 since the last event, with each new event
 effectively resetting the time at which
 you start counting. \cr
 If \code{FALSE}, the elapsed time is fixed and
-new episodes are defined based on how much time has
+new episodes are defined based on how much cumulative time has
 passed since the first event of each episode.}
+
+\item{fill}{Value to fill first time elapsed value. Only applicable when
+\code{roll_episode = TRUE}. Default is \code{0}.}
 
 \item{.add}{Should episodic variables be added to the data? \cr
 If \code{FALSE} (the default), then only the relevant variables are returned. \cr
@@ -86,13 +90,12 @@ Columns are specified using \code{tidyselect}.}
 A \code{data.frame} in the same order as it was given.
 }
 \description{
-This function calculates episodic flag
-variables
-based on a pre-defined episode threshold of a chosen time unit.
+This function assigns episodes to events
+based on a pre-defined threshold of a chosen time unit.
 }
 \details{
 \code{time_episodes()} calculates the time elapsed (rolling or fixed) between
-successive events, and flags these events as episodes based on how much
+successive events, and flags these events as episodes or not based on how much
 time has passed.
 
 An example of episodic analysis can include disease infections over time.
@@ -120,9 +123,9 @@ instance of each episode.
 This is an increasing integer where
 0 signifies within-episode observations and >= 1
 signifies the first instance of that numbered episode.
-\item \bold{t_elapsed} - The time elapsed since the last episode.
-On the occurrence of a new episode, this will be the time since
-the previous episode.
+\item \bold{t_elapsed} - The time elapsed since the last event. \cr
+When \code{roll_episode = FALSE}, this becomes the time elapsed since the
+first event of the current episode.
 Time units are specified in the by argument.
 \item \bold{ep_start} - Start date/datetime of the episode.
 }

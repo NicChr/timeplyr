@@ -1040,42 +1040,6 @@ time_floor2 <- function(x, by, week_start = getOption("lubridate.week.start", 1)
     time_floor(x, by = setnames(list(1), names(by)), week_start = week_start)
   }
 }
-### Grouped time elapsed ###
-# Cumulatively how much time has passed since index time or previous time
-
-time_elapsed <- function(x, time_by = NULL, g = NULL,
-                         time_type = c("auto", "duration", "period"),
-                         rolling = FALSE, fill = 0){
-  time_by <- time_by_get(x, by = time_by, is_sorted = FALSE)
-  if (rolling){
-    if (is.null(g)){
-      gstarts <- min(1L, length(x))
-    } else {
-      # We need to sort by groups to use lags
-      g <- GRP2(g, sort = TRUE, return.groups = FALSE, return.order = TRUE)
-      gorder <- GRP_order(g)
-      g <- g[["group.id"]][gorder]
-      g <- collapse::GRP(g, return.groups = FALSE, return.order = FALSE)
-      gstarts <- GRP_starts(g)
-      # Sort x by groups, but keep within-group order
-      x <- x[gorder]
-    }
-    x_lag <- collapse::flag(x, n = min(1L, length(x)), g = g)
-    out <- time_diff(x_lag, x, by = time_by, type = time_type)
-    if (!is.na(fill)){
-      setv(out, gstarts, fill, vind1 = TRUE)
-    }
-    # Sort back to original order
-    if (!is.null(g)){
-      out <- out[collapse::radixorderv(gorder)]
-    }
-  } else {
-    # Index time
-    x_lag <- gfirst(x, g = g, na.rm = FALSE)
-    out <- time_diff(x_lag, x, by = time_by, type = time_type)
-  }
-  out
-}
 # This runs through x which should be positive-valued and increasing.
 # Once x >= threshold, a flag 1 is created and threshold is reset by adding x
 # to the initial threshold.
