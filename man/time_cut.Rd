@@ -8,31 +8,37 @@
 time_cut(
   x,
   n = 5,
-  by = NULL,
+  time_by = NULL,
   from = NULL,
   to = NULL,
   fmt = NULL,
-  floor_date = FALSE,
+  time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   n_at_most = TRUE,
   as_factor = TRUE,
-  seq_type = c("auto", "duration", "period"),
+  time_type = c("auto", "duration", "period"),
   roll_month = "preday",
-  roll_dst = "pre"
+  roll_dst = "pre",
+  by = NULL,
+  seq_type = NULL,
+  floor_date = NULL
 )
 
 time_breaks(
   x,
   n = 5,
-  by = NULL,
+  time_by = NULL,
   from = NULL,
   to = NULL,
-  floor_date = FALSE,
+  time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   n_at_most = TRUE,
-  seq_type = c("auto", "duration", "period"),
+  time_type = c("auto", "duration", "period"),
   roll_month = "preday",
-  roll_dst = "pre"
+  roll_dst = "pre",
+  by = NULL,
+  seq_type = NULL,
+  floor_date = NULL
 )
 }
 \arguments{
@@ -40,20 +46,16 @@ time_breaks(
 
 \item{n}{The minimum number of breaks.}
 
-\item{by}{Argument to expand and summarise time series.
-If \code{by} is \code{NULL} then a heuristic will try and estimate the highest
-order time unit associated with the time variable.
-If specified, then by must be one of the three:
+\item{time_by}{Must be one of the three:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
-\code{by = "days"} or \code{by = "2 weeks"}
+\code{time_by = "days"} or \code{time_by = "2 weeks"}
 \item named list of length one, the unit being the name, and
 the number the value of the list, e.g. \code{list("days" = 7)}.
 For the vectorized time functions, you can supply multiple values,
 e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{by = 1}.
-This is also vectorized where applicable.
+\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
+then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
 \item{from}{Time series start date.}
@@ -63,7 +65,7 @@ This is also vectorized where applicable.
 \item{fmt}{(Optional) Date/datetime format for the factor labels.
 If supplied, this is passed to \code{format()}.}
 
-\item{floor_date}{Logical. Should the initial date be
+\item{time_floor}{Logical. Should the initial date/datetime be
 floored before building the sequence?}
 
 \item{week_start}{day on which week starts following ISO conventions - 1
@@ -76,22 +78,28 @@ otherwise at least n breaks are returned.}
 \item{as_factor}{Logical. If \code{TRUE} the output is an ordered factor.
 Setting this to \code{FALSE} is sometimes much faster.}
 
-\item{seq_type}{If "auto", \code{periods} are used for
-the time expansion when days, weeks, months or years are specified, and \code{durations}
-are used otherwise.}
-
 \item{roll_month}{Control how impossible dates are handled when
 month or year arithmetic is involved.
 Options are "preday", "boundary", "postday", "full" and "NA".
 See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
+
+\item{by}{\bold{Deprecated}. Use \code{time_by} instead}
+
+\item{seq_type}{\bold{Deprecated}. Use \code{time_type} instead.}
+
+\item{floor_date}{\bold{Deprecated}. Use \code{time_floor} instead.}
+
+\item{timetype}{If "auto", \code{periods} are used for
+the time expansion when days, weeks, months or years are specified,
+and \code{durations} are used otherwise.}
 }
 \description{
 \code{time_cut()} is very useful for plotting with dates and datetimes
 and always returns breaks of regular width. \cr
 To specify exact widths, similar to \code{ggplot2::cut_width()},
-supply \code{by} and \code{n = Inf}. \cr
+supply \code{time_by} and \code{n = Inf}. \cr
 \code{time_breaks()} is a helper that
 returns only the time breaks.
 

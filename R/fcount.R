@@ -98,7 +98,8 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   }
   out <- collapse::fselect(out, all_vars)
   if (is.null(name)) name <- new_n_var_nm(out)
-  out <- df_row_slice(out, GRP_starts(g), reconstruct = FALSE)
+  gstarts <- GRP_starts(g)
+  out <- df_row_slice(out, gstarts, reconstruct = FALSE)
   N <- nrow2(out)
   # Edge-case, not sure how to fix this
   if (N == 0L && length(all_vars) == 0L){

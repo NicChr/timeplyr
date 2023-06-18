@@ -8,7 +8,7 @@ get_time_delay(
   data,
   origin,
   end,
-  by = "day",
+  time_by = "days",
   min_delay = -Inf,
   max_delay = Inf,
   probs = c(0.25, 0.5, 0.75, 0.95),
@@ -16,6 +16,7 @@ get_time_delay(
   include_plot = TRUE,
   x_scales = "fixed",
   bw = "SJ",
+  by = NULL,
   ...
 )
 }
@@ -26,20 +27,16 @@ get_time_delay(
 
 \item{end}{End date variable.}
 
-\item{by}{Argument to expand and summarise time series.
-If \code{by} is \code{NULL} then a heuristic will try and estimate the highest
-order time unit associated with the time variable.
-If specified, then by must be one of the three:
+\item{time_by}{Must be one of the three:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
-\code{by = "days"} or \code{by = "2 weeks"}
+\code{time_by = "days"} or \code{time_by = "2 weeks"}
 \item named list of length one, the unit being the name, and
 the number the value of the list, e.g. \code{list("days" = 7)}.
 For the vectorized time functions, you can supply multiple values,
 e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{by = 1}.
-This is also vectorized where applicable.
+\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
+then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
 \item{min_delay}{The minimum acceptable delay,
@@ -68,6 +65,8 @@ The default has been set to "SJ" which implements the Sheather & Jones (1991) me
 as recommended by the R team \code{?stats::density}.
 This differs from the default implemented by \code{stats::density()}
 which uses Silverman's rule-of-thumb.}
+
+\item{by}{\bold{Deprecated}. Use \code{time_by} instead}
 
 \item{...}{Further arguments to be passed on to \code{ggplot2::geom_density()}.}
 }
@@ -99,7 +98,7 @@ ebola_linelist <- outbreaks::ebola_sim_clean$linelist
 inc_distr_days <- ebola_linelist \%>\%
   get_time_delay(date_of_infection,
                  date_of_onset,
-                 by = "days")
+                 time_by = "days")
 head(inc_distr_days$data) # Data with calculated delay
 inc_distr_days$unit # # Specified time unit
 inc_distr_days$num # # Specified time unit size
@@ -111,7 +110,7 @@ inc_distr_days$plot # Plot of distribution
 ebola_linelist \%>\%
   get_time_delay(date_of_infection,
                  date_of_onset,
-                 by = "day",
+                 time_by = "day",
                  bw = "nrd") \%>\% # Scott's rule-of-thumb, normality assumption
   pluck("plot")
 
@@ -119,7 +118,7 @@ ebola_linelist \%>\%
 inc_distr_weeks <- ebola_linelist \%>\%
   get_time_delay(date_of_infection,
                  date_of_onset,
-                 by = "weeks")
+                 time_by = "weeks")
 inc_distr_weeks$plot
 
 # Similar distribution by gender
@@ -127,7 +126,7 @@ ebola_linelist \%>\%
   group_by(gender) \%>\%
   get_time_delay(date_of_infection,
                  date_of_onset,
-                 by = "day",
+                 time_by = "day",
                  include_plot = FALSE) \%>\%
   pluck("summary")
 
@@ -136,7 +135,7 @@ ebola_linelist \%>\%
   group_by(outcome) \%>\%
   get_time_delay(date_of_onset,
                  date_of_hospitalisation,
-                 by = "days",
+                 time_by = "days",
                  include_plot = FALSE) \%>\%
   pluck("summary")
 
@@ -147,7 +146,7 @@ mers_cases <- outbreaks::mers_korea_2015$linelist
 # Reporting delay
 mers_cases \%>\%
   get_time_delay(dt_onset, dt_report,
-                 by = "days",
+                 time_by = "days",
                  include_plot = FALSE) \%>\%
   pluck("summary")  # Mean of ~ 6 days
 }

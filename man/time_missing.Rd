@@ -2,59 +2,43 @@
 % Please edit documentation in R/time_missing.R
 \name{time_missing}
 \alias{time_missing}
-\alias{time_missing.default}
-\alias{time_missing.Date}
-\alias{time_missing.POSIXt}
-\alias{time_missing.numeric}
-\alias{time_missing.integer}
-\alias{time_missing.data.frame}
 \alias{missing_dates}
+\alias{n_missing_dates}
 \alias{n_time_missing}
-\title{Check for missing dates or datetimes in a regular time sequence}
+\title{Check for missing dates or datetimes}
 \usage{
-time_missing(data, by = NULL)
+time_missing(x, time_by = NULL, na.rm = TRUE)
 
-\method{time_missing}{default}(data, by = NULL)
+missing_dates(x, na.rm = TRUE)
 
-\method{time_missing}{Date}(data, by = NULL)
+n_missing_dates(x, na.rm = TRUE)
 
-\method{time_missing}{POSIXt}(data, by = NULL)
-
-\method{time_missing}{numeric}(data, by = NULL)
-
-\method{time_missing}{integer}(data, by = NULL)
-
-\method{time_missing}{data.frame}(data, by = NULL)
-
-missing_dates(data)
-
-n_time_missing(data, by = NULL)
+n_time_missing(x, time_by = NULL, na.rm = TRUE)
 }
 \arguments{
-\item{data}{A date or datetime vector or data frame.}
+\item{x}{A date or datetime vector, list, or data frame.}
 
-\item{by}{Argument to expand and summarise time series.
-If \code{by} is \code{NULL} then a heuristic will try and estimate the highest
-order time unit associated with the time variable.
-If specified, then by must be one of the three:
+\item{time_by}{Must be one of the three:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
-\code{by = "days"} or \code{by = "2 weeks"}
+\code{time_by = "days"} or \code{time_by = "2 weeks"}
 \item named list of length one, the unit being the name, and
 the number the value of the list, e.g. \code{list("days" = 7)}.
 For the vectorized time functions, you can supply multiple values,
 e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{by = 1}.
-This is also vectorized where applicable.
+\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
+then arithmetic is used, e.g \code{time_by = 1}.
 }}
+
+\item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
 }
 \description{
-\code{missing_dates()} checks for missing dates, between
-the first and last date of a date/datetime vector whereas
+\code{missing_dates()} returns missing dates between
+the first and last date of a date/datetime vector.
+
 \code{time_missing()} checks for missing gaps in time for any date or datetime
 sequence, and so is more general. Specify the time unit increment
-through \code{by}.
+through \code{time_by}.
 }
 \examples{
 library(timeplyr)
@@ -64,11 +48,11 @@ library(nycflights13)
 
 missing_dates(flights$time_hour)
 time_missing(flights$time_hour)
-time_missing(flights$time_hour, by = "hour")
-#'
+time_missing(flights$time_hour, "hours")
+
 # Missing dates by origin and dest
 flights \%>\%
   mutate(date = as_date(time_hour)) \%>\%
   group_by(origin, dest) \%>\%
-  summarise(n_missing = n_time_missing(date))
+  summarise(n_missing = n_missing_dates(date))
 }

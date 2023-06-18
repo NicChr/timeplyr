@@ -635,7 +635,7 @@ df_reconstruct <- function(data, template){
   if (identical(inherits(template, c("data.table", "data.frame"), which = TRUE),
                 c(1L, 2L))){
     attr(data, "groups") <- NULL
-    return(list_to_DT(safe_ungroup(data)))
+    return(as_DT(data))
   }
   if (inherits(template, "grouped_df")){
     template_groups <- setdiff(names(template_attrs[["groups"]]), ".rows")
@@ -663,9 +663,9 @@ df_reconstruct <- function(data, template){
                               sort = TRUE, decreasing = FALSE, na.last = TRUE,
                               return.order = FALSE,
                               return.groups = TRUE, call = FALSE)
-        groups <- list_to_tibble(as.list(g[["groups"]]))
+        groups <- GRP_group_data(g)
       }
-      groups[[".rows"]] <- collapse::gsplit(NULL, g = g)
+      groups[[".rows"]] <- GRP_loc(g)
       attributes(groups[[".rows"]]) <- attributes(template_attrs[["groups"]][[".rows"]])
       for (a in setdiff(names(attributes(groups)),
                         c("row.names", "class", "names"))){
@@ -959,10 +959,12 @@ vec_length <- function(x){
     if (is_df(x)){
       out <- nrow2(x)
     } else {
-      # out <- collapse::fnrow(x)
-      out <- unique(collapse::vlengths(x, use.names = FALSE))
-      if (length(out) > 1L){
+      out <- collapse::vlengths(x, use.names = FALSE)
+      nunique <- collapse::fnunique(out)
+      if (nunique > 1L){
         stop("x must be a vector, matrix, data frame or list with equal lengths")
+      } else {
+        out <- out[nunique]
       }
       # stopifnot(isTRUE(n_unique(lens) <= 1))
       # out <- vec_head(lens, n = 1L)
@@ -1194,7 +1196,11 @@ conditional_sort <- function(x){
 # Cannot contain duplicate names, NULL elements,
 # or different length list elements
 list_to_tibble <- function(x){
-  N <- collapse::fnrow(x)
+  if (is_df(x)){
+    N <- nrow2(x)
+  } else {
+    N <- collapse::fnrow(x)
+  }
   attr(x, "class") <- c("tbl_df", "tbl", "data.frame")
   attr(x, "row.names") <- .set_row_names(N)
   x
@@ -1232,62 +1238,13 @@ fenframe <- function(x, name = "name", value = "value"){
 # Convert to data table
 as_DT <- function(x){
   if (inherits(x, "data.table")){
-    x
+    x[TRUE]
   } else if (inherits(x, "data.frame") &&
              collapse::fncol(x) > 0L){
     collapse::qDT(x[TRUE])
   } else {
     data.table::as.data.table(x)
   }
-}
-# Extract group starts from GRP object safely and efficiently
-GRP_starts <- function(GRP){
-  out <- GRP[["group.starts"]]
-  if (is.null(out)){
-    if (GRP_is_sorted(GRP)){
-      GRP_sizes <- GRP[["group.sizes"]]
-      out <- collapse::fcumsum(c(rep_len(1L, min(length(GRP_sizes), 1L)),
-                                 GRP_sizes[-length(GRP_sizes)]))
-    } else {
-      loc <- GRP_list_loc(GRP)
-      out <- as.integer(
-        unlist(
-          collapse::fmin(
-            loc,
-            use.g.names = FALSE,
-            na.rm = FALSE
-          )
-          , use.names = FALSE, recursive = FALSE
-        )
-      )
-    }
-  }
-  out
-}
-# Extract group order from GRP object safely
-GRP_order <- function(GRP){
- out <- GRP[["order"]]
- if (is.null(out)){
-   if (GRP_is_sorted(GRP)){
-     out <- seq_along(GRP[["group.id"]])
-   } else {
-     out <- collapse::radixorderv(GRP[["group.id"]])
-   }
- }
- out
-}
-# Making this because of a bug when gsplit(NULL, GRP(x, sort = FALSE))
-GRP_list_loc <- function(GRP){
-  if (length(GRP[["group.id"]]) == 0L){
-    list()
-  } else {
-   collapse::gsplit(NULL, g = GRP)
-  }
-}
-# Logical is GRP sorted
-GRP_is_sorted <- function(GRP){
-  GRP_ordered <- GRP[["ordered"]]
-  isTRUE(GRP_ordered[names(GRP_ordered) == "sorted"])
 }
 # Check if signs are all equal
 # Special function to handle -0 selection
@@ -1303,16 +1260,28 @@ prop_complete <- function(x){
   1 - (fnmiss(x) / vec_length(x))
 }
 # Pluck data frame row
-pluck_row <- function(x, i = 1L, j = names(x)){
+pluck_row <- function(x, i = 1L, j = collapse::seq_col(x),
+                      use.names = TRUE){
   if (length(i) != 1L){
     stop("i must be of length 1")
+  }
+  if (sign(i) < 0L){
+    stop("i must be >= 0")
   }
   if (length(j) == 0L){
     stop("length(j) must be >= 1")
   }
-  x <- as_DT(collapse::ss(x, i = i, j = j))
-  data.table::melt(x, measure.vars = names(x),
-                   value.name = "value")[["value"]]
+  x <- collapse::ss(x, i = i, j = j)
+  out <- data.table::melt(as_DT(x), measure.vars = names(x),
+                          value.name = "value")[["value"]]
+  if (use.names){
+    if (length(out) == 0L){
+      names(out) <- character(0)
+    } else {
+      names(out) <- names(x)
+    }
+  }
+  out
 }
 # Base R version of purrr::pluck, alternative to [[
 fpluck <- function(x, .cols = NULL, .default = NULL){

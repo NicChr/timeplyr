@@ -18,7 +18,6 @@
 #' e.g. `list("days" = 1:10)`.
 #' * Numeric vector. If by is a numeric vector and x is not a date/datetime,
 #' then arithmetic is used, e.g `time_by = 1`.
-#' This is also vectorized where applicable.
 #' @param window Numeric variable defining the episode threshold.
 #' When `rolling = TRUE` events with a
 #' `t_elapsed >= window` since the last event

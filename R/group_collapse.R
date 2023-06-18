@@ -79,13 +79,14 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
             return.order = order || loc,
             method = "auto",
             call = FALSE)
-  out <- list_to_tibble(as.list(g[["groups"]]))
+  out <- GRP_group_data(g)
   if (id){
-    out[[".group"]] <- seq_len(nrow2(out))
+    out[[".group"]] <- seq_len(GRP_n_groups(g))
   }
   include_loc <- loc || start || end
   if (include_loc){
-    out[[".loc"]] <- GRP_list_loc(g)
+    GRP_loc <- GRP_loc(g)
+    out[[".loc"]] <- GRP_loc
     attr(out[[".loc"]], "ptype") <- integer(0)
     attr(out[[".loc"]], "class") <- c("vctrs_list_of", "vctrs_vctr", "list")
   }
@@ -103,44 +104,20 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
   #   )
   # }
   if (start){
-    out[[".start"]] <- g[["group.starts"]]
-    if (is.null(out[[".start"]])){
-      out[[".start"]] <- as.integer(
-        unlist(
-          collapse::fmin(
-            out[[".loc"]],
-            use.g.names = FALSE,
-            na.rm = FALSE
-          )
-        , use.names = FALSE, recursive = FALSE
-        )
-      )
-    }
+    out[[".start"]] <- GRP_starts(g, loc = GRP_loc)
   }
   if (end){
-    out[[".end"]] <- as.integer(
-      unlist(
-        collapse::fmax(
-          out[[".loc"]],
-          use.g.names = FALSE,
-          na.rm = FALSE
-        )
-        , use.names = FALSE, recursive = FALSE
-      )
-    )
+    out[[".end"]] <- GRP_ends(g, loc = GRP_loc)
   }
   if (!loc && include_loc){
     out[[".loc"]] <- NULL
   }
   if (size){
-    out[[".size"]] <- g[["group.sizes"]]
+    out[[".size"]] <- GRP_group_sizes(g)
   }
   if (!sort && order){
-    out <- df_row_slice(out, collapse::funique(g[["group.id"]], sort = FALSE),
+    out <- df_row_slice(out, collapse::funique(GRP_group_id(g), sort = FALSE),
                         reconstruct = FALSE)
-    # out <- df_row_slice(out, data.table::frank(collapse::funique(g[["group.id"]], sort = FALSE),
-    #                                            ties.method = "first"),
-    #                     reconstruct = FALSE)
   }
   out
 }

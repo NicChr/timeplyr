@@ -3,7 +3,7 @@
 #' @description  `time_cut()` is very useful for plotting with dates and datetimes
 #' and always returns breaks of regular width. \cr
 #' To specify exact widths, similar to `ggplot2::cut_width()`,
-#' supply `by` and `n = Inf`. \cr
+#' supply `time_by` and `n = Inf`. \cr
 #' `time_breaks()` is a helper that
 #' returns only the time breaks.
 #'
@@ -18,24 +18,20 @@
 #'
 #' @param x A date/datetime.
 #' @param n The minimum number of breaks.
-#' @param by Argument to expand and summarise time series.
-#' If `by` is `NULL` then a heuristic will try and estimate the highest
-#' order time unit associated with the time variable.
-#' If specified, then by must be one of the three:
+#' @param time_by Must be one of the three:
 #' * string, specifying either the unit or the number and unit, e.g
-#' `by = "days"` or `by = "2 weeks"`
+#' `time_by = "days"` or `time_by = "2 weeks"`
 #' * named list of length one, the unit being the name, and
 #' the number the value of the list, e.g. `list("days" = 7)`.
 #' For the vectorized time functions, you can supply multiple values,
 #' e.g. `list("days" = 1:10)`.
-#' * Numeric vector. If by is a numeric vector and x is not a date/datetime,
-#' then arithmetic is used, e.g `by = 1`.
-#' This is also vectorized where applicable.
+#' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
+#' then arithmetic is used, e.g `time_by = 1`.
 #' @param from Time series start date.
 #' @param to Time series end date.
 #' @param fmt (Optional) Date/datetime format for the factor labels.
 #' If supplied, this is passed to `format()`.
-#' @param floor_date Logical. Should the initial date be
+#' @param time_floor Logical. Should the initial date/datetime be
 #' floored before building the sequence?
 #' @param n_at_most Logical. If `TRUE` then n breaks at most are returned,
 #' otherwise at least n breaks are returned.
@@ -44,14 +40,17 @@
 #' This is only used when `floor_date = TRUE`.
 #' @param as_factor Logical. If `TRUE` the output is an ordered factor.
 #' Setting this to `FALSE` is sometimes much faster.
-#' @param seq_type If "auto", `periods` are used for
-#' the time expansion when days, weeks, months or years are specified, and `durations`
-#' are used otherwise.
+#' @param timetype If "auto", `periods` are used for
+#' the time expansion when days, weeks, months or years are specified,
+#' and `durations` are used otherwise.
 #' @param roll_month Control how impossible dates are handled when
 #' month or year arithmetic is involved.
 #' Options are "preday", "boundary", "postday", "full" and "NA".
 #' See `?timechange::time_add` for more details.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
+#' @param by \bold{Deprecated}. Use `time_by` instead
+#' @param floor_date \bold{Deprecated}. Use `time_floor` instead.
+#' @param seq_type \bold{Deprecated}. Use `time_type` instead.
 #' @examples
 #' library(timeplyr)
 #' library(lubridate)
@@ -90,20 +89,26 @@
 #'                labels = weekly_labels)
 #' @rdname time_cut
 #' @export
-time_cut <- function(x, n = 5, by = NULL,
+time_cut <- function(x, n = 5, time_by = NULL,
                      from = NULL, to = NULL,
                      fmt = NULL,
-                     floor_date = FALSE, week_start = getOption("lubridate.week.start", 1),
+                     time_floor = FALSE, week_start = getOption("lubridate.week.start", 1),
                      n_at_most = TRUE, as_factor = TRUE,
-                     seq_type = c("auto", "duration", "period"),
-                     roll_month = "preday", roll_dst = "pre"){
-  time_breaks <- time_breaks(x = x, n = n, by = by,
+                     time_type = c("auto", "duration", "period"),
+                     roll_month = "preday", roll_dst = "pre",
+                     by = NULL,
+                     seq_type = NULL,
+                     floor_date = NULL){
+  time_breaks <- time_breaks(x = x, n = n, time_by = time_by,
                              from = from, to = to,
-                             floor_date = floor_date,
+                             time_floor = time_floor,
                              week_start = week_start,
                              n_at_most = n_at_most,
+                             time_type = time_type,
+                             roll_month = roll_month, roll_dst = roll_dst,
+                             by = by,
                              seq_type = seq_type,
-                             roll_month = roll_month, roll_dst = roll_dst)
+                             floor_date = floor_date)
   x_unique <- collapse::na_rm(collapse::funique(x, sort = TRUE))
   if (length(time_breaks) > length(x_unique)) time_breaks <- x_unique
   from <- bound_from(from, x)
@@ -125,20 +130,38 @@ time_cut <- function(x, n = 5, by = NULL,
 }
 #' @rdname time_cut
 #' @export
-time_breaks <- function(x, n = 5, by = NULL,
+time_breaks <- function(x, n = 5, time_by = NULL,
                         from = NULL, to = NULL,
-                        floor_date = FALSE, week_start = getOption("lubridate.week.start", 1),
+                        time_floor = FALSE, week_start = getOption("lubridate.week.start", 1),
                         n_at_most = TRUE,
-                        seq_type = c("auto", "duration", "period"),
-                        roll_month = "preday", roll_dst = "pre"){
+                        time_type = c("auto", "duration", "period"),
+                        roll_month = "preday", roll_dst = "pre",
+                        by = NULL,
+                        seq_type = NULL,
+                        floor_date = NULL){
+  ### Temporary arg switches while deprecating
+  if (!is.null(by)){
+    warning("by is deprecated, use time_by instead")
+    time_by <- by
+  }
+  if (!is.null(seq_type)){
+    warning("seq_type is deprecated, use time_type instead")
+    time_type <- seq_type
+  }
+  if (!is.null(floor_date)){
+    warning("floor_date is deprecated, use time_floor instead")
+    time_floor <- floor_date
+  }
+  ###
+  stopifnot(is.numeric(n))
   stopifnot(n >= 1)
   stopifnot(length(n) == 1)
-  seq_type <- match.arg(seq_type)
+  time_type <- match.arg(time_type)
   from <- bound_from(from, x)
   to <- bound_to(to, x)
   n_unique <- n_unique(x, na.rm = TRUE)
   n <- min(n, n_unique)
-  if (is.null(by)){
+  if (is.null(time_by)){
     date_units <- c("days", "weeks", "months", "years")
     units_to_try <- date_units
     unit_nums <- rep_len(1L, 4)
@@ -153,26 +176,26 @@ time_breaks <- function(x, n = 5, by = NULL,
     i <- 0
     while(i <= length(units_to_try)){
       i <- i + 1
-      n_breaks <- time_seq_len(from, to, by = setnames(list(1),
-                                                       units_to_try[i]),
-                                  seq_type = seq_type)
+      n_breaks <- time_seq_sizes(from, to, time_by = setnames(list(1),
+                                                              units_to_try[i]),
+                                 time_type = time_type)
       if (n_breaks >= n) break
     }
     unit <- units_to_try[i]
-    by <- unit
+    time_by <- unit
     unit_multiplier <- 1
     scale <- 1
     num <- 1
-    if (seq_type == "auto") seq_type <- guess_seq_type(unit)
+    if (time_type == "auto") time_type <- guess_seq_type(unit)
   } else {
-    unit_info <- unit_guess(by)
+    unit_info <- unit_guess(time_by)
     unit <- unit_info[["unit"]]
     scale <- unit_info[["scale"]]
     num <- unit_info[["num"]]
     by <- unit
-    n_breaks <- time_seq_len(from, to, by = setnames(list(1 * scale * num),
-                                                     unit),
-                                seq_type = seq_type)
+    n_breaks <- time_seq_sizes(from, to, time_by = setnames(list(1 * scale * num),
+                                                            unit),
+                               time_type = time_type)
     unit_multiplier <- 1
   }
   if (n_breaks > n && n < n_unique){
@@ -184,7 +207,7 @@ time_breaks <- function(x, n = 5, by = NULL,
     }
   }
   ftseq(from = from, to = to, units = unit, num = num * scale * unit_multiplier,
-        floor_date = floor_date, week_start = week_start,
-        seq_type = seq_type,
+        time_floor = time_floor, week_start = week_start,
+        time_type = time_type,
         roll_month = roll_month, roll_dst = roll_dst)
 }

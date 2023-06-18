@@ -4,40 +4,48 @@
 \alias{time_diff}
 \title{Calculate time difference}
 \usage{
-time_diff(x, y, by, type = c("auto", "duration", "period"), as_period = FALSE)
+time_diff(
+  x,
+  y,
+  time_by,
+  time_type = c("auto", "duration", "period"),
+  as_period = FALSE,
+  by = NULL,
+  type = NULL
+)
 }
 \arguments{
 \item{x}{Start date or datetime.}
 
 \item{y}{End date or datetime.}
 
-\item{by}{Argument to expand and summarise time series.
-If \code{by} is \code{NULL} then a heuristic will try and estimate the highest
-order time unit associated with the time variable.
-If specified, then by must be one of the three:
+\item{time_by}{Must be one of the three:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
-\code{by = "days"} or \code{by = "2 weeks"}
+\code{time_by = "days"} or \code{time_by = "2 weeks"}
 \item named list of length one, the unit being the name, and
 the number the value of the list, e.g. \code{list("days" = 7)}.
 For the vectorized time functions, you can supply multiple values,
 e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{by = 1}.
-This is also vectorized where applicable.
+\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
+then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
-\item{type}{Time difference type, auto, duration, period.}
+\item{time_type}{Time difference type: "auto", "duration" or "period".}
 
 \item{as_period}{Logical. Should time interval be coerced to a period
 before time difference is calculated? This is useful for calculating
 for example age in exact years or months.}
+
+\item{by}{\bold{Deprecated}. Use \code{time_by} instead}
+
+\item{type}{\bold{Deprecated}. Use \code{time_type} instead.}
 }
 \description{
 This is a neat wrapper around lubridate's
 date/datetime arithmetic with support for numeric values and
 any class that supports arithmetic through "base::\code{-}"
-If either x or y are date/datetimes and type is "duration" or "period",
+If either x or y are date/datetimes and time_type is "duration" or "period",
 then lubridate arithmetic is used, otherwise base R arithmetic is used.
 
 Some more exotic time units such as quarters, fortnights, etc
@@ -47,10 +55,10 @@ can be specified.
 library(timeplyr)
 library(lubridate)
 time_diff(today(), today() + days(10),
-          by = "days")
+          time_by = "days")
 time_diff(today(), today() + days(0:100),
-          by = "days")
+          time_by = "days")
 time_diff(today(), today() + days(100),
-          by = list("days" = 1:100))
-time_diff(1, 1 + 0:100, by = 3)
+          time_by = list("days" = 1:100))
+time_diff(1, 1 + 0:100, time_by = 3)
 }

@@ -16,10 +16,7 @@ time_elapsed(
 \arguments{
 \item{x}{Date, datetime or numeric vector.}
 
-\item{time_by}{Time units used to calculate episode flags.
-If \code{time_by} is \code{NULL} then a heuristic will try and estimate the highest
-order time unit associated with the time variable.
-If specified, then by must be one of the three:
+\item{time_by}{Must be one of the three:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
 \code{time_by = "days"} or \code{time_by = "2 weeks"}
@@ -27,7 +24,7 @@ If specified, then by must be one of the three:
 the number the value of the list, e.g. \code{list("days" = 7)}.
 For the vectorized time functions, you can supply multiple values,
 e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If by is a numeric vector and x is not a date/datetime,
+\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
 then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
@@ -55,18 +52,21 @@ if your data is sorted by those groups.
 library(timeplyr)
 library(dplyr)
 library(lubridate)
-x <- time_seq(today(), length.out = 25, by = "3 days")
+x <- time_seq(today(), length.out = 25, time_by = "3 days")
 time_elapsed(x)
 time_elapsed(x, rolling = TRUE, time_by = "day")
 
 # Grouped example
 set.seed(99)
-g <- sample(letters[1:3], length(x), TRUE)
+x <- sample(time_seq_v2(20, today(), "day"), 10^6, TRUE)
+g <- sample.int(10^5, 10^6, TRUE)
 
 time_elapsed(x, time_by = "day", g = g)
 # Equivalently (not as efficiently) using dplyr
+\dontrun{
 tibble(x = x, g = g) \%>\%
   group_by(g) \%>\%
   mutate(elapsed = time_elapsed(x, "day")) \%>\%
   pull(elapsed)
+}
 }

@@ -4,7 +4,7 @@ unit_match_stop <- function(units = .time_units){
   stop(paste0("'arg' should be one of '", paste(units, collapse = "', '"), "'"))
 }
 # The idea is that when you supply a list, no regex
-# is needed to seperate out the numbers
+# is needed to separate out the numbers
 # This is handy with loops to reduce overhead
 unit_list_match <- function(l){
   if (length(l) != 1L) stop("l must of a list of length 1.")
@@ -115,14 +115,28 @@ time_by_list <- function(time_by){
   num <- unit_info[["num"]] * unit_info[["scale"]]
   setnames(list(num), units)
 }
-time_by_get <- function(x, by = NULL, is_sorted = FALSE){
-  if (is.null(by)){
+# Temporary function to handle when both args supplied while
+# by is deprecated
+# time_by_switch <- function(time_by = NULL, by = NULL){
+#   if (!is.null(by) && !is.null(time_by)){
+#     stop("Cannot supply both time_by and deprecated by, use time_by only")
+#   }
+#   if (!is.null(by)){
+#     warning("by is deprecated, use time_by instead")
+#     time_by <- by
+#   }
+#   time_by
+# }
+# Returns list with numeric vector element, where the name of the list
+# is the time unit name
+time_by_get <- function(x, time_by = NULL, is_sorted = FALSE){
+  if (is.null(time_by)){
     unit_info <- time_granularity(x, is_sorted = is_sorted)
     by_n <- unit_info[["num"]]
     by_unit <- unit_info[["unit"]]
     out <- setnames(list(by_n), by_unit)
   } else {
-    out <- time_by_list(by)
+    out <- time_by_list(time_by)
   }
   out
 }
@@ -131,7 +145,7 @@ time_interval <- function(from, to){
   if (is_time(from) && is_time(to)){
     out <- lubridate::interval(from, to)
   } else {
-    out <- time_diff(from, to, by = 1)
+    out <- time_diff(from, to, time_by = 1)
     if (length(from) < length(out)){
       from <- rep_len(from, length(out))
     }
@@ -359,7 +373,8 @@ period_by <- function(from, to, length){
   length <- recycled_args[[3L]]
   which_len_1 <- which(length == 1)
   sec_diff <- time_diff(from, to,
-                        by = list("seconds" = 1), type = "period")
+                        time_by = list("seconds" = 1),
+                        time_type = "period")
   out <- lubridate::seconds_to_period(sec_diff / (length - 1))
   period_info <- collapse::qDF(time_unit_info(out))
   n_unique_slots <- ncol(period_info) - rowSums(period_info == 0)
@@ -427,8 +442,8 @@ period_by <- function(from, to, length){
 duration_by <- function(from, to, length){
   seconds_unit <- duration_unit("seconds")
   sec_diff <- time_diff(from, to,
-                        by = list("seconds" = 1),
-                        type = "duration")
+                        time_by = list("seconds" = 1),
+                        time_type = "duration")
   out <- seconds_unit(sec_diff / (length - 1))
   length <- rep_len(length, length(out))
   out[length == 1] <- seconds_unit(0) # Special case
@@ -441,9 +456,9 @@ num_by <- function(from, to, length){
   out
 }
 # Vectorized except for periods
-time_by <- function(from, to, length, seq_type){
+time_by <- function(from, to, length, time_type){
   if (is_time(from) && is_time(to)){
-    if (seq_type == "period"){
+    if (time_type == "period"){
       period_by(from, to, length)
     } else {
       duration_by(from, to, length)
@@ -603,11 +618,11 @@ numeric_unit <- function(units){
 #   }
 # }
 # Functional that returns time unit function
-time_unit <- function(units, type = c("duration", "period", "numeric")){
-  type <- rlang::arg_match0(type, c("duration", "period", "numeric"))
+time_unit <- function(units, time_type = c("duration", "period", "numeric")){
+  time_type <- rlang::arg_match0(time_type, c("duration", "period", "numeric"))
   if (units == "numeric"){
     numeric_unit(units)
-  } else if (type == "duration"){
+  } else if (time_type == "duration"){
     duration_unit(units)
   } else {
     period_unit(units)
@@ -668,6 +683,7 @@ time_cast <- function(x, template){
     x
   }
 }
+# Faster as_datetime
 as_datetime2 <- function(x){
   if (is_datetime(x)){
     x
@@ -723,80 +739,13 @@ window_seq <- function(k, n, partial = TRUE){
   }
   out
 }
-# time_seq_data must be sorted by groups + time
-# data must also be sorted the same way
-# time_cut_grouped <- function(time_seq_data, data, time, group_id,
-#                              to){
-#   time_seq_num_max <- as.double(to)
-#   time_seq_list <- collapse::gsplit(time_seq_data[[time]],
-#                                     g = time_seq_data[[group_id]])
-#   time_list <- collapse::gsplit(data[[time]],
-#                                 g = data[[group_id]])
-#   # Change time to numbers
-#   time_seq_list_num <- lapply(time_seq_list, as.double)
-#   time_list_num <- lapply(time_list, as.double)
-#   # Pre-allocate list of aggregated time
-#   time_agg_list <- vector("list", length(time_seq_list))
-#   breaks_list <- vector("list", length(time_seq_list))
-#   seq_lengths <- collapse::vlengths(time_seq_list)
-#   # This loops through each group and aggregates time based on
-#   # The sequences within each group
-#   for (i in seq_along(time_seq_list)){
-#     # print(i)
-#     .breaks <- fcut_ind(time_list_num[[i]],
-#                         c(time_seq_list_num[[i]],
-#                           time_seq_num_max[[i]] + 1))
-#     breaks_list[[i]] <- .breaks
-#     time_agg_list[[i]] <- time_seq_list[[i]][.breaks]
-#   }
-#   time_agg_v <- unlist(time_agg_list, recursive = FALSE, use.names = FALSE)
-#   time_agg_v <- time_cast(time_agg_v, data[[time]])
-#   setnames(list(time_agg_v,
-#        unlist(breaks_list, recursive = FALSE, use.names = FALSE),
-#        vctrs::vec_rep_each(seq_len(length(time_seq_list)), collapse::vlengths(time_agg_list))),
-#        c(time, ".breaks", group_id))
-# }
-# time_agg <- function(time_seq_data, data, time, group_id, to = NULL,
-#                      include_interval = FALSE){
-#   time_seq_data <- collapse::funique(time_seq_data,
-#                                      cols = c(group_id, time),
-#                                      sort = FALSE)
-#   # Create vector defining end-points
-#   if (length(to) == 0L){
-#     time_seq_max <- collapse::fmax(data[[time]], g = data[[group_id]],
-#                                    use.g.names = FALSE)
-#   } else {
-#     time_seq_max <- collapse::ffirst(data[[to]], g = data[[group_id]],
-#                                      use.g.names = FALSE)
-#     time_seq_max <- time_cast(time_seq_max, data[[time]])
-#     # time_seq_max <- rep_len(to, length(time_list))
-#   }
-#   time_seq_num_max <- as.double(time_seq_max)
-#   out <- dplyr::as_tibble(
-#     time_cut_grouped(time_seq_data, data, time = time,
-#                                   group_id = group_id, to = time_seq_max)
-#     )
-#
-#   if (include_interval){
-#     time_int <- time_seq_interval(time_seq_data[[time]], to = time_seq_max,
-#                                   g = time_seq_data[[group_id]])
-#     # int_nm <- new_var_nm(data, "interval")
-#     int_df <- dplyr::tibble(!!time := time_seq_data[[time]],
-#                             !!group_id := time_seq_data[[group_id]],
-#                             !!"interval" := time_int)
-#     # Left-join time sequence df with interval
-#     out <- out %>%
-#       dplyr::left_join(int_df, by = c(group_id, time))
-#   }
-#   out
-# }
 
-# # This checks if time aggregation is necessary
-needs_aggregation <- function(by, granularity){
-  if (is.null(by)){
+# This checks if time aggregation is necessary
+needs_aggregation <- function(time_by, granularity){
+  if (is.null(time_by)){
     out <- FALSE
   } else {
-    by_unit_info <- unit_guess(by)
+    by_unit_info <- unit_guess(time_by)
     granularity_unit_info <- unit_guess(granularity)
 
     by_seconds <- as.numeric(time_unit(by_unit_info[["unit"]],
@@ -842,15 +791,15 @@ is_date_or_utc <- function(x){
   is_date(x) || lubridate::tz(x) == "UTC"
 }
 # Check for date sequences that should not be coerced to datetimes
-is_special_case_days <- function(from, to, unit, num, seq_type){
-  seq_type == "auto" &&
+is_special_case_days <- function(from, to, unit, num, time_type){
+  time_type == "auto" &&
   unit %in% c("days", "weeks") &&
   is_date(from) &&
   is_date(to) &&
   is_whole_number(num)
 }
-is_special_case_utc <- function(from, to, unit, num, seq_type){
-  seq_type == "auto" &&
+is_special_case_utc <- function(from, to, unit, num, time_type){
+  time_type == "auto" &&
     unit %in% c("days", "weeks") &&
     is_datetime(from) &&
     is_datetime(to) &&
@@ -952,7 +901,7 @@ tagg_interval <- function(xagg, x, seq, gagg = NULL, gx = NULL, gseq = NULL){
   agg_df %>%
     dplyr::left_join(int_df, by = c("g", "t"),
                      multiple = "any") %>%
-    dplyr::pull(all_of("interval"))
+    fpluck("interval")
 }
 # Convert time sequence to min max list
 tseq_min_max <- function(x, seq, gx = NULL, gseq = NULL){
@@ -1033,97 +982,13 @@ time_add2 <- function(x, y, type, roll_month = "preday", roll_dst = "pre"){
   }
 }
 # Custom time flooring..
-time_floor2 <- function(x, by, week_start = getOption("lubridate.week.start", 1)){
-  if (names(by) == "numeric"){
-    time_floor(x, by = by[[1L]], week_start = week_start)
+time_floor2 <- function(x, time_by, week_start = getOption("lubridate.week.start", 1)){
+  if (names(time_by) == "numeric"){
+    time_floor(x, time_by = time_by[[1L]], week_start = week_start)
   } else {
-    time_floor(x, by = setnames(list(1), names(by)), week_start = week_start)
+    time_floor(x, time_by = setnames(list(1), names(time_by)), week_start = week_start)
   }
 }
-# This runs through x which should be positive-valued and increasing.
-# Once x >= threshold, a flag 1 is created and threshold is reset by adding x
-# to the initial threshold.
-# roll_time_threshold <- function(x, threshold = 1){
-#   out <- integer(length(x))
-#   if (length(threshold) != 1L){
-#     stop("threshold must be of length 1")
-#   }
-#   x_na <- is.na(x)
-#   init_threshold <- threshold
-#   for (i in seq_along(x)){
-#     if (!x_na[i] && x[i] >= threshold){
-#       setv(out, i, 1L, vind1 = TRUE)
-#       threshold <- init_threshold + x[i]
-#     }
-#   }
-#   # # Replace with NA
-#   setv(out, which(x_na), NA, vind1 = TRUE)
-#   out
-# }
-# roll_time_threshold <- function(x, threshold = 1){
-#   out <- integer(length(x))
-#   x_is_na <- is.na(x)
-#   which_not_na <- collapse::whichv(x_is_na, FALSE)
-#   # Replace NA
-#   setv(out, which(x_is_na), NA_integer_, vind1 = TRUE)
-#   init_threshold <- threshold
-#   # Skip over NA values
-#   for (i in which_not_na){
-#     if (x[i] >= threshold){
-#       setv(out, i, 1L, vind1 = TRUE)
-#       threshold <- init_threshold + x[i]
-#     }
-#   }
-#   out
-# }
-# roll_time_threshold <- function(x, threshold = 1){
-#   out <- integer(length(x))
-#   init_threshold <- threshold
-#   for (i in seq_along(x)){
-#     if (x[i] >= threshold){
-#       out[i] <- 1L
-#       threshold <- init_threshold + x[i]
-#     }
-#   }
-#   out
-# }
-
-# This is working but assumes x is a process that must be temporally increasing
-# i.e a time series
-# time_elapsed <- function(x, time_by = NULL, g = NULL,
-#                          rolling = FALSE,
-#                          type = c("auto", "duration", "period"),
-#                          is_sorted = FALSE){
-#   time_by <- time_by_get(x, by = time_by, is_sorted = is_sorted)
-#   if (rolling){
-#     if (is_sorted){
-#       # Lagged time
-#       x_lag <- collapse::flag(x, g = g, n = min(length(x), 1L))
-#       out <- time_diff(x_lag, x, by = time_by, type = type)
-#     } else {
-#       if (is.null(g)){
-#         gorder <- radixorderv2(x)
-#         gstarts <- min(1L, length(x))
-#       } else {
-#         g <- GRP2(g, return.groups = FALSE, return.order = TRUE)
-#         gorder <- radixorderv2(list(g[["group.id"]], x))
-#         g <- g[["group.id"]][gorder]
-#         gstarts <- GRP_starts(
-#           collapse::GRP(g, return.groups = FALSE, return.order = FALSE)
-#         )
-#       }
-#       x <- x[gorder]
-#       x_lag <- collapse::flag(x, n = min(1L, length(x)), g = g)
-#       out <- time_diff(x_lag, x, by = time_by, type = type)
-#       setv(out, gstarts, 0, vind1 = TRUE)
-#       out <- out[collapse::radixorderv(gorder)]
-#     }
-#   } else {
-#     # Index time
-#     x_lag <- gmin(x, g = g, na.rm = TRUE)
-#     out <- time_diff(x_lag, x, by = time_by, type = type)
-#   }
-#   out
-# }
-
-
+tomorrow <- function(){
+  lubridate::today() + lubridate::days(1)
+}

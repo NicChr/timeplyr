@@ -5,12 +5,12 @@
 \title{Wrapper around \code{timechange::time_floor()} to floor
 dates and datetimes, as well as numeric values.}
 \usage{
-time_floor(x, by, week_start = getOption("lubridate.week.start", 1))
+time_floor(x, time_by, week_start = getOption("lubridate.week.start", 1))
 }
 \arguments{
 \item{x}{Date, datetime or numeric vector.}
 
-\item{by}{Unit used to perform the rounding.}
+\item{time_by}{Unit used to perform the rounding.}
 
 \item{week_start}{Start of the week (between 1 and 7),
 where 1 is Monday and 7 is Sunday.}

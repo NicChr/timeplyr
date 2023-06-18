@@ -7,7 +7,7 @@
 stat_summarise(
   data,
   ...,
-  stat = c("n", "nmiss", "min", "max", "mean"),
+  stat = .stat_fns[1:5],
   na.rm = TRUE,
   sort = TRUE,
   .names = NULL,

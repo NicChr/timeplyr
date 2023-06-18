@@ -10,116 +10,124 @@
 \usage{
 time_expandv(
   x,
-  by = NULL,
+  time_by = NULL,
   from = NULL,
   to = NULL,
-  seq_type = c("auto", "duration", "period"),
-  is_sorted = FALSE,
-  floor_date = FALSE,
+  g = NULL,
+  use.g.names = TRUE,
+  time_type = c("auto", "duration", "period"),
+  time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = "preday",
-  roll_dst = "pre"
+  roll_dst = "pre",
+  is_sorted = FALSE,
+  by = NULL,
+  seq_type = NULL,
+  floor_date = NULL
 )
 
 time_completev(
   x,
-  by = NULL,
+  time_by = NULL,
   from = NULL,
   to = NULL,
   sort = TRUE,
-  seq_type = c("auto", "duration", "period"),
+  time_type = c("auto", "duration", "period"),
   is_sorted = FALSE,
-  floor_date = FALSE,
+  time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = "preday",
-  roll_dst = "pre"
+  roll_dst = "pre",
+  by = NULL,
+  seq_type = NULL,
+  floor_date = NULL
 )
 
 time_summarisev(
   x,
-  by = NULL,
+  time_by = NULL,
   from = NULL,
   to = NULL,
   sort = FALSE,
   unique = FALSE,
-  seq_type = c("auto", "duration", "period"),
+  time_type = c("auto", "duration", "period"),
   is_sorted = FALSE,
-  floor_date = FALSE,
+  time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = "preday",
   roll_dst = "pre",
-  include_interval = FALSE
+  include_interval = FALSE,
+  by = NULL,
+  seq_type = NULL,
+  floor_date = NULL
 )
 
 time_countv(
   x,
-  by = NULL,
+  time_by = NULL,
   from = NULL,
   to = NULL,
   sort = !is_sorted,
   unique = TRUE,
   use.names = TRUE,
   complete = TRUE,
-  seq_type = c("auto", "duration", "period"),
+  time_type = c("auto", "duration", "period"),
   is_sorted = FALSE,
-  floor_date = FALSE,
   include_interval = FALSE,
+  time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = "preday",
-  roll_dst = "pre"
+  roll_dst = "pre",
+  by = NULL,
+  seq_type = NULL,
+  floor_date = NULL
 )
 
 time_span(
   x,
-  by = NULL,
+  time_by = NULL,
   from = NULL,
   to = NULL,
-  seq_type = c("auto", "duration", "period"),
-  is_sorted = FALSE,
-  floor_date = FALSE,
+  g = NULL,
+  use.g.names = TRUE,
+  time_type = c("auto", "duration", "period"),
+  time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = "preday",
-  roll_dst = "pre"
+  roll_dst = "pre",
+  is_sorted = FALSE,
+  by = NULL,
+  seq_type = NULL,
+  floor_date = NULL
 )
 }
 \arguments{
 \item{x}{Date, datetime or numeric vector.}
 
-\item{by}{Argument to expand and summarise time series.
-If \code{by} is \code{NULL} then a heuristic will try and estimate the highest
-order time unit associated with the time variable.
-If specified, then by must be one of the three:
+\item{time_by}{Must be one of the three:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
-\code{by = "days"} or \code{by = "2 weeks"}
+\code{time_by = "days"} or \code{time_by = "2 weeks"}
 \item named list of length one, the unit being the name, and
 the number the value of the list, e.g. \code{list("days" = 7)}.
 For the vectorized time functions, you can supply multiple values,
 e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{by = 1}.
-This is also vectorized where applicable.
+\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
+then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
 \item{from}{Time series start date.}
 
 \item{to}{Time series end date.}
 
-\item{seq_type}{If "auto", \code{periods} are used for
+\item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks, months or years are specified,
-and \code{durations}
-are used otherwise.}
+and \code{durations} are used otherwise.}
 
-\item{is_sorted}{If \code{TRUE} then x is assumed to be in
-ascending order and no additional pre-sorting is done.
-It is recommended to leave this as \code{FALSE} unless you require the
-extra speed for programming or looping purposes.}
-
-\item{floor_date}{Should \code{from} be floored to the nearest unit specified
-through the \code{by}
-argument? This is particularly useful for starting sequences
-at the beginning of a week
-or month for example.}
+\item{time_floor}{Should \code{from} be floored to the nearest unit specified
+through the \code{time_by} argument?
+This is particularly useful for starting sequences at the
+beginning of a week or month for example.}
 
 \item{week_start}{day on which week starts following ISO conventions - 1
 means Monday (default), 7 means Sunday.
@@ -132,6 +140,17 @@ See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
 
+\item{is_sorted}{If \code{TRUE} then x is assumed to be in
+ascending order and no additional pre-sorting is done.
+It is recommended to leave this as \code{FALSE} unless you require the
+extra speed for programming or looping purposes.}
+
+\item{by}{\bold{Deprecated}. Use \code{time_by} instead}
+
+\item{seq_type}{\bold{Deprecated}. Use \code{time_type} instead.}
+
+\item{floor_date}{\bold{Deprecated}. Use \code{time_floor} instead.}
+
 \item{sort}{Should the output be sorted? Default is \code{TRUE}.}
 
 \item{unique}{Should the result be unique or match the length of the vector?
@@ -142,10 +161,10 @@ with a column "interval" of the form \verb{time_min <= x < time_max}
 showing the time interval in which the aggregated time points belong to.
 The rightmost interval will always be closed.}
 
-\item{use.names}{Should a named vector be returned?}
+\item{use.names}{Should a named vector be returned for \code{time_countv()}?}
 
 \item{complete}{Logical. If \code{TRUE} implicit gaps in time are filled
-before counting and after time aggregation (controlled using \code{by}).
+before counting and after time aggregation (controlled using \code{time_by}).
 The default is \code{TRUE}.}
 }
 \description{
@@ -161,42 +180,42 @@ library(lubridate)
 flights <- nycflights13::flights
 x <- flights$time_hour
 
-n_time_missing(x, by = "hour") # Missing hours
+# n_time_missing(x, time_by = "hour") # Missing hours
 # This returns missing dates, even for datetimes
 # where time_missing() returns missing gaps in a date/datetime sequence
 missing_dates(x)
 # Time sequence that spans the data
-time_span(x, by = "hour")
-as_datetime(time_span(as.numeric(x), by = 3600), # Also works
+time_span(x, time_by = "hour")
+as_datetime(time_span(as.numeric(x), time_by = 3600), # Also works
             tz = tz(x))
 # No need to specify by as it automatically detects granularity
 time_span(x)
-time_span(x, by = "month")
-time_span(x, by = list("quarters" = 1),
+time_span(x, time_by = "month")
+time_span(x, time_by = list("quarters" = 1),
              to = today(),
              # Floor start of sequence to nearest month
              floor_date = TRUE)
 
 # Complete missing gaps in time using time_completev
-y <- time_completev(x, by = "hour")
-all.equal(y[!y \%in\% x], time_missing(x, by = "hour"))
+y <- time_completev(x, time_by = "hour")
+all.equal(y[!y \%in\% x], time_missing(x, time_by = "hour"))
 
 # Summarise time using time_summarisev
-time_summarisev(y, by = "quarter")
+time_summarisev(y, time_by = "quarter")
 # Set unique = FALSE to return vector same length as input
-time_summarisev(y, by = "quarter", unique = FALSE)
+time_summarisev(y, time_by = "quarter", unique = FALSE)
 flights \%>\%
   mutate(quarter_start = time_summarisev(time_hour,
-                                         by = "quarter",
+                                         time_by = "quarter",
                                          unique = FALSE)) \%>\%
   fcount(quarter_start)
 # You can include the associated time interval
-time_summarisev(y, by = "quarter", unique = TRUE,
+time_summarisev(y, time_by = "quarter", unique = TRUE,
                 include_interval = TRUE)
 
 # Count time using time_countv
-time_countv(x, by = list("months" = 3))
-time_countv(x, by = list("months" = 3), include_interval = TRUE)
+time_countv(x, time_by = list("months" = 3))
+time_countv(x, time_by = list("months" = 3), include_interval = TRUE)
 
 # No completing of missing gaps in time with complete = FALSE
 flights \%>\%

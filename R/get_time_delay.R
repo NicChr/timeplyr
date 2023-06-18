@@ -12,19 +12,15 @@
 #' @param data A data frame.
 #' @param origin Origin date variable.
 #' @param end End date variable.
-#' @param by Argument to expand and summarise time series.
-#' If `by` is `NULL` then a heuristic will try and estimate the highest
-#' order time unit associated with the time variable.
-#' If specified, then by must be one of the three:
+#' @param time_by Must be one of the three:
 #' * string, specifying either the unit or the number and unit, e.g
-#' `by = "days"` or `by = "2 weeks"`
+#' `time_by = "days"` or `time_by = "2 weeks"`
 #' * named list of length one, the unit being the name, and
 #' the number the value of the list, e.g. `list("days" = 7)`.
 #' For the vectorized time functions, you can supply multiple values,
 #' e.g. `list("days" = 1:10)`.
-#' * Numeric vector. If by is a numeric vector and x is not a date/datetime,
-#' then arithmetic is used, e.g `by = 1`.
-#' This is also vectorized where applicable.
+#' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
+#' then arithmetic is used, e.g `time_by = 1`.
 #' @param min_delay The minimum acceptable delay,
 #' all delays less than this are removed before calculation.
 #' Default is `min_delay = -Inf`.
@@ -45,6 +41,7 @@
 #' as recommended by the R team `?stats::density`.
 #' This differs from the default implemented by `stats::density()`
 #' which uses Silverman's rule-of-thumb.
+#' @param by \bold{Deprecated}. Use `time_by` instead
 #' @param ... Further arguments to be passed on to `ggplot2::geom_density()`.
 #' @examples
 #' library(timeplyr)
@@ -61,7 +58,7 @@
 #' inc_distr_days <- ebola_linelist %>%
 #'   get_time_delay(date_of_infection,
 #'                  date_of_onset,
-#'                  by = "days")
+#'                  time_by = "days")
 #' head(inc_distr_days$data) # Data with calculated delay
 #' inc_distr_days$unit # # Specified time unit
 #' inc_distr_days$num # # Specified time unit size
@@ -73,7 +70,7 @@
 #' ebola_linelist %>%
 #'   get_time_delay(date_of_infection,
 #'                  date_of_onset,
-#'                  by = "day",
+#'                  time_by = "day",
 #'                  bw = "nrd") %>% # Scott's rule-of-thumb, normality assumption
 #'   pluck("plot")
 #'
@@ -81,7 +78,7 @@
 #' inc_distr_weeks <- ebola_linelist %>%
 #'   get_time_delay(date_of_infection,
 #'                  date_of_onset,
-#'                  by = "weeks")
+#'                  time_by = "weeks")
 #' inc_distr_weeks$plot
 #'
 #' # Similar distribution by gender
@@ -89,7 +86,7 @@
 #'   group_by(gender) %>%
 #'   get_time_delay(date_of_infection,
 #'                  date_of_onset,
-#'                  by = "day",
+#'                  time_by = "day",
 #'                  include_plot = FALSE) %>%
 #'   pluck("summary")
 #'
@@ -98,7 +95,7 @@
 #'   group_by(outcome) %>%
 #'   get_time_delay(date_of_onset,
 #'                  date_of_hospitalisation,
-#'                  by = "days",
+#'                  time_by = "days",
 #'                  include_plot = FALSE) %>%
 #'   pluck("summary")
 #'
@@ -109,17 +106,22 @@
 #' # Reporting delay
 #' mers_cases %>%
 #'   get_time_delay(dt_onset, dt_report,
-#'                  by = "days",
+#'                  time_by = "days",
 #'                  include_plot = FALSE) %>%
 #'   pluck("summary")  # Mean of ~ 6 days
 #' @export
-get_time_delay <- function(data, origin, end, by = "day",
+get_time_delay <- function(data, origin, end, time_by = "days",
                            min_delay = -Inf, max_delay = Inf,
                            probs = c(0.25, 0.5, 0.75, 0.95),
                            .by = NULL,
                            include_plot = TRUE, x_scales = "fixed",
                            bw = "SJ",
+                           by = NULL,
                            ...){
+  if (!is.null(by)){
+    warning("by is deprecated, use time_by instead")
+    time_by <- by
+  }
   group_vars <- get_groups(data, {{ .by }})
   out <- data %>%
     mutate2(!!enquo(origin),
@@ -137,13 +139,13 @@ get_time_delay <- function(data, origin, end, by = "day",
                                   with = FALSE],
                               cols = grp_nm,
                               sort = FALSE)
-  unit_info <- unit_guess(by)
+  unit_info <- unit_guess(time_by)
   by_n <- unit_info[["num"]] * unit_info[["scale"]]
   by_unit <- unit_info[["unit"]]
   delay_nm <- new_var_nm(out, "delay")
   out[, (delay_nm) := time_diff(get(start_time), get(end_time),
-                                    by = setnames(list(by_n), by_unit),
-                                    type = "duration")]
+                                    time_by = setnames(list(by_n), by_unit),
+                                    time_type = "duration")]
   n_miss_delays <- sum(is.na(out[[delay_nm]]))
   if (n_miss_delays > 0){
     warning(paste(n_miss_delays, "missing observations will be

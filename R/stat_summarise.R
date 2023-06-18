@@ -50,7 +50,7 @@
 #' @rdname stat_summarise
 #' @export
 stat_summarise <- function(data, ...,
-                         stat = c("n", "nmiss", "min", "max", "mean"),
+                         stat = .stat_fns[1:5],
                          na.rm = TRUE, sort = TRUE,
                          .names = NULL, .by = NULL, .cols = NULL){
   funs <- .stat_fns
@@ -86,7 +86,7 @@ stat_summarise <- function(data, ...,
       data, .cols = c(group_vars, dot_vars)
     ), gstarts
   )
-  if (collapse::fnrow(out) == 0L && length(group_vars) == 0L){
+  if (nrow2(out) == 0L && length(group_vars) == 0L){
     out[1L, ] <- NA
   }
   out <- as_DT(out)

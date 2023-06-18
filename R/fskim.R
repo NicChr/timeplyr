@@ -26,7 +26,7 @@
 #' fskim(flights)
 #' @export
 fskim <- function(data, hist = FALSE){
-  N <- collapse::fnrow(data)
+  N <- nrow2(data)
   data <- as_DT(safe_ungroup(data))
   data_nms <- names(data)
   col_classes <- vapply(data, function(x) vec_tail(class(x)), character(1))

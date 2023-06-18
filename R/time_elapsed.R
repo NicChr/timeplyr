@@ -6,17 +6,14 @@
 #' if your data is sorted by those groups.
 #'
 #' @param x Date, datetime or numeric vector.
-#' @param time_by Time units used to calculate episode flags.
-#' If `time_by` is `NULL` then a heuristic will try and estimate the highest
-#' order time unit associated with the time variable.
-#' If specified, then by must be one of the three:
+#' @param time_by Must be one of the three:
 #' * string, specifying either the unit or the number and unit, e.g
 #' `time_by = "days"` or `time_by = "2 weeks"`
 #' * named list of length one, the unit being the name, and
 #' the number the value of the list, e.g. `list("days" = 7)`.
 #' For the vectorized time functions, you can supply multiple values,
 #' e.g. `list("days" = 1:10)`.
-#' * Numeric vector. If by is a numeric vector and x is not a date/datetime,
+#' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
 #' then arithmetic is used, e.g `time_by = 1`.
 #' @param g Object to be used for grouping `x`, passed onto `collapse::GRP()`.
 #' @param time_type Time type, either "auto", "duration" or "period".
@@ -32,25 +29,28 @@
 #' library(timeplyr)
 #' library(dplyr)
 #' library(lubridate)
-#' x <- time_seq(today(), length.out = 25, by = "3 days")
+#' x <- time_seq(today(), length.out = 25, time_by = "3 days")
 #' time_elapsed(x)
 #' time_elapsed(x, rolling = TRUE, time_by = "day")
 #'
 #' # Grouped example
 #' set.seed(99)
-#' g <- sample(letters[1:3], length(x), TRUE)
+#' x <- sample(time_seq_v2(20, today(), "day"), 10^6, TRUE)
+#' g <- sample.int(10^5, 10^6, TRUE)
 #'
 #' time_elapsed(x, time_by = "day", g = g)
 #' # Equivalently (not as efficiently) using dplyr
+#' \dontrun{
 #' tibble(x = x, g = g) %>%
 #'   group_by(g) %>%
 #'   mutate(elapsed = time_elapsed(x, "day")) %>%
 #'   pull(elapsed)
+#' }
 #' @export
 time_elapsed <- function(x, time_by = NULL, g = NULL,
                          time_type = c("auto", "duration", "period"),
                          rolling = FALSE, fill = 0){
-  time_by <- time_by_get(x, by = time_by, is_sorted = FALSE)
+  time_by <- time_by_get(x, time_by = time_by, is_sorted = FALSE)
   if (is.null(g)){
     gstarts <- min(1L, length(x))
   } else {
@@ -73,7 +73,7 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
       }
     }
     x_lag <- collapse::flag(x, n = min(1L, length(x)), g = g)
-    out <- time_diff(x_lag, x, by = time_by, type = time_type)
+    out <- time_diff(x_lag, x, time_by = time_by, time_type = time_type)
     if (!is.na(fill)){
       setv(out, gstarts, fill, vind1 = TRUE)
     }
@@ -84,7 +84,7 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
   } else {
     # Index time
     x_lag <- gfirst(x, g = g, na.rm = FALSE)
-    out <- time_diff(x_lag, x, by = time_by, type = time_type)
+    out <- time_diff(x_lag, x, time_by = time_by, time_type = time_type)
     # The first value should probably be 0, even if x[1] is NA
     setv(out, gstarts, 0, vind1 = TRUE)
   }

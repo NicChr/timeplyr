@@ -15,29 +15,28 @@
 #' @param data A data frame.
 #' @param ... Groups to expand.
 #' @param time Time variable.
-#' @param by Argument to expand and summarise time series.
-#' If `by` is `NULL` then a heuristic will try and estimate the highest
-#' order time unit associated with the time variable.
-#' If specified, then by must be one of the three:
+#' @param time_by Time unit. \cr
+#' Must be one of the three:
 #' * string, specifying either the unit or the number and unit, e.g
-#' `by = "days"` or `by = "2 weeks"`
+#' `time_by = "days"` or `time_by = "2 weeks"`
 #' * named list of length one, the unit being the name, and
 #' the number the value of the list, e.g. `list("days" = 7)`.
 #' For the vectorized time functions, you can supply multiple values,
 #' e.g. `list("days" = 1:10)`.
-#' * Numeric vector. If by is a numeric vector and x is not a date/datetime,
-#' then arithmetic is used, e.g `by = 1`.
-#' This is also vectorized where applicable.
+#' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
+#' then arithmetic is used, e.g `time_by = 1`.
 #' @param from Time series start date.
 #' @param to Time series end date.
-#' @param expand_type Type of time expansion to use where "nesting" finds combinations already present in the data,
+#' @param expand_type Type of time expansion to use where "nesting"
+#' finds combinations already present in the data,
 #' "crossing" finds all combinations of values in the group variables.
-#' @param seq_type If "auto", `periods` are used for
-#' the time expansion when days, weeks, months or years are specified, and `durations`
-#' are used otherwise.
-#' @param floor_date Should `from` be floored to the nearest unit specified through the `by`
-#' argument? This is particularly useful for starting sequences at the beginning of a week
-#' or month for example.
+#' @param time_type If "auto", `periods` are used for
+#' the time expansion when days, weeks, months or years are specified,
+#' and `durations` are used otherwise.
+#' @param time_floor Should `from` be floored to the
+#' nearest unit specified through the `time_by`
+#' argument? This is particularly useful for
+#' starting sequences at the beginning of a week or month for example.
 #' @param week_start day on which week starts following ISO conventions - 1
 #' means Monday (default), 7 means Sunday.
 #' This is only used when `floor_date = TRUE`.
@@ -54,6 +53,9 @@
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
 #' @param log_limit The maximum log10 number of rows that can be expanded.
 #' Anything exceeding this will throw an error.
+#' @param by \bold{Deprecated}. Use `time_by` instead
+#' @param floor_date \bold{Deprecated}. Use `time_floor` instead.
+#' @param seq_type \bold{Deprecated}. Use `time_type` instead.
 #'
 #' @examples
 #' library(timeplyr)
@@ -90,16 +92,31 @@
 #'               seq_type = "duration")
 #' @rdname time_expand
 #' @export
-time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NULL,
-                        .by = NULL,
-                        seq_type = c("auto", "duration", "period"),
-                        floor_date = FALSE,
+time_expand <- function(data, time = NULL, ..., .by = NULL,
+                        time_by = NULL, from = NULL, to = NULL,
+                        time_type = c("auto", "duration", "period"),
+                        time_floor = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
                         expand_type = c("nesting", "crossing"),
                         sort = TRUE,
                         keep_class = TRUE,
                         roll_month = "preday", roll_dst = "pre",
-                        log_limit = 8){
+                        log_limit = 8,
+                        by = NULL,
+                        seq_type = NULL,
+                        floor_date = NULL){
+  if (!is.null(by)){
+    warning("by is deprecated, use time_by instead")
+    time_by <- by
+  }
+  if (!is.null(seq_type)){
+    warning("seq_type is deprecated, use time_type instead")
+    time_type <- seq_type
+  }
+  if (!is.null(floor_date)){
+    warning("floor_date is deprecated, use time_floor instead")
+    time_floor <- floor_date
+  }
   expand_type <- match.arg(expand_type)
   group_vars <- get_groups(data, {{ .by }})
   out <- mutate2(data,
@@ -111,13 +128,13 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
   time_var <- tidy_transform_names(data, !!enquo(time))
   from_var <- tidy_transform_names(data, !!enquo(from))
   to_var <- tidy_transform_names(data, !!enquo(to))
-  out <- list_to_DT(out)
+  out <- as_DT(out)
   if (length(time_var) > 0){
-    seq_type <- match.arg(seq_type)
-    time_by <- time_by_get(out[[time_var]], by = by)
+    time_type <- match.arg(time_type)
+    time_by <- time_by_get(out[[time_var]], time_by = time_by)
     by_unit <- names(time_by)
     by_n <- time_by[[1L]]
-    input_seq_type <- seq_type # Save original
+    input_time_type <- time_type # Save original
     # Ordered group ID
     grp_nm <- new_var_nm(out, ".group.id")
     out[, (grp_nm) := group_id(data, .by = {{ .by }})]
@@ -158,28 +175,28 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
                                            "seconds")
     ### Special cases where units are days/utc and ranges are also days/utc
     # In these cases we can just use duration calculations which are much faster
-    is_special_case_utc <- input_seq_type == "auto" &&
+    is_special_case_utc <- input_time_type == "auto" &&
       (unit_is_days || unit_is_less_than_days) &&
       is_datetime(out[[time_var]]) &&
       lubridate::tz(out[[time_var]]) == "UTC" &&
       lubridate::tz(time_tbl[[from_nm]]) == "UTC" &&
       lubridate::tz(time_tbl[[to_nm]]) == "UTC"
-    if (is_special_case_utc) seq_type <- "duration"
-      time_tbl[, (size_nm) := time_seq_len(get(from_nm),
-                                               get(to_nm),
-                                               by = setnames(list(get(by_nm)),
-                                                             by_unit),
-                                               seq_type = seq_type)]
+    if (is_special_case_utc) time_type <- "duration"
+    time_tbl[, (size_nm) := time_seq_sizes(get(from_nm),
+                                           get(to_nm),
+                                           time_by = setnames(list(get(by_nm)),
+                                                              by_unit),
+                                           time_type = time_type)]
       expanded_nrow <- sum(time_tbl[[size_nm]])
       expand_check(expanded_nrow, log_limit)
       # Vectorised time sequence
       time_seq <- time_seq_v(time_tbl[[from_nm]],
                              time_tbl[[to_nm]],
-                             by = setnames(list(time_tbl[[by_nm]]),
+                             time_by = setnames(list(time_tbl[[by_nm]]),
                                            by_unit),
                              roll_month = roll_month,
                              roll_dst = roll_dst,
-                             seq_type = seq_type)
+                             time_type = time_type)
       out <- vctrs::vec_rep_each(time_tbl, time_tbl[[size_nm]])
       data.table::setDT(out)
       data.table::set(out, j = time_var, value = time_seq)
@@ -235,8 +252,8 @@ time_expand <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NUL
 }
 #' @rdname time_expand
 #' @export
-time_complete <- function(data, ..., time = NULL, by = NULL, from = NULL, to = NULL,
-                          seq_type = c("auto", "duration", "period"),
+time_complete <- function(data, ..., time = NULL, time_by = NULL, from = NULL, to = NULL,
+                          time_type = c("auto", "duration", "period"),
                           floor_date = FALSE,
                           week_start = getOption("lubridate.week.start", 1),
                           expand_type = c("nesting", "crossing"),
@@ -246,25 +263,25 @@ time_complete <- function(data, ..., time = NULL, by = NULL, from = NULL, to = N
                           roll_month = "preday", roll_dst = "pre",
                           log_limit = 8){
   expand_type <- match.arg(expand_type)
-  seq_type <- match.arg(seq_type)
+  time_type <- match.arg(time_type)
   group_vars <- get_groups(data, {{ .by }})
   out <- mutate2(data, !!enquo(time))
   time_var <- tidy_transform_names(data, !!enquo(time))
-  out <- list_to_DT(out)
+  out <- as_DT(out)
   expanded_df <- time_expand(out,
-                           ...,
-                           time = across(all_of(time_var)),
-                           by = by, from = !!enquo(from),
-                           to = !!enquo(to),
-                           seq_type = seq_type,
-                           floor_date = floor_date,
-                           week_start = week_start,
-                           sort = FALSE,
-                           .by = all_of(group_vars),
-                           keep_class = FALSE,
-                           expand_type = expand_type,
-                           roll_month = roll_month, roll_dst = roll_dst,
-                           log_limit = log_limit)
+                             ...,
+                             time = across(all_of(time_var)),
+                             time_by = time_by, from = !!enquo(from),
+                             to = !!enquo(to),
+                             time_type = time_type,
+                             floor_date = floor_date,
+                             week_start = week_start,
+                             sort = FALSE,
+                             .by = all_of(group_vars),
+                             keep_class = FALSE,
+                             expand_type = expand_type,
+                             roll_month = roll_month, roll_dst = roll_dst,
+                             log_limit = log_limit)
   # Full-join
   if (nrow2(expanded_df) > 0 && ncol(expanded_df) > 0){
     # Check to see if time has turned to POSIX

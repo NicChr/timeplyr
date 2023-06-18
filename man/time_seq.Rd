@@ -3,21 +3,25 @@
 \name{time_seq}
 \alias{time_seq}
 \alias{time_seq_len}
+\alias{time_seq_sizes}
 \alias{time_seq_v}
-\title{Time based version of \code{base::seq()} to generate regular time sequences
-with additional lubridate functionality for period calculations.}
+\alias{time_seq_v2}
+\title{Time based version of \code{base::seq()}}
 \usage{
 time_seq(
   from,
   to,
-  by,
+  time_by,
   length.out = NULL,
-  floor_date = FALSE,
+  time_type = c("auto", "duration", "period"),
   week_start = getOption("lubridate.week.start", 1),
-  seq_type = c("auto", "duration", "period"),
+  time_floor = FALSE,
   roll_month = "preday",
   roll_dst = "pre",
-  tz = if (!missing(from)) lubridate::tz(from) else lubridate::tz(to)
+  tz = if (!missing(from)) lubridate::tz(from) else lubridate::tz(to),
+  by = NULL,
+  seq_type = NULL,
+  floor_date = NULL
 )
 
 time_seq_len(
@@ -28,11 +32,34 @@ time_seq_len(
   as_period = FALSE
 )
 
+time_seq_sizes(
+  from,
+  to,
+  time_by,
+  time_type = c("auto", "duration", "period"),
+  as_period = FALSE
+)
+
 time_seq_v(
   from,
   to,
-  by,
-  seq_type = c("auto", "duration", "period"),
+  time_by,
+  time_type = c("auto", "duration", "period"),
+  roll_month = "preday",
+  roll_dst = "pre",
+  time_floor = FALSE,
+  week_start = getOption("lubridate.week.start", 1),
+  by = NULL,
+  seq_type = NULL
+)
+
+time_seq_v2(
+  sizes,
+  from,
+  time_by,
+  time_type = c("auto", "duration", "period"),
+  time_floor = FALSE,
+  week_start = getOption("lubridate.week.start", 1),
   roll_month = "preday",
   roll_dst = "pre"
 )
@@ -42,25 +69,36 @@ time_seq_v(
 
 \item{to}{End date/datetime of sequence.}
 
-\item{by}{Unit increment of the sequence.}
+\item{time_by}{Time unit increment. \cr
+Must be one of the three:
+\itemize{
+\item string, specifying either the unit or the number and unit, e.g
+\code{time_by = "days"} or \code{time_by = "2 weeks"}
+\item named list of length one, the unit being the name, and
+the number the value of the list, e.g. \code{list("days" = 7)}.
+For the vectorized time functions, you can supply multiple values,
+e.g. \code{list("days" = 1:10)}.
+\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
+then arithmetic is used, e.g \code{time_by = 1}.
+}}
 
 \item{length.out}{Length of the sequence.}
 
-\item{floor_date}{Should \code{from} be floored to
-the nearest unit specified through the \code{by}
-argument? This is particularly useful for
-starting sequences at the beginning of a week
-or month for example.}
-
-\item{week_start}{day on which week starts following ISO conventions - 1
-means Monday (default), 7 means Sunday.
-This is only used when \code{floor_date = TRUE}.}
-
-\item{seq_type}{If "auto", \code{periods} are used for
+\item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks,
 months or years are specified, and \code{durations}
 are used otherwise. If \code{durations}
 are used the output is always of class \code{POSIXt}.}
+
+\item{week_start}{day on which week starts following ISO conventions - 1
+means Monday (default), 7 means Sunday.
+This is only used when \code{time_floor = TRUE}.}
+
+\item{time_floor}{Should \code{from} be floored to
+the nearest unit specified through the \code{time_by}
+argument? This is particularly useful for
+starting sequences at the beginning of a week
+or month for example.}
 
 \item{roll_month}{Control how impossible dates are handled when
 month or year arithmetic is involved.
@@ -71,15 +109,24 @@ See \code{?timechange::time_add} for more details.}
 
 \item{tz}{Timezone of returned time sequence.}
 
+\item{by}{\bold{Deprecated}. Use \code{time_by} instead}
+
+\item{seq_type}{\bold{Deprecated}. Use \code{time_type} instead.}
+
+\item{floor_date}{\bold{Deprecated}. Use \code{time_floor} instead.}
+
 \item{as_period}{Logical. Should time interval be coerced to a period
 before time difference is calculated? This is useful for calculating
 for example age in exact years or months.}
 }
 \description{
+Time based version of \code{base::seq()}
+}
+\details{
 This works like \code{seq()},
 but using \code{timechange} for the period calculations and
 \code{base::seq.POSIXT()} for the duration calculations.
-In many ways it is improved over \code{seq.POSIXt()} as
+In many ways it is improved over \code{seq} as
 dates and/or datetimes can be supplied with no errors to
 the start and end points.
 Examples like,\cr
@@ -90,15 +137,11 @@ produce more expected results compared to \cr
 \code{seq(now(), length.out = 10, by = "0.5 days")} or \cr
 \code{seq(today(), length.out = 10, by = "0.5 days")}.\cr
 
-\code{time_seq_v()} is a vectorized version of \code{time_seq()}.\cr
+For a vectorized implementation with multiple start/end times,
+use \code{time_seq_v()}/\code{time_seq_v2()}
 
-\code{time_seq_len()} is a vectorized convenience
-function to calculate the length/size of
-a regular time sequence, given a start, end and unit specification.\cr
-
-With periods, impossible dates and datetimes can be
-rolled forward or backward
-through the \code{roll_month} and \code{roll_dst} arguments.
+\code{time_seq_sizes()} is a convenience
+function to calculate time sequence lengths, given start/end times.
 }
 \examples{
 library(timeplyr)
@@ -108,41 +151,41 @@ library(lubridate)
 today <- today()
 now <- now()
 
-time_seq(today, today + years(1), by = "day")
-time_seq(today, length.out = 10, by = "day")
-time_seq(today, length.out = 10, by = "hour")
+time_seq(today, today + years(1), time_by = "day")
+time_seq(today, length.out = 10, time_by = "day")
+time_seq(today, length.out = 10, time_by = "hour")
 
-time_seq(today, today + years(1), by = list("days" = 1)) # Alternative
-time_seq(today, today + years(1), by = "week")
-time_seq(today, today + years(1), by = "fortnight")
-time_seq(today, today + years(1), by = "year")
-time_seq(today, today + years(10), by = "year")
-time_seq(today, today + years(100), by = "decade")
+time_seq(today, today + years(1), time_by = list("days" = 1)) # Alternative
+time_seq(today, today + years(1), time_by = "week")
+time_seq(today, today + years(1), time_by = "fortnight")
+time_seq(today, today + years(1), time_by = "year")
+time_seq(today, today + years(10), time_by = "year")
+time_seq(today, today + years(100), time_by = "decade")
 
 # Datetimes
-time_seq(now, now + years(1), by = "12 hours")
-time_seq(now, now + years(1), by = "day")
-time_seq(now, now + years(1), by = "week")
-time_seq(now, now + years(1), by = "fortnight")
-time_seq(now, now + years(1), by = "year")
-time_seq(now, now + years(10), by = "year")
-time_seq(now, today + years(100), by = "decade")
+time_seq(now, now + years(1), time_by = "12 hours")
+time_seq(now, now + years(1), time_by = "day")
+time_seq(now, now + years(1), time_by = "week")
+time_seq(now, now + years(1), time_by = "fortnight")
+time_seq(now, now + years(1), time_by = "year")
+time_seq(now, now + years(10), time_by = "year")
+time_seq(now, today + years(100), time_by = "decade")
 
 # You can seamlessly mix dates and datetimes with no errors.
-time_seq(now, today + days(3), by = "day")
-time_seq(now, today + days(3), by = "hour")
-time_seq(today, now + days(3), by = "day")
-time_seq(today, now + days(3), by = "hour")
+time_seq(now, today + days(3), time_by = "day")
+time_seq(now, today + days(3), time_by = "hour")
+time_seq(today, now + days(3), time_by = "day")
+time_seq(today, now + days(3), time_by = "hour")
 
 # Choose between durations or periods
 
 start <- dmy(31012020)
-# If seq_type is left as is,
+# If time_type is left as is,
 # periods are used for days, weeks, months and years.
-time_seq(start, by = "month", length.out = 12,
-         seq_type = "period")
-time_seq(start, by = "month", length.out = 12,
-         seq_type = "duration")
+time_seq(start, time_by = "month", length.out = 12,
+         time_type = "period")
+time_seq(start, time_by = "month", length.out = 12,
+         time_type = "duration")
 # Notice how strange base R version is.
 seq(start, by = "month", length.out = 12)
 
@@ -151,10 +194,10 @@ seq(start, by = "month", length.out = 12)
 leap <- dmy(29022020) # Leap day
 end <- dmy(01032021)
 # 3 different options
-time_seq(leap, to = end, by = "year", seq_type = "per",
+time_seq(leap, to = end, time_by = "year", time_type = "per",
          roll_month = "NA")
-time_seq(leap, to = end, by = "year", seq_type = "per",
+time_seq(leap, to = end, time_by = "year", time_type = "per",
          roll_month = "postday")
-time_seq(leap, to = end, by = "year", seq_type = "per",
+time_seq(leap, to = end, time_by = "year", time_type = "per",
          roll_month = "preday")
 }
