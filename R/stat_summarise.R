@@ -8,7 +8,7 @@
 #' @param stat A character vector of statistical summaries to apply.
 #' This can be one or more of the following: \cr
 #' "n", "nmiss", "min", "max", "mean", "first", "last", "sd",
-#' "var", "mode", "median".
+#' "var", "mode", "median", "sum".
 #' @param na.rm Should `NA` values be removed? Default is `TRUE`.
 #' @param sort Should groups be sorted? Default is `TRUE`.
 #' @param .names An optional glue specification passed to `stringr::glue()`.
@@ -50,9 +50,9 @@
 #' @rdname stat_summarise
 #' @export
 stat_summarise <- function(data, ...,
-                         stat = .stat_fns[1:5],
-                         na.rm = TRUE, sort = TRUE,
-                         .names = NULL, .by = NULL, .cols = NULL){
+                           stat = .stat_fns[1:5],
+                           na.rm = TRUE, sort = TRUE,
+                           .names = NULL, .by = NULL, .cols = NULL){
   funs <- .stat_fns
   if (!is.character(stat)){
     stop("stat must be a character vector")
@@ -158,4 +158,4 @@ across_col_names <- function(.cols = NULL, .fns = NULL,
 }
 #' @export
 .stat_fns <- c("n", "nmiss", "min", "max", "mean", "median",
-               "sd", "var", "mode", "first", "last")
+               "sd", "var", "mode", "first", "last", "sum")

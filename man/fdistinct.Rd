@@ -4,7 +4,7 @@
 \alias{fdistinct}
 \title{Find distinct rows}
 \usage{
-fdistinct(data, ..., .keep_all = FALSE, .by = NULL, .cols = NULL)
+fdistinct(data, ..., .keep_all = FALSE, sort = FALSE, .by = NULL, .cols = NULL)
 }
 \arguments{
 \item{data}{A data frame.}
@@ -13,6 +13,8 @@ fdistinct(data, ..., .keep_all = FALSE, .by = NULL, .cols = NULL)
 
 \item{.keep_all}{If \code{TRUE} then all columns of data frame are kept,
 default is \code{FALSE}.}
+
+\item{sort}{Should result be sorted? Default is \code{FALSE}.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}

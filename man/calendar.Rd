@@ -25,14 +25,14 @@ add_calendar(
 create_calendar(
   from,
   to,
-  by,
+  time_by,
   length.out = NULL,
-  seq_type = c("auto", "duration", "period"),
+  time_type = c("auto", "duration", "period"),
   roll_month = "preday",
   roll_dst = "pre",
   tz,
   label = TRUE,
-  floor_date = FALSE,
+  time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   fiscal_start = getOption("lubridate.fiscal.start", 1),
   name = "time"
@@ -61,11 +61,11 @@ You can set lubridate.week.start option to control this parameter globally.}
 
 \item{to}{End date/datetime of sequence.}
 
-\item{by}{Unit increment of the sequence.}
+\item{time_by}{Unit increment of the sequence.}
 
 \item{length.out}{Length of the sequence.}
 
-\item{seq_type}{If "auto", \code{periods} are used for
+\item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks, months or years are specified, and \code{durations}
 are used otherwise.}
 
@@ -78,8 +78,10 @@ See \code{?timechange::time_add} for more details.}
 
 \item{tz}{Timezone of returned time sequence.}
 
-\item{floor_date}{Should \code{from} be floored to the nearest unit specified through the \code{by}
-argument? This is particularly useful for starting sequences at the beginning of a week
+\item{time_floor}{Should \code{from} be floored to the nearest unit
+specified through the \code{time_by}
+argument? This is particularly useful for starting sequences
+at the beginning of a week
 or month for example.}
 }
 \value{
@@ -96,17 +98,17 @@ library(lubridate)
 from <- floor_date(today(), unit = "year")
 to <- ceiling_date(today(), unit = "year", change_on_boundary = TRUE) - days(1)
 
-calendar <- create_calendar(from, to, by = "day")
+calendar <- create_calendar(from, to, time_by = "day")
 calendar
 
 # Create any unit time sequence tables
-create_calendar(from, to, by = "week")
-create_calendar(from, to, by = "month")
-create_calendar(from, to, by = "quarter")
-create_calendar(from, to, by = "year")
+create_calendar(from, to, time_by = "week")
+create_calendar(from, to, time_by = "month")
+create_calendar(from, to, time_by = "quarter")
+create_calendar(from, to, time_by = "year")
 
 # Or alternatively using calendar()
-my_seq <- time_seq(from, to, by = "day")
+my_seq <- time_seq(from, to, time_by = "day")
 calendar(my_seq)
 
 }

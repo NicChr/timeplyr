@@ -365,7 +365,7 @@ convert_common_dates <- function(x){
   out
 }
 # Calculate size of period unit to expand from and to for specified length
-period_by <- function(from, to, length){
+period_by_calc <- function(from, to, length){
   seconds_unit <- period_unit("seconds")
   recycled_args <- recycle_args(from, to, length)
   from <- recycled_args[[1L]]
@@ -439,7 +439,7 @@ period_by <- function(from, to, length){
 # }
 # Calculates size of duration to cut a pre-specified interval of
 # a certain length
-duration_by <- function(from, to, length){
+duration_by_calc <- function(from, to, length){
   seconds_unit <- duration_unit("seconds")
   sec_diff <- time_diff(from, to,
                         time_by = list("seconds" = 1),
@@ -449,22 +449,22 @@ duration_by <- function(from, to, length){
   out[length == 1] <- seconds_unit(0) # Special case
   out
 }
-num_by <- function(from, to, length){
+num_by_calc <- function(from, to, length){
   out <- (to - from) / (length - 1)
   length <- rep_len(length, length(out))
   out[length == 1] <- 0
   out
 }
 # Vectorized except for periods
-time_by <- function(from, to, length, time_type){
+time_by_calc <- function(from, to, length, time_type){
   if (is_time(from) && is_time(to)){
     if (time_type == "period"){
-      period_by(from, to, length)
+      period_by_calc(from, to, length)
     } else {
-      duration_by(from, to, length)
+      duration_by_calc(from, to, length)
     }
   } else {
-    num_by(from, to, length)
+    num_by_calc(from, to, length)
   }
 }
 # This only works for single unit vectors
@@ -749,10 +749,10 @@ needs_aggregation <- function(time_by, granularity){
     granularity_unit_info <- unit_guess(granularity)
 
     by_seconds <- as.numeric(time_unit(by_unit_info[["unit"]],
-                                       type = "duration")(
+                                       time_type = "duration")(
       by_unit_info[["num"]] * by_unit_info[["scale"]]))
     granularity_seconds <- as.numeric(time_unit(granularity_unit_info[["unit"]],
-                                                type = "duration")(
+                                                time_type = "duration")(
       granularity_unit_info[["num"]] * granularity_unit_info[["scale"]]))
 
     if (length(granularity_seconds) > 0L &&
@@ -944,13 +944,10 @@ get_from_to <- function(data, ..., time, from = NULL, to = NULL,
   to_var <- col_select_names(data, .cols = to)
   time_var <- col_select_names(data, .cols = time)
   dot_vars <- tidy_select_names(data, ...)
+  by_vars <- tidy_select_names(data, {{ .by }})
   if (length(from_var) == 0L || length(to_var) == 0L){
-    g <- group_id(data, .cols = dot_vars, .by = {{ .by }},
-                  as_qg = TRUE)
-    g <- collapse::GRP(g, sort = TRUE,
-                       return.groups = FALSE,
-                       return.order = TRUE,
-                       call = FALSE)
+    g <- df_to_GRP(data, .cols = c(by_vars, dot_vars),
+                   sort = TRUE)
   }
   if (length(from_var) == 0L){
     .from <- gmin(data[[time_var]], g = g)

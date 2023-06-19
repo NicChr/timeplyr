@@ -133,3 +133,15 @@ GRP_group_data <- function(GRP){
 GRP_names <- function(GRP, sep = "_"){
   collapse::GRPnames(GRP, sep = sep)
 }
+df_to_GRP <- function(data, .cols = names(data), ...){
+  data <- fselect(data, .cols = .cols)
+  if (collapse::fncol(data) == 0L){
+    NULL
+  } else {
+   GRP2(data, ...)
+  }
+}
+# Can GRP be used for group_by()?
+GRP_is_dplyr_group_able <- function(GRP){
+  is_df(GRP_groups(GRP))
+}

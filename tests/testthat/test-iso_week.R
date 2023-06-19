@@ -3,10 +3,10 @@
 testthat::test_that("Compare to lubridate", {
   x <- time_seq(lubridate::today(),
                 lubridate::today() + lubridate::years(20),
-                by = "day")
+                time_by = "day")
   x2 <- time_seq(lubridate::now(),
                 lubridate::now() + lubridate::years(20),
-                by = "12 hours")
+                time_by = "12 hours")
   x <- sample(x)
   x2 <- sample(x2)
   iso_week2 <- function(x){

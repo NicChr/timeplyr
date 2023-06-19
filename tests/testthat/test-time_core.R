@@ -13,7 +13,7 @@ testthat::test_that("Tests for time_countv", {
     nrow()
   # Test for if the input order is retained, and whether the count is correct too
   res1 <- flights2 %>%
-    dplyr::mutate(n1 = time_countv(time_hour, by = "hour",
+    dplyr::mutate(n1 = time_countv(time_hour, time_by = "hour",
                                    include_interval = FALSE, sort = FALSE, unique = FALSE, use.names = FALSE,
                                    complete = FALSE)) %>%
     fadd_count(time_hour, name = "n2") %>%
@@ -41,9 +41,9 @@ testthat::test_that("Tests for time_countv", {
                                time_complete(time = time_hour,
                                              fill = list(n = 0)) %>%
                                dplyr::pull(n))
-  res4 <- time_countv(flights2$time_hour, by = "month",
+  res4 <- time_countv(flights2$time_hour, time_by = "month",
                       from = from, to = to)
-  tbreaks <- time_seq(from, to, by = "month",
+  tbreaks <- time_seq(from, to, time_by = "month",
                       tz = lubridate::tz(flights2$time_hour))
 
   testthat::expect_equal(res4,
@@ -57,7 +57,7 @@ testthat::test_that("Tests for time_countv", {
                            dplyr::pull(n) %>%
                            setnames(tbreaks))
 
-  res5 <- time_countv(flights2$time_hour, by = "month",
+  res5 <- time_countv(flights2$time_hour, time_by = "month",
                       from = from, to = to, sort = FALSE,
                       use.names = FALSE)
 
@@ -72,19 +72,19 @@ testthat::test_that("Tests for time_countv", {
                            dplyr::pull(n))
 
   # Unfinished
-  res6 <- time_countv(flights2$time_hour, by = "month",
+  res6 <- time_countv(flights2$time_hour, time_by = "month",
                       from = from, to = to, sort = FALSE,
                       use.names = TRUE,
                       include_interval = TRUE)
-  res7 <- time_countv(flights2$time_hour, by = "month",
+  res7 <- time_countv(flights2$time_hour, time_by = "month",
                       from = from, to = to, sort = FALSE, unique = FALSE,
                       use.names = TRUE,
                       include_interval = TRUE)
-  res8 <- time_countv(flights2$time_hour, by = "month",
+  res8 <- time_countv(flights2$time_hour, time_by = "month",
                       from = from, to = to, sort = TRUE, unique = FALSE,
                       use.names = TRUE,
                       include_interval = TRUE)
-  res9 <- time_countv(flights2$time_hour, by = "month",
+  res9 <- time_countv(flights2$time_hour, time_by = "month",
                       from = from, to = to, sort = TRUE, unique = TRUE,
                       use.names = FALSE,
                       include_interval = TRUE)
@@ -93,16 +93,16 @@ testthat::test_that("Tests for time_countv", {
                            dplyr::filter(time_hour >= from &
                                            time_hour <= time_cast(to, flights2$time_hour)) %>%
                            dplyr::mutate(x = cut_time2(time_hour,
-                                                       time_span(time_hour, by = "month",
+                                                       time_span(time_hour, time_by = "month",
                                                                  from = from, to = to))) %>%
                            fcount(x) %>%
                            dplyr::mutate(interval = time_seq_interval(x, to = to)) %>%
                            dplyr::select(x, interval, n))
   res9a <- time_countv(flights2$time_hour,
-                       by = "hour", include_interval = TRUE)
+                       time_by = "hour", include_interval = TRUE)
   res9b <- flights2 %>%
     fcount(x = time_hour) %>%
-    time_complete(time = x, by = "hour",
+    time_complete(time = x, time_by = "hour",
                   fill = list(n = 0L),
                   sort = TRUE) %>%
     dplyr::mutate(interval = time_seq_interval(x, to = max(flights2$time_hour))) %>%
@@ -110,35 +110,35 @@ testthat::test_that("Tests for time_countv", {
   testthat::expect_true(nrow(dplyr::anti_join(res9a, res9b)) == 0L)
   testthat::expect_true(nrow(dplyr::anti_join(res9b, res9a)) == 0L)
   testthat::expect_identical(
-    time_countv(flights2$time_hour, by = "3.5 hours", include_interval = TRUE) %>%
+    time_countv(flights2$time_hour, time_by = "3.5 hours", include_interval = TRUE) %>%
       dplyr::filter(interval / duration_unit("hours")(1) > 3.5) %>%
       nrow(),
     0L
   )
   # Unfinished
-  res10 <- time_countv(flights2$time_hour, by = "month",
+  res10 <- time_countv(flights2$time_hour, time_by = "month",
                        from = from, to = to, sort = FALSE,
                        use.names = TRUE,
                        include_interval = FALSE)
-  res11 <- time_countv(flights2$time_hour, by = "month",
+  res11 <- time_countv(flights2$time_hour, time_by = "month",
                        from = from, to = to, sort = FALSE, unique = FALSE,
                        use.names = TRUE,
                        include_interval = FALSE)
-  res12 <- time_countv(flights2$time_hour, by = "month",
+  res12 <- time_countv(flights2$time_hour, time_by = "month",
                        from = from, to = to, sort = TRUE, unique = FALSE,
                        use.names = TRUE,
                        include_interval = FALSE)
-  res13 <- time_countv(flights2$time_hour, by = "month",
+  res13 <- time_countv(flights2$time_hour, time_by = "month",
                        from = from, to = to, sort = TRUE, unique = TRUE,
                        use.names = TRUE,
                        include_interval = FALSE)
   x <- flights2$time_hour
-  res <- time_countv(x, sort = FALSE, unique = TRUE, by = "2 weeks", include_interval = TRUE)
+  res <- time_countv(x, sort = FALSE, unique = TRUE, time_by = "2 weeks", include_interval = TRUE)
   testthat::expect_equal(res$x,
                          lubridate::int_start(res$interval))
   res <- time_countv(x[c(1:100, 30000:35000, 100000:100001)],
-                         sort = TRUE, unique = FALSE, by = "week", include_interval = TRUE,
-                         floor_date = TRUE)
+                         sort = TRUE, unique = FALSE, time_by = "week", include_interval = TRUE,
+                         time_floor = TRUE)
   testthat::expect_equal(res$x,
                          lubridate::int_start(res$interval))
 
@@ -154,24 +154,24 @@ testthat::test_that("Tests for time_span", {
   y <- lubridate::as_date(x)
 
   testthat::expect_equal(time_span(x),
-                             time_seq(min(x), max(x), by = "hour"))
+                             time_seq(min(x), max(x), time_by = "hour"))
   testthat::expect_equal(time_span(y),
-                             time_seq(min(y), max(y), by = "day"))
+                             time_seq(min(y), max(y), time_by = "day"))
   testthat::expect_equal(time_span(x, from = start1, to = end1),
-                             time_seq(start1, end1, by = "hour", tz = "America/New_York"))
+                             time_seq(start1, end1, time_by = "hour", tz = "America/New_York"))
   testthat::expect_equal(time_span(x, from = start2, to = end2),
-                             time_seq(start2, end2, by = "hour", tz = "America/New_York"))
-  testthat::expect_equal(time_span(x, from = start2, by = "week", floor_date = TRUE,
-                                       seq_type = "period"),
+                             time_seq(start2, end2, time_by = "hour", tz = "America/New_York"))
+  testthat::expect_equal(time_span(x, from = start2, time_by = "week", time_floor = TRUE,
+                                       time_type = "period"),
                              time_seq(start2, max(x),
-                                      by = "week",
-                                      floor_date = TRUE,
+                                      time_by = "week",
+                                      time_floor = TRUE,
                                       tz = "America/New_York"))
-  testthat::expect_equal(time_span(x, to = end2, by = "week", floor_date = TRUE,
-                                       seq_type = "period"),
+  testthat::expect_equal(time_span(x, to = end2, time_by = "week", time_floor = TRUE,
+                                       time_type = "period"),
                              time_seq(min(x), end2,
-                                      by = "week",
-                                      floor_date = TRUE,
+                                      time_by = "week",
+                                      time_floor = TRUE,
                                       tz = "America/New_York"))
 })
 
@@ -184,11 +184,11 @@ testthat::test_that("Tests for time_completev", {
   x <- nycflights13::flights$time_hour
   y <- lubridate::as_date(x)
 
-  tseq <- time_span(x, by = "hour")
+  tseq <- time_span(x, time_by = "hour")
   x_missed <- time_cast(setdiff(tseq, x), tseq)
-  testthat::expect_identical(time_completev(x, sort = FALSE, by = "hour"),
+  testthat::expect_identical(time_completev(x, sort = FALSE, time_by = "hour"),
                              c(x, x_missed))
-  testthat::expect_identical(time_completev(x, sort = TRUE, by = "hour"),
+  testthat::expect_identical(time_completev(x, sort = TRUE, time_by = "hour"),
                              radix_sort(c(x, x_missed)))
 })
 testthat::test_that("Tests for time_summarisev", {
@@ -200,46 +200,46 @@ testthat::test_that("Tests for time_summarisev", {
   x <- nycflights13::flights$time_hour
   y <- lubridate::as_date(x)
   x_max <- max(x)
-  tseq <- time_span(x, by = "hour")
+  tseq <- time_span(x, time_by = "hour")
   x_missed <- time_cast(setdiff(tseq, x), tseq)
   # Without interval
   testthat::expect_identical(time_summarisev(x, sort = TRUE, unique = TRUE,
-                                             by = "2 weeks"),
-                             time_span(x, by = "2 weeks"))
+                                             time_by = "2 weeks"),
+                             time_span(x, time_by = "2 weeks"))
   testthat::expect_identical(time_summarisev(x, sort = FALSE, unique = FALSE,
-                                             by = "2 weeks"),
-                             cut_time2(x, time_span(x, by = "2 weeks")))
+                                             time_by = "2 weeks"),
+                             cut_time2(x, time_span(x, time_by = "2 weeks")))
   testthat::expect_identical(time_summarisev(x, sort = TRUE, unique = FALSE,
-                                             by = "2 weeks"),
-                             radix_sort(cut_time2(x, time_span(x, by = "2 weeks"))))
+                                             time_by = "2 weeks"),
+                             radix_sort(cut_time2(x, time_span(x, time_by = "2 weeks"))))
   testthat::expect_identical(time_summarisev(x, sort = FALSE, unique = TRUE,
-                                             by = "2 weeks"),
-                             unique(cut_time2(x, time_span(x, by = "2 weeks"))))
+                                             time_by = "2 weeks"),
+                             unique(cut_time2(x, time_span(x, time_by = "2 weeks"))))
   # With interval
   testthat::expect_identical(
     time_summarisev(x, sort = TRUE, unique = TRUE,
-                    by = "2 weeks", floor_date = TRUE,
+                    time_by = "2 weeks", time_floor = TRUE,
                     include_interval = TRUE),
-    dplyr::tibble(x = time_span(x, by = "2 weeks", floor_date = TRUE)) %>%
+    dplyr::tibble(x = time_span(x, time_by = "2 weeks", time_floor = TRUE)) %>%
       dplyr::mutate(interval = time_seq_interval(x, to = x_max))
   )
 
-  res <- time_summarisev(x, sort = FALSE, unique = TRUE, by = "2 weeks", include_interval = TRUE)
+  res <- time_summarisev(x, sort = FALSE, unique = TRUE, time_by = "2 weeks", include_interval = TRUE)
   testthat::expect_equal(res$x,
                          lubridate::int_start(res$interval))
   res <- time_summarisev(x[c(1:100, 30000:35000, 100000:100001)],
-                         sort = TRUE, unique = FALSE, by = "week", include_interval = TRUE,
-                         floor_date = TRUE)
+                         sort = TRUE, unique = FALSE, time_by = "week", include_interval = TRUE,
+                         time_floor = TRUE)
   testthat::expect_equal(res$x,
                          lubridate::int_start(res$interval))
 
   # Test for out-of-bounds from argument
   testthat::expect_equal(time_summarisev(lubridate::dmy(21022020),
-                                         by = "week",
+                                         time_by = "week",
                                          from = lubridate::dmy(01012020)),
                          lubridate::dmy(19022020))
   testthat::expect_equal(time_summarisev(lubridate::dmy(21022020),
-                                         by = "week"),
+                                         time_by = "week"),
                          lubridate::dmy(21022020))
 
 })

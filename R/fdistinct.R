@@ -6,6 +6,7 @@
 #' @param ... Variables used to find distinct rows.
 #' @param .keep_all If `TRUE` then all columns of data frame are kept,
 #' default is `FALSE`.
+#' @param sort Should result be sorted? Default is `FALSE`.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
 #' @param .cols (Optional) alternative to `...` that accepts
@@ -13,6 +14,7 @@
 #' If speed is an expensive resource, it is recommended to use this.
 #' @export
 fdistinct <- function(data, ..., .keep_all = FALSE,
+                      sort = FALSE,
                       .by = NULL, .cols = NULL){
   n_dots <- dots_length(...)
   group_info <- group_info(data, ..., .by = {{ .by }},
@@ -54,14 +56,14 @@ fdistinct <- function(data, ..., .keep_all = FALSE,
   #                     reconstruct = FALSE)
   g <- GRP2(collapse::fselect(out, dup_vars),
             sort = TRUE,
-            return.groups = FALSE, call = FALSE,
+            return.groups = TRUE, call = FALSE,
             return.order = TRUE)
-  iunique <- fcumsum(seq_ones(nrow2(out)), g = g, na.rm = FALSE) == 1L
-  # if (sort){
-  #   i <- GRP_starts(g)
-  # } else {
-  #   i <- fcumsum(seq_ones(nrow2(out)), g = g, na.rm = FALSE) == 1L
-  # }
+  # iunique <- fcumsum(seq_ones(nrow2(out)), g = g, na.rm = FALSE) == 1L
+  if (sort){
+    iunique <- GRP_starts(g)
+  } else {
+    iunique <- collapse::whichv(frowid(out, g = g), 1L)
+  }
   out <- df_row_slice(out, iunique, reconstruct = FALSE)
   df_reconstruct(out, data)
 }

@@ -103,8 +103,10 @@ testthat::test_that("Group IDs", {
 
   # Intervals
 
-  x <- lubridate::interval(time_seq(Sys.Date(), length.out = 10, by = "day"),
-                           time_seq(Sys.Date() + lubridate::days(11), length.out = 10, by = "day"))
+  x <- lubridate::interval(time_seq(Sys.Date(), length.out = 10, time_by = "day"),
+                           time_seq(Sys.Date() + lubridate::days(11),
+                                    length.out = 10,
+                                    time_by = "day"))
   testthat::expect_equal(group_id(x),
                          seq_len(length(x)))
   testthat::expect_equal(group_id(dplyr::tibble(x), x),

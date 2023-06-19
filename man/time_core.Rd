@@ -104,7 +104,8 @@ time_span(
 \arguments{
 \item{x}{Date, datetime or numeric vector.}
 
-\item{time_by}{Must be one of the three:
+\item{time_by}{Time unit. \cr
+Must be one of the three:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
 \code{time_by = "days"} or \code{time_by = "2 weeks"}

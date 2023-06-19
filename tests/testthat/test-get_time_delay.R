@@ -4,7 +4,7 @@ testthat::test_that("time delay", {
   df1 <- ebola %>%
     dplyr::mutate(delay = time_diff(date_of_infection,
                                     date_of_onset,
-                                    by = "2 days")) %>%
+                                    time_by = "2 days")) %>%
     dplyr::filter(!is.na(delay)) %>%
     dplyr::select(date_of_infection,
                   date_of_onset, delay)
@@ -13,7 +13,7 @@ testthat::test_that("time delay", {
     dplyr::group_by(hospital) %>%
     dplyr::mutate(delay = time_diff(date_of_infection,
                                     date_of_onset,
-                                    by = "2 days")) %>%
+                                    time_by = "2 days")) %>%
     dplyr::filter(!is.na(delay)) %>%
     dplyr::select(hospital,
                   date_of_infection,
@@ -21,7 +21,7 @@ testthat::test_that("time delay", {
   df3 <- ebola %>%
     dplyr::mutate(delay = time_diff(date_of_infection,
                                     date_of_onset,
-                                    by = "2 days")) %>%
+                                    time_by = "2 days")) %>%
     dplyr::slice(0) %>%
     dplyr::select(date_of_infection,
                   date_of_onset, delay)
@@ -29,31 +29,31 @@ testthat::test_that("time delay", {
     dplyr::mutate(across(c(date_of_infection, date_of_onset), as.numeric)) %>%
     dplyr::mutate(delay = time_diff(date_of_infection,
                                     date_of_onset,
-                                    by = 2)) %>%
+                                    time_by = 2)) %>%
     dplyr::filter(!is.na(delay)) %>%
     dplyr::select(date_of_infection,
                   date_of_onset, delay)
   res1 <- suppressWarnings(get_time_delay(ebola,
                          date_of_infection,
                          date_of_onset,
-                         by = "2 days"))
+                         time_by = "2 days"))
 
   res2 <- suppressWarnings(get_time_delay(ebola %>%
                            dplyr::group_by(hospital),
                          date_of_infection,
                          date_of_onset,
-                         by = "2 days"))
+                         time_by = "2 days"))
 
   res3 <- df3 %>%
     get_time_delay(date_of_infection,
                    date_of_onset,
-                   by = "2 days") %>%
+                   time_by = "2 days") %>%
     suppressWarnings()
 
   res4 <- suppressWarnings(get_time_delay(ebola,
                                           across(date_of_infection, as.numeric),
                                           across(date_of_onset, as.numeric),
-                                          by = 2))
+                                          time_by = 2))
   testthat::expect_equal(res1$data,
                              df1)
   testthat::expect_equal(res2$data,

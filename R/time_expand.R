@@ -13,8 +13,8 @@
 #'
 #'
 #' @param data A data frame.
-#' @param ... Groups to expand.
 #' @param time Time variable.
+#' @param ... Groups to expand.
 #' @param time_by Time unit. \cr
 #' Must be one of the three:
 #' * string, specifying either the unit or the number and unit, e.g
@@ -69,7 +69,7 @@
 #' length(time_missing(x)) # Missing hours
 #' length(missing_dates(x)) # No missing dates though
 #' x_filled <- time_completev(x) # Expand by hour through heuristic
-#' time_missing(x_filled, by  = "hour") # No missing hours
+#' time_missing(x_filled, "hour") # No missing hours
 #'
 #' # Easier through tidyverse style functions
 #'
@@ -81,15 +81,15 @@
 #'
 #' # You can specify units too
 #' flights_count %>%
-#'   time_complete(time = time_hour, by = "hour")
+#'   time_complete(time = time_hour, time_by = "hours")
 #' flights_count %>%
-#'   time_complete(time = as_date(time_hour), by = "day") #  Nothing to complete here
+#'   time_complete(time = as_date(time_hour), time_by = "days") #  Nothing to complete here
 #'
 #' # Where time_expand() and time_complete() really shine is how fast they are with groups
 #' flights %>%
 #'   group_by(origin, dest, tailnum) %>%
-#'   time_expand(time = time_hour, by = "week",
-#'               seq_type = "duration")
+#'   time_expand(time = time_hour, time_by = "week",
+#'               time_type = "duration")
 #' @rdname time_expand
 #' @export
 time_expand <- function(data, time = NULL, ..., .by = NULL,
@@ -141,23 +141,17 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
     from_nm <- new_var_nm(names(out), ".from")
     to_nm <- new_var_nm(c(names(out), from_nm), ".to")
     out[, c(from_nm, to_nm) := get_from_to(out, time = time_var,
-                                               from = from_var,
-                                               to = to_var,
-                                               .by = all_of(grp_nm))]
+                                           from = from_var,
+                                           to = to_var,
+                                           .by = all_of(grp_nm))]
     # Unique groups
     time_tbl <- collapse::funique(collapse::fselect(out, c(group_vars, grp_nm, from_nm, to_nm)),
                                   cols = grp_nm)
     # Bit-hacky.. probably better to add a floor_date arg to time_seq_len
-    if (floor_date){
-      if (is_time(out[[time_var]])){
-        time_tbl[, (from_nm) := time_floor(get(from_nm),
-                                           by_unit,
-                                           week_start = week_start)]
-      } else {
-        time_tbl[, (from_nm) := time_floor(get(from_nm),
-                                           by_n,
-                                           week_start = week_start)]
-      }
+    if (time_floor){
+      time_tbl[, (from_nm) := time_floor2(get(from_nm),
+                                          time_by,
+                                          week_start = week_start)]
     }
     # Reverse by sign in case from > to
     by_nm <- new_var_nm(out, ".by")
@@ -167,7 +161,6 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
                                               get(by_nm))]
     # Determine size of sequences
     size_nm <- new_var_nm(out, ".size")
-
     ### Special case where day expansion is used on days/UTC ###
     # With period calculation. This should use durations for speed
     unit_is_days <- by_unit %in% c("days", "weeks")
@@ -190,15 +183,14 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
       expanded_nrow <- sum(time_tbl[[size_nm]])
       expand_check(expanded_nrow, log_limit)
       # Vectorised time sequence
-      time_seq <- time_seq_v(time_tbl[[from_nm]],
-                             time_tbl[[to_nm]],
-                             time_by = setnames(list(time_tbl[[by_nm]]),
-                                           by_unit),
-                             roll_month = roll_month,
-                             roll_dst = roll_dst,
-                             time_type = time_type)
-      out <- vctrs::vec_rep_each(time_tbl, time_tbl[[size_nm]])
-      data.table::setDT(out)
+      time_seq <- time_seq_v2(time_tbl[[size_nm]],
+                              time_tbl[[from_nm]],
+                              time_by = setnames(list(time_tbl[[by_nm]]),
+                                                 by_unit),
+                              roll_month = roll_month,
+                              roll_dst = roll_dst,
+                              time_type = time_type)
+      out <- df_rep_each(time_tbl, time_tbl[[size_nm]])
       data.table::set(out, j = time_var, value = time_seq)
       expanded_df <- fexpand(data,
                              ...,
@@ -252,16 +244,32 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
 }
 #' @rdname time_expand
 #' @export
-time_complete <- function(data, ..., time = NULL, time_by = NULL, from = NULL, to = NULL,
+time_complete <- function(data, time = NULL, ..., .by = NULL,
+                          time_by = NULL, from = NULL, to = NULL,
                           time_type = c("auto", "duration", "period"),
-                          floor_date = FALSE,
+                          time_floor = FALSE,
                           week_start = getOption("lubridate.week.start", 1),
                           expand_type = c("nesting", "crossing"),
-                          sort = TRUE, .by = NULL,
+                          sort = TRUE,
                           keep_class = TRUE,
                           fill = NA,
                           roll_month = "preday", roll_dst = "pre",
-                          log_limit = 8){
+                          log_limit = 8,
+                          by = NULL,
+                          seq_type = NULL,
+                          floor_date = NULL){
+  if (!is.null(by)){
+    warning("by is deprecated, use time_by instead")
+    time_by <- by
+  }
+  if (!is.null(seq_type)){
+    warning("seq_type is deprecated, use time_type instead")
+    time_type <- seq_type
+  }
+  if (!is.null(floor_date)){
+    warning("floor_date is deprecated, use time_floor instead")
+    time_floor <- floor_date
+  }
   expand_type <- match.arg(expand_type)
   time_type <- match.arg(time_type)
   group_vars <- get_groups(data, {{ .by }})
@@ -274,7 +282,7 @@ time_complete <- function(data, ..., time = NULL, time_by = NULL, from = NULL, t
                              time_by = time_by, from = !!enquo(from),
                              to = !!enquo(to),
                              time_type = time_type,
-                             floor_date = floor_date,
+                             time_floor = time_floor,
                              week_start = week_start,
                              sort = FALSE,
                              .by = all_of(group_vars),

@@ -40,7 +40,7 @@
 #' This is only used when `floor_date = TRUE`.
 #' @param as_factor Logical. If `TRUE` the output is an ordered factor.
 #' Setting this to `FALSE` is sometimes much faster.
-#' @param timetype If "auto", `periods` are used for
+#' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations` are used otherwise.
 #' @param roll_month Control how impossible dates are handled when
@@ -69,20 +69,20 @@
 #' # Works with datetimes as well
 #' time_cut(flights$time_hour, n = 5) # 5 breaks
 #' # Custom formatting
-#' time_cut(flights$date, fmt = "%Y %b", by = "month")
-#' time_cut(flights$time_hour, fmt = "%Y %b", by = "month")
+#' time_cut(flights$date, fmt = "%Y %b", time_by = "month")
+#' time_cut(flights$time_hour, fmt = "%Y %b", time_by = "month")
 #' # Just the breaks
-#' time_breaks(flights$date, n = 5, by = "month")
-#' time_breaks(flights$time_hour, n = 5, by = "month")
+#' time_breaks(flights$date, n = 5, time_by = "month")
+#' time_breaks(flights$time_hour, n = 5, time_by = "month")
 #'
 #' # To get exact breaks at regular intervals, use time_expandv
 #' weekly_breaks <- time_expandv(flights$date,
-#'                               by = "5 weeks",
+#'                               time_by = "5 weeks",
 #'                               week_start = 1, # Monday
-#'                               floor_date = TRUE)
+#'                               time_floor = TRUE)
 #' weekly_labels <- format(weekly_breaks, "%b-%d")
 #' flights %>%
-#'   time_count(time = date, by = "week") %>%
+#'   time_count(time = date, time_by = "week") %>%
 #'   ggplot(aes(x = date, y = n)) +
 #'   geom_bar(stat = "identity") +
 #'   scale_x_date(breaks = weekly_breaks,

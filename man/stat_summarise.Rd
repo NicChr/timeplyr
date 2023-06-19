@@ -24,7 +24,7 @@ Tidy data-masking applies.}
 \item{stat}{A character vector of statistical summaries to apply.
 This can be one or more of the following: \cr
 "n", "nmiss", "min", "max", "mean", "first", "last", "sd",
-"var", "mode", "median".}
+"var", "mode", "median", "sum".}
 
 \item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
 

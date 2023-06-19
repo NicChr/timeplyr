@@ -82,12 +82,12 @@ frowid <- function(x, g, ascending = TRUE){
     g <- GRP2(g, sort = TRUE, call = FALSE, return.groups = FALSE,
               return.order = TRUE)
     # If groups are sorted we can use sequence()
-    if (isTRUE(g[["ordered"]][["sorted"]])){
+    if (GRP_is_sorted(g)){
       if (ascending){
-        out <- sequence2(g[["group.sizes"]])
+        out <- sequence2(GRP_group_sizes(g))
       } else {
-        out <- sequence2(g[["group.sizes"]],
-                         from = g[["group.sizes"]],
+        out <- sequence2(GRP_group_sizes(g),
+                         from = GRP_group_sizes(g),
                          by = -1L)
       }
 

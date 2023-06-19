@@ -6,16 +6,16 @@
 \usage{
 time_distinct(
   data,
-  ...,
   time = NULL,
-  by = NULL,
+  ...,
+  time_by = NULL,
   from = NULL,
   to = NULL,
   .keep_all = FALSE,
-  seq_type = c("auto", "duration", "period"),
+  time_type = c("auto", "duration", "period"),
   include_interval = FALSE,
   .by = NULL,
-  floor_date = FALSE,
+  time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = "preday",
   roll_dst = "pre",
@@ -25,25 +25,21 @@ time_distinct(
 \arguments{
 \item{data}{A data frame.}
 
-\item{...}{Additional variables to include.
-\code{dplyr} "datamasking" semantics are used.}
-
 \item{time}{Time variable.}
 
-\item{by}{Time unit to summarise time series by.
-If \code{by} is \code{NULL} then a heuristic will try and estimate the highest
-order time unit associated with the time variable.
-If specified, then by must be one of the three:
+\item{...}{Additional variables to include.}
+
+\item{time_by}{Time unit. \cr
+Must be one of the three:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
-\code{by = "days"} or \code{by = "2 weeks"}
+\code{time_by = "days"} or \code{time_by = "2 weeks"}
 \item named list of length one, the unit being the name, and
 the number the value of the list, e.g. \code{list("days" = 7)}.
 For the vectorized time functions, you can supply multiple values,
 e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{by = 1}.
-This is also vectorized where applicable.
+\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
+then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
 \item{from}{Time series start date.}
@@ -53,9 +49,9 @@ This is also vectorized where applicable.
 \item{.keep_all}{If \code{TRUE} then all columns of data frame are kept,
 default is \code{FALSE}.}
 
-\item{seq_type}{If "auto", \code{periods} are used for
-the time expansion when days, weeks, months or years are specified, and \code{durations}
-are used otherwise.}
+\item{time_type}{If "auto", \code{periods} are used for
+the time expansion when days, weeks, months or years are specified,
+and \code{durations} are used otherwise.}
 
 \item{include_interval}{Logical. If \code{TRUE} then
 a column "interval" of the form \verb{time_min <= x < time_max} is added
@@ -65,12 +61,15 @@ The rightmost interval will always be closed.}
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
 
-\item{floor_date}{Should \code{from} be floored to the nearest unit specified through the \code{by}
-argument? This is particularly useful for starting sequences at the beginning of a week
+\item{time_floor}{Should \code{from} be floored to the nearest unit
+specified through the \code{time_by}
+argument? This is particularly useful for starting
+sequences at the beginning of a week
 or month for example.}
 
 \item{week_start}{day on which week starts following ISO conventions - 1
-means Monday, 7 means Sunday (default). This is only used when \code{floor_date = TRUE}.}
+means Monday, 7 means Sunday (default).
+This is only used when \code{time_floor = TRUE}.}
 
 \item{roll_month}{Control how impossible dates are handled when
 month or year arithmetic is involved.

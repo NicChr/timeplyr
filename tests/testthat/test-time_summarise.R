@@ -10,7 +10,8 @@ testthat::test_that("General tests", {
   testthat::expect_identical(
     flights %>%
       dplyr::group_by(origin, dest) %>%
-      time_summarise(across(dplyr::where(is.numeric),
+      time_summarise(time = NULL,
+                     across(dplyr::where(is.numeric),
                             ~ mean(.x, na.rm = TRUE))),
     flights %>%
       dplyr::group_by(origin, dest) %>%
@@ -21,7 +22,8 @@ testthat::test_that("General tests", {
   testthat::expect_identical(
     flights %>%
       dplyr::group_by(origin, dest) %>%
-      time_reframe(across(dplyr::where(is.numeric),
+      time_reframe(time = NULL,
+                   across(dplyr::where(is.numeric),
                             ~ mean(.x, na.rm = TRUE))),
     flights %>%
       dplyr::group_by(origin, dest) %>%
@@ -34,12 +36,12 @@ testthat::test_that("General tests", {
     time_summarise(across(dplyr::where(is.numeric),
                           ~ mean(.x, na.rm = TRUE)),
                    time = time_hour,
-                   by = "month")
+                   time_by = "month")
   res2 <- flights %>%
     dplyr::group_by(origin, dest) %>%
     dplyr::mutate(time_hour = cut_time2(time_hour,
                                     time_span(time_hour,
-                                              by = "month"))) %>%
+                                              time_by = "month"))) %>%
     dplyr::group_by(time_hour, .add = TRUE) %>%
     dplyr::summarise(across(dplyr::where(is.numeric),
                             ~ mean(.x, na.rm = TRUE)),
@@ -50,7 +52,7 @@ testthat::test_that("General tests", {
     time_summarise(across(dplyr::where(is.numeric),
                           ~ mean(.x, na.rm = TRUE)),
                    time = time_hour,
-                   by = "month",
+                   time_by = "month",
                    keep_class = FALSE)
   testthat::expect_true(nrow(dplyr::anti_join(res1, res3)) == 0L)
   testthat::expect_true(nrow(dplyr::anti_join(res3, res1)) == 0L)
@@ -58,8 +60,8 @@ testthat::test_that("General tests", {
   # Intervals
   testthat::expect_equal(
     flights %>%
-      time_summarise(time = time_hour, by = "2 weeks",
-                 include_interval = TRUE, seq_type = "period") %>%
+      time_summarise(time = time_hour, time_by = "2 weeks",
+                 include_interval = TRUE, time_type = "period") %>%
       dplyr::mutate(n_days = interval / lubridate::days(1)) %>%
       fcount(n_days),
     dplyr::tibble(n_days = c(0.75, 14),
@@ -67,7 +69,7 @@ testthat::test_that("General tests", {
   )
   testthat::expect_equal(
     flights %>%
-      time_summarise(time = time_hour, by = "hour",
+      time_summarise(time = time_hour, time_by = "hour",
                  include_interval = TRUE) %>%
       dplyr::mutate(n_hrs = interval / lubridate::dhours(1)) %>%
       fcount(n_hrs),
@@ -76,7 +78,7 @@ testthat::test_that("General tests", {
   )
   testthat::expect_identical(
     flights %>%
-      time_summarise(time = time_hour, by = "3.5 hours", include_interval = TRUE) %>%
+      time_summarise(time = time_hour, time_by = "3.5 hours", include_interval = TRUE) %>%
       dplyr::filter(interval / duration_unit("hours")(1) > 3.5) %>%
       nrow(),
     0L
@@ -84,7 +86,7 @@ testthat::test_that("General tests", {
   testthat::expect_identical(
     flights %>%
       time_summarise(time = time_hour,
-                 include_interval = TRUE, by = "3.5 hours") %>%
+                 include_interval = TRUE, time_by = "3.5 hours") %>%
       fcount(n_hrs = interval/ duration_unit("hours")(1)),
     dplyr::tibble(n_hrs = c(0.5, 3.5),
                   n = c(1L, 2242L))
@@ -92,8 +94,8 @@ testthat::test_that("General tests", {
   testthat::expect_equal(
     flights %>%
       time_summarise(time = time_hour,
-                 include_interval = TRUE, by = "3.5 weeks",
-                 seq_type = "duration") %>%
+                 include_interval = TRUE, time_by = "3.5 weeks",
+                 time_type = "duration") %>%
       fcount(n_hrs = round(interval/ duration_unit("weeks")(1),
                            2)),
     dplyr::tibble(n_hrs = c(3.11, 3.5),

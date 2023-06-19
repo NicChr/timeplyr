@@ -135,8 +135,7 @@ get_time_delay <- function(data, origin, end, time_by = "days",
   out[, (grp_nm) := group_id(data, .by = {{ .by }})]
   set_rm_cols(out, setdiff(names(out),
                            c(grp_nm, group_vars, start_time, end_time)))
-  grp_df <- collapse::funique(out[, c(grp_nm, group_vars),
-                                  with = FALSE],
+  grp_df <- collapse::funique(fselect(out, .cols = c(grp_nm, group_vars)),
                               cols = grp_nm,
                               sort = FALSE)
   unit_info <- unit_guess(time_by)
@@ -178,6 +177,7 @@ get_time_delay <- function(data, origin, end, time_by = "days",
   delay_summary[, (q_nms) := fselect(quantile_summary, .cols = q_nms)]
   delay_summary[, ("iqr") := get("p75") - get("p25")]
   if (length(group_vars) > 0L){
+    # Left-join
     delay_summary[grp_df, (group_vars) := mget(group_vars),
                   on = grp_nm, allow.cartesian = FALSE]
   }

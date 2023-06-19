@@ -47,17 +47,17 @@ fn <- function(..., g = NULL, sort = TRUE, use.g.names = FALSE){
     nobs <- vec_length(x)
   } else {
     g <- GRP2(g, sort = sort, return.groups = use.g.names)
-    nobs <- collapse::GRPN(g, expand = FALSE)
-    if (g[["N.groups"]] == 0L){
+    nobs <- GRP_group_sizes(g)
+    if (GRP_n_groups(g) == 0L){
       nobs <- 0L
     }
     if (use.g.names){
-      names(nobs) <- collapse::GRPnames(g)
+      names(nobs) <- GRP_names(g)
     }
     if (n_dots == 1){
       x <- list(...)[[1L]]
       N <- vec_length(x)
-      if (N != length(g[["group.id"]])){
+      if (N != GRP_data_size(g)){
         stop("g must be the same size as the data")
       }
     }

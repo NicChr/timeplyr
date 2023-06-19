@@ -6,7 +6,8 @@
 #' datetime vectors.
 #'
 #' @param x Date, datetime or numeric vector.
-#' @param time_by Must be one of the three:
+#' @param time_by Time unit. \cr
+#' Must be one of the three:
 #' * string, specifying either the unit or the number and unit, e.g
 #' `time_by = "days"` or `time_by = "2 weeks"`
 #' * named list of length one, the unit being the name, and
@@ -47,6 +48,10 @@
 #' @param complete Logical. If `TRUE` implicit gaps in time are filled
 #' before counting and after time aggregation (controlled using `time_by`).
 #' The default is `TRUE`.
+#' @param g Grouping object passed directly to `collapse::GRP()`.
+#' This can for example be a vector or data frame.
+#' @param use.g.names Should the result include group names?
+#' Default is `TRUE`.
 #' @param by \bold{Deprecated}. Use `time_by` instead
 #' @param floor_date \bold{Deprecated}. Use `time_floor` instead.
 #' @param seq_type \bold{Deprecated}. Use `time_type` instead.
@@ -131,11 +136,22 @@ time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
     time_floor <- floor_date
   }
   ###
-
+  if (length(from) > 1L){
+    stop("from must be of length 1")
+  }
+  if (length(to) > 1L){
+    stop("to must be of length 1")
+  }
   time_by <- time_by_get(x, time_by = time_by,
                          is_sorted = FALSE)
+  if (length(time_by[[1L]]) > 1L){
+    stop("time_by must be a time unit containing a single numeric increment")
+  }
   if (!is.null(g)){
     g <- GRP2(g)
+    if (GRP_data_size(g) != length(x)){
+      stop("g must have the same size as x")
+    }
   }
   if (is.null(from)){
     from <- collapse::fmin(x, g = g, use.g.names = FALSE)
@@ -146,13 +162,16 @@ time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
   # Make sure from/to are datetimes if x is datetime
   from <- time_cast(from, x)
   to <- time_cast(to, x)
+  if (time_floor){
+    from <- time_floor2(from, time_by, week_start = week_start)
+  }
   seq_sizes <- time_seq_sizes(from, to, time_by, time_type = time_type)
   if (isTRUE(log10(sum(seq_sizes)) >= 8)){
     message("The final size exceeds 8m rows, this may take a while")
   }
   out <- time_seq_v2(seq_sizes, from = from, time_by = time_by,
                      time_type = time_type,
-                     time_floor = time_floor,
+                     time_floor = FALSE,
                      week_start = week_start,
                      roll_month = roll_month, roll_dst = roll_dst)
   if (use.g.names && !is.null(g)){

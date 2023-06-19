@@ -7,86 +7,91 @@
 \usage{
 time_expand(
   data,
-  ...,
   time = NULL,
-  by = NULL,
+  ...,
+  .by = NULL,
+  time_by = NULL,
   from = NULL,
   to = NULL,
-  .by = NULL,
-  seq_type = c("auto", "duration", "period"),
-  floor_date = FALSE,
+  time_type = c("auto", "duration", "period"),
+  time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   expand_type = c("nesting", "crossing"),
   sort = TRUE,
   keep_class = TRUE,
   roll_month = "preday",
   roll_dst = "pre",
-  log_limit = 8
+  log_limit = 8,
+  by = NULL,
+  seq_type = NULL,
+  floor_date = NULL
 )
 
 time_complete(
   data,
-  ...,
   time = NULL,
-  by = NULL,
+  ...,
+  .by = NULL,
+  time_by = NULL,
   from = NULL,
   to = NULL,
-  seq_type = c("auto", "duration", "period"),
-  floor_date = FALSE,
+  time_type = c("auto", "duration", "period"),
+  time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   expand_type = c("nesting", "crossing"),
   sort = TRUE,
-  .by = NULL,
   keep_class = TRUE,
   fill = NA,
   roll_month = "preday",
   roll_dst = "pre",
-  log_limit = 8
+  log_limit = 8,
+  by = NULL,
+  seq_type = NULL,
+  floor_date = NULL
 )
 }
 \arguments{
 \item{data}{A data frame.}
 
-\item{...}{Groups to expand.}
-
 \item{time}{Time variable.}
 
-\item{by}{Argument to expand and summarise time series.
-If \code{by} is \code{NULL} then a heuristic will try and estimate the highest
-order time unit associated with the time variable.
-If specified, then by must be one of the three:
+\item{...}{Groups to expand.}
+
+\item{.by}{(Optional). A selection of columns to group by for this operation.
+Columns are specified using tidy-select.}
+
+\item{time_by}{Time unit. \cr
+Must be one of the three:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
-\code{by = "days"} or \code{by = "2 weeks"}
+\code{time_by = "days"} or \code{time_by = "2 weeks"}
 \item named list of length one, the unit being the name, and
 the number the value of the list, e.g. \code{list("days" = 7)}.
 For the vectorized time functions, you can supply multiple values,
 e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{by = 1}.
-This is also vectorized where applicable.
+\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
+then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
 \item{from}{Time series start date.}
 
 \item{to}{Time series end date.}
 
-\item{.by}{(Optional). A selection of columns to group by for this operation.
-Columns are specified using tidy-select.}
+\item{time_type}{If "auto", \code{periods} are used for
+the time expansion when days, weeks, months or years are specified,
+and \code{durations} are used otherwise.}
 
-\item{seq_type}{If "auto", \code{periods} are used for
-the time expansion when days, weeks, months or years are specified, and \code{durations}
-are used otherwise.}
-
-\item{floor_date}{Should \code{from} be floored to the nearest unit specified through the \code{by}
-argument? This is particularly useful for starting sequences at the beginning of a week
-or month for example.}
+\item{time_floor}{Should \code{from} be floored to the
+nearest unit specified through the \code{time_by}
+argument? This is particularly useful for
+starting sequences at the beginning of a week or month for example.}
 
 \item{week_start}{day on which week starts following ISO conventions - 1
 means Monday (default), 7 means Sunday.
 This is only used when \code{floor_date = TRUE}.}
 
-\item{expand_type}{Type of time expansion to use where "nesting" finds combinations already present in the data,
+\item{expand_type}{Type of time expansion to use where "nesting"
+finds combinations already present in the data,
 "crossing" finds all combinations of values in the group variables.}
 
 \item{sort}{Logical. If \code{TRUE} expanded/completed variables are sorted.}
@@ -103,6 +108,12 @@ See \code{?timechange::time_add} for more details.}
 
 \item{log_limit}{The maximum log10 number of rows that can be expanded.
 Anything exceeding this will throw an error.}
+
+\item{by}{\bold{Deprecated}. Use \code{time_by} instead}
+
+\item{seq_type}{\bold{Deprecated}. Use \code{time_type} instead.}
+
+\item{floor_date}{\bold{Deprecated}. Use \code{time_floor} instead.}
 
 \item{fill}{A named list containing value-name pairs to fill the named implicit missing values.}
 }
@@ -131,7 +142,7 @@ x <- flights$time_hour
 length(time_missing(x)) # Missing hours
 length(missing_dates(x)) # No missing dates though
 x_filled <- time_completev(x) # Expand by hour through heuristic
-time_missing(x_filled, by  = "hour") # No missing hours
+time_missing(x_filled, "hour") # No missing hours
 
 # Easier through tidyverse style functions
 
@@ -143,13 +154,13 @@ flights_count \%>\%
 
 # You can specify units too
 flights_count \%>\%
-  time_complete(time = time_hour, by = "hour")
+  time_complete(time = time_hour, time_by = "hours")
 flights_count \%>\%
-  time_complete(time = as_date(time_hour), by = "day") #  Nothing to complete here
+  time_complete(time = as_date(time_hour), time_by = "days") #  Nothing to complete here
 
 # Where time_expand() and time_complete() really shine is how fast they are with groups
 flights \%>\%
   group_by(origin, dest, tailnum) \%>\%
-  time_expand(time = time_hour, by = "week",
-              seq_type = "duration")
+  time_expand(time = time_hour, time_by = "week",
+              time_type = "duration")
 }

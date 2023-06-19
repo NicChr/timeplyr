@@ -38,8 +38,8 @@ farrange <- function(data, ..., .by = NULL, .by_group = FALSE,
   .cols = .cols,
   ungroup = TRUE,
   rename = FALSE)
-  dot_vars <- group_info[["extra_groups"]]
-  all_vars <- group_info[["all_groups"]]
+  dot_vars <- fpluck(group_info, "extra_groups")
+  all_vars <- fpluck(group_info, "all_groups")
   if (length(all_vars) == 0L){
     return(data)
   }
@@ -49,7 +49,9 @@ farrange <- function(data, ..., .by = NULL, .by_group = FALSE,
     order_vars <- dot_vars
   }
   out_order <- radixorderv2(
-    collapse::fselect(group_info[["data"]], order_vars),
+    fselect(
+      fpluck(group_info, "data"), .cols = order_vars
+    ),
     decreasing = FALSE, na.last = TRUE, starts = FALSE,
     group.sizes = FALSE, sort = TRUE
   )

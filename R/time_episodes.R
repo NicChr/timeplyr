@@ -176,7 +176,7 @@ time_episodes <- function(data, time, time_by = NULL,
   if (length(window_col) == 0){
     stop("Please supply window for episode calculation")
   }
-  time_by <- time_by_get(out[[time_col]], by = time_by)
+  time_by <- time_by_get(out[[time_col]], time_by = time_by)
   # Create group ID variable
   grp_nm <- new_var_nm(data_nms, ".group")
   data.table::set(out,
@@ -187,13 +187,13 @@ time_episodes <- function(data, time, time_by = NULL,
   g2 <- collapse::GRP(fselect(out, .cols = c(grp_nm, time_col)),
                       sort = TRUE, return.order = FALSE, return.groups = FALSE)
   # If data is already sorted correctly, no need to sort it
-  if (!isTRUE(g2[["ordered"]]["sorted"])){
+  if (!GRP_is_sorted(g2)){
     # Keep track of initial order
     sort_nm <- new_var_nm(data_nms, ".sort.index")
     out[, (sort_nm) := seq_len(.N)] # Index variable
     # Sort by groups > case ID > date col
     grp_nm2 <- new_var_nm(data_nms, ".group2")
-    data.table::set(out, j = grp_nm2, value = g2[["group.id"]])
+    data.table::set(out, j = grp_nm2, value = GRP_group_id(g2))
     data.table::setorderv(out, cols = grp_nm2)
     data.table::set(out, j = grp_nm2, value = NULL)
   } else {
@@ -265,7 +265,7 @@ calc_episodes <- function(data,
     group_row_id_nm <- new_var_nm(data, "group_row_id")
     data.table::set(data,
                     j = group_row_id_nm,
-                    value = frowid(g[["group.id"]], g = g))
+                    value = frowid(GRP_group_id(g), g = g))
     # Time elapsed
     data.table::set(data,
                     j = "t_elapsed",

@@ -105,12 +105,12 @@ group_id.default <- function(data, ..., order = TRUE,
                 return.order = FALSE,
                 method = "auto",
                 call = FALSE)
-    out <- g[["group.id"]]
+    out <- GRP_group_id(g)
   } else {
     out <- group2(data)
   }
   if (as_qg && order){
-    out <- group_id_to_qg(out, n_groups = g[["N.groups"]], ordered = TRUE)
+    out <- group_id_to_qg(out, n_groups = GRP_n_groups(g), ordered = TRUE)
   }
   if (!as_qg && !order){
     out <- qg_to_integer(out)
@@ -122,9 +122,9 @@ group_id.Interval <- function(data, ..., order = TRUE,
                               ascending = TRUE, as_qg = FALSE){
   g <- GRP.Interval(data, sort = order, decreasing = !ascending,
                       call = FALSE, return.groups = FALSE)
-  out <- g[["group.id"]]
+  out <- GRP_group_id(g)
   if (as_qg){
-    out <- group_id_to_qg(out, n_groups = g[["N.groups"]],
+    out <- group_id_to_qg(out, n_groups = GRP_n_groups(g),
                           ordered = order)
   }
   out
@@ -155,8 +155,8 @@ group_id.data.frame <- function(data, ...,
                 return.order = FALSE,
                 method = "auto",
                 call = FALSE)
-    out <- g[["group.id"]]
-    n_groups <- g[["N.groups"]]
+    out <- GRP_group_id(g)
+    n_groups <- GRP_n_groups(g)
   }
   if (as_qg){
     out <- group_id_to_qg(out, n_groups = n_groups,
@@ -278,7 +278,7 @@ group_order.default <- function(data, ..., ascending = TRUE){
   #   attr(out, a) <- NULL
   # }
   # if (is.null(out)){
-  #   radix_order(g[["group.id"]])
+  #   radix_order(GRP_group_id(g))
   # } else {
   #  out
   # }
@@ -371,11 +371,11 @@ group2 <- function(X, ...){
 qG2 <- function(x, sort = TRUE, na.exclude = FALSE, ...){
   if (is_interval(x)){
     g <- GRP.Interval(x, sort = sort, call = FALSE, return.groups = FALSE)
-    out <- g[["group.id"]]
+    out <- GRP_group_id(g)
     if (na.exclude){
       setv(out, collapse::whichNA(x), NA_integer_, vind1 = TRUE)
     }
-    out <- group_id_to_qg(out, g[["N.groups"]])
+    out <- group_id_to_qg(out, GRP_n_groups(g))
   } else {
     out <- collapse::qG(x, sort = sort, na.exclude = na.exclude, ...)
   }

@@ -58,6 +58,7 @@ time_elapsed(x, rolling = TRUE, time_by = "day")
 
 # Grouped example
 set.seed(99)
+# ~ 100k groups, 1m rows
 x <- sample(time_seq_v2(20, today(), "day"), 10^6, TRUE)
 g <- sample.int(10^5, 10^6, TRUE)
 

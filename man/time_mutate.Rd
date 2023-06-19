@@ -6,16 +6,16 @@
 \usage{
 time_mutate(
   data,
-  ...,
   time = NULL,
-  by = NULL,
+  ...,
+  time_by = NULL,
   from = NULL,
   to = NULL,
-  seq_type = c("auto", "duration", "period"),
+  time_type = c("auto", "duration", "period"),
   include_interval = FALSE,
   .by = NULL,
   .keep = c("all", "used", "unused", "none"),
-  floor_date = FALSE,
+  time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = "preday",
   roll_dst = "pre",
@@ -25,33 +25,30 @@ time_mutate(
 \arguments{
 \item{data}{A data frame.}
 
-\item{...}{Additional variables to include.
-\code{dplyr} "datamasking" semantics are used.}
-
 \item{time}{Time variable.}
 
-\item{by}{Time unit to summarise time series by.
-If \code{by} is \code{NULL} then a heuristic will try and estimate the highest
-order time unit associated with the time variable.
-If specified, then by must be one of the three:
+\item{...}{Additional variables to include.}
+
+\item{time_by}{Time unit. \cr
+Must be one of the three:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
-\code{by = "days"} or \code{by = "2 weeks"}
+\code{time_by = "days"} or \code{time_by = "2 weeks"}
 \item named list of length one, the unit being the name, and
 the number the value of the list, e.g. \code{list("days" = 7)}.
 For the vectorized time functions, you can supply multiple values,
 e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{by = 1}.
-This is also vectorized where applicable.
+\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
+then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
 \item{from}{Time series start date.}
 
 \item{to}{Time series end date.}
 
-\item{seq_type}{If "auto", \code{periods} are used for
-the time expansion when days, weeks, months or years are specified, and \code{durations}
+\item{time_type}{If "auto", \code{periods} are used for
+the time expansion when days, weeks, months or years are specified,
+and \code{durations}
 are used otherwise.}
 
 \item{include_interval}{Logical. If \code{TRUE} then
@@ -62,11 +59,13 @@ The rightmost interval will always be closed.}
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
 
-\item{.keep}{Control which columns are retained. See \code{?dplyr::mutate} for more details.}
+\item{.keep}{Control which columns are retained.
+See \code{?dplyr::mutate} for more details.}
 
-\item{floor_date}{Should \code{from} be floored to the nearest unit specified through the \code{by}
-argument? This is particularly useful for starting sequences at the beginning of a week
-or month for example.}
+\item{time_floor}{Should \code{from} be floored to the nearest unit specified
+through the \code{time_by}
+argument? This is particularly useful for starting
+sequences at the beginning of a week or month for example.}
 
 \item{week_start}{day on which week starts following ISO conventions - 1
 means Monday (default), 7 means Sunday.
@@ -101,12 +100,13 @@ library(nycflights13)
 identical(flights \%>\%
             mutate(across(where(is.numeric), mean)),
           flights \%>\%
-            time_mutate(across(where(is.numeric), mean)))
+            time_mutate(time = NULL,
+                        across(where(is.numeric), mean)))
 # Like the other time_ functions, it allows for an additional time variable to
 # aggregate by
 flights \%>\%
   time_mutate(time = across(time_hour, as_date),
-              by = "month", .keep = "none",
+              time_by = "month", .keep = "none",
               include_interval = TRUE) \%>\%
   distinct()
 }

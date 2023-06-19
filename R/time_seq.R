@@ -56,6 +56,7 @@
 #' @param as_period Logical. Should time interval be coerced to a period
 #' before time difference is calculated? This is useful for calculating
 #' for example age in exact years or months.
+#' @param sizes Time sequence sizes.
 #' @param by \bold{Deprecated}. Use `time_by` instead
 #' @param floor_date \bold{Deprecated}. Use `time_floor` instead.
 #' @param seq_type \bold{Deprecated}. Use `time_type` instead.
@@ -192,7 +193,7 @@ time_seq <- function(from, to, time_by, length.out = NULL,
     }
     # From, to, length, no time_by
     if (from_and_to && missing_by && !missing_len){
-      time_unit <- time_by(from, to, length = length.out, time_type = time_type)
+      time_unit <- time_by_calc(from, to, length = length.out, time_type = time_type)
       # Calculate time_by info from lubridate class object
       unit_info <- time_unit_info(time_unit)
       by_n <- unname(unit_info)[[1L]]
@@ -541,6 +542,7 @@ period_seq_v <- function(from, to, units, num = 1,
                               time_type = "period")
   period_seq_v2(sizes = seq_sizes,
                 from = from, units = units,
+                num = num,
                 roll_month = roll_month,
                 roll_dst = roll_dst)
 }
@@ -555,6 +557,7 @@ period_seq_v2 <- function(sizes, from, units, num = 1,
     return(from[0L])
   }
   period_df <- recycle_args(from, num, sizes, use.names = TRUE)
+  # period_df <- data.table::copy(as_DT(period_df))
   data.table::setDT(period_df)
   period_df[, ("row_id") := seq_len(.N)]
   # We want to eliminate unnecessary grouped calculations
@@ -565,7 +568,8 @@ period_seq_v2 <- function(sizes, from, units, num = 1,
 
   # It's important the result is properly ordered
   # So let's store the correct order before collapsing
-  data.table::setorderv(period_df, cols = "g")
+  period_df <- farrange(period_df, .cols = "g")
+  # data.table::setorderv(period_df, cols = "g")
   out_order <- radix_order(rep.int(period_df[["row_id"]],
                                    period_df[["sizes"]]))
 

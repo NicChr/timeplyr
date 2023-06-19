@@ -36,7 +36,6 @@ For the vectorized time functions, you can supply multiple values,
 e.g. \code{list("days" = 1:10)}.
 \item Numeric vector. If by is a numeric vector and x is not a date/datetime,
 then arithmetic is used, e.g \code{time_by = 1}.
-This is also vectorized where applicable.
 }}
 
 \item{window}{Numeric variable defining the episode threshold.

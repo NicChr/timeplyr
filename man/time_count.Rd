@@ -7,9 +7,9 @@ aggregate a time series based data frame.}
 \usage{
 time_count(
   data,
-  ...,
   time = NULL,
-  by = NULL,
+  ...,
+  time_by = NULL,
   from = NULL,
   to = NULL,
   complete = TRUE,
@@ -17,37 +17,36 @@ time_count(
   name = NULL,
   sort = FALSE,
   .by = NULL,
-  floor_date = FALSE,
+  time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
-  seq_type = c("auto", "duration", "period"),
+  time_type = c("auto", "duration", "period"),
   roll_month = "preday",
   roll_dst = "pre",
   include_interval = FALSE,
-  keep_class = TRUE
+  keep_class = TRUE,
+  by = NULL,
+  seq_type = NULL,
+  floor_date = NULL
 )
 }
 \arguments{
 \item{data}{A data frame.}
 
-\item{...}{Additional variables to include.
-\code{dplyr} "datamasking" semantics are used.}
-
 \item{time}{Time variable.}
 
-\item{by}{Argument to expand and summarise time series.
-If \code{by} is \code{NULL} then a heuristic will try and estimate the highest
-order time unit associated with the time variable.
-If specified, then by must be one of the three:
+\item{...}{Additional variables to include.}
+
+\item{time_by}{Time unit. \cr
+Must be one of the three:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
-\code{by = "days"} or \code{by = "2 weeks"}
+\code{time_by = "days"} or \code{time_by = "2 weeks"}
 \item named list of length one, the unit being the name, and
 the number the value of the list, e.g. \code{list("days" = 7)}.
 For the vectorized time functions, you can supply multiple values,
 e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{by = 1}.
-This is also vectorized where applicable.
+\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
+then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
 \item{from}{Time series start date. If \code{NULL} then min time is used.}
@@ -55,7 +54,7 @@ This is also vectorized where applicable.
 \item{to}{Time series end date. If \code{NULL} then max time is used.}
 
 \item{complete}{Logical. If \code{TRUE} implicit gaps in time are filled
-after counting and before time aggregation (through \code{by}).
+after counting and time aggregation (through \code{time_by}).
 The default is \code{TRUE}.}
 
 \item{wt}{Frequency weights.
@@ -75,17 +74,17 @@ If \code{FALSE} the result is sorted by groups + time + ... groups.}
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
 
-\item{floor_date}{Should \code{from} be floored to the nearest unit
-specified through the \code{by}
+\item{time_floor}{Should \code{from} be floored to the nearest unit
+specified through the \code{time_by}
 argument? This is particularly useful for starting
 sequences at the beginning of a week
 or month for example.}
 
 \item{week_start}{day on which week starts following ISO conventions - 1
 means Monday (default), 7 means Sunday.
-This is only used when \code{floor_date = TRUE}.}
+This is only used when \code{time_floor = TRUE}.}
 
-\item{seq_type}{If "auto", \code{periods} are used for
+\item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks, months or
 years are specified, and \code{durations}
 are used otherwise.}
@@ -105,6 +104,12 @@ The rightmost interval will always be closed.}
 \item{keep_class}{Logical. If \code{TRUE} then the class of
 the input data is retained.
 If \code{FALSE}, which is sometimes faster, a \code{data.table} is returned.}
+
+\item{by}{\bold{Deprecated}. Use \code{time_by} instead}
+
+\item{seq_type}{\bold{Deprecated}. Use \code{time_type} instead.}
+
+\item{floor_date}{\bold{Deprecated}. Use \code{time_floor} instead.}
 }
 \value{
 An object of class \code{data.frame}
@@ -113,16 +118,18 @@ which is expanded for each supplied group.
 When a grouped_df, or the .by argument is supplied, time expansions are done on a
 group-by-group basis.
 
-The \code{by} argument controls the level at which the time variable is expanded/aggregated.
+The \code{time_by} argument controls the level at which the
+time variable is expanded/aggregated.
 If it is set to "1 month", then a seq of months is created, using the
 \code{from} and \code{to} arguments, and every date/datetime is matched to the appropriate
-intervals within that sequence. Once they are matched, they are aggregated to the month
+intervals within that sequence.
+Once they are matched, they are aggregated to the month
 level.
 
 To avoid time expansion, simply set \code{complete = FALSE},
 which will simply perform a count across your time variable and specified groups.
-The time aggregation through \code{by} works even when \code{complete = FALSE} and even when
-\code{by} is more granular than the data.
+The time aggregation through \code{time_by} works even when
+\code{complete = FALSE} and even when \code{time_by} is more granular than the data.
 }
 \description{
 This function operates like \code{dplyr::count()}
@@ -174,14 +181,14 @@ flights \%>\%
   time_count(time = time_hour)
 # Aggregated to week level
 flights \%>\%
-  time_count(time = date, by = "2 weeks")
+  time_count(time = date, time_by = "2 weeks")
 flights \%>\%
-  time_count(time = date, by = list("months" = 3),
+  time_count(time = date, time_by = list("months" = 3),
              from = dmy("15-01-2013"),
-             floor_date = TRUE,
+             time_floor = TRUE,
              include_interval = TRUE)
 # By week using numbers
 flights \%>\%
-  time_expand(time = date_num, by = 7) \%>\%
+  time_expand(time = date_num, time_by = 7) \%>\%
   mutate(date = as_date(date_num))
 }

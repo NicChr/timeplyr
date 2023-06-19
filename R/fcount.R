@@ -96,7 +96,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   else {
     g <- GRP2(out, by = all_vars, sort = TRUE)
   }
-  out <- collapse::fselect(out, all_vars)
+  out <- fselect(out, .cols = all_vars)
   if (is.null(name)) name <- new_n_var_nm(out)
   gstarts <- GRP_starts(g)
   out <- df_row_slice(out, gstarts, reconstruct = FALSE)
@@ -111,7 +111,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                                     row.names = c(NA, -1L)),
                           data)
   } else if (length(wt_var) == 0){
-    nobs <- g[["group.sizes"]]
+    nobs <- GRP_group_sizes(g)
   } else {
     nobs <- collapse::fsum(as.double(wtv),
                            g = g,
@@ -156,7 +156,9 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
     wt_var <- tidy_transform_names(data, !!enquo(wt))
     if (length(wt_var) > 0L){
       wtv <- out[[wt_var]]
-      if (!has_wt) out[[wt_var]] <- NULL
+      if (!has_wt){
+        out <- df_rm_cols(out, wt_var)
+      }
     }
   }
   group_id <- group_id(out, .cols = all_vars,
@@ -177,11 +179,9 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
     nobs <- collapse::GRPN(group_id, expand = TRUE)
   }
   out <- dplyr::dplyr_col_modify(out, cols = setnames(list(nobs),
-                                                name))
+                                                      name))
   if (sort){
-    out <- df_row_slice(out, radix_order(out[[name]],
-                                         decreasing = TRUE),
-                        reconstruct = FALSE)
+    out <- farrange(out, desc(.data[[name]]))
   }
   df_reconstruct(out, data)
 }

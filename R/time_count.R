@@ -35,26 +35,22 @@
 #' to this specified level.
 #'
 #' @param data A data frame.
-#' @param ... Additional variables to include.
-#' `dplyr` "datamasking" semantics are used.
 #' @param time Time variable.
-#' @param by Argument to expand and summarise time series.
-#' If `by` is `NULL` then a heuristic will try and estimate the highest
-#' order time unit associated with the time variable.
-#' If specified, then by must be one of the three:
+#' @param ... Additional variables to include.
+#' @param time_by Time unit. \cr
+#' Must be one of the three:
 #' * string, specifying either the unit or the number and unit, e.g
-#' `by = "days"` or `by = "2 weeks"`
+#' `time_by = "days"` or `time_by = "2 weeks"`
 #' * named list of length one, the unit being the name, and
 #' the number the value of the list, e.g. `list("days" = 7)`.
 #' For the vectorized time functions, you can supply multiple values,
 #' e.g. `list("days" = 1:10)`.
-#' * Numeric vector. If by is a numeric vector and x is not a date/datetime,
-#' then arithmetic is used, e.g `by = 1`.
-#' This is also vectorized where applicable.
+#' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
+#' then arithmetic is used, e.g `time_by = 1`.
 #' @param from Time series start date. If `NULL` then min time is used.
 #' @param to Time series end date. If `NULL` then max time is used.
 #' @param complete Logical. If `TRUE` implicit gaps in time are filled
-#' after counting and before time aggregation (through `by`).
+#' after counting and time aggregation (through `time_by`).
 #' The default is `TRUE`.
 #' @param wt Frequency weights.
 #' `dplyr` "data-masking" is used for variable selection.
@@ -68,15 +64,15 @@
 #' the new column in the output.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
-#' @param floor_date Should `from` be floored to the nearest unit
-#' specified through the `by`
+#' @param time_floor Should `from` be floored to the nearest unit
+#' specified through the `time_by`
 #' argument? This is particularly useful for starting
 #' sequences at the beginning of a week
 #' or month for example.
 #' @param week_start day on which week starts following ISO conventions - 1
 #' means Monday (default), 7 means Sunday.
-#' This is only used when `floor_date = TRUE`.
-#' @param seq_type If "auto", `periods` are used for
+#' This is only used when `time_floor = TRUE`.
+#' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or
 #' years are specified, and `durations`
 #' are used otherwise.
@@ -92,6 +88,9 @@
 #' @param keep_class Logical. If `TRUE` then the class of
 #' the input data is retained.
 #' If `FALSE`, which is sometimes faster, a `data.table` is returned.
+#' @param by \bold{Deprecated}. Use `time_by` instead
+#' @param floor_date \bold{Deprecated}. Use `time_floor` instead.
+#' @param seq_type \bold{Deprecated}. Use `time_type` instead.
 #'
 #' @return An object of class `data.frame`
 #' containing the input time variable
@@ -99,16 +98,18 @@
 #' When a grouped_df, or the .by argument is supplied, time expansions are done on a
 #' group-by-group basis.
 #'
-#' The `by` argument controls the level at which the time variable is expanded/aggregated.
+#' The `time_by` argument controls the level at which the
+#' time variable is expanded/aggregated.
 #' If it is set to "1 month", then a seq of months is created, using the
 #' `from` and `to` arguments, and every date/datetime is matched to the appropriate
-#' intervals within that sequence. Once they are matched, they are aggregated to the month
+#' intervals within that sequence.
+#' Once they are matched, they are aggregated to the month
 #' level.
 #'
 #' To avoid time expansion, simply set `complete = FALSE`,
 #' which will simply perform a count across your time variable and specified groups.
-#' The time aggregation through `by` works even when `complete = FALSE` and even when
-#' `by` is more granular than the data.
+#' The time aggregation through `time_by` works even when
+#' `complete = FALSE` and even when `time_by` is more granular than the data.
 #'
 #' @examples
 #' library(timeplyr)
@@ -126,30 +127,45 @@
 #'   time_count(time = time_hour)
 #' # Aggregated to week level
 #' flights %>%
-#'   time_count(time = date, by = "2 weeks")
+#'   time_count(time = date, time_by = "2 weeks")
 #' flights %>%
-#'   time_count(time = date, by = list("months" = 3),
+#'   time_count(time = date, time_by = list("months" = 3),
 #'              from = dmy("15-01-2013"),
-#'              floor_date = TRUE,
+#'              time_floor = TRUE,
 #'              include_interval = TRUE)
 #' # By week using numbers
 #' flights %>%
-#'   time_expand(time = date_num, by = 7) %>%
+#'   time_expand(time = date_num, time_by = 7) %>%
 #'   mutate(date = as_date(date_num))
 #' @export
-time_count <- function(data, ..., time = NULL, by = NULL,
+time_count <- function(data, time = NULL, ..., time_by = NULL,
                        from = NULL, to = NULL,
                        complete = TRUE,
                        wt = NULL, name = NULL,
                        sort = FALSE,
                        .by = NULL,
-                       floor_date = FALSE,
+                       time_floor = FALSE,
                        week_start = getOption("lubridate.week.start", 1),
-                       seq_type = c("auto", "duration", "period"),
+                       time_type = c("auto", "duration", "period"),
                        roll_month = "preday", roll_dst = "pre",
                        include_interval = FALSE,
-                       keep_class = TRUE){
-  seq_type <- match.arg(seq_type)
+                       keep_class = TRUE,
+                       by = NULL,
+                       seq_type = NULL,
+                       floor_date = NULL){
+  if (!is.null(by)){
+    warning("by is deprecated, use time_by instead")
+    time_by <- by
+  }
+  if (!is.null(seq_type)){
+    warning("seq_type is deprecated, use time_type instead")
+    time_type <- seq_type
+  }
+  if (!is.null(floor_date)){
+    warning("floor_date is deprecated, use time_floor instead")
+    time_floor <- floor_date
+  }
+  time_type <- match.arg(time_type)
   ts_data <- mutate2(data,
                      ...,
                      !!enquo(time),
@@ -197,8 +213,8 @@ time_count <- function(data, ..., time = NULL, by = NULL,
     granularity <- time_granularity(ts_data[[time_var]], is_sorted = FALSE,
                                     msg = FALSE)
     # User supplied unit
-    if (!is.null(by)){
-      unit_info <- unit_guess(by)
+    if (!is.null(time_by)){
+      unit_info <- unit_guess(time_by)
       by_n <- unit_info[["num"]] * unit_info[["scale"]]
       by_unit <- unit_info[["unit"]]
     } else {
@@ -210,7 +226,7 @@ time_count <- function(data, ..., time = NULL, by = NULL,
     }
     # This checks if time aggregation is necessary
     seq_by <- setnames(list(by_n), by_unit)
-    aggregate <- needs_aggregation(by = seq_by,
+    aggregate <- needs_aggregation(time_by = seq_by,
                                    granularity = setnames(list(
                                      granularity[["num"]]
                                    ),
@@ -222,10 +238,10 @@ time_count <- function(data, ..., time = NULL, by = NULL,
                     time = across(all_of(time_var)),
                     from = across(all_of(from_nm)),
                     to = across(all_of(to_nm)),
-                    by = seq_by,
-                    seq_type = seq_type,
+                    time_by = seq_by,
+                    time_type = time_type,
                     sort = TRUE, .by = all_of(c(grp_nm, group_vars)),
-                    floor_date = floor_date, week_start = week_start,
+                    time_floor = time_floor, week_start = week_start,
                     keep_class = FALSE,
                     expand_type = "nesting")
       # Cast time
@@ -292,7 +308,7 @@ time_count <- function(data, ..., time = NULL, by = NULL,
         setorderv2(out, cols = name, order = -1L)
       }
     }
-    out[[grp_nm]] <- NULL # Remove group ID
+    out <- df_rm_cols(out, grp_nm) # Remove group ID
   } else {
     out <- ts_data %>%
       fcount(.cols = c(group_vars, extra_group_vars),
