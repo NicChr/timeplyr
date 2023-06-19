@@ -9,7 +9,7 @@ time_elapsed(
   time_by = NULL,
   g = NULL,
   time_type = c("auto", "duration", "period"),
-  rolling = FALSE,
+  rolling = TRUE,
   fill = 0
 )
 }
@@ -34,9 +34,9 @@ then arithmetic is used, e.g \code{time_by = 1}.
 With larger data, it is recommended to use \code{time_type = "duration"} for
 speed and efficiency.}
 
-\item{rolling}{If \code{TRUE} then lagged time differences are calculated,
-essentially like \code{diff()}. \cr
-If \code{FALSE} (the default) then time differences compared to the index (first) time
+\item{rolling}{If \code{TRUE} (the default) then lagged
+time differences are calculated, essentially like \code{diff()}. \cr
+If \code{FALSE} then time differences compared to the index (first) time
 are calculated.}
 
 \item{fill}{Value with which to fill the first time elapsed value when
@@ -54,7 +54,7 @@ library(dplyr)
 library(lubridate)
 x <- time_seq(today(), length.out = 25, time_by = "3 days")
 time_elapsed(x)
-time_elapsed(x, rolling = TRUE, time_by = "day")
+time_elapsed(x, rolling = FALSE, time_by = "day")
 
 # Grouped example
 set.seed(99)

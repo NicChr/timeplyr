@@ -78,6 +78,10 @@ otherwise at least n breaks are returned.}
 \item{as_factor}{Logical. If \code{TRUE} the output is an ordered factor.
 Setting this to \code{FALSE} is sometimes much faster.}
 
+\item{time_type}{If "auto", \code{periods} are used for
+the time expansion when days, weeks, months or years are specified,
+and \code{durations} are used otherwise.}
+
 \item{roll_month}{Control how impossible dates are handled when
 month or year arithmetic is involved.
 Options are "preday", "boundary", "postday", "full" and "NA".
@@ -90,10 +94,6 @@ See \code{?timechange::time_add} for more details.}
 \item{seq_type}{\bold{Deprecated}. Use \code{time_type} instead.}
 
 \item{floor_date}{\bold{Deprecated}. Use \code{time_floor} instead.}
-
-\item{timetype}{If "auto", \code{periods} are used for
-the time expansion when days, weeks, months or years are specified,
-and \code{durations} are used otherwise.}
 }
 \description{
 \code{time_cut()} is very useful for plotting with dates and datetimes

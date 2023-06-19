@@ -121,6 +121,12 @@ then arithmetic is used, e.g \code{time_by = 1}.
 
 \item{to}{Time series end date.}
 
+\item{g}{Grouping object passed directly to \code{collapse::GRP()}.
+This can for example be a vector or data frame.}
+
+\item{use.g.names}{Should the result include group names?
+Default is \code{TRUE}.}
+
 \item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks, months or years are specified,
 and \code{durations} are used otherwise.}

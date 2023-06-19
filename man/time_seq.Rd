@@ -118,6 +118,8 @@ See \code{?timechange::time_add} for more details.}
 \item{as_period}{Logical. Should time interval be coerced to a period
 before time difference is calculated? This is useful for calculating
 for example age in exact years or months.}
+
+\item{sizes}{Time sequence sizes.}
 }
 \description{
 Time based version of \code{base::seq()}

@@ -19,9 +19,9 @@
 #' @param time_type Time type, either "auto", "duration" or "period".
 #' With larger data, it is recommended to use `time_type = "duration"` for
 #' speed and efficiency.
-#' @param rolling If `TRUE` then lagged time differences are calculated,
-#' essentially like `diff()`. \cr
-#' If `FALSE` (the default) then time differences compared to the index (first) time
+#' @param rolling If `TRUE` (the default) then lagged
+#' time differences are calculated, essentially like `diff()`. \cr
+#' If `FALSE` then time differences compared to the index (first) time
 #' are calculated.
 #' @param fill Value with which to fill the first time elapsed value when
 #' `rolling = TRUE`.
@@ -31,7 +31,7 @@
 #' library(lubridate)
 #' x <- time_seq(today(), length.out = 25, time_by = "3 days")
 #' time_elapsed(x)
-#' time_elapsed(x, rolling = TRUE, time_by = "day")
+#' time_elapsed(x, rolling = FALSE, time_by = "day")
 #'
 #' # Grouped example
 #' set.seed(99)
@@ -50,7 +50,7 @@
 #' @export
 time_elapsed <- function(x, time_by = NULL, g = NULL,
                          time_type = c("auto", "duration", "period"),
-                         rolling = FALSE, fill = 0){
+                         rolling = TRUE, fill = 0){
   time_by <- time_by_get(x, time_by = time_by, is_sorted = FALSE)
   if (is.null(g)){
     gstarts <- min(1L, length(x))

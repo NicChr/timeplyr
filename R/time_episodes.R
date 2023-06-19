@@ -385,7 +385,17 @@ calc_episodes <- function(data,
     data.table::set(data,
                     j = "t_elapsed",
                     value = time_diff(fpluck(data, time_lag_nm), fpluck(data, time),
-                                      by = time_by, type = time_type))
+                                      time_by = time_by, time_type = time_type))
+    # If there is a fill value, replace first event rows with that
+    if (!is.na(fill)){
+      data.table::set(data,
+                      i = which(data.table::rowidv(data,
+                                                   cols = c(gid, event)) == 1L &
+                                  is_event),
+                      j = "t_elapsed",
+                      value = fill)
+
+    }
 
     # Binary variable indicating if new episode or not
     new_episode_nm <- new_var_nm(data, "new_episode")

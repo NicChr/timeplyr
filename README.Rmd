@@ -56,7 +56,7 @@ The `time_` functions that accept a data frame argument all operate similarly to
 * `time_expand` - Time-based `tidyr::expand`
 * `time_complete` - Time-based `tidyr::complete`
 
-For example, `data %>% time_count(time = date, by = "month")` will:
+For example, `data %>% time_count(time = date, time_by = "month")` will:
 
   * Fill in missing gaps in time  
   * Count the dates by month
@@ -95,13 +95,17 @@ flights <- flights %>%
   mutate(date = as_date(time_hour))
 ```
 
+```{r, echo=FALSE}
+theme_set(theme_minimal())
+```
+
 ## `time_count()`
 
 #### Easily fill in implicit missing gaps and aggregate time.
 
 ```{r}
 flights_ts <- flights %>%
-  time_count(time = time_hour)
+  time_count(time_hour)
 flights_ts
 ```
 
@@ -110,44 +114,37 @@ flights_ts
 
 ```{r}
 flights %>%
-  time_count(time = across(time_hour, as_date),
-             by = "day")
+  time_count(date, time_by = "day")
 ```
 
-#### Specify time aggregation through `by`
+#### Specify time aggregation through `time_by`
 
 ```{r}
 # Some examples
 flights %>%
-  time_count(time = across(time_hour, as_date),
-             by = "7 days")
+  time_count(date, time_by = "7 days")
 flights %>%
-  time_count(time = across(time_hour, as_date),
-             by = "2 weeks")
+  time_count(date, time_by = "2 weeks")
 flights %>%
-  time_count(time = across(time_hour, as_date),
-             by = "fortnight")
+  time_count(date, time_by = "fortnight")
 flights %>%
-  time_count(time = across(time_hour, as_date),
-             by = "month")
+  time_count(date, time_by = "month")
 flights %>%
-  time_count(time = across(time_hour, as_date),
-             by = "quarter")
+  time_count(date, time_by = "quarter")
 flights %>%
-  time_count(time = across(time_hour, as_date),
-             by = "year")
+  time_count(date, time_by = "year")
 ```
 
-#### Ensure full weeks/months/years by using `floor_date = TRUE`
+#### Ensure full weeks/months/years by using `time_floor = TRUE`
 
 ```{r}
 start <- dmy("17-Jan-2013")
 flights %>%
-  time_count(time = across(time_hour, as_date),
-             by = "week", from = start, floor_date = TRUE)
+  time_count(date,
+             time_by = "week", from = start, floor_date = TRUE)
 flights %>%
-  time_count(time = across(time_hour, as_date),
-             by = "month", from = start, floor_date = TRUE)
+  time_count(date,
+             time_by = "month", from = start, floor_date = TRUE)
 ```
 
 ## `missing_dates()`
@@ -156,14 +153,14 @@ flights %>%
 
 ```{r missing_dates}
 missing_dates(flights) # No missing dates
-length(time_missing(flights$time_hour, by = "hour")) # Missing hours
-time_missing(flights$date, by = "day") # Missing days
+n_time_missing(flights$time_hour, time_by = "hours") # Missing hours
+time_missing(flights$date, time_by = "day") # Missing days
 ```
 
 #### Alternatively, counts with `time_countv()`
 
 ```{r}
-flight_counts <- time_countv(flights$time_hour, by = "hour")
+flight_counts <- time_countv(flights$time_hour, time_by = "hour")
 flights_ts %>%
   mutate(n2 = flight_counts)
 ```
@@ -176,22 +173,22 @@ Here we create a weekly time sequence for each origin and destination
 ```{r}
 origin_dest_seq <- flights %>%
   group_by(origin, dest) %>%
-  time_expand(time = date, by = "week")
+  time_expand(date, time_by = "week")
 ```
 
 Another thing to note is that all `time_` functions have a 
-`seq_type` argument to let you specify if you want durations or periods.
+`time_type` argument to let you specify if you want durations or periods.
 By default it is "auto" which chooses periods for time units 
 greater or equal to days and durations otherwise.
 
 ```{r}
 start <- dmy("01-01-2023")
 time_seq(start, start + years(1), 
-         by = "month",
-         seq_type = "period")
+         time_by = "month",
+         time_type = "period")
 time_seq(start, start + years(1), 
-         by = "month",
-         seq_type = "duration")
+         time_by = "month",
+         time_type = "duration")
 ```
 
 When you supply groups to `time_expand()` 
@@ -218,30 +215,45 @@ one of the most powerful features of timeplyr.
 flights %>%
   group_by(origin, dest) %>%
   fcount(time_hour) %>%
-  time_complete(time = time_hour, 
-                by = "hour", 
+  time_complete(time_hour, 
+                time_by = "hour", 
                 fill = list(n = 0))
 ```
 
 ## `time_span()`
 
-#### Alternatively using `time_span()` and `fcomplete()`
+`time_span()` or `time_expandv()` is a vector-based version of `time_expand()`
+that allows you to create full time sequences for time data
 
 ```{r}
-hour_seq <- time_span(flights$time_hour, by = "hour")
 flights %>%
-  group_by(origin, dest) %>%
-  fcount(time_hour) %>%
-  fcomplete(time_hour = hour_seq,
-            fill = list(n = 0))
+  group_by(origin) %>%
+  reframe(time_hour = time_span(time_hour, "quarter"))
 ```
 
-#### The above has the same expanded time sequence for each group and
-#### can be achieved using `time_count()` as well
+## `time_summarise()`
+
+We can do more than just counts, actually any summary using `time_summarise()`
+We can for example, calculate mean arrival and departure times by month
 
 ```{r}
 flights %>%
-  time_count(origin, dest, time = time_hour, by = "hour")
+  time_summarise(time_hour, # Time variable 
+                 across(c(arr_time, dep_time), # By-month summaries
+                        ~ mean(.x, na.rm = TRUE)),
+                 time_by = "month",   
+                 time_floor = TRUE, # Full months
+                 include_interval = TRUE) # Time interval
+```
+
+## `time_mutate()`
+
+A time-based version of mutate
+
+```{r}
+flights %>%
+  time_mutate(date, time_by = "quarter", .keep = "none") %>%
+  fcount(date)
 ```
 
 ## `add_calendar()`
@@ -263,32 +275,6 @@ flights_ts %>%
   fcount(isoweek = iso_week(time_hour), wt = n)
 flights_ts %>% 
   fcount(month_l, wt = n)
-```
-
-## `time_summarise()`
-
-We can do more than just counts, actually any summary using `time_summarise()`
-We can for example, calculate mean arrival and departure times by month
-
-```{r}
-flights %>%
-  time_summarise(across(c(arr_time, dep_time), 
-                        ~ mean(.x, na.rm = TRUE)),
-                 time = time_hour, 
-                 by = "month",  
-                 floor_date = TRUE,
-                 include_interval = TRUE)
-```
-
-## `time_mutate()`
-
-A time-based version of mutate
-
-```{r}
-flights %>%
-  time_mutate(time = date, by = "quarter",
-              .keep = "none") %>%
-  fcount(date)
 ```
 
 ### Other convenience functions are included below
@@ -317,49 +303,83 @@ A lubridate version of `seq()` for dates and datetimes
 start <- dmy(31012020)
 end <- start + years(1)
 seq(start, end, by = "month") # Base R version
-time_seq(start, end, by = "month") # lubridate version
+time_seq(start, end, time_by = "month") # lubridate version
 
 ```
 
 `time_seq()` doesn't mind mixing dates and datetimes
 
 ```{r}
-time_seq(start, as_datetime(end), by = "2 weeks")
+time_seq(start, as_datetime(end), time_by = "2 weeks")
 ```
 
 ## `time_seq_v()`
 
 A vectorised version of `time_seq()`
-Currently it vectorised over from, to and by
+Currently it is vectorised over from, to and by
 
 ```{r}
 # 3 sequences
 time_seq_v(from = start, 
            to = end, 
-           by = list("months" = 1:3))
+           time_by = list("months" = 1:3))
 # Equivalent to 
-c(time_seq(start, end, by = "month"),
-  time_seq(start, end, by = "2 months"),
-  time_seq(start, end, by = "3 months"))
-
+c(time_seq(start, end, time_by = "month"),
+  time_seq(start, end, time_by = "2 months"),
+  time_seq(start, end, time_by = "3 months"))
 ```
 
-## `time_seq_len()`
+## `time_seq_sizes()`
 Vectorised function that calculates time sequence lengths
 
 ```{r}
-set.seed(42)
-time_seq_len(start, start + years(1:10), 
-             by = list("days" = sample(1:10)))
+seq_lengths <- time_seq_sizes(start, start + days(c(1, 10, 20)), 
+                              time_by = list("days" = c(1, 5, 10)))
+seq_lengths
+
+# Use time_seq_v2() if you know the sequence lengths
+seqs <- time_seq_v2(seq_lengths, start, time_by = list("days" = c(1, 5, 10)))
+seqs
+```
+
+## Extra: Use `seq_id()` to name the unique sequences
+
+```{r}
+names(seqs) <- seq_id(seq_lengths)
+tibble::enframe(seqs)
 ```
 
 Dealing with impossible dates and datetimes is very simple
 
 ```{r}
-time_seq(start, end, by = "month", roll_month = "postday") # roll impossible months forward
-time_seq(start, end, by = "month", roll_month = "NA") # no roll
+time_seq(start, end, time_by = "month", roll_month = "postday") # roll impossible months forward
+time_seq(start, end, time_by = "month", roll_month = "NA") # no roll
 
-time_seq(start, end, by = "month", seq_type = "duration") # lubridate version with durations
+time_seq(start, end, time_by = "month", time_type = "duration") # lubridate version with durations
+```
+
+## time-series (`ts`)
+
+Easily turn `ts` objects into `tibbles`
+
+```{r}
+# Univariate
+air_tbl <- ts_as_tibble(AirPassengers)
+
+air_tbl %>%
+  ggplot(aes(x = time, y = value)) +
+  geom_line()
+```
+
+Multivariate ts are converted into long-format
+```{r}
+mts <- ts(matrix(rnorm(300), 100, 3), start = c(1961, 1), frequency = 12)
+mts_tbl <- ts_as_tibble(mts)
+
+mts_tbl %>%
+  ggplot(aes(x = time, y = value)) +
+  geom_line() +
+  facet_wrap("group", ncol = 1)
 ```
 
 ## `iso_week()`
@@ -375,9 +395,9 @@ iso_week(today(), year = FALSE)
 Helpers like `calendar()`, `create_calendar()` and `add_calendar()` can make time sequence tibbles.
 
 ```{r}
-my_seq <- time_seq(start, end, by = "day")
+my_seq <- time_seq(start, end, "day")
 calendar(my_seq)
-create_calendar(start, end, by = "day") # The same style as time_seq
+create_calendar(start, end, "day") # The same style as time_seq
 # Tidy version
 tibble(my_seq) %>%
   add_calendar(my_seq)
@@ -393,11 +413,11 @@ dates <- flights$date
 
 levels(time_cut(dates, n = 10))
 date_breaks <- time_breaks(dates, n = 12)
-time_breaks <- time_breaks(times, n = 12, floor_date = TRUE)
+time_breaks <- time_breaks(times, n = 12, time_floor = TRUE)
 
 weekly_data <- flights %>%
-  time_count(time = date, by = "week",
-             to = max(time_span(date, by = "week")),
+  time_count(time = date, time_by = "week",
+             to = max(time_span(date, time_by = "week")),
              include_interval = TRUE) %>%
   # Filter full weeks
   mutate(n_days = interval/days(1)) %>%
@@ -405,8 +425,7 @@ weekly_data <- flights %>%
 weekly_data %>%
   ggplot(aes(x = date, y = n)) + 
   geom_bar(stat = "identity", fill = "#0072B2") + 
-  scale_x_date(breaks = date_breaks, labels = scales::label_date_short()) +
-  theme_minimal()
+  scale_x_date(breaks = date_breaks, labels = scales::label_date_short())
 
 flights %>%
   ggplot(aes(x = time_hour)) + 
@@ -435,10 +454,10 @@ flights %>%
 
 ```{r}
 flights %>%
-  group_by(origin, dest, tailnum) %>%
+  fgroup_by(origin, dest, tailnum) %>%
   fcount(flight, carrier)
 flights %>%
-  select(origin, dest, tailnum, flight, carrier) %>%
+  fselect(origin, dest, tailnum, flight, carrier) %>%
   fadd_count(across(all_of(c("flight", "carrier"))), 
              .by = c(origin, dest, tailnum))
   
@@ -450,27 +469,23 @@ This calculates sorted and non-sorted group IDs
 
 ```{r}
 flights %>%
-  group_by(origin, dest) %>%
+  fgroup_by(origin, dest) %>%
   group_id(order = FALSE) %>%
   unique()
 flights %>%
-  select(origin, dest) %>%
+  fselect(origin, dest) %>%
   add_group_id(.by = everything()) %>%
-  distinct(origin, dest, group_id)
+  fdistinct(origin, dest, group_id)
 ```
 
-## `fexpand()`/`crossed_join()`
+## `fexpand()`
 
 Fast cross join
 
 ```{r}
-# Bare-bones but fast cross join
-flights %>%
-    select(where(is.character)) %>%
-    crossed_join(strings_as_factors = TRUE)
 # Tidy version that supports groups
 flights %>%
-  group_by(origin) %>%
+  fgroup_by(origin) %>%
   fexpand(dest, carrier)
 ```
 
@@ -480,14 +495,14 @@ Fast row index slicing with lots of groups
 
 ```{r}
 flights %>%
-  group_by(origin, dest, tailnum) %>%
+  fgroup_by(origin, dest, tailnum) %>%
   fslice(1:5)
 flights %>%
-  group_by(origin, dest, tailnum) %>%
+  fgroup_by(origin, dest, tailnum) %>%
   fslice_head(n = 5)
 # Use keep_order to retain the data input order
 flights %>%
-  group_by(origin, dest, tailnum) %>%
+  fgroup_by(origin, dest, tailnum) %>%
   fslice_tail(prop = 0.5, keep_order = TRUE)
 ```
 
@@ -497,7 +512,7 @@ Distinct rows
 
 ```{r}
 flights %>%
-  group_by(origin, dest, tailnum) %>%
+  fgroup_by(origin, dest, tailnum) %>%
   fdistinct(year, month, day)
 ```
 
@@ -507,7 +522,7 @@ Duplicate rows
 
 ```{r}
 flights %>%
-  group_by(origin, dest, tailnum) %>%
+  fgroup_by(origin, dest, tailnum) %>%
   fduplicates(year, month, day)
 ```
 
@@ -524,20 +539,28 @@ iris %>%
   add_row_id(Species)
 ```
 
-## Grouped statistical functions
+## `stat_summarise()` 
 
-These functions are wrappers around the `collapse` equivalents, but the output 
-is always the same length as the input. 
+Fast Grouped statistical functions
+
+```{r}
+# This is extremely fast and efficient, especially with lots of groups
+flights %>%
+  stat_summarise(arr_time, .by = origin, stat = c("n", "mean", "min", "max"))
+```
+
+## `q_summarise()`
+
+# Fast grouped quantiles
 
 ```{r}
 flights %>%
-  add_group_id(origin, .name = "g") %>%
-  mutate(nobs = gnobs(arr_time, g = g),
-         sum = gsum(arr_time, g = g),
-         mean = gmean(arr_time, g = g),
-         min = gmin(time_hour, g = g),
-         max = gmax(time_hour, g = g)) %>%
-  fdistinct(origin, nobs, sum, mean, min, max)
+  q_summarise(arr_time, .by = tailnum)
+
+# Pivot longer for data wrangling or plotting
+flights %>%
+  q_summarise(arr_time, .by = origin, 
+              pivot = "long")
 ```
 
 
