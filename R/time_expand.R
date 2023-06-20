@@ -66,10 +66,10 @@
 #' data(flights)
 #' x <- flights$time_hour
 #'
-#' length(time_missing(x)) # Missing hours
+#' time_num_gaps(x) # Missing hours
 #' length(missing_dates(x)) # No missing dates though
 #' x_filled <- time_completev(x) # Expand by hour through heuristic
-#' time_missing(x_filled, "hour") # No missing hours
+#' time_gaps(x_filled, "hour") # No missing hours
 #'
 #' # Easier through tidyverse style functions
 #'

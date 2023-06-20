@@ -21,5 +21,5 @@ is_time <- function(x){
 #' @export
 is_time_or_num <- function(x){
   inherits(x, c("integer", "numeric",
-                "Date", "POSIXt", "yearmon"))
+                "Date", "POSIXt", "yearmon", "yearqtr"))
 }

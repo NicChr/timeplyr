@@ -25,6 +25,20 @@
 #'   ts_as_tibble() %>%
 #'   time_ggplot(time, value, group)
 #'
+#' \dontrun{
+#' # xts example
+#' data(sample_matrix, package = "xts")
+#' sample.xts <- xts::as.xts(sample_matrix)
+#' sample.xts %>%
+#'   ts_as_tibble() %>%
+#'   time_ggplot(time, value, group)
+#'
+#' # timeSeries example
+#' timeSeries::MSFT %>%
+#'   ts_as_tibble() %>%
+#'   time_ggplot(time, value, group, facet = TRUE)
+#' }
+#' #'
 #' # An example using raw data
 #'
 #' ebola <- outbreaks::ebola_sim$linelist
@@ -33,7 +47,8 @@
 #'   time_ggplot(date_of_infection, n)
 #' @export
 time_ggplot <- function(data, time, value, group = NULL,
-                        facet = FALSE, ...){
+                        facet = FALSE,
+                        ...){
   # Tidyselect variables
   time <- tidy_select_pos(data, !!enquo(time))
   value <- tidy_select_pos(data, !!enquo(value))
@@ -85,7 +100,8 @@ time_ggplot <- function(data, time, value, group = NULL,
       facet_ncol <- (n_unique(fpluck(data, grp_nm)) %/% 6) + 1
       out <- out +
         ggplot2::geom_line(...) +
-        ggplot2::facet_wrap(group, ncol = facet_ncol)
+        ggplot2::facet_wrap(group, ncol = facet_ncol,
+                            scales = "free_y")
     } else {
       out <- out +
         ggplot2::geom_line(ggplot2::aes(col = .data[[grp_nm]]), ...)

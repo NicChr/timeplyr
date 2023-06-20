@@ -118,7 +118,7 @@
 #' # dry-periods
 #' episodes %>%
 #'   ungroup() %>%
-#'   time_count(time = ep_start, by = "week", floor_date = TRUE) %>%
+#'   time_count(time = ep_start, time_by = "week", time_floor = TRUE) %>%
 #'   ggplot(aes(x = ep_start, y = n)) +
 #'   geom_bar(stat = "identity")
 #' @export

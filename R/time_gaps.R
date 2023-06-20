@@ -14,6 +14,9 @@
 #' e.g. `list("days" = 1:10)`.
 #' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
 #' then arithmetic is used, e.g `time_by = 1`.
+#' @param time_type Time type, either "auto", "duration" or "period".
+#' With larger data, it is recommended to use `time_type = "duration"` for
+#' speed and efficiency.
 #' @param check_regular Should a check be done to see whether x is a regular
 #' sequence given a specified `time_by` unit?
 #' Default is `TRUE`.
@@ -41,11 +44,14 @@
 #'   summarise(n_missing = time_num_gaps(time_hour, "hours"))
 #' @rdname time_gaps
 #' @export
-time_gaps <- function(x, time_by = NULL, check_regular = TRUE, na.rm = TRUE){
+time_gaps <- function(x, time_by = NULL,
+                      time_type = c("auto", "duration", "period"),
+                      check_regular = TRUE, na.rm = TRUE){
   if (!na.rm && sum(is.na(x)) > 0){
     vctrs::vec_init(x, n = 1L)
   } else {
-    time_seq <- time_expandv(x, time_by = time_by)
+    time_seq <- time_expandv(x, time_by = time_by,
+                             time_type = time_type)
     if (check_regular){
       check_time_regular(x, time_seq, time_by)
     }
@@ -92,8 +98,10 @@ time_num_gaps <- function(x, time_by = NULL,
 #' @rdname time_gaps
 #' @export
 time_has_gaps <- function(x, time_by = NULL,
+                          time_type = c("auto", "duration", "period"),
                           check_regular = TRUE, na.rm = TRUE){
   time_num_gaps(x, time_by = time_by,
+                time_type = time_type,
                 check_regular = check_regular, na.rm = na.rm) > 0
 }
 check_time_regular <- function(x, seq, time_by){

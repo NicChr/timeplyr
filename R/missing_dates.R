@@ -4,15 +4,6 @@
 #' the first and last date of a date/datetime vector.
 #'
 #' @param x A date or datetime vector, list, or data frame.
-#' @param time_by Must be one of the three:
-#' * string, specifying either the unit or the number and unit, e.g
-#' `time_by = "days"` or `time_by = "2 weeks"`
-#' * named list of length one, the unit being the name, and
-#' the number the value of the list, e.g. `list("days" = 7)`.
-#' For the vectorized time functions, you can supply multiple values,
-#' e.g. `list("days" = 1:10)`.
-#' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-#' then arithmetic is used, e.g `time_by = 1`.
 #' @param na.rm Should `NA` values be removed? Default is `TRUE`.
 #' @rdname missing_dates
 #' @export

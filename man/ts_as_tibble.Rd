@@ -7,7 +7,7 @@
 ts_as_tibble(x, name = "time", value = "value", group = "group")
 }
 \arguments{
-\item{x}{An object of class \code{ts}, \code{mts} or \code{xts}.}
+\item{x}{An object of class \code{ts}, \code{mts}, \code{xts} or \code{timeSeries}.}
 
 \item{name}{Name of the output time column.}
 
@@ -54,5 +54,9 @@ sample.xts <- xts::as.xts(sample_matrix)
 sample.xts \%>\%
   ts_as_tibble() \%>\%
   time_ggplot(time, value, group)
+# timeSeries example
+timeSeries::MSFT \%>\%
+  ts_as_tibble() \%>\%
+  time_ggplot(time, value, group, facet = TRUE)
 }
 }

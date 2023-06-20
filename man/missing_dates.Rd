@@ -13,18 +13,6 @@ n_missing_dates(x, na.rm = TRUE)
 \item{x}{A date or datetime vector, list, or data frame.}
 
 \item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
-
-\item{time_by}{Must be one of the three:
-\itemize{
-\item string, specifying either the unit or the number and unit, e.g
-\code{time_by = "days"} or \code{time_by = "2 weeks"}
-\item named list of length one, the unit being the name, and
-the number the value of the list, e.g. \code{list("days" = 7)}.
-For the vectorized time functions, you can supply multiple values,
-e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{time_by = 1}.
-}}
 }
 \description{
 \code{missing_dates()} returns missing dates between

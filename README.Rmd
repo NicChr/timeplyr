@@ -85,9 +85,10 @@ These include:
 
 `ts_as_tibble()` easily converts time-series objects into tidy-format.
 
-## `zoo::yearmon()`
+## zoo
 
-There is lightweight support for zoo's `yearmon()`.
+There is lightweight support for zoo's 
+`yearmon()` and `yearqtr()` classes.
 
 ## Some simple examples
 

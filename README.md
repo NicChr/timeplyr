@@ -79,9 +79,10 @@ These include:
 
 `ts_as_tibble()` easily converts time-series objects into tidy-format.
 
-## `zoo::yearmon()`
+## zoo
 
-There is lightweight support for zoo’s `yearmon()`.
+There is lightweight support for zoo’s `yearmon()` and `yearqtr()`
+classes.
 
 ## Some simple examples
 
@@ -290,10 +291,11 @@ missing_dates(flights) # No missing dates
 #> 
 #> $date
 #> Date of length 0
-n_time_missing(flights$time_hour, time_by = "hours") # Missing hours
+```
+
+``` r
+time_num_gaps(flights$time_hour, time_by = "hours") # Missing hours
 #> [1] 1819
-time_missing(flights$date, time_by = "day") # Missing days
-#> Date of length 0
 ```
 
 #### Alternatively, counts with `time_countv()`
@@ -706,7 +708,7 @@ air_tbl %>%
   time_ggplot(time, value)
 ```
 
-![](man/figures/README-unnamed-chunk-26-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-27-1.png)<!-- -->
 
 Multivariate time-series are converted into long-format
 
@@ -717,7 +719,7 @@ eu_stock_tbl %>%
     time_ggplot(time, value, group)
 ```
 
-![](man/figures/README-unnamed-chunk-27-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-28-1.png)<!-- -->
 
 ## `iso_week()`
 
@@ -823,7 +825,7 @@ weekly_data %>%
   scale_x_date(breaks = date_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-30-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-31-1.png)<!-- -->
 
 ``` r
 flights %>%
@@ -832,7 +834,7 @@ flights %>%
   scale_x_datetime(breaks = time_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-30-2.png)<!-- -->
+![](man/figures/README-unnamed-chunk-31-2.png)<!-- -->
 
 ## Efficient grouped functions
 

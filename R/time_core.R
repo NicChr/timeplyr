@@ -38,7 +38,7 @@
 #' beginning of a week or month for example.
 #' @param week_start day on which week starts following ISO conventions - 1
 #' means Monday (default), 7 means Sunday.
-#' This is only used when `floor_date = TRUE`.
+#' This is only used when `time_floor = TRUE`.
 #' @param roll_month Control how impossible dates are handled when
 #' month or year arithmetic is involved.
 #' Options are "preday", "boundary", "postday", "full" and "NA".
@@ -76,11 +76,11 @@
 #' time_span(x, time_by = list("quarters" = 1),
 #'              to = today(),
 #'              # Floor start of sequence to nearest month
-#'              floor_date = TRUE)
+#'              time_floor = TRUE)
 #'
 #' # Complete missing gaps in time using time_completev
 #' y <- time_completev(x, time_by = "hour")
-#' all.equal(y[!y %in% x], time_missing(x, time_by = "hour"))
+#' all.equal(y[!y %in% x], time_gaps(x, time_by = "hour"))
 #'
 #' # Summarise time using time_summarisev
 #' time_summarisev(y, time_by = "quarter")

@@ -30,6 +30,9 @@ register_all_s3_methods <- function(){
   register_s3_method("zoo", "rep", "yearmon")
   register_s3_method("zoo", "rep.int", "yearmon")
   register_s3_method("zoo", "rep_len", "yearmon")
+  register_s3_method("zoo", "rep", "yearqtr")
+  register_s3_method("zoo", "rep.int", "yearqtr")
+  register_s3_method("zoo", "rep_len", "yearqtr")
 }
 
 on_package_load <- function(pkg, expr){

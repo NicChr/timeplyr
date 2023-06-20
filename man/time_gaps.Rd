@@ -6,7 +6,13 @@
 \alias{time_has_gaps}
 \title{Check for missing dates or datetimes}
 \usage{
-time_gaps(x, time_by = NULL, check_regular = TRUE, na.rm = TRUE)
+time_gaps(
+  x,
+  time_by = NULL,
+  time_type = c("auto", "duration", "period"),
+  check_regular = TRUE,
+  na.rm = TRUE
+)
 
 time_num_gaps(
   x,
@@ -16,7 +22,13 @@ time_num_gaps(
   na.rm = TRUE
 )
 
-time_has_gaps(x, time_by = NULL, check_regular = TRUE, na.rm = TRUE)
+time_has_gaps(
+  x,
+  time_by = NULL,
+  time_type = c("auto", "duration", "period"),
+  check_regular = TRUE,
+  na.rm = TRUE
+)
 }
 \arguments{
 \item{x}{A date, datetime or numeric vector.}
@@ -33,6 +45,10 @@ e.g. \code{list("days" = 1:10)}.
 \item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
 then arithmetic is used, e.g \code{time_by = 1}.
 }}
+
+\item{time_type}{Time type, either "auto", "duration" or "period".
+With larger data, it is recommended to use \code{time_type = "duration"} for
+speed and efficiency.}
 
 \item{check_regular}{Should a check be done to see whether x is a regular
 sequence given a specified \code{time_by} unit?

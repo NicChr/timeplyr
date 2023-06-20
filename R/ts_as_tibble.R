@@ -7,7 +7,7 @@
 #' * The returned `tibble` is always in long format, even when the time-series
 #'   is multivariate.
 #'
-#' @param x An object of class `ts`, `mts` or `xts`.
+#' @param x An object of class `ts`, `mts`, `xts` or `timeSeries`.
 #' @param name Name of the output time column.
 #' @param value Name of the output value column.
 #' @param group Name of the output group column
@@ -41,6 +41,10 @@
 #' sample.xts %>%
 #'   ts_as_tibble() %>%
 #'   time_ggplot(time, value, group)
+#' # timeSeries example
+#' timeSeries::MSFT %>%
+#'   ts_as_tibble() %>%
+#'   time_ggplot(time, value, group, facet = TRUE)
 #' }
 #' @export
 ts_as_tibble <- function(x, name = "time", value = "value", group = "group"){
@@ -73,7 +77,13 @@ ts_as_tibble <- function(x, name = "time", value = "value", group = "group"){
     ncol <- ncol(x)
     groups <- rep(colnames(x), each = length(time))
     time <- rep(time, times = ncol)
-  } else {
+  } else if (inherits(x, "timeSeries")){
+    x <- unclass(x)
+    time <- lubridate::as_datetime(attr(x, "positions"))
+    ncol <- ncol(x)
+    groups <- rep(colnames(x), each = length(time))
+    time <- rep(time, times = ncol)
+    } else {
     groups <- NULL
   }
   dplyr::tibble(!!group := groups,

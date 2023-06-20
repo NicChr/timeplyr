@@ -539,6 +539,8 @@ time_cast <- function(x, template){
   }
   else if (inherits(template, "yearmon")){
     as_yearmon(x)
+  } else if (inherits(template, "yearqtr")){
+    as_yearqtr(x)
   } else {
     x
   }
@@ -667,7 +669,7 @@ is_special_case_utc <- function(from, to, unit, num, time_type){
     lubridate::tz(to) == "UTC" &&
     is_whole_number(num)
 }
-# Repeat methods for zoo yearmon class
+# Repeat methods for zoo yearmon and yearqtr class
 rep_len.yearmon <- function(x, length.out){
   x[rep_len(seq_along(x), length.out = length.out)]
 }
@@ -675,6 +677,15 @@ rep.int.yearmon <- function(x, times){
   x[rep.int(seq_along(x), times = times)]
 }
 rep.yearmon <- function(x, ...){
+  x[rep(seq_along(x), ...)]
+}
+rep_len.yearqtr <- function(x, length.out){
+  x[rep_len(seq_along(x), length.out = length.out)]
+}
+rep.int.yearqtr <- function(x, times){
+  x[rep.int(seq_along(x), times = times)]
+}
+rep.yearqtr <- function(x, ...){
   x[rep(seq_along(x), ...)]
 }
 # Coerce to yearmon
@@ -687,6 +698,17 @@ as_yearmon <- function(x){
       x <- lubridate::year(x) + ( (lubridate::month(x) - 1) / 12 )
     }
     structure(floor(12 * as.double(x) + 1e-04)/12, class = "yearmon")
+  }
+}
+# Coerce to yearqtr
+as_yearqtr <- function(x){
+  if (inherits(x, "yearqtr")){
+    x
+  } else {
+    if (is_time(x)){
+      x <- lubridate::year(x) + ( (lubridate::month(x) - 1) / 12 )
+    }
+    structure(floor(4 * x + 0.001)/4, class = "yearqtr")
   }
 }
 is_interval <- function(x){
