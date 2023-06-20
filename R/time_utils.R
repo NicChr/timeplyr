@@ -45,52 +45,19 @@ unit_match <- function(x){
                   nomatch = NA_character_,
                   duplicates.ok = FALSE)
   .time_units[match_i]
-  # # Normal lubridate units
-  # match_index1 <- pmatch(x, .duration_units,
-  #                 nomatch = NA_character_,
-  #                 duplicates.ok = FALSE)
-  # if (is.na(match_index1)){
-  #   # Exotic units
-  #   match_index2 <- pmatch(x, .extra_time_units,
-  #                          nomatch = NA_character_,
-  #                          duplicates.ok = FALSE)
-  #   .extra_time_units[match_index2]
-  #
-  # } else {
-  #   .duration_units[match_index1]
-  # }
 }
 # Unit string parsing
 unit_parse <- function(x){
   # Extract numbers from string
   # Try decimal numbers
-  # eval_num <- FALSE # Flag to use eval(parse())
   num_str <- regmatches(x, m = regexpr(pattern = ".*[[:digit:]]*\\.[[:digit:]]+",
                                         text = x))
-  # # Try strings like n/m
-  # if (length(num_str) == 0L){
-  #   num_str <- regmatches(x, m = regexpr(pattern = ".*[[:digit:]]+\\/[[:digit:]]+",
-  #                                        text = x))
-  #   eval_num <- TRUE
-  # }
-  # # Try strings like n*m
-  # if (length(num_str) == 0L){
-  #   num_str <- regmatches(x, m = regexpr(pattern = ".*[[:digit:]]+\\*[[:digit:]]+",
-  #                                        text = x))
-  #   # eval_num <- TRUE
-  # }
   # If not try regular numbers
   if (length(num_str) == 0L){
     num_str <- regmatches(x, m = regexpr(pattern = ".*[[:digit:]]+",
                                          text = x))
-    # eval_num <- FALSE
   }
   num <- as.numeric(num_str)
-  # if (eval_num){
-  #   num <- eval(parse(text = num_str))
-  # } else {
-  #   num <- as.numeric(num_str)
-  # }
   if (length(num) == 0L) num <- 1
   scale <- 1
   if (length(num_str) > 0L){
@@ -115,18 +82,6 @@ time_by_list <- function(time_by){
   num <- unit_info[["num"]] * unit_info[["scale"]]
   setnames(list(num), units)
 }
-# Temporary function to handle when both args supplied while
-# by is deprecated
-# time_by_switch <- function(time_by = NULL, by = NULL){
-#   if (!is.null(by) && !is.null(time_by)){
-#     stop("Cannot supply both time_by and deprecated by, use time_by only")
-#   }
-#   if (!is.null(by)){
-#     warning("by is deprecated, use time_by instead")
-#     time_by <- by
-#   }
-#   time_by
-# }
 # Returns list with numeric vector element, where the name of the list
 # is the time unit name
 time_by_get <- function(x, time_by = NULL, is_sorted = FALSE){
@@ -153,63 +108,11 @@ time_interval <- function(from, to){
   }
   out
 }
-# Time interval from ascending time sequence
-# These 2 functions are weird as to must match the length of the unique groups, not x..
-# also x must be in ascending order
-time_seq_interval <- function(x, to, g = NULL){
-  n <- length(x)
-  out <- time_interval(x, collapse::flag(x, n = max(-1L, -n), g = g))
-  if (!is.null(g)){
-    # Use time seq df to get time intervals
-    # starts <- attr(collapse::group(g, starts = TRUE), "starts")
-    # end_points <- c(starts[-1L] - 1L, length(x))
-    end_points <- which(is.na(out) & !is.na(x))
-    # Use data end-points to create the rightmost intervals of each group
-    out[end_points] <- time_interval(x[end_points], to)
-  } else {
-    out[n] <- time_interval(x[n], to)
-  }
-  out
-}
-# Time cut levels from ascending time sequence
-time_seq_levels <- function(x, to, g = NULL, fmt = NULL){
-  if (is.null(fmt)){
-    fmt_f <- identity
-  } else {
-    fmt_f <- function(x, ...) format(x, fmt, ...)
-  }
-  n <- length(x)
-  time_breaks_fmt <- fmt_f(x)
-  out <- stringr::str_c("[",
-                        time_breaks_fmt,
-                        ", ",
-                        collapse::flag(time_breaks_fmt,
-                                       g = g, n = max(-1L, -n)),
-                        ")")
-  if (!is.null(g)){
-    # Use time seq df to get time intervals
-    end_points <- which(is.na(out) & !is.na(x))
-    # Use data end-points to create the rightmost intervals of each group
-    out[end_points] <- stringr::str_c("[",
-                              time_breaks_fmt[end_points],
-                              ", ",
-                              fmt_f(to),
-                              "]")
-  } else {
-    out[n] <- stringr::str_c("[",
-                       time_breaks_fmt[n],
-                       ", ",
-                       fmt_f(to),
-                       "]")
-
-  }
-  out
-}
-
 # Calculates time granularity
 time_diff_gcd <- function(x, is_sorted = FALSE){
   x <- as.double(x)
   x <- collapse::funique(x, sort = !is_sorted)
+  x <- x[!is.na(x)]
   if (length(x) == 0L){
     gcd_diff <- numeric(0)
   } else if (length(x) < 2){
@@ -221,7 +124,7 @@ time_diff_gcd <- function(x, is_sorted = FALSE){
                               stubs = FALSE)
     y_diff <- collapse::funique(round(abs(y_diff[-1L]), digits = 7),
                                 sort = FALSE)
-    y_diff <- y_diff[y_diff > 0 & !is.na(y_diff)]
+    y_diff <- y_diff[y_diff > 0]
     # gcd_diff <- Reduce(gcd, y_diff)
     gcd_diff <- collapse::vgcd(y_diff)
   }
@@ -385,37 +288,6 @@ period_by_calc <- function(from, to, length){
   out[which_len_1] <- seconds_unit(0)
   out
 }
-# period_by <- function(from, to, length){
-#   seconds_unit <- period_unit("seconds")
-#   recycled_args <- recycle_args(from, to, length)
-#   from <- recycled_args[[1L]]
-#   to <- recycled_args[[2L]]
-#   length <- recycled_args[[3L]]
-#   which_len_1 <- which(length == 1)
-#   int <- lubridate::interval(from, to)
-#   # remainder_m <- matrix(numeric(length(from) * length(.period_units)),
-#   #                       nrow = length(from), ncol = length(.period_units))
-#   # division_m <- remainder_m
-#   # for (i in seq_along(.period_units)){
-#   #   j <- length(.period_units) - i + 1L
-#   #   division <- int / period_unit(.period_units[[j]])(1)
-#   #   division_m[, j] <- division
-#   #   remainder_m[, j] <- division %% 1
-#   # }
-#   # Which period units to keep
-#   # keep <- pmax(rowSums(remainder_m == 0 & division_m > 0), 1)
-#   # division <- int / .period_units[keep]
-#   # out <- lubridate::seconds_to_period(
-#   #   seconds_unit( (division / (length - 1)) )
-#   # )
-#   division <- int / seconds_unit(1)
-#   out <- seconds_unit( (division / (length - 1)) )
-#   # out <- lubridate::seconds_to_period(
-#   #   seconds_unit( (division / (length - 1)) )
-#   # )
-#   out[which_len_1] <- seconds_unit(0)
-#   out
-# }
 # Unvectorised version
 # period_by <- function(from, to, length){
 #   if (length == 1){
@@ -646,18 +518,6 @@ set_time_cast <- function(x, y){
   }
 }
 
-# time_c2 <- function(x, y){
-#   if (isTRUE(all.equal(attributes(x), attributes(y)))){
-#     list(x, y)
-#   } else {
-#     common_type <- vctrs::vec_ptype2(x, y)
-#     if (is_datetime(common_type)){
-#       x <- time_cast(x, common_type)
-#       y <- time_cast(y, common_type)
-#     }
-#     list(x, y)
-#   }
-# }
 # Safe time concatenation
 time_c <- function(...){
   vctrs::vec_c(...)
@@ -915,9 +775,9 @@ tseq_min_max <- function(x, seq, gx = NULL, gseq = NULL){
 # Time cut levels from ascending time sequence
 tseq_levels <- function(x, seq, gx = NULL, gseq = NULL, fmt = NULL){
   if (is.null(fmt)){
-    fmt_f <- identity
+    fmt_f <- time_as_character
   } else {
-    fmt_f <- function(x, ...) format(x, fmt, ...)
+    fmt_f <- function(x, ...) format(x, format = fmt, ...)
   }
   n <- length(x)
   time_breaks_fmt <- fmt_f(seq)
@@ -987,5 +847,40 @@ time_floor2 <- function(x, time_by, week_start = getOption("lubridate.week.start
   }
 }
 tomorrow <- function(){
-  lubridate::today() + lubridate::days(1)
+  Sys.Date() + 1L
+}
+### All credit goes to the scales package developers for this function
+label_date_short <- function(format = c("%Y", "%b", "%d", "%H:%M"),
+                             sep = "\n"){
+  force_all <- function(...) list(...)
+  changed <- function(x){
+    c(TRUE, is.na(x[-length(x)]) | x[-1] != x[-length(x)])
+  }
+  force_all(format, sep)
+  function(x) {
+    dt <- unclass(as.POSIXlt(x))
+    changes <- cbind(year = changed(dt$year), month = changed(dt$mon),
+                     day = changed(dt$mday))
+    changes <- t(apply(changes, 1, cumsum)) >= 1
+    if (inherits(x, "Date") || all(dt$hour == 0 & dt$min ==
+                                   0, na.rm = TRUE)) {
+      format[[4]] <- NA
+      if (all(dt$mday == 1, na.rm = TRUE)) {
+        format[[3]] <- NA
+        if (all(dt$mon == 0, na.rm = TRUE)) {
+          format[[2]] <- NA
+        }
+      }
+    }
+    for_mat <- cbind(ifelse(changes[, 1], format[[1]], NA),
+                     ifelse(changes[, 2], format[[2]], NA), ifelse(changes[,
+                                                                           3], format[[3]], NA), format[[4]])
+    format <- apply(for_mat, 1, function(x) paste(rev(x[!is.na(x)]),
+                                                  collapse = sep))
+    format(x, format)
+  }
+}
+# Unique posix vector to character remains unique
+time_as_character <- function(x){
+  as.character(x, usetz = is_datetime(x))
 }

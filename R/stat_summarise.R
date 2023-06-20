@@ -9,6 +9,8 @@
 #' This can be one or more of the following: \cr
 #' "n", "nmiss", "min", "max", "mean", "first", "last", "sd",
 #' "var", "mode", "median", "sum".
+#' @param q_probs (Optional) Quantile probabilities.
+#' If supplied, `q_summarise()` is called and added to the result.
 #' @param na.rm Should `NA` values be removed? Default is `TRUE`.
 #' @param sort Should groups be sorted? Default is `TRUE`.
 #' @param .names An optional glue specification passed to `stringr::glue()`.
@@ -51,6 +53,7 @@
 #' @export
 stat_summarise <- function(data, ...,
                            stat = .stat_fns[1:5],
+                           q_probs = NULL,
                            na.rm = TRUE, sort = TRUE,
                            .names = NULL, .by = NULL, .cols = NULL){
   funs <- .stat_fns
@@ -121,6 +124,20 @@ stat_summarise <- function(data, ...,
   data.table::setnames(out,
                        old = var_nms,
                        new = out_nms)
+  # Add quantiles if requested
+  if (!is.null(q_probs)){
+    q_summary <- q_summarise(data, .cols = dot_vars,
+                             probs = q_probs,
+                             pivot = "wide",
+                             sort = sort,
+                             .by = all_of(group_vars),
+                             na.rm = na.rm)
+    add_cols <- setdiff(names(q_summary),
+                        group_vars)
+    data.table::set(out,
+                    j = add_cols,
+                    value = fselect(q_summary, .cols = add_cols))
+  }
   out
 }
 # Recreate column names from the .names arg of dplyr::across()

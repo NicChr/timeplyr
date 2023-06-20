@@ -76,8 +76,14 @@ There are also a few dplyr alternatives designed to work faster on large numbers
 ## Vector time functions
 
 There are also vector versions of the tidy equivalents, designed for use on atomic vectors.
-These include: `time_countv`, `time_expandv`, `time_summarisev` and `time_completev`.
 
+These include: 
+
+`time_countv`, `time_expandv`, `time_summarisev` and `time_completev`.
+
+## Convert `ts`, `mts` and `xts` objects to `tibble`
+
+`ts_as_tibble()` easily converts time-series objects into tidy-format.
 
 ## `zoo::yearmon()`
 
@@ -141,10 +147,10 @@ flights %>%
 start <- dmy("17-Jan-2013")
 flights %>%
   time_count(date,
-             time_by = "week", from = start, floor_date = TRUE)
+             time_by = "week", from = start, time_floor = TRUE)
 flights %>%
   time_count(date,
-             time_by = "month", from = start, floor_date = TRUE)
+             time_by = "month", from = start, time_floor = TRUE)
 ```
 
 ## `missing_dates()`
@@ -153,8 +159,10 @@ flights %>%
 
 ```{r missing_dates}
 missing_dates(flights) # No missing dates
-n_time_missing(flights$time_hour, time_by = "hours") # Missing hours
-time_missing(flights$date, time_by = "day") # Missing days
+```
+
+```{r}
+time_num_gaps(flights$time_hour, time_by = "hours") # Missing hours
 ```
 
 #### Alternatively, counts with `time_countv()`
@@ -363,23 +371,23 @@ time_seq(start, end, time_by = "month", time_type = "duration") # lubridate vers
 Easily turn `ts` objects into `tibbles`
 
 ```{r}
-# Univariate
 air_tbl <- ts_as_tibble(AirPassengers)
-
-air_tbl %>%
-  ggplot(aes(x = time, y = value)) +
-  geom_line()
 ```
 
-Multivariate ts are converted into long-format
-```{r}
-mts <- ts(matrix(rnorm(300), 100, 3), start = c(1961, 1), frequency = 12)
-mts_tbl <- ts_as_tibble(mts)
+# Plot using `time_ggplot()`
 
-mts_tbl %>%
-  ggplot(aes(x = time, y = value)) +
-  geom_line() +
-  facet_wrap("group", ncol = 1)
+```{r}
+air_tbl %>%
+  time_ggplot(time, value)
+```
+
+Multivariate time-series are converted into long-format
+
+```{r}
+eu_stock_tbl <- ts_as_tibble(EuStockMarkets)
+
+eu_stock_tbl %>%
+    time_ggplot(time, value, group)
 ```
 
 ## `iso_week()`

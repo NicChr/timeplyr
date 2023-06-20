@@ -4,7 +4,7 @@
 \alias{ts_as_tibble}
 \title{Turn \code{ts} into a \code{tibble}}
 \usage{
-ts_as_tibble(x, name = "time", value = "value", ...)
+ts_as_tibble(x, name = "time", value = "value", group = "group")
 }
 \arguments{
 \item{x}{An object of class \code{ts}, \code{mts} or \code{xts}.}
@@ -13,7 +13,8 @@ ts_as_tibble(x, name = "time", value = "value", ...)
 
 \item{value}{Name of the output value column.}
 
-\item{...}{additional variables passed onto tibble.}
+\item{group}{Name of the output group column
+when there are multiple series.}
 }
 \description{
 While a method already exists in the \code{tibble} package,
@@ -41,11 +42,17 @@ mts <- ts(matrix(rnorm(300), 100, 3), start = c(1961, 1), frequency = 12)
 mts_tbl <- ts_as_tibble(mts)
 
 uts_tbl \%>\%
-  ggplot(aes(x = time, y = value)) +
-  geom_line()
+  time_ggplot(time, value)
 
 mts_tbl \%>\%
-  ggplot(aes(x = time, y = value)) +
-  geom_line() +
-  facet_wrap("group", ncol = 1)
+  time_ggplot(time, value, group, facet = TRUE)
+
+\dontrun{
+# xts example
+data(sample_matrix, package = "xts")
+sample.xts <- xts::as.xts(sample_matrix)
+sample.xts \%>\%
+  ts_as_tibble() \%>\%
+  time_ggplot(time, value, group)
+}
 }

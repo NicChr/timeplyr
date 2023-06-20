@@ -145,8 +145,6 @@ time_seq <- function(from, to, time_by, length.out = NULL,
   missing_to <- missing(to)
   missing_by <- missing(time_by)
   missing_len <- is.null(length.out)
-  time_type <- match.arg(time_type)
-  input_time_type <- time_type
   if (!missing_len && !sign(length.out) >= 0){
     stop("length.out must be positive")
   }
@@ -175,6 +173,8 @@ time_seq <- function(from, to, time_by, length.out = NULL,
     (!missing_from && (is_time(from) || is.character(from))) ||
     (!missing_to && (is_time(to) || is.character(to)))
   )){
+    time_type <- match.arg(time_type)
+    input_time_type <- time_type
     # Unit parsing
     if (!missing_by){
       unit_info <- unit_guess(time_by)

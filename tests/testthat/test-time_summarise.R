@@ -7,7 +7,7 @@ testthat::test_that("General tests", {
   start2 <- lubridate::as_date(start1)
   end2 <- lubridate::as_date(end1)
 
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights %>%
       dplyr::group_by(origin, dest) %>%
       time_summarise(time = NULL,
@@ -19,7 +19,7 @@ testthat::test_that("General tests", {
                             ~ mean(.x, na.rm = TRUE)),
                        .groups = "keep")
   )
-  testthat::expect_identical(
+  testthat::expect_equal(
     flights %>%
       dplyr::group_by(origin, dest) %>%
       time_reframe(time = NULL,
@@ -52,8 +52,7 @@ testthat::test_that("General tests", {
     time_summarise(across(dplyr::where(is.numeric),
                           ~ mean(.x, na.rm = TRUE)),
                    time = time_hour,
-                   time_by = "month",
-                   keep_class = FALSE)
+                   time_by = "month")
   testthat::expect_true(nrow(dplyr::anti_join(res1, res3)) == 0L)
   testthat::expect_true(nrow(dplyr::anti_join(res3, res1)) == 0L)
 

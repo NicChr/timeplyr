@@ -96,7 +96,7 @@ testthat::test_that("Tests for time_countv", {
                                                        time_span(time_hour, time_by = "month",
                                                                  from = from, to = to))) %>%
                            fcount(x) %>%
-                           dplyr::mutate(interval = time_seq_interval(x, to = to)) %>%
+                           dplyr::mutate(interval = tseq_interval(to, x)) %>%
                            dplyr::select(x, interval, n))
   res9a <- time_countv(flights2$time_hour,
                        time_by = "hour", include_interval = TRUE)
@@ -105,7 +105,7 @@ testthat::test_that("Tests for time_countv", {
     time_complete(time = x, time_by = "hour",
                   fill = list(n = 0L),
                   sort = TRUE) %>%
-    dplyr::mutate(interval = time_seq_interval(x, to = max(flights2$time_hour))) %>%
+    dplyr::mutate(interval = tseq_interval(max(flights2$time_hour), x)) %>%
     dplyr::select(x, interval, n)
   testthat::expect_true(nrow(dplyr::anti_join(res9a, res9b)) == 0L)
   testthat::expect_true(nrow(dplyr::anti_join(res9b, res9a)) == 0L)
@@ -221,7 +221,7 @@ testthat::test_that("Tests for time_summarisev", {
                     time_by = "2 weeks", time_floor = TRUE,
                     include_interval = TRUE),
     dplyr::tibble(x = time_span(x, time_by = "2 weeks", time_floor = TRUE)) %>%
-      dplyr::mutate(interval = time_seq_interval(x, to = x_max))
+      dplyr::mutate(interval = tseq_interval(x_max, x))
   )
 
   res <- time_summarisev(x, sort = FALSE, unique = TRUE, time_by = "2 weeks", include_interval = TRUE)

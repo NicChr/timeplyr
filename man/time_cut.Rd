@@ -46,7 +46,8 @@ time_breaks(
 
 \item{n}{The minimum number of breaks.}
 
-\item{time_by}{Must be one of the three:
+\item{time_by}{Time unit. \cr
+Must be one of the three:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
 \code{time_by = "days"} or \code{time_by = "2 weeks"}
@@ -70,7 +71,7 @@ floored before building the sequence?}
 
 \item{week_start}{day on which week starts following ISO conventions - 1
 means Monday (default), 7 means Sunday.
-This is only used when \code{floor_date = TRUE}.}
+This is only used when \code{time_floor = TRUE}.}
 
 \item{n_at_most}{Logical. If \code{TRUE} then n breaks at most are returned,
 otherwise at least n breaks are returned.}

@@ -1,12 +1,7 @@
-#' Check for missing dates or datetimes
+#' Check for missing dates
 #'
 #' @description `missing_dates()` returns missing dates between
 #' the first and last date of a date/datetime vector.
-#'
-#' `time_missing()` checks for missing gaps in time for any date or datetime
-#' sequence, and so is more general. Specify the time unit increment
-#' through `time_by`.
-#'
 #'
 #' @param x A date or datetime vector, list, or data frame.
 #' @param time_by Must be one of the three:
@@ -19,35 +14,7 @@
 #' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
 #' then arithmetic is used, e.g `time_by = 1`.
 #' @param na.rm Should `NA` values be removed? Default is `TRUE`.
-#' @examples
-#' library(timeplyr)
-#' library(dplyr)
-#' library(lubridate)
-#' library(nycflights13)
-#'
-#' missing_dates(flights$time_hour)
-#' time_missing(flights$time_hour)
-#' time_missing(flights$time_hour, "hours")
-#'
-#' # Missing dates by origin and dest
-#' flights %>%
-#'   mutate(date = as_date(time_hour)) %>%
-#'   group_by(origin, dest) %>%
-#'   summarise(n_missing = n_missing_dates(date))
-#' @rdname time_missing
-#' @export
-time_missing <- function(x, time_by = NULL, na.rm = TRUE){
-  if (!na.rm && sum(is.na(x)) > 0){
-    vctrs::vec_init(x, n = 1L)
-  } else {
-    time_seq <- time_expandv(x, time_by = time_by)
-    if (length(setdiff(x, time_seq) > 0L)){
-      warning("x is not regular. Results may be misleading.")
-    }
-    time_seq[!time_seq %in% x]
-  }
-}
-#' @rdname time_missing
+#' @rdname missing_dates
 #' @export
 missing_dates <- function(x, na.rm = TRUE){
   d_missing <- function(d){
@@ -70,7 +37,7 @@ missing_dates <- function(x, na.rm = TRUE){
     d_missing(x)
   }
 }
-#' @rdname time_missing
+#' @rdname missing_dates
 #' @export
 n_missing_dates <- function(x, na.rm = TRUE){
   nmissdates <- function(x){
@@ -90,12 +57,7 @@ n_missing_dates <- function(x, na.rm = TRUE){
   }
   if (is.list(x)){
     vapply(x, nmissdates, integer(1))
-    } else {
-      nmissdates(x)
-    }
-}
-#' @rdname time_missing
-#' @export
-n_time_missing <- function(x, time_by = NULL, na.rm = TRUE){
-  length(time_missing(x, time_by = time_by, na.rm = na.rm))
+  } else {
+    nmissdates(x)
+  }
 }

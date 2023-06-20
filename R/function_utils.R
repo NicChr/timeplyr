@@ -1006,3 +1006,24 @@ fpluck <- function(x, .cols = NULL, .default = NULL){
   }
   x[[icol]]
 }
+
+# round down to nearest n
+floor_nearest_n <- function(x, n){
+  floor(x / n) * n
+}
+# Round up to nearest n
+ceiling_nearest_n <- function(x, n){
+  ceiling(x / n) * n
+}
+# How many 10s is a number divisible by?
+log10_divisibility <- function(x){
+  x[x == 0] <- 1
+  floor(log10(abs(x)))
+}
+# Sensible rounding
+pretty_floor <- function(x){
+  floor_nearest_n(x, n = 10^(log10_divisibility(x)))
+}
+pretty_ceiling <- function(x){
+  ceiling_nearest_n(x, n = 10^(log10_divisibility(x)))
+}

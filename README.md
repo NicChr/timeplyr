@@ -69,8 +69,15 @@ numbers of groups.
 ## Vector time functions
 
 There are also vector versions of the tidy equivalents, designed for use
-on atomic vectors. These include: `time_countv`, `time_expandv`,
-`time_summarisev` and `time_completev`.
+on atomic vectors.
+
+These include:
+
+`time_countv`, `time_expandv`, `time_summarisev` and `time_completev`.
+
+## Convert `ts`, `mts` and `xts` objects to `tibble`
+
+`ts_as_tibble()` easily converts time-series objects into tidy-format.
 
 ## `zoo::yearmon()`
 
@@ -237,7 +244,7 @@ flights %>%
 start <- dmy("17-Jan-2013")
 flights %>%
   time_count(date,
-             time_by = "week", from = start, floor_date = TRUE)
+             time_by = "week", from = start, time_floor = TRUE)
 #> # A tibble: 51 x 2
 #>    date           n
 #>    <date>     <int>
@@ -254,7 +261,7 @@ flights %>%
 #> # i 41 more rows
 flights %>%
   time_count(date,
-             time_by = "month", from = start, floor_date = TRUE)
+             time_by = "month", from = start, time_floor = TRUE)
 #> # A tibble: 12 x 2
 #>    date           n
 #>    <date>     <int>
@@ -689,29 +696,28 @@ time_seq(start, end, time_by = "month", time_type = "duration") # lubridate vers
 Easily turn `ts` objects into `tibbles`
 
 ``` r
-# Univariate
 air_tbl <- ts_as_tibble(AirPassengers)
-
-air_tbl %>%
-  ggplot(aes(x = time, y = value)) +
-  geom_line()
 ```
 
-![](man/figures/README-unnamed-chunk-25-1.png)<!-- -->
-
-Multivariate ts are converted into long-format
+# Plot using `time_ggplot()`
 
 ``` r
-mts <- ts(matrix(rnorm(300), 100, 3), start = c(1961, 1), frequency = 12)
-mts_tbl <- ts_as_tibble(mts)
-
-mts_tbl %>%
-  ggplot(aes(x = time, y = value)) +
-  geom_line() +
-  facet_wrap("group", ncol = 1)
+air_tbl %>%
+  time_ggplot(time, value)
 ```
 
 ![](man/figures/README-unnamed-chunk-26-1.png)<!-- -->
+
+Multivariate time-series are converted into long-format
+
+``` r
+eu_stock_tbl <- ts_as_tibble(EuStockMarkets)
+
+eu_stock_tbl %>%
+    time_ggplot(time, value, group)
+```
+
+![](man/figures/README-unnamed-chunk-27-1.png)<!-- -->
 
 ## `iso_week()`
 
@@ -721,7 +727,7 @@ Simple function to get formatted ISO weeks.
 iso_week(today())
 #> [1] "2023-W25"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W25-1"
+#> [1] "2023-W25-2"
 iso_week(today(), year = FALSE)
 #> [1] "W25"
 ```
@@ -817,7 +823,7 @@ weekly_data %>%
   scale_x_date(breaks = date_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-29-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-30-1.png)<!-- -->
 
 ``` r
 flights %>%
@@ -826,7 +832,7 @@ flights %>%
   scale_x_datetime(breaks = time_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-29-2.png)<!-- -->
+![](man/figures/README-unnamed-chunk-30-2.png)<!-- -->
 
 ## Efficient grouped functions
 

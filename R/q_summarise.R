@@ -43,11 +43,11 @@
 #' q_summarise(df, x, .by = g, sort = FALSE)
 #' @export
 q_summarise <- function(data, ...,
-                      probs = seq(0, 1, 0.25),
-                      type = 7L,
-                      pivot = c("wide", "long"),
-                      na.rm = TRUE, sort = TRUE,
-                      .by = NULL, .cols = NULL){
+                        probs = seq(0, 1, 0.25),
+                        type = 7L,
+                        pivot = c("wide", "long"),
+                        na.rm = TRUE, sort = TRUE,
+                        .by = NULL, .cols = NULL){
   pivot <- rlang::arg_match0(pivot, c("wide", "long"))
   wide <- pivot == "wide"
   group_info <- group_info(data, ..., .by = {{ .by }},

@@ -10,7 +10,8 @@
 #' @param x An object of class `ts`, `mts` or `xts`.
 #' @param name Name of the output time column.
 #' @param value Name of the output value column.
-#' @param ... additional variables passed onto tibble.
+#' @param group Name of the output group column
+#' when there are multiple series.
 #' @examples
 #' library(timeplyr)
 #' library(ggplot2)
@@ -28,26 +29,32 @@
 #' mts_tbl <- ts_as_tibble(mts)
 #'
 #' uts_tbl %>%
-#'   ggplot(aes(x = time, y = value)) +
-#'   geom_line()
+#'   time_ggplot(time, value)
 #'
 #' mts_tbl %>%
-#'   ggplot(aes(x = time, y = value)) +
-#'   geom_line() +
-#'   facet_wrap("group", ncol = 1)
+#'   time_ggplot(time, value, group, facet = TRUE)
+#'
+#' \dontrun{
+#' # xts example
+#' data(sample_matrix, package = "xts")
+#' sample.xts <- xts::as.xts(sample_matrix)
+#' sample.xts %>%
+#'   ts_as_tibble() %>%
+#'   time_ggplot(time, value, group)
+#' }
 #' @export
-ts_as_tibble <- function(x, name = "time", value = "value", ...){
+ts_as_tibble <- function(x, name = "time", value = "value", group = "group"){
   tsp <- stats::tsp(stats::hasTsp(x))
-  start <- vec_slice2(tsp, 1L)
-  end <- vec_slice2(tsp, 2L)
-  freq <- vec_slice2(tsp, 3L)
+  start <- tsp[1L]
+  end <- tsp[2L]
+  freq <- tsp[3L]
   time <- seq(from = start,
               to = end,
               by = 1/freq)
   # If multivariate, repeat time sequence and group names
   if (inherits(x, "mts")){
     ncol <- ncol(x)
-    group <- rep(colnames(x), each = length(time))
+    groups <- rep(colnames(x), each = length(time))
     time <- rep(time, times = ncol)
   } else if (inherits(x, "xts")){
     time <- attr(x, "index")
@@ -64,11 +71,12 @@ ts_as_tibble <- function(x, name = "time", value = "value", ...){
       time <- as.numeric(time)
     }
     ncol <- ncol(x)
-    group <- rep(colnames(x), each = length(time))
+    groups <- rep(colnames(x), each = length(time))
     time <- rep(time, times = ncol)
   } else {
-    group <- NULL
+    groups <- NULL
   }
-  dplyr::tibble(group, !!name := time, !!value := as.vector(x),
-                ...)
+  dplyr::tibble(!!group := groups,
+                !!name := time,
+                !!value := as.vector(x))
 }

@@ -8,6 +8,7 @@ stat_summarise(
   data,
   ...,
   stat = .stat_fns[1:5],
+  q_probs = NULL,
   na.rm = TRUE,
   sort = TRUE,
   .names = NULL,
@@ -25,6 +26,9 @@ Tidy data-masking applies.}
 This can be one or more of the following: \cr
 "n", "nmiss", "min", "max", "mean", "first", "last", "sd",
 "var", "mode", "median", "sum".}
+
+\item{q_probs}{(Optional) Quantile probabilities.
+If supplied, \code{q_summarise()} is called and added to the result.}
 
 \item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
 

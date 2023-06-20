@@ -221,10 +221,14 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
     x_range <- collapse::frange(x, na.rm = TRUE)
   }
   if (is.null(from)){
-    from <- x_range[[1L]]
+    from <- x_range[1L]
+  } else {
+    from <- time_cast(from, x)
   }
   if (is.null(to)){
-    to <- x_range[[2L]]
+    to <- x_range[2L]
+  } else {
+    to <- time_cast(to, x)
   }
   # Time sequence
   time_breaks <- time_expandv(x, time_by = time_by, from = from, to = to,
@@ -236,7 +240,7 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
                               floor_date = floor_date)
   # time_breaks <- time_cast(time_breaks, x)
   # Cut time
-  time_break_ind <- fcut_ind(x, time_breaks)
+  time_break_ind <- fcut_ind(x, c(time_breaks, to + 1))
   # Time breaks subset on cut indices
   out <- time_breaks[time_break_ind]
 
@@ -318,7 +322,7 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
   # time_breaks <- time_cast(time_breaks, x)
   out_len <- length(x)
   # Aggregate time/cut time
-  time_break_ind <- fcut_ind(x, time_breaks)
+  time_break_ind <- fcut_ind(x, c(time_breaks, .to + 1))
   # Time breaks subset on cut indices
   x <- time_breaks[time_break_ind]
 
