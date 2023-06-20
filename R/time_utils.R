@@ -904,5 +904,9 @@ label_date_short <- function(format = c("%Y", "%b", "%d", "%H:%M"),
 }
 # Unique posix vector to character remains unique
 time_as_character <- function(x){
-  as.character(x, usetz = is_datetime(x))
+  if (is_datetime(x)){
+    format(x, format = "%Y-%m-%d %H:%M:%S %Z")
+  } else {
+    as.character(x)
+  }
 }
