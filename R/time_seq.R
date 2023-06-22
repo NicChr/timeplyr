@@ -218,7 +218,7 @@ time_seq <- function(from, to, time_by, length.out = NULL,
     if (missing_from){
       from <- time_add2(to, setnames(list(-(by_n * length.out) + by_n),
                                      by_unit),
-                        type = time_type,
+                        time_type = time_type,
                         roll_month = roll_month, roll_dst = roll_dst)
       if (time_floor){
         from <- time_floor2(from, time_by = tby,

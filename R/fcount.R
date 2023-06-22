@@ -64,7 +64,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                            rename = TRUE)
   out <- group_info[["data"]]
   all_vars <- group_info[["all_groups"]]
-  N <- nrow2(data)
+  N <- nrow2(out)
   # Weights
   if (!rlang::quo_is_null(enquo(wt))){
     out <- mutate2(out, !!enquo(wt))
@@ -82,25 +82,20 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
     # If data is grouped and no extra groups supplied..
   } else if (length(group_vars) > 0L &&
              length(group_vars) == length(all_vars)){
-    gdata <- group_data(data)
-    g <- list(group.starts = as.integer(
-      unlist(
-        collapse::ffirst(gdata[[".rows"]],
-                         use.g.names = FALSE),
-        use.names = FALSE, recursive = FALSE
-      )
-    ),
-    group.sizes = collapse::vlengths(gdata[[".rows"]],
-                                     use.names = FALSE))
+    g <- grouped_df_to_GRP(data, return.order = FALSE)
   }
   else {
-    g <- GRP2(out, by = all_vars, sort = TRUE)
+    g <- GRP2(out, by = all_vars, sort = TRUE, return.order = FALSE)
   }
-  out <- fselect(out, .cols = all_vars)
-  if (is.null(name)) name <- new_n_var_nm(out)
-  gstarts <- GRP_starts(g)
-  out <- df_row_slice(out, gstarts, reconstruct = FALSE)
+  # if (is.null(GRP_groups(g))){
+    out <- fselect(out, .cols = all_vars)
+    gstarts <- GRP_starts(g)
+    out <- df_row_slice(out, gstarts, reconstruct = FALSE)
+  # } else {
+  #   out <- GRP_group_data(g)
+  # }
   N <- nrow2(out)
+  if (is.null(name)) name <- new_n_var_nm(out)
   # Edge-case, not sure how to fix this
   if (N == 0L && length(all_vars) == 0L){
     N <- 1L

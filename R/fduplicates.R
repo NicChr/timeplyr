@@ -96,8 +96,8 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
 #' @rdname fduplicates
 #' @export
 fduplicates2 <- function(data, ..., .keep_all = FALSE,
-                           .both_ways = FALSE, .add_count = FALSE,
-                           .keep_na = TRUE, .by = NULL){
+                         .both_ways = FALSE, .add_count = FALSE,
+                         .keep_na = TRUE, .by = NULL){
   n_dots <- dots_length(...)
   out <- safe_ungroup(data)
   if (n_dots > 0){

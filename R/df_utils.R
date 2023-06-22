@@ -196,6 +196,7 @@ list_to_tibble <- function(x){
   }
   attr(x, "class") <- c("tbl_df", "tbl", "data.frame")
   attr(x, "row.names") <- .set_row_names(N)
+  attr(x, "names") <- as.character(names(x))
   x
 }
 # Pluck data frame row (works for matrices and df-like lists too)

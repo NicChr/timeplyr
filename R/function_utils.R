@@ -726,8 +726,11 @@ flast <- getFromNamespace("flast", "collapse")
 CJ <- getFromNamespace("CJ", "data.table")
 # Ccj <- getFromNamespace("Ccj", "data.table")
 
-is_whole_number <- function(x){
+is_whole_number <- function(x, na.rm = FALSE){
   if (is.integer(x)) return(TRUE) # If already integer then true
+  if (na.rm){
+    x <- x[!is.na(x)]
+  }
   if (length(x) == 0L) return(FALSE) # If length is 0 then false
   # all.equal(x, as.integer(x), check.attributes = FALSE)
   # isTRUE((sum(x %% 1) == 0))
@@ -984,8 +987,8 @@ check_range_sign <- function(x){
   sign(out)
 }
 # Collapse/vctrs style complete rate
-prop_complete <- function(x){
-  1 - (fnmiss(x) / vec_length(x))
+prop_complete <- function(x, ...){
+  1 - (fnmiss(x, ...) / vec_length(x))
 }
 # Base R version of purrr::pluck, alternative to [[
 fpluck <- function(x, .cols = NULL, .default = NULL){

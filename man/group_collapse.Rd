@@ -16,7 +16,8 @@ group_collapse(
   size = TRUE,
   loc = TRUE,
   start = TRUE,
-  end = TRUE
+  end = TRUE,
+  drop = TRUE
 )
 }
 \arguments{
@@ -51,6 +52,8 @@ If speed is an expensive resource, it is recommended to use this.}
 \item{start}{Should group start locations be added? Default is \code{TRUE}.}
 
 \item{end}{Should group end locations be added? Default is \code{TRUE}.}
+
+\item{drop}{Should unused factor levels be dropped? Default is \code{TRUE}.}
 }
 \value{
 A \code{tibble} of unique groups and an integer ID uniquely identifying each group.

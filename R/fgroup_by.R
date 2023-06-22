@@ -15,13 +15,12 @@
 #' @param .cols (Optional) alternative to `...` that accepts
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
-#' @param .drop Not currently supported.
-#' Unused factor levels are always dropped.
+#' @param .drop Should unused factor levels be dropped? Default is `TRUE`.
 #' @export
 fgroup_by <- function(data, ..., .add = FALSE,
                       order = TRUE,
                       .by = NULL, .cols = NULL,
-                      .drop = dplyr::group_by_drop_default(data)){
+                      .drop = TRUE){
   init_group_vars <- group_vars(data)
   group_info <- group_info(safe_ungroup(data), ..., .by = {{ .by }},
                            .cols = .cols,
@@ -38,8 +37,10 @@ fgroup_by <- function(data, ..., .add = FALSE,
                                  id = FALSE,
                                  loc = TRUE, sort = TRUE,
                                  size = FALSE,
-                                 start = FALSE, end = FALSE)
-    names(group_data)[names(group_data) == ".loc"] <- ".rows"
+                                 start = FALSE, end = FALSE,
+                                 drop = .drop)
+    group_data <- frename(group_data,
+                          .cols = c(".rows" = ".loc"))
     attr(data, "groups") <- group_data
     attr(attr(data, "groups"), ".drop") <- .drop
     attr(data, "class") <- c("grouped_df", "tbl_df", "tbl", "data.frame")

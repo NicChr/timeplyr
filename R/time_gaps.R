@@ -46,7 +46,8 @@
 #' @export
 time_gaps <- function(x, time_by = NULL,
                       time_type = c("auto", "duration", "period"),
-                      check_regular = TRUE, na.rm = TRUE){
+                      check_regular = TRUE,
+                      na.rm = TRUE){
   if (!na.rm && sum(is.na(x)) > 0){
     vctrs::vec_init(x, n = 1L)
   } else {
@@ -59,6 +60,45 @@ time_gaps <- function(x, time_by = NULL,
   }
 }
 
+time_which_gaps <- function(x, time_by = NULL,
+                            time_type = c("auto", "duration", "period"),
+                            na.rm = TRUE){
+  t_seq_id <- time_seq_id(x,
+                          time_by = time_by,
+                          time_type = time_type,
+                          na.rm = na.rm)
+  out <- collapse::flast(seq_along(x), g = t_seq_id, use.g.names = FALSE,
+                         na.rm = FALSE)
+  out[-length(out)]
+}
+# time_which_gaps <- function(x, time_by = NULL,
+#                             time_type = c("auto", "duration", "period"),
+#                             check_regular = TRUE, na.rm = TRUE){
+#   stopifnot(is_time_or_num(x))
+#   if (length(x) <= 1L){
+#     return(0L)
+#   }
+#   n_unique <- n_unique(x, na.rm = na.rm)
+#   if (n_unique == 1){
+#     return(0L)
+#   }
+#   time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
+#   tby <- time_by_get(x, time_by = time_by)
+#
+#   if (!na.rm && sum(is.na(x)) > 0){
+#     out <- NA_integer_
+#   } else {
+#     time_seq <- time_expandv(x, time_by = time_by,
+#                              time_type = time_type)
+#     x_completed <- fcomplete(dplyr::tibble(x = x, .time.id = seq_along(x)),
+#                              x = time_seq, sort = TRUE)
+#     out <- which(is.na(fpluck(x_completed, ".time.id"))) - 1L
+#     if (check_regular){
+#       check_time_regular(x, time_seq, time_by)
+#     }
+#   }
+#   out
+# }
 #' @rdname time_gaps
 #' @export
 time_num_gaps <- function(x, time_by = NULL,
@@ -76,10 +116,6 @@ time_num_gaps <- function(x, time_by = NULL,
   time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
   tby <- time_by_get(x, time_by = time_by)
   x_rng <- collapse::frange(x, na.rm = na.rm)
-  # range_diff <- time_diff(x_rng[1L],
-  #                         x_rng[2L],
-  #                         time_by = tby,
-  #                         time_type = time_type)
   if (check_regular && !is.null(time_by)){
     full_seq <- time_seq(x_rng[1L],
                          x_rng[2L],

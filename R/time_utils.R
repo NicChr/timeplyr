@@ -95,6 +95,9 @@ time_by_get <- function(x, time_by = NULL, is_sorted = FALSE){
   }
   out
 }
+time_by_length <- function(time_by){
+  length(time_by[[1L]])
+}
 # Creates interval even using num
 time_interval <- function(from, to){
   if (is_time(from) && is_time(to)){
@@ -844,20 +847,26 @@ get_from_to <- function(data, ..., time, from = NULL, to = NULL,
   list(.from = .from,
        .to = .to)
 }
-time_add2 <- function(x, y, type, roll_month = "preday", roll_dst = "pre"){
-  unit_info <- unit_guess(y)
-  units <- unit_info[["unit"]]
-  num <- unit_info[["num"]]
-  scale <- unit_info[["scale"]]
-  num <- num * scale
-  if (type == "period"){
-    unit <- substr(units, 1L, nchar(units) -1L)
-    time_add(x, periods = setnames(list(num), unit),
-             roll_month = roll_month, roll_dst = roll_dst)
-  } else if (type == "duration"){
-    x + duration_unit(units)(num)
+time_add2 <- function(x, time_by,
+                      time_type = c("auto", "duration", "period"),
+                      roll_month = "preday", roll_dst = "pre"){
+  if (is_time(x)){
+    time_type <- rlang::arg_match0(time_type,
+                                   c("auto", "duration", "period"))
+    unit_info <- unit_guess(time_by)
+    units <- unit_info[["unit"]]
+    num <- unit_info[["num"]]
+    scale <- unit_info[["scale"]]
+    num <- num * scale
+    if (time_type == "period"){
+      unit <- substr(units, 1L, nchar(units) -1L)
+      time_add(x, periods = setnames(list(num), unit),
+               roll_month = roll_month, roll_dst = roll_dst)
+    } else {
+      x + duration_unit(units)(num)
+    }
   } else {
-   x + y
+    x + unlist(time_by, use.names = FALSE, recursive = FALSE)
   }
 }
 # Custom time flooring..

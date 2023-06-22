@@ -109,10 +109,10 @@
 #' @rdname fexpand
 #' @export
 fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
-                     sort = FALSE,
+                    sort = FALSE,
                     .by = NULL,
-                     keep_class = TRUE,
-                     log_limit = 8){
+                    keep_class = TRUE,
+                    log_limit = 8){
   expand_type <- match.arg(expand_type)
   group_vars <- get_groups(data, {{ .by }})
   summarise_vars <- summarise_list(data, ...)
@@ -121,7 +121,7 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
   if (length(grps_missed) > 0){
     summarise_vars <- c(setnames(
       lapply(
-        grps_missed, function(x) purrr::pluck(
+        grps_missed, function(x) fpluck(
           dplyr_summarise(
             safe_ungroup(data), across(all_of(x))
           ), 1)
@@ -202,8 +202,8 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
       #             keyby = grp_nm,
       #             .SDcols = group_id_nms]
       out <- out2[, CJ2(unlist(.SD, recursive = FALSE, use.names = FALSE)),
-           keyby = grp_nm,
-           .SDcols = group_id_nms]
+                  keyby = grp_nm,
+                  .SDcols = group_id_nms]
       data.table::setnames(out, new = c(grp_nm, leftover_grp_nms))
       for (i in seq_along(group_id_nms)){
         data.table::set(out, j = leftover_grp_nms[[i]],

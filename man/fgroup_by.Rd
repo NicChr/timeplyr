@@ -11,7 +11,7 @@ fgroup_by(
   order = TRUE,
   .by = NULL,
   .cols = NULL,
-  .drop = dplyr::group_by_drop_default(data)
+  .drop = TRUE
 )
 }
 \arguments{
@@ -32,8 +32,7 @@ Columns are specified using \code{tidyselect}.}
 a named character vector or numeric vector.
 If speed is an expensive resource, it is recommended to use this.}
 
-\item{.drop}{Not currently supported.
-Unused factor levels are always dropped.}
+\item{.drop}{Should unused factor levels be dropped? Default is \code{TRUE}.}
 }
 \description{
 This works the exact same as \code{dplyr::group_by()} and typically
