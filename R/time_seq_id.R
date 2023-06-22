@@ -37,15 +37,15 @@ time_seq_id <- function(x, time_by = NULL,
                         na.rm = TRUE){
   telapsed <- time_elapsed(x, time_by = time_by, g = g,
                            time_type = time_type, rolling = TRUE)
-  # If time elapsed is a decimal, this probably implies that x is not a
-  # regular sequence
-  if (isTRUE(collapse::fmin(telapsed, na.rm = TRUE) < 0)){
-    stop("x must be in ascending or descending order")
-  }
   if (length(x) > 0L &&
       !is.null(time_by) &&
-      !is_whole_number(telapsed, na.rm = TRUE)){
+      !is_whole_number(
+        collapse::funique(telapsed),
+        na.rm = TRUE)){
     warning("x is likely not a regular sequence given the chosen time unit")
+  }
+  if (isTRUE(collapse::fmin(telapsed, na.rm = TRUE) < 0)){
+    stop("x must be in ascending or descending order")
   }
   collapse::fcumsum(telapsed > 1, g = g, na.rm = na.rm) + 1L
 }
