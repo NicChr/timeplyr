@@ -75,7 +75,7 @@ time_is_regular <- function(x, time_by = NULL,
     if (is.null(g)){
       group_size <- length(telapsed)
     } else {
-      group_size <- collapse::GRPN(groups, expand = FALSE)
+      group_size <- fn(groups, g = groups, sort = TRUE)
     }
     out <- n_whole_num == group_size
   }
