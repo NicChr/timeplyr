@@ -73,14 +73,16 @@ df_reconstruct <- function(data, template){
           fdistinct(.cols = grp_nm, .keep_all = TRUE) %>%
           farrange(.cols = grp_nm)
         groups[[grp_nm]] <- NULL
+        groups[[".loc"]] <- GRP_loc(g)
       } else {
-        g <- collapse::GRP(safe_ungroup(data), by = out_groups,
-                           sort = TRUE, decreasing = FALSE, na.last = TRUE,
-                           return.order = FALSE,
-                           return.groups = TRUE, call = FALSE)
-        groups <- GRP_group_data(g)
+        groups <- group_collapse(safe_ungroup(data),
+                                 .cols = out_groups, sort = TRUE,
+                                 id = FALSE, start = FALSE,
+                                 end = FALSE, size = FALSE,
+                                 loc = TRUE,
+                                 drop = dplyr::group_by_drop_default(template))
       }
-      groups[[".rows"]] <- GRP_loc(g)
+      groups <- frename(groups, .cols = c(".rows" = ".loc"))
       attributes(groups[[".rows"]]) <- attributes(template_attrs[["groups"]][[".rows"]])
       for (a in setdiff(names(attributes(groups)),
                         c("row.names", "class", "names"))){
@@ -164,17 +166,20 @@ is_list_df_like <- function(X){
 is_df <- function(x){
   inherits(x, "data.frame")
 }
-# Faster (and stricter) tibble::enframe
+# alternative tibble::enframe
 # Turns named vector to 2-column data frame
 # or unnamed vector to 1-column data frame
 fenframe <- function(x, name = "name", value = "value"){
-  if (!vctrs::vec_is(x) || is_df(x)){
+  if (is_df(x)){
+    x <- as.list(x)
+  }
+  if (!vctrs::vec_is(x)){
     stop("x must be a vector")
   }
   x_nms <- names(x)
   if (is.null(x_nms)){
     out <- list(unname(x))
-    names(out) <- name
+    names(out) <- value
   } else {
     out <- list(x_nms,
                 unname(x))
@@ -182,6 +187,18 @@ fenframe <- function(x, name = "name", value = "value"){
   }
   attr(out, "class") <- c("tbl_df", "tbl", "data.frame")
   attr(out, "row.names") <- .set_row_names(length(x))
+  out
+}
+# alternative tibble::deframe
+fdeframe <- function(x){
+  ncol <- collapse::fncol(x)
+  if (!(is_df(x) || ncol %in% (1:2))){
+    stop("`x` must be a 1 or 2 col data frame")
+  }
+  out <- x[[ncol]]
+  if (ncol == 2){
+    names(out) <- as.character(x[[1L]])
+  }
   out
 }
 # list to tibble/DT
@@ -244,6 +261,16 @@ safe_ungroup <- function(data){
   }
   data
 }
+df_is_sorted <- function(data){
+  df_order <- radixorderv2(data)
+  isTRUE(attr(df_order, "sorted"))
+}
+
+df_paste_names <- function(data,  sep = "_", .cols = names(data)){
+  do.call(paste, c(fselect(data, .cols = .cols),
+                   list(sep = sep)))
+}
+
 ##### data.table specific helpers #####
 
 list_to_DT <- function(x){

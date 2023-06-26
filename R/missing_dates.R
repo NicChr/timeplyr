@@ -16,8 +16,7 @@ missing_dates <- function(x, na.rm = TRUE){
       lubridate::NA_Date_
     } else {
       d <- lubridate::as_date(d)
-      d_seq <- time_expandv(d, time_by = list("days" = 1),
-                            is_sorted = FALSE)
+      d_seq <- time_expandv(d, time_by = list("days" = 1))
       d_seq[!d_seq %in% d]
     }
   }

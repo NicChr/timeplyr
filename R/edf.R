@@ -22,8 +22,8 @@
 #'
 #' # Manual ECDF plot using only aggregate data
 #' y <- rnorm(100, 10)
-#' grid <- time_span(y, by = 0.1, floor_date = TRUE)
-#' counts <- time_countv(y, by = 0.1, floor_date = TRUE)
+#' grid <- time_span(y, time_by = 0.1, time_floor = TRUE)
+#' counts <- time_countv(y, time_by = 0.1, time_floor = TRUE)
 #' edf <- edf(grid, wt = counts)
 #' # Trivial here as this is the same
 #' all.equal(unname(cumsum(counts)/sum(counts)), edf)

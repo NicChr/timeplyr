@@ -4,30 +4,30 @@
 \alias{time_gaps}
 \alias{time_num_gaps}
 \alias{time_has_gaps}
-\title{Check for missing dates or datetimes}
+\title{Gaps in a regular time sequence}
 \usage{
 time_gaps(
   x,
   time_by = NULL,
-  time_type = c("auto", "duration", "period"),
-  check_regular = TRUE,
-  na.rm = TRUE
+  g = NULL,
+  use.g.names = TRUE,
+  time_type = c("auto", "duration", "period")
 )
 
 time_num_gaps(
   x,
   time_by = NULL,
-  time_type = c("auto", "duration", "period"),
-  check_regular = TRUE,
-  na.rm = TRUE
+  g = NULL,
+  use.g.names = TRUE,
+  time_type = c("auto", "duration", "period")
 )
 
 time_has_gaps(
   x,
   time_by = NULL,
-  time_type = c("auto", "duration", "period"),
-  check_regular = TRUE,
-  na.rm = TRUE
+  g = NULL,
+  use.g.names = TRUE,
+  time_type = c("auto", "duration", "period")
 )
 }
 \arguments{
@@ -46,25 +46,24 @@ e.g. \code{list("days" = 1:10)}.
 then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
+\item{g}{Grouping object passed directly to \code{collapse::GRP()}.
+This can for example be a vector or data frame.}
+
+\item{use.g.names}{Should the result include group names?
+Default is \code{TRUE}.}
+
 \item{time_type}{Time type, either "auto", "duration" or "period".
 With larger data, it is recommended to use \code{time_type = "duration"} for
 speed and efficiency.}
-
-\item{check_regular}{Should a check be done to see whether x is a regular
-sequence given a specified \code{time_by} unit?
-Default is \code{TRUE}.
-The check only occurs when \code{time_by} is supplied.}
-
-\item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
 }
 \description{
 \code{time_gaps()} checks for missing gaps in time for any
 regular date or datetime sequence.
 }
 \details{
-If you know your data is regular and you know the time unit,
-it is more efficient to set \code{check_regular = FALSE} and supply the time unit
-in \code{time_by}.
+If your data consists of sequences that increase by
+an increment lower than the one provided through \code{time_by},
+an error is thrown.
 }
 \examples{
 library(timeplyr)
@@ -76,6 +75,7 @@ missing_dates(flights$time_hour)
 time_has_gaps(flights$time_hour)
 time_num_gaps(flights$time_hour)
 time_gaps(flights$time_hour)
+time_num_gaps(flights$time_hour, g = flights$origin)
 
 # Number of missing hours by origin and dest
 flights \%>\%

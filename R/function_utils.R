@@ -222,7 +222,7 @@ transmute2 <- function(data, ..., .by = NULL){
   group_vars <- get_groups(data, .by = {{ .by }})
   out <- mutate2(data, ..., .by = {{ .by }}, .keep = "none")
   out_nms <- tidy_transform_names(data, ...)
-  collapse::fselect(out, c(group_vars, out_nms))
+  fselect(out, .cols = c(group_vars, out_nms))
 }
 # mutate with a special case when all expressions are just selected columns.
 mutate2 <- function(data, ..., .by = NULL,

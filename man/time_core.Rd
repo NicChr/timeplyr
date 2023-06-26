@@ -19,11 +19,7 @@ time_expandv(
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = "preday",
-  roll_dst = "pre",
-  is_sorted = FALSE,
-  by = NULL,
-  seq_type = NULL,
-  floor_date = NULL
+  roll_dst = "pre"
 )
 
 time_completev(
@@ -31,16 +27,14 @@ time_completev(
   time_by = NULL,
   from = NULL,
   to = NULL,
+  g = NULL,
+  use.g.names = TRUE,
   sort = TRUE,
   time_type = c("auto", "duration", "period"),
-  is_sorted = FALSE,
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = "preday",
-  roll_dst = "pre",
-  by = NULL,
-  seq_type = NULL,
-  floor_date = NULL
+  roll_dst = "pre"
 )
 
 time_summarisev(
@@ -48,18 +42,16 @@ time_summarisev(
   time_by = NULL,
   from = NULL,
   to = NULL,
+  g = NULL,
+  use.g.names = TRUE,
   sort = FALSE,
   unique = FALSE,
   time_type = c("auto", "duration", "period"),
-  is_sorted = FALSE,
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = "preday",
   roll_dst = "pre",
-  include_interval = FALSE,
-  by = NULL,
-  seq_type = NULL,
-  floor_date = NULL
+  include_interval = FALSE
 )
 
 time_countv(
@@ -77,10 +69,7 @@ time_countv(
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = "preday",
-  roll_dst = "pre",
-  by = NULL,
-  seq_type = NULL,
-  floor_date = NULL
+  roll_dst = "pre"
 )
 
 time_span(
@@ -94,11 +83,7 @@ time_span(
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = "preday",
-  roll_dst = "pre",
-  is_sorted = FALSE,
-  by = NULL,
-  seq_type = NULL,
-  floor_date = NULL
+  roll_dst = "pre"
 )
 }
 \arguments{
@@ -147,17 +132,6 @@ See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
 
-\item{is_sorted}{If \code{TRUE} then x is assumed to be in
-ascending order and no additional pre-sorting is done.
-It is recommended to leave this as \code{FALSE} unless you require the
-extra speed for programming or looping purposes.}
-
-\item{by}{\bold{Deprecated}. Use \code{time_by} instead}
-
-\item{seq_type}{\bold{Deprecated}. Use \code{time_type} instead.}
-
-\item{floor_date}{\bold{Deprecated}. Use \code{time_floor} instead.}
-
 \item{sort}{Should the output be sorted? Default is \code{TRUE}.}
 
 \item{unique}{Should the result be unique or match the length of the vector?
@@ -173,6 +147,11 @@ The rightmost interval will always be closed.}
 \item{complete}{Logical. If \code{TRUE} implicit gaps in time are filled
 before counting and after time aggregation (controlled using \code{time_by}).
 The default is \code{TRUE}.}
+
+\item{is_sorted}{If \code{TRUE} then x is assumed to be in
+ascending order and no additional pre-sorting is done.
+It is recommended to leave this as \code{FALSE} unless you require the
+extra speed for programming or looping purposes.}
 }
 \description{
 These are atomic vector-based functions

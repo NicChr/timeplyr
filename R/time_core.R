@@ -52,9 +52,6 @@
 #' This can for example be a vector or data frame.
 #' @param use.g.names Should the result include group names?
 #' Default is `TRUE`.
-#' @param by \bold{Deprecated}. Use `time_by` instead
-#' @param floor_date \bold{Deprecated}. Use `time_floor` instead.
-#' @param seq_type \bold{Deprecated}. Use `time_type` instead.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -116,26 +113,8 @@ time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
                          time_type = c("auto", "duration", "period"),
                          time_floor = FALSE,
                          week_start = getOption("lubridate.week.start", 1),
-                         roll_month = "preday", roll_dst = "pre",
-                         is_sorted = FALSE,
-                         by = NULL,
-                         seq_type = NULL,
-                         floor_date = NULL){
+                         roll_month = "preday", roll_dst = "pre"){
   stopifnot(is_time_or_num(x))
-  ### Temporary arg switches while deprecating
-  if (!is.null(by)){
-    warning("by is deprecated, use time_by instead")
-    time_by <- by
-  }
-  if (!is.null(seq_type)){
-    warning("seq_type is deprecated, use time_type instead")
-    time_type <- seq_type
-  }
-  if (!is.null(floor_date)){
-    warning("floor_date is deprecated, use time_floor instead")
-    time_floor <- floor_date
-  }
-  ###
   if (length(from) > 1L){
     stop("from must be of length 1")
   }
@@ -182,23 +161,39 @@ time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
 #' @rdname time_core
 #' @export
 time_completev <- function(x, time_by = NULL, from = NULL, to = NULL,
+                           g = NULL, use.g.names = TRUE,
                            sort = TRUE,
                            time_type = c("auto", "duration", "period"),
-                           is_sorted = FALSE,
                            time_floor = FALSE,
                            week_start = getOption("lubridate.week.start", 1),
-                           roll_month = "preday", roll_dst = "pre",
-                           by = NULL,
-                           seq_type = NULL,
-                           floor_date = NULL){
+                           roll_month = "preday", roll_dst = "pre"){
+
+  if (is.null(g)){
+    time_tbl <- fenframe(x, value = "time")
+  } else {
+    g <- GRP2(g)
+    if (GRP_data_size(g) != length(x)){
+      stop("g must have the same size as x")
+    }
+    names(x) <- GRP_names(g, expand = TRUE)
+    time_tbl <- fenframe(x, name = "group", value = "time")
+  }
   tseq <- time_expandv(x, time_by = time_by, from = from, to = to,
-                       time_type = time_type, is_sorted = is_sorted,
+                       g = g, use.g.names = TRUE,
+                       time_type = time_type,
                        time_floor = time_floor, week_start = week_start,
-                       roll_month = roll_month, roll_dst = roll_dst,
-                       by = by,
-                       floor_date = floor_date,
-                       seq_type = seq_type)
-  out <- time_c(x, tseq[!tseq %in% x])
+                       roll_month = roll_month, roll_dst = roll_dst)
+  time_full_tbl <- fenframe(tseq, name = "group", value = "time")
+  out_tbl <- merge(as_DT(time_tbl),
+                   as_DT(time_full_tbl),
+                   by = names(time_tbl),
+                   all = TRUE,
+                   sort = FALSE,
+                   allow.cartesian = TRUE)
+  if (!use.g.names){
+    out_tbl <- fselect(out_tbl, .cols = "time")
+  }
+  out <- fdeframe(out_tbl)
   if (sort){
     out <- radix_sort(out)
   }
@@ -207,16 +202,115 @@ time_completev <- function(x, time_by = NULL, from = NULL, to = NULL,
 #' @rdname time_core
 #' @export
 time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
+                            g = NULL, use.g.names = TRUE,
                             sort = FALSE, unique = FALSE,
                             time_type = c("auto", "duration", "period"),
-                            is_sorted = FALSE,
                             time_floor = FALSE,
                             week_start = getOption("lubridate.week.start", 1),
                             roll_month = "preday", roll_dst = "pre",
-                            include_interval = FALSE,
-                            by = NULL,
-                            seq_type = NULL,
-                            floor_date = NULL){
+                            include_interval = FALSE){
+  if (is.null(g)){
+    time_aggregate(x, time_by = time_by, from = from, to = to,
+                   time_type = time_type,
+                   sort = sort, unique = unique,
+                   time_floor = time_floor, week_start = week_start,
+                   roll_month = roll_month, roll_dst = roll_dst,
+                   include_interval = include_interval)
+  } else {
+    time_grouped_aggregate(x, time_by = time_by, from = from, to = to,
+                           g = g, use.g.names = use.g.names,
+                           time_type = time_type,
+                           sort = sort, unique = unique,
+                           time_floor = time_floor, week_start = week_start,
+                           roll_month = roll_month, roll_dst = roll_dst,
+                           include_interval = include_interval)
+  }
+
+}
+time_grouped_aggregate <- function(x, time_by = NULL, from = NULL, to = NULL,
+                                   g = NULL, use.g.names = TRUE,
+                                   sort = FALSE, unique = FALSE,
+                                   time_type = c("auto", "duration", "period"),
+                                   time_floor = FALSE,
+                                   week_start = getOption("lubridate.week.start", 1),
+                                   roll_month = "preday", roll_dst = "pre",
+                                   include_interval = FALSE){
+  g <- GRP2(g)
+  if (GRP_data_size(g) != length(x)){
+    stop("g must have the same size as x")
+  }
+  if (use.g.names){
+    names(x) <- GRP_names(g, expand = TRUE)
+  }
+  g2 <- GRP2(
+    list(GRP_group_id(g), x)
+  )
+  group_order <- GRP_order(g2)
+  group_id <- GRP_group_id(g)
+  if (!GRP_is_sorted(g2)){
+    x <- x[group_order]
+    g <- collapse::GRP(group_id[group_order])
+  }
+  # Time sequence
+  time_breaks <- time_expandv(x, time_by = time_by, from = from, to = to,
+                              g = g, use.g.names = TRUE,
+                              time_type = time_type,
+                              time_floor = time_floor, week_start = week_start,
+                              roll_month = roll_month, roll_dst = roll_dst)
+  seq_group_id <- group_id(names(time_breaks), order = FALSE)
+  out <- taggregate(x, seq = time_breaks,
+                    gx = GRP_group_id(g), gseq = seq_group_id)
+  if (use.g.names){
+    names(out) <- names(x)
+  }
+  if (include_interval){
+    time_int <- tagg_interval(xagg = out,
+                              x = x,
+                              seq = time_breaks,
+                              gagg = GRP_group_id(g),
+                              gx = GRP_group_id(g),
+                              gseq = seq_group_id)
+    out <- fenframe(out, name = "group", value = "x")
+    out[["interval"]] <- time_int
+    if (!GRP_is_sorted(g2)){
+      out <- df_row_slice(out, collapse::radixorderv(group_order))
+    }
+    # Unique and sorting
+    if (unique){
+      out <- fdistinct(out, .cols = c("group", "x"),
+                       sort = sort, .keep_all = TRUE)
+    }
+    if (sort && !unique){
+      out <- farrange(out, .cols = c("group", "x"))
+    }
+    if (!is_interval(time_int)){
+      attr(out[["interval"]], "start") <- out[["x"]]
+    }
+  } else {
+    if (!GRP_is_sorted(g2) && !sort){
+      out <- out[collapse::radixorderv(group_order)]
+    }
+    if (unique){
+      # This needs a bit of explanation..
+      # If the user wants the data sorted
+      # We must take the unique values of the sorted groups
+      # Otherwise we take the unique values of the pre-sorted groups
+      if (sort){
+        out <- gunique(out, g = GRP_group_id(g), sort = TRUE)
+      } else {
+        out <- gunique(out, g = group_id, sort = FALSE)
+      }
+    }
+  }
+  out
+}
+time_aggregate <- function(x, time_by = NULL, from = NULL, to = NULL,
+                            sort = FALSE, unique = FALSE,
+                            time_type = c("auto", "duration", "period"),
+                            time_floor = FALSE,
+                            week_start = getOption("lubridate.week.start", 1),
+                            roll_month = "preday", roll_dst = "pre",
+                            include_interval = FALSE){
   if (is.null(from) || is.null(to)){
     x_range <- collapse::frange(x, na.rm = TRUE)
   }
@@ -232,12 +326,9 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
   }
   # Time sequence
   time_breaks <- time_expandv(x, time_by = time_by, from = from, to = to,
-                              time_type = time_type, is_sorted = is_sorted,
+                              time_type = time_type,
                               time_floor = time_floor, week_start = week_start,
-                              roll_month = roll_month, roll_dst = roll_dst,
-                              by = by,
-                              seq_type = seq_type,
-                              floor_date = floor_date)
+                              roll_month = roll_month, roll_dst = roll_dst)
   # time_breaks <- time_cast(time_breaks, x)
   # Cut time
   time_break_ind <- fcut_ind(x, c(time_breaks, to + 1))
@@ -280,23 +371,8 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
                         include_interval = FALSE,
                         time_floor = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
-                        roll_month = "preday", roll_dst = "pre",
-                        by = NULL,
-                        seq_type = NULL,
-                        floor_date = NULL){
+                        roll_month = "preday", roll_dst = "pre"){
   stopifnot(is_time_or_num(x))
-  if (!is.null(by)){
-    warning("by is deprecated, use time_by instead")
-    time_by <- by
-  }
-  if (!is.null(seq_type)){
-    warning("seq_type is deprecated, use time_type instead")
-    time_type <- seq_type
-  }
-  if (!is.null(floor_date)){
-    warning("floor_date is deprecated, use time_floor instead")
-    time_floor <- floor_date
-  }
   x_na <- which(is.na(x))
   time_by <- time_by_get(x, time_by = time_by, is_sorted = is_sorted)
   if (is.null(from)){

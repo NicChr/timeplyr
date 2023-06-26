@@ -130,7 +130,7 @@ get_time_delay <- function(data, origin, end, time_by = "days",
             .keep = "none")
   start_time <- tidy_transform_names(data, !!enquo(origin))
   end_time <- tidy_transform_names(data, !!enquo(end))
-  out <- list_to_DT(out)
+  out <- as_DT(out)
   grp_nm <- new_var_nm(out, ".group.id")
   out[, (grp_nm) := group_id(data, .by = {{ .by }})]
   set_rm_cols(out, setdiff(names(out),
@@ -164,17 +164,14 @@ get_time_delay <- function(data, origin, end, time_by = "days",
   }
   q_prcnts <- round(probs * 100)
   q_nms <- paste0(rep_len("p", length(probs)), q_prcnts)
-  quantile_summary <- q_summarise(out, .by = all_of(grp_nm),
-                                .cols = delay_nm, probs = probs,
-                                pivot = "wide", sort = TRUE)
   # Descriptive statistical summary
   delay_summary <- stat_summarise(out, .cols = delay_nm,
                                   .by = all_of(grp_nm),
                                   stat = c("n", "min", "max",
                                            "mean", "sd"),
-                                  sort = TRUE)
+                                  sort = TRUE,
+                                  q_probs = probs)
   delay_summary[, ("se") := get("sd")/sqrt(get("n"))]
-  delay_summary[, (q_nms) := fselect(quantile_summary, .cols = q_nms)]
   delay_summary[, ("iqr") := get("p75") - get("p25")]
   if (length(group_vars) > 0L){
     # Left-join

@@ -84,9 +84,11 @@ time_by_list <- function(time_by){
 }
 # Returns list with numeric vector element, where the name of the list
 # is the time unit name
-time_by_get <- function(x, time_by = NULL, is_sorted = FALSE){
+time_by_get <- function(x, time_by = NULL, is_sorted = FALSE,
+                        quiet = FALSE){
   if (is.null(time_by)){
-    unit_info <- time_granularity(x, is_sorted = is_sorted)
+    unit_info <- time_granularity(x, is_sorted = is_sorted,
+                                  msg = !quiet)
     by_n <- unit_info[["num"]]
     by_unit <- unit_info[["unit"]]
     out <- setnames(list(by_n), by_unit)
@@ -97,6 +99,37 @@ time_by_get <- function(x, time_by = NULL, is_sorted = FALSE){
 }
 time_by_length <- function(time_by){
   length(time_by[[1L]])
+}
+time_by_pretty <- function(time_by){
+  time_by <- time_by_list(time_by)
+  units <- names(time_by)
+  if (time_by_length(time_by) > 1){
+    stop("Please supply only one numeric value in time_by")
+  }
+  num <- time_by[[1L]]
+  if (units == "numeric"){
+    if (num == 1){
+      paste(num, "numeric unit", sep = " ")
+    } else {
+      paste(num, "numeric units", sep = " ")
+    }
+  } else {
+    num_seconds <- unit_to_seconds(time_by)
+    # pretty_unit_info <- seconds_to_unit(num_seconds)
+    # pretty_unit <- sub("(s)", "", pretty_unit_info[["unit"]],
+    #                    fixed = TRUE)
+    # scale <- pretty_unit_info[["scale"]]
+    # pretty_num <- prettyNum(round(num_seconds / scale, 2))
+    pretty_num <- round(num, 2)
+    if (num != pretty_num){
+     pretty_num <- paste0("~", pretty_num)
+    }
+    if (num == 1){
+      paste0(substr(units, 1L, nchar(units) -1L))
+    } else {
+      paste0(pretty_num, " ", units)
+    }
+  }
 }
 # Creates interval even using num
 time_interval <- function(from, to){
@@ -111,6 +144,37 @@ time_interval <- function(from, to){
   }
   out
 }
+# Calculates greatest common divisor of
+# rolling time difference, taking into account
+# time type
+# time_diff_gcd2 <- function(x, time_type, is_sorted = FALSE){
+#   time_type = rlang::arg_match0(time_type,
+#                                 c("auto", "duration", "period"))
+#   x <- collapse::funique(x, sort = !is_sorted)
+#   x <- x[!is.na(x)]
+#   if (length(x) == 0L){
+#     gcd_diff <- numeric(0)
+#   } else if (length(x) == 1L){
+#     gcd_diff <- 1
+#   } else {
+#     if (is_date(x)){
+#       tby <- "days"
+#     } else if (is_datetime(x)){
+#       tby <- "seconds"
+#     } else {
+#       tby <- 1
+#     }
+#     tdiff <- time_elapsed(x, rolling = TRUE,
+#                           time_by = tby,
+#                           time_type = time_type,
+#                           fill = NA, g = NULL)
+#     tdiff <- collapse::funique(round(abs(tdiff[-1L]), digits = 7),
+#                                 sort = FALSE)
+#     tdiff <- tdiff[tdiff > 0]
+#     gcd_diff <- collapse::vgcd(tdiff)
+#   }
+#   gcd_diff
+# }
 # Calculates time granularity
 time_diff_gcd <- function(x, is_sorted = FALSE){
   x <- as.double(x)
@@ -163,27 +227,27 @@ time_granularity <- function(x, is_sorted = FALSE, msg = TRUE){
 # Scale is in comparison to seconds
 seconds_to_unit <- function(x){
   if (length(x) == 0L){
-    return(list("unit" = character(0),
+    return(list("unit" = "second(s)",
                 "scale" = numeric(0)))
   }
   x <- abs(x)
   if (x == 0){
-    unit <- "seconds"
+    unit <- "second(s)"
     scale <- 1
   } else if (x > 0 && x < 1/1000/1000/1000){
-    unit <- "picoseconds"
+    unit <- "picosecond(s)"
     scale <- 1/1000/1000/1000/1000
   } else if (x >= 1/1000/1000/1000 && x < 1/1000/1000){
-    unit <- "nanoseconds"
+    unit <- "nanosecond(s)"
     scale <- 1/1000/1000/1000
   } else if (x >= 1/1000/1000 && x < 1/1000){
-    unit <- "microseconds"
+    unit <- "microsecond(s)"
     scale <- 1/1000/1000
   } else if (x >= 1/1000 && x < 1){
-    unit <- "milliseconds"
+    unit <- "millisecond(s)"
     scale <- 1/1000
   }  else if (x >= 1 && x < 60){
-    unit <- "seconds"
+    unit <- "second(s)"
     scale <- 1
   } else if (x >= 60 && x < 3600){
     unit <- "minute(s)"
@@ -919,3 +983,4 @@ time_as_character <- function(x){
     as.character(x)
   }
 }
+

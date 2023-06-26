@@ -6,11 +6,12 @@ g2 <- group_id(flights, origin, dest, order = FALSE)
 
 testthat::expect_equal(gunique(numeric(0)),
                        numeric(0))
+set.seed(42)
 x <- sample(1:20, size = 10^5, replace = TRUE)
 g <- sample(sample(letters, size = 5), size = 10^5, replace = TRUE)
 testthat::expect_equal(gunique(x),
                        unique(x))
-testthat::expect_equal(gunique(x, g = g),
+testthat::expect_equal(gunique(x, g = g, use.g.names = FALSE),
                        dplyr::tibble(x, g) %>%
                          dplyr::group_by(g) %>%
                          dplyr::distinct(x) %>%
@@ -33,7 +34,7 @@ testthat::expect_equal(flights %>%
                          dplyr::select(year, month, day),
                        flights %>%
                          dplyr::select(year, month, day) %>%
-                         gunique(g = g1))
+                         gunique(g = g1, use.g.names = FALSE))
 testthat::expect_equal(flights %>%
                          dplyr::mutate(g1) %>%
                          dplyr::group_by(g1) %>%
@@ -42,5 +43,5 @@ testthat::expect_equal(flights %>%
                          dplyr::select(year, month, day),
                        flights %>%
                          dplyr::select(year, month, day) %>%
-                         gunique(g = g2))
+                         gunique(g = g2, use.g.names = FALSE))
 })

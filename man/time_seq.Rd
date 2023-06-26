@@ -2,7 +2,6 @@
 % Please edit documentation in R/time_seq.R
 \name{time_seq}
 \alias{time_seq}
-\alias{time_seq_len}
 \alias{time_seq_sizes}
 \alias{time_seq_v}
 \alias{time_seq_v2}
@@ -22,14 +21,6 @@ time_seq(
   by = NULL,
   seq_type = NULL,
   floor_date = NULL
-)
-
-time_seq_len(
-  from,
-  to,
-  by,
-  seq_type = c("auto", "duration", "period"),
-  as_period = FALSE
 )
 
 time_seq_sizes(
@@ -202,4 +193,7 @@ time_seq(leap, to = end, time_by = "year", time_type = "per",
          roll_month = "postday")
 time_seq(leap, to = end, time_by = "year", time_type = "per",
          roll_month = "preday")
+}
+\seealso{
+\link[timeplyr]{seq_id} \link[timeplyr]{time_seq_id}
 }

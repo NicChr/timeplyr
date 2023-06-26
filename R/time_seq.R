@@ -60,6 +60,7 @@
 #' @param by \bold{Deprecated}. Use `time_by` instead
 #' @param floor_date \bold{Deprecated}. Use `time_floor` instead.
 #' @param seq_type \bold{Deprecated}. Use `time_type` instead.
+#' @seealso \link[timeplyr]{seq_id} \link[timeplyr]{time_seq_id}
 #' @examples
 #' library(timeplyr)
 #' library(lubridate)
@@ -268,25 +269,6 @@ time_seq <- function(from, to, time_by, length.out = NULL,
     out <- do.call(seq, args, envir = parent.frame())
   }
   out
-}
-#' @rdname time_seq
-#' @export
-time_seq_len <- function(from, to, by,
-                         seq_type = c("auto", "duration", "period"),
-                         as_period = FALSE){
-  .Deprecated("time_seq_sizes")
-  tby <- time_by_list(by)
-  tdiff <- abs(time_diff(from, to, by = tby,
-                         type = seq_type,
-                         as_period = as_period))
-  # Accounting for when from - to / by = 0 / 0
-  tdiff[is.nan(tdiff)] <- 0
-  # tdiff[tby[[1L]] == 0 & from == to] <- 0
-  if (length(tdiff) == 0L || (collapse::fmax(tdiff) + 1) <= .Machine$integer.max){
-    as.integer(tdiff) + 1L
-  } else {
-    tdiff + 1
-  }
 }
 #' @rdname time_seq
 #' @export

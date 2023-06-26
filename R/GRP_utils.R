@@ -1,3 +1,7 @@
+# Is object a collapse GRP?
+is_GRP <- function(GRP){
+  inherits(GRP, "GRP")
+}
 # Number of groups
 GRP_n_groups <- function(GRP){
   GRP[["N.groups"]]
@@ -184,8 +188,25 @@ GRP_is_sorted <- function(GRP){
 GRP_group_data <- function(GRP){
   list_to_tibble(as.list(GRP_groups(GRP)))
 }
-GRP_names <- function(GRP, sep = "_"){
-  collapse::GRPnames(GRP, sep = sep)
+GRP_names <- function(GRP, sep = "_", expand = FALSE){
+  g_names <- collapse::GRPnames(GRP, force.char = FALSE, sep = sep)
+  if (expand && !is.null(g_names)){
+    collapse::ss(g_names, GRP_group_id(GRP))
+  } else {
+    g_names
+  }
+  # if (expand && !is.null(g_names)){
+  #   GRP_loc <- GRP_loc(GRP)
+  #   out <- integer(GRP_data_size(GRP))
+  #   for (i in seq_along(GRP_loc)){
+  #     out[GRP_loc[[i]]] <- g_names[i]
+  #     # The below has memory issues
+  #     # setv(out, GRP_loc[[i]], g_names[i], vind1 = TRUE)
+  #   }
+  # } else {
+  #  out <- g_names
+  # }
+  # out
 }
 df_to_GRP <- function(data, .cols = names(data), ...){
   data <- fselect(data, .cols = .cols)

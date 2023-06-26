@@ -280,10 +280,7 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
       ncol <- ncol(out)
       out <- fselect(out, .cols = c(seq_len(ncol - 2L), ncol, ncol - 1L))
     }
-    # Replace integer(0) locations with 0L
     sizes <- collapse::vlengths(out[[".loc"]], use.names = FALSE)
-    # out[[".loc"]][sizes == 0L] <- vctrs::new_list_of(list(integer(0L)),
-    #                                                  ptype = integer(0))
     if (start){
       gstarts <- integer(length(sizes))
       setv(gstarts,
@@ -318,7 +315,7 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
                              ungroup = TRUE,
                              rename = TRUE)
     all_groups <- group_info[["all_groups"]]
-    out <- group_collapse.default(collapse::fselect(group_info[["data"]], all_groups),
+    out <- group_collapse.default(fselect(group_info[["data"]], .cols = all_groups),
                                   order = order, sort = sort,
                                   id = id,
                                   size = size, loc = loc,

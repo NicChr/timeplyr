@@ -76,24 +76,26 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
     wtv <- out[[wt_var]]
   }
   grp_nm <- new_var_nm(all_vars, ".group.id")
-  if (length(all_vars) == 0L){
+  use_only_grouped_df_groups <- length(group_vars) > 0L &&
+    length(group_vars) == length(all_vars)
+  no_vars <- length(all_vars) == 0L
+  if (no_vars){
     g <- list(group.starts = min(1L, N),
               group.sizes = N)
-    # If data is grouped and no extra groups supplied..
-  } else if (length(group_vars) > 0L &&
-             length(group_vars) == length(all_vars)){
+  } else if (use_only_grouped_df_groups){
     g <- grouped_df_to_GRP(data, return.order = FALSE)
-  }
-  else {
+  } else {
     g <- GRP2(out, by = all_vars, sort = TRUE, return.order = FALSE)
   }
-  # if (is.null(GRP_groups(g))){
+  # Reason for this is in case the data is a grouped df
+  # and contains factors with undropped levels
+  if (use_only_grouped_df_groups){
+    out <- GRP_group_data(g)
+  } else {
     out <- fselect(out, .cols = all_vars)
     gstarts <- GRP_starts(g)
     out <- df_row_slice(out, gstarts, reconstruct = FALSE)
-  # } else {
-  #   out <- GRP_group_data(g)
-  # }
+  }
   N <- nrow2(out)
   if (is.null(name)) name <- new_n_var_nm(out)
   # Edge-case, not sure how to fix this
