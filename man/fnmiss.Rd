@@ -10,7 +10,8 @@ fnmiss(x, g = NULL, ...)
 \item{x}{Vector or data frame.}
 
 \item{g}{Object to be used for grouping,
-passed directly to \code{collapse::GRP()}.}
+passed directly to \code{collapse::GRP()}.
+Can be a vector or data frame for example.}
 
 \item{...}{Additional arguments passed onto \code{collapse::fsum}.}
 }
