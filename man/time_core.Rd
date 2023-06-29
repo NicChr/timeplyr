@@ -27,8 +27,6 @@ time_completev(
   time_by = NULL,
   from = NULL,
   to = NULL,
-  g = NULL,
-  use.g.names = TRUE,
   sort = TRUE,
   time_type = c("auto", "duration", "period"),
   time_floor = FALSE,
@@ -42,8 +40,6 @@ time_summarisev(
   time_by = NULL,
   from = NULL,
   to = NULL,
-  g = NULL,
-  use.g.names = TRUE,
   sort = FALSE,
   unique = FALSE,
   time_type = c("auto", "duration", "period"),
@@ -59,12 +55,11 @@ time_countv(
   time_by = NULL,
   from = NULL,
   to = NULL,
-  sort = !is_sorted,
+  sort = TRUE,
   unique = TRUE,
   use.names = TRUE,
   complete = TRUE,
   time_type = c("auto", "duration", "period"),
-  is_sorted = FALSE,
   include_interval = FALSE,
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
@@ -147,11 +142,6 @@ The rightmost interval will always be closed.}
 \item{complete}{Logical. If \code{TRUE} implicit gaps in time are filled
 before counting and after time aggregation (controlled using \code{time_by}).
 The default is \code{TRUE}.}
-
-\item{is_sorted}{If \code{TRUE} then x is assumed to be in
-ascending order and no additional pre-sorting is done.
-It is recommended to leave this as \code{FALSE} unless you require the
-extra speed for programming or looping purposes.}
 }
 \description{
 These are atomic vector-based functions

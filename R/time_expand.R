@@ -53,10 +53,6 @@
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
 #' @param log_limit The maximum log10 number of rows that can be expanded.
 #' Anything exceeding this will throw an error.
-#' @param by \bold{Deprecated}. Use `time_by` instead
-#' @param floor_date \bold{Deprecated}. Use `time_floor` instead.
-#' @param seq_type \bold{Deprecated}. Use `time_type` instead.
-#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -101,22 +97,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
                         sort = TRUE,
                         keep_class = TRUE,
                         roll_month = "preday", roll_dst = "pre",
-                        log_limit = 8,
-                        by = NULL,
-                        seq_type = NULL,
-                        floor_date = NULL){
-  if (!is.null(by)){
-    warning("by is deprecated, use time_by instead")
-    time_by <- by
-  }
-  if (!is.null(seq_type)){
-    warning("seq_type is deprecated, use time_type instead")
-    time_type <- seq_type
-  }
-  if (!is.null(floor_date)){
-    warning("floor_date is deprecated, use time_floor instead")
-    time_floor <- floor_date
-  }
+                        log_limit = 8){
   expand_type <- match.arg(expand_type)
   group_vars <- get_groups(data, {{ .by }})
   out <- mutate2(data,
@@ -145,36 +126,26 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
                                            to = to_var,
                                            .by = all_of(grp_nm))]
     # Unique groups
-    time_tbl <- collapse::funique(collapse::fselect(out, c(group_vars, grp_nm, from_nm, to_nm)),
-                                  cols = grp_nm)
-    # Bit-hacky.. probably better to add a floor_date arg to time_seq_len
+    time_tbl <- fdistinct(
+      fselect(
+        out, .cols = c(group_vars, grp_nm, from_nm, to_nm)
+      ),
+      .cols = grp_nm, .keep_all = TRUE
+    )
     if (time_floor){
-      time_tbl[, (from_nm) := time_floor2(get(from_nm),
-                                          time_by,
-                                          week_start = week_start)]
+      data.table::set(time_tbl,
+                      j = from_nm,
+                      value = time_floor2(fpluck(time_tbl, from_nm),
+                                          time_by, week_start = week_start))
     }
     # Reverse by sign in case from > to
     by_nm <- new_var_nm(out, ".by")
-    time_tbl[, (by_nm) := by_n]
+    data.table::set(time_tbl, j = by_nm, value = by_n)
     time_tbl[, (by_nm) := data.table::fifelse(get(from_nm) > get(to_nm),
                                               -1 * abs(get(by_nm)),
                                               get(by_nm))]
     # Determine size of sequences
     size_nm <- new_var_nm(out, ".size")
-    ### Special case where day expansion is used on days/UTC ###
-    # With period calculation. This should use durations for speed
-    unit_is_days <- by_unit %in% c("days", "weeks")
-    unit_is_less_than_days <- by_unit %in% c(setdiff(.duration_units, .period_units),
-                                           "seconds")
-    ### Special cases where units are days/utc and ranges are also days/utc
-    # In these cases we can just use duration calculations which are much faster
-    is_special_case_utc <- input_time_type == "auto" &&
-      (unit_is_days || unit_is_less_than_days) &&
-      is_datetime(out[[time_var]]) &&
-      lubridate::tz(out[[time_var]]) == "UTC" &&
-      lubridate::tz(time_tbl[[from_nm]]) == "UTC" &&
-      lubridate::tz(time_tbl[[to_nm]]) == "UTC"
-    if (is_special_case_utc) time_type <- "duration"
     time_tbl[, (size_nm) := time_seq_sizes(get(from_nm),
                                            get(to_nm),
                                            time_by = setnames(list(get(by_nm)),
@@ -190,37 +161,40 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
                               roll_month = roll_month,
                               roll_dst = roll_dst,
                               time_type = time_type)
-      out <- df_rep_each(time_tbl, time_tbl[[size_nm]])
+      time_seq_sizes <- time_tbl[[size_nm]]
+      set_rm_cols(time_tbl, c(from_nm, to_nm,
+                              size_nm,
+                              by_nm))
+      out <- df_rep(time_tbl, time_seq_sizes)
       data.table::set(out, j = time_var, value = time_seq)
-      expanded_df <- fexpand(data,
-                             ...,
-                             expand_type = expand_type,
-                             keep_class = FALSE,
-                             sort = FALSE, .by = {{ .by }},
-                             log_limit = log_limit)
-      expanded_nms <- names(expanded_df)
-      # Join our time sequence (table) with our non-grouped expanded table
-      set_rm_cols(out, c(grp_nm, from_nm, to_nm,
-                        size_nm,
-                        by_nm))
-    if (nrow2(expanded_df) > 0L){
-      # If there are no common cols, just cross join them
-      if (length(intersect(group_vars, expanded_nms)) == 0L){
-        out_n <- nrow2(out)
-        expanded_n <- nrow2(expanded_df)
-        out <- df_row_slice(out, rep(seq_len(out_n), each = expanded_n))
-        for (i in seq_len(length(expanded_nms))){
-          out[, (expanded_nms[i]) := rep(expanded_df[[expanded_nms[i]]], out_n)]
-        }
-        # If data was grouped, we can do a full join on these variables
-      } else {
-        if (length(setdiff(expanded_nms, group_vars)) > 0L){
-          out <- merge(out, expanded_df,
-                       all = TRUE, by = group_vars, sort = FALSE,
-                       allow.cartesian = TRUE)
+      set_rm_cols(out, grp_nm)
+      if (dots_length(...) > 0){
+        expanded_df <- fexpand(data,
+                               ...,
+                               expand_type = expand_type,
+                               keep_class = FALSE,
+                               sort = FALSE, .by = {{ .by }},
+                               log_limit = log_limit)
+        expanded_nms <- names(expanded_df)
+        if (nrow2(expanded_df) > 0L){
+          # If there are no common cols, just cross join them
+          if (length(intersect(group_vars, expanded_nms)) == 0L){
+            out_n <- nrow2(out)
+            expanded_n <- nrow2(expanded_df)
+            out <- df_rep_each(out, expanded_n)
+            for (i in seq_along(expanded_nms)){
+              out[, (expanded_nms[i]) := rep(expanded_df[[expanded_nms[i]]], out_n)]
+            }
+            # If data was grouped, we can do a full join on these variables
+          } else {
+            if (length(setdiff(expanded_nms, group_vars)) > 0L){
+              out <- merge(out, expanded_df,
+                           all = TRUE, by = group_vars, sort = FALSE,
+                           allow.cartesian = TRUE)
+            }
+          }
         }
       }
-    }
     if (sort){
       sort_nms <- c(group_vars, time_var,
         setdiff(names(out),
@@ -254,22 +228,7 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
                           keep_class = TRUE,
                           fill = NA,
                           roll_month = "preday", roll_dst = "pre",
-                          log_limit = 8,
-                          by = NULL,
-                          seq_type = NULL,
-                          floor_date = NULL){
-  if (!is.null(by)){
-    warning("by is deprecated, use time_by instead")
-    time_by <- by
-  }
-  if (!is.null(seq_type)){
-    warning("seq_type is deprecated, use time_type instead")
-    time_type <- seq_type
-  }
-  if (!is.null(floor_date)){
-    warning("floor_date is deprecated, use time_floor instead")
-    time_floor <- floor_date
-  }
+                          log_limit = 8){
   expand_type <- match.arg(expand_type)
   time_type <- match.arg(time_type)
   group_vars <- get_groups(data, {{ .by }})

@@ -84,7 +84,8 @@ time_diff <- function(x, y, time_by,
       # out <- int / unit
     }
   } else {
-    out <- (y - x) / unlist(time_by, use.names = FALSE, recursive = FALSE)
+    by <- unlist(time_by, use.names = FALSE, recursive = FALSE)
+    out <- (y - x) / by
   }
   out
 }

@@ -54,11 +54,11 @@ fdistinct <- function(data, ..., .keep_all = FALSE,
   # out <- df_row_slice(out,
   #                     growid(fselect(out, .cols = dup_vars)) == 1L,
   #                     reconstruct = FALSE)
-  g <- GRP2(collapse::fselect(out, dup_vars),
-            sort = TRUE,
-            return.groups = TRUE, call = FALSE,
-            return.order = TRUE)
-  # iunique <- fcumsum(seq_ones(nrow2(out)), g = g, na.rm = FALSE) == 1L
+  # g <- GRP2(collapse::fselect(out, dup_vars),
+  #           sort = TRUE,
+  #           return.groups = TRUE, call = FALSE,
+  #           return.order = TRUE)
+  g <- df_to_GRP(out, .cols = dup_vars)
   if (sort){
     iunique <- GRP_starts(g)
   } else {

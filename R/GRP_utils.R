@@ -21,6 +21,11 @@ GRP_group_sizes <- function(GRP){
 GRP_groups <- function(GRP){
   GRP[["groups"]]
 }
+check_GRP_has_groups <- function(GRP){
+  if (is_GRP(GRP) && is.null(GRP_groups(GRP))){
+    stop("GRP has no group data. Please supply a GRP object with group data")
+  }
+}
 # Extract group starts from GRP object safely and efficiently
 GRP_starts <- function(GRP, use.g.names = FALSE,
                        loc = NULL){
@@ -117,17 +122,6 @@ GRP_loc_starts <- function(loc){
     )
     , use.names = FALSE, recursive = FALSE
   )
-  # fun <- rlang::arg_match0(fun, c("first", "min"))
-  # if (fun == "first"){
-  #   unlist(
-  #     collapse::ffirst(
-  #       loc,
-  #       use.g.names = FALSE,
-  #       na.rm = FALSE
-  #     )
-  #     , use.names = FALSE, recursive = FALSE
-  #   )
-  # } else {
   #   as.integer(
   #     unlist(
   #       collapse::fmin(
@@ -138,7 +132,6 @@ GRP_loc_starts <- function(loc){
   #       , use.names = FALSE, recursive = FALSE
   #     )
   #   )
-  # }
 
 }
 GRP_loc_ends <- function(loc){
@@ -150,17 +143,6 @@ GRP_loc_ends <- function(loc){
     )
     , use.names = FALSE, recursive = FALSE
   )
-  # fun <- rlang::arg_match0(fun, c("last", "max"))
-  # if (fun == "last"){
-  #   unlist(
-  #     collapse::flast(
-  #       loc,
-  #       use.g.names = FALSE,
-  #       na.rm = FALSE
-  #     )
-  #     , use.names = FALSE, recursive = FALSE
-  #   )
-  # } else {
   #   as.integer(
   #     unlist(
   #       collapse::fmax(
@@ -171,27 +153,58 @@ GRP_loc_ends <- function(loc){
   #       , use.names = FALSE, recursive = FALSE
   #     )
   #   )
-  # }
 }
 GRP_ordered <- function(GRP){
   GRP[["ordered"]]
 }
 GRP_is_ordered <- function(GRP){
   ordered <- GRP_ordered(GRP)
-  isTRUE(ordered[names(ordered) == "ordered"])
+  sorted <- ordered[names(ordered) == "sorted"]
+  ordered <- ordered[names(ordered) == "ordered"]
+  isTRUE(ordered || (is.na(ordered) && !is.na(sorted)))
 }
 # Logical is GRP sorted
 GRP_is_sorted <- function(GRP){
   ordered <- GRP_ordered(GRP)
   isTRUE(ordered[names(ordered) == "sorted"])
 }
-GRP_group_data <- function(GRP){
-  list_to_tibble(as.list(GRP_groups(GRP)))
+GRP_group_data <- function(GRP, expand = FALSE){
+  out <- list_to_tibble(as.list(GRP_groups(GRP)))
+  if (expand){
+    out <- df_row_slice(out, GRP_group_id(GRP))
+  }
+  out
 }
+# Alternate version of GRP_group_data that uses template data
+# GRP_group_data2 <- function(GRP, template){
+#   if (is_GRP(template)){
+#     template <- GRP_group_data(template)
+#   }
+#   if (is.null(GRP)){
+#     size <- vec_length(template)
+#     if (size == 0){
+#      return(fselect(dplyr::tibble(x = integer(0)), .cols = character(0)))
+#     } else {
+#       return(fselect(dplyr::tibble(x = 1L), .cols = character(0)))
+#     }
+#   }
+#   groups <- GRP_groups(GRP)
+#   if (is.null(groups)){
+#     groups <- vec_slice2(template, GRP_starts(GRP))
+#     if (is.atomic(groups)){
+#      groups <- list(x = groups)
+#     }
+#   }
+#   out <- list_to_tibble(as.list(groups))
+#   if (is.atomic(template) && collapse::fncol(out) == 1L){
+#     out <- frename(out, .cols = c("x" = 1L))
+#   }
+#   out
+# }
 GRP_names <- function(GRP, sep = "_", expand = FALSE){
   g_names <- collapse::GRPnames(GRP, force.char = FALSE, sep = sep)
   if (expand && !is.null(g_names)){
-    collapse::ss(g_names, GRP_group_id(GRP))
+    g_names[GRP_group_id(GRP)]
   } else {
     g_names
   }
@@ -208,65 +221,212 @@ GRP_names <- function(GRP, sep = "_", expand = FALSE){
   # }
   # out
 }
-df_to_GRP <- function(data, .cols = names(data), ...){
-  data <- fselect(data, .cols = .cols)
-  if (collapse::fncol(data) == 0L){
-    NULL
-  } else {
-    GRP2(data, ...)
-  }
-}
+# df_to_GRP <- function(data, .cols = character(0), ...){
+#   if (
+#   if (collapse::fncol(data) == 0L){
+#     NULL
+#   } else {
+#     GRP2(data, ...)
+#   }
+# }
 # Can GRP be used for group_by()?
 GRP_is_dplyr_group_able <- function(GRP){
   is_df(GRP_groups(GRP))
 }
-# dplyr grouped_df to GRP
-grouped_df_to_GRP <- function(data, return.order = TRUE){
-  if (inherits(data, "grouped_df")){
-    out <- vector("list", 9)
-    names(out) <- c("N.groups", "group.id",
-                    "group.sizes", "groups",
-                    "group.vars",
-                    "ordered", "order",
-                    "group.starts", "call")
-    gdata <- group_data(data)
-    gvars <- group_vars(data)
-    n_groups <- nrow2(gdata)
-    group_id <- dplyr::group_indices(data)
-    gsizes <- collapse::vlengths(gdata[[".rows"]], use.names = FALSE)
-    if (return.order){
-      gorder <- collapse::radixorderv(group_id,
-                                      starts = TRUE,
-                                      sort = TRUE,
-                                      na.last = TRUE)
-      sorted <- attr(gorder, "sorted")
-    } else {
-      gorder <- NULL
-      sorted <- NA
-    }
-    gordered <- c("ordered" = TRUE,
-                  "sorted" = sorted)
-    # gstarts <- GRP_loc_starts(gdata[[".rows"]])
-    has_factor <- any(vapply(gdata, is.factor, logical(1)))
-    if (has_factor){
-      gstarts <- integer(n_groups)
-      setv(gstarts,
-           collapse::whichv(gsizes, 0L, invert = TRUE),
-           GRP_loc_starts(gdata[[".rows"]]),
-           vind1 = TRUE)
-    } else {
-      gstarts <- GRP_loc_starts(gdata[[".rows"]])
-    }
-    out[["N.groups"]] <- n_groups
-    out[["group.id"]] <- group_id
-    out[["group.sizes"]] <- gsizes
+# Convert data frame to GRP safely
+# Either treats data as 1 big group or
+# Uses dplyr group vars
+df_as_GRP <- function(data, return.order = TRUE){
+  out <- vector("list", 9)
+  names(out) <- c("N.groups", "group.id",
+                  "group.sizes", "groups",
+                  "group.vars",
+                  "ordered", "order",
+                  "group.starts", "call")
+  gdata <- group_data(data)
+  gvars <- group_vars(data)
+  n_groups <- nrow2(gdata)
+  group_id <- dplyr::group_indices(data)
+  gsizes <- collapse::vlengths(gdata[[".rows"]], use.names = FALSE)
+  if (return.order){
+    gorder <- collapse::radixorderv(group_id,
+                                    starts = TRUE,
+                                    sort = TRUE,
+                                    na.last = TRUE)
+    sorted <- attr(gorder, "sorted")
+  } else {
+    gorder <- NULL
+    sorted <- NA
+  }
+  gordered <- c("ordered" = TRUE,
+                "sorted" = sorted)
+  has_factor <- any(vapply(gdata, is.factor, logical(1)))
+  if (has_factor){
+    gstarts <- integer(n_groups)
+    setv(gstarts,
+         collapse::whichv(gsizes, 0L, invert = TRUE),
+         GRP_loc_starts(gdata[[".rows"]]),
+         vind1 = TRUE)
+  } else {
+    gstarts <- GRP_loc_starts(gdata[[".rows"]])
+  }
+  out[["N.groups"]] <- n_groups
+  out[["group.id"]] <- group_id
+  out[["group.sizes"]] <- gsizes
+  if (length(gvars) > 0L){
     out[["groups"]] <- fselect(gdata, .cols = gvars)
     out[["group.vars"]] <- gvars
+  }
+  if (!is.null(gorder)){
     out[["order"]] <- gorder
-    out[["ordered"]] <- gordered
-    out[["group.starts"]] <- gstarts
-    structure(out, class = "GRP")
+  }
+  out[["ordered"]] <- gordered
+  out[["group.starts"]] <- gstarts
+  structure(out, class = "GRP")
+}
+df_to_GRP <- function(data, .cols = character(0),
+                      order = TRUE,
+                      return.order = TRUE){
+  group_vars <- group_vars(data)
+  cols <- col_select_names(data, .cols = .cols)
+  data <- fselect(data, .cols = c(group_vars, setdiff(cols, group_vars)))
+  if (length(names(data)) == 0L){
+    df_as_one_GRP(data, order = order, return.order = return.order)
+  } else if ( (length(group_vars) == length(names(data)) ) &&
+              order){
+    df_as_GRP(data, return.order = return.order)
   } else {
-    NULL
+    GRP2(safe_ungroup(data), sort = order, return.order = return.order,
+         call = FALSE)
   }
 }
+df_as_one_GRP <- function(data, order = TRUE, return.order = TRUE){
+  out <- vector("list", 9)
+  names(out) <- c("N.groups", "group.id",
+                  "group.sizes", "groups",
+                  "group.vars",
+                  "ordered", "order",
+                  "group.starts", "call")
+  gsizes <- nrow2(data)
+  n_groups <- min(gsizes, 1L)
+  group_id <- alloc(1L, gsizes)
+  if (order && return.order){
+    gorder <- seq_len(gsizes)
+    sorted <- TRUE
+  } else {
+    gorder <- NULL
+    sorted <- NA
+  }
+  gordered <- c("ordered" = order,
+                "sorted" = sorted)
+  gstarts <- n_groups
+  out[["N.groups"]] <- n_groups
+  out[["group.id"]] <- group_id
+  out[["group.sizes"]] <- gsizes
+  if (!is.null(gorder)){
+    out[["order"]] <- gorder
+  }
+  out[["group.starts"]] <- gstarts
+  out[["ordered"]] <- gordered
+  structure(out, class = "GRP")
+}
+# Alternative to df_to_GRP that works nicely
+# but is not as efficient due to
+# double calculation of group ID and order
+# df_to_GRP2 <- function(data, .cols = character(0),
+#                       order = TRUE,
+#                       return.order = TRUE){
+#   out <- vector("list", 9)
+#   names(out) <- c("N.groups", "group.id",
+#                   "group.sizes", "groups",
+#                   "group.vars",
+#                   "ordered", "order",
+#                   "group.starts", "call")
+#   group_data <- group_collapse(data, .cols = .cols,
+#                                order = order,
+#                                id = FALSE,
+#                                start = TRUE,
+#                                end = FALSE,
+#                                loc = FALSE,
+#                                size = TRUE,
+#                                sort = order)
+#   gvars <- setdiff(names(group_data), c(".group", ".loc", ".start",
+#                                         ".end", ".size"))
+#   n_groups <- nrow2(group_data)
+#   group_id <- group_id(data, .cols = .cols, order = order)
+#   gsizes <- group_data[[".size"]]
+#   if (order && return.order){
+#     gorder <- collapse::radixorderv(group_id,
+#                                     starts = TRUE,
+#                                     sort = TRUE,
+#                                     na.last = TRUE)
+#     sorted <- attr(gorder, "sorted")
+#   } else {
+#     gorder <- NULL
+#     sorted <- NA
+#   }
+#   gordered <- c("ordered" = order,
+#                 "sorted" = sorted)
+#   gstarts <- group_data[[".start"]]
+#   out[["N.groups"]] <- n_groups
+#   out[["group.id"]] <- group_id
+#   out[["group.sizes"]] <- gsizes
+#   if (length(gvars) > 0L){
+#     out[["groups"]] <- fselect(group_data, .cols = gvars)
+#     out[["group.vars"]] <- gvars
+#   }
+#   if (!is.null(gorder)){
+#     out[["order"]] <- gorder
+#   }
+#   out[["group.starts"]] <- gstarts
+#   out[["ordered"]] <- gordered
+#   structure(out, class = "GRP")
+# }
+# dplyr grouped_df to GRP
+# df_as_GRP <- function(data, return.order = TRUE){
+#   out <- vector("list", 9)
+#   names(out) <- c("N.groups", "group.id",
+#                   "group.sizes", "groups",
+#                   "group.vars",
+#                   "ordered", "order",
+#                   "group.starts", "call")
+#   gdata <- group_data(data)
+#   gvars <- group_vars(data)
+#   n_groups <- nrow2(gdata)
+#   group_id <- dplyr::group_indices(data)
+#   gsizes <- collapse::vlengths(gdata[[".rows"]], use.names = FALSE)
+#   if (return.order){
+#     gorder <- collapse::radixorderv(group_id,
+#                                     starts = TRUE,
+#                                     sort = TRUE,
+#                                     na.last = TRUE)
+#     sorted <- attr(gorder, "sorted")
+#   } else {
+#     gorder <- NULL
+#     sorted <- NA
+#   }
+#   gordered <- c("ordered" = TRUE,
+#                 "sorted" = sorted)
+#   # gstarts <- GRP_loc_starts(gdata[[".rows"]])
+#   has_factor <- any(vapply(gdata, is.factor, logical(1)))
+#   if (has_factor){
+#     gstarts <- integer(n_groups)
+#     setv(gstarts,
+#          collapse::whichv(gsizes, 0L, invert = TRUE),
+#          GRP_loc_starts(gdata[[".rows"]]),
+#          vind1 = TRUE)
+#   } else {
+#     gstarts <- GRP_loc_starts(gdata[[".rows"]])
+#   }
+#   out[["N.groups"]] <- n_groups
+#   out[["group.id"]] <- group_id
+#   out[["group.sizes"]] <- gsizes
+#   if (length(gvars) > 0L){
+#     out[["groups"]] <- fselect(gdata, .cols = gvars)
+#     out[["group.vars"]] <- gvars
+#   }
+#   out[["order"]] <- gorder
+#   out[["ordered"]] <- gordered
+#   out[["group.starts"]] <- gstarts
+#   structure(out, class = "GRP")
+# }

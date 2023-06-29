@@ -44,7 +44,7 @@
 #' @export
 gunique <- function(x, g = NULL, sort = FALSE, order = TRUE,
                     use.g.names = TRUE){
-  if (is.null(g)){
+  if (length(g) == 0){
     g <- GRP2(x,
               sort = sort,
               return.groups = TRUE, call = FALSE,
@@ -74,11 +74,11 @@ gduplicated <- function(x, g = NULL,
                         use.g.names = TRUE,
                         all = FALSE){
   out_nms <- names(x)
-  if (is.null(g)){
+  if (length(g) == 0){
     g <- GRP2(x,
               sort = order,
-              return.groups = TRUE, call = FALSE,
-              return.order = TRUE)
+              return.groups = FALSE, call = FALSE,
+              return.order = FALSE)
   } else {
     g <- GRP2(g, return.order = FALSE,
               sort = order, return.groups = TRUE)
@@ -98,8 +98,8 @@ gduplicated <- function(x, g = NULL,
 #' @rdname gunique
 #' @export
 gsort <- function(x, g = NULL, order = TRUE, use.g.names = TRUE){
-  if (is.null(g)){
-    order <- collapse::radixorderv(x)
+  if (length(g) == 0){
+    order <- radixorderv2(x)
     sorted <- isTRUE(attr(order, "sorted"))
   } else {
     g <- GRP2(g, return.order = FALSE,
@@ -124,4 +124,21 @@ gsort <- function(x, g = NULL, order = TRUE, use.g.names = TRUE){
   } else {
     vec_slice2(x, order)
   }
+}
+#' @rdname gunique
+#' @export
+gorder <- function(x, g = NULL, order = TRUE, use.g.names = TRUE){
+  if (length(g) == 0){
+    order <- radixorderv2(x)
+  } else {
+    g <- GRP2(g, return.order = FALSE,
+              sort = order, return.groups = TRUE)
+    g <- GRP2(list(GRP_group_id(g),
+                   group_id.default(x, order = TRUE)),
+              sort = TRUE,
+              return.groups = TRUE, call = FALSE,
+              return.order = TRUE)
+    order <- GRP_order(g)
+  }
+  order
 }

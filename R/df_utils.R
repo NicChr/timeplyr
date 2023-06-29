@@ -49,8 +49,12 @@ df_reconstruct <- function(data, template){
   template_attrs <- attributes(template)
   if (identical(inherits(template, c("data.table", "data.frame"), which = TRUE),
                 c(1L, 2L))){
-    attr(data, "groups") <- NULL
-    return(as_DT(safe_ungroup(data)))
+    if (!is.null(attr(data, "groups"))){
+      attr(data, "groups") <- NULL
+      }
+    out <- as_DT(safe_ungroup(data))
+    invisible(data.table::setalloccol(out))
+    return(out)
   }
   if (inherits(template, "grouped_df")){
     template_groups <- setdiff(names(template_attrs[["groups"]]), ".rows")
@@ -129,28 +133,41 @@ df_seq_along <- function(data, along = c("rows", "cols")){
   }
 }
 df_rep <- function(data, times){
+  N <- nrow2(data)
+  if (N > 0L && length(times) > N){
+    stop("times must not be greater than nrow(data)")
+  }
+  if (length(times) != N){
+    if (length(times) != 1L){
+      stop("times must be of length 1 or nrow(data)")
+    }
+  }
   df_row_slice(data, rep.int(df_seq_along(data, "rows"),
                              times = times))
 }
 df_rep_each <- function(data, each){
-  N <- nrow2(data)
-  if (N > 0L && length(each) > N){
-    stop("each must not be greater than nrow(data)")
-  }
-  if (length(each) != N){
-    if (length(each) != 1L){
-      stop("each must be of length 1 or nrow(data)")
-    }
-  }
-  if (length(each) == 0L){
-    df_row_slice(data, 0L)
-  }
   if (length(each) == 1L){
-    df_row_slice(data, rep(df_seq_along(data, "rows"),
-                           each = each))
-  } else {
-    df_row_slice(data, seq_id(each))
+    each <- rep_len(each, nrow2(data))
   }
+  df_rep(data, each)
+  # N <- nrow2(data)
+  # if (N > 0L && length(each) > N){
+  #   stop("each must not be greater than nrow(data)")
+  # }
+  # if (length(each) != N){
+  #   if (length(each) != 1L){
+  #     stop("each must be of length 1 or nrow(data)")
+  #   }
+  # }
+  # if (length(each) == 0L){
+  #   df_row_slice(data, 0L)
+  # }
+  # if (length(each) == 1L){
+  #   df_row_slice(data, rep(df_seq_along(data, "rows"),
+  #                          each = each))
+  # } else {
+  #   df_row_slice(data, seq_id(each))
+  # }
 }
 # Faster version of nrow specifically for data frames
 nrow2 <- function(data){
@@ -272,17 +289,6 @@ df_paste_names <- function(data,  sep = "_", .cols = names(data)){
 }
 
 ##### data.table specific helpers #####
-
-list_to_DT <- function(x){
-  # is_null <- vapply(x, FUN = is.null, FUN.VALUE = logical(1),
-  #                   USE.NAMES = FALSE)
-  # x <- collapse::ss(x, j = !is_null, check = FALSE)
-  if (collapse::fncol(x) == 0L){
-    data.table::as.data.table(x)
-  } else {
-    collapse::qDT(x[TRUE])
-  }
-}
 
 # Convert to data table
 as_DT <- function(x){

@@ -53,9 +53,11 @@ q_summarise <- function(data, ...,
   group_info <- group_info(data, ..., .by = {{ .by }},
                            .cols = .cols,
                            ungroup = TRUE,
-                           rename = TRUE)
+                           rename = TRUE,
+                           unique_groups = FALSE)
   group_vars <- group_info[["dplyr_groups"]]
   dot_vars <- group_info[["extra_groups"]]
+  non_group_dot_vars <- setdiff(dot_vars, group_vars)
   if (length(dot_vars) == 0L){
     stop("Please supply at least 1 non-group variable to ...")
   }

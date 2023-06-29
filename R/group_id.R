@@ -191,6 +191,23 @@ group_id.grouped_df <- function(data, ...,
   }
   out
 }
+#' @export
+group_id.GRP <- function(data, ...,
+                         order = TRUE,
+                         as_qg = FALSE){
+  group_ids <- GRP_group_id(data)
+  if (!order && GRP_is_ordered(data)){
+    out <- group_id(group_ids, order = order)
+  } else {
+    out <- group_ids
+  }
+  if (as_qg){
+    out <- group_id_to_qg(out,
+                          n_groups = GRP_n_groups(data),
+                          ordered = order)
+  }
+  out
+}
 #' @rdname group_id
 #' @export
 add_group_id <- function(data, ...,

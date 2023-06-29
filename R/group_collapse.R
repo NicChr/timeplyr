@@ -89,12 +89,16 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
                               g = NULL,
                               ascending = !isTRUE(!ascending && order))
   }
-  include_loc <- loc || start || end
+  include_loc <- loc ||
+    (start && is.null(g[["group.starts"]])) ||
+    end
   if (include_loc){
     GRP_loc <- GRP_loc(g)
     out[[".loc"]] <- GRP_loc
     attr(out[[".loc"]], "ptype") <- integer(0)
     attr(out[[".loc"]], "class") <- c("vctrs_list_of", "vctrs_vctr", "list")
+  } else {
+    GRP_loc <- NULL
   }
   # if (loc_order){
   #   gorder <- g[["order"]]

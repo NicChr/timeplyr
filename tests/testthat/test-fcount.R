@@ -14,6 +14,24 @@ testthat::test_that("Compare to dplyr", {
                                dplyr::count())
   testthat::expect_equal(iris %>% dplyr::count(),
                              iris %>% fcount())
+  # Unused factor levels
+
+  testthat::expect_equal(iris %>%
+                           dplyr::slice(2, 128, 125) %>%
+                           dplyr::group_by(Species, .drop = FALSE) %>%
+                           fcount(),
+                         iris %>%
+                           dplyr::slice(2, 128, 125) %>%
+                           dplyr::group_by(Species, .drop = FALSE) %>%
+                           dplyr::count())
+  testthat::expect_equal(iris %>%
+                           dplyr::slice(2, 128, 125) %>%
+                           dplyr::group_by(Species, .drop = TRUE) %>%
+                           fcount(),
+                         iris %>%
+                           dplyr::slice(2, 128, 125) %>%
+                           dplyr::group_by(Species, .drop = TRUE) %>%
+                           dplyr::count())
   testthat::expect_equal(iris %>%
                                dplyr::group_by(Species) %>%
                                dplyr::count(across(all_of("Species"))),

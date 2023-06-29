@@ -72,21 +72,18 @@ stat_summarise <- function(data, ...,
   group_info <- group_info(data, ..., .by = {{ .by }},
                            .cols = .cols,
                            ungroup = TRUE,
-                           rename = TRUE)
+                           rename = TRUE,
+                           unique_groups = FALSE)
   group_vars <- group_info[["dplyr_groups"]]
   dot_vars <- group_info[["extra_groups"]]
+  non_group_dot_vars <- setdiff(dot_vars, group_vars)
   data <- group_info[["data"]]
-  if (length(group_vars) == 0L){
-    g <- NULL
-    gstarts <- min(1L, nrow2(data))
-  } else {
-    g <- GRP2(data, sort = sort, by = group_vars)
-    gstarts <- GRP_starts(g)
-  }
+  g <- df_to_GRP(data, .cols = group_vars, order = sort)
+  gstarts <- GRP_starts(g)
   # Distinct groups
   out <- df_row_slice(
     fselect(
-      data, .cols = c(group_vars, dot_vars)
+      data, .cols = c(group_vars, non_group_dot_vars)
     ), gstarts
   )
   if (nrow2(out) == 0L && length(group_vars) == 0L){
@@ -98,7 +95,7 @@ stat_summarise <- function(data, ...,
     data.table::set(out, j = n_nm,
                     value = fn(data, g = g))
     stat <- setdiff(stat, "n")
-    data.table::setcolorder(out, c(group_vars, n_nm, dot_vars))
+    data.table::setcolorder(out, c(group_vars, n_nm, non_group_dot_vars))
   }
   # New names
   var_nms <- across_col_names(.cols = dot_vars,
@@ -109,6 +106,10 @@ stat_summarise <- function(data, ...,
                               .fns = stat,
                               .names = .names)
 
+  data.table::setalloccol(out,
+                          n = getOption("datatable.alloccol", default = 1000L) +
+                            (length(dot_vars) * length(stat)) +
+                            (length(dot_vars) * length(q_probs)))
   k <- 0L
   for (.col in dot_vars){
     for (s in stat){
@@ -120,13 +121,13 @@ stat_summarise <- function(data, ...,
                                                       use.g.names = FALSE))
     }
   }
-  set_rm_cols(out, setdiff(dot_vars, var_nms))
+  set_rm_cols(out, setdiff(non_group_dot_vars, var_nms))
   data.table::setnames(out,
                        old = var_nms,
                        new = out_nms)
   # Add quantiles if requested
   if (!is.null(q_probs)){
-    q_summary <- q_summarise(data, .cols = dot_vars,
+    q_summary <- q_summarise(data, across(all_of(dot_vars)),
                              probs = q_probs,
                              pivot = "wide",
                              sort = sort,
@@ -154,16 +155,18 @@ across_col_names <- function(.cols = NULL, .fns = NULL,
     .fn <- .fns
     if (nms_null){
       for (.col in .cols){
-        setv(out, seq_along(.fns) + init,
-             stringr::str_c(.col, "_", .fn),
-             vind1 = TRUE)
+        out[seq_along(.fns) + init] <- stringr::str_c(.col, "_", .fn)
+        # setv(out, seq_along(.fns) + init,
+        #      stringr::str_c(.col, "_", .fn),
+        #      vind1 = TRUE)
         init <- init + length(.fns)
       }
     } else {
       for (.col in .cols){
-        setv(out, seq_along(.fns) + init,
-             stringr::str_glue(.names),
-             vind1 = TRUE)
+        out[seq_along(.fns) + init] <- stringr::str_glue(.names)
+        # setv(out, seq_along(.fns) + init,
+        #      stringr::str_glue(.names),
+        #      vind1 = TRUE)
         init <- init + length(.fns)
       }
     }

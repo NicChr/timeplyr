@@ -87,8 +87,24 @@ frename.grouped_df <- function(data, ..., .cols = NULL){
   # Rename data columns
   out <- col_rename(safe_ungroup(data), .cols = pos)
   # Rename group data columns
-  groups <- col_rename(groups, .cols = pos[match(group_vars, names(data))])
+  group_pos <- which(group_vars %in% names(data)[pos])
+  names(group_pos) <- names(out)[which(names(out) %in% names(pos) &
+                                         names(data) %in% group_vars)]
+  groups <- col_rename(groups, .cols = group_pos)
   attr(out, "groups") <- groups
   class(out) <- c("grouped_df", "tbl_df", "tbl", "data.frame")
   out
+}
+# This should be unecessary but data.table:::`names<-.data.table`
+# Sometimes reduces the allocated column slots
+#' @export
+frename.data.table <- function(data, ..., .cols = NULL){
+  out_allocated_length <- data.table::truelength(data) - collapse::fncol(data)
+  out_allocated_length <- max(out_allocated_length, 0L)
+  pos <- tidy_select_pos(data, ..., .cols = .cols)
+  data <- col_rename(data, .cols = pos)
+  invisible(
+    data.table::setalloccol(data, n = out_allocated_length)
+  )
+  data
 }

@@ -53,22 +53,20 @@ time_ggplot <- function(data, time, value, group = NULL,
   time <- tidy_select_pos(data, !!enquo(time))
   value <- tidy_select_pos(data, !!enquo(value))
   group <- tidy_select_pos(data, !!enquo(group))
-  gg_data <- fselect(safe_ungroup(data),
-                     .cols = c(time, value, group))
   time <- names(time)
   value <- names(value)
   group <- names(group)
   # Must be date, datetime or number
-  if (!is_time_or_num(fpluck(gg_data, time))){
+  if (!is_time_or_num(fpluck(data, time))){
     stop("time must be a date, datetime or numeric variable")
   }
   # Pretty x-axis breaks
-  time_breaks <- time_breaks(fpluck(gg_data, time),
+  time_breaks <- time_breaks(fpluck(data, time),
                              n = 7, time_floor = TRUE)
-  if (is_datetime(fpluck(gg_data, time))){
+  if (is_datetime(fpluck(data, time))){
     x_scale <- ggplot2::scale_x_datetime(breaks = time_breaks,
                                          labels = label_date_short())
-  } else if (is_date(fpluck(gg_data, time))){
+  } else if (is_date(fpluck(data, time))){
     x_scale <- ggplot2::scale_x_date(breaks = time_breaks,
                                      labels = label_date_short())
   } else {
@@ -76,20 +74,19 @@ time_ggplot <- function(data, time, value, group = NULL,
   }
   # Concatenate group names together
   if (length(group) > 1L){
-    grp_nm <- new_var_nm(gg_data, ".group")
-    gg_data <- dplyr::mutate(gg_data,
-                             !!grp_nm := do.call(paste,
-                                                 c(
-                                                   dplyr::pick(
-                                                     dplyr::all_of(
-                                                       group
-                                                     )
-                                                   ), list(sep = "_"))))
+    group_nm <- new_var_nm(data, "group")
+    group_col <- list(
+      df_paste_names(
+        fselect(safe_ungroup(data), .cols = group)
+      )
+    )
+    names(group_col) <- group_nm
+    data <- dplyr::dplyr_col_modify(data, cols = group_col)
   } else {
-    grp_nm <- group
+    group_nm <- group
   }
   # Time-series plot
-  out <- gg_data %>%
+  out <- data %>%
     ggplot2::ggplot(ggplot2::aes(x = .data[[time]],
                                  y = .data[[value]])) +
     ggplot2::theme_minimal() +
@@ -97,14 +94,14 @@ time_ggplot <- function(data, time, value, group = NULL,
   if (length(group) > 0L){
     if (facet){
       # Add a new col every 6 rows
-      facet_ncol <- (n_unique(fpluck(data, grp_nm)) %/% 6) + 1
+      facet_ncol <- (n_unique(fpluck(data, group_nm)) %/% 6) + 1
       out <- out +
         ggplot2::geom_line(...) +
         ggplot2::facet_wrap(group, ncol = facet_ncol,
                             scales = "free_y")
     } else {
       out <- out +
-        ggplot2::geom_line(ggplot2::aes(col = .data[[grp_nm]]), ...)
+        ggplot2::geom_line(ggplot2::aes(col = .data[[group_nm]]), ...)
     }
   } else {
     out <- out +

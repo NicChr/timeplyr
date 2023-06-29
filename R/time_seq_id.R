@@ -20,7 +20,7 @@
 #' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations` are used otherwise.
-#' @param na.rm Should `NA` values be skipped? Default is `TRUE`.
+#' @param na_skip Should `NA` values be skipped? Default is `TRUE`.
 #' @examples
 #' library(dplyr)
 #' library(timeplyr)
@@ -34,18 +34,53 @@
 #' @export
 time_seq_id <- function(x, time_by = NULL,
                         g = NULL, time_type = c("auto", "duration", "period"),
-                        na.rm = TRUE){
+                        na_skip = TRUE){
+  if (!is.null(g)){
+    g <- GRP2(g)
+  }
   telapsed <- time_elapsed(x, time_by = time_by, g = g,
-                           time_type = time_type, rolling = TRUE)
-  if (length(x) > 0L &&
-      !is.null(time_by) &&
-      !is_whole_number(
-        collapse::funique(telapsed),
-        na.rm = TRUE)){
-    warning("x is likely not a regular sequence given the chosen time unit")
+                           time_type = time_type, rolling = FALSE,
+                           na_skip = na_skip)
+  telapsed <- fdiff2(telapsed, g = g, fill = 0)
+  if (!is.null(time_by)){
+    check_time_elapsed_regular(telapsed)
   }
-  if (isTRUE(collapse::fmin(telapsed, na.rm = TRUE) < 0)){
-    stop("x must be in ascending or descending order")
+  check_time_elapsed_order(telapsed)
+  tol <- sqrt(.Machine$double.eps)
+  if (na_skip){
+    na_telapsed <- is.na(telapsed)
+    has_nas <- any(na_telapsed)
   }
-  collapse::fcumsum(telapsed > 1, g = g, na.rm = na.rm) + 1L
+  if (na_skip && has_nas){
+    out <- logical(length(telapsed))
+    out[!na_telapsed] <- (telapsed[!na_telapsed] - 1) > tol
+    out <- collapse::fcumsum(out, g = g, na.rm = na_skip) + 1L
+  } else {
+    out <- collapse::fcumsum((telapsed - 1) > tol,
+                             g = g, na.rm = na_skip) + 1L
+  }
+  out
 }
+# time_seq_id <- function(x, time_by = NULL,
+#                         g = NULL, time_type = c("auto", "duration", "period"),
+#                         na_skip = FALSE){
+#   if (!is.null(g)){
+#     g <- GRP2(g)
+#   }
+#   telapsed <- time_elapsed(x, time_by = time_by, g = g,
+#                            time_type = time_type, rolling = TRUE,
+#                            na_skip = na_skip, fill = 0)
+#   if (!is.null(time_by)){
+#     check_time_elapsed_regular(telapsed)
+#   }
+#   check_time_elapsed_order(telapsed)
+#   if (na_skip){
+#     out <- logical(length(telapsed))
+#     na_telapsed <- is.na(telapsed)
+#     out[!na_telapsed] <- telapsed[!na_telapsed] > 1
+#     out <- collapse::fcumsum(out, g = g, na.rm = na_skip) + 1L
+#   } else {
+#     out <- collapse::fcumsum(telapsed > 1, g = g, na.rm = na_skip) + 1L
+#   }
+#   out
+# }

@@ -376,7 +376,7 @@ calc_episodes <- function(data,
     data.table::set(data,
                     j = time_lag_nm,
                     value = data.table::fifelse(is_event,
-                                                collapse::flag(
+                                                flag2(
                                                   fpluck(data, time_lag_nm),
                                                   g = g
                                                 ),

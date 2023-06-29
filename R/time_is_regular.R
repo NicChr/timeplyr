@@ -88,3 +88,15 @@ time_is_regular <- function(x, time_by = NULL,
   }
   out
 }
+check_time_elapsed_regular <- function(x){
+    unique_elapsed <- collapse::funique(x)
+    is_regular <- is_whole_number(unique_elapsed, na.rm = TRUE)
+    if (!is_regular){
+      stop("x is not regular given the chosen time unit")
+    }
+}
+check_time_elapsed_order <- function(x){
+  if (isTRUE(collapse::fmin(x, na.rm = TRUE) < 0)){
+    stop("x must be in ascending or descending order")
+  }
+}

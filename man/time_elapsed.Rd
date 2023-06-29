@@ -10,7 +10,8 @@ time_elapsed(
   g = NULL,
   time_type = c("auto", "duration", "period"),
   rolling = TRUE,
-  fill = 0
+  fill = 0,
+  na_skip = TRUE
 )
 }
 \arguments{
@@ -41,6 +42,8 @@ are calculated.}
 
 \item{fill}{Value with which to fill the first time elapsed value when
 \code{rolling = TRUE}.}
+
+\item{na_skip}{Should \code{NA} values be skipped? Default is \code{TRUE}.}
 }
 \description{
 Simple function to calculate how much time has passed

@@ -1,5 +1,11 @@
 testthat::test_that("fdistinct", {
   flights <- nycflights13::flights
+  testthat::expect_equal(fdistinct(flights, .cols = 0),
+                         dplyr::distinct(flights,
+                                         dplyr::across(dplyr::all_of(character(0)))))
+  testthat::expect_equal(fdistinct(flights, dplyr::across(dplyr::all_of(character(0)))),
+                         dplyr::distinct(flights,
+                                         dplyr::across(dplyr::all_of(character(0)))))
   testthat::expect_identical(flights %>%
                                dplyr::distinct(),
                              flights %>%

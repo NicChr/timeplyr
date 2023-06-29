@@ -4,6 +4,7 @@
 \alias{gunique}
 \alias{gduplicated}
 \alias{gsort}
+\alias{gorder}
 \title{Grouped \code{unique()}, \code{sort()} and \code{duplicated()}}
 \usage{
 gunique(x, g = NULL, sort = FALSE, order = TRUE, use.g.names = TRUE)
@@ -11,6 +12,8 @@ gunique(x, g = NULL, sort = FALSE, order = TRUE, use.g.names = TRUE)
 gduplicated(x, g = NULL, order = TRUE, use.g.names = TRUE, all = FALSE)
 
 gsort(x, g = NULL, order = TRUE, use.g.names = TRUE)
+
+gorder(x, g = NULL, order = TRUE, use.g.names = TRUE)
 }
 \arguments{
 \item{x}{A vector or data frame.}

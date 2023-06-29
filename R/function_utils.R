@@ -183,7 +183,9 @@ tidy_select_pos <- function(data, ..., .cols = NULL){
     if (all_char){
       out <- col_select_pos(data, quo_text)
     } else if (all_num){
-      out <- col_select_pos(data, as.double(quo_text))
+      pos <- as.double(quo_text)
+      names(pos) <- names(quo_text)
+      out <- col_select_pos(data, pos)
       # Otherwise we use tidyselect
     } else {
       out <- tidyselect::eval_select(rlang::expr(c(...)), data = data)
@@ -526,7 +528,9 @@ get_group_info <- function(data, ..., type = c("select", "data-mask"),
        "all_groups" = all_groups)
 }
 group_info <- function(data, ..., .by = NULL, .cols = NULL,
-                       ungroup = TRUE, rename = TRUE){
+                       ungroup = TRUE, rename = TRUE,
+                       dots_type = "data-mask",
+                       unique_groups = TRUE){
   n_dots <- dots_length(...)
   check_cols(n_dots = n_dots, .cols = .cols)
   group_vars <- get_groups(data, {{ .by }})
@@ -538,30 +542,41 @@ group_info <- function(data, ..., .by = NULL, .cols = NULL,
   }
   # Data-masking for dots expressions
   if (n_dots > 0){
-    if (ungroup){
-      out <- mutate2(out, ...)
+    if (dots_type == "data-mask"){
+      if (ungroup){
+        out <- mutate2(out, ...)
+      } else {
+        out <- mutate2(out, ..., .by = {{ .by }})
+      }
+      extra_groups <- tidy_transform_names(data, ...)
     } else {
-      out <- mutate2(out, ..., .by = {{ .by }})
+      extra_groups <- tidy_select_names(data, ...)
+      out <- frename(out, ...)
     }
-    extra_groups <- tidy_transform_names(data, ...)
   }
   if (!is.null(.cols)){
     pos <- col_select_pos(out, .cols = .cols)
     group_pos <- pos %in% match(group_vars, names(data))
-    # & names(pos) %in% group_vars
     # Remove group vars from pos
     pos <- pos[!group_pos]
     if (rename){
       extra_groups <- names(pos)
       renamed <- is.na(match(extra_groups, names(out)) != pos)
       renamed_pos <- pos[renamed]
-      names(out)[renamed_pos] <- extra_groups[renamed]
+      out <- frename(out, .cols = renamed_pos)
+      # if (length(renamed_pos) > 0L){
+      #   names(out)[renamed_pos] <- extra_groups[renamed]
+      # }
     } else {
       extra_groups <- names(out)[pos]
     }
   }
-  extra_groups <- extra_groups[match(extra_groups, group_vars, 0L) == 0L]
-  all_groups <- c(group_vars, extra_groups)
+  if (unique_groups){
+    extra_groups <- extra_groups[match(extra_groups, group_vars, 0L) == 0L]
+    all_groups <- c(group_vars, extra_groups)
+  } else {
+    all_groups <- c(group_vars, extra_groups[match(extra_groups, group_vars, 0L) == 0L])
+  }
   list("data" = out,
        "dplyr_groups" = group_vars,
        "extra_groups" = extra_groups,
@@ -726,15 +741,20 @@ flast <- getFromNamespace("flast", "collapse")
 CJ <- getFromNamespace("CJ", "data.table")
 # Ccj <- getFromNamespace("Ccj", "data.table")
 
-is_whole_number <- function(x, na.rm = FALSE){
+is_whole_number <- function(x, na.rm = FALSE,
+                            tol = sqrt(.Machine$double.eps)){
   if (is.integer(x)) return(TRUE) # If already integer then true
   if (na.rm){
     x <- x[!is.na(x)]
   }
-  if (length(x) == 0L) return(FALSE) # If length is 0 then false
+  if (any(is.infinite(x))) return(FALSE)
+  # if (length(x) == 0L) return(FALSE) # If length is 0 then false
   # all.equal(x, as.integer(x), check.attributes = FALSE)
   # isTRUE((sum(x %% 1) == 0))
-  all(floor(x) == x, na.rm = FALSE)
+  # x <- floor(x/10^7) * 10^7
+  # x <- round(x, digits = 7)
+  # all(floor(x) == x, na.rm = FALSE)
+  all(abs(round(x) - x) < tol, na.rm = FALSE)
 }
 pair_unique <- function(x, y){
   ( ( (x + y + 1) * (x + y) ) / 2 ) + x
@@ -789,6 +809,9 @@ vec_length <- function(x){
         stop("x must be a vector, matrix, data frame or list with equal lengths")
       } else {
         out <- out[nunique]
+      }
+      if (length(out) == 0L){
+        out <- 0L
       }
       # stopifnot(isTRUE(n_unique(lens) <= 1))
       # out <- vec_head(lens, n = 1L)
@@ -929,7 +952,7 @@ quo_select_info <- function(quos, data){
   quo_text <- quo_text[!quo_is_null]
   quo_nms <- quo_nms[!quo_is_null]
   is_char_var <- quo_text %in% names(data)
-  is_num_var <- quo_text %in% as.character(seq_along(quo_nms))
+  is_num_var <- quo_text %in% as.character(df_seq_along(data, "cols"))
   list(quo_nms = quo_nms,
        quo_text = quo_text,
        is_num_var = is_num_var,
@@ -1029,4 +1052,37 @@ pretty_floor <- function(x){
 }
 pretty_ceiling <- function(x){
   ceiling_nearest_n(x, n = 10^(log10_divisibility(x)))
+}
+# collapse flag/fdiff gives basically
+# wrong answers if your data isn't sorted
+# And yes I've read the documentation
+fdiff2 <- function(x, n = 1, g = NULL, ...){
+  if (!is.null(g)){
+    g <- GRP2(g)
+  }
+  if (!is.null(g) && !GRP_is_sorted(g)){
+    group_order <- GRP_order(g)
+    x <- x[group_order]
+    g <- collapse::GRP(GRP_group_id(g)[group_order])
+    out <- collapse::fdiff(x, n = n, g = g, ...)
+    out <- out[order(group_order)]
+  } else {
+    out <- collapse::fdiff(x, n = n, g = g, ...)
+  }
+  out
+}
+flag2 <- function(x, n = 1, g = NULL, ...){
+  if (!is.null(g)){
+    g <- GRP2(g)
+  }
+  if (!is.null(g) && !GRP_is_sorted(g)){
+    group_order <- GRP_order(g)
+    x <- x[group_order]
+    g <- GRP_group_id(g)[group_order]
+    out <- collapse::flag(x, n = n, g = g, ...)
+    out <- out[order(group_order)]
+  } else {
+    out <- collapse::flag(x, n = n, g = g, ...)
+  }
+  out
 }

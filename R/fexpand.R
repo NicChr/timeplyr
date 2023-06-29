@@ -205,6 +205,7 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                   keyby = grp_nm,
                   .SDcols = group_id_nms]
       data.table::setnames(out, new = c(grp_nm, leftover_grp_nms))
+      data.table::setalloccol(out)
       for (i in seq_along(group_id_nms)){
         data.table::set(out, j = leftover_grp_nms[[i]],
                         value = out1[[leftover_grp_nms[[i]]]][match(out[[leftover_grp_nms[[i]]]],
@@ -254,9 +255,7 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
   df <- data.table::as.data.table(X[X_nms %in% data_nms])
   n_data <- nrow2(df)
   if (n_data > 0L){
-    # df <- fdistinct(df)
     df <- collapse::funique(df)
-    # The below runs out of memory if qG class is present???
     n_data <- nrow2(df)
   }
   X_other <- X[X_nms %in% other_nms]
@@ -300,7 +299,7 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
                          expand_type = expand_type,
                          keep_class = FALSE,
                          log_limit = log_limit)
-  out <- list_to_DT(data)
+  out <- as_DT(data)
   fill_na <- any(!is.na(fill))
   # Full-join
   if (nrow2(expanded_df) > 0 && ncol(expanded_df) > 0){

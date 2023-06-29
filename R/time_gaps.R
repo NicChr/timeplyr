@@ -137,17 +137,17 @@ check_time_regular <- function(x, seq, time_by){
     }
   }
 }
-time_which_gaps <- function(x, time_by = NULL,
-                            time_type = c("auto", "duration", "period"),
-                            na.rm = TRUE){
-  t_seq_id <- time_seq_id(x,
-                          time_by = time_by,
-                          time_type = time_type,
-                          na.rm = na.rm)
-  out <- collapse::flast(seq_along(x), g = t_seq_id, use.g.names = FALSE,
-                         na.rm = FALSE)
-  out[-length(out)]
-}
+# time_which_gaps <- function(x, time_by = NULL,
+#                             time_type = c("auto", "duration", "period"),
+#                             na.rm = TRUE){
+#   t_seq_id <- time_seq_id(x,
+#                           time_by = time_by,
+#                           time_type = time_type,
+#                           na.rm = na.rm)
+#   out <- collapse::flast(seq_along(x), g = t_seq_id, use.g.names = FALSE,
+#                          na.rm = FALSE)
+#   out[-length(out)]
+# }
 # time_gaps <- function(x, time_by = NULL,
 #                       time_type = c("auto", "duration", "period"),
 #                       check_regular = TRUE,

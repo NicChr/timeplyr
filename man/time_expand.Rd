@@ -21,10 +21,7 @@ time_expand(
   keep_class = TRUE,
   roll_month = "preday",
   roll_dst = "pre",
-  log_limit = 8,
-  by = NULL,
-  seq_type = NULL,
-  floor_date = NULL
+  log_limit = 8
 )
 
 time_complete(
@@ -44,10 +41,7 @@ time_complete(
   fill = NA,
   roll_month = "preday",
   roll_dst = "pre",
-  log_limit = 8,
-  by = NULL,
-  seq_type = NULL,
-  floor_date = NULL
+  log_limit = 8
 )
 }
 \arguments{
@@ -108,12 +102,6 @@ See \code{?timechange::time_add} for more details.}
 
 \item{log_limit}{The maximum log10 number of rows that can be expanded.
 Anything exceeding this will throw an error.}
-
-\item{by}{\bold{Deprecated}. Use \code{time_by} instead}
-
-\item{seq_type}{\bold{Deprecated}. Use \code{time_type} instead.}
-
-\item{floor_date}{\bold{Deprecated}. Use \code{time_floor} instead.}
 
 \item{fill}{A named list containing value-name pairs to fill the named implicit missing values.}
 }

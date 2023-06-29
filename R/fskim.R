@@ -33,6 +33,7 @@ fskim <- function(data, hist = FALSE){
   out <- as_DT(fenframe(col_classes,
                         name = "col",
                         value = "class"))
+  data.table::setalloccol(out, n = 1000)
   chr_vars <- data_nms[vapply(data, is.character, logical(1), USE.NAMES = FALSE)]
   # Convert character to factor
   if (length(chr_vars) > 0L){

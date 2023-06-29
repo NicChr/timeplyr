@@ -9,7 +9,7 @@ time_seq_id(
   time_by = NULL,
   g = NULL,
   time_type = c("auto", "duration", "period"),
-  na.rm = TRUE
+  na_skip = TRUE
 )
 }
 \arguments{
@@ -36,7 +36,7 @@ This can for example be a vector or data frame.
 the time expansion when days, weeks, months or years are specified,
 and \code{durations} are used otherwise.}
 
-\item{na.rm}{Should \code{NA} values be skipped? Default is \code{TRUE}.}
+\item{na_skip}{Should \code{NA} values be skipped? Default is \code{TRUE}.}
 }
 \description{
 A unique identifier is created every time there is a gap in the

@@ -175,25 +175,32 @@ time_interval <- function(from, to){
 #   }
 #   gcd_diff
 # }
-# Calculates time granularity
-time_diff_gcd <- function(x, is_sorted = FALSE){
+# Calculates time granularity with numeric tolerance
+time_diff_gcd <- function(x, is_sorted = FALSE,
+                          tol = sqrt(.Machine$double.eps)){
   x <- as.double(x)
   x <- collapse::funique(x, sort = !is_sorted)
+  N <- length(x)
   x <- x[!is.na(x)]
-  if (length(x) == 0L){
+  if (N == 0L){
     gcd_diff <- numeric(0)
-  } else if (length(x) < 2){
+  } else if (N < 2){
     gcd_diff <- 1
   } else {
     y_diff <- collapse::fdiff(x,
                               n = 1, diff = 1, g = NULL,
                               fill = NA, log = FALSE, rho = 1,
                               stubs = FALSE)
-    y_diff <- collapse::funique(round(abs(y_diff[-1L]), digits = 7),
-                                sort = FALSE)
+    log10_tol <- floor(abs(log10(tol)))
+    y_diff <- round(abs(y_diff[-1L]), digits = log10_tol)
+    y_diff <- collapse::funique(y_diff, sort = FALSE)
     y_diff <- y_diff[y_diff > 0]
+    if (length(y_diff) == 0L){
+      gcd_diff <- 10^(-log10_tol)
+    } else {
+      gcd_diff <- collapse::vgcd(y_diff)
+    }
     # gcd_diff <- Reduce(gcd, y_diff)
-    gcd_diff <- collapse::vgcd(y_diff)
   }
   gcd_diff
 }
@@ -833,7 +840,7 @@ taggregate <- function(x, seq, gx = NULL, gseq = NULL){
 # Convert time sequence to interval
 tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
   n <- length(x)
-  out <- time_interval(seq, collapse::flag(seq, n = max(-1L, -n), g = gseq))
+  out <- time_interval(seq, flag2(seq, n = max(-1L, -n), g = gseq))
   to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
   end_points <- which(is.na(out) & !is.na(seq))
   out[end_points] <- time_interval(seq[end_points], to)
@@ -855,7 +862,7 @@ tagg_interval <- function(xagg, x, seq, gagg = NULL, gx = NULL, gseq = NULL){
 # Convert time sequence to min max list
 tseq_min_max <- function(x, seq, gx = NULL, gseq = NULL){
   n <- length(x)
-  end <- collapse::flag(seq, n = max(-1L, -n), g = gseq)
+  end <- flag2(seq, n = max(-1L, -n), g = gseq)
   to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
   end_points <- which(is.na(end) & !is.na(seq))
   setv(end, end_points, to, vind1 = TRUE)
@@ -873,7 +880,7 @@ tseq_levels <- function(x, seq, gx = NULL, gseq = NULL, fmt = NULL){
   out <- stringr::str_c("[",
                         time_breaks_fmt,
                         ", ",
-                        collapse::flag(time_breaks_fmt,
+                        flag2(time_breaks_fmt,
                                        g = gseq, n = max(-1L, -n)),
                         ")")
   to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
@@ -895,8 +902,7 @@ get_from_to <- function(data, ..., time, from = NULL, to = NULL,
   dot_vars <- tidy_select_names(data, ...)
   by_vars <- tidy_select_names(data, {{ .by }})
   if (length(from_var) == 0L || length(to_var) == 0L){
-    g <- df_to_GRP(data, .cols = c(by_vars, dot_vars),
-                   sort = TRUE)
+    g <- df_to_GRP(data, .cols = c(by_vars, dot_vars))
   }
   if (length(from_var) == 0L){
     .from <- gmin(data[[time_var]], g = g)

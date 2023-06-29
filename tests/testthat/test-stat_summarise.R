@@ -31,24 +31,47 @@ testthat::test_that("stat_summarise", {
                  .cols = 1:2, .names = "{.col}"))
   testthat::expect_error(stat_summarise(iris2, stat = c("min", "max"),
                  .cols = 1, .names = "{.col}"))
-  iris2 %>%
-    transmute2(mean = mean(Sepal.Length)) %>%
-    stat_summarise(mean, stat = "mean")
-  iris2 %>%
-    transmute2(mean = mean(Sepal.Length)) %>%
-    stat_summarise(mean, stat = "mean", .names = "ok")
-  iris2 %>%
-    transmute2(mean = mean(Sepal.Length)) %>%
-    stat_summarise(.cols = c("ok" = "mean"), stat = "mean")
-  iris2 %>%
-    transmute2(mean = mean(Sepal.Length)) %>%
-    stat_summarise(.cols = c("ok" = "mean"), stat = "mean", .names = "{.col}")
-  iris2 %>%
-    transmute2(mean = mean(Sepal.Length)) %>%
-    stat_summarise(mean, stat = "max")
-  iris2 %>%
-    transmute2(mean = mean(Sepal.Length)) %>%
-    stat_summarise(mean, stat = "mean", .by = mean)
+  testthat::expect_equal(
+    iris2 %>%
+      stat_summarise(Species, stat = "first", .by = Species) %>%
+      names(),
+    c("Species", "first"))
+
+  testthat::expect_equal(
+    iris2 %>%
+      stat_summarise(Species, stat = "first", .by = Species,
+                     q_probs = c(0, 1)) %>%
+      names(),
+    c("Species", "first", "p0", "p100"))
+  testthat::expect_equal(iris2 %>%
+                           transmute2(mean = mean(Sepal.Length)) %>%
+                           stat_summarise(mean, stat = "mean"),
+                         data.table::data.table(mean = 5.822))
+  testthat::expect_equal(iris2 %>%
+                           transmute2(mean = mean(Sepal.Length)) %>%
+                           stat_summarise(mean, stat = "mean", .names = "ok"),
+                         data.table::data.table(ok = 5.822))
+  testthat::expect_equal(iris2 %>%
+                           transmute2(mean = mean(Sepal.Length)) %>%
+                           stat_summarise(.cols = c("ok" = "mean"), stat = "mean"),
+                         data.table::data.table(mean = 5.822))
+  testthat::expect_equal(iris2 %>%
+                           transmute2(mean = mean(Sepal.Length)) %>%
+                           stat_summarise(.cols = c("ok" = "mean"), stat = "mean", .names = "{.col}"),
+                         data.table::data.table(ok = 5.822))
+  testthat::expect_equal(iris2 %>%
+                           transmute2(mean = mean(Sepal.Length)) %>%
+                           stat_summarise(mean, stat = "max"),
+                         data.table::data.table(max = 5.822))
+  testthat::expect_equal(iris2 %>%
+                           transmute2(mean = mean(Sepal.Length)) %>%
+                           stat_summarise(mean, stat = "mean", .by = mean),
+                         data.table::data.table(mean = 5.822))
+  testthat::expect_equal(iris2 %>%
+                           transmute2(mean2 = mean(Sepal.Length)) %>%
+                           stat_summarise(mean2, stat = "mean", .by = mean2),
+                         data.table::data.table(mean2 = 5.822,
+                                                mean = 5.822))
   iris2 %>%
     transmute2(mean = mean(Sepal.Length)) %>%
     stat_summarise(mean, stat = "max", .by = mean)
@@ -57,8 +80,10 @@ testthat::test_that("stat_summarise", {
     stat_summarise(mean, stat = "max", .by = mean, .names = "{.fn}")
   iris2 %>%
     transmute2(mean = mean(Sepal.Length)) %>%
-    stat_summarise(.cols = c("ok" = "mean"), stat = "max", .by = mean, .names = "ok")
+    stat_summarise(.cols = c("ok" = "mean"), stat = "max",
+                   .by = mean, .names = "ok")
   iris2 %>%
     transmute2(mean = mean(Sepal.Length)) %>%
-    stat_summarise(.cols = c("ok" = "mean"), stat = "max", .by = mean, .names = "ok")
+    stat_summarise(.cols = c("ok" = "mean"), stat = "max",
+                   .by = mean, .names = "ok")
 })

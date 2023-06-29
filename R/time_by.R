@@ -100,20 +100,15 @@ time_by <- function(data, time, time_by = NULL,
     g <- fselect(data, .cols = group_vars)
     time_span_groups <- group_vars
   }
-  data <- dplyr::dplyr_col_modify(data, cols = setnames(
-    list(
-      time_summarisev(data[[time_var]],
+  data <- time_mutate(data, time = .data[[time_var]],
+                      .by = all_of(time_span_groups),
                       time_by = time_by,
                       time_type = time_type,
                       time_floor = time_floor,
                       week_start = week_start,
                       roll_month = roll_month,
                       roll_dst = roll_dst,
-                      sort = FALSE, unique = FALSE,
-                      g = g,
-                      use.g.names = FALSE)
-    ), time_var
-  ))
+                      sort = FALSE)
   time_span <- stat_summarise(data, .cols = time_var,
                               .by = all_of(time_span_groups),
                               stat = c("min", "max"),

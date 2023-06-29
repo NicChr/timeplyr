@@ -76,25 +76,20 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
     wtv <- out[[wt_var]]
   }
   grp_nm <- new_var_nm(all_vars, ".group.id")
-  use_only_grouped_df_groups <- length(group_vars) > 0L &&
-    length(group_vars) == length(all_vars)
-  no_vars <- length(all_vars) == 0L
-  if (no_vars){
-    g <- list(group.starts = min(1L, N),
-              group.sizes = N)
-  } else if (use_only_grouped_df_groups){
-    g <- grouped_df_to_GRP(data, return.order = FALSE)
-  } else {
-    g <- GRP2(out, by = all_vars, sort = TRUE, return.order = FALSE)
-  }
-  # Reason for this is in case the data is a grouped df
-  # and contains factors with undropped levels
+  use_only_grouped_df_groups <- length(all_vars) == 0L ||
+    length(group_vars) > 0L && (length(group_vars) == length(all_vars))
   if (use_only_grouped_df_groups){
-    out <- GRP_group_data(g)
+    g <- df_to_GRP(data, return.order = FALSE)
   } else {
-    out <- fselect(out, .cols = all_vars)
-    gstarts <- GRP_starts(g)
-    out <- df_row_slice(out, gstarts, reconstruct = FALSE)
+    g <- df_to_GRP(out, .cols = all_vars, return.order = FALSE)
+  }
+  group_data <- GRP_groups(g)
+  if (is.null(group_data)){
+      out <- fselect(out, .cols = all_vars)
+      gstarts <- GRP_starts(g)
+      out <- df_row_slice(out, gstarts, reconstruct = FALSE)
+  } else {
+    out <- group_data
   }
   N <- nrow2(out)
   if (is.null(name)) name <- new_n_var_nm(out)
