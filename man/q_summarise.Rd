@@ -8,7 +8,7 @@ q_summarise(
   data,
   ...,
   probs = seq(0, 1, 0.25),
-  type = 7L,
+  type = 7,
   pivot = c("wide", "long"),
   na.rm = TRUE,
   sort = TRUE,
