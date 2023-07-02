@@ -1,4 +1,18 @@
 testthat::test_that("Time elapsed", {
+
+  # Documentation examples
+  testthat::expect_equal(time_elapsed(c(3, 4, 6, NA, NA, 9),
+                                      rolling = TRUE,
+                                      fill = NA,
+                                      time_by = 1,
+                                      na_skip = TRUE),
+                         c(NA, 1, 2, NA, NA, 3))
+  testthat::expect_equal(time_elapsed(c(NA, NA, 3, 4, 6, NA, 8),
+                                      rolling = FALSE,
+                                      fill = NA,
+                                      time_by = 1,
+                                      na_skip = TRUE),
+                         c(NA, NA, 0, 1, 3, NA, 5))
   set.seed(123876123)
   df <- dplyr::tibble(g = sample.int(100, 10^4, replace = TRUE),
                       x = round(rnorm(10^4), 1))
@@ -48,7 +62,8 @@ testthat::test_that("Time elapsed", {
                  rolling = TRUE, fill = 0,
                  na_skip = TRUE),
     df %>%
-      dplyr::mutate(t = time_elapsed(x2, time_by = 1, na_skip = TRUE),
+      dplyr::mutate(t = time_elapsed(x2, time_by = 1, na_skip = TRUE,
+                                     fill = 0),
                     .by = g) %>%
       dplyr::pull(t)
   )
@@ -58,7 +73,8 @@ testthat::test_that("Time elapsed", {
                  rolling = TRUE, fill = 0,
                  na_skip = FALSE),
     df %>%
-      dplyr::mutate(t = time_elapsed(x2, time_by = 1, na_skip = FALSE),
+      dplyr::mutate(t = time_elapsed(x2, time_by = 1, na_skip = FALSE,
+                                     fill = 0),
                     .by = g) %>%
       dplyr::pull(t)
   )
@@ -68,7 +84,8 @@ testthat::test_that("Time elapsed", {
                  rolling = TRUE, fill = 0,
                  na_skip = FALSE),
     df %>%
-      dplyr::mutate(t = time_elapsed(x, time_by = 1, na_skip = FALSE),
+      dplyr::mutate(t = time_elapsed(x, time_by = 1, na_skip = FALSE,
+                                     fill = 0),
                     .by = g) %>%
       dplyr::pull(t)
   )

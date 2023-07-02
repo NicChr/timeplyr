@@ -188,16 +188,13 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
                             week_start = getOption("lubridate.week.start", 1),
                             roll_month = "preday", roll_dst = "pre",
                             include_interval = FALSE){
-  if (is.null(from) || is.null(to)){
-    x_range <- collapse::frange(x, na.rm = TRUE)
-  }
   if (is.null(from)){
-    from <- x_range[1L]
+    from <- collapse::fmin(x, na.rm = TRUE)
   } else {
     from <- time_cast(from, x)
   }
   if (is.null(to)){
-    to <- x_range[2L]
+    to <- collapse::fmax(x, na.rm = TRUE)
   } else {
     to <- time_cast(to, x)
   }

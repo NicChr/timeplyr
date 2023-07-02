@@ -15,8 +15,6 @@ While most time-based packages are designed to work with clean and
 pre-aggregate data, timeplyr contains a set of tidy tools to complete,
 expand and summarise both raw and aggregate date/datetime data.
 
-It introduces no new classes.
-
 ## Installation
 
 You can install and load `timeplyr` using the below code.
@@ -29,64 +27,9 @@ remotes::install_github("NicChr/timeplyr")
 library(timeplyr)
 ```
 
-## Notes
+# Basic examples
 
-**All functions that accept a data argument are tidyverse friendly and
-can handle grouped calculations**
-
-The `time_` functions that accept a data frame argument all operate
-similarly to the tidyverse equivalents but additionally accept a `time`
-argument to allow for date/datetime implicit missing value completion,
-expansion and aggregation.
-
--   `time_count` - Time-based `dplyr::count`
--   `time_summarise` - Time-based `dplyr::summarise`
--   `time_mutate` - Time-based `dplyr::mutate`
--   `time_distinct` - Time-based `dplyr::distinct`
--   `time_expand` - Time-based `tidyr::expand`
--   `time_complete` - Time-based `tidyr::complete`
-
-For example, `data %>% time_count(time = date, time_by = "month")` will:
-
--   Fill in missing gaps in time  
--   Count the dates by month
-
-There are many more options to allow for more flexible time
-summarisation, such as choosing start/end times, flooring dates to get
-full time units (e.g months), and many others.
-
-## Fast functions
-
-There are also a few dplyr alternatives designed to work faster on large
-numbers of groups.
-
--   `fcount` - `dplyr::count` alternative
--   `fdistinct` - `dplyr::distinct` alternative
--   `fduplicates` - Finds duplicate rows, similar to
-    `data %>% group_by() %>% filter(n() > 1)`
--   `fslice` - `dplyr::slice` alternative
-
-## Vector time functions
-
-There are also vector versions of the tidy equivalents, designed for use
-on atomic vectors.
-
-These include:
-
-`time_countv`, `time_expandv`, `time_summarisev` and `time_completev`.
-
-## Convert `ts`, `mts` and `xts` objects to `tibble`
-
-`ts_as_tibble()` easily converts time-series objects into tidy-format.
-
-## zoo
-
-There is lightweight support for zoo’s `yearmon()` and `yearqtr()`
-classes.
-
-## Some simple examples
-
-We use flights departing from New York City in 2013.
+## Convert `ts`, `mts`, `xts` and `timeSeries` objects using `ts_as_tibble`
 
 ``` r
 library(tidyverse)
@@ -101,21 +44,127 @@ library(tidyverse)
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
 #> i Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
-library(lubridate)
+eu_stock <- EuStockMarkets %>%
+  ts_as_tibble()
+eu_stock
+#> # A tibble: 7,440 x 3
+#>    group  time value
+#>    <chr> <dbl> <dbl>
+#>  1 DAX   1991. 1629.
+#>  2 DAX   1992. 1614.
+#>  3 DAX   1992. 1607.
+#>  4 DAX   1992. 1621.
+#>  5 DAX   1992. 1618.
+#>  6 DAX   1992. 1611.
+#>  7 DAX   1992. 1631.
+#>  8 DAX   1992. 1640.
+#>  9 DAX   1992. 1635.
+#> 10 DAX   1992. 1646.
+#> # i 7,430 more rows
+```
+
+## Easily plot time series using `time_ggplot`
+
+``` r
+eu_stock %>%
+  time_ggplot(time, value, group)
+```
+
+![](man/figures/README-unnamed-chunk-2-1.png)<!-- -->
+
+For the next examples we use flights departing from New York City in
+2013.
+
+``` r
 library(nycflights13)
+library(lubridate)
 flights <- flights %>%
   mutate(date = as_date(time_hour))
 ```
 
-## `time_count()`
+## `time_by`
 
-#### Easily fill in implicit missing gaps and aggregate time.
+### Summarise your time variable by any time unit
 
 ``` r
-flights_ts <- flights %>%
-  time_count(time_hour)
+flights_monthly <- flights %>%
+  select(date, arr_delay) %>%
+  time_by(date, "month")
+
+flights_monthly
+#> [38;5;246m# Time:     date [12][39m
+#> [38;5;246m# By:       month[39m
+#> [38;5;246m# Span:     2013-01-01 - 2013-12-01[39m
+#>    date       arr_delay
+#>  * <date>         <dbl>
+#>  1 2013-01-01        11
+#>  2 2013-01-01        20
+#>  3 2013-01-01        33
+#>  4 2013-01-01       -18
+#>  5 2013-01-01       -25
+#>  6 2013-01-01        12
+#>  7 2013-01-01        19
+#>  8 2013-01-01       -14
+#>  9 2013-01-01        -8
+#> 10 2013-01-01         8
+#> # i 336,766 more rows
+
+flights_monthly %>%
+  summarise(n = n(),
+            mean_arr_delay = mean(arr_delay, na.rm = TRUE))
+#> # A tibble: 12 x 3
+#>    date           n mean_arr_delay
+#>    <date>     <int>          <dbl>
+#>  1 2013-01-01 27004          6.13 
+#>  2 2013-02-01 24951          5.61 
+#>  3 2013-03-01 28834          5.81 
+#>  4 2013-04-01 28330         11.2  
+#>  5 2013-05-01 28796          3.52 
+#>  6 2013-06-01 28243         16.5  
+#>  7 2013-07-01 29425         16.7  
+#>  8 2013-08-01 29327          6.04 
+#>  9 2013-09-01 27574         -4.02 
+#> 10 2013-10-01 28889         -0.167
+#> 11 2013-11-01 27268          0.461
+#> 12 2013-12-01 28135         14.9
+```
+
+If the time unit is left unspecified, the `time` functions try to find
+the highest time unit possible.
+
+``` r
+flights %>%
+  time_by(time_hour)
+#> [38;5;246m# Time:     time_hour [6,936][39m
+#> [38;5;246m# By:       3600 seconds[39m
+#> [38;5;246m# Span:     2013-01-01 05:00:00 - 2013-12-31 23:00:00[39m
+#>     year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
+#>  * <int> <int> <int>    <int>          <int>     <dbl>    <int>          <int>
+#>  1  2013     1     1      517            515         2      830            819
+#>  2  2013     1     1      533            529         4      850            830
+#>  3  2013     1     1      542            540         2      923            850
+#>  4  2013     1     1      544            545        -1     1004           1022
+#>  5  2013     1     1      554            600        -6      812            837
+#>  6  2013     1     1      554            558        -4      740            728
+#>  7  2013     1     1      555            600        -5      913            854
+#>  8  2013     1     1      557            600        -3      709            723
+#>  9  2013     1     1      557            600        -3      838            846
+#> 10  2013     1     1      558            600        -2      753            745
+#> # i 336,766 more rows
+#> # i 12 more variables: arr_delay <dbl>, carrier <chr>, flight <int>,
+#> #   tailnum <chr>, origin <chr>, dest <chr>, air_time <dbl>, distance <dbl>,
+#> #   hour <dbl>, minute <dbl>, time_hour <dttm>, date <date>
+```
+
+## `time_complete()`
+
+### Complete missing gaps in time
+
+``` r
+flights %>%
+  count(time_hour) %>%
+  time_complete(time_hour)
 #> Assuming a time granularity of 1 hour(s)
-flights_ts
 #> # A tibble: 8,755 x 2
 #>    time_hour               n
 #>    <dttm>              <int>
@@ -132,96 +181,11 @@ flights_ts
 #> # i 8,745 more rows
 ```
 
-#### Dates work as easily as datetimes
+## `time_count()`
+
+### Count by any time unit
 
 ``` r
-flights %>%
-  time_count(date, time_by = "day")
-#> # A tibble: 365 x 2
-#>    date           n
-#>    <date>     <int>
-#>  1 2013-01-01   842
-#>  2 2013-01-02   943
-#>  3 2013-01-03   914
-#>  4 2013-01-04   915
-#>  5 2013-01-05   720
-#>  6 2013-01-06   832
-#>  7 2013-01-07   933
-#>  8 2013-01-08   899
-#>  9 2013-01-09   902
-#> 10 2013-01-10   932
-#> # i 355 more rows
-```
-
-#### Specify time aggregation through `time_by`
-
-``` r
-# Some examples
-flights %>%
-  time_count(date, time_by = "7 days")
-#> # A tibble: 53 x 2
-#>    date           n
-#>    <date>     <int>
-#>  1 2013-01-01  6099
-#>  2 2013-01-08  6109
-#>  3 2013-01-15  6018
-#>  4 2013-01-22  6060
-#>  5 2013-01-29  6072
-#>  6 2013-02-05  6101
-#>  7 2013-02-12  6255
-#>  8 2013-02-19  6394
-#>  9 2013-02-26  6460
-#> 10 2013-03-05  6549
-#> # i 43 more rows
-flights %>%
-  time_count(date, time_by = "2 weeks")
-#> # A tibble: 27 x 2
-#>    date           n
-#>    <date>     <int>
-#>  1 2013-01-01 12208
-#>  2 2013-01-15 12078
-#>  3 2013-01-29 12173
-#>  4 2013-02-12 12649
-#>  5 2013-02-26 13009
-#>  6 2013-03-12 13100
-#>  7 2013-03-26 13145
-#>  8 2013-04-09 13239
-#>  9 2013-04-23 13080
-#> 10 2013-05-07 13019
-#> # i 17 more rows
-flights %>%
-  time_count(date, time_by = "fortnight")
-#> # A tibble: 27 x 2
-#>    date           n
-#>    <date>     <int>
-#>  1 2013-01-01 12208
-#>  2 2013-01-15 12078
-#>  3 2013-01-29 12173
-#>  4 2013-02-12 12649
-#>  5 2013-02-26 13009
-#>  6 2013-03-12 13100
-#>  7 2013-03-26 13145
-#>  8 2013-04-09 13239
-#>  9 2013-04-23 13080
-#> 10 2013-05-07 13019
-#> # i 17 more rows
-flights %>%
-  time_count(date, time_by = "month")
-#> # A tibble: 12 x 2
-#>    date           n
-#>    <date>     <int>
-#>  1 2013-01-01 27004
-#>  2 2013-02-01 24951
-#>  3 2013-03-01 28834
-#>  4 2013-04-01 28330
-#>  5 2013-05-01 28796
-#>  6 2013-06-01 28243
-#>  7 2013-07-01 29425
-#>  8 2013-08-01 29327
-#>  9 2013-09-01 27574
-#> 10 2013-10-01 28889
-#> 11 2013-11-01 27268
-#> 12 2013-12-01 28135
 flights %>%
   time_count(date, time_by = "quarter")
 #> # A tibble: 4 x 2
@@ -231,12 +195,6 @@ flights %>%
 #> 2 2013-04-01 85369
 #> 3 2013-07-01 86326
 #> 4 2013-10-01 84292
-flights %>%
-  time_count(date, time_by = "year")
-#> # A tibble: 1 x 2
-#>   date            n
-#>   <date>      <int>
-#> 1 2013-01-01 336776
 ```
 
 #### Ensure full weeks/months/years by using `time_floor = TRUE`
@@ -280,16 +238,10 @@ flights %>%
 #> 12 2013-12-01 28135
 ```
 
-## `missing_dates()`
-
 #### Check for missing gaps in time
 
 ``` r
-missing_dates(flights) # No missing dates
-#> $time_hour
-#> Date of length 0
-#> 
-#> $date
+missing_dates(flights$date) # No missing dates
 #> Date of length 0
 ```
 
@@ -298,204 +250,168 @@ time_num_gaps(flights$time_hour, time_by = "hours") # Missing hours
 #> [1] 1819
 ```
 
-#### Alternatively, counts with `time_countv()`
-
-``` r
-flight_counts <- time_countv(flights$time_hour, time_by = "hour")
-flights_ts %>%
-  mutate(n2 = flight_counts)
-#> # A tibble: 8,755 x 3
-#>    time_hour               n    n2
-#>    <dttm>              <int> <int>
-#>  1 2013-01-01 05:00:00     6     6
-#>  2 2013-01-01 06:00:00    52    52
-#>  3 2013-01-01 07:00:00    49    49
-#>  4 2013-01-01 08:00:00    58    58
-#>  5 2013-01-01 09:00:00    56    56
-#>  6 2013-01-01 10:00:00    39    39
-#>  7 2013-01-01 11:00:00    37    37
-#>  8 2013-01-01 12:00:00    56    56
-#>  9 2013-01-01 13:00:00    54    54
-#> 10 2013-01-01 14:00:00    48    48
-#> # i 8,745 more rows
-```
-
 ## `time_expand()`
 
-All the `time_` functions with a data argument work with groups. Here we
-create a weekly time sequence for each origin and destination
+Here we create monthly sequences for each destination that accounts for
+the start and end dates of each destination
 
 ``` r
-origin_dest_seq <- flights %>%
-  group_by(origin, dest) %>%
-  time_expand(date, time_by = "week")
+flights %>%
+  group_by(dest) %>%
+  time_expand(date, time_by = "month") %>%
+  summarise(n = n(), start = min(date), end = max(date))
+#> # A tibble: 105 x 4
+#>    dest      n start      end       
+#>    <chr> <int> <date>     <date>    
+#>  1 ABQ       9 2013-04-22 2013-12-22
+#>  2 ACK       6 2013-05-16 2013-10-16
+#>  3 ALB      12 2013-01-01 2013-12-01
+#>  4 ANC       2 2013-07-06 2013-08-06
+#>  5 ATL      12 2013-01-01 2013-12-01
+#>  6 AUS      12 2013-01-01 2013-12-01
+#>  7 AVL      12 2013-01-01 2013-12-01
+#>  8 BDL      12 2013-01-01 2013-12-01
+#>  9 BGR      10 2013-03-02 2013-12-02
+#> 10 BHM      12 2013-01-02 2013-12-02
+#> # i 95 more rows
 ```
 
-Another thing to note is that all `time_` functions have a `time_type`
-argument to let you specify if you want durations or periods. By default
-it is “auto” which chooses periods for time units greater or equal to
-days and durations otherwise.
+To create the same grid of months for each dest, we can do the following
 
 ``` r
-start <- dmy("01-01-2023")
-time_seq(start, start + years(1), 
-         time_by = "month",
-         time_type = "period")
-#>  [1] "2023-01-01" "2023-02-01" "2023-03-01" "2023-04-01" "2023-05-01"
-#>  [6] "2023-06-01" "2023-07-01" "2023-08-01" "2023-09-01" "2023-10-01"
-#> [11] "2023-11-01" "2023-12-01" "2024-01-01"
-time_seq(start, start + years(1), 
-         time_by = "month",
-         time_type = "duration")
-#>  [1] "2023-01-01 00:00:00 UTC" "2023-01-31 10:30:00 UTC"
-#>  [3] "2023-03-02 21:00:00 UTC" "2023-04-02 07:30:00 UTC"
-#>  [5] "2023-05-02 18:00:00 UTC" "2023-06-02 04:30:00 UTC"
-#>  [7] "2023-07-02 15:00:00 UTC" "2023-08-02 01:30:00 UTC"
-#>  [9] "2023-09-01 12:00:00 UTC" "2023-10-01 22:30:00 UTC"
-#> [11] "2023-11-01 09:00:00 UTC" "2023-12-01 19:30:00 UTC"
-```
-
-When you supply groups to `time_expand()` the start and end points are
-unique to each group. We confirm this below
-
-``` r
-origin_dest_seq %>%
-  summarise(from = min(date),
-            to = max(date)) %>%
-  ungroup() %>%
-  distinct(from, to, .keep_all = TRUE)
-#> `summarise()` has grouped output by 'origin'. You can override using the
-#> `.groups` argument.
-#> # A tibble: 45 x 4
-#>    origin dest  from       to        
-#>    <chr>  <chr> <date>     <date>    
-#>  1 EWR    ALB   2013-01-01 2013-12-31
-#>  2 EWR    ANC   2013-07-06 2013-08-24
-#>  3 EWR    BDL   2013-01-01 2013-12-17
-#>  4 EWR    BZN   2013-01-05 2013-12-28
-#>  5 EWR    CAE   2013-01-03 2013-12-26
-#>  6 EWR    DSM   2013-01-01 2013-12-24
-#>  7 EWR    LGA   2013-07-27 2013-07-27
-#>  8 EWR    MYR   2013-01-01 2013-04-02
-#>  9 EWR    ORF   2013-01-02 2013-12-25
-#> 10 EWR    PHL   2013-01-03 2013-04-04
-#> # i 35 more rows
+flights %>%
+  time_expand(date, dest, time_by = "month") %>%
+  summarise(n = n(), start = min(date), end = max(date), .by = dest)
+#> # A tibble: 105 x 4
+#>    dest      n start      end       
+#>    <chr> <int> <date>     <date>    
+#>  1 ABQ      12 2013-01-01 2013-12-01
+#>  2 ACK      12 2013-01-01 2013-12-01
+#>  3 ALB      12 2013-01-01 2013-12-01
+#>  4 ANC      12 2013-01-01 2013-12-01
+#>  5 ATL      12 2013-01-01 2013-12-01
+#>  6 AUS      12 2013-01-01 2013-12-01
+#>  7 AVL      12 2013-01-01 2013-12-01
+#>  8 BDL      12 2013-01-01 2013-12-01
+#>  9 BGR      12 2013-01-01 2013-12-01
+#> 10 BHM      12 2013-01-01 2013-12-01
+#> # i 95 more rows
 ```
 
 The ability to create time sequences by group is one of the most
 powerful features of timeplyr.
 
-## `time_complete()`
-
-#### We could instead use `fcount()` and `time_complete()` to
-
-#### count the hours with no gaps.
-
-``` r
-flights %>%
-  group_by(origin, dest) %>%
-  fcount(time_hour) %>%
-  time_complete(time_hour, 
-                time_by = "hour", 
-                fill = list(n = 0))
-#> # A tibble: 1,756,358 x 4
-#> # Groups:   origin, dest [224]
-#>    origin dest  time_hour               n
-#>    <chr>  <chr> <dttm>              <dbl>
-#>  1 EWR    ALB   2013-01-01 13:00:00     1
-#>  2 EWR    ALB   2013-01-01 14:00:00     0
-#>  3 EWR    ALB   2013-01-01 15:00:00     0
-#>  4 EWR    ALB   2013-01-01 16:00:00     1
-#>  5 EWR    ALB   2013-01-01 17:00:00     0
-#>  6 EWR    ALB   2013-01-01 18:00:00     0
-#>  7 EWR    ALB   2013-01-01 19:00:00     0
-#>  8 EWR    ALB   2013-01-01 20:00:00     1
-#>  9 EWR    ALB   2013-01-01 21:00:00     0
-#> 10 EWR    ALB   2013-01-01 22:00:00     0
-#> # i 1,756,348 more rows
-```
-
-## `time_span()`
-
-`time_span()` or `time_expandv()` is a vector-based version of
-`time_expand()` that allows you to create full time sequences for time
-data
-
-``` r
-flights %>%
-  group_by(origin) %>%
-  reframe(time_hour = time_span(time_hour, "quarter"))
-#> # A tibble: 12 x 2
-#>    origin time_hour          
-#>    <chr>  <dttm>             
-#>  1 EWR    2013-01-01 05:00:00
-#>  2 EWR    2013-04-01 05:00:00
-#>  3 EWR    2013-07-01 05:00:00
-#>  4 EWR    2013-10-01 05:00:00
-#>  5 JFK    2013-01-01 05:00:00
-#>  6 JFK    2013-04-01 05:00:00
-#>  7 JFK    2013-07-01 05:00:00
-#>  8 JFK    2013-10-01 05:00:00
-#>  9 LGA    2013-01-01 05:00:00
-#> 10 LGA    2013-04-01 05:00:00
-#> 11 LGA    2013-07-01 05:00:00
-#> 12 LGA    2013-10-01 05:00:00
-```
-
 ## `time_summarise()`
 
-We can do more than just counts, actually any summary using
-`time_summarise()` We can for example, calculate mean arrival and
-departure times by month
+We can shortcut the time aggregation and then additional summary by
+using `time_summarise()`.
 
 ``` r
 flights %>%
-  time_summarise(time_hour, # Time variable 
+  time_summarise(date, # Time variable 
                  across(c(arr_time, dep_time), # By-month summaries
                         ~ mean(.x, na.rm = TRUE)),
                  time_by = "month",   
                  time_floor = TRUE, # Full months
                  include_interval = TRUE) # Time interval
 #> # A tibble: 12 x 4
-#>    time_hour           interval                                arr_time dep_time
-#>    <dttm>              <Interval>                                 <dbl>    <dbl>
-#>  1 2013-01-01 00:00:00 2013-01-01 EST--2013-02-01 00:00:00 EST    1523.    1347.
-#>  2 2013-02-01 00:00:00 2013-02-01 EST--2013-03-01 00:00:00 EST    1522.    1348.
-#>  3 2013-03-01 00:00:00 2013-03-01 EST--2013-04-01 00:00:00 EDT    1510.    1359.
-#>  4 2013-04-01 00:00:00 2013-04-01 EDT--2013-05-01 00:00:00 EDT    1501.    1353.
-#>  5 2013-05-01 00:00:00 2013-05-01 EDT--2013-06-01 00:00:00 EDT    1503.    1351.
-#>  6 2013-06-01 00:00:00 2013-06-01 EDT--2013-07-01 00:00:00 EDT    1468.    1351.
-#>  7 2013-07-01 00:00:00 2013-07-01 EDT--2013-08-01 00:00:00 EDT    1456.    1353.
-#>  8 2013-08-01 00:00:00 2013-08-01 EDT--2013-09-01 00:00:00 EDT    1495.    1350.
-#>  9 2013-09-01 00:00:00 2013-09-01 EDT--2013-10-01 00:00:00 EDT    1504.    1334.
-#> 10 2013-10-01 00:00:00 2013-10-01 EDT--2013-11-01 00:00:00 EDT    1520.    1340.
-#> 11 2013-11-01 00:00:00 2013-11-01 EDT--2013-12-01 00:00:00 EST    1523.    1344.
-#> 12 2013-12-01 00:00:00 2013-12-01 EST--2013-12-31 23:00:00 EST    1505.    1357.
+#>    date       interval                       arr_time dep_time
+#>    <date>     <Interval>                        <dbl>    <dbl>
+#>  1 2013-01-01 2013-01-01 UTC--2013-02-01 UTC    1523.    1347.
+#>  2 2013-02-01 2013-02-01 UTC--2013-03-01 UTC    1522.    1348.
+#>  3 2013-03-01 2013-03-01 UTC--2013-04-01 UTC    1510.    1359.
+#>  4 2013-04-01 2013-04-01 UTC--2013-05-01 UTC    1501.    1353.
+#>  5 2013-05-01 2013-05-01 UTC--2013-06-01 UTC    1503.    1351.
+#>  6 2013-06-01 2013-06-01 UTC--2013-07-01 UTC    1468.    1351.
+#>  7 2013-07-01 2013-07-01 UTC--2013-08-01 UTC    1456.    1353.
+#>  8 2013-08-01 2013-08-01 UTC--2013-09-01 UTC    1495.    1350.
+#>  9 2013-09-01 2013-09-01 UTC--2013-10-01 UTC    1504.    1334.
+#> 10 2013-10-01 2013-10-01 UTC--2013-11-01 UTC    1520.    1340.
+#> 11 2013-11-01 2013-11-01 UTC--2013-12-01 UTC    1523.    1344.
+#> 12 2013-12-01 2013-12-01 UTC--2013-12-31 UTC    1505.    1357.
 ```
 
-## `time_mutate()`
+# Grouped rolling time functions
 
-A time-based version of mutate
+## `time_elapsed()`
+
+Let’s look at the time between consecutive flights for a specific flight
+number
+
+``` r
+set.seed(42)
+flight_201 <- flights %>%
+  distinct(time_hour, flight) %>%
+  filter(flight %in% sample(flight, size = 1)) %>%
+  arrange(time_hour)
+
+table(time_elapsed(flight_201$time_hour, "hours"))
+#> 
+#>    6   18   23   24   25   47   48   54 1235 
+#>   33   34    2  218    3    1    4    1    1
+```
+
+Flight 201 seems to depart mostly consistently every 24 hours
+
+We can efficiently do the same for all flight numbers
+
+``` r
+# We use fdistinct with sort as it's much faster and simpler to write
+all_flights <- flights %>%
+  fdistinct(flight, time_hour, sort = TRUE)
+all_flights <- all_flights %>%
+  mutate(elapsed = time_elapsed(time_hour, g = flight, fill = 0))
+#> Assuming a time granularity of 1 hour(s)
+
+# Flight numbers with largest relative deviation in time between flights
+all_flights %>%
+  q_summarise(elapsed, .by = flight) %>%
+  mutate(relative_iqr = p75 / p25) %>%
+  arrange(desc(relative_iqr))
+#>       flight p0 p25 p50    p75 p100 relative_iqr
+#>    1:   3664  0  12  24 3252.0 6480     271.0000
+#>    2:   5709  0  12  24 3080.5 6137     256.7083
+#>    3:    513  0  12  24 2250.5 4477     187.5417
+#>    4:   3364  0  12  24 2204.5 4385     183.7083
+#>    5:   1578  0  24  48 4182.5 8317     174.2708
+#>   ---                                           
+#> 3840:   6114  0   0   0    0.0    0          NaN
+#> 3841:   6140  0   0   0    0.0    0          NaN
+#> 3842:   6165  0   0   0    0.0    0          NaN
+#> 3843:   6171  0   0   0    0.0    0          NaN
+#> 3844:   8500  0   0   0    0.0    0          NaN
+```
+
+`time_seq_id()` allows us to create unique IDs for regular sequences A
+new ID is created every time there is a gap in the sequence
 
 ``` r
 flights %>%
-  time_mutate(date, time_by = "quarter", .keep = "none") %>%
-  fcount(date)
-#> # A tibble: 4 x 2
-#>   date           n
-#>   <date>     <int>
-#> 1 2013-01-01 80789
-#> 2 2013-04-01 85369
-#> 3 2013-07-01 86326
-#> 4 2013-10-01 84292
+  select(time_hour) %>%
+  arrange(time_hour) %>%
+  mutate(time_id = time_seq_id(time_hour)) %>%
+  filter(time_id != lag(time_id)) %>%
+  count(hour(time_hour))
+#> Assuming a time granularity of 1 hour(s)
+#> # A tibble: 2 x 2
+#>   `hour(time_hour)`     n
+#>               <int> <int>
+#> 1                 1     1
+#> 2                 5   364
 ```
+
+We can see that the gaps typically occur at 11pm and the sequence
+resumes at 5am.
+
+### Other convenience functions are included below
 
 ## `add_calendar()`
 
 #### Easily join common date information to your data
 
 ``` r
-flights_ts <- flights_ts %>%
+flights_calendar <- flights %>%
+  select(time_hour) %>%
   add_calendar(time_hour)
 #> New columns added:
 #> year, quarter, month, month_l, week, day, yday, isoyear, isoweek, isoday, epiyear, epiweek, wday, wday_l, hour, minute, second
@@ -505,8 +421,8 @@ Now that gaps in time have been filled and we have joined our date
 table, it is easy to count by any time dimension we like
 
 ``` r
-flights_ts %>% 
-  fcount(isoyear, isoweek, wt = n)
+flights_calendar %>% 
+  fcount(isoyear, isoweek)
 #> # A tibble: 53 x 3
 #>    isoyear isoweek     n
 #>      <int>   <int> <int>
@@ -521,8 +437,8 @@ flights_ts %>%
 #>  9    2013       9  6444
 #> 10    2013      10  6546
 #> # i 43 more rows
-flights_ts %>% 
-  fcount(isoweek = iso_week(time_hour), wt = n)
+flights_calendar %>% 
+  fcount(isoweek = iso_week(time_hour))
 #> # A tibble: 53 x 2
 #>    isoweek      n
 #>    <chr>    <int>
@@ -537,8 +453,8 @@ flights_ts %>%
 #>  9 2013-W09  6444
 #> 10 2013-W10  6546
 #> # i 43 more rows
-flights_ts %>% 
-  fcount(month_l, wt = n)
+flights_calendar %>% 
+  fcount(month_l)
 #> # A tibble: 12 x 2
 #>    month_l     n
 #>    <ord>   <int>
@@ -555,8 +471,6 @@ flights_ts %>%
 #> 11 Nov     27268
 #> 12 Dec     28135
 ```
-
-### Other convenience functions are included below
 
 ## `.time_units`
 
@@ -693,107 +607,17 @@ time_seq(start, end, time_by = "month", time_type = "duration") # lubridate vers
 #> [13] "2021-01-30 06:00:00 UTC"
 ```
 
-## time-series (`ts`)
-
-Easily turn `ts` objects into `tibbles`
-
-``` r
-air_tbl <- ts_as_tibble(AirPassengers)
-```
-
-# Plot using `time_ggplot()`
-
-``` r
-air_tbl %>%
-  time_ggplot(time, value)
-```
-
-![](man/figures/README-unnamed-chunk-27-1.png)<!-- -->
-
-Multivariate time-series are converted into long-format
-
-``` r
-eu_stock_tbl <- ts_as_tibble(EuStockMarkets)
-
-eu_stock_tbl %>%
-    time_ggplot(time, value, group)
-```
-
-![](man/figures/README-unnamed-chunk-28-1.png)<!-- -->
-
 ## `iso_week()`
 
 Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2023-W25"
+#> [1] "2023-W26"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W25-2"
+#> [1] "2023-W26-7"
 iso_week(today(), year = FALSE)
-#> [1] "W25"
-```
-
-Helpers like `calendar()`, `create_calendar()` and `add_calendar()` can
-make time sequence tibbles.
-
-``` r
-my_seq <- time_seq(start, end, "day")
-calendar(my_seq)
-#> # A tibble: 367 x 15
-#>    time        year quarter month month_l  week   day  yday isoyear isoweek
-#>    <date>     <int>   <int> <int> <ord>   <int> <int> <int>   <int>   <int>
-#>  1 2020-01-31  2020       1     1 Jan         5    31    31    2020       5
-#>  2 2020-02-01  2020       1     2 Feb         5     1    32    2020       5
-#>  3 2020-02-02  2020       1     2 Feb         5     2    33    2020       5
-#>  4 2020-02-03  2020       1     2 Feb         5     3    34    2020       6
-#>  5 2020-02-04  2020       1     2 Feb         5     4    35    2020       6
-#>  6 2020-02-05  2020       1     2 Feb         6     5    36    2020       6
-#>  7 2020-02-06  2020       1     2 Feb         6     6    37    2020       6
-#>  8 2020-02-07  2020       1     2 Feb         6     7    38    2020       6
-#>  9 2020-02-08  2020       1     2 Feb         6     8    39    2020       6
-#> 10 2020-02-09  2020       1     2 Feb         6     9    40    2020       6
-#> # i 357 more rows
-#> # i 5 more variables: isoday <int>, epiyear <int>, epiweek <int>, wday <int>,
-#> #   wday_l <ord>
-create_calendar(start, end, "day") # The same style as time_seq
-#> # A tibble: 367 x 15
-#>    time        year quarter month month_l  week   day  yday isoyear isoweek
-#>    <date>     <int>   <int> <int> <ord>   <int> <int> <int>   <int>   <int>
-#>  1 2020-01-31  2020       1     1 Jan         5    31    31    2020       5
-#>  2 2020-02-01  2020       1     2 Feb         5     1    32    2020       5
-#>  3 2020-02-02  2020       1     2 Feb         5     2    33    2020       5
-#>  4 2020-02-03  2020       1     2 Feb         5     3    34    2020       6
-#>  5 2020-02-04  2020       1     2 Feb         5     4    35    2020       6
-#>  6 2020-02-05  2020       1     2 Feb         6     5    36    2020       6
-#>  7 2020-02-06  2020       1     2 Feb         6     6    37    2020       6
-#>  8 2020-02-07  2020       1     2 Feb         6     7    38    2020       6
-#>  9 2020-02-08  2020       1     2 Feb         6     8    39    2020       6
-#> 10 2020-02-09  2020       1     2 Feb         6     9    40    2020       6
-#> # i 357 more rows
-#> # i 5 more variables: isoday <int>, epiyear <int>, epiweek <int>, wday <int>,
-#> #   wday_l <ord>
-# Tidy version
-tibble(my_seq) %>%
-  add_calendar(my_seq)
-#> New columns added:
-#> year, quarter, month, month_l, week, day, yday, isoyear, isoweek, isoday, epiyear, epiweek, wday, wday_l
-#> # A tibble: 367 x 15
-#>    my_seq      year quarter month month_l  week   day  yday isoyear isoweek
-#>    <date>     <int>   <int> <int> <ord>   <int> <int> <int>   <int>   <int>
-#>  1 2020-01-31  2020       1     1 Jan         5    31    31    2020       5
-#>  2 2020-02-01  2020       1     2 Feb         5     1    32    2020       5
-#>  3 2020-02-02  2020       1     2 Feb         5     2    33    2020       5
-#>  4 2020-02-03  2020       1     2 Feb         5     3    34    2020       6
-#>  5 2020-02-04  2020       1     2 Feb         5     4    35    2020       6
-#>  6 2020-02-05  2020       1     2 Feb         6     5    36    2020       6
-#>  7 2020-02-06  2020       1     2 Feb         6     6    37    2020       6
-#>  8 2020-02-07  2020       1     2 Feb         6     7    38    2020       6
-#>  9 2020-02-08  2020       1     2 Feb         6     8    39    2020       6
-#> 10 2020-02-09  2020       1     2 Feb         6     9    40    2020       6
-#> # i 357 more rows
-#> # i 5 more variables: isoday <int>, epiyear <int>, epiweek <int>, wday <int>,
-#> #   wday_l <ord>
+#> [1] "W26"
 ```
 
 ## `time_cut()`
@@ -825,7 +649,7 @@ weekly_data %>%
   scale_x_date(breaks = date_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-31-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-28-1.png)<!-- -->
 
 ``` r
 flights %>%
@@ -834,7 +658,7 @@ flights %>%
   scale_x_datetime(breaks = time_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-31-2.png)<!-- -->
+![](man/figures/README-unnamed-chunk-28-2.png)<!-- -->
 
 ## Efficient grouped functions
 
@@ -978,32 +802,6 @@ flights %>%
 #> # i 214 more rows
 ```
 
-## `fexpand()`
-
-Fast cross join
-
-``` r
-# Tidy version that supports groups
-flights %>%
-  fgroup_by(origin) %>%
-  fexpand(dest, carrier)
-#> # A tibble: 2,616 x 3
-#> # Groups:   origin [3]
-#>    origin dest  carrier
-#>    <chr>  <chr> <chr>  
-#>  1 EWR    IAH   UA     
-#>  2 EWR    IAH   B6     
-#>  3 EWR    IAH   AA     
-#>  4 EWR    IAH   MQ     
-#>  5 EWR    IAH   DL     
-#>  6 EWR    IAH   US     
-#>  7 EWR    IAH   EV     
-#>  8 EWR    IAH   AS     
-#>  9 EWR    IAH   WN     
-#> 10 EWR    IAH   9E     
-#> # i 2,606 more rows
-```
-
 ## `fslice()`
 
 Fast row index slicing with lots of groups
@@ -1073,6 +871,28 @@ flights %>%
 #> # i 12 more variables: arr_delay <dbl>, carrier <chr>, flight <int>,
 #> #   tailnum <chr>, origin <chr>, dest <chr>, air_time <dbl>, distance <dbl>,
 #> #   hour <dbl>, minute <dbl>, time_hour <dttm>, date <date>
+
+# Stratified sampling
+flights %>%
+    fselect(origin, dest) %>%
+    fgroup_by(origin, dest) %>%
+    add_row_id() %>%
+    fslice_sample(seed = 91239)
+#> # A tibble: 336,776 x 3
+#> # Groups:   origin, dest [224]
+#>    origin dest  row_id
+#>    <chr>  <chr>  <int>
+#>  1 EWR    ALB      347
+#>  2 EWR    ALB      211
+#>  3 EWR    ALB      298
+#>  4 EWR    ALB      316
+#>  5 EWR    ALB      267
+#>  6 EWR    ALB      286
+#>  7 EWR    ALB      418
+#>  8 EWR    ALB      270
+#>  9 EWR    ALB      306
+#> 10 EWR    ALB       78
+#> # i 336,766 more rows
 ```
 
 ## `fdistinct()`

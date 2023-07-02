@@ -1056,31 +1056,47 @@ pretty_ceiling <- function(x){
 # collapse flag/fdiff gives basically
 # wrong answers if your data isn't sorted
 # And yes I've read the documentation
-fdiff2 <- function(x, n = 1, g = NULL, ...){
+fdiff2 <- function(x, n = 1, g = NULL, diff = 1, ...){
+  if (length(x) == 1L){
+    n <- 0L
+    diff <- 0L
+  }
   if (!is.null(g)){
     g <- GRP2(g)
   }
   if (!is.null(g) && !GRP_is_sorted(g)){
     group_order <- GRP_order(g)
     x <- x[group_order]
-    g <- collapse::GRP(GRP_group_id(g)[group_order])
-    out <- collapse::fdiff(x, n = n, g = g, ...)
-    out <- out[order(group_order)]
+    group_id <- group_id_to_qg(
+      GRP_group_id(g)[group_order],
+      n_groups = GRP_n_groups(g)
+    )
+    out <- collapse::fdiff(x, n = n, g = group_id, ...)
+    out <- collapse::greorder(out, g = g)
+    # g <- collapse::GRP(GRP_group_id(g)[group_order])
+    # out <- collapse::fdiff(x, n = n, g = g, ...)
+    # out <- out[order(group_order)]
   } else {
     out <- collapse::fdiff(x, n = n, g = g, ...)
   }
   out
 }
-flag2 <- function(x, n = 1, g = NULL, ...){
+flag2 <- function(x, n = min(length(x), 1L), g = NULL, ...){
   if (!is.null(g)){
     g <- GRP2(g)
   }
   if (!is.null(g) && !GRP_is_sorted(g)){
     group_order <- GRP_order(g)
     x <- x[group_order]
-    g <- GRP_group_id(g)[group_order]
-    out <- collapse::flag(x, n = n, g = g, ...)
-    out <- out[order(group_order)]
+    group_id <- group_id_to_qg(
+      GRP_group_id(g)[group_order],
+      n_groups = GRP_n_groups(g)
+    )
+    out <- collapse::flag(x, n = n, g = group_id, ...)
+    out <- collapse::greorder(out, g = g)
+    # g <- GRP_group_id(g)[group_order]
+    # out <- collapse::flag(x, n = n, g = g, ...)
+    # out <- out[order(group_order)]
   } else {
     out <- collapse::flag(x, n = n, g = g, ...)
   }

@@ -361,12 +361,11 @@ date_seq <- function(from, to, by = 1L){
   if (!is_date(from) || !is_date(to)){
     stop("from and to must be dates")
   }
-  out <- seq.int(from = as.double(from),
-                 to = as.double(to),
+  out <- seq.int(from = as.integer(from),
+                 to = as.integer(to),
                  by = by)
-  attr(out, "class") <- "Date"
+  class(out) <- "Date"
   out
-  # seq.Date(from, ...)
 }
 # ftseq differs from time_seq() in that it doesn't accept missing arguments,
 # (except) for non time from/to, always has a start and end point,

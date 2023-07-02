@@ -102,6 +102,7 @@ q_summarise <- function(data, ...,
     if (n_groups < 1e05){
       q_df <- out[, lapply(.SD, function(x) collapse::fquantile(x,
                                                                 probs = probs,
+                                                                type = type,
                                                                 names = FALSE,
                                                                 na.rm = na.rm,
                                                                 check.o = FALSE

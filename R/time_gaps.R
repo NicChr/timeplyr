@@ -21,10 +21,13 @@
 #' This can for example be a vector or data frame.
 #' @param use.g.names Should the result include group names?
 #' Default is `TRUE`.
+#' @param check_time_regular Should the time vector be
+#' checked to see if it is regular (with or without gaps)?
+#' Default is `FALSE`.
 #'
 #' @details If your data consists of sequences that increase by
 #' an increment lower than the one provided through `time_by`,
-#' an error is thrown.
+#' and `check_time_regular` is `TRUE`, an error is thrown.
 #'
 #' @examples
 #' library(timeplyr)
@@ -46,7 +49,8 @@
 #' @export
 time_gaps <- function(x, time_by = NULL,
                       g = NULL, use.g.names = TRUE,
-                      time_type = c("auto", "duration", "period")){
+                      time_type = c("auto", "duration", "period"),
+                      check_time_regular = FALSE){
   if (!is.null(g)){
     g <- GRP2(g)
     if (GRP_data_size(g) != length(x)){
@@ -66,7 +70,7 @@ time_gaps <- function(x, time_by = NULL,
   time_full_tbl <- fenframe(time_seq,
                             name = "group",
                             value = "time")
-  if (!is.null(time_by)){
+  if (!is.null(time_by) && check_time_regular){
     if (nrow2(
       dplyr::anti_join(time_tbl,
                        time_full_tbl,
@@ -87,7 +91,8 @@ time_gaps <- function(x, time_by = NULL,
 #' @export
 time_num_gaps <- function(x, time_by = NULL,
                           g = NULL, use.g.names = TRUE,
-                          time_type = c("auto", "duration", "period")){
+                          time_type = c("auto", "duration", "period"),
+                          check_time_regular = FALSE){
   stopifnot(is_time_or_num(x))
   time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
   if (length(x) == 0L){
@@ -100,7 +105,7 @@ time_num_gaps <- function(x, time_by = NULL,
     }
   }
   tby <- time_by_get(x, time_by = time_by)
-  if (!is.null(time_by)){
+  if (!is.null(time_by) && check_time_regular){
     is_regular <- time_is_regular(x, g = g, time_by = tby,
                                   use.g.names = FALSE,
                                   time_type = time_type)
@@ -125,10 +130,12 @@ time_num_gaps <- function(x, time_by = NULL,
 #' @export
 time_has_gaps <- function(x, time_by = NULL,
                           g = NULL, use.g.names = TRUE,
-                          time_type = c("auto", "duration", "period")){
+                          time_type = c("auto", "duration", "period"),
+                          check_time_regular = FALSE){
   time_num_gaps(x, time_by = time_by,
                 g = g, use.g.names = use.g.names,
-                time_type = time_type) > 0
+                time_type = time_type,
+                check_time_regular = check_time_regular) > 0
 }
 check_time_regular <- function(x, seq, time_by){
   if (!is.null(time_by)){

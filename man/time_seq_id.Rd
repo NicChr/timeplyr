@@ -16,6 +16,10 @@ time_seq_id(
 \item{x}{Date, datetime or numeric vector.}
 
 \item{time_by}{Time unit. \cr
+This signifies the granularity of the time data with which to measure gaps
+in the sequence.
+If your data is daily for example, supply \code{time_by = "days"}.
+If weekly, supply \code{time_by = "week"}.
 Must be one of the three:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
@@ -39,17 +43,17 @@ and \code{durations} are used otherwise.}
 \item{na_skip}{Should \code{NA} values be skipped? Default is \code{TRUE}.}
 }
 \description{
-A unique identifier is created every time there is a gap in the
-regular time sequence.
+A unique identifier is created every time a specied amount of
+time has passed, or in the case of regular sequences, when there is a gap
+in time.
 }
 \examples{
 library(dplyr)
 library(timeplyr)
 library(lubridate)
-# 3 Monthly sequences, with a month gap in between each
-x <- time_seq_v2(rep(11, 3), # 3 sequences of lengths 11 each
-                 from = today() + years(0:2),
-                 time_by = "month")
-time_seq_id(x, time_by = "month")
-time_gaps(x, time_by = "month") # Time gaps
+# Weekly sequence, with 2 gaps in between
+x <- time_seq(today(), length.out = 10, time_by = "week")
+x <- x[-c(3, 7)]
+time_seq_id(x, time_by = "week")
+time_gaps(x, time_by = "week") # Time gaps
 }

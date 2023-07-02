@@ -10,7 +10,7 @@ time_elapsed(
   g = NULL,
   time_type = c("auto", "duration", "period"),
   rolling = TRUE,
-  fill = 0,
+  fill = NA,
   na_skip = TRUE
 )
 }
@@ -36,7 +36,8 @@ With larger data, it is recommended to use \code{time_type = "duration"} for
 speed and efficiency.}
 
 \item{rolling}{If \code{TRUE} (the default) then lagged
-time differences are calculated, essentially like \code{diff()}. \cr
+time differences are calculated on a rolling basis,
+essentially like \code{diff()}. \cr
 If \code{FALSE} then time differences compared to the index (first) time
 are calculated.}
 
@@ -46,10 +47,22 @@ are calculated.}
 \item{na_skip}{Should \code{NA} values be skipped? Default is \code{TRUE}.}
 }
 \description{
-Simple function to calculate how much time has passed
-on a rolling or fixed basis. \cr
-It is extremely efficient for even large numbers of groups, especially
-if your data is sorted by those groups.
+Calculate how much time has passed
+on a rolling or fixed cumulative basis. \cr
+}
+\details{
+\code{time_elapsed()} is quite efficient when there are many groups,
+especially if your data is sorted in order of those groups.
+In the case that \code{g} is supplied, it is most efficient when your data is
+sorted by \code{g} .
+When \code{na_skip} is \code{TRUE} and \code{rolling} is also \code{TRUE}, \code{NA} values are simply
+skipped and hence the time differences between the current value and the
+previous non-NA value are calculated. For example,
+\code{c(3, 4, 6, NA, NA, 9)} becomes \code{c(NA, 1, 2, NA, NA, 3)}. \cr
+When \code{na_skip} is \code{TRUE} and \code{rolling} is \code{FALSE}, time differences between
+the current value and the first non-NA value of the series are calculated.
+For example,
+\code{c(NA, NA, 3, 4, 6, NA, 8)} becomes \code{c(NA, NA, 0, 1, 3, NA, 5)}.
 }
 \examples{
 library(timeplyr)

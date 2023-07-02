@@ -5,7 +5,7 @@
 \alias{gseq_len}
 \title{Fast grouped row numbers}
 \usage{
-frowid(x, g, ascending = TRUE)
+frowid(x, g, ascending = TRUE, order = TRUE)
 
 gseq_len(length, g = NULL)
 }
@@ -20,6 +20,10 @@ If g is not supplied, the unique groups of x are used (the default).}
 \item{ascending}{When \code{ascending = TRUE} the row IDs are in
 increasing order. When \code{ascending = FALSE} the row IDs are in
 decreasing order.}
+
+\item{order}{Should the groups treated as ordered groups?
+This makes no difference on the result but can sometimes be faster for
+unsorted vectors.}
 
 \item{length}{Sequence length.}
 }

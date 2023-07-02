@@ -118,7 +118,8 @@ time_by <- function(data, time, time_by = NULL,
   num_gaps <- time_num_gaps(data[[time_var]],
                             time_by = time_by,
                             time_type = time_type,
-                            g = g, use.g.names = FALSE)
+                            g = g, use.g.names = FALSE,
+                            check_time_regular = FALSE)
   time_span[["num_gaps"]] <- num_gaps
   time_span <- dplyr::as_tibble(time_span)
   }

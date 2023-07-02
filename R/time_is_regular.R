@@ -59,7 +59,8 @@ time_is_regular <- function(x, time_by = NULL,
   time <- gunique(x, sort = !is_sorted, g = g, use.g.names = TRUE)
   groups <- names(time)
   telapsed <- time_elapsed(time, time_by = time_by, g = groups,
-                           time_type = time_type, rolling = TRUE)
+                           time_type = time_type, rolling = TRUE,
+                           fill = 0)
   telapsed <- gunique(telapsed, g = groups, use.g.names = TRUE, sort = FALSE)
   # telapsed <- telapsed[!is.na(telapsed)]
   groups <- names(telapsed)

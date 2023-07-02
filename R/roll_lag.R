@@ -13,9 +13,9 @@
 #' @details This function is simple and fast. It should generally be equivalent
 #' to
 #' `diag(matrix(unlist(data.table::shift(x, lag)), ncol = length(x)))`.
-#' @rdname rolling_lag
+#' @rdname roll_lag
 #' @export
-rolling_lag <- function(x, lag = 1L, check = TRUE){
+roll_lag <- function(x, lag = 1L, check = TRUE){
   if (check){
     N <- length(x)
     lag_size <- length(lag)
@@ -36,7 +36,7 @@ rolling_lag <- function(x, lag = 1L, check = TRUE){
 # collapse::setop(lagged_indices, "-", lag)
 # setv(lagged_indices, which(lagged_indices < 1L), N + 1L,
 #      vind1 = TRUE)
-#' @rdname rolling_lag
+#' @rdname roll_lag
 #' @export
 lag_seq <- function(x, lag = 1L){
   n <- length(x)

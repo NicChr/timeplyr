@@ -13,6 +13,9 @@
 #' @param ascending When `ascending = TRUE` the row IDs are in
 #' increasing order. When `ascending = FALSE` the row IDs are in
 #' decreasing order.
+#' @param order Should the groups treated as ordered groups?
+#' This makes no difference on the result but can sometimes be faster for
+#' unsorted vectors.
 #' @param length Sequence length.
 #' @details
 #' `gseq_len()`is the same as `frowid()`
@@ -66,10 +69,10 @@
 #'   filter(id1 != id2)
 #' @rdname frowid
 #' @export
-frowid <- function(x, g, ascending = TRUE){
+frowid <- function(x, g, ascending = TRUE, order = TRUE){
   len <- vec_length(x)
   if (missing(g)){
-    g <- GRP2(x, sort = TRUE, call = FALSE, return.groups = FALSE,
+    g <- GRP2(x, sort = order, call = FALSE, return.groups = FALSE,
               return.order = TRUE)
   }
   if (is.null(g)){
@@ -79,7 +82,7 @@ frowid <- function(x, g, ascending = TRUE){
     }
   } else {
     o <- NULL
-    g <- GRP2(g, sort = TRUE, call = FALSE, return.groups = FALSE,
+    g <- GRP2(g, sort = order, call = FALSE, return.groups = FALSE,
               return.order = TRUE)
     # If groups are sorted we can use sequence()
     if (GRP_is_sorted(g)){

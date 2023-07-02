@@ -11,7 +11,8 @@ time_gaps(
   time_by = NULL,
   g = NULL,
   use.g.names = TRUE,
-  time_type = c("auto", "duration", "period")
+  time_type = c("auto", "duration", "period"),
+  check_time_regular = FALSE
 )
 
 time_num_gaps(
@@ -19,7 +20,8 @@ time_num_gaps(
   time_by = NULL,
   g = NULL,
   use.g.names = TRUE,
-  time_type = c("auto", "duration", "period")
+  time_type = c("auto", "duration", "period"),
+  check_time_regular = FALSE
 )
 
 time_has_gaps(
@@ -27,7 +29,8 @@ time_has_gaps(
   time_by = NULL,
   g = NULL,
   use.g.names = TRUE,
-  time_type = c("auto", "duration", "period")
+  time_type = c("auto", "duration", "period"),
+  check_time_regular = FALSE
 )
 }
 \arguments{
@@ -55,6 +58,10 @@ Default is \code{TRUE}.}
 \item{time_type}{Time type, either "auto", "duration" or "period".
 With larger data, it is recommended to use \code{time_type = "duration"} for
 speed and efficiency.}
+
+\item{check_time_regular}{Should the time vector be
+checked to see if it is regular (with or without gaps)?
+Default is \code{FALSE}.}
 }
 \description{
 \code{time_gaps()} checks for missing gaps in time for any
@@ -63,7 +70,7 @@ regular date or datetime sequence.
 \details{
 If your data consists of sequences that increase by
 an increment lower than the one provided through \code{time_by},
-an error is thrown.
+and \code{check_time_regular} is \code{TRUE}, an error is thrown.
 }
 \examples{
 library(timeplyr)
