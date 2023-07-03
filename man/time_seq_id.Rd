@@ -8,8 +8,10 @@ time_seq_id(
   x,
   time_by = NULL,
   g = NULL,
-  time_type = c("auto", "duration", "period"),
-  na_skip = TRUE
+  na_skip = TRUE,
+  rolling = TRUE,
+  switch_on_boundary = FALSE,
+  time_type = c("auto", "duration", "period")
 )
 }
 \arguments{
@@ -36,11 +38,21 @@ then arithmetic is used, e.g \code{time_by = 1}.
 This can for example be a vector or data frame.
 \code{g} is passed directly to \code{collapse::GRP()}.}
 
+\item{na_skip}{Should \code{NA} values be skipped? Default is \code{TRUE}.}
+
+\item{rolling}{When this is \code{FALSE}, a new ID is created every time
+a cumulative amount of time has passed. Once that amount of time has passed,
+a new ID is created, the clock "resets" and we start counting from that point.}
+
+\item{switch_on_boundary}{When an exact amount of time
+(specified in \code{time_by}) has passed, should there an increment in ID?
+The default is \code{FALSE}. For example, if \code{time_by = "days"} and
+\code{switch_on_boundary = FALSE}, \code{>} 1 day must have passed, otherwise
+\code{>=} 1 day must have passed.}
+
 \item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks, months or years are specified,
 and \code{durations} are used otherwise.}
-
-\item{na_skip}{Should \code{NA} values be skipped? Default is \code{TRUE}.}
 }
 \description{
 A unique identifier is created every time a specied amount of
@@ -54,6 +66,14 @@ library(lubridate)
 # Weekly sequence, with 2 gaps in between
 x <- time_seq(today(), length.out = 10, time_by = "week")
 x <- x[-c(3, 7)]
+# A new ID when more than a week has passed since the last time point
 time_seq_id(x, time_by = "week")
-time_gaps(x, time_by = "week") # Time gaps
+# A new ID when >= 2 weeks has passed since the last time point
+time_seq_id(x, time_by = "2 weeks", switch_on_boundary = TRUE)
+# A new ID when at least 4 cumulative weeks have passed
+time_seq_id(x, time_by = "4 weeks",
+            switch_on_boundary = TRUE, rolling = FALSE)
+# A new ID when more than 4 cumulative weeks have passed
+time_seq_id(x, time_by = "4 weeks",
+            switch_on_boundary = FALSE, rolling = FALSE)
 }

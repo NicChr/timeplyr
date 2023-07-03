@@ -22,10 +22,18 @@
 #' @param g Object used for grouping x.
 #' This can for example be a vector or data frame.
 #' `g` is passed directly to `collapse::GRP()`.
+#' @param na_skip Should `NA` values be skipped? Default is `TRUE`.
+#' @param rolling When this is `FALSE`, a new ID is created every time
+#' a cumulative amount of time has passed. Once that amount of time has passed,
+#' a new ID is created, the clock "resets" and we start counting from that point.
+#' @param switch_on_boundary When an exact amount of time
+#' (specified in `time_by`) has passed, should there an increment in ID?
+#' The default is `FALSE`. For example, if `time_by = "days"` and
+#' `switch_on_boundary = FALSE`, `>` 1 day must have passed, otherwise
+#' `>=` 1 day must have passed.
 #' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations` are used otherwise.
-#' @param na_skip Should `NA` values be skipped? Default is `TRUE`.
 #' @examples
 #' library(dplyr)
 #' library(timeplyr)
@@ -33,24 +41,106 @@
 #' # Weekly sequence, with 2 gaps in between
 #' x <- time_seq(today(), length.out = 10, time_by = "week")
 #' x <- x[-c(3, 7)]
+#' # A new ID when more than a week has passed since the last time point
 #' time_seq_id(x, time_by = "week")
-#' time_gaps(x, time_by = "week") # Time gaps
+#' # A new ID when >= 2 weeks has passed since the last time point
+#' time_seq_id(x, time_by = "2 weeks", switch_on_boundary = TRUE)
+#' # A new ID when at least 4 cumulative weeks have passed
+#' time_seq_id(x, time_by = "4 weeks",
+#'             switch_on_boundary = TRUE, rolling = FALSE)
+#' # A new ID when more than 4 cumulative weeks have passed
+#' time_seq_id(x, time_by = "4 weeks",
+#'             switch_on_boundary = FALSE, rolling = FALSE)
 #' @export
 time_seq_id <- function(x, time_by = NULL,
-                        g = NULL, time_type = c("auto", "duration", "period"),
-                        na_skip = TRUE){
+                        g = NULL, na_skip = TRUE,
+                        rolling = TRUE, switch_on_boundary = FALSE,
+                        time_type = c("auto", "duration", "period")){
   if (!is.null(g)){
     g <- GRP2(g)
   }
+  time_by <- time_by_get(x, time_by = time_by, is_sorted = FALSE)
+  time_num <- time_by_num(time_by)
   telapsed <- time_elapsed(x, time_by = time_by, g = g,
-                           time_type = time_type, rolling = TRUE,
+                           time_type = time_type, rolling = rolling,
                            na_skip = na_skip, fill = 0)
   check_time_elapsed_order(telapsed)
   tol <- sqrt(.Machine$double.eps)
-  out <- collapse::fcumsum((telapsed - 1) > tol,
-                           g = g, na.rm = na_skip) + 1L
-  out
+  if (rolling){
+    if (switch_on_boundary){
+      over_threshold <- (telapsed - 1 + tol) >= tol
+    } else {
+      over_threshold <- (telapsed - 1) > tol
+    }
+  } else {
+    if (!is.null(g)){
+      dt <- data.table::data.table(x = telapsed, group_id = GRP_group_id(g))
+      # IN PROGRESS..
+      # By doing the below, we force a new threshold to be exceeded at the
+      # first non-NA value of each group, thus not needed to do a grouped
+      # calculation...
+      # This should only work if data is sorted by groups...
+      # setorderv2(dt, cols = "group_id")
+      # temp_group <- collapse::group(dt[["group_id"]], starts = TRUE)
+      # cumsum_not_na <- collapse::fcumsum(!is.na(dt[["x"]]), g = temp_group)
+      # i_replace <- which(cumsum_not_na == 1L) - 1L
+      # i_replace <- i_replace[i_replace > 1L]
+      # # i_replace <- which(cumsum_not_na == 0L &  # First NA values
+      # #                      cumsum_not_na != collapse::flag(cumsum_not_na, n = -1L)) # Next value not NA
+      # data.table::set(dt,
+      #                 j = "over2",
+      #                 value = dt[["x"]])
+      # data.table::set(dt,
+      #                 i = i_replace,
+      #                 j = "over2",
+      #                 value = time_num + 1)
+      # data.table::set(dt,
+      #                 j = "over2",
+      #                 value = roll_time_threshold(dt[["over2"]],
+      #                                             switch_on_boundary =
+      #                                               switch_on_boundary))
+      # # data.table::set(dt,
+      # #                 i = i_replace,
+      # #                 # i = fnmiss(dt[["x"]], g = temp_group) +
+      # #                 #   attr(temp_group, "starts"),
+      # #                 j = "x",
+      # #                 value = time_num + 1)
+      # data.table::set(dt, j = "over",
+      #                 value = roll_time_threshold(dt[["x"]],
+      #                                             switch_on_boundary =
+      #                                               switch_on_boundary))
+      # data.table::set(dt,
+      #                 i = i_replace,
+      #                 j = "over2",
+      #                 value = dt[["over"]][i_replace])
+      # over_threshold <- collapse::greorder(dt[["over2"]], g = g)
+      # The below is preferable but slow with many groups
+      over_threshold <- dt[, ("over") :=
+                             roll_time_threshold(get("x"),
+                                                 switch_on_boundary = switch_on_boundary),
+                           by = "group_id"][["over"]]
+    } else {
+      over_threshold <- roll_time_threshold(telapsed,
+                                            switch_on_boundary = switch_on_boundary)
+    }
+  }
+  collapse::fcumsum(over_threshold, g = g, na.rm = na_skip) + 1L
 }
+# time_seq_id <- function(x, time_by = NULL,
+#                         g = NULL, time_type = c("auto", "duration", "period"),
+#                         na_skip = TRUE){
+#   if (!is.null(g)){
+#     g <- GRP2(g)
+#   }
+#   telapsed <- time_elapsed(x, time_by = time_by, g = g,
+#                            time_type = time_type, rolling = TRUE,
+#                            na_skip = na_skip, fill = 0)
+#   check_time_elapsed_order(telapsed)
+#   tol <- sqrt(.Machine$double.eps)
+#   out <- collapse::fcumsum((telapsed - 1) > tol,
+#                            g = g, na.rm = na_skip) + 1L
+#   out
+# }
 # time_seq_id <- function(x, time_by = NULL,
 #                         g = NULL, time_type = c("auto", "duration", "period"),
 #                         na_skip = TRUE){

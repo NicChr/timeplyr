@@ -98,7 +98,10 @@ time_by_get <- function(x, time_by = NULL, is_sorted = FALSE,
   out
 }
 time_by_length <- function(time_by){
-  length(time_by[[1L]])
+  length(time_by_num(time_by))
+}
+time_by_num <- function(time_by){
+  time_by[[1L]]
 }
 time_by_pretty <- function(time_by){
   time_by <- time_by_list(time_by)
