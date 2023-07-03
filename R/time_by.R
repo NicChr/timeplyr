@@ -42,7 +42,7 @@
 #' group-by-group basis (the default), or should the time variable be aggregated
 #' using the full data? If done by group, different groups may contain
 #' different time sequences. This only applies when `.add = TRUE`.
-#' @param x A `time_grouped_df`.
+#' @param x A `time_tbl_df`.
 #' @examples
 #' library(dplyr)
 #' library(timeplyr)
@@ -129,12 +129,18 @@ time_by <- function(data, time, time_by = NULL,
   }
   out <- fgroup_by(data, .cols = groups)
   if (length(groups) > 0L){
-    out <- structure(out,
-                     time = time_var,
-                     time_by = time_by,
-                     time_span = time_span,
-                     class = c("time_grouped_df", "grouped_df",
-                               "tbl_df", "tbl", "data.frame"))
+    out <- dplyr::new_grouped_df(out,
+                                 groups = group_data(out),
+                                 time = time_var,
+                                 time_by = time_by,
+                                 time_span = time_span,
+                                 class = c("time_tbl_df"))
+    # out <- structure(out,
+    #                  time = time_var,
+    #                  time_by = time_by,
+    #                  time_span = time_span,
+    #                  class = c("time_grouped_df", "grouped_df",
+    #                            "tbl_df", "tbl", "data.frame"))
   }
   out
 }
@@ -144,7 +150,7 @@ time_by_span <- function(x){
   UseMethod("time_by_span")
 }
 #' @export
-time_by_span.time_grouped_df <- function(x){
+time_by_span.time_tbl_df <- function(x){
   attr(x, "time_span")
 }
 #' @rdname time_by
@@ -153,7 +159,7 @@ time_by_var <- function(x){
   UseMethod("time_by_var")
 }
 #' @export
-time_by_var.time_grouped_df <- function(x){
+time_by_var.time_tbl_df <- function(x){
   attr(x, "time")
 }
 #' @rdname time_by
@@ -162,56 +168,117 @@ time_by_units <- function(x){
   UseMethod("time_by_units")
 }
 #' @export
-time_by_units.time_grouped_df <- function(x){
+time_by_units.time_tbl_df <- function(x){
   attr(x, "time_by")
 }
 #' @export
-print.time_grouped_df <- function(x, ...){
-  setup <- pillar::tbl_format_setup(x)
-  header <- pillar::tbl_format_header(x, setup)
-  body <- pillar::tbl_format_body(x, setup)
-  footer <- pillar::tbl_format_footer(x, setup)
-
+tbl_sum.time_tbl_df <- function(x, ...){
   n_groups <- nrow2(group_data(x))
   group_vars <- group_vars(x)
   time_var <- attr(x, "time")
   non_time_group_vars <- setdiff(group_vars, time_var)
   time_by <- time_by_pretty(attr(x, "time_by"))
   time <- group_data(x)[[time_var]]
-  # time_range <- c(collapse::ffirst(time, na.rm = TRUE),
-  #                 collapse::flast(time, na.rm = TRUE))
   time_range <- collapse::frange(time, na.rm = TRUE)
-
   if (length(non_time_group_vars) > 0L){
-    n_non_time_groups <- nrow2(dplyr::distinct(group_data(x),
-                                               across(all_of(non_time_group_vars))))
+    n_non_time_groups <- nrow2(fdistinct(group_data(x),
+                                         .cols = non_time_group_vars,
+                                         sort = TRUE))
     n_time_groups <- n_unique(time)
-    header <- paste0("\033[38;5;246m# Groups:   ",
-                     paste(non_time_group_vars, collapse = ", "),
-                     " [",
-                     prettyNum(n_non_time_groups, big.mark = ","),
-                     "]\033[39m")
+    groups_header <- c("Groups" =
+                         paste0(paste(non_time_group_vars, collapse = ", "),
+                                " [",
+                                prettyNum(n_non_time_groups, big.mark = ","),
+                                "]"))
 
   } else {
     n_time_groups <- n_groups
-    header <- character(0)
+    groups_header <- character(0)
   }
-  time_header <- paste0("\033[38;5;246m# Time:     ",
-                        time_var,
-                        " [",
-                        prettyNum(n_time_groups, big.mark = ","),
-                        "]\033[39m")
-  time_by_header <- paste0("\033[38;5;246m# By:       ",
-                           time_by,
-                           "\033[39m")
-  time_range_header <- paste0("\033[38;5;246m# Span:     ",
-                           time_range[1L], " - ", time_range[2L],
-                           "\033[39m")
-  writeLines(c(header,
-               time_header,
-               time_by_header,
-               time_range_header,
-               body,
-               footer))
-  invisible(x)
+  time_header <- c("Time" = paste0(time_var,
+                                   " [",
+                                   prettyNum(n_time_groups, big.mark = ","),
+                                   "]"))
+  time_by_header <- c("By" = time_by)
+  time_range_header <- c("Span" = paste0(time_range[1L], " - ", time_range[2L]))
+  num_row <- prettyNum(nrow(x), big.mark = ",")
+  num_col <- prettyNum(ncol(x), big.mark = ",")
+  tbl_header <- c("A tibble" = paste0(num_row, " x ", num_col))
+  default_header <- NextMethod()
+  c(tbl_header,
+    groups_header,
+    time_header,
+    time_by_header,
+    time_range_header)
 }
+#' print.time_grouped_df <- function(x, ...){
+#'   # default_header <- NextMethod()
+#'   # c(default_header, "New" = "A new header")
+#'   setup <- pillar::tbl_format_setup(x)
+#'   header <- pillar::tbl_format_header(x, setup)
+#'   body <- pillar::tbl_format_body(x, setup)
+#'   footer <- pillar::tbl_format_footer(x, setup)
+#'   header_start <- substr(header[1], 1, 13)
+#'   header_end <- substr(header[1], nchar(header[1]) - 4, nchar(header[1]))
+#'   n_groups <- nrow2(group_data(x))
+#'   group_vars <- group_vars(x)
+#'   time_var <- attr(x, "time")
+#'   non_time_group_vars <- setdiff(group_vars, time_var)
+#'   time_by <- time_by_pretty(attr(x, "time_by"))
+#'   time <- group_data(x)[[time_var]]
+#'   # time_range <- c(collapse::ffirst(time, na.rm = TRUE),
+#'   #                 collapse::flast(time, na.rm = TRUE))
+#'   time_range <- collapse::frange(time, na.rm = TRUE)
+#'
+#'   if (length(non_time_group_vars) > 0L){
+#'     n_non_time_groups <- nrow2(fdistinct(group_data(x),
+#'                                          .cols = non_time_group_vars,
+#'                                          sort = TRUE))
+#'     n_time_groups <- n_unique(time)
+#'     header[2L] <- paste0(header_start,
+#'                         "Groups:   ",
+#'                         paste(non_time_group_vars, collapse = ", "),
+#'                         " [",
+#'                         prettyNum(n_non_time_groups, big.mark = ","),
+#'                         "]",
+#'                         header_end)
+#'
+#'   } else {
+#'     n_time_groups <- n_groups
+#'     header <- header[1L]
+#'   }
+#'   time_header <- paste0("Time:     ",
+#'                         time_var,
+#'                         " [",
+#'                         prettyNum(n_time_groups, big.mark = ","),
+#'                         "]")
+#'   time_by_header <- paste0("By:       ",
+#'                            time_by)
+#'   time_range_header <- paste0("Span:     ",
+#'                               time_range[1L], " - ", time_range[2L])
+#'   # time_header <- paste0(header_start,
+#'   #                       "Time:     ",
+#'   #                       time_var,
+#'   #                       " [",
+#'   #                       prettyNum(n_time_groups, big.mark = ","),
+#'   #                       "]",
+#'   #                       header_end)
+#'   # time_by_header <- paste0(header_start,
+#'   #                          "By:       ",
+#'   #                          time_by,
+#'   #                          header_end)
+#'   # time_range_header <- paste0(header_start,
+#'   #                             "Span:     ",
+#'   #                             time_range[1L], " - ", time_range[2L],
+#'   #                             header_end).
+#'   time_header <- paste0(header_start, time_header, header_end)
+#'   time_by_header <- paste0(header_start, time_by_header, header_end)
+#'   time_range_header <- paste0(header_start, time_range_header, header_end)
+#'   writeLines(c(header,
+#'                time_header,
+#'                time_by_header,
+#'                time_range_header,
+#'                body,
+#'                footer))
+#'   invisible(x)
+#' }

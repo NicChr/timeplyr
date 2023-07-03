@@ -92,11 +92,12 @@ flights_monthly <- flights %>%
   time_by(date, "month")
 
 flights_monthly
-#> [38;5;246m# Time:     date [12][39m
-#> [38;5;246m# By:       month[39m
-#> [38;5;246m# Span:     2013-01-01 - 2013-12-01[39m
+#> # A tibble: 336,776 x 2
+#> # Time:     date [12]
+#> # By:       month
+#> # Span:     2013-01-01 - 2013-12-01
 #>    date       arr_delay
-#>  * <date>         <dbl>
+#>    <date>         <dbl>
 #>  1 2013-01-01        11
 #>  2 2013-01-01        20
 #>  3 2013-01-01        33
@@ -135,11 +136,12 @@ the highest time unit possible.
 ``` r
 flights %>%
   time_by(time_hour)
-#> [38;5;246m# Time:     time_hour [6,936][39m
-#> [38;5;246m# By:       3600 seconds[39m
-#> [38;5;246m# Span:     2013-01-01 05:00:00 - 2013-12-31 23:00:00[39m
+#> # A tibble: 336,776 x 20
+#> # Time:     time_hour [6,936]
+#> # By:       3600 seconds
+#> # Span:     2013-01-01 05:00:00 - 2013-12-31 23:00:00
 #>     year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
-#>  * <int> <int> <int>    <int>          <int>     <dbl>    <int>          <int>
+#>    <int> <int> <int>    <int>          <int>     <dbl>    <int>          <int>
 #>  1  2013     1     1      517            515         2      830            819
 #>  2  2013     1     1      533            529         4      850            830
 #>  3  2013     1     1      542            540         2      923            850
@@ -613,11 +615,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2023-W26"
+#> [1] "2023-W27"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W26-7"
+#> [1] "2023-W27-1"
 iso_week(today(), year = FALSE)
-#> [1] "W26"
+#> [1] "W27"
 ```
 
 ## `time_cut()`

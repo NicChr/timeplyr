@@ -77,7 +77,7 @@ group-by-group basis (the default), or should the time variable be aggregated
 using the full data? If done by group, different groups may contain
 different time sequences. This only applies when \code{.add = TRUE}.}
 
-\item{x}{A \code{time_grouped_df}.}
+\item{x}{A \code{time_tbl_df}.}
 }
 \description{
 \code{time_by} groups a time variable by a specified time unit like
