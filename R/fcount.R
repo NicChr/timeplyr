@@ -54,6 +54,7 @@
 #' @importFrom rlang enquo
 #' @importFrom rlang enquos
 #' @importFrom timechange time_add
+#' @importFrom pillar tbl_sum
 #' @export
 fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                    .by = NULL, .cols = NULL){
