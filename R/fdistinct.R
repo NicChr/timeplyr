@@ -62,6 +62,9 @@ fdistinct <- function(data, ..., .keep_all = FALSE,
   if (sort){
     iunique <- GRP_starts(g)
   } else {
+    if (length(dup_vars) == 0L){
+      g <- NULL
+    }
     iunique <- collapse::whichv(frowid(out, g = g), 1L)
   }
   out <- df_row_slice(out, iunique, reconstruct = FALSE)

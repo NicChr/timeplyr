@@ -10,3 +10,6 @@
 fnmiss <- function(x, g = NULL, ...){
   collapse::fsum(is.na(x), g = g, ...)
 }
+fprop_complete <- function(x, ...){
+  1 - (fnmiss(x, ...) / vec_length(x))
+}

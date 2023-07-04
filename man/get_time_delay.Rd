@@ -16,7 +16,6 @@ get_time_delay(
   include_plot = TRUE,
   x_scales = "fixed",
   bw = "SJ",
-  by = NULL,
   ...
 )
 }
@@ -65,8 +64,6 @@ The default has been set to "SJ" which implements the Sheather & Jones (1991) me
 as recommended by the R team \code{?stats::density}.
 This differs from the default implemented by \code{stats::density()}
 which uses Silverman's rule-of-thumb.}
-
-\item{by}{\bold{Deprecated}. Use \code{time_by} instead}
 
 \item{...}{Further arguments to be passed on to \code{ggplot2::geom_density()}.}
 }

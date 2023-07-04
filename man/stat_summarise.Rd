@@ -25,7 +25,7 @@ Tidy data-masking applies.}
 \item{stat}{A character vector of statistical summaries to apply.
 This can be one or more of the following: \cr
 "n", "nmiss", "min", "max", "mean", "first", "last", "sd",
-"var", "mode", "median", "sum".}
+"var", "mode", "median", "sum", "prop_complete".}
 
 \item{q_probs}{(Optional) Quantile probabilities.
 If supplied, \code{q_summarise()} is called and added to the result.}

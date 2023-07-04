@@ -41,7 +41,6 @@
 #' as recommended by the R team `?stats::density`.
 #' This differs from the default implemented by `stats::density()`
 #' which uses Silverman's rule-of-thumb.
-#' @param by \bold{Deprecated}. Use `time_by` instead
 #' @param ... Further arguments to be passed on to `ggplot2::geom_density()`.
 #' @examples
 #' library(timeplyr)
@@ -116,12 +115,7 @@ get_time_delay <- function(data, origin, end, time_by = "days",
                            .by = NULL,
                            include_plot = TRUE, x_scales = "fixed",
                            bw = "SJ",
-                           by = NULL,
                            ...){
-  if (!is.null(by)){
-    warning("by is deprecated, use time_by instead")
-    time_by <- by
-  }
   group_vars <- get_groups(data, {{ .by }})
   out <- data %>%
     mutate2(!!enquo(origin),

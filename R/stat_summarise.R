@@ -8,7 +8,7 @@
 #' @param stat A character vector of statistical summaries to apply.
 #' This can be one or more of the following: \cr
 #' "n", "nmiss", "min", "max", "mean", "first", "last", "sd",
-#' "var", "mode", "median", "sum".
+#' "var", "mode", "median", "sum", "prop_complete".
 #' @param q_probs (Optional) Quantile probabilities.
 #' If supplied, `q_summarise()` is called and added to the result.
 #' @param na.rm Should `NA` values be removed? Default is `TRUE`.
@@ -86,8 +86,11 @@ stat_summarise <- function(data, ...,
       data, .cols = c(group_vars, non_group_dot_vars)
     ), gstarts
   )
+  if (length(group_vars) == 0){
+    g <- NULL
+  }
   if (nrow2(out) == 0L && length(group_vars) == 0L){
-    out[1L, ] <- NA
+    out <- vctrs::vec_init(out, n = 1L)
   }
   out <- as_DT(out)
   if ("n" %in% stat){
@@ -178,4 +181,5 @@ across_col_names <- function(.cols = NULL, .fns = NULL,
 }
 #' @export
 .stat_fns <- c("n", "nmiss", "min", "max", "mean", "median",
-               "sd", "var", "mode", "first", "last", "sum")
+               "sd", "var", "mode", "first", "last", "sum",
+               "prop_complete")
