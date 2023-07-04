@@ -405,6 +405,16 @@ testthat::test_that("Testing time episodes", {
                                              window = 7) %>%
                                suppressMessages() %>%
                                fcount(ep_id, ep_id_new))
+  testthat::expect_identical(
+    base1,
+    flights %>%
+      dplyr::mutate(event = dplyr::if_else(is.na(time_hour), NA, 1)) %>%
+      time_episodes(.by = id1, time = time_hour,
+                    time_by = NULL,
+                    window = 7,
+                    event = list(event = 1)) %>%
+      fcount(ep_id, ep_id_new)
+  )
   testthat::expect_identical(flights %>%
                                time_episodes(.by = id2, time = time_hour,
                                              time_by = list("hours" = 18.5),

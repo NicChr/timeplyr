@@ -2,14 +2,14 @@
 % Please edit documentation in R/time_is_regular.R
 \name{time_is_regular}
 \alias{time_is_regular}
-\title{Is time a regular sequence?}
+\title{Is time a regular sequence? (Experimental)}
 \usage{
 time_is_regular(
   x,
   time_by = NULL,
   g = NULL,
   use.g.names = TRUE,
-  is_sorted = FALSE,
+  na.rm = TRUE,
   time_type = c("auto", "duration", "period"),
   allow_gaps = TRUE,
   allow_dups = TRUE
@@ -40,8 +40,8 @@ matching the number of unique groups.}
 \item{use.g.names}{Should the result include group names?
 Default is \code{TRUE}.}
 
-\item{is_sorted}{Should the function assume \code{x} is sorted? \cr
-If \code{FALSE} the data is sorted before calculation.}
+\item{na.rm}{Should \code{NA} values be removed before calculation?
+Default is \code{TRUE}.}
 
 \item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks,
@@ -49,9 +49,9 @@ months or years are specified, and \code{durations}
 are used otherwise. If \code{durations}
 are used the output is always of class \code{POSIXt}.}
 
-\item{allow_gaps}{\bold{Not currently used}.}
+\item{allow_gaps}{Should gaps be allowed? Default is \code{TRUE}.}
 
-\item{allow_dups}{\bold{Not currently used}.}
+\item{allow_dups}{Should duplicates be allowed? Default is \code{TRUE}.}
 }
 \description{
 This function is a fast way to check if a time vector

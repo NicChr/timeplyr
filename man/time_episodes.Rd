@@ -8,8 +8,9 @@ time_episodes(
   data,
   time,
   time_by = NULL,
-  window = 0L,
+  window = 1,
   roll_episode = TRUE,
+  switch_on_boundary = TRUE,
   fill = 0,
   .add = FALSE,
   event = NULL,
@@ -38,16 +39,14 @@ e.g. \code{list("days" = 1:10)}.
 then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
-\item{window}{Numeric variable defining the episode threshold.
+\item{window}{Single number defining the episode threshold.
 When \code{rolling = TRUE} events with a
 \code{t_elapsed >= window} since the last event
 are defined as a new episode. \cr
 When \code{rolling = FALSE} events with a
 \code{t_elapsed >= window} since the first event of the corresponding episode
 are defined as a new episode. \cr
-By default, \code{window = 0} which assigns every event to a new episode.
-A vector of window values may be supplied.
-Tidy \code{data-masking} applies.}
+By default, \code{window = 1} which assigns every event to a new episode.}
 
 \item{roll_episode}{Logical.
 Should episodes be calculated using a rolling or fixed window?
@@ -59,8 +58,14 @@ If \code{FALSE}, the elapsed time is fixed and
 new episodes are defined based on how much cumulative time has
 passed since the first event of each episode.}
 
+\item{switch_on_boundary}{When an exact amount of time
+(specified in \code{time_by}) has passed, should there an increment in ID?
+The default is \code{FALSE}. For example, if \code{time_by = "days"} and
+\code{switch_on_boundary = FALSE}, \code{>} 1 day must have passed, otherwise
+\code{>=} 1 day must have passed.}
+
 \item{fill}{Value to fill first time elapsed value. Only applicable when
-\code{roll_episode = TRUE}. Default is \code{0}.}
+Default is \code{0}.}
 
 \item{.add}{Should episodic variables be added to the data? \cr
 If \code{FALSE} (the default), then only the relevant variables are returned. \cr
@@ -105,8 +110,11 @@ a new infection represents a new \bold{episode}.
 It is assumed that after a pre-determined amount of time, a positive result
 represents a new episode of infection.
 
-To perform simple time-since-event analysis, set \code{window} to \code{0}, which is
+To perform simple time-since-event analysis, set \code{window} to \code{1}, which is
 the default.
+
+The data are always sorted before calculation and then
+sorted back to the input order.
 
 4 Key variables will be calculated:
 \itemize{

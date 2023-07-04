@@ -21,6 +21,7 @@
 #' This can for example be a vector or data frame.
 #' @param use.g.names Should the result include group names?
 #' Default is `TRUE`.
+#' @param na.rm Should `NA` values be removed? Default is `TRUE`.
 #' @param check_time_regular Should the time vector be
 #' checked to see if it is regular (with or without gaps)?
 #' Default is `FALSE`.
@@ -91,6 +92,7 @@ time_gaps <- function(x, time_by = NULL,
 #' @export
 time_num_gaps <- function(x, time_by = NULL,
                           g = NULL, use.g.names = TRUE,
+                          na.rm = TRUE,
                           time_type = c("auto", "duration", "period"),
                           check_time_regular = FALSE){
   stopifnot(is_time_or_num(x))
@@ -113,9 +115,9 @@ time_num_gaps <- function(x, time_by = NULL,
       stop("x is not regular given the chosen time unit")
     }
   }
-  start <- collapse::fmin(x, g = g, na.rm = TRUE, use.g.names = FALSE)
-  end <- collapse::fmax(x, g = g, na.rm = TRUE, use.g.names = FALSE)
-  n_unique <- collapse::fndistinct(x, g = g, na.rm = TRUE, use.g.names = FALSE)
+  start <- collapse::fmin(x, g = g, na.rm = na.rm, use.g.names = FALSE)
+  end <- collapse::fmax(x, g = g, na.rm = na.rm, use.g.names = FALSE)
+  n_unique <- collapse::fndistinct(x, g = g, na.rm = na.rm, use.g.names = FALSE)
   full_seq_size <- time_seq_sizes(start,
                                   end,
                                   time_by = tby,
@@ -130,10 +132,12 @@ time_num_gaps <- function(x, time_by = NULL,
 #' @export
 time_has_gaps <- function(x, time_by = NULL,
                           g = NULL, use.g.names = TRUE,
+                          na.rm = TRUE,
                           time_type = c("auto", "duration", "period"),
                           check_time_regular = FALSE){
   time_num_gaps(x, time_by = time_by,
                 g = g, use.g.names = use.g.names,
+                na.rm = na.rm,
                 time_type = time_type,
                 check_time_regular = check_time_regular) > 0
 }

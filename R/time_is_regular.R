@@ -1,4 +1,4 @@
-#' Is time a regular sequence?
+#' Is time a regular sequence? (Experimental)
 #'
 #' @description This function is a fast way to check if a time vector
 #' is a regular sequence, possibly for many groups.
@@ -24,18 +24,19 @@
 #' matching the number of unique groups.
 #' @param use.g.names Should the result include group names?
 #' Default is `TRUE`.
+#' @param na.rm Should `NA` values be removed before calculation?
+#' Default is `TRUE`.
 #' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks,
 #' months or years are specified, and `durations`
 #' are used otherwise. If `durations`
 #' are used the output is always of class `POSIXt`.
-#' @param is_sorted Should the function assume `x` is sorted? \cr
-#' If `FALSE` the data is sorted before calculation.
-#' @param allow_gaps \bold{Not currently used}.
-#' @param allow_dups \bold{Not currently used}.
+#' @param allow_gaps Should gaps be allowed? Default is `TRUE`.
+#' @param allow_dups Should duplicates be allowed? Default is `TRUE`.
+#' @export
 time_is_regular <- function(x, time_by = NULL,
                             g = NULL, use.g.names = TRUE,
-                            is_sorted = FALSE,
+                            na.rm = TRUE,
                             time_type = c("auto", "duration", "period"),
                             allow_gaps = TRUE,
                             allow_dups = TRUE){
@@ -56,14 +57,17 @@ time_is_regular <- function(x, time_by = NULL,
   } else {
     group_sizes <- n_unique(x)
   }
-  time <- gunique(x, sort = !is_sorted, g = g, use.g.names = TRUE)
+  time_by <- time_by_get(x, time_by = time_by)
+  time <- gunique(x, sort = TRUE, g = g, use.g.names = TRUE)
   groups <- names(time)
   telapsed <- time_elapsed(time, time_by = time_by, g = groups,
-                           time_type = time_type, rolling = TRUE,
+                           time_type = time_type, rolling = FALSE,
+                           na_skip = na.rm,
                            fill = 0)
-  telapsed <- gunique(telapsed, g = groups, use.g.names = TRUE, sort = FALSE)
-  # telapsed <- telapsed[!is.na(telapsed)]
-  groups <- names(telapsed)
+  # telapsed <- gunique(telapsed, g = groups, use.g.names = TRUE, sort = FALSE)
+  # # telapsed <- telapsed[!is.na(telapsed)]
+  # groups <- names(telapsed)
+  # x_na <- is.na(x)
   if (is.null(time_by)){
     if (is.null(g)){
       out <- TRUE
@@ -71,8 +75,13 @@ time_is_regular <- function(x, time_by = NULL,
       out <- rep_len(TRUE, n_unique(groups))
     }
   } else {
-    is_whole_num <- floor(telapsed) == telapsed
-    n_whole_num <- collapse::fsum(is_whole_num, g = groups, use.g.names = FALSE)
+  tol <- sqrt(.Machine$double.eps)
+  is_whole_num <- abs(round(telapsed) - telapsed) < tol
+  if (na.rm){
+    is_whole_num[is.na(is_whole_num)] <- TRUE
+  }
+    n_whole_num <- collapse::fsum(is_whole_num, g = groups, use.g.names = FALSE,
+                                  na.rm = na.rm, fill = FALSE)
     if (is.null(g)){
       group_size <- length(telapsed)
     } else {
@@ -80,12 +89,23 @@ time_is_regular <- function(x, time_by = NULL,
     }
     out <- n_whole_num == group_size
   }
-  if (isTRUE(any(collapse::fmin(telapsed, na.rm = TRUE,
-                                g = groups, use.g.names = FALSE) < 0))){
-    stop("x must be in ascending or descending order")
-  }
   if (use.g.names){
     names(out) <- unique(groups)
+  }
+  if (!allow_gaps){
+    has_gaps <- time_has_gaps(x, time_by = time_by,
+                              g = g, use.g.names = TRUE,
+                              time_type = time_type,
+                              check_time_regular = FALSE)
+    out <- out & !has_gaps
+  }
+  if (!allow_dups){
+    gduplicated <- gduplicated(x, g = g)
+    if (na.rm){
+      gduplicated <- gduplicated & !is.na(x)
+    }
+    has_dups <- collapse::fsum(gduplicated) > 0
+    out <- out & !has_dups
   }
   out
 }

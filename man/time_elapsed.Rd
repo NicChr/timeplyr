@@ -41,8 +41,8 @@ essentially like \code{diff()}. \cr
 If \code{FALSE} then time differences compared to the index (first) time
 are calculated.}
 
-\item{fill}{Value with which to fill the first time elapsed value when
-\code{rolling = TRUE}.}
+\item{fill}{When \code{rolling = TRUE}, this is the value that fills
+the first elapsed time. The default is \code{NA}.}
 
 \item{na_skip}{Should \code{NA} values be skipped? Default is \code{TRUE}.}
 }

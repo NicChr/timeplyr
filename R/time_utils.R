@@ -103,6 +103,9 @@ time_by_length <- function(time_by){
 time_by_num <- function(time_by){
   time_by[[1L]]
 }
+time_by_unit <- function(time_by){
+  names(time_by)
+}
 time_by_pretty <- function(time_by){
   time_by <- time_by_list(time_by)
   units <- names(time_by)

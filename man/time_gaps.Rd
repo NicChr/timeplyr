@@ -20,6 +20,7 @@ time_num_gaps(
   time_by = NULL,
   g = NULL,
   use.g.names = TRUE,
+  na.rm = TRUE,
   time_type = c("auto", "duration", "period"),
   check_time_regular = FALSE
 )
@@ -29,6 +30,7 @@ time_has_gaps(
   time_by = NULL,
   g = NULL,
   use.g.names = TRUE,
+  na.rm = TRUE,
   time_type = c("auto", "duration", "period"),
   check_time_regular = FALSE
 )
@@ -62,6 +64,8 @@ speed and efficiency.}
 \item{check_time_regular}{Should the time vector be
 checked to see if it is regular (with or without gaps)?
 Default is \code{FALSE}.}
+
+\item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
 }
 \description{
 \code{time_gaps()} checks for missing gaps in time for any

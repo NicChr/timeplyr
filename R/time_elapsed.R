@@ -22,8 +22,8 @@
 #' essentially like `diff()`. \cr
 #' If `FALSE` then time differences compared to the index (first) time
 #' are calculated.
-#' @param fill Value with which to fill the first time elapsed value when
-#' `rolling = TRUE`.
+#' @param fill When `rolling = TRUE`, this is the value that fills
+#' the first elapsed time. The default is `NA`.
 #' @param na_skip Should `NA` values be skipped? Default is `TRUE`.
 #' @details
 #' `time_elapsed()` is quite efficient when there are many groups,
@@ -68,6 +68,9 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
   time_by <- time_by_get(x, time_by = time_by, is_sorted = FALSE)
   if (time_by_length(time_by) > 1){
     stop("Please supply only one numeric value in time_by")
+  }
+  if (!is.na(fill) && length(fill) > 1){
+    stop("fill must be a single number")
   }
   has_groups <- !is.null(g)
   if (!has_groups){
@@ -120,6 +123,15 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
     # Index time
     first_time <- gfirst(x, g = g, na.rm = na_skip)
     out <- time_diff(first_time, x, time_by = time_by, time_type = time_type)
+    # Alternate type of fill..
+    # if (!is.na(fill)){
+    #   if (na_skip){
+    #     group_starts <- group_starts +
+    #       fsum(collapse::fcumsum(!is.na(x), g = g) == 0, g = g)
+    #   }
+    #   out[group_starts] <- 0
+    #   out <- out + fill
+    # }
   }
   out
 }

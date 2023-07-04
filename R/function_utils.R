@@ -1102,3 +1102,17 @@ flag2 <- function(x, n = min(length(x), 1L), g = NULL, ...){
   }
   out
 }
+fill_with_na <- function(x, n = NULL, prop = NULL){
+  if (!is.null(n) && !is.null(prop)){
+    stop("either n or prop must be supplied")
+  }
+  if (!is.null(n)){
+    x[sample.int(length(x), size = n, replace = FALSE)] <- NA
+  }
+  if (!is.null(prop)){
+    x[sample.int(length(x),
+                 size = floor(prop * length(x)),
+                 replace = FALSE)] <- NA
+  }
+  x
+}

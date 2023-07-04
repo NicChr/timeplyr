@@ -76,6 +76,9 @@ time_diff <- function(x, y, time_by,
       }
       unit <- period_unit(units)(abs(num)) # Vectorised lubridate::period
       out <- sign(num) * (int / unit)
+      # out[is.infinite(num)] <- 0
+      out[num == 0 & x > y] <- -Inf
+      out[num == 0 & x < y] <- Inf
     } else {
       # unit <- duration_unit(units)(num)
       x <- as.double(as_datetime2(x))

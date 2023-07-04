@@ -59,6 +59,7 @@ time_seq_id <- function(x, time_by = NULL,
   if (!is.null(g)){
     g <- GRP2(g)
   }
+  threshold <- 1
   time_by <- time_by_get(x, time_by = time_by, is_sorted = FALSE)
   time_num <- time_by_num(time_by)
   telapsed <- time_elapsed(x, time_by = time_by, g = g,
@@ -68,9 +69,9 @@ time_seq_id <- function(x, time_by = NULL,
   tol <- sqrt(.Machine$double.eps)
   if (rolling){
     if (switch_on_boundary){
-      over_threshold <- (telapsed - 1 + tol) >= tol
+      over_threshold <- (telapsed - threshold + tol) >= tol
     } else {
-      over_threshold <- (telapsed - 1) > tol
+      over_threshold <- (telapsed - threshold) > tol
     }
   } else {
     if (!is.null(g)){
@@ -117,10 +118,12 @@ time_seq_id <- function(x, time_by = NULL,
       # The below is preferable but slow with many groups
       over_threshold <- dt[, ("over") :=
                              roll_time_threshold(get("x"),
+                                                 threshold = threshold,
                                                  switch_on_boundary = switch_on_boundary),
                            by = "group_id"][["over"]]
     } else {
       over_threshold <- roll_time_threshold(telapsed,
+                                            threshold = threshold,
                                             switch_on_boundary = switch_on_boundary)
     }
   }
