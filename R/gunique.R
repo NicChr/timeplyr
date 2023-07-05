@@ -73,15 +73,11 @@ gduplicated <- function(x, g = NULL,
                         order = TRUE,
                         use.g.names = TRUE,
                         all = FALSE){
-  out_nms <- names(x)
+  # out_nms <- names(x)
   if (length(g) == 0){
-    g <- GRP2(x,
-              sort = order,
-              return.groups = FALSE, call = FALSE,
-              return.order = FALSE)
+    g <- GRP2(x, sort = order)
   } else {
-    g <- GRP2(g, return.order = FALSE,
-              sort = order, return.groups = TRUE)
+    g <- GRP2(g, sort = order)
     if (use.g.names){
       out_nms <- GRP_names(g, expand = TRUE)
     }
@@ -91,9 +87,10 @@ gduplicated <- function(x, g = NULL,
               return.groups = TRUE, call = FALSE,
               return.order = TRUE)
   }
-  out <- collapse::fduplicated(GRP_group_id(g), all = all)
-  names(out) <- out_nms
-  out
+  GRP_duplicated(g, all = all)
+  # out <- collapse::fduplicated(GRP_group_id(g), all = all)
+  # names(out) <- out_nms
+  # out
 }
 #' @rdname gunique
 #' @export

@@ -17,6 +17,9 @@ GRP_data_size <- function(GRP){
 GRP_group_sizes <- function(GRP){
   GRP[["group.sizes"]]
 }
+GRP_expanded_group_sizes <- function(GRP){
+  GRP[["group.sizes"]][GRP_group_id(GRP)]
+}
 # Groups
 GRP_groups <- function(GRP){
   GRP[["groups"]]
@@ -26,6 +29,42 @@ check_GRP_has_groups <- function(GRP){
     stop("GRP has no group data. Please supply a GRP object with group data")
   }
 }
+GRP_duplicated <- function(GRP, all = FALSE){
+  sizes <- GRP_group_sizes(GRP)
+  group_id <- GRP_group_id(GRP)
+  dup_groups <- (sizes > 1L)[group_id]
+  if (!all){
+    group_starts <- GRP_starts(GRP)[sizes > 0L]
+    setv(dup_groups, group_starts, FALSE, vind1 = TRUE)
+  }
+  dup_groups
+}
+# Alternative but slightly less efficient
+# GRP_duplicated2 <- function(GRP, all = FALSE){
+#   sizes <- GRP_group_sizes(GRP)
+#   group_id <- GRP_group_id(GRP)
+#   if (all){
+#     (sizes > 1L)[group_id]
+#   } else {
+#     frowid(group_id, g = GRP) != 1L
+#   }
+# }
+# Another alternative
+# GRP_duplicated3 <- function(GRP, all = FALSE){
+#   sizes <- GRP_group_sizes(GRP)
+#   group_id <- GRP_group_id(GRP)
+#   if (all){
+#     (sizes > 1L)[group_id]
+#   } else {
+#     if (GRP_is_sorted(GRP)){
+#       frowid(group_id, g = GRP) != 1L
+#     } else {
+#       dup_groups <- (sizes > 1L)[group_id]
+#       group_starts <- GRP_starts(GRP)[sizes > 0L]
+#       setv(dup_groups, group_starts, FALSE, vind1 = TRUE)
+#     }
+#   }
+# }
 # Extract group starts from GRP object safely and efficiently
 GRP_starts <- function(GRP, use.g.names = FALSE,
                        loc = NULL){

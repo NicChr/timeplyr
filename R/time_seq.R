@@ -486,7 +486,8 @@ duration_seq_v2 <- function(sizes, from, units, num = 1){
   time_seq <- sequence2(sizes,
                         from = as.double(from),
                         by = num_seconds)
-  time_cast(time_seq, from)
+  .POSIXct(time_seq, lubridate::tz(from))
+  # time_cast(time_seq, from)
 }
 # Date sequence vectorised over from, to and num
 date_seq_v <- function(from, to, units = c("days", "weeks"), num = 1){
@@ -599,7 +600,6 @@ period_seq_v2 <- function(sizes, from, units, num = 1,
     init <- init + out_sizes[[i]]
   }
   out[out_order]
-
 }
 # Period sequence vectorised over from, to and num
 # period_seq_v3 <- function(from, to, units, num = 1,

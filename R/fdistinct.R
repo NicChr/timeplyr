@@ -34,38 +34,23 @@ fdistinct <- function(data, ..., .keep_all = FALSE,
       out_vars <- dup_vars
     }
   }
-  out <- collapse::fselect(out, out_vars)
-  # Method 1 - Using vctrs
-  # # out <- fslice(out, vctrs::vec_unique_loc(collapse::fselect(out, dup_vars)))
-  # Method 2 - Using group ID integer + duplicated()
-  # g <- group_id(out, .cols = dup_vars,
-  #                order = TRUE,
-  #                as_qg = TRUE)
-  # out <- df_row_slice(out, which(!collapse::fduplicated(g)),
-  #                     reconstruct = FALSE)
-  # Method 3 - Using GRP() + group_starts, though things need to be reordered
-  # g <- GRP2(fselect(out, .cols = dup_vars),
-  #           sort = TRUE,
-  #           return.groups = FALSE, call = FALSE,
-  #           return.order = FALSE)
-  # i <- GRP_starts(g)[collapse::funique(g[["group.id"]], sort = FALSE)]
-  # out <- df_row_slice(out, i, reconstruct = FALSE)
-  # Method 4 - Using grouped row numbers
-  # out <- df_row_slice(out,
-  #                     growid(fselect(out, .cols = dup_vars)) == 1L,
-  #                     reconstruct = FALSE)
-  # g <- GRP2(collapse::fselect(out, dup_vars),
-  #           sort = TRUE,
-  #           return.groups = TRUE, call = FALSE,
-  #           return.order = TRUE)
+  out <- fselect(out, .cols = out_vars)
   g <- df_to_GRP(out, .cols = dup_vars)
   if (sort){
     iunique <- GRP_starts(g)
   } else {
-    if (length(dup_vars) == 0L){
-      g <- NULL
+    # The reason for using row IDs when groups are sorted
+    # is that frowid() utilises sequence() in this scenario
+    # Which is very efficient
+    # You can use either method irregardless though which is nice.
+    if (GRP_is_sorted(g)){
+      if (length(dup_vars) == 0L){
+        g <- NULL
+      }
+      iunique <- collapse::whichv(frowid(out, g = g), 1L)
+    } else {
+      iunique <- collapse::whichv(GRP_duplicated(g), FALSE)
     }
-    iunique <- collapse::whichv(frowid(out, g = g), 1L)
   }
   out <- df_row_slice(out, iunique, reconstruct = FALSE)
   df_reconstruct(out, data)

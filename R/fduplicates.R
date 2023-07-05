@@ -73,24 +73,18 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
   }
   out <- fselect(out, .cols = out_vars)
   # Groups
-  # Add group ID for all groups
-  grp_nm <- new_var_nm(names(out), ".group.id")
-  out[[grp_nm]] <- group_id(out, .cols = dup_vars)
-  n_var_nm <- new_n_var_nm(names(out))
-  out[[n_var_nm]] <- collapse::GRPN(out[[grp_nm]], expand = TRUE)
-  out <- df_row_slice(out, out[[n_var_nm]] > 1)
-  if (!.add_count) out[[n_var_nm]] <- NULL
-  if (.add_count) out_vars <- c(out_vars, n_var_nm)
-  if (!.both_ways){
-    out <- df_row_slice(out, collapse::fduplicated(out[[grp_nm]], all = FALSE),
-                        reconstruct = FALSE)
+  groups <- df_to_GRP(out, .cols = dup_vars)
+  group_sizes <- GRP_expanded_group_sizes(groups)
+  if (.add_count){
+    n_var_nm <- new_n_var_nm(out)
+    out[[n_var_nm]] <- group_sizes
   }
+  out <- df_row_slice(out, GRP_duplicated(groups, all = .both_ways))
   # Remove empty rows (rows with all NA values)
   if (!.keep_na){
-    out <- collapse::na_omit(out, cols = dup_vars, prop = 1)
+    out <- df_row_slice(out, collapse::whichv(rowSums(is.na(fselect(out, .cols = dup_vars))),
+                                              0))
   }
-  # Remove added group id cols
-  out <- df_rm_cols(out, .cols = grp_nm)
   df_reconstruct(out, data)
 }
 #' @rdname fduplicates
