@@ -67,9 +67,9 @@ seq_v <- function(from = 1L, to = 1L, by = 1L){
   sequence2( ( (to - from) / by) + 1L, from = from, by = by)
 }
 seq_size <- function(from, to, by = 1L){
-  out <- ( (to - from) / by ) + 1L
-  out[by == 0 & from == to] <- 1
-  out
+  out <- abs(( (to - from) / by ))
+  out[by == 0 & from == to] <- 0
+  as.integer(out) + 1L
 }
 # Low-level vectorised seq (only integers)
 seqv.int <- function(from = 1L, to = 1L, by = 1L){

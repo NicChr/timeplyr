@@ -1,6 +1,6 @@
 Package: timeplyr
 Title: Date and datetime extension to dplyr
-Version: 0.1.9.9330
+Version: 0.1.9.9400
 Authors@R: 
     person("Nick", "Christofides", , "nick.christofides.r@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))

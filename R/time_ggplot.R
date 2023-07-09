@@ -11,6 +11,7 @@
 #' plotted separately or on the same plot?
 #' Default is `FALSE`, or together.
 #' @param ... Further arguments passed to `geom_line()`.
+#' @seealso \link[timeplyr]{ts_as_tibble}
 #' @examples
 #' library(dplyr)
 #' library(timeplyr)

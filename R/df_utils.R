@@ -64,28 +64,12 @@ df_reconstruct <- function(data, template){
       template_attrs[["class"]] <- setdiff(template_attrs[["class"]], "grouped_df")
       template_attrs[["groups"]] <- NULL
     } else {
-      # Sloppy workaround to account for the fact that collapse doesn't
-      # correctly group lubridate intervals
-      # This is due to the fact that durations don't uniquely identify
-      # start and end points.
-      if (has_interval(collapse::fselect(safe_ungroup(data), out_groups), quiet = TRUE)){
-        grp_nm <- new_var_nm(out_groups, "g")
-        groups <- collapse::fselect(safe_ungroup(data), out_groups)
-        g <- group_id.default(groups)
-        groups[[grp_nm]] <- g
-        groups <- groups %>%
-          fdistinct(.cols = grp_nm, .keep_all = TRUE) %>%
-          farrange(.cols = grp_nm)
-        groups[[grp_nm]] <- NULL
-        groups[[".loc"]] <- GRP_loc(g)
-      } else {
-        groups <- group_collapse(safe_ungroup(data),
-                                 .cols = out_groups, sort = TRUE,
-                                 id = FALSE, start = FALSE,
-                                 end = FALSE, size = FALSE,
-                                 loc = TRUE,
-                                 drop = dplyr::group_by_drop_default(template))
-      }
+      groups <- group_collapse(safe_ungroup(data),
+                               .cols = out_groups, sort = TRUE,
+                               id = FALSE, start = FALSE,
+                               end = FALSE, size = FALSE,
+                               loc = TRUE,
+                               drop = dplyr::group_by_drop_default(template))
       groups <- frename(groups, .cols = c(".rows" = ".loc"))
       attributes(groups[[".rows"]]) <- attributes(template_attrs[["groups"]][[".rows"]])
       for (a in setdiff(names(attributes(groups)),
@@ -218,6 +202,12 @@ fdeframe <- function(x){
   }
   out
 }
+df_n_distinct <- function(data){
+  GRP_n_groups(
+    df_to_GRP(data, .cols = names(data),
+              return.groups = FALSE, return.order = FALSE)
+  )
+}
 # list to tibble/DT
 # No checks are done so use with caution
 # Cannot contain duplicate names, NULL elements,
@@ -287,7 +277,50 @@ df_paste_names <- function(data,  sep = "_", .cols = names(data)){
   do.call(paste, c(fselect(data, .cols = .cols),
                    list(sep = sep)))
 }
-
+# Efficient way to compare the group information
+# of 2 grouped_df objects
+# Much better than simply using setequal
+group_data_equal <- function(x, y){
+  groups1 <- group_data(x)
+  groups2 <- group_data(y)
+  group_vars1 <- group_vars(x)
+  group_vars2 <- group_vars(y)
+  out <- nrow2(x) == nrow2(y)
+  if (out){
+    out <- isTRUE(all.equal(names(groups1), names(groups2)))
+  }
+  if (out){
+    out <- nrow2(groups1) == nrow2(groups2)
+  }
+  if (out){
+    # out <- dplyr::setequal(
+    #   fselect(groups1, .cols = group_vars1),
+    #   fselect(groups2, .cols = group_vars2)
+    # )
+    out <- nrow(
+      data.table::fsetdiff(
+        as_DT(fselect(groups1, .cols = group_vars1)),
+        as_DT(fselect(groups2, .cols = group_vars2))
+      )
+    ) == 0L
+  }
+  if (out){
+   loc1 <- unlist(fpluck(groups1, ".rows"), use.names = FALSE)
+   loc2 <- unlist(fpluck(groups2, ".rows"), use.names = FALSE)
+   diff_range <- collapse::frange(loc1 - loc2)
+   out <- sum(abs(diff_range), na.rm = TRUE) == 0
+   # collapse::setop(loc1, op = "-", loc2)
+   # out <- sum(abs(collapse::frange(loc1)),
+   #            na.rm = TRUE) == 0
+   # One method
+   # first_diff <- vec_head(loc1) - vec_head(loc2)
+   # first_diff_is_zero <- length(first_diff) == 0L || first_diff == 0L
+   # first_diff_is_zero && collapse::fnunique(loc1 - loc2) <= 1L
+   # Another method
+   # out <- isTRUE(all.equal(loc1, loc2))
+  }
+  out
+}
 ##### data.table specific helpers #####
 
 # Convert to data table

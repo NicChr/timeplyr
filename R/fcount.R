@@ -76,7 +76,6 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   if (length(wt_var) > 0L){
     wtv <- out[[wt_var]]
   }
-  grp_nm <- new_var_nm(all_vars, ".group.id")
   use_only_grouped_df_groups <- length(all_vars) == 0L ||
     length(group_vars) > 0L && (length(group_vars) == length(all_vars))
   if (use_only_grouped_df_groups){
@@ -100,14 +99,9 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   if (is.null(name)) name <- new_n_var_nm(out)
   # Edge-case, not sure how to fix this
   if (N == 0L && length(all_vars) == 0L){
-    N <- 1L
-    nobs <- 0L
-    out <- df_reconstruct(structure(list(),
-                                    .Names = character(0),
-                                    class = "data.frame",
-                                    row.names = c(NA, -1L)),
-                          data)
-  } else if (length(wt_var) == 0){
+    out <- vctrs::vec_init(out, n = 1L)
+  }
+  if (length(wt_var) == 0){
     nobs <- group_sizes
   } else {
     nobs <- collapse::fsum(as.double(wtv),
@@ -133,6 +127,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
 #' @export
 fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                        .by = NULL, .cols = NULL){
+  group_vars <- group_vars(data)
   group_info <- group_info(data, ..., .by = {{ .by }},
                            .cols = .cols,
                            ungroup = TRUE,
@@ -158,22 +153,30 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
       }
     }
   }
-  group_id <- group_id(out, .cols = all_vars,
-                       order = TRUE,
-                       as_qg = TRUE)
+  use_only_grouped_df_groups <- length(all_vars) == 0L ||
+    length(group_vars) > 0L && (length(group_vars) == length(all_vars))
+  if (use_only_grouped_df_groups){
+    g <- df_to_GRP(data, return.order = FALSE)
+  } else {
+    g <- df_to_GRP(out, .cols = all_vars, return.order = FALSE)
+  }
   if (is.null(name)) name <- new_n_var_nm(out)
   if (length(wt_var) > 0L){
-    # nobs <- nobs * wtv
+    if (length(all_vars) == 0L){
+      g <- NULL
+    }
     nobs <- gsum(as.double(wtv),
-                   g = group_id,
+                   g = g,
                    na.rm = TRUE)
     # Replace NA with 0
-    nobs <- data.table::nafill(nobs, type = "const", fill = 0, nan = NaN)
-    if (all(nobs <= .Machine$integer.max, na.rm = TRUE)){
+    nobs[is.na(nobs)] <- 0
+    if (isTRUE((
+      collapse::fmax(nobs, na.rm = TRUE) <= .Machine$integer.max
+    ))){
       nobs <- as.integer(nobs)
     }
   } else {
-    nobs <- collapse::GRPN(group_id, expand = TRUE)
+    nobs <- GRP_expanded_group_sizes(g)
   }
   out <- dplyr::dplyr_col_modify(out, cols = setnames(list(nobs),
                                                       name))

@@ -7,6 +7,7 @@
 time_seq_id(
   x,
   time_by = NULL,
+  threshold = 1,
   g = NULL,
   na_skip = TRUE,
   rolling = TRUE,
@@ -34,6 +35,15 @@ e.g. \code{list("days" = 1:10)}.
 then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
+\item{threshold}{Threshold such that when the time elapsed
+exceeds this, the sequence ID is incremented by 1.
+For example, if \code{time_by = "days"} and \code{threshold = 2},
+then when 2 days have passed, a new ID is created.
+Furthermore, \code{threshold} generally need not be supplied as \cr
+\code{time_by = "3 days"} & \code{threshold = 1} \cr
+is identical to \cr
+\code{time_by = "days"} & \code{threshold = 3}. \cr}
+
 \item{g}{Object used for grouping x.
 This can for example be a vector or data frame.
 \code{g} is passed directly to \code{collapse::GRP()}.}
@@ -55,7 +65,7 @@ the time expansion when days, weeks, months or years are specified,
 and \code{durations} are used otherwise.}
 }
 \description{
-A unique identifier is created every time a specied amount of
+A unique identifier is created every time a specified amount of
 time has passed, or in the case of regular sequences, when there is a gap
 in time.
 }
@@ -69,7 +79,7 @@ x <- x[-c(3, 7)]
 # A new ID when more than a week has passed since the last time point
 time_seq_id(x, time_by = "week")
 # A new ID when >= 2 weeks has passed since the last time point
-time_seq_id(x, time_by = "2 weeks", switch_on_boundary = TRUE)
+time_seq_id(x, time_by = "weeks", threshold = 2, switch_on_boundary = TRUE)
 # A new ID when at least 4 cumulative weeks have passed
 time_seq_id(x, time_by = "4 weeks",
             switch_on_boundary = TRUE, rolling = FALSE)

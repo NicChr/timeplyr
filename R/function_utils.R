@@ -1116,3 +1116,10 @@ fill_with_na <- function(x, n = NULL, prop = NULL){
   }
   x
 }
+# double_precision <- function(x){
+#   y <- log2(pmax(.Machine$double.xmin, abs(x)))
+#   ifelse(x < 0 & floor(y) == y, 2^(y-1), 2^floor(y)) * .Machine$double.eps
+# }
+sqrt_double_eps <- function(){
+  sqrt(.Machine$double.eps)
+}

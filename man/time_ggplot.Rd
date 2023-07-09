@@ -60,3 +60,6 @@ ebola \%>\%
   time_count(date_of_infection) \%>\%
   time_ggplot(date_of_infection, n)
 }
+\seealso{
+\link[timeplyr]{ts_as_tibble}
+}

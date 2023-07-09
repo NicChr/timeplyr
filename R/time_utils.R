@@ -995,4 +995,17 @@ time_as_character <- function(x){
     as.character(x)
   }
 }
-
+# Fast NA check for lubridate intervals
+int_is_na <- function(x){
+  X <- interval_separate(x)
+  is.na(X[[1L]]) & is.na(X[[2L]])
+}
+# int_is_na <- function(x){
+#   .rowSums(
+#     is.na(
+#       collapse::qM(
+#         interval_separate(x)
+#       )
+#     )
+#     , n = 2L, m = length(x)) == 2
+# }

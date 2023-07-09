@@ -53,7 +53,19 @@ To specify groups using \code{tidyselect}, simply use the \code{.by} argument.}
 
 \item{order}{Should the groups be ordered?
 \bold{THE PHYSICAL ORDER OF THE DATA IS NOT CHANGED.} \cr
-When order is \code{TRUE} (the default) the group IDs will be ordered but not sorted.
+When order is \code{TRUE} (the default) the group IDs will be
+ordered but not sorted.\cr
+The expression
+\preformatted{
+identical(order(x, na.last = TRUE),
+          order(group_id(x, order = TRUE)))
+}
+or in the case of a data frame
+\preformatted{
+identical(order(x1, x2, x3, na.last = TRUE),
+          order(group_id(data, x1, x2, x3, order = TRUE)))
+}
+should always hold.\cr
 If \code{FALSE} the order of the group IDs will be based on first appearance.}
 
 \item{ascending}{Should the group order be ascending or descending?
@@ -72,9 +84,10 @@ If speed is an expensive resource, it is recommended to use this.}
 collapse "qG" class? The default (\code{FALSE}) always returns
 an integer vector.}
 
-\item{.name}{Name of the added group ID column which should be a
+\item{.name}{Name of the added ID column which should be a
 character vector of length 1.
-If \code{NULL} then a column named "group_id" will be added,
+If \code{.name = NULL} (the default),
+\code{add_group_id()} will add a column named "group_id",
 and if one already exists, a unique name will be used.}
 }
 \description{
@@ -89,7 +102,7 @@ group orders. \cr
 The \code{add_} variants add a column of group IDs/row IDs/group orders.
 }
 \details{
-It's important to note for \code{data.frames}, these functions by default assume
+It's important to note for data frames, these functions by default assume
 no groups unless you supply them.
 
 This means that when no groups are supplied:
@@ -104,6 +117,17 @@ One can specify groups in the second argument like so:
 \item \code{group_id(iris, Species)}
 \item \code{row_id(iris, across(all_of("Species")))}
 \item \code{group_order(iris, across(where(is.numeric), desc))}
+}
+
+If you want \code{group_id} to always use all the columns of a data frame
+for grouping
+while simultaneously utilising the \code{group_id} methods, one can use the below
+function.
+
+\preformatted{
+group_id2 <- function(data, ...){
+ group_id(data, ..., .cols = names(data))
+}
 }
 }
 \examples{

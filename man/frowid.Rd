@@ -2,12 +2,9 @@
 % Please edit documentation in R/frowid.R
 \name{frowid}
 \alias{frowid}
-\alias{gseq_len}
 \title{Fast grouped row numbers}
 \usage{
 frowid(x, g, ascending = TRUE, order = TRUE)
-
-gseq_len(length, g = NULL)
 }
 \arguments{
 \item{x}{A vector or data frame.}
@@ -24,8 +21,6 @@ decreasing order.}
 \item{order}{Should the groups treated as ordered groups?
 This makes no difference on the result but can sometimes be faster for
 unsorted vectors.}
-
-\item{length}{Sequence length.}
 }
 \value{
 An integer vector of row IDs
@@ -40,14 +35,6 @@ long as the number of unique lengths is \verb{<= 1}.
 \code{collapse} for the grouping.
 
 For a more  tidyverse friendly version for data frames, see \code{?row_id}.
-}
-\details{
-\code{gseq_len()}is the same as \code{frowid()}
-but accepts similar arguments to \code{seq_len()} with
-an additional group argument. \cr
-Both produce the same thing, namely a running integer sequence for
-each group that increments by 1 and starts at 1. \cr
-This is most useful for calculating row numbers. \cr
 }
 \examples{
 library(timeplyr)
@@ -77,12 +64,5 @@ flights \%>\%
   mutate(id1 = row_number(),
          .by = c(origin, dest)) \%>\%
   mutate(id2 = frowid(pick(origin, dest))) \%>\%
-  filter(id1 != id2)
-
-flights \%>\%
-  mutate(id1 = row_number(),
-         .by = c(origin, dest)) \%>\%
-  add_group_id(origin, dest) \%>\%
-  mutate(id2 = gseq_len(nrow(.), g = group_id)) \%>\%
   filter(id1 != id2)
 }

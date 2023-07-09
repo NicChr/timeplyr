@@ -7,11 +7,15 @@
 #' * The returned `tibble` is always in long format, even when the time-series
 #'   is multivariate.
 #'
-#' @param x An object of class `ts`, `mts`, `xts` or `timeSeries`.
+#' @param x An object of class `ts`, `mts`, `zoo`, `xts` or `timeSeries`.
 #' @param name Name of the output time column.
 #' @param value Name of the output value column.
 #' @param group Name of the output group column
 #' when there are multiple series.
+#' @return A 2-column `tibble` containing the time index and values for each
+#' time index. In the case where there are multiple series, this becomes
+#' a 3-column `tibble` with an additional "group" column added.
+#' @seealso \link[timeplyr]{time_ggplot}
 #' @examples
 #' library(timeplyr)
 #' library(ggplot2)
@@ -55,6 +59,7 @@ ts_as_tibble <- function(x, name = "time", value = "value", group = "group"){
   time <- seq(from = start,
               to = end,
               by = 1/freq)
+  groups <- NULL
   # If multivariate, repeat time sequence and group names
   if (inherits(x, "mts")){
     ncol <- ncol(x)
@@ -83,8 +88,16 @@ ts_as_tibble <- function(x, name = "time", value = "value", group = "group"){
     ncol <- ncol(x)
     groups <- rep(colnames(x), each = length(time))
     time <- rep(time, times = ncol)
-    } else {
-    groups <- NULL
+  } else if (inherits(x, "zoo")){
+    time <- attr(x, "index")
+    ncol <- ncol(x)
+    if (!is.null(ncol)){
+      groups <- rep(colnames(x), each = length(time))
+      if (is.null(groups)){
+       groups <- rep(seq_len(ncol), each = length(time))
+      }
+      time <- rep(time, times = ncol)
+    }
   }
   dplyr::tibble(!!group := groups,
                 !!name := time,

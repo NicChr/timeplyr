@@ -71,15 +71,20 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
       out_vars <- dup_vars
     }
   }
+  if (length(group_info[["extra_groups"]]) == 0L){
+    out <- data
+  }
   out <- fselect(out, .cols = out_vars)
   # Groups
-  groups <- df_to_GRP(out, .cols = dup_vars)
+  groups <- df_to_GRP(out, .cols = dup_vars,
+                      return.order = FALSE,
+                      return.groups = FALSE)
   group_sizes <- GRP_expanded_group_sizes(groups)
   if (.add_count){
     n_var_nm <- new_n_var_nm(out)
     out[[n_var_nm]] <- group_sizes
   }
-  out <- df_row_slice(out, GRP_duplicated(groups, all = .both_ways))
+  out <- df_row_slice(out, GRP_which_duplicated(groups, all = .both_ways))
   # Remove empty rows (rows with all NA values)
   if (!.keep_na){
     out <- df_row_slice(out, collapse::whichv(rowSums(is.na(fselect(out, .cols = dup_vars))),
@@ -122,8 +127,11 @@ fduplicates2 <- function(data, ..., .keep_all = FALSE,
   id_nm <- new_var_nm(names(out), ".id")
   out <- out %>%
     dplyr::select(all_of(out_vars)) %>%
-    dplyr::mutate(!!grp_nm := group_id(data, .by = {{ .by }}),
-                  !!id_nm := gseq_len(nrow2(data), g = .data[[grp_nm]]))
+    dplyr::group_by(dplyr::across(dplyr::all_of(group_vars))) %>%
+    dplyr::mutate(!!grp_nm := dplyr::cur_group_id()) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(!!id_nm := dplyr::row_number(),
+                  .by = dplyr::all_of(grp_nm))
   if (.add_count){
     n_var <- new_n_var_nm(names(out))
     out <- dplyr::add_count(out, across(all_of(c(grp_nm, dup_vars))), name = n_var)

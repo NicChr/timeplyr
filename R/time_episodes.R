@@ -138,8 +138,8 @@ time_episodes <- function(data, time, time_by = NULL,
                           time_type = c("auto", "duration", "period"),
                           .by = NULL){
   N <- nrow2(data)
-  if (window <= 0){
-    stop("window must be strictly greater than 0")
+  if (window < 0){
+    stop("window must be strictly greater or equal to 0")
   }
   start_nms <- names(data)
   time_quo <- enquo(time)
@@ -249,7 +249,7 @@ calc_episodes <- function(data,
   time_na <- fpluck(data, time)[N + 1L] # time NA with correct class
   time_num <- time_by_num(time_by)
   time_unit <- time_by_unit(time_by)
-  time_threshold <- setnames(list(time_num * window), time_unit)
+  # time_threshold <- setnames(list(time_num * window), time_unit)
 
   ##### (More efficient) METHOD assuming all rows are events #####
 
@@ -272,7 +272,8 @@ calc_episodes <- function(data,
                     j = "ep_id",
                     value = time_seq_id(fpluck(data, time),
                                         g = g,
-                                        time_by = time_threshold,
+                                        time_by = time_by,
+                                        threshold = window,
                                         time_type = time_type,
                                         rolling = roll_episode,
                                         switch_on_boundary = switch_on_boundary,
@@ -376,7 +377,8 @@ calc_episodes <- function(data,
                     j = "ep_id",
                     value = time_seq_id(fpluck(event_data, time),
                                         fpluck(event_data, gid),
-                                        time_by = time_threshold,
+                                        time_by = time_by,
+                                        threshold = window,
                                         time_type = time_type,
                                         rolling = roll_episode,
                                         switch_on_boundary = switch_on_boundary,

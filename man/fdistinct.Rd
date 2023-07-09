@@ -4,7 +4,15 @@
 \alias{fdistinct}
 \title{Find distinct rows}
 \usage{
-fdistinct(data, ..., .keep_all = FALSE, sort = FALSE, .by = NULL, .cols = NULL)
+fdistinct(
+  data,
+  ...,
+  .keep_all = FALSE,
+  sort = FALSE,
+  order = sort,
+  .by = NULL,
+  .cols = NULL
+)
 }
 \arguments{
 \item{data}{A data frame.}
@@ -14,7 +22,12 @@ fdistinct(data, ..., .keep_all = FALSE, sort = FALSE, .by = NULL, .cols = NULL)
 \item{.keep_all}{If \code{TRUE} then all columns of data frame are kept,
 default is \code{FALSE}.}
 
-\item{sort}{Should result be sorted? Default is \code{FALSE}.}
+\item{sort}{Should result be sorted? Default is \code{FALSE}.
+When \code{order = FALSE} this option has no effect on the result.}
+
+\item{order}{Should the groups be calculated as ordered groups?
+This can be beneficial speed-wise to set to \code{TRUE}
+when the data are large and messy. The default is \code{FALSE}.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
@@ -23,7 +36,27 @@ Columns are specified using tidy-select.}
 a named character vector or numeric vector.
 If speed is an expensive resource, it is recommended to use this.}
 }
+\value{
+A data frame of unique groups.
+}
 \description{
 Like \code{dplyr::distinct()} but faster when lots of
 groups are involved.
+}
+\details{
+See \code{?group_collapse} for a more flexible method.
+}
+\examples{
+library(dplyr)
+library(timeplyr)
+library(ggplot2)
+
+mpg \%>\%
+  distinct(manufacturer)
+mpg \%>\%
+  fdistinct(manufacturer)
+
+}
+\seealso{
+\link[timeplyr]{group_collapse}
 }

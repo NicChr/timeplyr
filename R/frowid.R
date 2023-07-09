@@ -16,14 +16,6 @@
 #' @param order Should the groups treated as ordered groups?
 #' This makes no difference on the result but can sometimes be faster for
 #' unsorted vectors.
-#' @param length Sequence length.
-#' @details
-#' `gseq_len()`is the same as `frowid()`
-#' but accepts similar arguments to `seq_len()` with
-#' an additional group argument. \cr
-#' Both produce the same thing, namely a running integer sequence for
-#' each group that increments by 1 and starts at 1. \cr
-#' This is most useful for calculating row numbers. \cr
 #'
 #' @return An integer vector of row IDs
 #' or double if `length > .Machine$integer.max`
@@ -60,13 +52,6 @@
 #'          .by = c(origin, dest)) %>%
 #'   mutate(id2 = frowid(pick(origin, dest))) %>%
 #'   filter(id1 != id2)
-#'
-#' flights %>%
-#'   mutate(id1 = row_number(),
-#'          .by = c(origin, dest)) %>%
-#'   add_group_id(origin, dest) %>%
-#'   mutate(id2 = gseq_len(nrow(.), g = group_id)) %>%
-#'   filter(id1 != id2)
 #' @rdname frowid
 #' @export
 frowid <- function(x, g, ascending = TRUE, order = TRUE){
@@ -81,20 +66,21 @@ frowid <- function(x, g, ascending = TRUE, order = TRUE){
       out <- rev(out)
     }
   } else {
-    o <- NULL
     g <- GRP2(g, sort = order, call = FALSE, return.groups = FALSE,
               return.order = TRUE)
     # If groups are sorted we can use sequence()
     if (GRP_is_sorted(g)){
+      seq_sizes <- GRP_group_sizes(g)
       if (ascending){
-        out <- sequence2(GRP_group_sizes(g))
+        start <- 1L
+        every <- 1L
       } else {
-        out <- sequence2(GRP_group_sizes(g),
-                         from = GRP_group_sizes(g),
-                         by = -1L)
+        start <- seq_sizes
+        every <- -1L
       }
-
+      out <- sequence2(seq_sizes, from = start, by = every)
     } else {
+      o <- NULL
       if (!ascending){
         o <- seq.int(from = len, to = min(1L, len), by = -1L)
       }
@@ -107,16 +93,33 @@ frowid <- function(x, g, ascending = TRUE, order = TRUE){
   }
   out
 }
-#' @rdname frowid
-#' @export
-gseq_len <- function(length, g = NULL){
-  if (is.null(g)){
-    seq_len(length)
-  }  else {
-    g <- GRP2(g, sort = TRUE,
-              call = FALSE, return.groups = FALSE)
-    fcumsum(seq_ones(length),
-            na.rm = FALSE,
-            g = g)
-  }
-}
+# Alternate version that uses re-ordering instead of cumulative sums
+# Still a work-in-progress
+# frowid <- function(x, g, ascending = TRUE, order = TRUE){
+#   len <- vec_length(x)
+#   if (missing(g)){
+#     g <- GRP2(x, sort = order, call = FALSE, return.groups = FALSE,
+#               return.order = TRUE)
+#   }
+#   if (is.null(g)){
+#     out <- seq_len(len)
+#     if (!ascending){
+#       out <- rev(out)
+#     }
+#   } else {
+#     o <- NULL
+#     g <- GRP2(g, sort = order, call = FALSE, return.groups = FALSE,
+#               return.order = TRUE)
+#       if (ascending){
+#         out <- sequence2(GRP_group_sizes(g))
+#       } else {
+#         out <- sequence2(GRP_group_sizes(g),
+#                          from = GRP_group_sizes(g),
+#                          by = -1L)
+#       }
+#     if (!GRP_is_sorted(g)){
+#       out <- collapse::greorder(out, g = g)
+#     }
+#   }
+#   out
+# }

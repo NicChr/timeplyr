@@ -7,7 +7,7 @@
 ts_as_tibble(x, name = "time", value = "value", group = "group")
 }
 \arguments{
-\item{x}{An object of class \code{ts}, \code{mts}, \code{xts} or \code{timeSeries}.}
+\item{x}{An object of class \code{ts}, \code{mts}, \code{zoo}, \code{xts} or \code{timeSeries}.}
 
 \item{name}{Name of the output time column.}
 
@@ -15,6 +15,11 @@ ts_as_tibble(x, name = "time", value = "value", group = "group")
 
 \item{group}{Name of the output group column
 when there are multiple series.}
+}
+\value{
+A 2-column \code{tibble} containing the time index and values for each
+time index. In the case where there are multiple series, this becomes
+a 3-column \code{tibble} with an additional "group" column added.
 }
 \description{
 While a method already exists in the \code{tibble} package,
@@ -59,4 +64,7 @@ timeSeries::MSFT \%>\%
   ts_as_tibble() \%>\%
   time_ggplot(time, value, group, facet = TRUE)
 }
+}
+\seealso{
+\link[timeplyr]{time_ggplot}
 }

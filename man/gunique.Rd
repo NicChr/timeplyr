@@ -3,17 +3,20 @@
 \name{gunique}
 \alias{gunique}
 \alias{gduplicated}
+\alias{gwhich_duplicated}
 \alias{gsort}
 \alias{gorder}
 \title{Grouped \code{unique()}, \code{sort()} and \code{duplicated()}}
 \usage{
 gunique(x, g = NULL, sort = FALSE, order = TRUE, use.g.names = TRUE)
 
-gduplicated(x, g = NULL, order = TRUE, use.g.names = TRUE, all = FALSE)
+gduplicated(x, g = NULL, order = TRUE, all = FALSE)
+
+gwhich_duplicated(x, g = NULL, order = TRUE, all = FALSE)
 
 gsort(x, g = NULL, order = TRUE, use.g.names = TRUE)
 
-gorder(x, g = NULL, order = TRUE, use.g.names = TRUE)
+gorder(x, g = NULL, order = TRUE)
 }
 \arguments{
 \item{x}{A vector or data frame.}
@@ -63,4 +66,11 @@ gunique(iris$Sepal.Width, g = iris$Species,
 iris \%>\%
   reframe(Sepal.Width = sort(unique(Sepal.Width)), .by = Species) \%>\%
   pull(Sepal.Width)
+
+# Very fast way of finding duplicate rows
+df <- data.frame(group = sample.int(10^6, 10^4, TRUE))
+
+which(gduplicated(df))
+# More efficient
+gwhich_duplicated(df)
 }

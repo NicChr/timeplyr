@@ -14,6 +14,19 @@ testthat::test_that("Compare to dplyr", {
                                dplyr::count())
   testthat::expect_equal(iris %>% dplyr::count(),
                              iris %>% fcount())
+  testthat::expect_identical(
+    iris %>%
+      data.table::as.data.table() %>%
+      fcount(),
+    data.table::data.table(n = 150L)
+  )
+  testthat::expect_identical(
+    iris %>%
+      data.table::as.data.table() %>%
+      dplyr::slice(0L) %>%
+      fcount(),
+    data.table::data.table(n = 0L)
+  )
   # Unused factor levels
 
   testthat::expect_equal(iris %>%

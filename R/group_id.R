@@ -15,7 +15,19 @@
 #' To specify groups using `tidyselect`, simply use the `.by` argument.
 #' @param order Should the groups be ordered?
 #' \bold{THE PHYSICAL ORDER OF THE DATA IS NOT CHANGED.} \cr
-#' When order is `TRUE` (the default) the group IDs will be ordered but not sorted.
+#' When order is `TRUE` (the default) the group IDs will be
+#' ordered but not sorted.\cr
+#' The expression
+#' \preformatted{
+#' identical(order(x, na.last = TRUE),
+#'           order(group_id(x, order = TRUE)))
+#' }
+#' or in the case of a data frame
+#' \preformatted{
+#' identical(order(x1, x2, x3, na.last = TRUE),
+#'           order(group_id(data, x1, x2, x3, order = TRUE)))
+#' }
+#' should always hold.\cr
 #' If `FALSE` the order of the group IDs will be based on first appearance.
 #' @param ascending Should the group order be ascending or descending?
 #' The default is `TRUE`. \cr
@@ -26,15 +38,16 @@
 #' @param .cols (Optional) alternative to `...` that accepts
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
-#' @param .name Name of the added group ID column which should be a
+#' @param .name Name of the added ID column which should be a
 #' character vector of length 1.
-#' If `NULL` then a column named "group_id" will be added,
+#' If `.name = NULL` (the default),
+#' `add_group_id()` will add a column named "group_id",
 #' and if one already exists, a unique name will be used.
 #' @param as_qg Should the group IDs be returned as a
 #' collapse "qG" class? The default (`FALSE`) always returns
 #' an integer vector.
 #' @details
-#' It's important to note for `data.frames`, these functions by default assume
+#' It's important to note for data frames, these functions by default assume
 #' no groups unless you supply them.
 #'
 #' This means that when no groups are supplied:
@@ -46,6 +59,18 @@
 #' * `group_id(iris, Species)`
 #' * `row_id(iris, across(all_of("Species")))`
 #' * `group_order(iris, across(where(is.numeric), desc))`
+#'
+#' If you want `group_id` to always use all the columns of a data frame
+#' for grouping
+#' while simultaneously utilising the `group_id` methods, one can use the below
+#' function.
+#'
+#' \preformatted{
+#' group_id2 <- function(data, ...){
+#'  group_id(data, ..., .cols = names(data))
+#' }
+#' }
+#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -96,35 +121,35 @@ group_id <- function(data, ...,
 group_id.default <- function(data, ..., order = TRUE,
                              ascending = TRUE,
                              as_qg = FALSE){
-  if (order){
-    g <- GRP2(safe_ungroup(data),
-                sort = TRUE,
-                decreasing = !ascending,
-                na.last = TRUE,
-                return.groups = FALSE,
-                return.order = FALSE,
-                method = "auto",
-                call = FALSE)
-    out <- GRP_group_id(g)
-  } else {
-    out <- group2(data)
-  }
-  if (as_qg && order){
-    out <- group_id_to_qg(out, n_groups = GRP_n_groups(g), ordered = TRUE)
-  }
-  if (!as_qg && !order){
-    out <- qg_to_integer(out)
+  g <- GRP2(safe_ungroup(data),
+            sort = order,
+            decreasing = !ascending,
+            na.last = TRUE,
+            return.groups = FALSE,
+            return.order = FALSE,
+            method = "auto",
+            call = FALSE)
+  out <- GRP_group_id(g)
+  if (as_qg){
+    out <- group_id_to_qg(out,
+                          n_groups = GRP_n_groups(g),
+                          ordered = order)
   }
   out
 }
 #' @export
 group_id.Interval <- function(data, ..., order = TRUE,
                               ascending = TRUE, as_qg = FALSE){
-  g <- GRP.Interval(data, sort = order, decreasing = !ascending,
-                      call = FALSE, return.groups = FALSE)
-  out <- GRP_group_id(g)
+  X <- interval_separate(data)
+  # X[[1L]][is.na(X[[2L]])] <- NA
+  groups <- collapse::GRP(X, sort = order,
+                          decreasing = !ascending,
+                          call = FALSE,
+                          return.groups = FALSE,
+                          return.order = FALSE)
+  out <- GRP_group_id(groups)
   if (as_qg){
-    out <- group_id_to_qg(out, n_groups = GRP_n_groups(g),
+    out <- group_id_to_qg(out, n_groups = GRP_n_groups(groups),
                           ordered = order)
   }
   out
@@ -148,13 +173,13 @@ group_id.data.frame <- function(data, ...,
     # Method for grouped_df
   } else {
     g <- GRP2(group_info[["data"]], by = all_groups,
-                sort = order,
-                decreasing = !ascending,
-                na.last = TRUE,
-                return.groups = FALSE,
-                return.order = FALSE,
-                method = "auto",
-                call = FALSE)
+              sort = order,
+              decreasing = !ascending,
+              na.last = TRUE,
+              return.groups = FALSE,
+              return.order = FALSE,
+              method = "auto",
+              call = FALSE)
     out <- GRP_group_id(g)
     n_groups <- GRP_n_groups(g)
   }
@@ -192,9 +217,7 @@ group_id.grouped_df <- function(data, ...,
   out
 }
 #' @export
-group_id.GRP <- function(data, ...,
-                         order = TRUE,
-                         as_qg = FALSE){
+group_id.GRP <- function(data, ..., order = TRUE, as_qg = FALSE){
   group_ids <- GRP_group_id(data)
   if (!order && GRP_is_ordered(data)){
     out <- group_id(group_ids, order = order)
@@ -232,12 +255,12 @@ row_id <- function(data, ..., ascending = TRUE,
   UseMethod("row_id")
 }
 #' @export
-row_id.default <- function(data, ..., ascending = TRUE){
-  frowid(safe_ungroup(data), ascending = ascending)
+row_id.default <- function(data, ..., ascending = TRUE, order = TRUE){
+  frowid(safe_ungroup(data), ascending = ascending, order = order)
 }
 #' @export
 row_id.data.frame <- function(data, ...,
-                              ascending = TRUE,
+                              ascending = TRUE, order = TRUE,
                               .by = NULL, .cols = NULL){
   N <- nrow2(data)
   group_info <- group_info(data, ..., .by = {{ .by }},
@@ -250,12 +273,12 @@ row_id.data.frame <- function(data, ...,
     g <- NULL
   } else {
     g <- GRP2(data, by = vars,
-              sort = TRUE,
+              sort = order,
               decreasing = FALSE,
               return.groups = FALSE, return.order = TRUE,
               call = FALSE)
   }
-  frowid(data, g = g, ascending = ascending)
+  frowid(data, g = g, ascending = ascending, order = order)
 }
 #' @export
 row_id.grouped_df <- row_id.data.frame
@@ -372,10 +395,6 @@ add_group_order <- function(data, ..., ascending = TRUE,
 #     vctrs::vec_slice(data, gorder)
 #   }
 # }
-GRP.Interval <- function(X, ...){
-  X <- interval_separate(X)
-  collapse::GRP(X, ...)
-}
 group2 <- function(X, ...){
   if (is_interval(X)){
     X <- interval_separate(X)
@@ -385,28 +404,33 @@ group2 <- function(X, ...){
   }
   collapse::group(X, ...)
 }
-qG2 <- function(x, sort = TRUE, na.exclude = FALSE, ...){
+qG2 <- function(x, sort = TRUE, ordered = FALSE, na.exclude = FALSE, ...){
   if (is_interval(x)){
-    g <- GRP.Interval(x, sort = sort, call = FALSE, return.groups = FALSE)
-    out <- GRP_group_id(g)
     if (na.exclude){
-      setv(out, collapse::whichNA(x), NA_integer_, vind1 = TRUE)
+      which_not_na <- collapse::whichv(int_is_na(x), FALSE)
+      out <- rep_len(NA_integer_, length(x))
+      qgroup <- group_id(x[which_not_na], order = sort, as_qg = TRUE)
+      n_groups <- attr(qgroup, "N.groups")
+      setv(out, which_not_na, qg_to_integer(qgroup), vind1 = TRUE)
+      if (ordered){
+        collapse::setattrib(out, list("N.groups" = n_groups,
+                                      "class" = c("ordered", "qG")))
+      } else {
+        collapse::setattrib(out, list("N.groups" = n_groups,
+                                      "class" = "qG"))
+      }
+    } else {
+      out <- group_id(x, order = sort, as_qg = TRUE)
+      n_groups <- attr(out, "N.groups")
+      out <- qg_to_integer(out)
+      out <- group_id_to_qg(out, n_groups = n_groups, ordered = ordered)
     }
-    out <- group_id_to_qg(out, GRP_n_groups(g))
   } else {
-    out <- collapse::qG(x, sort = sort, na.exclude = na.exclude, ...)
+    out <- collapse::qG(x, sort = sort,
+                        ordered = ordered,
+                        na.exclude = na.exclude, ...)
   }
   out
-}
-# data frame Wrapper around GRP to convert lubridate intervals to group IDs
-GRP2 <- function(X, ...){
-  args <- as.list(match.call())[-1]
-  if (is.list(X) && has_interval(X, quiet = TRUE)){
-    X <- mutate_intervals_to_ids(X)
-    args[["X"]] <- X
-  }
-  do.call(get("GRP", asNamespace("collapse")),
-          args, envir = parent.frame())
 }
 # Mutate interval columns to group IDs
 mutate_intervals_to_ids <- function(data){
@@ -432,13 +456,13 @@ radixorderv2 <- function(x, ...){
 }
 group_id_to_qg <- function(x, n_groups = NULL, ordered = FALSE){
   if (is.null(n_groups)){
-    n_groups <- collapse::fndistinct(x, na.rm = FALSE)
+    n_groups <- collapse::fnunique(x)
   }
   attr(x, "N.groups") <- n_groups
   if (ordered){
-    attr(x, "class") <- c("ordered", "qG", "na.included")
+    class(x) <- c("ordered", "qG", "na.included")
   } else {
-    attr(x, "class") <- c("qG", "na.included")
+    class(x) <- c("qG", "na.included")
   }
   x
 }
