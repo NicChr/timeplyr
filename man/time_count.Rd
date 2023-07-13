@@ -23,10 +23,7 @@ time_count(
   roll_month = "preday",
   roll_dst = "pre",
   include_interval = FALSE,
-  keep_class = TRUE,
-  by = NULL,
-  seq_type = NULL,
-  floor_date = NULL
+  keep_class = TRUE
 )
 }
 \arguments{
@@ -104,12 +101,6 @@ The rightmost interval will always be closed.}
 \item{keep_class}{Logical. If \code{TRUE} then the class of
 the input data is retained.
 If \code{FALSE}, which is sometimes faster, a \code{data.table} is returned.}
-
-\item{by}{\bold{Deprecated}. Use \code{time_by} instead}
-
-\item{seq_type}{\bold{Deprecated}. Use \code{time_type} instead.}
-
-\item{floor_date}{\bold{Deprecated}. Use \code{time_floor} instead.}
 }
 \value{
 An object of class \code{data.frame}

@@ -106,14 +106,17 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
       # starts are shifted by the number
       # of initial NA values of each group
       # This is only important for the fill arg
+      # group_starts <- group_starts +
+      #   fnmiss(x_filled, g = g2, use.g.names = FALSE, na.rm = FALSE)
+      # group_starts <- pmin(group_starts, fn(x, g = g2))
       group_starts <- group_starts +
-        fnmiss(x_filled, g = g2, use.g.names = FALSE, na.rm = FALSE)
+        fnmiss(x_lag, g = g2, use.g.names = FALSE, na.rm = FALSE) - 1L
     } else {
       x_lag <- flag2(x, g = g2)
     }
     out <- time_diff(x_lag, x, time_by = time_by, time_type = time_type)
     if (!is.na(fill)){
-      setv(out, group_starts, fill, vind1 = TRUE)
+      out[group_starts] <- fill
     }
     # Sort back to original order
     if (!groups_are_sorted){

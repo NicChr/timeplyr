@@ -2,9 +2,24 @@
 % Please edit documentation in R/ts_as_tibble.R
 \name{ts_as_tibble}
 \alias{ts_as_tibble}
+\alias{ts_as_tibble.default}
+\alias{ts_as_tibble.mts}
+\alias{ts_as_tibble.xts}
+\alias{ts_as_tibble.zoo}
+\alias{ts_as_tibble.timeSeries}
 \title{Turn \code{ts} into a \code{tibble}}
 \usage{
 ts_as_tibble(x, name = "time", value = "value", group = "group")
+
+\method{ts_as_tibble}{default}(x, name = "time", value = "value", group = "group")
+
+\method{ts_as_tibble}{mts}(x, name = "time", value = "value", group = "group")
+
+\method{ts_as_tibble}{xts}(x, name = "time", value = "value", group = "group")
+
+\method{ts_as_tibble}{zoo}(x, name = "time", value = "value", group = "group")
+
+\method{ts_as_tibble}{timeSeries}(x, name = "time", value = "value", group = "group")
 }
 \arguments{
 \item{x}{An object of class \code{ts}, \code{mts}, \code{zoo}, \code{xts} or \code{timeSeries}.}
@@ -59,6 +74,12 @@ sample.xts <- xts::as.xts(sample_matrix)
 sample.xts \%>\%
   ts_as_tibble() \%>\%
   time_ggplot(time, value, group)
+# zoo example
+x.Date <- as.Date("2003-02-01") + c(1, 3, 7, 9, 14) - 1
+x <- zoo::zoo(rnorm(5), x.Date)
+ts_as_tibble(x)
+x <- zoo::zoo(matrix(1:12, 4, 3), as.Date("2003-01-01") + 0:3)
+ts_as_tibble(x)
 # timeSeries example
 timeSeries::MSFT \%>\%
   ts_as_tibble() \%>\%

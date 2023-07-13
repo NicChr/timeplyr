@@ -42,6 +42,11 @@
 #' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations` are used otherwise.
+#' @return An integer vector, starting
+#' @details `time_seq_id()` Assumes `x` is regular and in
+#' ascending or descending order.
+#' To check this condition formally, use `time_is_regular()`.
+#'
 #' @examples
 #' library(dplyr)
 #' library(timeplyr)
@@ -76,18 +81,11 @@ time_seq_id <- function(x, time_by = NULL, threshold = 1,
   telapsed <- time_elapsed(x, time_by = time_by, g = g,
                            time_type = time_type, rolling = rolling,
                            na_skip = na_skip, fill = 0)
-  # Check x is in ascending order
-  check_time_elapsed_order(telapsed)
-  tol <- sqrt(.Machine$double.eps)
-  # x > y
-  # over_threshold <- (telapsed - threshold) > tol
-  # x > y OR x == y
-  # over_threshold <- over_threshold | abs(telapsed - threshold) < tol
   if (rolling){
     if (switch_on_boundary){
-      over_threshold <- (telapsed - threshold) >= (0 - tol)
+      over_threshold <- double_gte(telapsed, threshold)
     } else {
-      over_threshold <- (telapsed - threshold) > (tol)
+      over_threshold <- double_gt(telapsed, threshold)
     }
   } else {
     if (!is.null(g)){
@@ -95,18 +93,16 @@ time_seq_id <- function(x, time_by = NULL, threshold = 1,
       over_threshold <- dt[, ("over") :=
                              roll_time_threshold(get("x"),
                                                  threshold = threshold,
-                                                 switch_on_boundary = switch_on_boundary,
-                                                 tol = tol),
+                                                 switch_on_boundary = switch_on_boundary),
                            by = "group_id"][["over"]]
     } else {
       over_threshold <- roll_time_threshold(telapsed,
                                             threshold = threshold,
-                                            switch_on_boundary = switch_on_boundary,
-                                            tol = tol)
+                                            switch_on_boundary = switch_on_boundary)
     }
   }
   # Make sure first ID is always 1
-  setv(over_threshold, group_start_locs, 0L, vind1 = TRUE)
+  # over_threshold[group_start_locs] <- 0L
   collapse::fcumsum(over_threshold, g = g, na.rm = na_skip) + 1L
 }
 # time_seq_id <- function(x, time_by = NULL,

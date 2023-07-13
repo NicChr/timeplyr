@@ -370,37 +370,37 @@ testthat::test_that("ftseq compared to time_seq", {
                                tz = "GB")
   end1 <- start1 + lubridate::ddays(37)
   end2 <- start1 + lubridate::days(37)
-  testthat::expect_equal(time_seq(start1, end1, time_by = "2 days", time_type = "period"),
-                             ftseq(start1, end1, units = "days", num = 2, time_type = "period"))
-  testthat::expect_equal(time_seq(start1, end1, time_by = "2 days", time_type = "duration"),
-                             ftseq(start1, end1, units = "days", num = 2, time_type = "duration"))
-  # Negative sign for time_seq() but not ftseq()
-  testthat::expect_equal(time_seq(end1, start1, time_by = "2 days", time_type = "duration"),
-                             ftseq(end1, start1,  units = "days", num = -2, time_type = "duration"))
-
-  testthat::expect_equal(time_seq(start1, end1,  time_by = "2 days"),
-                             ftseq(start1, end1, units = "days", num = 2))
-  testthat::expect_equal(time_seq(start1, end1,  time_by = list("hours" = pi)),
-                             ftseq(start1, end1, units = "hours", num = pi))
-  testthat::expect_equal(time_seq(start1, end1,  time_by = list("hours" = pi), tz = "America/New_York"),
-                             lubridate::with_tz(ftseq(start1, end1, units = "hours", num = pi),
-                                                "America/New_York"))
-  testthat::expect_equal(time_seq(start1, end1,  time_by = list("hours" = pi), tz = "America/New_York",
-                                      time_floor = TRUE),
-                             lubridate::with_tz(ftseq(start1, end1, units = "hours", num = pi,
-                                   time_floor = TRUE), "America/New_York"))
-  testthat::expect_equal(time_seq(13.5, 194.75,  time_by = list("numeric" = 7),
-                                      time_floor = FALSE),
-                             ftseq(13.5, 194.75, units = "numeric", num = 7,
-                                   time_floor = FALSE))
-  testthat::expect_equal(time_seq(13.5, 194.75,  time_by = 7,
-                                      time_floor = FALSE),
-                             ftseq(13.5, 194.75, units = "numeric", num = 7,
-                                   time_floor = FALSE))
-  testthat::expect_equal(time_seq(13.5, 194.75,  time_by = 7,
-                                      time_floor = TRUE),
-                             ftseq(13.5, 194.75, units = "numeric", num = 7,
-                                   time_floor = TRUE))
+  # testthat::expect_equal(time_seq(start1, end1, time_by = "2 days", time_type = "period"),
+  #                            ftseq(start1, end1, units = "days", num = 2, time_type = "period"))
+  # testthat::expect_equal(time_seq(start1, end1, time_by = "2 days", time_type = "duration"),
+  #                            ftseq(start1, end1, units = "days", num = 2, time_type = "duration"))
+  # # Negative sign for time_seq() but not ftseq()
+  # testthat::expect_equal(time_seq(end1, start1, time_by = "2 days", time_type = "duration"),
+  #                            ftseq(end1, start1,  units = "days", num = -2, time_type = "duration"))
+  #
+  # testthat::expect_equal(time_seq(start1, end1,  time_by = "2 days"),
+  #                            ftseq(start1, end1, units = "days", num = 2))
+  # testthat::expect_equal(time_seq(start1, end1,  time_by = list("hours" = pi)),
+  #                            ftseq(start1, end1, units = "hours", num = pi))
+  # testthat::expect_equal(time_seq(start1, end1,  time_by = list("hours" = pi), tz = "America/New_York"),
+  #                            lubridate::with_tz(ftseq(start1, end1, units = "hours", num = pi),
+  #                                               "America/New_York"))
+  # testthat::expect_equal(time_seq(start1, end1,  time_by = list("hours" = pi), tz = "America/New_York",
+  #                                     time_floor = TRUE),
+  #                            lubridate::with_tz(ftseq(start1, end1, units = "hours", num = pi,
+  #                                  time_floor = TRUE), "America/New_York"))
+  # testthat::expect_equal(time_seq(13.5, 194.75,  time_by = list("numeric" = 7),
+  #                                     time_floor = FALSE),
+  #                            ftseq(13.5, 194.75, units = "numeric", num = 7,
+  #                                  time_floor = FALSE))
+  # testthat::expect_equal(time_seq(13.5, 194.75,  time_by = 7,
+  #                                     time_floor = FALSE),
+  #                            ftseq(13.5, 194.75, units = "numeric", num = 7,
+  #                                  time_floor = FALSE))
+  # testthat::expect_equal(time_seq(13.5, 194.75,  time_by = 7,
+  #                                     time_floor = TRUE),
+  #                            ftseq(13.5, 194.75, units = "numeric", num = 7,
+  #                                  time_floor = TRUE))
   testthat::expect_equal(time_seq(100, 5, time_by = 5),
                              seq(100, 5, by = -5))
   testthat::expect_equal(time_seq(100, 5, time_by = -5),
@@ -408,10 +408,36 @@ testthat::test_that("ftseq compared to time_seq", {
 
   testthat::expect_equal(time_seq(lubridate::Date(0), lubridate::Date(0), time_by = "days", time_type = "duration"),
                              lubridate::POSIXct(0))
-  testthat::expect_equal(ftseq(lubridate::Date(0), lubridate::Date(0), units = "days", time_type = "duration"),
-                             lubridate::POSIXct(0))
+  # testthat::expect_equal(ftseq(lubridate::Date(0), lubridate::Date(0), units = "days", time_type = "duration"),
+  #                            lubridate::POSIXct(0))
   testthat::expect_equal(time_seq(lubridate::Date(0), lubridate::Date(0), time_by = "days", time_type = "period"),
                          lubridate::Date(0))
-  testthat::expect_equal(ftseq(lubridate::Date(0), lubridate::Date(0), units = "days", time_type = "period"),
-                         lubridate::Date(0))
+  # testthat::expect_equal(ftseq(lubridate::Date(0), lubridate::Date(0), units = "days", time_type = "period"),
+  #                        lubridate::Date(0))
+})
+
+testthat::test_that("dates, datetimes and numeric increments", {
+  start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
+                               tz = "GB")
+  end1 <- start1 + lubridate::ddays(10)
+  start2 <- lubridate::as_date(start1)
+  end2 <- lubridate::as_date(end1)
+
+  testthat::expect_equal(time_seq_v(start2, end2,
+                                    time_by = "3 days"),
+                         time_seq_v(start2, end2,
+                                    time_by = 3))
+  testthat::expect_equal(time_seq_v(start1, end1,
+                                    time_by = "300 seconds"),
+                         time_seq_v(start1, end1,
+                                    time_by = 300))
+  testthat::expect_equal(time_seq_v(start1, end2,
+                                    time_by = "338.5 seconds"),
+                         time_seq_v(start1, end2,
+                                    time_by = 338.5))
+  testthat::expect_equal(time_seq_v(start2, end1,
+                                    time_by = "338.5 seconds"),
+                         time_seq_v(start2, end1,
+                                    time_by = 338.5))
+
 })

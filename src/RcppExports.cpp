@@ -10,23 +10,48 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// is_whole_num
+bool is_whole_num(NumericVector x);
+RcppExport SEXP _timeplyr_is_whole_num(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(is_whole_num(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// roll_int_threshold
+IntegerVector roll_int_threshold(IntegerVector x, int threshold, bool switch_on_boundary);
+RcppExport SEXP _timeplyr_roll_int_threshold(SEXP xSEXP, SEXP thresholdSEXP, SEXP switch_on_boundarySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type threshold(thresholdSEXP);
+    Rcpp::traits::input_parameter< bool >::type switch_on_boundary(switch_on_boundarySEXP);
+    rcpp_result_gen = Rcpp::wrap(roll_int_threshold(x, threshold, switch_on_boundary));
+    return rcpp_result_gen;
+END_RCPP
+}
 // roll_time_threshold
-IntegerVector roll_time_threshold(NumericVector x, double threshold, bool switch_on_boundary, double tol);
-RcppExport SEXP _timeplyr_roll_time_threshold(SEXP xSEXP, SEXP thresholdSEXP, SEXP switch_on_boundarySEXP, SEXP tolSEXP) {
+IntegerVector roll_time_threshold(NumericVector x, double threshold, bool switch_on_boundary);
+RcppExport SEXP _timeplyr_roll_time_threshold(SEXP xSEXP, SEXP thresholdSEXP, SEXP switch_on_boundarySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
     Rcpp::traits::input_parameter< double >::type threshold(thresholdSEXP);
     Rcpp::traits::input_parameter< bool >::type switch_on_boundary(switch_on_boundarySEXP);
-    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(roll_time_threshold(x, threshold, switch_on_boundary, tol));
+    rcpp_result_gen = Rcpp::wrap(roll_time_threshold(x, threshold, switch_on_boundary));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_timeplyr_roll_time_threshold", (DL_FUNC) &_timeplyr_roll_time_threshold, 4},
+    {"_timeplyr_is_whole_num", (DL_FUNC) &_timeplyr_is_whole_num, 1},
+    {"_timeplyr_roll_int_threshold", (DL_FUNC) &_timeplyr_roll_int_threshold, 3},
+    {"_timeplyr_roll_time_threshold", (DL_FUNC) &_timeplyr_roll_time_threshold, 3},
     {NULL, NULL, 0}
 };
 

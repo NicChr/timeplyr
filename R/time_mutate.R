@@ -98,29 +98,17 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
   data <- farrange(data, .cols = c(grp_nm, time_var))
   int_nm <- character(0)
   if (length(time_var) > 0L){
-    # Function to determine implicit time units
-    granularity <- time_granularity(data[[time_var]], is_sorted = FALSE,
-                                    msg = FALSE)
     # User supplied unit
     if (!is.null(time_by)){
-      unit_info <- unit_guess(time_by)
-      by_n <- unit_info[["num"]] * unit_info[["scale"]]
-      by_unit <- unit_info[["unit"]]
+      time_by <- time_by_list(time_by)
     } else {
+      # Function to determine implicit time units
+      granularity <- time_granularity(data[[time_var]], is_sorted = FALSE,
+                                      msg = FALSE)
       message(paste("Assuming a time granularity of", granularity[["num"]]/granularity[["scale"]],
                     granularity[["granularity"]], sep = " "))
-      time_by <- granularity[["num_and_unit"]]
-      by_n <- granularity[["num"]]
-      by_unit <- granularity[["unit"]]
+      time_by <- setnames(list(granularity[["num"]]), granularity[["unit"]])
     }
-    # This checks if time aggregation is necessary
-    seq_by <- setnames(list(by_n), by_unit)
-    aggregate <- needs_aggregation(time_by = seq_by,
-                                   granularity = setnames(list(
-                                     granularity[["num"]]
-                                   ),
-                                   granularity[["unit"]]))
-    if (aggregate || include_interval){
       # Expanded time sequences for each group
       time_expanded <- data %>%
         safe_ungroup() %>%
@@ -161,7 +149,6 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
                                         gx = data[[grp_nm]],
                                         gseq = time_expanded[[grp_nm]])
       }
-    }
   }
   if (!sort){
     data <- farrange(data, .cols = sort_nm)

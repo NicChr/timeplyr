@@ -64,10 +64,18 @@ The default is \code{FALSE}. For example, if \code{time_by = "days"} and
 the time expansion when days, weeks, months or years are specified,
 and \code{durations} are used otherwise.}
 }
+\value{
+An integer vector, starting
+}
 \description{
 A unique identifier is created every time a specified amount of
 time has passed, or in the case of regular sequences, when there is a gap
 in time.
+}
+\details{
+\code{time_seq_id()} Assumes \code{x} is regular and in
+ascending or descending order.
+To check this condition formally, use \code{time_is_regular()}.
 }
 \examples{
 library(dplyr)

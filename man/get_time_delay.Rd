@@ -8,7 +8,7 @@ get_time_delay(
   data,
   origin,
   end,
-  time_by = "days",
+  time_by = 1,
   min_delay = -Inf,
   max_delay = Inf,
   probs = c(0.25, 0.5, 0.75, 0.95),

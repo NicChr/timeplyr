@@ -49,9 +49,6 @@
 #' Options are "preday", "boundary", "postday", "full" and "NA".
 #' See `?timechange::time_add` for more details.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
-#' @param by \bold{Deprecated}. Use `time_by` instead
-#' @param floor_date \bold{Deprecated}. Use `time_floor` instead.
-#' @param seq_type \bold{Deprecated}. Use `time_type` instead.
 #' @examples
 #' library(timeplyr)
 #' library(lubridate)
@@ -96,20 +93,14 @@ time_cut <- function(x, n = 5, time_by = NULL,
                      time_floor = FALSE, week_start = getOption("lubridate.week.start", 1),
                      n_at_most = TRUE, as_factor = TRUE,
                      time_type = c("auto", "duration", "period"),
-                     roll_month = "preday", roll_dst = "pre",
-                     by = NULL,
-                     seq_type = NULL,
-                     floor_date = NULL){
+                     roll_month = "preday", roll_dst = "pre"){
   time_breaks <- time_breaks(x = x, n = n, time_by = time_by,
                              from = from, to = to,
                              time_floor = time_floor,
                              week_start = week_start,
                              n_at_most = n_at_most,
                              time_type = time_type,
-                             roll_month = roll_month, roll_dst = roll_dst,
-                             by = by,
-                             seq_type = seq_type,
-                             floor_date = floor_date)
+                             roll_month = roll_month, roll_dst = roll_dst)
   # x_unique <- collapse::na_rm(collapse::funique(x, sort = TRUE))
   # if (length(time_breaks) > length(x_unique)) time_breaks <- x_unique
   to <- bound_to(to, x)
@@ -142,31 +133,14 @@ time_breaks <- function(x, n = 5, time_by = NULL,
                         time_floor = FALSE, week_start = getOption("lubridate.week.start", 1),
                         n_at_most = TRUE,
                         time_type = c("auto", "duration", "period"),
-                        roll_month = "preday", roll_dst = "pre",
-                        by = NULL,
-                        seq_type = NULL,
-                        floor_date = NULL){
-  ### Temporary arg switches while deprecating
-  if (!is.null(by)){
-    warning("by is deprecated, use time_by instead")
-    time_by <- by
-  }
-  if (!is.null(seq_type)){
-    warning("seq_type is deprecated, use time_type instead")
-    time_type <- seq_type
-  }
-  if (!is.null(floor_date)){
-    warning("floor_date is deprecated, use time_floor instead")
-    time_floor <- floor_date
-  }
-  ###
+                        roll_month = "preday", roll_dst = "pre"){
   stopifnot(is.numeric(n))
   stopifnot(n >= 1)
   stopifnot(length(n) == 1)
   if (is.infinite(n)){
     stop("n must be a finite number")
   }
-  time_type <- match.arg(time_type)
+  time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
   from <- bound_from(from, x)
   to <- bound_to(to, x)
   n_unique <- n_unique(x, na.rm = TRUE)

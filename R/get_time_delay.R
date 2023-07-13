@@ -109,7 +109,7 @@
 #'                  include_plot = FALSE) %>%
 #'   pluck("summary")  # Mean of ~ 6 days
 #' @export
-get_time_delay <- function(data, origin, end, time_by = "days",
+get_time_delay <- function(data, origin, end, time_by = 1,
                            min_delay = -Inf, max_delay = Inf,
                            probs = c(0.25, 0.5, 0.75, 0.95),
                            .by = NULL,
@@ -129,15 +129,15 @@ get_time_delay <- function(data, origin, end, time_by = "days",
   out[, (grp_nm) := group_id(data, .by = {{ .by }})]
   set_rm_cols(out, setdiff(names(out),
                            c(grp_nm, group_vars, start_time, end_time)))
-  grp_df <- collapse::funique(fselect(out, .cols = c(grp_nm, group_vars)),
-                              cols = grp_nm,
-                              sort = FALSE)
-  unit_info <- unit_guess(time_by)
-  by_n <- unit_info[["num"]] * unit_info[["scale"]]
-  by_unit <- unit_info[["unit"]]
+  grp_df <- fdistinct(fselect(out, .cols = c(grp_nm, group_vars)),
+                      .cols = grp_nm,
+                      .keep_all = TRUE)
+  time_by <- time_by_list(time_by)
+  by_unit <- time_by_unit(time_by)
+  by_n <- time_by_num(time_by)
   delay_nm <- new_var_nm(out, "delay")
   out[, (delay_nm) := time_diff(get(start_time), get(end_time),
-                                    time_by = setnames(list(by_n), by_unit),
+                                    time_by = time_by,
                                     time_type = "duration")]
   n_miss_delays <- sum(is.na(out[[delay_nm]]))
   if (n_miss_delays > 0){
@@ -172,12 +172,11 @@ get_time_delay <- function(data, origin, end, time_by = "days",
     delay_summary[grp_df, (group_vars) := mget(group_vars),
                   on = grp_nm, allow.cartesian = FALSE]
   }
-  data.table::setorderv(delay_summary, grp_nm)
+  delay_summary <- farrange(delay_summary, .cols = grp_nm)
   set_rm_cols(delay_summary, c(grp_nm, iqr_p_missed))
-  data.table::setcolorder(delay_summary,
-                          neworder = c(group_vars, "n", "min",
-                                       "max", "mean", "sd",
-                                       q_nms, "iqr", "se"))
+  delay_summary <- fselect(delay_summary, .cols = c(group_vars, "n", "min",
+                                                    "max", "mean", "sd",
+                                                    q_nms, "iqr", "se"))
   # Create delay table
   min_delay <- max(min(out[[delay_nm]]),
                    min_delay)
@@ -214,7 +213,7 @@ get_time_delay <- function(data, origin, end, time_by = "days",
                                      "n", "cumulative", "edf")))
   }
   set_rm_cols(out, grp_nm)
-  data.table::setcolorder(out, c(group_vars, setdiff(names(out), group_vars)))
+  out <- fselect(out, .cols = c(group_vars, setdiff(names(out), group_vars)))
   out <- df_reconstruct(out, data)
   delay_summary <- df_reconstruct(delay_summary, data)
   delay_tbl <- df_reconstruct(delay_tbl, data)
@@ -284,8 +283,6 @@ get_time_delay <- function(data, origin, end, time_by = "days",
         ggplot2::facet_wrap(group_vars, scales = x_scales)
     }
     delay_list <- c(delay_list, list("plot" = delay_summary_plot))
-  }
-  else {
   }
   return(delay_list)
 }

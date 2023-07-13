@@ -88,9 +88,6 @@
 #' @param keep_class Logical. If `TRUE` then the class of
 #' the input data is retained.
 #' If `FALSE`, which is sometimes faster, a `data.table` is returned.
-#' @param by \bold{Deprecated}. Use `time_by` instead
-#' @param floor_date \bold{Deprecated}. Use `time_floor` instead.
-#' @param seq_type \bold{Deprecated}. Use `time_type` instead.
 #'
 #' @return An object of class `data.frame`
 #' containing the input time variable
@@ -149,23 +146,8 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                        time_type = c("auto", "duration", "period"),
                        roll_month = "preday", roll_dst = "pre",
                        include_interval = FALSE,
-                       keep_class = TRUE,
-                       by = NULL,
-                       seq_type = NULL,
-                       floor_date = NULL){
-  if (!is.null(by)){
-    warning("by is deprecated, use time_by instead")
-    time_by <- by
-  }
-  if (!is.null(seq_type)){
-    warning("seq_type is deprecated, use time_type instead")
-    time_type <- seq_type
-  }
-  if (!is.null(floor_date)){
-    warning("floor_date is deprecated, use time_floor instead")
-    time_floor <- floor_date
-  }
-  time_type <- match.arg(time_type)
+                       keep_class = TRUE){
+  time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
   ts_data <- mutate2(data,
                      ...,
                      !!enquo(time),
@@ -189,7 +171,6 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
   all_group_vars <- group_info[["all_groups"]]
   N <- nrow2(ts_data)
   if (length(time_var) > 0){
-    # ts_data <- collapse::qDT(ts_data[TRUE])
     ts_data <- data.table::copy(ts_data)
     data.table::setDT(ts_data)
     # Add variable to keep track of group IDs
@@ -203,60 +184,39 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                                                to = to_var,
                                                .by = all_of(grp_nm))]
     # Order by group vars - time var - additional group vars
-    # ts_data <- farrange(ts_data,
-    #                     .by = all_of(c(grp_nm, time_var, extra_group_vars)),
-    #                     .by_group = TRUE)
     setorderv2(ts_data, cols = c(grp_nm, time_var, extra_group_vars))
     ts_data <- ts_data[data.table::between(get(time_var), get(from_nm), get(to_nm),
                                            incbounds = TRUE, NAbounds = NA), ]
-    # Function to determine implicit time units
-    granularity <- time_granularity(ts_data[[time_var]], is_sorted = FALSE,
-                                    msg = FALSE)
     # User supplied unit
     if (!is.null(time_by)){
-      unit_info <- unit_guess(time_by)
-      by_n <- unit_info[["num"]] * unit_info[["scale"]]
-      by_unit <- unit_info[["unit"]]
+      time_by <- time_by_list(time_by)
     } else {
-      message(paste("Assuming a time granularity of", granularity[["num"]]/granularity[["scale"]],
-                    granularity[["granularity"]], sep = " "))
-      by <- granularity[["num_and_unit"]]
-      by_n <- granularity[["num"]]
-      by_unit <- granularity[["unit"]]
+      # Function to determine implicit time units
+      granularity <- time_granularity(data[[time_var]], is_sorted = FALSE, msg = TRUE)
+      time_by <- setnames(list(granularity[["num"]]), granularity[["unit"]])
     }
-    # This checks if time aggregation is necessary
-    seq_by <- setnames(list(by_n), by_unit)
-    aggregate <- needs_aggregation(time_by = seq_by,
-                                   granularity = setnames(list(
-                                     granularity[["num"]]
-                                   ),
-                                   granularity[["unit"]]))
-    if (aggregate || include_interval || complete){
-      # Expanded time sequences for each group
-      time_expanded <- ts_data %>%
-        time_expand(across(all_of(extra_group_vars)),
-                    time = across(all_of(time_var)),
-                    from = across(all_of(from_nm)),
-                    to = across(all_of(to_nm)),
-                    time_by = seq_by,
-                    time_type = time_type,
-                    sort = TRUE, .by = all_of(c(grp_nm, group_vars)),
-                    time_floor = time_floor, week_start = week_start,
-                    keep_class = FALSE,
-                    expand_type = "nesting")
-      # Cast time
-      ts_data[, (time_var) := time_cast(get(time_var),
-                                        time_expanded[[time_var]])]
-      # Save non-aggregate time data for possible interval calculation
-      time <- ts_data[[time_var]]
-      if (aggregate){
-        # Aggregate time using the time sequence data
-        ts_data[, (time_var) := taggregate(ts_data[[time_var]],
-                                           time_expanded[[time_var]],
-                                           gx = ts_data[[grp_nm]],
-                                           gseq = time_expanded[[grp_nm]])]
-      }
-    }
+    # Expanded time sequences for each group
+    time_expanded <- ts_data %>%
+      time_expand(across(all_of(extra_group_vars)),
+                  time = across(all_of(time_var)),
+                  from = across(all_of(from_nm)),
+                  to = across(all_of(to_nm)),
+                  time_by = time_by,
+                  time_type = time_type,
+                  sort = TRUE, .by = all_of(c(grp_nm, group_vars)),
+                  time_floor = time_floor, week_start = week_start,
+                  keep_class = FALSE,
+                  expand_type = "nesting")
+    # Cast time
+    ts_data[, (time_var) := time_cast(get(time_var),
+                                      time_expanded[[time_var]])]
+    # Save non-aggregate time data for possible interval calculation
+    time <- ts_data[[time_var]]
+    # Aggregate time using the time sequence data
+    ts_data[, (time_var) := taggregate(ts_data[[time_var]],
+                                       time_expanded[[time_var]],
+                                       gx = ts_data[[grp_nm]],
+                                       gseq = time_expanded[[grp_nm]])]
     # Frequency table
     out <- ts_data %>%
       fcount(.cols = c(grp_nm, group_vars, time_var,
@@ -279,19 +239,12 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
       message("data.table converted to tibble as data.table cannot include interval class")
 
       int_nm <- new_var_nm(out, "interval")
-      if (!aggregate && complete){
-        out[[int_nm]] <- tseq_interval(out[[time_var]],
-                                       time_expanded[[time_var]],
-                                       gx = out[[grp_nm]],
-                                       gseq = time_expanded[[grp_nm]])
-      } else {
-        out[[int_nm]] <- tagg_interval(x = time,
-                                       xagg = out[[time_var]],
-                                       seq = time_expanded[[time_var]],
-                                       gagg = out[[grp_nm]],
-                                       gx = ts_data[[grp_nm]],
-                                       gseq = time_expanded[[grp_nm]])
-      }
+      out[[int_nm]] <- tagg_interval(x = time,
+                                     xagg = out[[time_var]],
+                                     seq = time_expanded[[time_var]],
+                                     gagg = out[[grp_nm]],
+                                     gx = ts_data[[grp_nm]],
+                                     gseq = time_expanded[[grp_nm]])
     } else {
      int_nm <- character(0)
     }

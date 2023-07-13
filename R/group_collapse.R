@@ -127,6 +127,10 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
   }
   if (!sort && order){
     unsorted_i <- collapse::funique(GRP_group_id(g), sort = FALSE)
+    # which_sizes_zero <- which(GRP_group_sizes(g) == 0L)
+    # if (length(which_sizes_zero) > 0L){
+    #   unsorted_i <- c(unsorted_i, which_sizes_zero)
+    # }
     out <- df_row_slice(out, unsorted_i,
                         reconstruct = FALSE)
   }

@@ -85,11 +85,11 @@ edf <- function(x, g = NULL, wt = NULL){
   } else {
     # Create group IDs
     df <- data.table::data.table(x, g, wt)
-    df[, ("g") := group_id.default(.SD, order = FALSE, as_qg = FALSE),
+    df[, ("g") := group_id(.SD, order = FALSE, .cols = names(.SD)),
        .SDcols = "g"]
-    df[, ("g1") := group_id.default(.SD, order = TRUE, as_qg = FALSE),
+    df[, ("g1") := group_id(.SD, order = TRUE, .cols = names(.SD)),
        .SDcols = "x"]
-    df[, ("g3") := group_id.default(.SD, order = TRUE, as_qg = FALSE),
+    df[, ("g3") := group_id(.SD, order = TRUE, .cols = names(.SD)),
        .SDcols = c("g", "g1")]
     # Original order
     df[, ("id") := seq_len(.N)]
@@ -129,3 +129,93 @@ edf <- function(x, g = NULL, wt = NULL){
   }
   out
 }
+# edf <- function(x, g = NULL, wt = NULL){
+#   n_na <- sum(is.na(x))
+#   nx <- length(x)
+#   if (is.null(g)){
+#     x_order <- radix_order(x)
+#     x <- x[x_order]
+#     if (n_na > 0) x <- x[seq_len(nx - n_na)]
+#
+#     ### No weights
+#     if (is.null(wt)){
+#       times <- collapse::GRPN(x, expand = FALSE)
+#       grpn <- times
+#       N <- length(x)
+#     } else {
+#       ### With weights
+#       if (!length(wt) %in% c(1, nx)){
+#         stop("wt must be of length 1 or length(x)")
+#       }
+#       if (length(wt) == 1L){
+#         wt <- rep_len(wt, length(x))
+#       } else {
+#         wt <- wt[x_order]
+#         if (n_na > 0) wt <- wt[seq_len(nx - n_na)]
+#       }
+#       g <- group2(x, group.sizes = TRUE)
+#       times <- attr(g, "group.sizes")
+#       # times <- collapse::GRPN(g, expand = FALSE)
+#       grpn <- collapse::fsum(wt, g = g, use.g.names = FALSE)
+#       N <- sum(wt)
+#     }
+#     sum_run <- rep.int(fcumsum(grpn, na.rm = FALSE),
+#                        times = times)
+#     out <- sum_run / N
+#     if (n_na > 0) out <- c(out, rep_len(NA_real_, n_na))
+#     out <- out[radix_order(x_order)]
+#   } else {
+#     # Create group IDs
+#     df <- data.table::data.table(x, g, wt)
+#     df[, ("g") := group_id(.SD, order = FALSE, .cols = names(.SD)),
+#        .SDcols = "g"]
+#     df[, ("g1") := group_id(.SD, order = TRUE, .cols = names(.SD)),
+#        .SDcols = "x"]
+#     groups <- collapse::GRP(fselect(df, .cols = c("g", "g1")), sort = TRUE,
+#                             return.groups = FALSE)
+#     df[, ("g3") := GRP_group_id(groups)]
+#     if (n_na > 0){
+#       # Original order
+#       df[, ("id") := seq_len(.N)]
+#       # Order if NAs are shifted to the end
+#       is_na <- is.na(x)
+#       which_na <- which(is_na)
+#       data.table::set(df,
+#                       i = which_na,
+#                       j = "id",
+#                       value = NA_integer_)
+#     }
+#     # Sort data in ascending order
+#     data.table::setorderv(df, cols = "g3")
+#     if (n_na > 0){
+#       df <- df[!is_na]
+#     }
+#     # Group sizes
+#     grp_n2 <- collapse::GRPN(df[["g"]], expand = TRUE)
+#     times <- collapse::GRPN(df[["g3"]], expand = FALSE)
+#     if (is.null(wt)){
+#       grp_n3 <- times
+#       N <- grp_n2
+#     } else {
+#       grp_n3 <- collapse::fsum(df[["wt"]],
+#                                g = df[["g3"]],
+#                                use.g.names = FALSE)
+#       N <- gsum(df[["wt"]], g = df[["g"]])
+#     }
+#
+#     sum_run <- rep.int(fcumsum(grp_n3, na.rm = FALSE,
+#                                g = collapse::funique(df,
+#                                                      cols = "g3")[["g"]]),
+#                        times)
+#     out <- sum_run / N
+#     # Return using input order
+#     if (n_na > 0){
+#       out <- c(out, rep_len(NA_real_, n_na))
+#       id <- c(df[["id"]], which_na)
+#       out <- out[radix_order(id)]
+#     } else {
+#       out <- collapse::greorder(out, g = groups)
+#     }
+#   }
+#   out
+# }

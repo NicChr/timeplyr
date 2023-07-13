@@ -18,10 +18,7 @@ time_cut(
   as_factor = TRUE,
   time_type = c("auto", "duration", "period"),
   roll_month = "preday",
-  roll_dst = "pre",
-  by = NULL,
-  seq_type = NULL,
-  floor_date = NULL
+  roll_dst = "pre"
 )
 
 time_breaks(
@@ -35,10 +32,7 @@ time_breaks(
   n_at_most = TRUE,
   time_type = c("auto", "duration", "period"),
   roll_month = "preday",
-  roll_dst = "pre",
-  by = NULL,
-  seq_type = NULL,
-  floor_date = NULL
+  roll_dst = "pre"
 )
 }
 \arguments{
@@ -89,12 +83,6 @@ Options are "preday", "boundary", "postday", "full" and "NA".
 See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
-
-\item{by}{\bold{Deprecated}. Use \code{time_by} instead}
-
-\item{seq_type}{\bold{Deprecated}. Use \code{time_type} instead.}
-
-\item{floor_date}{\bold{Deprecated}. Use \code{time_floor} instead.}
 }
 \description{
 \code{time_cut()} is very useful for plotting with dates and datetimes

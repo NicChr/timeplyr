@@ -741,20 +741,40 @@ flast <- getFromNamespace("flast", "collapse")
 CJ <- getFromNamespace("CJ", "data.table")
 # Ccj <- getFromNamespace("Ccj", "data.table")
 
-is_whole_number <- function(x, na.rm = FALSE,
-                            tol = sqrt(.Machine$double.eps)){
-  if (is.integer(x)) return(TRUE) # If already integer then true
-  if (na.rm){
-    x <- x[!is.na(x)]
+# is_whole_number <- function(x, na.rm = FALSE,
+#                             tol = sqrt(.Machine$double.eps)){
+#   if (is.integer(x)) return(TRUE) # If already integer then true
+#   if (na.rm){
+#     x <- x[!is.na(x)]
+#   }
+#   if (any(is.infinite(x))) return(FALSE)
+#   # if (length(x) == 0L) return(FALSE) # If length is 0 then false
+#   # all.equal(x, as.integer(x), check.attributes = FALSE)
+#   # isTRUE((sum(x %% 1) == 0))
+#   # x <- floor(x/10^7) * 10^7
+#   # x <- round(x, digits = 7)
+#   # all(floor(x) == x, na.rm = FALSE)
+#   all(abs(round(x) - x) < tol, na.rm = FALSE)
+# }
+# Very efficient and fast whole number check
+# Especially if decimal numbers occur at beginning of vector
+# is_whole_number <- function(x, na.rm = TRUE){
+#   if (is.integer(x)){
+#     return(TRUE)
+#   }
+#   if (!na.rm){
+#     num_na <- sum(is.na(x))
+#     if (num_na > 0){
+#       return(NA)
+#     }
+#   }
+#   is_whole_num(x)
+# }
+are_whole_numbers <- function(x){
+  if (is.integer(x)){
+    return(rep_len(TRUE, length(x)))
   }
-  if (any(is.infinite(x))) return(FALSE)
-  # if (length(x) == 0L) return(FALSE) # If length is 0 then false
-  # all.equal(x, as.integer(x), check.attributes = FALSE)
-  # isTRUE((sum(x %% 1) == 0))
-  # x <- floor(x/10^7) * 10^7
-  # x <- round(x, digits = 7)
-  # all(floor(x) == x, na.rm = FALSE)
-  all(abs(round(x) - x) < tol, na.rm = FALSE)
+  double_equal(x, round(x))
 }
 pair_unique <- function(x, y){
   ( ( (x + y + 1) * (x + y) ) / 2 ) + x
@@ -1056,30 +1076,33 @@ pretty_ceiling <- function(x){
 # collapse flag/fdiff gives basically
 # wrong answers if your data isn't sorted
 # And yes I've read the documentation
-fdiff2 <- function(x, n = 1, g = NULL, diff = 1, ...){
-  if (length(x) == 1L){
-    n <- 0L
-    diff <- 0L
-  }
-  if (!is.null(g)){
-    g <- GRP2(g)
-  }
-  if (!is.null(g) && !GRP_is_sorted(g)){
-    group_order <- GRP_order(g)
-    x <- x[group_order]
-    group_id <- group_id_to_qg(
-      GRP_group_id(g)[group_order],
-      n_groups = GRP_n_groups(g)
-    )
-    out <- collapse::fdiff(x, n = n, g = group_id, ...)
-    out <- collapse::greorder(out, g = g)
-    # g <- collapse::GRP(GRP_group_id(g)[group_order])
-    # out <- collapse::fdiff(x, n = n, g = g, ...)
-    # out <- out[order(group_order)]
-  } else {
-    out <- collapse::fdiff(x, n = n, g = g, ...)
-  }
-  out
+# fdiff2 <- function(x, n = 1, g = NULL, diff = 1, ...){
+#   if (length(x) == 1L){
+#     n <- 0L
+#     diff <- 0L
+#   }
+#   if (!is.null(g)){
+#     g <- GRP2(g)
+#   }
+#   if (!is.null(g) && !GRP_is_sorted(g)){
+#     group_order <- GRP_order(g)
+#     x <- x[group_order]
+#     group_id <- group_id_to_qg(
+#       GRP_group_id(g)[group_order],
+#       n_groups = GRP_n_groups(g)
+#     )
+#     out <- collapse::fdiff(x, n = n, g = group_id, ...)
+#     out <- collapse::greorder(out, g = g)
+#     # g <- collapse::GRP(GRP_group_id(g)[group_order])
+#     # out <- collapse::fdiff(x, n = n, g = g, ...)
+#     # out <- out[order(group_order)]
+#   } else {
+#     out <- collapse::fdiff(x, n = n, g = g, ...)
+#   }
+#   out
+# }
+fdiff2 <- function(x, n =  min(length(x), 1L), g = NULL, ...){
+  x - flag2(x, n = n, g = g, ...)
 }
 flag2 <- function(x, n = min(length(x), 1L), g = NULL, ...){
   if (!is.null(g)){
@@ -1122,4 +1145,50 @@ fill_with_na <- function(x, n = NULL, prop = NULL){
 # }
 sqrt_double_eps <- function(){
   sqrt(.Machine$double.eps)
+}
+
+# Convenience comparison functions for doubles
+double_equal <- function(x, y, tol = sqrt(.Machine$double.eps)){
+  abs(x - y) < tol
+}
+double_gt <- function(x, y, tol = sqrt(.Machine$double.eps)){
+  (x - y) > tol
+}
+double_gte <- function(x, y, tol = sqrt(.Machine$double.eps)){
+  (x - y) > -tol
+  # (x - y) >= -tol
+}
+double_lt <- function(x, y, tol = sqrt(.Machine$double.eps)){
+  (x - y) < -tol
+}
+double_lte <- function(x, y, tol = sqrt(.Machine$double.eps)){
+  (x - y) < tol
+  # (x - y) <= tol
+}
+# `%~==%` <- double_equal
+# `%~>=%` <- double_gte
+# `%~<=%` <- double_lte
+# `%~>%` <- double_gt
+# `%~<%` <- double_lt
+
+# near_equal <- function( x , y , tol = 1.5e-8 , mode = "ae" ){
+#   ae <- mapply( function(x,y) isTRUE( all.equal( x , y , tolerance = tol ) ) , x , y )
+#   gt <- x > y
+#   lt <- x < y
+#   if( mode == "ae" )
+#     return( ae )
+#   if( mode == "gt" )
+#     return( gt )
+#   if( mode == "lt" )
+#     return( lt )
+#   if( mode == "ne.gt" )
+#     return( ae | gt )
+#   if( mode == "ne.lt" )
+#     return( ae | lt )
+# }
+check_sorted <- function(x){
+  is_sorted <- !is.unsorted(x)
+  if (!is_sorted){
+    stop("x must be in ascending order")
+  }
 }

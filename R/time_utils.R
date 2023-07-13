@@ -106,6 +106,12 @@ time_by_num <- function(time_by){
 time_by_unit <- function(time_by){
   names(time_by)
 }
+time_by_is_num <- function(time_by){
+  inherits(time_by, c("integer", "numeric")) ||
+    (is.list(time_by) &&
+       length(time_by_unit(time_by)) == 1L &&
+       time_by_unit(time_by) == "numeric")
+}
 time_by_pretty <- function(time_by){
   time_by <- time_by_list(time_by)
   units <- names(time_by)
@@ -121,13 +127,18 @@ time_by_pretty <- function(time_by){
     }
   } else {
     num_seconds <- unit_to_seconds(time_by)
+    higher_unit_info <- seconds_to_unit(num_seconds)
+    scale <- higher_unit_info$scale
+    higher_unit <- higher_unit_info$unit
+    num <- num_seconds / scale
+    units <- higher_unit
     # pretty_unit_info <- seconds_to_unit(num_seconds)
     # pretty_unit <- sub("(s)", "", pretty_unit_info[["unit"]],
     #                    fixed = TRUE)
     # scale <- pretty_unit_info[["scale"]]
     # pretty_num <- prettyNum(round(num_seconds / scale, 2))
     pretty_num <- round(num, 2)
-    if (num != pretty_num){
+    if (!double_equal(num, pretty_num)){
      pretty_num <- paste0("~", pretty_num)
     }
     if (num == 1){
@@ -153,63 +164,66 @@ time_interval <- function(from, to){
 # Calculates greatest common divisor of
 # rolling time difference, taking into account
 # time type
-# time_diff_gcd2 <- function(x, time_type, is_sorted = FALSE){
-#   time_type = rlang::arg_match0(time_type,
-#                                 c("auto", "duration", "period"))
-#   x <- collapse::funique(x, sort = !is_sorted)
-#   x <- x[!is.na(x)]
-#   if (length(x) == 0L){
-#     gcd_diff <- numeric(0)
-#   } else if (length(x) == 1L){
-#     gcd_diff <- 1
-#   } else {
-#     if (is_date(x)){
-#       tby <- "days"
-#     } else if (is_datetime(x)){
-#       tby <- "seconds"
-#     } else {
-#       tby <- 1
-#     }
-#     tdiff <- time_elapsed(x, rolling = TRUE,
-#                           time_by = tby,
-#                           time_type = time_type,
-#                           fill = NA, g = NULL)
-#     tdiff <- collapse::funique(round(abs(tdiff[-1L]), digits = 7),
-#                                 sort = FALSE)
-#     tdiff <- tdiff[tdiff > 0]
-#     gcd_diff <- collapse::vgcd(tdiff)
-#   }
-#   gcd_diff
-# }
-# Calculates time granularity with numeric tolerance
-time_diff_gcd <- function(x, is_sorted = FALSE,
+time_diff_gcd <- function(x, time_type = c("auto", "duration", "period"),
+                          is_sorted = FALSE,
                           tol = sqrt(.Machine$double.eps)){
-  x <- as.double(x)
   x <- collapse::funique(x, sort = !is_sorted)
-  N <- length(x)
   x <- x[!is.na(x)]
-  if (N == 0L){
+  if (length(x) == 0L){
     gcd_diff <- numeric(0)
-  } else if (N < 2){
+  } else if (length(x) == 1L){
     gcd_diff <- 1
   } else {
-    y_diff <- collapse::fdiff(x,
-                              n = 1, diff = 1, g = NULL,
-                              fill = NA, log = FALSE, rho = 1,
-                              stubs = FALSE)
-    log10_tol <- floor(abs(log10(tol)))
-    y_diff <- round(abs(y_diff[-1L]), digits = log10_tol)
-    y_diff <- collapse::funique(y_diff, sort = FALSE)
-    y_diff <- y_diff[y_diff > 0]
-    if (length(y_diff) == 0L){
-      gcd_diff <- 10^(-log10_tol)
+    if (is_date(x)){
+      tby <- "days"
+    } else if (is_datetime(x)){
+      tby <- "seconds"
     } else {
-      gcd_diff <- collapse::vgcd(y_diff)
+      tby <- 1
     }
-    # gcd_diff <- Reduce(gcd, y_diff)
+    tdiff <- time_elapsed(x, rolling = TRUE,
+                          time_by = tby,
+                          time_type = time_type,
+                          fill = NA, g = NULL,
+                          na_skip = FALSE)
+    # tdiff <- fdiff2(tdiff)
+    log10_tol <- floor(abs(log10(tol)))
+    tdiff <- round(abs(tdiff[-1L]), digits = log10_tol)
+    tdiff <- collapse::funique(tdiff, sort = FALSE)
+    tdiff <- tdiff[double_gt(tdiff, 0)]
+    gcd_diff <- collapse::vgcd(tdiff)
   }
   gcd_diff
 }
+# Calculates time granularity with numeric tolerance
+# time_diff_gcd <- function(x, is_sorted = FALSE,
+#                           tol = sqrt(.Machine$double.eps)){
+#   x <- as.double(x)
+#   x <- collapse::funique(x, sort = !is_sorted)
+#   N <- length(x)
+#   x <- x[!is.na(x)]
+#   if (N == 0L){
+#     gcd_diff <- numeric(0)
+#   } else if (N < 2){
+#     gcd_diff <- 1
+#   } else {
+#     y_diff <- collapse::fdiff(x,
+#                               n = 1, diff = 1, g = NULL,
+#                               fill = NA, log = FALSE, rho = 1,
+#                               stubs = FALSE)
+#     log10_tol <- floor(abs(log10(tol)))
+#     y_diff <- round(abs(y_diff[-1L]), digits = log10_tol)
+#     y_diff <- collapse::funique(y_diff, sort = FALSE)
+#     y_diff <- y_diff[double_gt(y_diff, 0)]
+#     if (length(y_diff) == 0L){
+#       gcd_diff <- 10^(-log10_tol)
+#     } else {
+#       gcd_diff <- collapse::vgcd(y_diff)
+#     }
+#     # gcd_diff <- Reduce(gcd, y_diff)
+#   }
+#   gcd_diff
+# }
 time_granularity <- function(x, is_sorted = FALSE, msg = TRUE){
   gcd_diff <- time_diff_gcd(x, is_sorted = is_sorted)
   if (is_date(x)){
@@ -221,6 +235,8 @@ time_granularity <- function(x, is_sorted = FALSE, msg = TRUE){
     convert_seconds <- seconds_to_unit(gcd_diff)
     scale <- convert_seconds[["scale"]]
     granularity <- convert_seconds[["unit"]]
+    granularity <- paste0(substr(granularity, 1L, nchar(granularity) -1L),
+                          "(s)")
     unit <- "seconds"
     num_and_unit <- stringr::str_c(gcd_diff, unit, sep = " ")
   } else {
@@ -229,7 +245,12 @@ time_granularity <- function(x, is_sorted = FALSE, msg = TRUE){
     unit <- "numeric"
     num_and_unit <- gcd_diff
   }
-  if (msg) message(paste("Assuming a time granularity of", gcd_diff/scale, granularity, sep = " "))
+  if (msg){
+    message(paste("Assuming a time granularity of",
+                  gcd_diff/scale,
+                  granularity,
+                  sep = " "))
+  }
   list("granularity" = granularity,
        "unit" = unit,
        "num" = gcd_diff,
@@ -240,78 +261,99 @@ time_granularity <- function(x, is_sorted = FALSE, msg = TRUE){
 # Scale is in comparison to seconds
 seconds_to_unit <- function(x){
   if (length(x) == 0L){
-    return(list("unit" = "second(s)",
+    return(list("unit" = "seconds",
                 "scale" = numeric(0)))
   }
   x <- abs(x)
   if (x == 0){
-    unit <- "second(s)"
+    unit <- "seconds"
     scale <- 1
   } else if (x > 0 && x < 1/1000/1000/1000){
-    unit <- "picosecond(s)"
+    unit <- "picoseconds"
     scale <- 1/1000/1000/1000/1000
   } else if (x >= 1/1000/1000/1000 && x < 1/1000/1000){
-    unit <- "nanosecond(s)"
+    unit <- "nanoseconds"
     scale <- 1/1000/1000/1000
   } else if (x >= 1/1000/1000 && x < 1/1000){
-    unit <- "microsecond(s)"
+    unit <- "microseconds"
     scale <- 1/1000/1000
   } else if (x >= 1/1000 && x < 1){
-    unit <- "millisecond(s)"
+    unit <- "milliseconds"
     scale <- 1/1000
   }  else if (x >= 1 && x < 60){
-    unit <- "second(s)"
+    unit <- "seconds"
     scale <- 1
   } else if (x >= 60 && x < 3600){
-    unit <- "minute(s)"
+    unit <- "minutes"
     scale <- 60
   } else if (x >= 3600 && x < 86400){
-    unit <- "hour(s)"
+    unit <- "hours"
     scale <- 3600
   } else if (x >= 86400 && x < 604800){
-    unit <- "day(s)"
+    unit <- "days"
     scale <- 86400
   } else if (x >= 604800 && x < 2629800){
-    unit <- "week(s)"
+    unit <- "weeks"
     scale <- 604800
   } else if (x >= 2629800 && x < 31557600){
-    unit <- "month(s)"
+    unit <- "months"
     scale <- 2629800
   } else if (x >= 31557600){
-    unit <- "year(s)"
+    unit <- "years"
     scale <- 31557600
   }
   list("unit" = unit,
        "scale" = scale)
 }
+# unit_to_seconds <- function(x){
+#   unit_info <- unit_guess(x)
+#   unit <- unit_info[["unit"]]
+#   num <- unit_info[["num"]] * unit_info[["scale"]]
+#   if (unit == "picoseconds"){
+#     scale <- 1/1000/1000/1000/1000
+#   } else if (unit == "nanoseconds"){
+#     scale <- 1/1000/1000/1000
+#   } else if (unit == "microseconds"){
+#     scale <- 1/1000/1000
+#   } else if (unit == "milliseconds"){
+#     scale <- 1/1000
+#   }  else if (unit == "seconds"){
+#     scale <- 1
+#   } else if (unit == "minutes"){
+#     scale <- 60
+#   } else if (unit == "hours"){
+#     scale <- 3600
+#   } else if (unit == "days"){
+#     scale <- 86400
+#   } else if (unit == "weeks"){
+#     scale <- 604800
+#   } else if (unit == "months"){
+#     scale <- 2629800
+#   } else if (unit == "years"){
+#     scale <- 31557600
+#   }
+#   num * scale
+# }
 unit_to_seconds <- function(x){
   unit_info <- unit_guess(x)
   unit <- unit_info[["unit"]]
   num <- unit_info[["num"]] * unit_info[["scale"]]
-  if (unit == "picoseconds"){
-    scale <- 1/1000/1000/1000/1000
-  } else if (unit == "nanoseconds"){
-    scale <- 1/1000/1000/1000
-  } else if (unit == "microseconds"){
-    scale <- 1/1000/1000
-  } else if (unit == "milliseconds"){
-    scale <- 1/1000
-  }  else if (unit == "seconds"){
-    scale <- 1
-  } else if (unit == "minutes"){
-    scale <- 60
-  } else if (unit == "hours"){
-    scale <- 3600
-  } else if (unit == "days"){
-    scale <- 86400
-  } else if (unit == "weeks"){
-    scale <- 604800
-  } else if (unit == "months"){
-    scale <- 2629800
-  } else if (unit == "years"){
-    scale <- 31557600
+  scales <- c(1/1000/1000/1000/1000, # Pico
+              1/1000/1000/1000, # Nano
+              1/1000/1000, # Micro
+              1/1000, # Milli
+              1, # Second
+              60, # Hour
+              3600, # Minute
+              86400, # Day
+              604800, # Week
+              2629800, # Month
+              31557600) # Year
+  unit_match <- match(unit, .duration_units)
+  if (is.na(unit_match)){
+    unit_match_stop(.duration_units)
   }
-  num * scale
+  num * scales[unit_match]
 }
 # No string guessing at all
 guess_seq_type <- function(units){
@@ -586,13 +628,15 @@ set_time_cast <- function(x, y){
   if (!identical(class(x), class(y))){
     if (is_date(x) && is_datetime(y)){
       x_nm <- deparse(substitute(x))
-      assign(x_nm, lubridate::as_datetime(x, tz = lubridate::tz(y)),
+      assign(x_nm, lubridate::with_tz(.POSIXct(unclass(x) * 86400),
+                                      tzone = lubridate::tz(y)),
              envir = parent.frame(n = 1))
 
     }
     if (is_date(y) && is_datetime(x)){
       y_nm <- deparse(substitute(y))
-      assign(y_nm, lubridate::as_datetime(y, tz = lubridate::tz(x)),
+      assign(y_nm, lubridate::with_tz(.POSIXct(unclass(y) * 86400),
+                                      tzone = lubridate::tz(x)),
              envir = parent.frame(n = 1))
     }
   }
@@ -926,7 +970,10 @@ get_from_to <- function(data, ..., time, from = NULL, to = NULL,
 time_add2 <- function(x, time_by,
                       time_type = c("auto", "duration", "period"),
                       roll_month = "preday", roll_dst = "pre"){
-  if (is_time(x)){
+  if (time_by_is_num(time_by)){
+    num <- unlist(time_by, use.names = FALSE, recursive = FALSE)
+    x + num
+  } else {
     time_type <- rlang::arg_match0(time_type,
                                    c("auto", "duration", "period"))
     unit_info <- unit_guess(time_by)
@@ -941,14 +988,13 @@ time_add2 <- function(x, time_by,
     } else {
       x + duration_unit(units)(num)
     }
-  } else {
-    x + unlist(time_by, use.names = FALSE, recursive = FALSE)
   }
 }
 # Custom time flooring..
 time_floor2 <- function(x, time_by, week_start = getOption("lubridate.week.start", 1)){
-  if (names(time_by) == "numeric"){
-    time_floor(x, time_by = time_by[[1L]], week_start = week_start)
+  if (time_by_is_num(time_by)){
+    num <- unlist(time_by, use.names = FALSE, recursive = FALSE)
+    floor(x / num) * num
   } else {
     time_floor(x, time_by = setnames(list(1), names(time_by)), week_start = week_start)
   }

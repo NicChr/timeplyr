@@ -90,6 +90,9 @@ If \code{.name = NULL} (the default),
 \code{add_group_id()} will add a column named "group_id",
 and if one already exists, a unique name will be used.}
 }
+\value{
+An integer vector.
+}
 \description{
 These are tidy-based functions for calculating group IDs, row IDs and
 group orders. \cr
@@ -140,6 +143,8 @@ row_id(iris) # Plain row IDs
 row_id(iris, Species) # Row IDs by group
 # Order of Species + descending Petal.Width
 group_order(iris, Species, desc(Petal.Width))
+# Same as
+order(iris$Species, -xtfrm(iris$Petal.Width))
 
 # Tidy data-masking/tidyselect can be used
 group_id(iris, across(where(is.numeric))) # Groups across numeric values
@@ -151,10 +156,24 @@ group_id(iris, desc(Species), Sepal.Length, desc(Petal.Width))
 
 # add_ helpers
 iris \%>\%
-  add_group_id(Sepal.Length) \%>\%
-  add_row_id(Sepal.Length) \%>\%
-  add_group_order(Sepal.Length) \%>\%
-  distinct(Sepal.Length, group_id, row_id, group_order)
+  distinct(Species) \%>\%
+  add_group_id(Species)
+iris \%>\%
+  add_row_id(Species) \%>\%
+  pull(row_id)
+
+# Usage in data.table
+library(data.table)
+iris_dt <- as.data.table(iris)
+iris_dt[, group_id := group_id(.SD, .cols = names(.SD)),
+        .SDcols = "Species"]
+
+# Or if you're using this often you can write a wrapper
+set_add_group_id <- function(x, ..., .name = "group_id"){
+  id <- group_id(x, ...)
+  data.table::set(x, j = .name, value = id)
+}
+set_add_group_id(iris_dt, desc(Species))[]
 
 mm_mpg <- mpg \%>\%
   select(manufacturer, model) \%>\%

@@ -17,10 +17,7 @@ time_seq(
   time_floor = FALSE,
   roll_month = "preday",
   roll_dst = "pre",
-  tz = if (!missing(from)) lubridate::tz(from) else lubridate::tz(to),
-  by = NULL,
-  seq_type = NULL,
-  floor_date = NULL
+  tz = if (!missing(from)) lubridate::tz(from) else lubridate::tz(to)
 )
 
 time_seq_sizes(
@@ -39,9 +36,7 @@ time_seq_v(
   roll_month = "preday",
   roll_dst = "pre",
   time_floor = FALSE,
-  week_start = getOption("lubridate.week.start", 1),
-  by = NULL,
-  seq_type = NULL
+  week_start = getOption("lubridate.week.start", 1)
 )
 
 time_seq_v2(
@@ -99,12 +94,6 @@ See \code{?timechange::time_add} for more details.}
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
 
 \item{tz}{Timezone of returned time sequence.}
-
-\item{by}{\bold{Deprecated}. Use \code{time_by} instead}
-
-\item{seq_type}{\bold{Deprecated}. Use \code{time_type} instead.}
-
-\item{floor_date}{\bold{Deprecated}. Use \code{time_floor} instead.}
 
 \item{as_period}{Logical. Should time interval be coerced to a period
 before time difference is calculated? This is useful for calculating

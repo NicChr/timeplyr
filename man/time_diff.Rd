@@ -9,9 +9,7 @@ time_diff(
   y,
   time_by,
   time_type = c("auto", "duration", "period"),
-  as_period = FALSE,
-  by = NULL,
-  type = NULL
+  as_period = FALSE
 )
 }
 \arguments{
@@ -36,10 +34,6 @@ then arithmetic is used, e.g \code{time_by = 1}.
 \item{as_period}{Logical. Should time interval be coerced to a period
 before time difference is calculated? This is useful for calculating
 for example age in exact years or months.}
-
-\item{by}{\bold{Deprecated}. Use \code{time_by} instead}
-
-\item{type}{\bold{Deprecated}. Use \code{time_type} instead.}
 }
 \description{
 This is a neat wrapper around lubridate's

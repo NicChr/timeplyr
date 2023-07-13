@@ -46,6 +46,7 @@
 #' @param as_qg Should the group IDs be returned as a
 #' collapse "qG" class? The default (`FALSE`) always returns
 #' an integer vector.
+#' @return An integer vector.
 #' @details
 #' It's important to note for data frames, these functions by default assume
 #' no groups unless you supply them.
@@ -81,6 +82,8 @@
 #' row_id(iris, Species) # Row IDs by group
 #' # Order of Species + descending Petal.Width
 #' group_order(iris, Species, desc(Petal.Width))
+#' # Same as
+#' order(iris$Species, -xtfrm(iris$Petal.Width))
 #'
 #' # Tidy data-masking/tidyselect can be used
 #' group_id(iris, across(where(is.numeric))) # Groups across numeric values
@@ -92,10 +95,24 @@
 #'
 #' # add_ helpers
 #' iris %>%
-#'   add_group_id(Sepal.Length) %>%
-#'   add_row_id(Sepal.Length) %>%
-#'   add_group_order(Sepal.Length) %>%
-#'   distinct(Sepal.Length, group_id, row_id, group_order)
+#'   distinct(Species) %>%
+#'   add_group_id(Species)
+#' iris %>%
+#'   add_row_id(Species) %>%
+#'   pull(row_id)
+#'
+#' # Usage in data.table
+#' library(data.table)
+#' iris_dt <- as.data.table(iris)
+#' iris_dt[, group_id := group_id(.SD, .cols = names(.SD)),
+#'         .SDcols = "Species"]
+#'
+#' # Or if you're using this often you can write a wrapper
+#' set_add_group_id <- function(x, ..., .name = "group_id"){
+#'   id <- group_id(x, ...)
+#'   data.table::set(x, j = .name, value = id)
+#' }
+#' set_add_group_id(iris_dt, desc(Species))[]
 #'
 #' mm_mpg <- mpg %>%
 #'   select(manufacturer, model) %>%
@@ -133,6 +150,8 @@ group_id.default <- function(data, ..., order = TRUE,
   if (as_qg){
     out <- group_id_to_qg(out,
                           n_groups = GRP_n_groups(g),
+                          # group_starts = g[["group.starts"]],
+                          # group_sizes = GRP_group_sizes(g),
                           ordered = order)
   }
   out
@@ -149,7 +168,10 @@ group_id.Interval <- function(data, ..., order = TRUE,
                           return.order = FALSE)
   out <- GRP_group_id(groups)
   if (as_qg){
-    out <- group_id_to_qg(out, n_groups = GRP_n_groups(groups),
+    out <- group_id_to_qg(out,
+                          n_groups = GRP_n_groups(groups),
+                          # group_starts = groups[["group.starts"]],
+                          # group_sizes = GRP_group_sizes(groups),
                           ordered = order)
   }
   out
@@ -170,7 +192,8 @@ group_id.data.frame <- function(data, ...,
   if (length(all_groups) == 0L){
     out <- alloc(1L, N)
     n_groups <- min(N, 1L)
-    # Method for grouped_df
+    # group_sizes <- N
+    # group_starts <- n_groups
   } else {
     g <- GRP2(group_info[["data"]], by = all_groups,
               sort = order,
@@ -182,9 +205,14 @@ group_id.data.frame <- function(data, ...,
               call = FALSE)
     out <- GRP_group_id(g)
     n_groups <- GRP_n_groups(g)
+    # group_sizes <- GRP_group_sizes(g)
+    # group_starts <- g[["group.starts"]]
   }
   if (as_qg){
-    out <- group_id_to_qg(out, n_groups = n_groups,
+    out <- group_id_to_qg(out,
+                          n_groups = n_groups,
+                          # group_starts = group_starts,
+                          # group_sizes = group_sizes,
                           ordered = order)
   }
   out
@@ -201,7 +229,8 @@ group_id.grouped_df <- function(data, ...,
   if (n_dots == 0 && is.null(.cols) && order && ascending){
     out <- dplyr::group_indices(data)
     if (as_qg){
-      out <- group_id_to_qg(out, n_groups = nrow2(group_data(data)),
+      out <- group_id_to_qg(out,
+                            n_groups = nrow2(group_data(data)),
                             ordered = order)
     }
   } else {
@@ -220,14 +249,16 @@ group_id.grouped_df <- function(data, ...,
 group_id.GRP <- function(data, ..., order = TRUE, as_qg = FALSE){
   group_ids <- GRP_group_id(data)
   if (!order && GRP_is_ordered(data)){
-    out <- group_id(group_ids, order = order)
+    out <- group_id(group_ids, order = order, as_qg = as_qg)
   } else {
     out <- group_ids
-  }
-  if (as_qg){
-    out <- group_id_to_qg(out,
-                          n_groups = GRP_n_groups(data),
-                          ordered = order)
+    if (as_qg){
+      out <- group_id_to_qg(out,
+                            n_groups = GRP_n_groups(data),
+                            # group_sizes = GRP_group_sizes(data),
+                            # group_starts = data[["group.starts"]],
+                            ordered = order)
+    }
   }
   out
 }
@@ -454,11 +485,21 @@ radixorderv2 <- function(x, ...){
   }
   collapse::radixorderv(x, ...)
 }
-group_id_to_qg <- function(x, n_groups = NULL, ordered = FALSE){
+group_id_to_qg <- function(x,
+                           n_groups = NULL,
+                           group_starts = NULL,
+                           group_sizes = NULL,
+                           ordered = FALSE){
   if (is.null(n_groups)){
     n_groups <- collapse::fnunique(x)
   }
   attr(x, "N.groups") <- n_groups
+  if (!is.null(group_starts)){
+    attr(x, "starts") <- group_starts
+  }
+  if (!is.null(group_sizes)){
+    attr(x, "group.sizes") <- group_sizes
+  }
   if (ordered){
     class(x) <- c("ordered", "qG", "na.included")
   } else {

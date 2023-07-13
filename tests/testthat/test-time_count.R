@@ -55,7 +55,8 @@ testthat::test_that("Compare to tidyr", {
                  to = end2,
                  time = time_hour,
                  time_by = "hour",
-                 complete = FALSE),
+                 complete = FALSE,
+                 time_floor = TRUE),
     flights %>%
       dplyr::filter(time_hour >= time_cast(start1, flights$time_hour) &
                       time_hour <= time_cast(end2, flights$time_hour)) %>%
