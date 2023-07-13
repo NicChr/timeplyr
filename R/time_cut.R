@@ -134,6 +134,7 @@ time_breaks <- function(x, n = 5, time_by = NULL,
                         n_at_most = TRUE,
                         time_type = c("auto", "duration", "period"),
                         roll_month = "preday", roll_dst = "pre"){
+  check_is_time_or_num(x)
   stopifnot(is.numeric(n))
   stopifnot(n >= 1)
   stopifnot(length(n) == 1)

@@ -110,7 +110,7 @@ time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
                          time_floor = FALSE,
                          week_start = getOption("lubridate.week.start", 1),
                          roll_month = "preday", roll_dst = "pre"){
-  stopifnot(is_time_or_num(x))
+  check_is_time_or_num(x)
   has_groups <- length(g) > 0
   if (length(from) > 1L){
     stop("from must be of length 1")
@@ -559,7 +559,7 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
                         time_floor = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
                         roll_month = "preday", roll_dst = "pre"){
-  stopifnot(is_time_or_num(x))
+  check_is_time_or_num(x)
   x_na <- which(is.na(x))
   time_by <- time_by_get(x, time_by = time_by, is_sorted = FALSE)
   if (is.null(from)){
@@ -654,3 +654,53 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
 #' @rdname time_core
 #' @export
 time_span <- time_expandv
+#' @rdname time_core
+#' @export
+time_span_size <- function(x, time_by = NULL, from = NULL, to = NULL,
+                           g = NULL, use.g.names = TRUE,
+                           time_type = c("auto", "duration", "period"),
+                           time_floor = FALSE,
+                           week_start = getOption("lubridate.week.start", 1),
+                           roll_month = "preday", roll_dst = "pre"){
+  check_is_time_or_num(x)
+  has_groups <- length(g) > 0
+  if (length(from) > 1L){
+    stop("from must be of length 1")
+  }
+  if (length(to) > 1L){
+    stop("to must be of length 1")
+  }
+  time_by <- time_by_get(x, time_by = time_by,
+                         is_sorted = FALSE)
+  if (time_by_length(time_by) > 1L){
+    stop("time_by must be a time unit containing a single numeric increment")
+  }
+  if (has_groups){
+    g <- GRP2(g)
+    if (GRP_data_size(g) != length(x)){
+      stop("g must have the same size as x")
+    }
+  }
+  if (is.null(from)){
+    from <- collapse::fmin(x, g = g, use.g.names = FALSE, na.rm = TRUE)
+  }
+  if (is.null(to)){
+    to <- collapse::fmax(x, g = g, use.g.names = FALSE, na.rm = TRUE)
+  }
+  # Make sure from/to are datetimes if x is datetime
+  from <- time_cast(from, x)
+  to <- time_cast(to, x)
+  if (time_floor){
+    from <- time_floor2(from, time_by = time_by, week_start = week_start)
+  }
+  out <- time_seq_sizes(from = from, to = to,
+                        time_by = time_by,
+                        time_type = time_type)
+  if (has_groups && use.g.names){
+    group_names <- GRP_names(g)
+    if (!is.null(group_names)){
+      names(out) <- group_names
+    }
+  }
+  out
+}

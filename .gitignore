@@ -319,4 +319,7 @@ TSWLatexianTemp*
 *.sta
 .Rproj.user
 docs/
+*.o
+*.so
+*.dll
 

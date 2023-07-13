@@ -11,13 +11,14 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // is_whole_num
-bool is_whole_num(NumericVector x);
-RcppExport SEXP _timeplyr_is_whole_num(SEXP xSEXP) {
+bool is_whole_num(NumericVector x, Nullable<NumericVector> tol);
+RcppExport SEXP _timeplyr_is_whole_num(SEXP xSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(is_whole_num(x));
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(is_whole_num(x, tol));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -49,7 +50,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_timeplyr_is_whole_num", (DL_FUNC) &_timeplyr_is_whole_num, 1},
+    {"_timeplyr_is_whole_num", (DL_FUNC) &_timeplyr_is_whole_num, 2},
     {"_timeplyr_roll_int_threshold", (DL_FUNC) &_timeplyr_roll_int_threshold, 3},
     {"_timeplyr_roll_time_threshold", (DL_FUNC) &_timeplyr_roll_time_threshold, 3},
     {NULL, NULL, 0}

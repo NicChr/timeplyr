@@ -3,6 +3,18 @@ testthat::test_that("time diff", {
                                tz = "GB")
   end1 <- start1 + lubridate::ddays(37)
   end2 <- start1 + lubridate::days(37)
+  testthat::expect_identical(as.double(difftime(end1, start1, units = "secs")),
+                             time_diff(start1, end1, time_by = 1))
+  testthat::expect_identical(as.double(difftime(
+    lubridate::with_tz(lubridate::as_date(end1), tzone = "GB"),
+    start1, units = "secs")),
+    time_diff(start1, lubridate::as_date(end1), time_by = 1))
+  testthat::expect_identical(as.double(difftime(lubridate::as_date(end1),
+                                                lubridate::as_date(start1),
+                                                units = "days")),
+                             time_diff(lubridate::as_date(start1),
+                                       lubridate::as_date(end1),
+                                       time_by = 1))
   testthat::expect_identical(time_diff(3, 27, time_by = 1),
                              27 - 3)
   testthat::expect_identical(time_diff(3, 27, time_by = 3.5),

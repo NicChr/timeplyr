@@ -65,6 +65,7 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
                          time_type = c("auto", "duration", "period"),
                          rolling = TRUE, fill = NA,
                          na_skip = TRUE){
+  check_is_time_or_num(x)
   time_by <- time_by_get(x, time_by = time_by, is_sorted = FALSE)
   if (time_by_length(time_by) > 1){
     stop("Please supply only one numeric value in time_by")

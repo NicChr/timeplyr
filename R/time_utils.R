@@ -1046,6 +1046,11 @@ int_is_na <- function(x){
   X <- interval_separate(x)
   is.na(X[[1L]]) & is.na(X[[2L]])
 }
+check_is_time_or_num <- function(x){
+  if (!is_time_or_num(x)){
+    stop("x must be a date, datetime, or numeric vector")
+  }
+}
 # int_is_na <- function(x){
 #   .rowSums(
 #     is.na(

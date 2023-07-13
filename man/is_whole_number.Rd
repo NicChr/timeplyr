@@ -4,13 +4,17 @@
 \alias{is_whole_number}
 \title{Are all numbers whole numbers?}
 \usage{
-is_whole_number(x, na.rm = TRUE)
+is_whole_number(x, na.rm = TRUE, tol = sqrt(.Machine$double.eps))
 }
 \arguments{
 \item{x}{A numeric vector.}
 
 \item{na.rm}{Should \code{NA} values be removed before calculation?
 Default is \code{TRUE}.}
+
+\item{tol}{tolerance value such that a whole number satisfies the condition
+\code{abs(round(x) - x) < tol}. \cr
+The default is \code{sqrt(.Machine$double.eps)}.}
 }
 \value{
 A logical vector of length 1.

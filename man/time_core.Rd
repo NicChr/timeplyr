@@ -6,6 +6,7 @@
 \alias{time_summarisev}
 \alias{time_countv}
 \alias{time_span}
+\alias{time_span_size}
 \title{Vector date and datetime functions}
 \usage{
 time_expandv(
@@ -68,6 +69,20 @@ time_countv(
 )
 
 time_span(
+  x,
+  time_by = NULL,
+  from = NULL,
+  to = NULL,
+  g = NULL,
+  use.g.names = TRUE,
+  time_type = c("auto", "duration", "period"),
+  time_floor = FALSE,
+  week_start = getOption("lubridate.week.start", 1),
+  roll_month = "preday",
+  roll_dst = "pre"
+)
+
+time_span_size(
   x,
   time_by = NULL,
   from = NULL,

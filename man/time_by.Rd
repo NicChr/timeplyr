@@ -88,12 +88,12 @@ It can be used exactly like \code{dplyr::group_by}.
 library(dplyr)
 library(timeplyr)
 library(nycflights13)
-flights <- flights \%>\%
+monthly_flights <- flights \%>\%
   time_by(time_hour, "month")
 
-flights
+monthly_flights
 
-time_by_span(flights)
+time_by_span(monthly_flights)
 
 monthly_flights <- flights \%>\%
   time_by(time_hour, "month", time_floor = TRUE) \%>\%

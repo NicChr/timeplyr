@@ -21,7 +21,7 @@ missing_dates <- function(x, na.rm = TRUE){
     }
   }
   if (is.list(x)){
-    time_vars <- which(purrr::map_lgl(x, is_time))
+    time_vars <- which(vapply(x, is_time, logical(1)))
     lapply(x[time_vars], d_missing)
   } else {
     d_missing(x)
@@ -46,7 +46,8 @@ n_missing_dates <- function(x, na.rm = TRUE){
     }
   }
   if (is.list(x)){
-    vapply(x, nmissdates, integer(1))
+    time_vars <- which(vapply(x, is_time, logical(1)))
+    vapply(x[time_vars], nmissdates, integer(1))
   } else {
     nmissdates(x)
   }

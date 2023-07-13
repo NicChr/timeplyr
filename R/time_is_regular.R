@@ -181,7 +181,7 @@ time_is_reg <- function(x, time_by = NULL,
                         time_type = c("auto", "duration", "period"),
                         allow_gaps = TRUE,
                         allow_dups = TRUE){
-  stopifnot(is_time_or_num(x))
+  check_is_time_or_num(x)
   if (length(x) == 0L){
     return(TRUE)
   }

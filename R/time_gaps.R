@@ -26,9 +26,10 @@
 #' checked to see if it is regular (with or without gaps)?
 #' Default is `FALSE`.
 #'
-#' @details If your data consists of sequences that increase by
-#' an increment lower than the one provided through `time_by`,
-#' and `check_time_regular` is `TRUE`, an error is thrown.
+#' @details When `check_time_regular` is TRUE, `x` is passed to
+#' `time_is_regular`, which checks that the time elapsed between successive
+#' values are in increasing order and are whole numbers.
+#' For more strict checks, see `?time_is_regular`.
 #'
 #' @examples
 #' library(timeplyr)
@@ -59,9 +60,18 @@ time_gaps <- function(x, time_by = NULL,
     }
     names(x) <- GRP_names(g, expand = TRUE)
   }
+  time_by <- time_by_get(x, time_by = time_by)
   time_seq <- time_expandv(x, time_by = time_by,
                            g = g, use.g.names = TRUE,
                            time_type = time_type)
+  if (check_time_regular){
+    is_regular <- time_is_regular(x, time_by = time_by,
+                                  g = g, use.g.names = FALSE,
+                                  time_type = time_type)
+    if (collapse::anyv(is_regular, FALSE)){
+      stop("x is not regular given the chosen time unit")
+    }
+  }
   time_tbl <- fenframe(x,
                        name = "group",
                        value = "time")
@@ -71,15 +81,15 @@ time_gaps <- function(x, time_by = NULL,
   time_full_tbl <- fenframe(time_seq,
                             name = "group",
                             value = "time")
-  if (!is.null(time_by) && check_time_regular){
-    if (nrow2(
-      dplyr::anti_join(time_tbl,
-                       time_full_tbl,
-                       by = names(time_tbl))
-    ) > 0L){
-      stop("x is not regular given the chosen time unit")
-    }
-  }
+  # if (!is.null(time_by) && check_time_regular){
+  #   if (nrow2(
+  #     dplyr::anti_join(time_tbl,
+  #                      time_full_tbl,
+  #                      by = names(time_tbl))
+  #   ) > 0L){
+  #     stop("x is not regular given the chosen time unit")
+  #   }
+  # }
   out_tbl <- dplyr::anti_join(time_full_tbl,
                               time_tbl,
                               by = names(time_tbl))
@@ -95,7 +105,7 @@ time_num_gaps <- function(x, time_by = NULL,
                           na.rm = TRUE,
                           time_type = c("auto", "duration", "period"),
                           check_time_regular = FALSE){
-  stopifnot(is_time_or_num(x))
+  check_is_time_or_num(x)
   time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
   if (length(x) == 0L){
     return(0L)
@@ -115,13 +125,16 @@ time_num_gaps <- function(x, time_by = NULL,
       stop("x is not regular given the chosen time unit")
     }
   }
-  start <- collapse::fmin(x, g = g, na.rm = na.rm, use.g.names = FALSE)
-  end <- collapse::fmax(x, g = g, na.rm = na.rm, use.g.names = FALSE)
+  # start <- collapse::fmin(x, g = g, na.rm = na.rm, use.g.names = FALSE)
+  # end <- collapse::fmax(x, g = g, na.rm = na.rm, use.g.names = FALSE)
+  # full_seq_size <- time_seq_sizes(start,
+  #                                 end,
+  #                                 time_by = tby,
+  #                                 time_type = time_type)
   n_unique <- collapse::fndistinct(x, g = g, na.rm = na.rm, use.g.names = FALSE)
-  full_seq_size <- time_seq_sizes(start,
-                                  end,
-                                  time_by = tby,
-                                  time_type = time_type)
+  full_seq_size <- time_span_size(x, time_by = tby,
+                                  time_type = time_type,
+                                  g = g, use.g.names = FALSE)
   out <- full_seq_size - n_unique
   if (use.g.names){
     names(out) <- GRP_names(g)
@@ -141,13 +154,13 @@ time_has_gaps <- function(x, time_by = NULL,
                 time_type = time_type,
                 check_time_regular = check_time_regular) > 0
 }
-check_time_regular <- function(x, seq, time_by){
-  if (!is.null(time_by)){
-    if (length(setdiff(x, seq) > 0L)){
-      stop("x is not regular given the chosen time unit")
-    }
-  }
-}
+# check_time_regular <- function(x, seq, time_by){
+#   if (!is.null(time_by)){
+#     if (length(setdiff(x, seq) > 0L)){
+#       stop("x is not regular given the chosen time unit")
+#     }
+#   }
+# }
 # time_which_gaps <- function(x, time_by = NULL,
 #                             time_type = c("auto", "duration", "period"),
 #                             na.rm = TRUE){

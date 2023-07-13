@@ -72,9 +72,10 @@ Default is \code{FALSE}.}
 regular date or datetime sequence.
 }
 \details{
-If your data consists of sequences that increase by
-an increment lower than the one provided through \code{time_by},
-and \code{check_time_regular} is \code{TRUE}, an error is thrown.
+When \code{check_time_regular} is TRUE, \code{x} is passed to
+\code{time_is_regular}, which checks that the time elapsed between successive
+values are in increasing order and are whole numbers.
+For more strict checks, see \code{?time_is_regular}.
 }
 \examples{
 library(timeplyr)

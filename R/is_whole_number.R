@@ -3,6 +3,9 @@
 #' @param x A numeric vector.
 #' @param na.rm Should `NA` values be removed before calculation?
 #' Default is `TRUE`.
+#' @param tol tolerance value such that a whole number satisfies the condition
+#' `abs(round(x) - x) < tol`. \cr
+#' The default is `sqrt(.Machine$double.eps)`.
 #' @return A logical vector of length 1.
 #' @details
 #' This is a very efficient function that returns `FALSE` if any number
@@ -36,15 +39,17 @@
 #'      e2 = is_whole_number(x3))
 #' }
 #' @export
-is_whole_number <- function(x, na.rm = TRUE){
+is_whole_number <- function(x, na.rm = TRUE, tol = sqrt(.Machine$double.eps)){
   if (is.integer(x)){
     return(TRUE)
   }
+  if (!typeof(x) %in% c("integer", "double", "logical")){
+    stop("x must be a number")
+  }
   if (!na.rm){
-    num_na <- sum(is.na(x))
-    if (num_na > 0){
+    if (anyNA(x)){
       return(NA)
     }
   }
-  is_whole_num(x)
+  is_whole_num(x, tol = tol)
 }
