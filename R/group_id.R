@@ -151,7 +151,7 @@ group_id.default <- function(data, ..., order = TRUE,
     out <- group_id_to_qg(out,
                           n_groups = GRP_n_groups(g),
                           # group_starts = g[["group.starts"]],
-                          # group_sizes = GRP_group_sizes(g),
+                          group_sizes = GRP_group_sizes(g),
                           ordered = order)
   }
   out
@@ -171,7 +171,7 @@ group_id.Interval <- function(data, ..., order = TRUE,
     out <- group_id_to_qg(out,
                           n_groups = GRP_n_groups(groups),
                           # group_starts = groups[["group.starts"]],
-                          # group_sizes = GRP_group_sizes(groups),
+                          group_sizes = GRP_group_sizes(groups),
                           ordered = order)
   }
   out
@@ -192,7 +192,7 @@ group_id.data.frame <- function(data, ...,
   if (length(all_groups) == 0L){
     out <- alloc(1L, N)
     n_groups <- min(N, 1L)
-    # group_sizes <- N
+    group_sizes <- N
     # group_starts <- n_groups
   } else {
     g <- GRP2(group_info[["data"]], by = all_groups,
@@ -205,14 +205,14 @@ group_id.data.frame <- function(data, ...,
               call = FALSE)
     out <- GRP_group_id(g)
     n_groups <- GRP_n_groups(g)
-    # group_sizes <- GRP_group_sizes(g)
+    group_sizes <- GRP_group_sizes(g)
     # group_starts <- g[["group.starts"]]
   }
   if (as_qg){
     out <- group_id_to_qg(out,
                           n_groups = n_groups,
                           # group_starts = group_starts,
-                          # group_sizes = group_sizes,
+                          group_sizes = group_sizes,
                           ordered = order)
   }
   out
@@ -231,6 +231,8 @@ group_id.grouped_df <- function(data, ...,
     if (as_qg){
       out <- group_id_to_qg(out,
                             n_groups = nrow2(group_data(data)),
+                            group_sizes = collapse::vlengths(group_data(data)[[".rows"]],
+                                                             use.names = FALSE),
                             ordered = order)
     }
   } else {
@@ -261,6 +263,10 @@ group_id.GRP <- function(data, ..., order = TRUE, as_qg = FALSE){
     }
   }
   out
+}
+#' @export
+group_id.NULL <- function(data, ...){
+  NULL
 }
 #' @rdname group_id
 #' @export

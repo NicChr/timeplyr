@@ -75,6 +75,13 @@ check_GRP_has_groups <- function(GRP){
     stop("GRP has no group data. Please supply a GRP object with group data")
   }
 }
+check_data_GRP_size <- function(x, GRP){
+  size <- vec_length(x)
+  GRP_size <- GRP_data_size(GRP)
+  if (size != GRP_size){
+    stop("size of x must match size of groups")
+  }
+}
 
 GRP_duplicated <- function(GRP, all = FALSE){
   sizes <- GRP_group_sizes(GRP)

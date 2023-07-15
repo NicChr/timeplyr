@@ -4,6 +4,7 @@
 \alias{fn}
 \alias{fnmiss}
 \alias{fprop_complete}
+\alias{fcummean}
 \title{Supplementary fast statistical functions, \code{collapse} style}
 \usage{
 fn(x, g = NULL, sort = TRUE, expand = FALSE, use.g.names = !expand)
@@ -11,6 +12,8 @@ fn(x, g = NULL, sort = TRUE, expand = FALSE, use.g.names = !expand)
 fnmiss(x, ...)
 
 fprop_complete(x, ...)
+
+fcummean(x, g = NULL, na.rm = FALSE, ...)
 }
 \arguments{
 \item{x}{A vector or data frame.
@@ -32,6 +35,8 @@ and order of the data? Default is \code{FALSE}.}
 This only applies to \code{fn()}. Default is \code{TRUE}.}
 
 \item{...}{Additional parameters passed to \code{collapse::fsum()}.}
+
+\item{na.rm}{Should \code{NA} values be removed? Default is \code{FALSE}.}
 }
 \description{
 Supplementary fast statistical functions, \code{collapse} style

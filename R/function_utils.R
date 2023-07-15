@@ -410,6 +410,16 @@ gcd <- function(x, y) {
   r <- x %% y
   ifelse(r, gcd(y, r), y)
 }
+# Original function I wrote using Matthew Lundberg's gcd function above
+gcd2 <- function(x){
+  if (!is.numeric(x)){
+    stop("x must be a numeric vector")
+  }
+  if (length(x) <= 1L){
+    return(x)
+  }
+  Reduce(gcd, x)
+}
 # Least common multiple (using Euclidean algorithm)
 lcm <- function(x, y){
   ( abs(x) / gcd(x, y) ) * abs(y)

@@ -167,6 +167,9 @@ time_interval <- function(from, to){
 time_diff_gcd <- function(x, time_type = c("auto", "duration", "period"),
                           is_sorted = FALSE,
                           tol = sqrt(.Machine$double.eps)){
+  if (!is_sorted){
+    is_sorted <- isTRUE(!is.unsorted(x))
+  }
   x <- collapse::funique(x, sort = !is_sorted)
   x <- x[!is.na(x)]
   if (length(x) == 0L){
@@ -190,11 +193,64 @@ time_diff_gcd <- function(x, time_type = c("auto", "duration", "period"),
     log10_tol <- floor(abs(log10(tol)))
     tdiff <- round(abs(tdiff[-1L]), digits = log10_tol)
     tdiff <- collapse::funique(tdiff, sort = FALSE)
-    tdiff <- tdiff[double_gt(tdiff, 0)]
+    # tdiff[double_equal(tdiff, 0, tol = tol)] <- max(tdiff)
+    tdiff <- tdiff[double_gt(tdiff, 0, tol = tol)]
     gcd_diff <- collapse::vgcd(tdiff)
   }
   gcd_diff
 }
+####### GROUPED TIME DIFF GCD
+####### IN PROGRESS
+# time_diff_gcd2 <- function(x, g = NULL, use.g.names = TRUE,
+#                           time_type = c("auto", "duration", "period"),
+#                           is_sorted = FALSE,
+#                           tol = sqrt(.Machine$double.eps)){
+#   if (!is.null(g)){
+#     g <- GRP2(g)
+#     check_data_GRP_size(x, g)
+#   }
+#   x <- gunique(unname(x), g = g, sort = TRUE, use.g.names = TRUE)
+#   # g <- collapse::group(names(x), starts = TRUE, group.sizes = TRUE)
+#   is_na <- is.na(x)
+#   x <- x[!is_na]
+#   # g <- g[!is_na]
+#   if (length(x) == 0L){
+#     gcd_diff <- numeric(0)
+#   } else if (length(x) == 1L){
+#     gcd_diff <- 1
+#   } else {
+#     if (is_date(x)){
+#       tby <- "days"
+#     } else if (is_datetime(x)){
+#       tby <- "seconds"
+#     } else {
+#       tby <- 1
+#     }
+#     tdiff <- time_elapsed(x, rolling = TRUE,
+#                           g = g,
+#                           time_by = tby,
+#                           time_type = time_type,
+#                           fill = 1,
+#                           na_skip = FALSE)
+#     names(tdiff) <- names(x)
+#     log10_tol <- floor(abs(log10(tol)))
+#     # g <- g[-1L]
+#     tdiff <- round(abs(tdiff[-1L]), digits = log10_tol)
+#     # g <- g[double_gt(tdiff, 0)]
+#     tdiff <- tdiff[double_gt(tdiff, 0)]
+#     # group_starts <- attr(g, "starts")
+#     # group_sizes <- attr(g, "group.sizes")
+#     # group_ends <- group_starts + group_sizes - 1L
+#     # group_ends <- pmax(group_ends, 0L)
+#     #
+#     # for (i in seq_along(group_starts)){
+#     #
+#     # }
+#     gcd_diff <- vapply(collapse::gsplit(tdiff, g = names(tdiff)),
+#                        collapse::vgcd, numeric(1))
+#   }
+#   gcd_diff
+# }
 # Calculates time granularity with numeric tolerance
 # time_diff_gcd <- function(x, is_sorted = FALSE,
 #                           tol = sqrt(.Machine$double.eps)){
@@ -719,9 +775,30 @@ window_seq <- function(k, n, partial = TRUE){
   out <- collapse::alloc(k, n)
   # Replace partial part with partial sequence
   if (partial){
-    setv(out, p_seq, p_seq, vind1 = TRUE)
+    out[p_seq] <- p_seq
+    # setv(out, p_seq, p_seq, vind1 = TRUE)
   } else {
-    setv(out, p_seq, NA_integer_, vind1 = TRUE)
+    out[p_seq] <- NA_integer_
+    # setv(out, p_seq, NA_integer_, vind1 = TRUE)
+  }
+  out
+}
+# Get rolling window sizes for multiple groups
+window_sequence <- function(size, k, partial = TRUE, ascending = TRUE){
+  if (length(k) != length(size)){
+    stop("k must have same length as size")
+  }
+  k <- as.integer(k)
+  k <- pmax(k, 0L) # Bound k to >= 0
+  if (ascending){
+    k <- rep.int(k, times = size)
+    out <- pmin(sequence(size, from = 1L, by = 1L), k)
+  } else {
+    out <- pmax(sequence(size, from = k, by = -1L), 1L)
+    k <- rep.int(k, times = size)
+  }
+  if (!partial){
+    out[out < k] <- NA_integer_
   }
   out
 }

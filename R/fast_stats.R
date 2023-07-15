@@ -14,6 +14,7 @@
 #' @param use.g.names If `TRUE` group names are added to the result as names.
 #' This only applies to `fn()`. Default is `TRUE`.
 #' @param ... Additional parameters passed to `collapse::fsum()`.
+#' @param na.rm Should `NA` values be removed? Default is `FALSE`.
 #' @details `fn()` Is different to the other `collapse`
 #' fast statistical functions because given a data frame, it
 #' operates on the entire data frame, instead of column-wise. It is similar
@@ -123,4 +124,16 @@ fnmiss <- function(x, ...){
 #' @rdname fast_stats
 fprop_complete <- function(x, ...){
   1 - (fnmiss(x, ...) / vec_length(x))
+}
+#' @rdname fast_stats
+fcummean <- function(x, g = NULL, na.rm = FALSE, ...){
+  if (!is.null(g)){
+    g <- GRP2(g)
+  }
+  sizes <- frowid(x, g = g)
+  if (na.rm){
+    sizes <- sizes - collapse::fcumsum(is.na(x), g = g, na.rm = FALSE)
+  }
+  cum_sum <- collapse::fcumsum(as.double(x), g = g, na.rm = na.rm)
+  cum_sum / sizes
 }

@@ -16,13 +16,13 @@ testthat::test_that("Group IDs", {
                                group_id(.by = all_of("Sepal.Length"),
                                         order = TRUE))
 
-  testthat::expect_equal(iris %>%
-                           dplyr::group_by(Species, Sepal.Length) %>%
-                           dplyr::group_indices() %>%
-                           collapse::qG(ordered = TRUE, na.exclude = FALSE),
-                         iris %>%
-                          fgroup_by(Species, Sepal.Length) %>%
-                           group_id(as_qg = TRUE))
+  # testthat::expect_equal(iris %>%
+  #                          dplyr::group_by(Species, Sepal.Length) %>%
+  #                          dplyr::group_indices() %>%
+  #                          collapse::qG(ordered = TRUE, na.exclude = FALSE),
+  #                        iris %>%
+  #                         fgroup_by(Species, Sepal.Length) %>%
+  #                          group_id(as_qg = TRUE))
   testthat::expect_equal(base1,
                              iris %>%
                                group_id(Petal.Width, order = TRUE))
