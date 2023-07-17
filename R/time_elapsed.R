@@ -73,12 +73,12 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
   if (!is.na(fill) && length(fill) > 1){
     stop("fill must be a single number")
   }
+  g <- GRP2(g, sort = TRUE, return.groups = TRUE, return.order = TRUE)
   has_groups <- !is.null(g)
   if (!has_groups){
     group_starts <- min(1L, length(x))
   } else {
     # We need to sort by groups to use lags
-    g <- GRP2(g, sort = TRUE, return.groups = TRUE, return.order = TRUE)
     group_starts <- GRP_starts(g)
   }
   if (rolling){

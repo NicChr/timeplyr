@@ -111,7 +111,6 @@ time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
                          week_start = getOption("lubridate.week.start", 1),
                          roll_month = "preday", roll_dst = "pre"){
   check_is_time_or_num(x)
-  has_groups <- length(g) > 0
   if (length(from) > 1L){
     stop("from must be of length 1")
   }
@@ -123,11 +122,10 @@ time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
   if (time_by_length(time_by) > 1L){
     stop("time_by must be a time unit containing a single numeric increment")
   }
+  g <- GRP2(g)
+  has_groups <- length(g) > 0
   if (has_groups){
-    g <- GRP2(g)
-    if (GRP_data_size(g) != length(x)){
-      stop("g must have the same size as x")
-    }
+    check_data_GRP_size(x, g)
   }
   if (is.null(from)){
     from <- collapse::fmin(x, g = g, use.g.names = FALSE, na.rm = TRUE)
@@ -663,7 +661,6 @@ time_span_size <- function(x, time_by = NULL, from = NULL, to = NULL,
                            week_start = getOption("lubridate.week.start", 1),
                            roll_month = "preday", roll_dst = "pre"){
   check_is_time_or_num(x)
-  has_groups <- length(g) > 0
   if (length(from) > 1L){
     stop("from must be of length 1")
   }
@@ -675,11 +672,10 @@ time_span_size <- function(x, time_by = NULL, from = NULL, to = NULL,
   if (time_by_length(time_by) > 1L){
     stop("time_by must be a time unit containing a single numeric increment")
   }
+  g <- GRP2(g)
+  has_groups <- length(g) > 0
   if (has_groups){
-    g <- GRP2(g)
-    if (GRP_data_size(g) != length(x)){
-      stop("g must have the same size as x")
-    }
+    check_data_GRP_size(x, g)
   }
   if (is.null(from)){
     from <- collapse::fmin(x, g = g, use.g.names = FALSE, na.rm = TRUE)

@@ -52,11 +52,9 @@ time_is_regular <- function(x, time_by = NULL,
     return(TRUE)
   }
   x <- unname(x)
+  g <- GRP2(g)
   if (!is.null(g)){
-    g <- GRP2(g)
-    if (GRP_data_size(g) != length(x)){
-      stop("g must have the same size as x")
-    }
+    check_data_GRP_size(x, g)
     n_groups <- GRP_n_groups(g)
   } else {
     n_groups <- 1L
@@ -176,7 +174,6 @@ time_is_regular <- function(x, time_by = NULL,
 # }
 # Ungrouped version.
 time_is_reg <- function(x, time_by = NULL,
-                        g = NULL, use.g.names = TRUE,
                         na.rm = TRUE,
                         time_type = c("auto", "duration", "period"),
                         allow_gaps = TRUE,

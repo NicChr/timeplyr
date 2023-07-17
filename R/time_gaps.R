@@ -53,11 +53,9 @@ time_gaps <- function(x, time_by = NULL,
                       g = NULL, use.g.names = TRUE,
                       time_type = c("auto", "duration", "period"),
                       check_time_regular = FALSE){
+  g <- GRP2(g)
   if (!is.null(g)){
-    g <- GRP2(g)
-    if (GRP_data_size(g) != length(x)){
-      stop("g must have the same size as x")
-    }
+    check_data_GRP_size(x, g)
     names(x) <- GRP_names(g, expand = TRUE)
   }
   time_by <- time_by_get(x, time_by = time_by)
@@ -110,11 +108,9 @@ time_num_gaps <- function(x, time_by = NULL,
   if (length(x) == 0L){
     return(0L)
   }
+  g <- GRP2(g)
   if (!is.null(g)){
-    g <- GRP2(g)
-    if (GRP_data_size(g) != length(x)){
-      stop("g must have the same size as x")
-    }
+    check_data_GRP_size(x, g)
   }
   tby <- time_by_get(x, time_by = time_by)
   if (!is.null(time_by) && check_time_regular){

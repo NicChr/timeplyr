@@ -3,8 +3,9 @@
 #' common unit, with number and scale. \cr
 #' See `.time_units` for a list of accepted
 #' time units.
-#' @param x This can be 1 of 3 options:
+#' @param x This can be 1 of 4 options:
 #' * A string, e.g. "7 days"
+#' * Lubridate duration or period object, e.g. `days(1)` or `ddays(1)`.
 #' * A list, e.g. list("days" = 7)
 #' * A number, e.g. 5
 #' @return A list of length 3, including the unit, number and scale.
@@ -37,11 +38,21 @@
 #' unit_guess(100)
 #' @export
 unit_guess <- function(x){
-  # If numeric then just return this..
-  if (is.numeric(x)){
+  if (inherits(x, c("Duration", "Period"))){
+    time_unit_info <- time_unit_info(x)
+    if (length(time_unit_info) > 1L){
+      stop("Multiple period units are currently not supported.")
+    }
+    unit <- paste0(names(time_unit_info), "s")
+    num <- time_unit_info[[1L]]
+    out <- list("unit" = unit,
+                "num" = num,
+                "scale" = 1L)
+    # If numeric then just return this..
+  } else if (is.numeric(x)){
     out <- list("unit" = "numeric",
                 "num" = x,
-                "scale" = 1)
+                "scale" = 1L)
   } else if (is.list(x)){
     # If it's a list, string match but no parse
     out <- unit_list_match(x)
@@ -53,7 +64,7 @@ unit_guess <- function(x){
       out <- unit_parse(x)
     } else {
       num <- 1
-      scale <- 1
+      scale <- 1L
       # If the unit is something exotic,
       # The num needs to be scaled correctly
       if (unit %in% .extra_time_units){

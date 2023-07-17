@@ -51,5 +51,6 @@ is_whole_number <- function(x, na.rm = TRUE, tol = sqrt(.Machine$double.eps)){
       return(NA)
     }
   }
-  is_whole_num(x, tol = tol)
+  .Call(`_timeplyr_is_whole_num`, x, tol)
+  # is_whole_num(x, tol = tol)
 }

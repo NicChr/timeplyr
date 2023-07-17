@@ -52,7 +52,7 @@ roll_sum <- function(x, n = length(x), g = NULL, partial = TRUE,
   out <- frollsum3(x, n = roll_window,
                    weights = weights,
                    adaptive = TRUE, align = "right",
-                   na.rm = na.rm)
+                   na.rm = na.rm, ...)
   if (!groups_are_sorted){
     out <- collapse::greorder(out, g = g)
   }
@@ -87,7 +87,7 @@ roll_mean <- function(x, n = length(x), g = NULL, partial = TRUE,
   out <- frollmean3(x, n = roll_window,
                     weights = weights,
                     adaptive = TRUE, align = "right",
-                    na.rm = na.rm)
+                    na.rm = na.rm, ...)
   if (!groups_are_sorted){
     out <- collapse::greorder(out, g = g)
   }

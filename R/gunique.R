@@ -51,7 +51,7 @@
 #' @export
 gunique <- function(x, g = NULL, sort = FALSE, order = TRUE,
                     use.g.names = TRUE){
-  if (length(g) == 0){
+  if (is.null(g)){
     g <- GRP2(x,
               sort = sort,
               return.groups = TRUE, call = FALSE,
@@ -81,7 +81,7 @@ gunique <- function(x, g = NULL, sort = FALSE, order = TRUE,
 #' @export
 gduplicated <- function(x, g = NULL, order = TRUE, all = FALSE){
   # out_nms <- names(x)
-  if (length(g) == 0){
+  if (is.null(g)){
     g <- GRP2(x, sort = order,
               return.groups = FALSE,
               return.order = TRUE)
@@ -97,7 +97,7 @@ gduplicated <- function(x, g = NULL, order = TRUE, all = FALSE){
 #' @rdname gunique
 #' @export
 gwhich_duplicated <- function(x, g = NULL, order = TRUE, all = FALSE){
-  if (length(g) == 0){
+  if (is.null(g)){
     g <- GRP2(x, sort = order,
               return.groups = FALSE)
   } else {
@@ -112,7 +112,7 @@ gwhich_duplicated <- function(x, g = NULL, order = TRUE, all = FALSE){
 #' @rdname gunique
 #' @export
 gsort <- function(x, g = NULL, order = TRUE, use.g.names = TRUE){
-  if (length(g) == 0){
+  if (is.null(g)){
     order <- radixorderv2(x)
     sorted <- isTRUE(attr(order, "sorted"))
   } else {
@@ -145,7 +145,7 @@ gsort <- function(x, g = NULL, order = TRUE, use.g.names = TRUE){
 #' @rdname gunique
 #' @export
 gorder <- function(x, g = NULL, order = TRUE){
-  if (length(g) == 0){
+  if (is.null(g)){
     order <- radixorderv2(x)
   } else {
     g <- GRP2(list(group_id(g, .cols = names(g), order = order),

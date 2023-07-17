@@ -8,9 +8,10 @@
 #' @param time Time variable (\bold{data-masking}). \cr
 #' Can be a `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, or `yearqtr`.
 #' @param time_by Time unit. \cr
-#' Must be one of the three:
+#' Must be one of the following:
 #' * string, specifying either the unit or the number and unit, e.g
 #' `time_by = "days"` or `time_by = "2 weeks"`
+#' * Lubridate duration or period object, e.g. `days(1)` or `ddays(1)`.
 #' * named list of length one, the unit being the name, and
 #' the number the value of the list, e.g. `list("days" = 7)`.
 #' For the vectorized time functions, you can supply multiple values,

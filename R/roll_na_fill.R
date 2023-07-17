@@ -63,7 +63,7 @@ roll_na_fill <- function(x, g = NULL, fill_limit = NULL){
       }
       rollsum_not_na <- collapse::fcumsum(is_not_na, na.rm = FALSE)
       collapse::setop(rollsum_not_na, op = "+", V = 1L)
-      out <- c(NA, x[is_not_na])[rollsum_not_na]
+      out <- c(x[NA_integer_], x[is_not_na])[rollsum_not_na]
     } else {
       # Ungrouped method 2 (more flexible, slower)
       which_na <- collapse::whichNA(x)

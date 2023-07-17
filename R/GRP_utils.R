@@ -76,10 +76,12 @@ check_GRP_has_groups <- function(GRP){
   }
 }
 check_data_GRP_size <- function(x, GRP){
-  size <- vec_length(x)
-  GRP_size <- GRP_data_size(GRP)
-  if (size != GRP_size){
-    stop("size of x must match size of groups")
+  if (!is.null(GRP)){
+    size <- vec_length(x)
+    GRP_size <- GRP_data_size(GRP)
+    if (size != GRP_size){
+      stop("size of x must match size of groups")
+    }
   }
 }
 
@@ -228,10 +230,12 @@ GRP_ends <- function(GRP, use.g.names = FALSE,
 GRP_order <- function(GRP){
   out <- GRP[["order"]]
   if (is.null(out)){
-    if (GRP_is_sorted(GRP)){
-      out <- seq_along(GRP_group_id(GRP))
+    group_id <- GRP_group_id(GRP)
+    if (GRP_is_sorted(GRP) || isTRUE(!is.unsorted(group_id))){
+      out <- seq_along(group_id)
+      attr(out, "sorted") <- TRUE
     } else {
-      out <- collapse::radixorderv(GRP_group_id(GRP))
+      out <- collapse::radixorderv(group_id)
     }
   }
   out
@@ -434,7 +438,7 @@ df_as_one_GRP <- function(data, order = TRUE,
                   "group.starts", "call")
   gsizes <- nrow2(data)
   n_groups <- min(gsizes, 1L)
-  group_id <- alloc(1L, gsizes)
+  group_id <- collapse::alloc(1L, gsizes)
   if (order && return.order){
     gorder <- seq_len(gsizes)
     sorted <- TRUE
@@ -489,6 +493,9 @@ GRP.Interval <- function(X, ...){
     out[["groups"]] <- list(x = x[GRP_starts(out)])
   }
   out
+}
+GRP.NULL <- function(X, ...){
+  NULL
 }
 GRP_row_id <- function(GRP, ascending = TRUE){
   size <- GRP_data_size(GRP)

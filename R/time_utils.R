@@ -521,14 +521,15 @@ time_by_calc <- function(from, to, length, time_type){
 # Periods with multiple types of units do not work.
 time_unit_info <- function(time_unit){
   tclass <- class(time_unit)
+  time_value <- unclass(time_unit)
   if (tclass == "Duration"){
-    list("second" = as.double(time_unit))
+    list("second" = time_value)
   } else if (tclass == "Period"){
-    out <- attributes(unclass(time_unit))
+    out <- attributes(time_value)
     seconds <- lubridate::second(time_unit)
     out[["second"]] <- seconds
     sum_rng <- lapply(out, function(x) sum(abs(collapse::frange(x, na.rm = TRUE))))
-    keep <- vapply(sum_rng, function(x) isTRUE(x > 0), logical(1))
+    keep <- vapply(sum_rng, function(x) isTRUE(double_gt(x, 0)), logical(1))
     if (sum(keep) == 0){
       out["second"]
     } else {
@@ -577,7 +578,7 @@ time_unit_info <- function(time_unit){
     # out <- setnames(as.list(out), out_nms)
     # out
   } else {
-    list("numeric" = as.double(time_unit))
+    list("numeric" = time_value)
   }
 }
 # Functional that returns lubridate duration function
