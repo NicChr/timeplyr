@@ -100,7 +100,7 @@ time_span_size(
 \item{x}{Date, datetime or numeric vector.}
 
 \item{time_by}{Time unit. \cr
-Must be one of the three:
+Must be one of the following:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
 \code{time_by = "days"} or \code{time_by = "2 weeks"}

@@ -1,9 +1,5 @@
 #' @noRd
 
-is_strictly_increasing <- function(x){
-  isTRUE(all(x == cummax(x)))
-}
-
 lump_categories <- function(x, n = 10, factor = TRUE,
                             sort = c("frequency", "values"),
                             descending = TRUE,
@@ -410,16 +406,26 @@ gcd <- function(x, y) {
   r <- x %% y
   ifelse(r, gcd(y, r), y)
 }
+# gcd3 <- function(x, y) {
+#   r <- x %% y
+#   out <- y
+#   while(r > 0){
+#     out <- r
+#     x <- y
+#     r <- x %% r
+#   }
+#   out
+# }
 # Original function I wrote using Matthew Lundberg's gcd function above
-gcd2 <- function(x){
-  if (!is.numeric(x)){
-    stop("x must be a numeric vector")
-  }
-  if (length(x) <= 1L){
-    return(x)
-  }
-  Reduce(gcd, x)
-}
+# gcd2 <- function(x){
+#   if (!is.numeric(x)){
+#     stop("x must be a numeric vector")
+#   }
+#   if (length(x) <= 1L){
+#     return(x)
+#   }
+#   Reduce(gcd, x)
+# }
 # Least common multiple (using Euclidean algorithm)
 lcm <- function(x, y){
   ( abs(x) / gcd(x, y) ) * abs(y)
@@ -709,9 +715,9 @@ radix_sort <- function(x, na.last = TRUE, ...){
 # This is used primarily for sums
 seq_ones <- function(length){
   if (length <= .Machine$integer.max){
-    alloc(1L, length)
+    collapse::alloc(1L, length)
   } else {
-    alloc(1, length)
+    collapse::alloc(1, length)
   }
 }
 # Drop leading zeroes
@@ -727,7 +733,6 @@ sample2 <- function(x, size = length(x), replace = FALSE, prob = NULL){
 }
 
 setv <- getFromNamespace("setv", "collapse")
-alloc <- getFromNamespace("alloc", "collapse")
 fcumsum <- getFromNamespace("fcumsum", "collapse")
 # set <- getFromNamespace("set", "data.table")
 fsum <- getFromNamespace("fsum", "collapse")
@@ -751,35 +756,6 @@ flast <- getFromNamespace("flast", "collapse")
 CJ <- getFromNamespace("CJ", "data.table")
 # Ccj <- getFromNamespace("Ccj", "data.table")
 
-# is_whole_number <- function(x, na.rm = FALSE,
-#                             tol = sqrt(.Machine$double.eps)){
-#   if (is.integer(x)) return(TRUE) # If already integer then true
-#   if (na.rm){
-#     x <- x[!is.na(x)]
-#   }
-#   if (any(is.infinite(x))) return(FALSE)
-#   # if (length(x) == 0L) return(FALSE) # If length is 0 then false
-#   # all.equal(x, as.integer(x), check.attributes = FALSE)
-#   # isTRUE((sum(x %% 1) == 0))
-#   # x <- floor(x/10^7) * 10^7
-#   # x <- round(x, digits = 7)
-#   # all(floor(x) == x, na.rm = FALSE)
-#   all(abs(round(x) - x) < tol, na.rm = FALSE)
-# }
-# Very efficient and fast whole number check
-# Especially if decimal numbers occur at beginning of vector
-# is_whole_number <- function(x, na.rm = TRUE){
-#   if (is.integer(x)){
-#     return(TRUE)
-#   }
-#   if (!na.rm){
-#     num_na <- sum(is.na(x))
-#     if (num_na > 0){
-#       return(NA)
-#     }
-#   }
-#   is_whole_num(x)
-# }
 are_whole_numbers <- function(x){
   if (is.integer(x)){
     return(rep_len(TRUE, length(x)))
@@ -1166,36 +1142,58 @@ double_gt <- function(x, y, tol = sqrt(.Machine$double.eps)){
 }
 double_gte <- function(x, y, tol = sqrt(.Machine$double.eps)){
   (x - y) > -tol
-  # (x - y) >= -tol
 }
 double_lt <- function(x, y, tol = sqrt(.Machine$double.eps)){
   (x - y) < -tol
 }
 double_lte <- function(x, y, tol = sqrt(.Machine$double.eps)){
   (x - y) < tol
-  # (x - y) <= tol
 }
 # `%~==%` <- double_equal
 # `%~>=%` <- double_gte
 # `%~<=%` <- double_lte
 # `%~>%` <- double_gt
 # `%~<%` <- double_lt
-
-# near_equal <- function( x , y , tol = 1.5e-8 , mode = "ae" ){
-#   ae <- mapply( function(x,y) isTRUE( all.equal( x , y , tolerance = tol ) ) , x , y )
-#   gt <- x > y
-#   lt <- x < y
-#   if( mode == "ae" )
-#     return( ae )
-#   if( mode == "gt" )
-#     return( gt )
-#   if( mode == "lt" )
-#     return( lt )
-#   if( mode == "ne.gt" )
-#     return( ae | gt )
-#   if( mode == "ne.lt" )
-#     return( ae | lt )
-# }
+any_lt <- function(x, value, tol = sqrt(.Machine$double.eps)){
+  stopifnot(inherits(x, c("integer", "numeric")))
+  if (is.integer(x)){
+    any_int_lt(x, value)
+  } else {
+    any_num_lt(x, value, tol)
+  }
+}
+any_lte <- function(x, value, tol = sqrt(.Machine$double.eps)){
+  stopifnot(inherits(x, c("integer", "numeric")))
+  if (is.integer(x)){
+    any_int_lte(x, value)
+  } else {
+    any_num_lte(x, value, tol)
+  }
+}
+any_gt <- function(x, value, tol = sqrt(.Machine$double.eps)){
+  stopifnot(inherits(x, c("integer", "numeric")))
+  if (is.integer(x)){
+    any_int_gt(x, value)
+  } else {
+    any_num_gt(x, value, tol)
+  }
+}
+any_gte <- function(x, value, tol = sqrt(.Machine$double.eps)){
+  stopifnot(inherits(x, c("integer", "numeric")))
+  if (is.integer(x)){
+    any_int_gte(x, value)
+  } else {
+    any_num_gte(x, value, tol)
+  }
+}
+any_equal <- function(x, value, tol = sqrt(.Machine$double.eps)){
+  stopifnot(inherits(x, c("integer", "numeric")))
+  if (is.integer(x)){
+    any_int_equal(x, value)
+  } else {
+    any_num_equal(x, value, tol)
+  }
+}
 check_sorted <- function(x){
   is_sorted <- !is.unsorted(x)
   if (!is_sorted){

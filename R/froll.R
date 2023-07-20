@@ -1,11 +1,6 @@
-#' Rolling sum/mean
+#' Rolling sum/mean - \bold{Deprecated}
 #'
-#' @description Calculate rolling sums and means using data.table
-#' for speed and efficiency. This is a wrapper around data.table's rolling functions
-#' that by default calculates simple rolling averages/sums.
-#' The adaptive argument has been replaced with the simpler
-#' (and less functional) partial argument.
-#'
+#' @description This function is deprecated, use `roll_mean` and `roll_sum` instead.
 #'
 #' @param x Numeric vector.
 #' @param n Rolling window size, default is `length(x)`.

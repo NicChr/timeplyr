@@ -132,6 +132,6 @@ fcummean <- function(x, g = NULL, na.rm = FALSE, ...){
   if (na.rm){
     sizes <- sizes - collapse::fcumsum(is.na(x), g = g, na.rm = FALSE)
   }
-  cum_sum <- collapse::fcumsum(as.double(x), g = g, na.rm = na.rm)
+  cum_sum <- collapse::fcumsum(x, g = g, na.rm = na.rm)
   cum_sum / sizes
 }

@@ -43,8 +43,10 @@ testthat::test_that("Tests for time_countv", {
                                dplyr::pull(n))
   res4 <- time_countv(flights2$time_hour, time_by = "month",
                       from = from, to = to)
-  tbreaks <- time_seq(from, to, time_by = "month",
-                      tz = lubridate::tz(flights2$time_hour))
+  tbreaks <- lubridate::with_tz(
+    time_seq(from, to, time_by = "month"),
+    lubridate::tz(flights2$time_hour)
+  )
 
   testthat::expect_equal(res4,
                          flights2 %>%
@@ -158,21 +160,32 @@ testthat::test_that("Tests for time_span", {
   testthat::expect_equal(time_span(y),
                              time_seq(min(y), max(y), time_by = "day"))
   testthat::expect_equal(time_span(x, from = start1, to = end1),
-                             time_seq(start1, end1, time_by = "hour", tz = "America/New_York"))
+                         lubridate::with_tz(
+                           time_seq(start1, end1, time_by = "hour"),
+                           "America/New_York")
+  )
   testthat::expect_equal(time_span(x, from = start2, to = end2),
-                             time_seq(start2, end2, time_by = "hour", tz = "America/New_York"))
+                         lubridate::with_tz(
+                           time_seq(start2, end2, time_by = "hour"),
+                           "America/New_York"
+                         )
+  )
   testthat::expect_equal(time_span(x, from = start2, time_by = "week", time_floor = TRUE,
-                                       time_type = "period"),
-                             time_seq(start2, max(x),
-                                      time_by = "week",
-                                      time_floor = TRUE,
-                                      tz = "America/New_York"))
+                                   time_type = "period"),
+                         lubridate::with_tz(
+                           time_seq(start2, max(x),
+                                    time_by = "week",
+                                    time_floor = TRUE),
+                           "America/New_York")
+  )
   testthat::expect_equal(time_span(x, to = end2, time_by = "week", time_floor = TRUE,
-                                       time_type = "period"),
-                             time_seq(min(x), end2,
-                                      time_by = "week",
-                                      time_floor = TRUE,
-                                      tz = "America/New_York"))
+                                   time_type = "period"),
+                         lubridate::with_tz(
+                           time_seq(min(x), end2,
+                                    time_by = "week",
+                                    time_floor = TRUE),
+                           "America/New_York")
+  )
 })
 
 testthat::test_that("Tests for time_completev", {

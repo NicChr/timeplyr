@@ -16,8 +16,7 @@ time_seq(
   week_start = getOption("lubridate.week.start", 1),
   time_floor = FALSE,
   roll_month = "preday",
-  roll_dst = "pre",
-  tz = if (!missing(from)) lubridate::tz(from) else lubridate::tz(to)
+  roll_dst = "pre"
 )
 
 time_seq_sizes(
@@ -92,8 +91,6 @@ Options are "preday", "boundary", "postday", "full" and "NA".
 See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
-
-\item{tz}{Timezone of returned time sequence.}
 
 \item{as_period}{Logical. Should time interval be coerced to a period
 before time difference is calculated? This is useful for calculating
@@ -176,11 +173,11 @@ seq(start, by = "month", length.out = 12)
 leap <- dmy(29022020) # Leap day
 end <- dmy(01032021)
 # 3 different options
-time_seq(leap, to = end, time_by = "year", time_type = "per",
+time_seq(leap, to = end, time_by = "year",
          roll_month = "NA")
-time_seq(leap, to = end, time_by = "year", time_type = "per",
+time_seq(leap, to = end, time_by = "year",
          roll_month = "postday")
-time_seq(leap, to = end, time_by = "year", time_type = "per",
+time_seq(leap, to = end, time_by = "year",
          roll_month = "preday")
 }
 \seealso{

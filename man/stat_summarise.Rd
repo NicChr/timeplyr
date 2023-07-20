@@ -13,7 +13,8 @@ stat_summarise(
   sort = TRUE,
   .names = NULL,
   .by = NULL,
-  .cols = NULL
+  .cols = NULL,
+  as_tbl = FALSE
 )
 }
 \arguments{
@@ -47,6 +48,8 @@ Columns are specified using tidy-select.}
 \item{.cols}{(Optional) alternative to \code{...} that accepts
 a named character vector or numeric vector.
 If speed is an expensive resource, it is recommended to use this.}
+
+\item{as_tbl}{Should the result be a \code{tibble}? Default is \code{FALSE}.}
 }
 \value{
 A summary \code{data.table} containing the summary values for each group.

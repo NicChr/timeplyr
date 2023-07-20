@@ -52,7 +52,6 @@
 #' Options are "preday", "boundary", "postday", "full" and "NA".
 #' See `?timechange::time_add` for more details.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
-#' @param tz Timezone of returned time sequence.
 #' @param as_period Logical. Should time interval be coerced to a period
 #' before time difference is calculated? This is useful for calculating
 #' for example age in exact years or months.
@@ -109,11 +108,11 @@
 #' leap <- dmy(29022020) # Leap day
 #' end <- dmy(01032021)
 #' # 3 different options
-#' time_seq(leap, to = end, time_by = "year", time_type = "per",
+#' time_seq(leap, to = end, time_by = "year",
 #'          roll_month = "NA")
-#' time_seq(leap, to = end, time_by = "year", time_type = "per",
+#' time_seq(leap, to = end, time_by = "year",
 #'          roll_month = "postday")
-#' time_seq(leap, to = end, time_by = "year", time_type = "per",
+#' time_seq(leap, to = end, time_by = "year",
 #'          roll_month = "preday")
 #' @rdname time_seq
 #' @export
@@ -121,9 +120,7 @@ time_seq <- function(from, to, time_by, length.out = NULL,
                      time_type = c("auto", "duration", "period"),
                      week_start = getOption("lubridate.week.start", 1),
                      time_floor = FALSE,
-                     roll_month = "preday", roll_dst = "pre",
-                     tz = if (!missing(from)) lubridate::tz(from) else
-                       lubridate::tz(to)){
+                     roll_month = "preday", roll_dst = "pre"){
   missing_from <- missing(from)
   missing_to <- missing(to)
   missing_by <- missing(time_by)
@@ -151,25 +148,41 @@ time_seq <- function(from, to, time_by, length.out = NULL,
       stop("to must be of length 1")
     }
   }
-  # Basically if from and/or to are time do x else y
-  if ( (
-    (!missing_from && (is_time(from) || is.character(from))) ||
-    (!missing_to && (is_time(to) || is.character(to)))
-  )){
-    time_type <- match.arg(time_type)
-    input_time_type <- time_type
-    # Unit parsing
-    if (!missing_by){
-      unit_info <- unit_guess(time_by)
-      by_n <- unit_info[["num"]] * unit_info[["scale"]]
-      by_unit <- unit_info[["unit"]]
-      tby <- setnames(list(by_n), by_unit)
-      # Guess seq type
-      if (time_type == "auto") time_type <- guess_seq_type(by_unit)
+  # Unit parsing
+  if (!missing_by){
+    unit_info <- unit_guess(time_by)
+    by_n <- unit_info[["num"]] * unit_info[["scale"]]
+    by_unit <- unit_info[["unit"]]
+    tby <- setnames(list(by_n), by_unit)
+    time_by_is_num <- time_by_is_num(tby)
+  } else {
+    time_by_is_num <- FALSE
+  }
+  if (time_by_is_num || (missing_by &&
+                         (!missing_from && !is_time(from) ||
+                          !missing_to && !is_time(to)))){
+    args <- as.list(match.call())[-1]
+    args <- args[names(args) %in% c("from", "to", "time_by", "length.out")]
+    if (!missing_from && time_floor){
+      args[["from"]] <- time_floor(from, time_by)
     }
-    # Help the user by converting very common date formats
-    if (!missing_from) from <- convert_common_dates(from)
-    if (!missing_to) to <- convert_common_dates(to)
+    if (!missing_by){
+      time_by <- unlist(unname(time_by), recursive = FALSE, use.names = FALSE)
+      if (from_and_to && length(from) > 0L && length(to) > 0L && to < from){
+        time_by <- -abs(time_by)
+      }
+      args[["time_by"]] <- time_by
+    }
+    names(args)[names(args) == "time_by"] <- "by"
+    out <- do.call(seq, args, envir = parent.frame())
+
+  } else {
+    time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
+    input_time_type <- time_type
+    # Guess seq type
+    if (time_type == "auto" && !missing_by){
+      time_type <- guess_seq_type(by_unit)
+    }
     # Make from and to most granular data type between them
     if (from_and_to){
       set_time_cast(from, to)
@@ -187,13 +200,13 @@ time_seq <- function(from, to, time_by, length.out = NULL,
       }
       # From, to, time_by, no length
     }
-  if (from_and_to && !missing_by && missing_len){
+    if (from_and_to && !missing_by && missing_len){
       if (time_floor){
         from <- time_floor2(from, time_by = tby,
                             week_start = week_start)
       }
-    length.out <- time_seq_sizes(from, to, time_by = tby,
-                                 time_type = input_time_type)
+      length.out <- time_seq_sizes(from, to, time_by = tby,
+                                   time_type = input_time_type)
     }
     # Guess seq type
     if (time_type == "auto") time_type <- guess_seq_type(by_unit)
@@ -211,7 +224,7 @@ time_seq <- function(from, to, time_by, length.out = NULL,
     if (missing_to){
       if (time_floor){
         from <- time_floor2(from, time_by = tby,
-                           week_start = week_start)
+                            week_start = week_start)
       }
     }
     if (!missing_to && length(from) > 0L && length(to) > 0L && to < from){
@@ -220,35 +233,17 @@ time_seq <- function(from, to, time_by, length.out = NULL,
     }
     if (time_type == "duration"){
       out <- duration_seq(from = as_datetime2(from),
-                           length = length.out,
+                          length = length.out,
                           duration = duration_unit(by_unit)(by_n))
-                           # duration = unit_to_seconds(tby))
+      # duration = unit_to_seconds(tby))
     } else {
-        out <- period_seq(from = from,
-                             length = length.out,
-                             unit = substr(by_unit, 1L, nchar(by_unit) -1L),
-                          num = by_n,
-                          roll_month = roll_month,
-                          roll_dst = roll_dst)
+      out <- period_seq(from = from,
+                        length = length.out,
+                        unit = substr(by_unit, 1L, nchar(by_unit) -1L),
+                        num = by_n,
+                        roll_month = roll_month,
+                        roll_dst = roll_dst)
     }
-    if (lubridate::tz(from) != tz){
-      out <- lubridate::with_tz(out, tzone = tz)
-    }
-  } else {
-    args <- as.list(match.call())[-1]
-    args <- args[names(args) %in% c("from", "to", "time_by", "length.out")]
-    if (!missing_from && time_floor){
-      args[["from"]] <- time_floor(from, time_by)
-    }
-    if (!missing_by){
-      time_by <- unlist(unname(time_by), recursive = FALSE, use.names = FALSE)
-      if (from_and_to && length(from) > 0L && length(to) > 0L && to < from){
-        time_by <- -abs(time_by)
-      }
-      args[["time_by"]] <- time_by
-    }
-    names(args)[names(args) == "time_by"] <- "by"
-    out <- do.call(seq, args, envir = parent.frame())
   }
   out
 }
@@ -310,8 +305,7 @@ time_seq_v2 <- function(sizes, from, time_by,
     from <- time_floor2(from, time_by, week_start = week_start)
   }
   if (time_by_is_num(time_by)){
-    out <- sequence2(sizes, from = from,
-                     by = unlist(time_by, recursive = FALSE, use.names = FALSE))
+    out <- sequence2(sizes, from = from, by = num)
   } else {
     time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
     is_special_case_days <- time_type == "auto" &&
@@ -413,7 +407,7 @@ duration_seq <- function(from, length, duration){
     return(from)
   }
   seq.POSIXt(from = from,
-             length.out = length, by = as.double(duration))
+             length.out = length, by = unclass(duration))
 }
 # datetime sequence using from + to + by
 duration_seq2 <- function(from, to, duration){
@@ -429,7 +423,7 @@ duration_seq2 <- function(from, to, duration){
     }
     return(to)
   }
-  seq.POSIXt(from = from, to = to, by = as.double(duration))
+  seq.POSIXt(from = from, to = to, by = unclass(duration))
 }
 # This will always calculate an increasing or decreasing sequence
 # of a specified length and unit increment
@@ -461,7 +455,7 @@ duration_seq_v2 <- function(sizes, from, units, num = 1){
   time_by <- setnames(list(num), units)
   num_seconds <- unit_to_seconds(time_by)
   time_seq <- sequence2(sizes,
-                        from = as.double(from),
+                        from = time_as_number(from),
                         by = num_seconds)
   .POSIXct(time_seq, lubridate::tz(from))
   # time_cast(time_seq, from)
@@ -563,15 +557,22 @@ period_seq_v2 <- function(sizes, from, units, num = 1,
   # Setnames on the list for timechange::time_add
   by <- setnames(by, rep_len(unit, length(by)))
   for (i in df_seq_along(period_df)){
-    setv(out, sequence(out_sizes[[i]],
-                       from = init + 1L,
-                       by = 1L),
-         # seq_len(out_sizes[[i]]) + init,
-         time_add(from[[i]],
-                  periods = by[i],
-                  roll_month = roll_month,
-                  roll_dst = roll_dst),
-         vind1 = TRUE)
+    out[seq.int(length.out = out_sizes[[i]],
+                from = init + 1L,
+                by = 1L)] <-
+      time_add(from[[i]],
+               periods = by[i],
+               roll_month = roll_month,
+               roll_dst = roll_dst)
+    # setv(out, sequence(out_sizes[[i]],
+    #                    from = init + 1L,
+    #                    by = 1L),
+    #      # seq_len(out_sizes[[i]]) + init,
+    #      time_add(from[[i]],
+    #               periods = by[i],
+    #               roll_month = roll_month,
+    #               roll_dst = roll_dst),
+    #      vind1 = TRUE)
     init <- init + out_sizes[[i]]
   }
   out[out_order]

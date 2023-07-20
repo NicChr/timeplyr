@@ -10,6 +10,131 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// any_int_lt
+bool any_int_lt(IntegerVector x, int value);
+RcppExport SEXP _timeplyr_any_int_lt(SEXP xSEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type value(valueSEXP);
+    rcpp_result_gen = Rcpp::wrap(any_int_lt(x, value));
+    return rcpp_result_gen;
+END_RCPP
+}
+// any_num_lt
+bool any_num_lt(NumericVector x, double value, Nullable<NumericVector> tol);
+RcppExport SEXP _timeplyr_any_num_lt(SEXP xSEXP, SEXP valueSEXP, SEXP tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(any_num_lt(x, value, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
+// any_int_lte
+bool any_int_lte(IntegerVector x, int value);
+RcppExport SEXP _timeplyr_any_int_lte(SEXP xSEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type value(valueSEXP);
+    rcpp_result_gen = Rcpp::wrap(any_int_lte(x, value));
+    return rcpp_result_gen;
+END_RCPP
+}
+// any_num_lte
+bool any_num_lte(NumericVector x, double value, Nullable<NumericVector> tol);
+RcppExport SEXP _timeplyr_any_num_lte(SEXP xSEXP, SEXP valueSEXP, SEXP tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(any_num_lte(x, value, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
+// any_int_gt
+bool any_int_gt(IntegerVector x, int value);
+RcppExport SEXP _timeplyr_any_int_gt(SEXP xSEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type value(valueSEXP);
+    rcpp_result_gen = Rcpp::wrap(any_int_gt(x, value));
+    return rcpp_result_gen;
+END_RCPP
+}
+// any_num_gt
+bool any_num_gt(NumericVector x, double value, Nullable<NumericVector> tol);
+RcppExport SEXP _timeplyr_any_num_gt(SEXP xSEXP, SEXP valueSEXP, SEXP tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(any_num_gt(x, value, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
+// any_int_gte
+bool any_int_gte(IntegerVector x, int value);
+RcppExport SEXP _timeplyr_any_int_gte(SEXP xSEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type value(valueSEXP);
+    rcpp_result_gen = Rcpp::wrap(any_int_gte(x, value));
+    return rcpp_result_gen;
+END_RCPP
+}
+// any_num_gte
+bool any_num_gte(NumericVector x, double value, Nullable<NumericVector> tol);
+RcppExport SEXP _timeplyr_any_num_gte(SEXP xSEXP, SEXP valueSEXP, SEXP tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(any_num_gte(x, value, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
+// any_int_equal
+bool any_int_equal(IntegerVector x, int value);
+RcppExport SEXP _timeplyr_any_int_equal(SEXP xSEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type value(valueSEXP);
+    rcpp_result_gen = Rcpp::wrap(any_int_equal(x, value));
+    return rcpp_result_gen;
+END_RCPP
+}
+// any_num_equal
+bool any_num_equal(NumericVector x, double value, Nullable<NumericVector> tol);
+RcppExport SEXP _timeplyr_any_num_equal(SEXP xSEXP, SEXP valueSEXP, SEXP tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(any_num_equal(x, value, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
 // is_whole_num
 bool is_whole_num(NumericVector x, Nullable<NumericVector> tol);
 RcppExport SEXP _timeplyr_is_whole_num(SEXP xSEXP, SEXP tolSEXP) {
@@ -50,6 +175,16 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_timeplyr_any_int_lt", (DL_FUNC) &_timeplyr_any_int_lt, 2},
+    {"_timeplyr_any_num_lt", (DL_FUNC) &_timeplyr_any_num_lt, 3},
+    {"_timeplyr_any_int_lte", (DL_FUNC) &_timeplyr_any_int_lte, 2},
+    {"_timeplyr_any_num_lte", (DL_FUNC) &_timeplyr_any_num_lte, 3},
+    {"_timeplyr_any_int_gt", (DL_FUNC) &_timeplyr_any_int_gt, 2},
+    {"_timeplyr_any_num_gt", (DL_FUNC) &_timeplyr_any_num_gt, 3},
+    {"_timeplyr_any_int_gte", (DL_FUNC) &_timeplyr_any_int_gte, 2},
+    {"_timeplyr_any_num_gte", (DL_FUNC) &_timeplyr_any_num_gte, 3},
+    {"_timeplyr_any_int_equal", (DL_FUNC) &_timeplyr_any_int_equal, 2},
+    {"_timeplyr_any_num_equal", (DL_FUNC) &_timeplyr_any_num_equal, 3},
     {"_timeplyr_is_whole_num", (DL_FUNC) &_timeplyr_is_whole_num, 2},
     {"_timeplyr_roll_int_threshold", (DL_FUNC) &_timeplyr_roll_int_threshold, 3},
     {"_timeplyr_roll_time_threshold", (DL_FUNC) &_timeplyr_roll_time_threshold, 3},

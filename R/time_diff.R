@@ -38,7 +38,6 @@
 time_diff <- function(x, y, time_by,
                       time_type = c("auto", "duration", "period"),
                       as_period = FALSE){
-  time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
   tby <- time_by_list(time_by)
   units <- time_by_unit(tby)
   num <- time_by_num(tby)
@@ -52,6 +51,7 @@ time_diff <- function(x, y, time_by,
     }
     out <- (y - x) / num
   } else {
+    time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
     # Common but special case where from/to are whole days
     # and time_type is "auto"
     is_special_case_days <- is_special_case_days(from = x,
@@ -64,7 +64,7 @@ time_diff <- function(x, y, time_by,
         num <- num * 7
       }
       by <- num
-      out <- ( as.integer(y) - as.integer(x) ) / by
+      out <- ( time_as_number(y) - time_as_number(x) ) / by
       return(out)
     }
     if (time_type == "auto"){
@@ -81,8 +81,8 @@ time_diff <- function(x, y, time_by,
       out[num == 0 & x < y] <- Inf
     } else {
       # unit <- duration_unit(units)(num)
-      x <- as.double(as_datetime2(x))
-      y <- as.double(as_datetime2(y))
+      x <- time_as_number(as_datetime2(x))
+      y <- time_as_number(as_datetime2(y))
       by <- unit_to_seconds(tby)
       out <- (y - x) / by
       # out <- int / unit

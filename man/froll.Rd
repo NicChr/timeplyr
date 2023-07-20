@@ -3,7 +3,7 @@
 \name{frollsum2}
 \alias{frollsum2}
 \alias{frollmean2}
-\title{Rolling sum/mean}
+\title{Rolling sum/mean - \bold{Deprecated}}
 \usage{
 frollsum2(
   x,
@@ -48,11 +48,7 @@ See \code{?data.table::frollmean} details for more information.}
 \item{hasNA}{If it is known that x contains \code{NA} then setting to \code{TRUE} will speed up.}
 }
 \description{
-Calculate rolling sums and means using data.table
-for speed and efficiency. This is a wrapper around data.table's rolling functions
-that by default calculates simple rolling averages/sums.
-The adaptive argument has been replaced with the simpler
-(and less functional) partial argument.
+This function is deprecated, use \code{roll_mean} and \code{roll_sum} instead.
 }
 \examples{
 library(timeplyr)

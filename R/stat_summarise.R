@@ -24,6 +24,7 @@
 #' @param .cols (Optional) alternative to `...` that accepts
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
+#' @param as_tbl Should the result be a `tibble`? Default is `FALSE`.
 #' @return A summary `data.table` containing the summary values for each group.
 #' @details
 #'
@@ -55,7 +56,8 @@ stat_summarise <- function(data, ...,
                            stat = .stat_fns[1:5],
                            q_probs = NULL,
                            na.rm = TRUE, sort = TRUE,
-                           .names = NULL, .by = NULL, .cols = NULL){
+                           .names = NULL, .by = NULL, .cols = NULL,
+                           as_tbl = FALSE){
   funs <- .stat_fns
   if (!is.character(stat)){
     stop("stat must be a character vector")
@@ -141,6 +143,9 @@ stat_summarise <- function(data, ...,
     data.table::set(out,
                     j = add_cols,
                     value = fselect(q_summary, .cols = add_cols))
+  }
+  if (as_tbl){
+    out <- df_reconstruct(out, empty_tbl())
   }
   out
 }

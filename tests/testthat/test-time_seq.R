@@ -60,10 +60,10 @@ testthat::test_that("Dates", {
   testthat::expect_equal(time_seq(start2, time_by = "day", length.out = 1,
                                   time_type = "duration"),
                          time_cast(start2, lubridate::origin))
-  testthat::expect_equal(time_seq(start2, time_by = "day", length.out = 1,
-                                  time_type = "duration",
-                                  tz = "GB"),
-                         lubridate::with_tz(start2, tzone = "GB"))
+  # testthat::expect_equal(time_seq(start2, time_by = "day", length.out = 1,
+  #                                 time_type = "duration",
+  #                                 tz = "GB"),
+  #                        lubridate::with_tz(start2, tzone = "GB"))
   # When by isn't specified, the output may be POSIX even if from and to are dates
   testthat::expect_equal(time_seq(start2, end2, length.out = 0),
                              lubridate::POSIXct(0))
@@ -222,10 +222,10 @@ testthat::test_that("Datetimes", {
   testthat::expect_equal(time_seq(start1, time_by = "day", length.out = 1,
                                   time_type = "duration"),
                          start1)
-  testthat::expect_equal(time_seq(start1, time_by = "day", length.out = 1,
-                                  time_type = "duration",
-                                  tz = "UTC"),
-                         lubridate::with_tz(start1, tzone = "UTC"))
+  # testthat::expect_equal(time_seq(start1, time_by = "day", length.out = 1,
+  #                                 time_type = "duration",
+  #                                 tz = "UTC"),
+  #                        lubridate::with_tz(start1, tzone = "UTC"))
   # When by isn't specified, the output may be POSIX even if from and to are dates
   testthat::expect_equal(time_seq(start1, end1, length.out = 0),
                          lubridate::with_tz(lubridate::POSIXct(0), tz = "GB"))

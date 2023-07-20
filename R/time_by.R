@@ -79,8 +79,6 @@ time_by <- function(data, time, time_by = NULL,
                     week_start = getOption("lubridate.week.start", 1),
                     roll_month = "preday", roll_dst = "pre",
                     .time_by_group = TRUE){
-  # data <- mutate2(safe_ungroup(data), ...)
-  # dot_vars <- tidy_transform_names(data, ...)
   time_quo <- enquo(time)
   group_vars <- group_vars(data)
   data <- mutate2(safe_ungroup(data), !!time_quo)
@@ -101,6 +99,10 @@ time_by <- function(data, time, time_by = NULL,
     g <- fselect(data, .cols = group_vars)
     time_span_groups <- group_vars
   }
+  time_span <- stat_summarise(data, .cols = time_var,
+                              .by = all_of(time_span_groups),
+                              stat = c("min", "max"),
+                              sort = TRUE)
   data <- time_mutate(data, time = .data[[time_var]],
                       .by = all_of(time_span_groups),
                       time_by = time_by,
@@ -110,10 +112,6 @@ time_by <- function(data, time, time_by = NULL,
                       roll_month = roll_month,
                       roll_dst = roll_dst,
                       sort = FALSE)
-  time_span <- stat_summarise(data, .cols = time_var,
-                              .by = all_of(time_span_groups),
-                              stat = c("min", "max"),
-                              sort = TRUE)
   time_span <- frename(time_span, .cols = c("start" = "min",
                                             "end" = "max"))
   num_gaps <- time_num_gaps(data[[time_var]],
@@ -136,12 +134,6 @@ time_by <- function(data, time, time_by = NULL,
                                  time_by = time_by,
                                  time_span = time_span,
                                  class = c("time_tbl_df"))
-    # out <- structure(out,
-    #                  time = time_var,
-    #                  time_by = time_by,
-    #                  time_span = time_span,
-    #                  class = c("time_grouped_df", "grouped_df",
-    #                            "tbl_df", "tbl", "data.frame"))
   }
   out
 }
@@ -204,7 +196,7 @@ tbl_sum.time_tbl_df <- function(x, ...){
   num_row <- prettyNum(nrow(x), big.mark = ",")
   num_col <- prettyNum(ncol(x), big.mark = ",")
   tbl_header <- c("A tibble" = paste0(num_row, " x ", num_col))
-  default_header <- NextMethod()
+  # default_header <- NextMethod()
   c(tbl_header,
     groups_header,
     time_header,

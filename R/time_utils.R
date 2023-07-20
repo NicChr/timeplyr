@@ -107,7 +107,7 @@ time_by_unit <- function(time_by){
   names(time_by)
 }
 time_by_is_num <- function(time_by){
-  inherits(time_by, c("integer", "numeric")) ||
+  isTRUE(class(time_by) %in% c("integer", "numeric")) ||
     (is.list(time_by) &&
        length(time_by_unit(time_by)) == 1L &&
        time_by_unit(time_by) == "numeric")
@@ -682,7 +682,7 @@ time_unit <- function(units, time_type = c("duration", "period", "numeric")){
 # Coerce pair of dates/datetimes to the most informative
 # class between them
 set_time_cast <- function(x, y){
-  if (!identical(class(x), class(y))){
+  if (!isTRUE(class(x) == class(y))){
     if (is_date(x) && is_datetime(y)){
       x_nm <- deparse(substitute(x))
       assign(x_nm, lubridate::with_tz(.POSIXct(unclass(x) * 86400),
@@ -705,17 +705,29 @@ time_c <- function(...){
 }
 # This coerces x into template class
 time_cast <- function(x, template){
-  if (is.null(x) || is.null(template)) return(x)
-  if (is_datetime(template) && !is_datetime(x)){
-    lubridate::with_tz(lubridate::as_datetime(x),
-                       tzone = lubridate::tz(template))
-  } else if (is_datetime(x) && is_datetime(template)){
-    if (lubridate::tz(x) != lubridate::tz(template)){
-      lubridate::with_tz(x, tzone = lubridate::tz(template))
+  if (is.null(x) || is.null(template)){
+    return(x)
+  }
+  if (isTRUE(class(x) == class(template))){
+    return(x)
+  }
+  x_dttm <- is_datetime(x)
+  temp_dttm <- is_datetime(template)
+  if (x_dttm){
+    x_tz <- lubridate::tz(x)
+  }
+  if (temp_dttm){
+    temp_tz <- lubridate::tz(template)
+  }
+  if (temp_dttm && !x_dttm){
+    lubridate::with_tz(lubridate::as_datetime(x), tzone = temp_tz)
+  } else if (x_dttm && temp_dttm){
+    if (!isTRUE(x_tz == temp_tz)){
+      lubridate::with_tz(x, tzone = temp_tz)
     } else {
       x
     }
-  } else if (is_date(template) && !is_date(x) && !is_datetime(x)){
+  } else if (is_date(template) && !is_date(x) && !x_dttm){
     lubridate::as_date(x)
   }
   else if (inherits(template, "yearmon")){
@@ -768,8 +780,8 @@ window_seq <- function(k, n, partial = TRUE){
     stop("n must not be greater than .Machine$integer.max")
   }
   n <- as.integer(n)
+  k[k == Inf] <- n
   k <- as.integer(k)
-  k <- min(k, n) # Bound k to <= n
   k <- max(k, 0L) # Bound k to >= 0
   pk <- max(k - 1L, 0L) # Partial k, bounded to >= 0
   p_seq <- seq_len(pk) # Partial window sequence
@@ -786,20 +798,29 @@ window_seq <- function(k, n, partial = TRUE){
 }
 # Get rolling window sizes for multiple groups
 window_sequence <- function(size, k, partial = TRUE, ascending = TRUE){
-  if (length(k) != length(size)){
-    stop("k must have same length as size")
+  if (length(k) == 1L){
+    k <- rep_len(k, length(size))
   }
-  k <- as.integer(k)
+  if (length(k) != length(size)){
+    stop("k must be of length 1 or have same length as size")
+  }
+  # if (any_lt(k, 0)){
+  #   stop("k must be a positive integer vector")
+  # }
+  input_k <- k
+  k <- pmin(size, k)
   k <- pmax(k, 0L) # Bound k to >= 0
+  k <- as.integer(k)
+  k <- rep.int(k, times = size)
   if (ascending){
-    k <- rep.int(k, times = size)
     out <- pmin(sequence(size, from = 1L, by = 1L), k)
   } else {
-    out <- pmax(sequence(size, from = k, by = -1L), 1L)
-    k <- rep.int(k, times = size)
+    out <- pmax(sequence(size, from = k, by = -1L),
+                pmin(1L, k))
   }
   if (!partial){
-    out[out < k] <- NA_integer_
+    input_k <- rep.int(input_k, times = size)
+    out[out < input_k] <- NA_integer_
   }
   out
 }
@@ -1048,23 +1069,23 @@ get_from_to <- function(data, ..., time, from = NULL, to = NULL,
 time_add2 <- function(x, time_by,
                       time_type = c("auto", "duration", "period"),
                       roll_month = "preday", roll_dst = "pre"){
+  time_by <- time_by_list(time_by)
+  time_num <- time_by_num(time_by)
+  time_unit <- time_by_unit(time_by)
   if (time_by_is_num(time_by)){
-    num <- unlist(time_by, use.names = FALSE, recursive = FALSE)
-    x + num
+    x + time_num
   } else {
     time_type <- rlang::arg_match0(time_type,
                                    c("auto", "duration", "period"))
-    unit_info <- unit_guess(time_by)
-    units <- unit_info[["unit"]]
-    num <- unit_info[["num"]]
-    scale <- unit_info[["scale"]]
-    num <- num * scale
+    if (time_type == "auto"){
+      time_type <- guess_seq_type(time_unit)
+    }
     if (time_type == "period"){
-      unit <- substr(units, 1L, nchar(units) -1L)
-      time_add(x, periods = setnames(list(num), unit),
+      unit <- substr(time_unit, 1L, nchar(time_unit) -1L)
+      time_add(x, periods = setnames(list(time_num), unit),
                roll_month = roll_month, roll_dst = roll_dst)
     } else {
-      x + duration_unit(units)(num)
+      x + duration_unit(time_unit)(time_num)
     }
   }
 }
@@ -1138,3 +1159,41 @@ check_is_time_or_num <- function(x){
 #     )
 #     , n = 2L, m = length(x)) == 2
 # }
+time_as_number <- function(x){
+  out <- unclass(x)
+  attributes(out) <- NULL
+  out
+}
+# Like vctrs::vec_chop but the sizes argument implies a rolling chop
+roll_chop <- function(x, sizes = collapse::alloc(1L, vec_length(x))){
+  x_size <- vec_length(x)
+  if (x_size != length(sizes)){
+    stop("length of x must equal length of sizes")
+  }
+  if (log10(sum(sizes)) >= 9){
+    warning("The result contains more than 1e09 elements, this may take time",
+            immediate. = TRUE)
+  }
+  out <- vector("list", x_size)
+  if (is.atomic(x)){
+    for (i in seq_len(x_size)){
+      # out[[i]] <- x[(i - sizes[i] + 1L):i]
+      out[[i]] <- x[seq_len(sizes[i]) + (i - sizes[i])]
+    }
+  } else {
+    for (i in seq_len(x_size)){
+      out[[i]] <- vec_slice2(x, seq_len(sizes[i]) + (i - sizes[i]))
+    }
+  }
+  out
+}
+# Possible way to aggregate without expansion
+time_aggregate <- function(x, time_by, g = NULL){
+  time_by <- time_by_list(time_by)
+  num <- time_by_num(time_by)
+  units <- time_by_unit(time_by)
+  tfirst <- gmin(x, g = g)
+  tdiff <- time_diff(tfirst, x, time_by = time_by)
+  time_to_add <- setnames(list(trunc(tdiff) * num), units)
+  time_add2(tfirst, time_by = time_to_add)
+}

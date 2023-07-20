@@ -190,7 +190,7 @@ group_id.data.frame <- function(data, ...,
   all_groups <- group_info[["all_groups"]]
   # Usual Method for when data does not contain interval
   if (length(all_groups) == 0L){
-    out <- alloc(1L, N)
+    out <- collapse::alloc(1L, N)
     n_groups <- min(N, 1L)
     group_sizes <- N
     # group_starts <- n_groups

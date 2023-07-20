@@ -7,7 +7,7 @@
 #'
 #' @param x Date, datetime or numeric vector.
 #' @param time_by Time unit. \cr
-#' Must be one of the three:
+#' Must be one of the following:
 #' * string, specifying either the unit or the number and unit, e.g
 #' `time_by = "days"` or `time_by = "2 weeks"`
 #' * named list of length one, the unit being the name, and
@@ -201,7 +201,7 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
                               time_type = time_type,
                               time_floor = time_floor, week_start = week_start,
                               roll_month = roll_month, roll_dst = roll_dst)
-  # time_breaks <- time_cast(time_breaks, x)
+  x <- time_cast(x, time_breaks)
   # Cut time
   time_break_ind <- fcut_ind(x, c(time_breaks, to + 1))
   # Time breaks subset on cut indices

@@ -7,7 +7,7 @@
 \usage{
 roll_sum(
   x,
-  n = length(x),
+  window = length(x),
   g = NULL,
   partial = TRUE,
   weights = NULL,
@@ -17,7 +17,7 @@ roll_sum(
 
 roll_mean(
   x,
-  n = length(x),
+  window = length(x),
   g = NULL,
   partial = TRUE,
   weights = NULL,
@@ -28,7 +28,7 @@ roll_mean(
 \arguments{
 \item{x}{Numeric vector.}
 
-\item{n}{Rolling window size, default is \code{length(x)}.}
+\item{window}{Rolling window size, default is \code{length(x)}.}
 
 \item{g}{Grouping object passed directly to \code{collapse::GRP()}.
 This can for example be a vector or data frame.}

@@ -321,6 +321,11 @@ group_data_equal <- function(x, y){
   }
   out
 }
+empty_tbl <- function(){
+  structure(list(), class = c("tbl_df", "tbl", "data.frame"),
+            row.names = .set_row_names(0L),
+            names = character())
+}
 ##### data.table specific helpers #####
 
 # Convert to data table

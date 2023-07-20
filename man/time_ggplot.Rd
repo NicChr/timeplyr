@@ -51,8 +51,14 @@ sample.xts \%>\%
 timeSeries::MSFT \%>\%
   ts_as_tibble() \%>\%
   time_ggplot(time, value, group, facet = TRUE)
+# zoo example
+x.Date <- as.Date("2003-02-01") + c(1, 3, 7, 9, 14) - 1
+x <- zoo::zoo(rnorm(5), x.Date)
+x \%>\%
+  ts_as_tibble() \%>\%
+  time_ggplot(time, value)
 }
-#'
+
 # An example using raw data
 
 ebola <- outbreaks::ebola_sim$linelist

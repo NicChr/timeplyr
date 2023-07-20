@@ -159,20 +159,16 @@ time_breaks <- function(x, n = 5, time_by = NULL,
       units_to_try <- rev(units_to_try)
       unit_nums <- rep_len(1L, length(units_to_try))
     } else {
-      # Calculate gcd first
-      # time_diff_gcd <- time_diff_gcd(x)
       # Calculate range of data
       time_rng <- collapse::frange(x, na.rm = TRUE)
       time_rng_diff <- diff(time_rng)
-      if (length(time_rng) == 0L || time_rng_diff == 0){
+      if (length(time_rng) == 0L || isTRUE(double_equal(time_rng_diff, 0))){
         unit_nums <- 1
       } else {
         # Multiply gcd by 10 until range of data
         # Another option..
         unit_nums <- 10^(seq(log10(time_rng_diff/n),
                              log10(time_rng_diff), by = 1))
-        # unit_nums <- 10^(seq(log10(time_diff_gcd),
-        #                      log10(time_rng_diff), by = 1))
         # Continue multiplying by 5 until range
         unit_nums <- c(unit_nums, 5^(seq(logb(max(unit_nums), 5),
                                          logb(time_rng_diff, 5),
@@ -191,17 +187,21 @@ time_breaks <- function(x, n = 5, time_by = NULL,
       units_to_try <- rep_len("numeric", length(unit_nums))
     }
     i <- 0
+    start <- from
     while(i < length(units_to_try)){
       i <- i + 1
       tby <- setnames(list(unit_nums[i]),
                       units_to_try[i])
       if (time_floor){
-        from <- time_floor2(from, time_by = tby, week_start = week_start)
+        start <- time_floor2(from, time_by = tby, week_start = week_start)
       }
-      n_breaks <- time_seq_sizes(from, to, time_by = tby,
+      n_breaks <- time_seq_sizes(start, to, time_by = tby,
                                  time_type = time_type)
-      if (n_breaks >= n) break
+      if (n_breaks >= n){
+        break
+      }
     }
+    from <- start
     unit <- units_to_try[i]
     time_by <- unit
     unit_multiplier <- 1
@@ -231,9 +231,11 @@ time_breaks <- function(x, n = 5, time_by = NULL,
       unit_multiplier <- floor(unit_multiplier)
     }
   }
-  time_seq(from, to, setnames(list(num * scale * unit_multiplier), unit),
-           time_floor = FALSE,
-           week_start = week_start,
-           time_type = time_type,
-           roll_month = roll_month, roll_dst = roll_dst)
+  time_seq_v(from, to,
+                time_by = setnames(list(num * scale * unit_multiplier), unit),
+                time_floor = FALSE,
+                week_start = week_start,
+                time_type = time_type,
+                roll_month = roll_month,
+                roll_dst = roll_dst)
 }

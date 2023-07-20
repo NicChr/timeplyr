@@ -12,7 +12,8 @@ bool is_whole_num(NumericVector x, Nullable<NumericVector> tol) {
   bool has_decimal;
   double diff;
   bool out = true;
-  for (int i = 0; i < x.length(); ++i) {
+  int n = x.length();
+  for (int i = 0; i < n; ++i) {
     diff = abs(round(x[i]) - x[i]);
     has_decimal = !(diff < tolerance);
     if (has_decimal && !NumericVector::is_na(x[i])){
