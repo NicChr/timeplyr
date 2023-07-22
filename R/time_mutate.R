@@ -48,8 +48,6 @@
 #' Options are "preday", "boundary", "postday", "full" and "NA".
 #' See `?timechange::time_add` for more details.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
-#' @param sort Should the result be sorted? Default is `FALSE` and original (input)
-#' order is kept. The sorting only applies to groups and time variable.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -78,24 +76,20 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
                         .keep = c("all", "used", "unused", "none"),
                         time_floor = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
-                        roll_month = "preday", roll_dst = "pre",
-                        sort = FALSE){
+                        roll_month = "preday", roll_dst = "pre"){
   group_vars <- get_groups(data, {{ .by }})
   data <- mutate2(data,
                   !!enquo(time),
                   !!enquo(from),
                   !!enquo(to),
                   .by = {{ .by }})
+  reconstruct <- TRUE
   time_var <- tidy_transform_names(data, !!enquo(time))
   from_var <- tidy_transform_names(data, !!enquo(from))
   to_var <- tidy_transform_names(data, !!enquo(to))
-  # Add variable to keep track of original order
-  sort_nm <- new_var_nm(data, ".sort.index")
-  data <- add_row_id(data, .name = sort_nm)
   # Add variable to keep track of group IDs
   grp_nm <- new_var_nm(data, ".group.id")
   data <- add_group_id(data, .by = {{ .by }}, .name = grp_nm)
-  data <- farrange(data, .cols = c(grp_nm, time_var))
   int_nm <- character(0)
   if (length(time_var) > 0L){
     # User supplied unit
@@ -109,54 +103,65 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
                     granularity[["granularity"]], sep = " "))
       time_by <- setnames(list(granularity[["num"]]), granularity[["unit"]])
     }
-      # Expanded time sequences for each group
-      time_expanded <- data %>%
-        safe_ungroup() %>%
-        time_expand(time = across(all_of(time_var)),
-                    from = across(all_of(from_var)),
-                    to = across(all_of(to_var)),
-                    time_by = time_by,
-                    time_type = time_type,
-                    sort = TRUE, .by = all_of(c(grp_nm, group_vars)),
-                    time_floor = time_floor, week_start = week_start,
-                    keep_class = TRUE,
-                    expand_type = "nesting") # Irrelevant in this context
-      data <- dplyr::dplyr_col_modify(data, setnames(
-        list(
-          time_cast(data[[time_var]], time_expanded[[time_var]])
-        ), time_var)
-      )
-      time <- data[[time_var]]
-      # Aggregate time using the time sequence data
-      data <- dplyr::dplyr_col_modify(data, setnames(
-        list(
-          taggregate(data[[time_var]],
-                     time_expanded[[time_var]],
-                     gx = data[[grp_nm]],
-                     gseq = time_expanded[[grp_nm]])
-        ), time_var)
-      )
+    # # Bound time between from and to
+    # from_to_list <- get_from_to(data,
+    #                              time = time_var,
+    #                              from = from_var,
+    #                              to = to_var,
+    #                              .by = all_of(grp_nm))
+    # data <- dplyr::dplyr_col_modify(data,
+    #                                 setnames(
+    #                                   list(
+    #                                     data.table::fifelse(
+    #                                       data.table::between(data[[time_var]],
+    #                                                           from_to_list[[1L]],
+    #                                                           from_to_list[[2L]]),
+    #                                       data[[time_var]],
+    #                                       data[[time_var]][NA_integer_]
+    #                                     )
+    #                                   ), time_var
+    #                                 ))
+    # Aggregate time data
+    time_agg <- time_aggregate_left(data[[time_var]],
+                                    time_by = time_by,
+                                    g = data[[grp_nm]],
+                                    start = fpluck(data, from_var),
+                                    end = fpluck(data, to_var),
+                                    time_type = time_type,
+                                    roll_month = roll_month,
+                                    roll_dst = roll_dst,
+                                    time_floor = time_floor,
+                                    week_start = week_start)
+    time_int_end <- time_int_end(time_agg)
+    time_agg <- time_int_rm_attrs(time_agg)
+    data <- dplyr::dplyr_col_modify(data,
+                                    setnames(
+                                      list(time_agg), time_var
+                                    )
+    )
       if (include_interval){
         if (inherits(data, "data.table")){
           data <- list_to_tibble(as.list(data))
+          reconstruct <- FALSE
           message("data.table converted to tibble as data.table cannot include interval class")
         }
         int_nm <- new_var_nm(names(data), "interval")
-        data[[int_nm]] <- tagg_interval(x = time,
-                                        xagg = data[[time_var]],
-                                        seq = time_expanded[[time_var]],
-                                        gagg = data[[grp_nm]],
-                                        gx = data[[grp_nm]],
-                                        gseq = time_expanded[[grp_nm]])
+        data <- dplyr::dplyr_col_modify(data,
+                                        setnames(
+                                          list(
+                                            lubridate::interval(time_agg, time_int_end)
+                                          ), int_nm
+                                        )
+        )
       }
   }
-  if (!sort){
-    data <- farrange(data, .cols = sort_nm)
-  }
-  data <- df_rm_cols(data, c(grp_nm, sort_nm))
+  data <- df_rm_cols(data, grp_nm)
   out <- mutate2(safe_ungroup(data),
                 ...,
                 .by = all_of(c(group_vars, time_var, int_nm)),
                 .keep = .keep)
-  df_reconstruct(out, data)
+  if (reconstruct){
+    out <- df_reconstruct(out, data)
+  }
+  out
 }

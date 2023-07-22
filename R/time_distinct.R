@@ -50,7 +50,6 @@
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
 #' @param sort Should the result be sorted? Default is `TRUE`.
 #' If `FALSE` then original (input) order is kept.
-#' The sorting only applies to groups and time variable.
 #' @export
 time_distinct <- function(data, time = NULL, ..., time_by = NULL,
                           from = NULL, to = NULL,
@@ -86,10 +85,9 @@ time_distinct <- function(data, time = NULL, ..., time_by = NULL,
                      .keep = "all",
                      time_floor = time_floor,
                      week_start = week_start,
-                     roll_month = roll_month, roll_dst = roll_dst,
-                     sort = sort)
+                     roll_month = roll_month, roll_dst = roll_dst)
   time_var <- tidy_transform_names(data, !!enquo(time))
   out <- fdistinct(out, across(dplyr::any_of(c(group_vars, time_var, int_nm, dot_vars))),
-                   .keep_all = .keep_all)
+                   .keep_all = .keep_all, sort = sort)
   out
 }

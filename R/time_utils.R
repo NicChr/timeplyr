@@ -424,6 +424,35 @@ guess_seq_type <- function(units){
    "numeric"
   }
 }
+# get_time_type <- function(time_type, time_by){
+#   type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
+#   if (type == "duration"){
+#     out <- "duration"
+#   }
+#   if (type == "period"){
+#    out <- "period"
+#   }
+#   if (type == "auto"){
+#     if (inherits(time_by, "Duration")){
+#       out <- "Duration"
+#     } else if (inherits(time_by, "Period")){
+#       out <- "Period"
+#     } else {
+#       units <- time_by_unit(time_by)
+#       if (units %in% c("days", "weeks", "months", "years",
+#                        .extra_time_units)){
+#         out <- "period"
+#       } else if (units %in% c("picoseconds", "nanoseconds",
+#                               "microseconds", "milliseconds",
+#                               "seconds", "minutes", "hours")){
+#         out <- "duration"
+#       } else {
+#         out <- "numeric"
+#       }
+#     }
+#   }
+#   out
+# }
 # date_formats_to_try <- c("%Y-%m-%d", "%Y/%m/%d", "%Y%m%d",
 #                          "%d-%m-%Y", "%d/%m/%Y", "%d%m%Y")
 # time_formats_to_try <- c("%Hh%Mm%Ss", " %Hh%Mm%Ss", "%Hh:%Mm:%Ss", " %Hh:%Mm:%Ss",
@@ -703,21 +732,26 @@ set_time_cast <- function(x, y){
 time_c <- function(...){
   vctrs::vec_c(...)
 }
-# This coerces x into template class
+# This coerces x into template class if template class is more granular
 time_cast <- function(x, template){
   if (is.null(x) || is.null(template)){
-    return(x)
-  }
-  if (isTRUE(class(x) == class(template))){
     return(x)
   }
   x_dttm <- is_datetime(x)
   temp_dttm <- is_datetime(template)
   if (x_dttm){
     x_tz <- lubridate::tz(x)
+  } else {
+    x_tz <- ""
   }
   if (temp_dttm){
     temp_tz <- lubridate::tz(template)
+  } else {
+    temp_tz <- ""
+  }
+  if (identical(class(x), class(template)) &&
+      identical(x_tz, temp_tz)){
+    return(x)
   }
   if (temp_dttm && !x_dttm){
     lubridate::with_tz(lubridate::as_datetime(x), tzone = temp_tz)
@@ -1089,6 +1123,17 @@ time_add2 <- function(x, time_by,
     }
   }
 }
+time_floor <- function(x, time_by, week_start = getOption("lubridate.week.start", 1)){
+  unit_info <- unit_guess(time_by)
+  by_unit <- unit_info[["unit"]]
+  by_n <- unit_info[["num"]] * unit_info[["scale"]]
+  if (is_time(x)){
+    time_by <- paste(by_n, by_unit)
+    timechange::time_floor(x, unit = time_by, week_start = week_start)
+  } else {
+    floor(x / by_n) * by_n
+  }
+}
 # Custom time flooring..
 time_floor2 <- function(x, time_by, week_start = getOption("lubridate.week.start", 1)){
   if (time_by_is_num(time_by)){
@@ -1096,6 +1141,30 @@ time_floor2 <- function(x, time_by, week_start = getOption("lubridate.week.start
     floor(x / num) * num
   } else {
     time_floor(x, time_by = setnames(list(1), names(time_by)), week_start = week_start)
+  }
+}
+time_ceiling <- function(x, time_by, week_start = getOption("lubridate.week.start", 1),
+                         change_on_boundary = inherits(x, "Date")){
+  unit_info <- unit_guess(time_by)
+  by_unit <- unit_info[["unit"]]
+  by_n <- unit_info[["num"]] * unit_info[["scale"]]
+  if (is_time(x)){
+    time_by <- paste(by_n, by_unit)
+    timechange::time_ceiling(x, unit = time_by, week_start = week_start)
+  } else {
+    ceiling(x / by_n) * by_n
+  }
+}
+# Custom time flooring..
+time_ceiling2 <- function(x, time_by, week_start = getOption("lubridate.week.start", 1),
+                          change_on_boundary = FALSE){
+  if (time_by_is_num(time_by)){
+    num <- unlist(time_by, use.names = FALSE, recursive = FALSE)
+    ceiling(x / num) * num
+  } else {
+    time_ceiling(x, time_by = setnames(list(1), names(time_by)),
+                 week_start = week_start,
+                 change_on_boundary = change_on_boundary)
   }
 }
 tomorrow <- function(){
@@ -1187,13 +1256,214 @@ roll_chop <- function(x, sizes = collapse::alloc(1L, vec_length(x))){
   }
   out
 }
-# Possible way to aggregate without expansion
-time_aggregate <- function(x, time_by, g = NULL){
+time_aggregate_left <- function(x, time_by, g = NULL,
+                                start = NULL, end = NULL,
+                                time_floor = FALSE,
+                                week_start = getOption("lubridate.week.start", 1),
+                                time_type = c("auto", "duration", "period"),
+                                roll_month = "preday", roll_dst = "pre"){
   time_by <- time_by_list(time_by)
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
-  tfirst <- gmin(x, g = g)
-  tdiff <- time_diff(tfirst, x, time_by = time_by)
+  time_na <- x[NA_integer_]
+  g <- GRP2(g)
+  if (!is.null(start)){
+    if (length(start) != length(x)){
+      stop("start must be the same length as x")
+    }
+    start <- time_cast(start, x)
+    x[x < start] <- time_na
+  } else {
+    start <- gmin(x, g = g, na.rm = TRUE)
+  }
+  if (!is.null(end)){
+    if (length(end) != length(x)){
+      stop("end must be the same length as x")
+    }
+    end <- time_cast(end, x)
+    x[x > end] <- time_na
+  } else {
+    end <- gmax(x, g = g, na.rm = TRUE)
+  }
+  if (time_floor){
+    start <- time_floor2(start, time_by = time_by,
+                         week_start = week_start)
+  }
+  tdiff <- time_diff(start, x, time_by = time_by, time_type = time_type)
   time_to_add <- setnames(list(trunc(tdiff) * num), units)
-  time_add2(tfirst, time_by = time_to_add)
+  out <- time_add2(start, time_by = time_to_add, time_type = time_type,
+                   roll_month = roll_month, roll_dst = roll_dst)
+  int_end <- time_add2(out, time_by = time_by, time_type = time_type,
+                       roll_month = roll_month, roll_dst = roll_dst)
+  set_time_cast(out, int_end)
+  which_out_of_bounds <- which(double_gt(time_as_number(int_end),
+                                         time_as_number(end)))
+  int_end[which_out_of_bounds] <- end[which_out_of_bounds]
+  structure(out,
+            end = int_end,
+            direction = "left-to-right")
+            # class = c("time_int", class(out)))
 }
+time_aggregate_right <- function(x, time_by, g = NULL,
+                                start = NULL, end = NULL,
+                                time_ceiling = FALSE,
+                                week_start = getOption("lubridate.week.start", 1),
+                                time_type = c("auto", "duration", "period"),
+                                roll_month = "preday", roll_dst = "pre"){
+  time_by <- time_by_list(time_by)
+  num <- time_by_num(time_by)
+  units <- time_by_unit(time_by)
+  g <- GRP2(g)
+  if (!is.null(start)){
+    if (length(start) != length(x)){
+      stop("start must be the same length as x")
+    }
+    start <- time_cast(start, x)
+    x[x < start] <- time_na
+  } else {
+    start <- gmin(x, g = g, na.rm = TRUE)
+  }
+  if (!is.null(end)){
+    if (length(end) != length(x)){
+      stop("end must be the same length as x")
+    }
+    end <- time_cast(end, x)
+    x[x > end] <- time_na
+  } else {
+    end <- gmax(x, g = g, na.rm = TRUE)
+  }
+  if (time_ceiling){
+    start <- time_ceiling2(start, time_by = time_by,
+                           week_start = week_start)
+  }
+  tdiff <- time_diff(end, x, time_by = time_by, time_type = time_type)
+  time_to_add <- setnames(list(trunc(tdiff) * num), units)
+  out <- time_add2(end, time_by = time_to_add, time_type = time_type,
+                   roll_month = roll_month, roll_dst = roll_dst)
+  int_end <- time_add2(out, time_by = time_by, time_type = time_type,
+                       roll_month = roll_month, roll_dst = roll_dst)
+  set_time_cast(out, int_end)
+  which_out_of_bounds <- which(double_lt(time_as_number(int_end),
+                                         time_as_number(start)))
+  int_end[which_out_of_bounds] <- start[which_out_of_bounds]
+  structure(out,
+            end = int_end,
+            direction = "right-to-left")
+  # class = c("time_int", class(out)))
+}
+# time_aggregate_left <- function(x, time_by, g = NULL,
+#                                 time_type = c("auto", "duration", "period"),
+#                                 roll_month = "preday", roll_dst = "pre"){
+#   time_by <- time_by_list(time_by)
+#   num <- time_by_num(time_by)
+#   units <- time_by_unit(time_by)
+#   g <- GRP2(g)
+#   tfirst <- gmin(x, g = g, na.rm = TRUE)
+#   tlast <- gmax(x, g = g, na.rm = TRUE)
+#   tdiff <- time_diff(tfirst, x, time_by = time_by, time_type = time_type)
+#   time_to_add <- setnames(list(trunc(tdiff) * num), units)
+#   out <- time_add2(tfirst, time_by = time_to_add, time_type = time_type,
+#                    roll_month = roll_month, roll_dst = roll_dst)
+#   end <- time_add2(out, time_by = time_by, time_type = time_type,
+#                    roll_month = roll_month, roll_dst = roll_dst)
+#   set_time_cast(out, end)
+#   which_out_of_bounds <- which(double_gt(time_as_number(end),
+#                                          time_as_number(tlast)))
+#   end[which_out_of_bounds] <- tlast[which_out_of_bounds]
+#   structure(out,
+#             end = end,
+#             direction = "left-to-right")
+#             # class = c("time_int", class(out)))
+#
+# }
+# time_aggregate_right <- function(x, time_by, g = NULL,
+#                             time_type = c("auto", "duration", "period"),
+#                             roll_month = "preday", roll_dst = "pre"){
+#   time_by <- time_by_list(time_by)
+#   num <- time_by_num(time_by)
+#   units <- time_by_unit(time_by)
+#   g <- GRP2(g)
+#   tfirst <- gmin(x, g = g, na.rm = TRUE)
+#   tlast <- gmax(x, g = g, na.rm = TRUE)
+#   tdiff <- time_diff(tlast, x, time_by = time_by, time_type = time_type)
+#   time_to_add <- setnames(list(trunc(tdiff) * num), units)
+#   out <- time_add2(tlast, time_by = time_to_add, time_type = time_type,
+#                    roll_month = roll_month, roll_dst = roll_dst)
+#   end <- time_add2(out, time_by = time_by, time_type = time_type,
+#                    roll_month = roll_month, roll_dst = roll_dst)
+#   set_time_cast(out, end)
+#   which_out_of_bounds <- which(double_lt(time_as_number(end),
+#                                          time_as_number(tfirst)))
+#   end[which_out_of_bounds] <- tfirst[which_out_of_bounds]
+#   structure(out,
+#             end = end,
+#             direction = "right-to-left")
+#             # class = c("time_int", class(out)))
+#
+# }
+time_int_end <- function(x){
+  attr(x, "end")
+}
+time_int_rm_attrs <- function(x){
+  attr(x, "end") <- NULL
+  attr(x, "direction") <- NULL
+  x
+}
+# Time aggregation using expanded sequences from data directly
+# Data must be sorted such that is.unsorted(order(g, x)) is false
+time_aggregate_expand <- function(x, time_by, g = NULL,
+                                  time_type = c("auto", "duration", "period"),
+                                  roll_month = "preday", roll_dst = "pre"){
+  time_by <- time_by_list(time_by)
+  num <- time_by_num(time_by)
+  units <- time_by_unit(time_by)
+  g <- GRP2(g)
+  if (!gis_sorted(x, g)){
+    stop("x must be sorted such that !is.unsorted(order(g, x)) == TRUE")
+  }
+  group_id <- group_id(g)
+  time_full <- time_expandv(x, g = g, time_by = time_by,
+                            time_type = time_type,
+                            roll_month = roll_month,
+                            roll_dst = roll_dst, use.g.names = TRUE)
+  taggregate(x,
+             seq = time_full,
+             gx = group_id,
+             gseq = group_id(names(time_full), order = FALSE))
+}
+
+# Time aggregation using expanded sequences when:
+# * Data is over 1m rows
+# * Expansion size is less than a million
+# * Number of groups are less than 100k
+# And using a separate method otherwise
+# time_aggregate_switch <- function(x, time_by, g = NULL,
+#                                   time_type = c("auto", "duration", "period"),
+#                                   roll_month = "preday", roll_dst = "pre"){
+#   time_by <- time_by_list(time_by)
+#   num <- time_by_num(time_by)
+#   units <- time_by_unit(time_by)
+#   g <- GRP2(g)
+#   if (is.null(g)){
+#     n_groups <- min(1L, length(x))
+#     } else {
+#       n_groups <- GRP_n_groups(g)
+#     }
+#   time_span_sizes <- time_span_size(x, g = g, time_by = time_by,
+#                                     time_type = time_type,
+#                                     roll_month = roll_month,
+#                                     roll_dst = roll_dst, use.g.names = TRUE)
+#   if (n_groups < 1e05 &&
+#       sum(time_span_sizes) < 1e06 &&
+#       length(x) > 1e05){
+#     time_aggregate_expand(x, g = g, time_by = time_by,
+#                           time_type = time_type,
+#                           roll_month = roll_month,
+#                           roll_dst = roll_dst)
+#   } else {
+#     time_aggregate(x, g = g, time_by = time_by,
+#                    time_type = time_type,
+#                    roll_month = roll_month,
+#                    roll_dst = roll_dst)
+#   }
+# }

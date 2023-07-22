@@ -445,7 +445,7 @@ qG2 <- function(x, sort = TRUE, ordered = FALSE, na.exclude = FALSE, ...){
   if (is_interval(x)){
     if (na.exclude){
       which_not_na <- collapse::whichv(int_is_na(x), FALSE)
-      out <- rep_len(NA_integer_, length(x))
+      out <- collapse::alloc(NA_integer_, length(x))
       qgroup <- group_id(x[which_not_na], order = sort, as_qg = TRUE)
       n_groups <- attr(qgroup, "N.groups")
       setv(out, which_not_na, qg_to_integer(qgroup), vind1 = TRUE)

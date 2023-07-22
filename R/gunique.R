@@ -148,12 +148,29 @@ gorder <- function(x, g = NULL, order = TRUE){
   if (is.null(g)){
     order <- radixorderv2(x)
   } else {
-    g <- GRP2(list(group_id(g, .cols = names(g), order = order),
-                   group_id(x, order = TRUE, .cols = names(x))),
-              sort = TRUE,
-              return.groups = FALSE, call = FALSE,
-              return.order = TRUE)
-    order <- GRP_order(g)
+    # g <- GRP2(list(group_id(g, .cols = names(g), order = order),
+    #                group_id(x, order = TRUE, .cols = names(x))),
+    #           sort = TRUE,
+    #           return.groups = FALSE, call = FALSE,
+    #           return.order = TRUE)
+    # order <- GRP_order(g)
+    order <- radixorderv2(
+      list(group_id(g, order = order, .cols = names(g)),
+           group_id(x, order = TRUE, .cols = names(x)))
+    )
   }
   order
+}
+# Is data sorted within each group?
+# Data need not be sorted over the entire data.
+gis_sorted <- function(x, g = NULL, order = TRUE){
+  if (is.null(g)){
+    order <- radixorderv2(x)
+  } else {
+    order <- radixorderv2(
+      list(group_id(g, order = order, .cols = names(g)),
+           group_id(x, order = TRUE, .cols = names(x)))
+    )
+  }
+  isTRUE(attr(order, "sorted"))
 }

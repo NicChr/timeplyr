@@ -60,7 +60,8 @@ testthat::test_that("Compare to tidyr", {
     flights %>%
       dplyr::filter(time_hour >= time_cast(start1, flights$time_hour) &
                       time_hour <= time_cast(end2, flights$time_hour)) %>%
-      fcount(time_hour)
+      fcount(time_hour = time_summarisev(time_hour, from = start1, to = end1,
+                                         time_by = "hours", time_floor = TRUE))
     )
   testthat::expect_equal(
     flights %>%

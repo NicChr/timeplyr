@@ -18,8 +18,7 @@ time_mutate(
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = "preday",
-  roll_dst = "pre",
-  sort = FALSE
+  roll_dst = "pre"
 )
 }
 \arguments{
@@ -77,9 +76,6 @@ Options are "preday", "boundary", "postday", "full" and "NA".
 See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
-
-\item{sort}{Should the result be sorted? Default is \code{FALSE} and original (input)
-order is kept. The sorting only applies to groups and time variable.}
 }
 \description{
 This works much the same as \code{dplyr::mutate()}, except that

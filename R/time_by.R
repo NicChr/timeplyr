@@ -110,8 +110,7 @@ time_by <- function(data, time, time_by = NULL,
                       time_floor = time_floor,
                       week_start = week_start,
                       roll_month = roll_month,
-                      roll_dst = roll_dst,
-                      sort = FALSE)
+                      roll_dst = roll_dst)
   time_span <- frename(time_span, .cols = c("start" = "min",
                                             "end" = "max"))
   num_gaps <- time_num_gaps(data[[time_var]],

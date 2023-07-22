@@ -26,8 +26,8 @@ time_roll_mean(
   x,
   window,
   time = NULL,
-  g = NULL,
   weights = NULL,
+  g = NULL,
   partial = TRUE,
   close_left_boundary = FALSE,
   na.rm = TRUE,
@@ -151,7 +151,7 @@ time_elapsed(t, days(1)) # See the irregular elapsed time
 x <- rpois(length(t), 10)
 
 tibble(x, t) \%>\%
-  mutate(mean = time_roll_sum(x, time = t, window = days(3))) \%>\%
-  time_ggplot(t, mean)
+  mutate(sum = time_roll_sum(x, time = t, window = days(3))) \%>\%
+  time_ggplot(t, sum)
 
 }

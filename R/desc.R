@@ -27,7 +27,7 @@ asc <- function(x){
   if (is_time_or_num(x)){
     xtfrm(x)
   } else {
-    as.integer(qG2(x, sort = TRUE, na.exclude = TRUE))
+    qg_to_integer(qG2(x, sort = TRUE, na.exclude = TRUE))
     # -vctrs::vec_rank(x, ties = "min", incomplete = "na")
   }
 }

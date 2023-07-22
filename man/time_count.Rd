@@ -22,8 +22,7 @@ time_count(
   time_type = c("auto", "duration", "period"),
   roll_month = "preday",
   roll_dst = "pre",
-  include_interval = FALSE,
-  keep_class = TRUE
+  include_interval = FALSE
 )
 }
 \arguments{
@@ -97,10 +96,6 @@ See \code{?timechange::time_add} for more details.}
 a column "interval" of the form \verb{time_min <= x < time_max} is added
 showing the time interval in which the respective counts belong to.
 The rightmost interval will always be closed.}
-
-\item{keep_class}{Logical. If \code{TRUE} then the class of
-the input data is retained.
-If \code{FALSE}, which is sometimes faster, a \code{data.table} is returned.}
 }
 \value{
 An object of class \code{data.frame}

@@ -79,8 +79,7 @@ See \code{?timechange::time_add} for more details.}
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
 
 \item{sort}{Should the result be sorted? Default is \code{TRUE}.
-If \code{FALSE} then original (input) order is kept.
-The sorting only applies to groups and time variable.}
+If \code{FALSE} then original (input) order is kept.}
 }
 \description{
 This works much the same as \code{dplyr::distinct()}, except that

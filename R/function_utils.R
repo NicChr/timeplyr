@@ -971,7 +971,7 @@ quo_mutate_info <- function(quos, data){
   quo_text <- setnames(character(length(quos)), quo_nms)
   quo_is_null <- setnames(logical(length(quos)), quo_nms)
   for (i in seq_along(quos)){
-    quo_text[[i]] <- deparse(rlang::quo_get_expr(quos[[i]]))
+    quo_text[[i]] <- deparse1(rlang::quo_get_expr(quos[[i]]))
     # quo_text[[i]] <- rlang::expr_name(rlang::quo_get_expr(quos[[i]]))
     quo_is_null[[i]] <- rlang::quo_is_null(quos[[i]]) && quo_nms[[i]] == ""
   }
@@ -988,7 +988,7 @@ quo_summarise_info <- function(quos, data){
   quo_text <- setnames(character(length(quos)), quo_nms)
   quo_is_null <- setnames(logical(length(quos)), quo_nms)
   for (i in seq_along(quos)){
-    quo_text[[i]] <- deparse(rlang::quo_get_expr(quos[[i]]))
+    quo_text[[i]] <- deparse1(rlang::quo_get_expr(quos[[i]]))
     # quo_text[[i]] <- rlang::expr_name(rlang::quo_get_expr(quos[[i]]))
     quo_is_null[[i]] <- rlang::quo_is_null(quos[[i]])
   }
@@ -1024,7 +1024,7 @@ fpluck <- function(x, .cols = NULL, .default = NULL){
   if (is.null(.cols)){
    return(x)
   }
-  if (length(.cols) != 1L){
+  if (length(.cols) > 1L){
     stop(".cols must have length 1")
   }
   if (is.numeric(.cols)){
@@ -1033,7 +1033,7 @@ fpluck <- function(x, .cols = NULL, .default = NULL){
     icol <- match(.cols, names(x))
   }
   # If no match just return .default
-  if (is.na(icol)){
+  if (length(icol) == 0L || is.na(icol)){
     return(.default)
   }
   x[[icol]]
@@ -1199,4 +1199,8 @@ check_sorted <- function(x){
   if (!is_sorted){
     stop("x must be in ascending order")
   }
+}
+# Taken from base R to avoid needing R >= 4
+deparse1 <- function(expr, collapse = " ", width.cutoff = 500L, ...){
+  paste(deparse(expr, width.cutoff, ...), collapse = collapse)
 }

@@ -46,7 +46,7 @@ testthat::test_that("Expected outputs", {
 #
 #  expected <- dt[, mu2 := data.table::frollmean(x, n = 5, na.rm = TRUE),
 #                 by = "g"]$mu2
-#  testthat::expect_true(all.equal(dt[, mu1 := roll_mean(x, g = g, n = 5, partial = FALSE)]$mu1,
+#  testthat::expect_true(all.equal(dt[, mu1 := roll_mean(x, g = g, window = 5, partial = FALSE)]$mu1,
 #                                  expected))
 #
 #  dt[, mu1 := time_roll_mean(x, g = g, window = 5,
@@ -167,6 +167,20 @@ testthat::test_that("simple tests", {
                    close_left_boundary = TRUE),
     c(10, 15, 25))))
 
+
+  # x <- rnorm(10^6)
+  # t <- sample(time_seq(today(), today() + weeks(23), time_by = days(9)),
+  #             size = 10^6, TRUE)
+  # g <- sample.int(10^5, 10^6, TRUE)
+  #
+  # mark(e1 = time_roll_sum(x, time = t, window = 11, g = g))
+  #      # e2 = time_roll_sum2(x, time = t, window = 11, g = g))
+  # mark(e1 = time_roll_sum(x, time = t, window = 11, g = g,
+  #                         close_left_boundary = TRUE),
+  #      e2 = time_roll_sum2(x, time = t, window = 11, g = g,
+  #                          close_left_boundary = TRUE))
+  # mark(e1 = time_roll_sum(x, time = t, window = 7, g = g),
+  #      e2 = time_roll_sum2(x, time = t, window = 7, g = g))
 })
 
 

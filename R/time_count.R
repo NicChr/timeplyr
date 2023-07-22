@@ -85,10 +85,6 @@
 #' a column "interval" of the form `time_min <= x < time_max` is added
 #' showing the time interval in which the respective counts belong to.
 #' The rightmost interval will always be closed.
-#' @param keep_class Logical. If `TRUE` then the class of
-#' the input data is retained.
-#' If `FALSE`, which is sometimes faster, a `data.table` is returned.
-#'
 #' @return An object of class `data.frame`
 #' containing the input time variable
 #' which is expanded for each supplied group.
@@ -145,9 +141,9 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                        week_start = getOption("lubridate.week.start", 1),
                        time_type = c("auto", "duration", "period"),
                        roll_month = "preday", roll_dst = "pre",
-                       include_interval = FALSE,
-                       keep_class = TRUE){
+                       include_interval = FALSE){
   time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
+  reconstruct <- TRUE
   ts_data <- mutate2(data,
                      ...,
                      !!enquo(time),
@@ -171,8 +167,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
   all_group_vars <- group_info[["all_groups"]]
   N <- nrow2(ts_data)
   if (length(time_var) > 0){
-    ts_data <- data.table::copy(ts_data)
-    data.table::setDT(ts_data)
+    ts_data <- as_DT(ts_data)
     # Add variable to keep track of group IDs
     grp_nm <- new_var_nm(ts_data, ".group.id")
     ts_data[, (grp_nm) := group_id(data, .by = {{ .by }})]
@@ -183,10 +178,18 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                                                from = from_var,
                                                to = to_var,
                                                .by = all_of(grp_nm))]
-    # Order by group vars - time var - additional group vars
-    setorderv2(ts_data, cols = c(grp_nm, time_var, extra_group_vars))
-    ts_data <- ts_data[data.table::between(get(time_var), get(from_nm), get(to_nm),
-                                           incbounds = TRUE, NAbounds = NA), ]
+    start_end_tbl <- fdistinct(ts_data, .cols = c(grp_nm, from_nm, to_nm))
+    if (any_gt(collapse::GRPN(start_end_tbl[[".group.id"]], expand = FALSE),
+               1L)){
+      warning("Multiple start-end values detected.
+              Please supply one pair per group",
+              immediate. = TRUE)
+    }
+    ts_data <- df_row_slice(ts_data,
+                            data.table::between(ts_data[[time_var]],
+                                                ts_data[[from_nm]],
+                                                ts_data[[to_nm]],
+                                                incbounds = TRUE, NAbounds = NA))
     # User supplied unit
     if (!is.null(time_by)){
       time_by <- time_by_list(time_by)
@@ -195,58 +198,70 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
       granularity <- time_granularity(data[[time_var]], is_sorted = FALSE, msg = TRUE)
       time_by <- setnames(list(granularity[["num"]]), granularity[["unit"]])
     }
-    # Expanded time sequences for each group
-    time_expanded <- ts_data %>%
-      time_expand(across(all_of(extra_group_vars)),
-                  time = across(all_of(time_var)),
-                  from = across(all_of(from_nm)),
-                  to = across(all_of(to_nm)),
-                  time_by = time_by,
-                  time_type = time_type,
-                  sort = TRUE, .by = all_of(c(grp_nm, group_vars)),
-                  time_floor = time_floor, week_start = week_start,
-                  keep_class = FALSE,
-                  expand_type = "nesting")
-    # Cast time
-    ts_data[, (time_var) := time_cast(get(time_var),
-                                      time_expanded[[time_var]])]
-    # Save non-aggregate time data for possible interval calculation
-    time <- ts_data[[time_var]]
-    # Aggregate time using the time sequence data
-    ts_data[, (time_var) := taggregate(ts_data[[time_var]],
-                                       time_expanded[[time_var]],
-                                       gx = ts_data[[grp_nm]],
-                                       gseq = time_expanded[[grp_nm]])]
     # Frequency table
     out <- ts_data %>%
       fcount(.cols = c(grp_nm, group_vars, time_var,
-                                    extra_group_vars),
+                       from_var, to_var,
+                       extra_group_vars),
              wt = across(all_of(wt_var)),
              name = name)
     name <- names(out)[length(names(out))]
-
+    # if (time_floor){
+    #   out[, (time_var) := time_floor2(get(time_var), time_by = time_by)]
+    # }
+    time_agg <- time_aggregate_left(out[[time_var]],
+                                    time_by = time_by,
+                                    g = out[[grp_nm]],
+                                    start = fpluck(out, from_var),
+                                    end = fpluck(out, to_var),
+                                    time_type = time_type,
+                                    roll_month = roll_month,
+                                    roll_dst = roll_dst,
+                                    time_floor = time_floor,
+                                    week_start = week_start)
+    time_int_end <- time_int_end(time_agg)
+    out[, (time_var) := time_int_rm_attrs(time_agg)]
+    out[, ("int_end") := time_int_end]
+    out <- fcount(out, .cols = c(grp_nm, group_vars,
+                                 time_var, extra_group_vars, "int_end"),
+                  wt = across(all_of(name)),
+                  name = name)
     # If complete, full-join time sequence df onto ts data
     if (complete){
-      out <- merge(out, time_expanded,
-                   all = TRUE, by = names(time_expanded), sort = FALSE)
-      # Order by groups and time (ascending)
-      setorderv2(out, cols = c(grp_nm, time_var, extra_group_vars))
-      # Replace NA with 0 as these are counts
-      data.table::setnafill(out, cols = name, type = "const", fill = 0, nan = NaN)
+      out[start_end_tbl, (c(from_nm, to_nm)) := mget(c(from_nm, to_nm)),
+          on = grp_nm, allow.cartesian = FALSE]
+      # Expanded time sequences for each group
+      out <- time_complete(out,
+                           time = across(all_of(time_var)),
+                           across(all_of(extra_group_vars)),
+                           from = across(all_of(from_nm)),
+                           to = across(all_of(to_nm)),
+                           time_by = time_by,
+                           time_type = time_type,
+                           sort = TRUE,
+                           .by = all_of(c(grp_nm, group_vars)),
+                           time_floor = time_floor, week_start = week_start,
+                           keep_class = FALSE,
+                           expand_type = "nesting",
+                           fill = setnames(list(0), name))
+      set_rm_cols(out, c(from_nm, to_nm))
+      out[is.na(get("int_end")) & !is.na(get(time_var)),
+          ("int_end") := time_add2(get(time_var), time_by = time_by,
+                                   roll_dst = roll_dst,
+                                   roll_month = roll_month,
+                                   time_type = time_type)]
     }
+    int_nm <- character(0)
     if (include_interval){
       out <- list_to_tibble(as.list(out))
-      message("data.table converted to tibble as data.table cannot include interval class")
+      if (inherits(data, "data.table")){
+        reconstruct <- FALSE
+        message("data.table converted to tibble as data.table cannot include interval class")
+      }
 
       int_nm <- new_var_nm(out, "interval")
-      out[[int_nm]] <- tagg_interval(x = time,
-                                     xagg = out[[time_var]],
-                                     seq = time_expanded[[time_var]],
-                                     gagg = out[[grp_nm]],
-                                     gx = ts_data[[grp_nm]],
-                                     gseq = time_expanded[[grp_nm]])
-    } else {
-     int_nm <- character(0)
+      out[[int_nm]] <- lubridate::interval(out[[time_var]],
+                                           out[["int_end"]])
     }
     out <- fselect(out, .cols = c(grp_nm,
                                   group_vars,
@@ -255,11 +270,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                                   int_nm,
                                   name))
     if (sort){
-      if (include_interval){
-        out <- farrange(out, desc(.data[[name]]))
-      } else {
-        setorderv2(out, cols = name, order = -1L)
-      }
+      out <- farrange(out, desc(.data[[name]]))
     }
     out <- df_rm_cols(out, grp_nm) # Remove group ID
   } else {
@@ -270,9 +281,8 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
              sort = sort)
     name <- names(out)[length(names(out))]
   }
-  if (keep_class){
-    df_reconstruct(out, data)
-  } else {
-    out
+  if (reconstruct){
+    out <- df_reconstruct(out, data)
   }
+  out
 }
