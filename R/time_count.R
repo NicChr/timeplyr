@@ -179,13 +179,8 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                                                from = from_var,
                                                to = to_var,
                                                .by = all_of(grp_nm))]
-    # n_start_end_pairs <- collapse::fnunique(
-    #   fselect(ts_data, .cols = c(grp_nm, from_nm, to_nm))
-    # )
     start_end_tbl <- fdistinct(ts_data, .cols = c(grp_nm, from_nm, to_nm))
     if (!isTRUE(nrow2(start_end_tbl) == n_groups)){
-    # if (any_gt(collapse::GRPN(start_end_tbl[[".group.id"]], expand = FALSE), 1L)){
-    # if (!isTRUE(n_start_end_pairs == n_groups)){
       warning("Multiple start-end values detected.
               Please supply one pair per group",
               immediate. = TRUE)
@@ -211,20 +206,17 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
              wt = across(all_of(wt_var)),
              name = name)
     name <- names(out)[length(names(out))]
-    # if (time_floor){
-    #   out[, (time_var) := time_floor2(get(time_var), time_by = time_by)]
-    # }
-    time_agg <- time_aggregate_left(out[[time_var]],
-                                    time_by = time_by,
-                                    g = out[[grp_nm]],
-                                    start = fpluck(out, from_var),
-                                    end = fpluck(out, to_var),
-                                    time_type = time_type,
-                                    roll_month = roll_month,
-                                    roll_dst = roll_dst,
-                                    time_floor = time_floor,
-                                    week_start = week_start,
-                                    as_int = include_interval)
+    time_agg <- time_aggregate_switch(out[[time_var]],
+                                      time_by = time_by,
+                                      g = out[[grp_nm]],
+                                      start = fpluck(out, from_var),
+                                      end = fpluck(out, to_var),
+                                      time_type = time_type,
+                                      roll_month = roll_month,
+                                      roll_dst = roll_dst,
+                                      time_floor = time_floor,
+                                      week_start = week_start,
+                                      as_int = include_interval)
     int_end_nm <- character(0)
     time_int_end <- time_int_end(time_agg)
     out[, (time_var) := time_int_rm_attrs(time_agg)]

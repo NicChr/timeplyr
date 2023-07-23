@@ -105,7 +105,7 @@
 #' tbl <- ts_as_tibble(zoo_ts)
 #'
 #' tbl %>%
-#'   mutate(mean7 = time_roll_mean(value, window = dmonths(1),
+#'   mutate(monthly_mean = time_roll_mean(value, window = dmonths(1),
 #'                                 time = time, g = group))
 #' }
 #' @rdname time_roll
@@ -211,9 +211,6 @@ time_roll_mean <- function(x, window,
                     g = g, weights = weights,
                     partial = partial,
                     na.rm = na.rm, ...))
-  }
-  if (anyNA(time)){
-    stop("time index must not contain NA values")
   }
   check_index_not_missing(time)
   window <- time_by_get(time, time_by = window)
@@ -355,6 +352,92 @@ time_roll_mean <- function(x, window,
 #   }
 #   out
 # }
+time_roll_sum3 <- function(x, window,
+                          time = NULL,
+                          weights = NULL,
+                          g = NULL,
+                          partial = TRUE,
+                          close_left_boundary = FALSE,
+                          na.rm = TRUE,
+                          time_type = c("auto", "duration", "period"),
+                          roll_month = "preday", roll_dst = "pre",
+                          ...){
+  if (is.null(time)){
+    return(roll_sum(x, window = window,
+                    g = g, weights = weights,
+                    partial = partial,
+                    na.rm = na.rm, ...))
+  }
+  if (anyNA(time)){
+    stop("time index must not contain NA values")
+  }
+  window <- time_by_get(time, time_by = window)
+  time_num <- time_by_num(window)
+  time_unit <- time_by_unit(window)
+  time_subtract <- setnames(list(-time_num), time_unit)
+  window_size <- time_num
+  if (length(window_size) != 1L){
+    stop("time window size must be of length 1")
+  }
+  has_groups <- !is.null(g)
+  check_is_time_or_num(time)
+  g <- GRP2(g, return.groups = FALSE, return.order = FALSE)
+  group_id <- group_id(g)
+  if (has_groups){
+    group_sizes <- GRP_group_sizes(g)
+    n_groups <- GRP_n_groups(g)
+    g2 <- GRP2(list(group_id, time), return.groups = FALSE)
+  } else {
+    g2 <- GRP2(time, return.groups = FALSE)
+    group_sizes <- length(x)
+    n_groups <- min(1L, length(x))
+  }
+  groups_are_sorted <- GRP_is_sorted(g2)
+  group_id2 <- GRP_group_id(g2)
+  if (!groups_are_sorted){
+    group_order <- GRP_order(g2)
+    x <- x[group_order]
+    time <- time[group_order]
+    group_id <- group_id[group_order]
+    group_id2 <- group_id2[group_order]
+  }
+  time_start <- time_add2(time, time_by = time_subtract,
+                          roll_month = roll_month,
+                          roll_dst = roll_dst)
+  naive_window <- sequence(group_sizes)
+  if (has_groups){
+    time_start_list <- collapse::gsplit(time_as_number(time_start), g = g)
+    time_list <- collapse::gsplit(time_as_number(time), g = g)
+    adj_window <- vector("list", length(time_list))
+    for (i in seq_along(adj_window)){
+      adj_window[[i]] <- .bincode(.subset2(time_start_list, i),
+                                  .subset2(time_list, i),
+                                  right = close_left_boundary,
+                                  include.lowest = FALSE)
+    }
+    adj_window <- unlist(adj_window, recursive = FALSE, use.names = FALSE)
+    adj_window[is.na(adj_window)] <- 0L
+  } else {
+    adj_window <- findInterval(time_start, time, left.open = close_left_boundary)
+  }
+  final_window <- naive_window - adj_window
+  out <- frollsum3(x, n = final_window,
+                    weights = weights,
+                    adaptive = TRUE, align = "right",
+                    na.rm = na.rm, ...)
+  if (!partial){
+    elapsed <- time_elapsed(time, time_by = window, g = group_id,
+                            rolling = FALSE)
+    out[double_lt(elapsed, 1)] <- NA_real_
+
+  }
+  # For duplicate times, we take the last mean value of each duplicate
+  out <- glast(out, g = group_id2)
+  if (!groups_are_sorted){
+    out <- collapse::greorder(out, g = g2)
+  }
+  out
+}
 # Working alternative
 # time_roll_sum2 <- function(x, window,
 #                           time = NULL,

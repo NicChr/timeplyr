@@ -507,28 +507,28 @@ period_seq_v2 <- function(sizes, from, units, num = 1,
   if (length(from) == 0L || length(sizes) == 0L){
     return(from[0L])
   }
+  # Following timechange rules.
+  convert_back_to_date <- is_date(from) &&
+    unit %in% c("day", "week", "month", "year")
   period_df <- recycle_args(from, num, sizes, use.names = TRUE)
-  # period_df <- data.table::copy(as_DT(period_df))
   data.table::setDT(period_df)
   period_df[, ("row_id") := seq_len(.N)]
   # We want to eliminate unnecessary grouped calculations
   # To do so we need to collapse identical groups and just repeat their sequences based on number of duplicates
-  period_df[, ("g") := group_id.default(.SD, order = FALSE),
-            .SDcols = c("from", "num", "sizes")]
-  period_df[, ("n") := collapse::GRPN(get("g"), expand = TRUE)]
+  grps <- df_to_GRP(period_df, .cols = c("from", "num", "sizes"),
+                    order = TRUE,
+                    return.groups = FALSE)
+  period_df[, ("g") := GRP_group_id(grps)]
+  period_df[, ("n") := GRP_group_sizes(grps)[GRP_group_id(grps)]]
 
   # It's important the result is properly ordered
   # So let's store the correct order before collapsing
-  period_df <- farrange(period_df, .cols = "g")
-  # data.table::setorderv(period_df, cols = "g")
+  period_df <- df_row_slice(period_df, GRP_order(grps))
   out_order <- radix_order(rep.int(period_df[["row_id"]],
                                    period_df[["sizes"]]))
 
   # Collapse the data frame into unique combinations of length, from, and num
   period_df <- collapse::funique(period_df, cols = "g")
-  # Add key for optimised aggregation
-  # data.table::setkeyv(period_df, cols = "g")
-
   # Setting up vector arithmetic
   g <- rep.int(period_df[["g"]], times = period_df[["sizes"]])
   num <- sequence2(period_df[["sizes"]], from = 1, by = period_df[["num"]]) - 1
@@ -537,43 +537,28 @@ period_seq_v2 <- function(sizes, from, units, num = 1,
   # Repeat these by the group counts
   group_counts <- period_df[["n"]]
   which_n_gt_1 <- which(group_counts > 1)
-  by[which_n_gt_1] <- purrr::map2(by[which_n_gt_1],
-                                  group_counts[which_n_gt_1],
-                                  function(x, y) rep.int(x, y))
-  # Alternate method, works similarly
-  # period_df[, ("by") := by]
-  # out <- period_df[, list("time" = time_add(get("from"),
-  #                                    periods = setnames(as.list(get("by")), unit),
-  #                                    roll_month = roll_month,
-  #                                    roll_dst = roll_dst)),
-  #           keyby = "g"][["time"]]
+  for (ind in which_n_gt_1){
+    by[ind][[1L]] <- rep.int(.subset2(by, ind),
+                             .subset2(group_counts, ind))
+  }
   out_sizes <- as.integer(period_df[["sizes"]] * group_counts)
   # Counter to keep track of which indices to replace
   init <- 0L
   from <- period_df[["from"]]
-  # Initialise output
+  from <- as_datetime2(from)
+  # # Initialise output
   out <- rep_len(from[0L],
                  sum(out_sizes))
   # Setnames on the list for timechange::time_add
   by <- setnames(by, rep_len(unit, length(by)))
+  out <- vector("list", nrow2(period_df))
   for (i in df_seq_along(period_df)){
-    out[seq.int(length.out = out_sizes[[i]],
-                from = init + 1L,
-                by = 1L)] <-
-      time_add(from[[i]],
-               periods = by[i],
-               roll_month = roll_month,
-               roll_dst = roll_dst)
-    # setv(out, sequence(out_sizes[[i]],
-    #                    from = init + 1L,
-    #                    by = 1L),
-    #      # seq_len(out_sizes[[i]]) + init,
-    #      time_add(from[[i]],
-    #               periods = by[i],
-    #               roll_month = roll_month,
-    #               roll_dst = roll_dst),
-    #      vind1 = TRUE)
-    init <- init + out_sizes[[i]]
+    out[[i]] <- C_time_add(from[i], .subset(by, i), roll_month, roll_dst)
+  }
+  out <- unlist(out, recursive = FALSE, use.names = FALSE)
+  out <- time_cast(out, from)
+  if (convert_back_to_date){
+    out <- lubridate::as_date(out)
   }
   out[out_order]
 }

@@ -142,7 +142,7 @@ time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
   }
   seq_sizes <- time_seq_sizes(from, to, time_by, time_type = time_type)
   if (isTRUE(log10(sum(seq_sizes)) >= 8)){
-    message("The final size exceeds 8m rows, this may take a while")
+    message("The final size exceeds 100m rows, this may take a while")
   }
   out <- time_seq_v2(seq_sizes, from = from, time_by = time_by,
                      time_type = time_type,

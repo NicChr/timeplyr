@@ -6,7 +6,7 @@ GRP2 <- function(X, ...){
     x <- X
     which_int <- which(vapply(X, FUN = is_interval, FUN.VALUE = logical(1)))
     for (i in seq_along(which_int)){
-      X[[which_int[i]]] <- group_id(X[[which_int[i]]])
+      X[[.subset(which_int, i)]] <- group_id(.subset2(X, .subset(which_int, i)))
     }
     args[["X"]] <- X
   }
@@ -16,7 +16,7 @@ GRP2 <- function(X, ...){
     group_starts <- GRP_starts(out)
     for (i in seq_along(which_int)){
       out[["groups"]][[which_int[i]]] <-
-        x[[which_int[i]]][group_starts]
+        .subset2(x, .subset(which_int, i))[group_starts]
     }
   }
   out

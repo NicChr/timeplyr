@@ -44,7 +44,7 @@ unit_guess <- function(x){
       stop("Multiple period units are currently not supported.")
     }
     unit <- paste0(names(time_unit_info), "s")
-    num <- time_unit_info[[1L]]
+    num <- .subset2(time_unit_info, 1L)
     out <- list("unit" = unit,
                 "num" = num,
                 "scale" = 1L)
@@ -69,8 +69,8 @@ unit_guess <- function(x){
       # The num needs to be scaled correctly
       if (unit %in% .extra_time_units){
         exotic_info <- convert_exotic_units(unit)
-        scale <- exotic_info[["scale"]]
-        unit <- exotic_info[["unit"]]
+        scale <- .subset2(exotic_info, "scale")
+        unit <- .subset2(exotic_info, "unit")
       }
       # num <- num * scale
       out <- list("unit" = unit,

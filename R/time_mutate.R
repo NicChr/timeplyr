@@ -103,36 +103,18 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
                     granularity[["granularity"]], sep = " "))
       time_by <- setnames(list(granularity[["num"]]), granularity[["unit"]])
     }
-    # # Bound time between from and to
-    # from_to_list <- get_from_to(data,
-    #                              time = time_var,
-    #                              from = from_var,
-    #                              to = to_var,
-    #                              .by = all_of(grp_nm))
-    # data <- dplyr::dplyr_col_modify(data,
-    #                                 setnames(
-    #                                   list(
-    #                                     data.table::fifelse(
-    #                                       data.table::between(data[[time_var]],
-    #                                                           from_to_list[[1L]],
-    #                                                           from_to_list[[2L]]),
-    #                                       data[[time_var]],
-    #                                       data[[time_var]][NA_integer_]
-    #                                     )
-    #                                   ), time_var
-    #                                 ))
     # Aggregate time data
-    time_agg <- time_aggregate_left(data[[time_var]],
-                                    time_by = time_by,
-                                    g = data[[grp_nm]],
-                                    start = fpluck(data, from_var),
-                                    end = fpluck(data, to_var),
-                                    time_type = time_type,
-                                    roll_month = roll_month,
-                                    roll_dst = roll_dst,
-                                    time_floor = time_floor,
-                                    week_start = week_start,
-                                    as_int = include_interval)
+    time_agg <- time_aggregate_switch(data[[time_var]],
+                                      time_by = time_by,
+                                      g = data[[grp_nm]],
+                                      start = fpluck(data, from_var),
+                                      end = fpluck(data, to_var),
+                                      time_type = time_type,
+                                      roll_month = roll_month,
+                                      roll_dst = roll_dst,
+                                      time_floor = time_floor,
+                                      week_start = week_start,
+                                      as_int = include_interval)
     time_int_end <- time_int_end(time_agg)
     time_agg <- time_int_rm_attrs(time_agg)
     data <- dplyr::dplyr_col_modify(data,

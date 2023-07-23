@@ -28,7 +28,7 @@ roll_lag <- function(x, lag = 1L, check = TRUE){
   }
   lagged_indices <- seq_along(x) - lag
   if (check){
-    lagged_indices[lagged_indices < 1L] <- N + 1L
+    lagged_indices[lagged_indices < 1L] <- NA_integer_
   }
   x[lagged_indices]
 }

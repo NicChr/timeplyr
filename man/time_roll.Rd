@@ -180,7 +180,7 @@ zoo_ts <- zoo::zoo(x, order.by = index)
 tbl <- ts_as_tibble(zoo_ts)
 
 tbl \%>\%
-  mutate(mean7 = time_roll_mean(value, window = dmonths(1),
+  mutate(monthly_mean = time_roll_mean(value, window = dmonths(1),
                                 time = time, g = group))
 }
 }

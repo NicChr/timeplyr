@@ -1000,10 +1000,10 @@ quo_summarise_info <- function(quos, data){
        is_identity = is_identity)
 }
 conditional_sort <- function(x){
-  if (is.unsorted(x)){
-    radix_sort(x)
-  } else {
+  if (isTRUE(!is.unsorted(x))){
     x
+  } else {
+    radix_sort(x)
   }
 }
 # Check if signs are all equal
@@ -1036,7 +1036,7 @@ fpluck <- function(x, .cols = NULL, .default = NULL){
   if (length(icol) == 0L || is.na(icol)){
     return(.default)
   }
-  x[[icol]]
+  .subset2(x, icol)
 }
 
 # round down to nearest n

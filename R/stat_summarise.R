@@ -120,7 +120,7 @@ stat_summarise <- function(data, ...,
     for (s in stat){
       k <- k + 1L
       data.table::set(out, j = var_nms[k],
-                      value = stat_to_collapse_fun(s)(data[[.col]],
+                      value = stat_to_collapse_fun(s)(fpluck(data, .col),
                                                       g = g,
                                                       na.rm = na.rm,
                                                       use.g.names = FALSE))

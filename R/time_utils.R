@@ -15,12 +15,12 @@ unit_list_match <- function(l){
   }
   if (is.na(unit)) unit_match_stop()
   # if (length(unit) == 0L) stop("unit list must be named")
-  num <- l[[1L]]
+  num <- .subset2(l, 1L)
   scale <- 1L
   if (unit %in% .extra_time_units){
     exotic_info <- convert_exotic_units(unit)
-    scale <- exotic_info[["scale"]]
-    unit <- exotic_info[["unit"]]
+    scale <- .subset2(exotic_info, "scale")
+    unit <- .subset2(exotic_info, "unit")
   }
   # num <- num * scale
   list("unit" = unit,
@@ -44,7 +44,7 @@ unit_match <- function(x){
   match_i <- pmatch(x, units,
                   nomatch = NA_character_,
                   duplicates.ok = FALSE)
-  .time_units[match_i]
+  .subset(.time_units, match_i)
 }
 # Unit string parsing
 unit_parse <- function(x){
@@ -68,8 +68,8 @@ unit_parse <- function(x){
   if (is.na(unit)) unit_match_stop()
   if (unit %in% .extra_time_units){
     exotic_info <- convert_exotic_units(unit)
-    scale <- exotic_info[["scale"]]
-    unit <- exotic_info[["unit"]]
+    scale <- .subset2(exotic_info, "scale")
+    unit <- .subset2(exotic_info, "unit")
   }
   out <- list("unit" = unit,
               "num" = num,
@@ -78,8 +78,8 @@ unit_parse <- function(x){
 }
 time_by_list <- function(time_by){
   unit_info <- unit_guess(time_by)
-  units <- unit_info[["unit"]]
-  num <- unit_info[["num"]] * unit_info[["scale"]]
+  units <- .subset2(unit_info, "unit")
+  num <- .subset2(unit_info, "num") * .subset2(unit_info, "scale")
   setnames(list(num), units)
 }
 # Returns list with numeric vector element, where the name of the list
@@ -1058,6 +1058,7 @@ get_from_to <- function(data, ..., time, from = NULL, to = NULL,
   list(.from = .from,
        .to = .to)
 }
+C_time_add <- getFromNamespace("C_time_add", "timechange")
 time_add2 <- function(x, time_by,
                       time_type = c("auto", "duration", "period"),
                       roll_month = "preday", roll_dst = "pre"){
@@ -1225,7 +1226,7 @@ time_aggregate_left <- function(x, time_by, g = NULL,
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
   time_na <- x[NA_integer_]
-  g <- GRP2(g)
+  g <- GRP2(g, return.groups = FALSE)
   if (!is.null(start)){
     if (length(start) != length(x)){
       stop("start must be the same length as x")
@@ -1276,7 +1277,7 @@ time_aggregate_right <- function(x, time_by, g = NULL,
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
   time_na <- x[NA_integer_]
-  g <- GRP2(g)
+  g <- GRP2(g, return.groups = FALSE)
   if (!is.null(start)){
     if (length(start) != length(x)){
       stop("start must be the same length as x")
@@ -1376,63 +1377,160 @@ time_int_rm_attrs <- function(x){
   x
 }
 # Time aggregation using expanded sequences from data directly
-# Data must be sorted such that is.unsorted(order(g, x)) is false
 time_aggregate_expand <- function(x, time_by, g = NULL,
+                                  start = NULL, end = NULL,
+                                  time_floor = FALSE,
+                                  week_start = getOption("lubridate.week.start", 1),
                                   time_type = c("auto", "duration", "period"),
-                                  roll_month = "preday", roll_dst = "pre"){
+                                  roll_month = "preday", roll_dst = "pre",
+                                  as_int = TRUE){
   time_by <- time_by_list(time_by)
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
+  time_na <- x[NA_integer_]
+  no_groups <- is.null(g)
   g <- GRP2(g)
-  if (!gis_sorted(x, g)){
-    stop("x must be sorted such that !is.unsorted(order(g, x)) == TRUE")
+  if (no_groups){
+    n_groups <- min(1L, length(x))
+    group_sizes <- length(x)
+    group_starts <- n_groups
+  } else {
+    n_groups <- GRP_n_groups(g)
+    group_sizes <- GRP_group_sizes(g)
+    group_starts <- GRP_starts(g)
   }
-  group_id <- group_id(g)
-  time_full <- time_expandv(x, g = g, time_by = time_by,
-                            time_type = time_type,
-                            roll_month = roll_month,
-                            roll_dst = roll_dst, use.g.names = TRUE)
-  taggregate(x,
-             seq = time_full,
-             gx = group_id,
-             gseq = group_id(names(time_full), order = FALSE))
+  if (is.null(start)){
+    start <- gmin(x, g = g, na.rm = TRUE)
+  } else {
+    if (length(start) != length(x)){
+      stop("start must be the same length as x")
+    }
+    start <- time_cast(start, x)
+    x[x > end] <- time_na
+  }
+  if (is.null(end)){
+    end <- gmax(x, g = g, na.rm = TRUE)
+  } else {
+    if (length(end) != length(x)){
+      stop("end must be the same length as x")
+    }
+    end <- time_cast(end, x)
+    x[x < start] <- time_na
+  }
+  .start <- start[group_starts]
+  .end <- end[group_starts]
+  if (time_floor){
+    .start <- time_floor2(.start, time_by = time_by, week_start = week_start)
+  }
+  seq_sizes <- time_seq_sizes(.start, .end, time_by, time_type = time_type)
+  time_full <- time_seq_v2(seq_sizes, from = .start,
+                           time_by = time_by,
+                           time_type = time_type,
+                           time_floor = FALSE,
+                           week_start = week_start,
+                           roll_month = roll_month,
+                           roll_dst = roll_dst)
+  group_id <- rep.int(seq_len(n_groups), times = seq_sizes)
+  # Creating a GRP object from scratch
+  g2 <- structure(
+    list(
+      "N.groups" = n_groups,
+      "group.id" = group_id,
+      "group.sizes" = seq_sizes,
+      "groups" = NULL,
+      "group.vars" = NULL,
+      "ordered" = c("ordered" = TRUE, "sorted" = TRUE),
+      "order" = structure(seq_along(group_id), sorted = TRUE),
+      "group.starts" = cumsum(c(rep_len(1L, min(length(seq_sizes), 1L)),
+                                                       seq_sizes[-length(seq_sizes)])),
+      "call" = NULL
+    ),
+    class = "GRP"
+  )
+  # group_ends <- cumsum(collapse::GRPN(group_id, expand = FALSE))
+    if (no_groups){
+      out <- cut_time2(time_cast(x, time_full), time_full)
+    } else {
+      time_list <- collapse::gsplit(time_as_number(x), g = g)
+      time_full_list <- collapse::gsplit(time_as_number(time_full), g = g2)
+      out <- vector("list", n_groups)
+      for (i in seq_len(n_groups)){
+        ti <- .bincode(.subset2(time_list, i),
+                       breaks = c(.subset2(time_full_list, i), Inf),
+                       include.lowest = FALSE, right = FALSE)
+        out[[i]] <- .subset(.subset2(time_full_list, i), ti)
+      }
+      out <- unlist(out, recursive = FALSE, use.names = FALSE)
+      out <- collapse::greorder(out, g = g)
+      out <- time_cast(out, time_full)
+    }
+  if (as_int){
+    int_end <- time_add2(out, time_by = time_by, time_type = time_type,
+                         roll_month = roll_month, roll_dst = roll_dst)
+    set_time_cast(out, int_end)
+    which_out_of_bounds <- which(double_gt(time_as_number(int_end),
+                                           time_as_number(end)))
+    int_end[which_out_of_bounds] <- end[which_out_of_bounds]
+    out <- structure(out,
+                     end = int_end,
+                     direction = "left-to-right")
+  }
+  out
 }
 
 # Time aggregation using expanded sequences when:
 # * Data is over 1m rows
 # * Expansion size is less than a million
 # * Number of groups are less than 100k
-# And using a separate method otherwise
-# time_aggregate_switch <- function(x, time_by, g = NULL,
-#                                   time_type = c("auto", "duration", "period"),
-#                                   roll_month = "preday", roll_dst = "pre"){
-#   time_by <- time_by_list(time_by)
-#   num <- time_by_num(time_by)
-#   units <- time_by_unit(time_by)
-#   g <- GRP2(g)
-#   if (is.null(g)){
-#     n_groups <- min(1L, length(x))
-#     } else {
-#       n_groups <- GRP_n_groups(g)
-#     }
-#   time_span_sizes <- time_span_size(x, g = g, time_by = time_by,
-#                                     time_type = time_type,
-#                                     roll_month = roll_month,
-#                                     roll_dst = roll_dst, use.g.names = TRUE)
-#   if (n_groups < 1e05 &&
-#       sum(time_span_sizes) < 1e06 &&
-#       length(x) > 1e05){
-#     time_aggregate_expand(x, g = g, time_by = time_by,
-#                           time_type = time_type,
-#                           roll_month = roll_month,
-#                           roll_dst = roll_dst)
-#   } else {
-#     time_aggregate(x, g = g, time_by = time_by,
-#                    time_type = time_type,
-#                    roll_month = roll_month,
-#                    roll_dst = roll_dst)
-#   }
-# }
+# And using time differencing otherwise
+time_aggregate_switch <- function(x, time_by, time_type,
+                                  g = NULL,
+                                  start = NULL, end = NULL,
+                                  time_floor = FALSE,
+                                  week_start = getOption("lubridate.week.start", 1),
+                                  roll_month = "preday", roll_dst = "pre",
+                                  as_int = TRUE){
+  time_by <- time_by_list(time_by)
+  num <- time_by_num(time_by)
+  units <- time_by_unit(time_by)
+  time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
+  g <- GRP2(g, return.groups = FALSE)
+  if (is.null(g)){
+    n_groups <- min(1L, length(x))
+  } else {
+    n_groups <- GRP_n_groups(g)
+  }
+  time_span_sizes <- time_span_size(x, g = g, time_by = time_by,
+                                    time_type = time_type,
+                                    roll_month = roll_month,
+                                    roll_dst = roll_dst,
+                                    use.g.names = FALSE)
+  if (time_type == "auto"){
+    time_type <- guess_seq_type(units)
+  }
+  if (time_type == "period" &&
+      n_groups < 1e06 &&
+      sum(time_span_sizes) < 1e07 &&
+      length(x) > 1e05){
+    time_aggregate_expand(x, g = g, time_by = time_by,
+                          start = start,
+                          end = end,
+                          time_type = time_type,
+                          roll_month = roll_month,
+                          roll_dst = roll_dst,
+                          time_floor = time_floor,
+                          as_int = as_int)
+  } else {
+    time_aggregate_left(x, g = g, time_by = time_by,
+                        start = start,
+                        end = end,
+                        time_type = time_type,
+                        roll_month = roll_month,
+                        roll_dst = roll_dst,
+                        time_floor = time_floor,
+                        as_int = as_int)
+  }
+}
 check_index_not_missing <- function(x){
   if (anyNA(x)){
     stop("time index must not contain NA values")
