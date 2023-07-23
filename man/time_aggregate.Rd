@@ -37,6 +37,13 @@ and \code{durations} are used otherwise.}
 
 \item{roll_month}{Control how impossible dates are handled when
 month or year arithmetic is involved.}
+
+\item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
+
+\item{direction}{Direction with which to aggregate time,
+"l2r" ("left-to-right") or "r2l" ("right-to-left").
+If "l2r" (the default), then the minimum time is used as the
+reference time, otherwise the maximum time is used.}
 }
 \description{
 Aggregate time to a higher unit for possibly many groups

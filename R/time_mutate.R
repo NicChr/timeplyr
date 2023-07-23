@@ -131,7 +131,8 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
                                     roll_month = roll_month,
                                     roll_dst = roll_dst,
                                     time_floor = time_floor,
-                                    week_start = week_start)
+                                    week_start = week_start,
+                                    as_int = include_interval)
     time_int_end <- time_int_end(time_agg)
     time_agg <- time_int_rm_attrs(time_agg)
     data <- dplyr::dplyr_col_modify(data,

@@ -99,27 +99,35 @@ time_by <- function(data, time, time_by = NULL,
     g <- fselect(data, .cols = group_vars)
     time_span_groups <- group_vars
   }
-  time_span <- stat_summarise(data, .cols = time_var,
-                              .by = all_of(time_span_groups),
-                              stat = c("min", "max"),
-                              sort = TRUE)
-  data <- time_mutate(data, time = .data[[time_var]],
-                      .by = all_of(time_span_groups),
-                      time_by = time_by,
-                      time_type = time_type,
-                      time_floor = time_floor,
-                      week_start = week_start,
-                      roll_month = roll_month,
-                      roll_dst = roll_dst)
-  time_span <- frename(time_span, .cols = c("start" = "min",
-                                            "end" = "max"))
+  time_span_GRP <- df_to_GRP(data, .cols = time_span_groups,
+                             return.groups = TRUE)
+  time_span_end <- collapse::fmax(data[[time_var]], g = time_span_GRP,
+                                  use.g.names = FALSE)
+  # Aggregate time data
+  time_agg <- time_aggregate_left(data[[time_var]],
+                                  time_by = time_by,
+                                  g = time_span_GRP,
+                                  time_type = time_type,
+                                  roll_month = roll_month,
+                                  roll_dst = roll_dst,
+                                  time_floor = time_floor,
+                                  week_start = week_start)
+  time_agg <- time_int_rm_attrs(time_agg)
+  data <- dplyr::mutate(data, !!time_var := time_agg)
+  time_span_start <- collapse::fmin(time_agg, g = time_span_GRP,
+                                    use.g.names = FALSE)
+  time_span <- GRP_group_data(time_span_GRP)
+  if (nrow2(time_span) == 0L){
+    time_span <- vctrs::vec_init(time_span, n = 1L)
+  }
+  time_span$start <- time_span_start
+  time_span$end <- time_span_end
   num_gaps <- time_num_gaps(data[[time_var]],
                             time_by = time_by,
                             time_type = time_type,
                             g = g, use.g.names = FALSE,
                             check_time_regular = FALSE)
   time_span[["num_gaps"]] <- num_gaps
-  time_span <- dplyr::as_tibble(time_span)
   }
   groups <- time_var
   if (.add){

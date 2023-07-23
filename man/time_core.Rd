@@ -97,7 +97,8 @@ time_span_size(
 )
 }
 \arguments{
-\item{x}{Date, datetime or numeric vector.}
+\item{x}{Time variable. \cr
+Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, or \code{yearqtr}.}
 
 \item{time_by}{Time unit. \cr
 Must be one of the following:

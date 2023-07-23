@@ -19,6 +19,11 @@
 #' and `durations` are used otherwise.
 #' @param roll_month Control how impossible dates are handled when
 #' month or year arithmetic is involved.
+#' @param roll_dst See `?timechange::time_add` for the full list of details.
+#' @param direction Direction with which to aggregate time,
+#' "l2r" ("left-to-right") or "r2l" ("right-to-left").
+#' If "l2r" (the default), then the minimum time is used as the
+#' reference time, otherwise the maximum time is used.
 #' @details `time_aggregate` aggregates time using
 #' distinct moving time range blocks of a specified time unit.
 #' If for example `time_by = "week"`then all dates or datetimes

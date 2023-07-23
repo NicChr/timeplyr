@@ -164,41 +164,6 @@ time_interval <- function(from, to){
 # Calculates greatest common divisor of
 # rolling time difference, taking into account
 # time type
-time_diff_gcd <- function(x, time_type = c("auto", "duration", "period"),
-                          is_sorted = FALSE,
-                          tol = sqrt(.Machine$double.eps)){
-  if (!is_sorted){
-    is_sorted <- isTRUE(!is.unsorted(x))
-  }
-  x <- collapse::funique(x, sort = !is_sorted)
-  x <- x[!is.na(x)]
-  if (length(x) == 0L){
-    gcd_diff <- numeric(0)
-  } else if (length(x) == 1L){
-    gcd_diff <- 1
-  } else {
-    if (is_date(x)){
-      tby <- "days"
-    } else if (is_datetime(x)){
-      tby <- "seconds"
-    } else {
-      tby <- 1
-    }
-    tdiff <- time_elapsed(x, rolling = TRUE,
-                          time_by = tby,
-                          time_type = time_type,
-                          fill = NA, g = NULL,
-                          na_skip = FALSE)
-    # tdiff <- fdiff2(tdiff)
-    log10_tol <- floor(abs(log10(tol)))
-    tdiff <- round(abs(tdiff[-1L]), digits = log10_tol)
-    tdiff <- collapse::funique(tdiff, sort = FALSE)
-    # tdiff[double_equal(tdiff, 0, tol = tol)] <- max(tdiff)
-    tdiff <- tdiff[double_gt(tdiff, 0, tol = tol)]
-    gcd_diff <- collapse::vgcd(tdiff)
-  }
-  gcd_diff
-}
 ####### GROUPED TIME DIFF GCD
 ####### IN PROGRESS
 # time_diff_gcd2 <- function(x, g = NULL, use.g.names = TRUE,
@@ -814,19 +779,17 @@ window_seq <- function(k, n, partial = TRUE){
     stop("n must not be greater than .Machine$integer.max")
   }
   n <- as.integer(n)
-  k[k == Inf] <- n
+  k[is.infinite(k)] <- n
   k <- as.integer(k)
   k <- max(k, 0L) # Bound k to >= 0
-  pk <- max(k - 1L, 0L) # Partial k, bounded to >= 0
+  pk <- min(max(k - 1L, 0L), n) # Partial k, bounded to >= 0
   p_seq <- seq_len(pk) # Partial window sequence
   out <- collapse::alloc(k, n)
   # Replace partial part with partial sequence
   if (partial){
     out[p_seq] <- p_seq
-    # setv(out, p_seq, p_seq, vind1 = TRUE)
   } else {
     out[p_seq] <- NA_integer_
-    # setv(out, p_seq, NA_integer_, vind1 = TRUE)
   }
   out
 }
@@ -838,52 +801,47 @@ window_sequence <- function(size, k, partial = TRUE, ascending = TRUE){
   if (length(k) != length(size)){
     stop("k must be of length 1 or have same length as size")
   }
-  # if (any_lt(k, 0)){
-  #   stop("k must be a positive integer vector")
-  # }
   input_k <- k
   k <- pmin(size, k)
   k <- pmax(k, 0L) # Bound k to >= 0
   k <- as.integer(k)
   k <- rep.int(k, times = size)
-  if (ascending){
-    out <- pmin(sequence(size, from = 1L, by = 1L), k)
-  } else {
-    out <- pmax(sequence(size, from = k, by = -1L),
-                pmin(1L, k))
-  }
+  out <- pmin(sequence(size, from = 1L, by = 1L), k)
   if (!partial){
     input_k <- rep.int(input_k, times = size)
     out[out < input_k] <- NA_integer_
+  }
+  if (!ascending){
+    out <- out[sequence(size, from = size, by = -1L)]
   }
   out
 }
 
 # This checks if time aggregation is necessary
-needs_aggregation <- function(time_by, granularity){
-  if (is.null(time_by)){
-    out <- FALSE
-  } else {
-    by_unit_info <- unit_guess(time_by)
-    granularity_unit_info <- unit_guess(granularity)
-
-    by_seconds <- as.numeric(time_unit(by_unit_info[["unit"]],
-                                       time_type = "duration")(
-      by_unit_info[["num"]] * by_unit_info[["scale"]]))
-    granularity_seconds <- as.numeric(time_unit(granularity_unit_info[["unit"]],
-                                                time_type = "duration")(
-      granularity_unit_info[["num"]] * granularity_unit_info[["scale"]]))
-
-    if (length(granularity_seconds) > 0L &&
-        length(by_seconds) > 0L &&
-        granularity_seconds < by_seconds){
-      out <- TRUE
-    } else {
-      out <- FALSE
-    }
-  }
-  out
-}
+# needs_aggregation <- function(time_by, granularity){
+#   if (is.null(time_by)){
+#     out <- FALSE
+#   } else {
+#     by_unit_info <- unit_guess(time_by)
+#     granularity_unit_info <- unit_guess(granularity)
+#
+#     by_seconds <- as.numeric(time_unit(by_unit_info[["unit"]],
+#                                        time_type = "duration")(
+#       by_unit_info[["num"]] * by_unit_info[["scale"]]))
+#     granularity_seconds <- as.numeric(time_unit(granularity_unit_info[["unit"]],
+#                                                 time_type = "duration")(
+#       granularity_unit_info[["num"]] * granularity_unit_info[["scale"]]))
+#
+#     if (length(granularity_seconds) > 0L &&
+#         length(by_seconds) > 0L &&
+#         granularity_seconds < by_seconds){
+#       out <- TRUE
+#     } else {
+#       out <- FALSE
+#     }
+#   }
+#   out
+# }
 
 fcut_ind <- function(x, breaks, rightmost.closed = FALSE,
                      left.open = FALSE, all.inside = FALSE){
@@ -1030,27 +988,27 @@ tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
   out
 }
 # Interval from x, aggregate x, and seq
-tagg_interval <- function(xagg, x, seq, gagg = NULL, gx = NULL, gseq = NULL){
-  int <- tseq_interval(x = x, seq = seq, gx = gx, gseq = gseq)
-  agg_df <- dplyr::tibble(t = xagg,
-                          g = gagg)
-  int_df <- dplyr::tibble(t = seq,
-                          g = gseq,
-                          interval = int)
-  agg_df %>%
-    dplyr::left_join(int_df, by = c("g", "t"),
-                     multiple = "any") %>%
-    fpluck("interval")
-}
+# tagg_interval <- function(xagg, x, seq, gagg = NULL, gx = NULL, gseq = NULL){
+#   int <- tseq_interval(x = x, seq = seq, gx = gx, gseq = gseq)
+#   agg_df <- dplyr::tibble(t = xagg,
+#                           g = gagg)
+#   int_df <- dplyr::tibble(t = seq,
+#                           g = gseq,
+#                           interval = int)
+#   agg_df %>%
+#     dplyr::left_join(int_df, by = c("g", "t"),
+#                      multiple = "any") %>%
+#     fpluck("interval")
+# }
 # Convert time sequence to min max list
-tseq_min_max <- function(x, seq, gx = NULL, gseq = NULL){
-  n <- length(x)
-  end <- flag2(seq, n = max(-1L, -n), g = gseq)
-  to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
-  end_points <- which(is.na(end) & !is.na(seq))
-  setv(end, end_points, to, vind1 = TRUE)
-  list(min = seq, max = end)
-}
+# tseq_min_max <- function(x, seq, gx = NULL, gseq = NULL){
+#   n <- length(x)
+#   end <- flag2(seq, n = max(-1L, -n), g = gseq)
+#   to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
+#   end_points <- which(is.na(end) & !is.na(seq))
+#   setv(end, end_points, to, vind1 = TRUE)
+#   list(min = seq, max = end)
+# }
 # Time cut levels from ascending time sequence
 tseq_levels <- function(x, seq, gx = NULL, gseq = NULL, fmt = NULL){
   if (is.null(fmt)){
@@ -1261,7 +1219,8 @@ time_aggregate_left <- function(x, time_by, g = NULL,
                                 time_floor = FALSE,
                                 week_start = getOption("lubridate.week.start", 1),
                                 time_type = c("auto", "duration", "period"),
-                                roll_month = "preday", roll_dst = "pre"){
+                                roll_month = "preday", roll_dst = "pre",
+                                as_int = TRUE){
   time_by <- time_by_list(time_by)
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
@@ -1293,26 +1252,30 @@ time_aggregate_left <- function(x, time_by, g = NULL,
   time_to_add <- setnames(list(trunc(tdiff) * num), units)
   out <- time_add2(start, time_by = time_to_add, time_type = time_type,
                    roll_month = roll_month, roll_dst = roll_dst)
-  int_end <- time_add2(out, time_by = time_by, time_type = time_type,
-                       roll_month = roll_month, roll_dst = roll_dst)
-  set_time_cast(out, int_end)
-  which_out_of_bounds <- which(double_gt(time_as_number(int_end),
-                                         time_as_number(end)))
-  int_end[which_out_of_bounds] <- end[which_out_of_bounds]
-  structure(out,
-            end = int_end,
-            direction = "left-to-right")
-            # class = c("time_int", class(out)))
+  if (as_int){
+    int_end <- time_add2(out, time_by = time_by, time_type = time_type,
+                         roll_month = roll_month, roll_dst = roll_dst)
+    set_time_cast(out, int_end)
+    which_out_of_bounds <- which(double_gt(time_as_number(int_end),
+                                           time_as_number(end)))
+    int_end[which_out_of_bounds] <- end[which_out_of_bounds]
+    out <- structure(out,
+                     end = int_end,
+                     direction = "left-to-right")
+  }
+  out
 }
 time_aggregate_right <- function(x, time_by, g = NULL,
                                 start = NULL, end = NULL,
                                 time_ceiling = FALSE,
                                 week_start = getOption("lubridate.week.start", 1),
                                 time_type = c("auto", "duration", "period"),
-                                roll_month = "preday", roll_dst = "pre"){
+                                roll_month = "preday", roll_dst = "pre",
+                                as_int = TRUE){
   time_by <- time_by_list(time_by)
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
+  time_na <- x[NA_integer_]
   g <- GRP2(g)
   if (!is.null(start)){
     if (length(start) != length(x)){
@@ -1340,15 +1303,18 @@ time_aggregate_right <- function(x, time_by, g = NULL,
   time_to_add <- setnames(list(trunc(tdiff) * num), units)
   out <- time_add2(end, time_by = time_to_add, time_type = time_type,
                    roll_month = roll_month, roll_dst = roll_dst)
-  int_end <- time_add2(out, time_by = time_by, time_type = time_type,
-                       roll_month = roll_month, roll_dst = roll_dst)
-  set_time_cast(out, int_end)
-  which_out_of_bounds <- which(double_lt(time_as_number(int_end),
-                                         time_as_number(start)))
-  int_end[which_out_of_bounds] <- start[which_out_of_bounds]
-  structure(out,
-            end = int_end,
-            direction = "right-to-left")
+  if (as_int){
+    int_end <- time_add2(out, time_by = time_by, time_type = time_type,
+                         roll_month = roll_month, roll_dst = roll_dst)
+    set_time_cast(out, int_end)
+    which_out_of_bounds <- which(double_lt(time_as_number(int_end),
+                                           time_as_number(start)))
+    int_end[which_out_of_bounds] <- start[which_out_of_bounds]
+    out <- structure(out,
+                     end = int_end,
+                     direction = "right-to-left")
+  }
+  out
   # class = c("time_int", class(out)))
 }
 # time_aggregate_left <- function(x, time_by, g = NULL,
@@ -1467,3 +1433,8 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
 #                    roll_dst = roll_dst)
 #   }
 # }
+check_index_not_missing <- function(x){
+  if (anyNA(x)){
+    stop("time index must not contain NA values")
+  }
+}

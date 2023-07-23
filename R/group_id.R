@@ -451,7 +451,7 @@ qG2 <- function(x, sort = TRUE, ordered = FALSE, na.exclude = FALSE, ...){
       setv(out, which_not_na, qg_to_integer(qgroup), vind1 = TRUE)
       if (ordered){
         collapse::setattrib(out, list("N.groups" = n_groups,
-                                      "class" = c("ordered", "qG")))
+                                      "class" = c("qG", "ordered")))
       } else {
         collapse::setattrib(out, list("N.groups" = n_groups,
                                       "class" = "qG"))
@@ -466,6 +466,9 @@ qG2 <- function(x, sort = TRUE, ordered = FALSE, na.exclude = FALSE, ...){
     out <- collapse::qG(x, sort = sort,
                         ordered = ordered,
                         na.exclude = na.exclude, ...)
+    if (ordered){
+      class(out) <- c("qG", "ordered", setdiff(class(out), c("qG", "ordered")))
+    }
   }
   out
 }
@@ -507,7 +510,7 @@ group_id_to_qg <- function(x,
     attr(x, "group.sizes") <- group_sizes
   }
   if (ordered){
-    class(x) <- c("ordered", "qG", "na.included")
+    class(x) <- c("qG", "ordered", "na.included")
   } else {
     class(x) <- c("qG", "na.included")
   }

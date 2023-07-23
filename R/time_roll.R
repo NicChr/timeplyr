@@ -1,7 +1,8 @@
 #' Fast time-based by-group rolling sum/mean - Currently experimental
 #'
 #' @description An efficient method for a rolling sum/mean for many groups with
-#' respect to a date or datetime time index.
+#' respect to a date or datetime time index. \cr
+#' It is always aligned "right".
 #'
 #' @param x Numeric vector.
 #' @param window Window size, default is `length(x)`.
@@ -78,7 +79,35 @@
 #' tibble(x, t) %>%
 #'   mutate(sum = time_roll_sum(x, time = t, window = days(3))) %>%
 #'   time_ggplot(t, sum)
+#' \dontrun{
+#' ### Rolling mean example with many time series
 #'
+#' # Sparse time with duplicates
+#' index <- sort(sample(seq(now(), now() + dyears(3), by = "333 hours"),
+#'                      250, TRUE))
+#' x <- matrix(rnorm(length(index) * 10^5),
+#'             ncol = 10^5, nrow = length(index),
+#'             byrow = FALSE)
+#'
+#' zoo_ts <- zoo::zoo(x, order.by = index)
+#'
+#' # Say you started with data like zoo_ts
+#' # Normally you might attempt something like this
+#' # apply(zoo_ts, 2,
+#' #       function(x){
+#' #         slider::slide_index_mean(x, i = index, before = dmonths(1))
+#' #       }
+#' # )
+#' # Unfortunately this is too slow and inefficient
+#'
+#'
+#' # Instead we can pivot it longer and code each series as a separate group
+#' tbl <- ts_as_tibble(zoo_ts)
+#'
+#' tbl %>%
+#'   mutate(mean7 = time_roll_mean(value, window = dmonths(1),
+#'                                 time = time, g = group))
+#' }
 #' @rdname time_roll
 #' @export
 time_roll_sum <- function(x, window,
@@ -97,9 +126,7 @@ time_roll_sum <- function(x, window,
                     partial = partial,
                     na.rm = na.rm, ...))
   }
-  if (anyNA(time)){
-    stop("time index must not contain NA values")
-  }
+  check_index_not_missing(time)
   window <- time_by_get(time, time_by = window)
   time_num <- time_by_num(window)
   time_unit <- time_by_unit(window)
@@ -142,10 +169,10 @@ time_roll_sum <- function(x, window,
   data.table::setattr(dt1, "sorted", c("group_id", "time"))
   data.table::setattr(dt2, "sorted", c("group_id", "time_start"))
   if (close_left_boundary){
-    naive_window2 <- dt1[dt2, on = .(group_id, time < time_start),
+    naive_window2 <- dt1[dt2, on = list(group_id, time < time_start),
                          which = TRUE, mult = "last"]
   } else {
-    naive_window2 <- dt1[dt2, on = .(group_id, time <= time_start),
+    naive_window2 <- dt1[dt2, on = list(group_id, time <= time_start),
                          which = TRUE, mult = "last"]
   }
   naive_window2 <- seq_along(group_id) - naive_window2
@@ -188,6 +215,7 @@ time_roll_mean <- function(x, window,
   if (anyNA(time)){
     stop("time index must not contain NA values")
   }
+  check_index_not_missing(time)
   window <- time_by_get(time, time_by = window)
   time_num <- time_by_num(window)
   time_unit <- time_by_unit(window)
@@ -230,10 +258,10 @@ time_roll_mean <- function(x, window,
   data.table::setattr(dt1, "sorted", c("group_id", "time"))
   data.table::setattr(dt2, "sorted", c("group_id", "time_start"))
   if (close_left_boundary){
-    naive_window2 <- dt1[dt2, on = .(group_id, time < time_start),
+    naive_window2 <- dt1[dt2, on = list(group_id, time < time_start),
                          which = TRUE, mult = "last"]
   } else {
-    naive_window2 <- dt1[dt2, on = .(group_id, time <= time_start),
+    naive_window2 <- dt1[dt2, on = list(group_id, time <= time_start),
                          which = TRUE, mult = "last"]
   }
   naive_window2 <- seq_along(group_id) - naive_window2
@@ -419,7 +447,7 @@ time_roll_mean <- function(x, window,
 #   out
 # }
 # Working alternative
-# time_roll_mean <- function(x, window,
+# time_roll_mean2 <- function(x, window,
 #                            time = NULL, g = NULL,
 #                            weights = NULL,
 #                            partial = TRUE,
@@ -518,6 +546,7 @@ time_roll_window <- function(x, window, time,
                              close_left_boundary = FALSE,
                              time_type = c("auto", "duration", "period"),
                              roll_month = "preday", roll_dst = "pre"){
+  check_index_not_missing(time)
   window <- time_by_list(window)
   time_num <- time_by_num(window)
   time_unit <- time_by_unit(window)
@@ -543,6 +572,7 @@ time_roll_window_size <- function(x, window,
                                   close_left_boundary = FALSE,
                                   time_type = c("auto", "duration", "period"),
                                   roll_month = "preday", roll_dst = "pre"){
+  check_index_not_missing(x)
   window <- time_by_list(window)
   time_num <- time_by_num(window)
   time_unit <- time_by_unit(window)

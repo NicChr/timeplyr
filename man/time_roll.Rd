@@ -110,7 +110,8 @@ See \code{?timechange::time_add} for more details.}
 }
 \description{
 An efficient method for a rolling sum/mean for many groups with
-respect to a date or datetime time index.
+respect to a date or datetime time index. \cr
+It is always aligned "right".
 }
 \details{
 It is much faster if your data are already sorted such that
@@ -153,5 +154,33 @@ x <- rpois(length(t), 10)
 tibble(x, t) \%>\%
   mutate(sum = time_roll_sum(x, time = t, window = days(3))) \%>\%
   time_ggplot(t, sum)
+\dontrun{
+### Rolling mean example with many time series
 
+# Sparse time with duplicates
+index <- sort(sample(seq(now(), now() + dyears(3), by = "333 hours"),
+                     250, TRUE))
+x <- matrix(rnorm(length(index) * 10^5),
+            ncol = 10^5, nrow = length(index),
+            byrow = FALSE)
+
+zoo_ts <- zoo::zoo(x, order.by = index)
+
+# Say you started with data like zoo_ts
+# Normally you might attempt something like this
+# apply(zoo_ts, 2,
+#       function(x){
+#         slider::slide_index_mean(x, i = index, before = dmonths(1))
+#       }
+# )
+# Unfortunately this is too slow and inefficient
+
+
+# Instead we can pivot it longer and code each series as a separate group
+tbl <- ts_as_tibble(zoo_ts)
+
+tbl \%>\%
+  mutate(mean7 = time_roll_mean(value, window = dmonths(1),
+                                time = time, g = group))
+}
 }

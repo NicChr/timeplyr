@@ -326,6 +326,10 @@ empty_tbl <- function(){
             row.names = .set_row_names(0L),
             names = character())
 }
+# Faster as_tibble
+df_as_tibble <- function(x){
+  df_reconstruct(x, empty_tbl())
+}
 ##### data.table specific helpers #####
 
 # Convert to data table

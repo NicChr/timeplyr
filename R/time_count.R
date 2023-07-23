@@ -170,7 +170,8 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
     ts_data <- as_DT(ts_data)
     # Add variable to keep track of group IDs
     grp_nm <- new_var_nm(ts_data, ".group.id")
-    ts_data[, (grp_nm) := group_id(data, .by = {{ .by }})]
+    ts_data[, (grp_nm) := group_id(data, .by = {{ .by }}, as_qg = TRUE)]
+    n_groups <- attr(ts_data[[grp_nm]], "N.groups")
     # Determine common bounds
     from_nm <- new_var_nm(names(ts_data), ".from")
     to_nm <- new_var_nm(c(names(ts_data), from_nm), ".to")
@@ -178,9 +179,13 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                                                from = from_var,
                                                to = to_var,
                                                .by = all_of(grp_nm))]
+    # n_start_end_pairs <- collapse::fnunique(
+    #   fselect(ts_data, .cols = c(grp_nm, from_nm, to_nm))
+    # )
     start_end_tbl <- fdistinct(ts_data, .cols = c(grp_nm, from_nm, to_nm))
-    if (any_gt(collapse::GRPN(start_end_tbl[[".group.id"]], expand = FALSE),
-               1L)){
+    if (!isTRUE(nrow2(start_end_tbl) == n_groups)){
+    # if (any_gt(collapse::GRPN(start_end_tbl[[".group.id"]], expand = FALSE), 1L)){
+    # if (!isTRUE(n_start_end_pairs == n_groups)){
       warning("Multiple start-end values detected.
               Please supply one pair per group",
               immediate. = TRUE)
@@ -218,12 +223,17 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                                     roll_month = roll_month,
                                     roll_dst = roll_dst,
                                     time_floor = time_floor,
-                                    week_start = week_start)
+                                    week_start = week_start,
+                                    as_int = include_interval)
+    int_end_nm <- character(0)
     time_int_end <- time_int_end(time_agg)
     out[, (time_var) := time_int_rm_attrs(time_agg)]
-    out[, ("int_end") := time_int_end]
+    if (include_interval){
+      out[, ("int_end") := time_int_end]
+      int_end_nm <- "int_end"
+    }
     out <- fcount(out, .cols = c(grp_nm, group_vars,
-                                 time_var, extra_group_vars, "int_end"),
+                                 time_var, extra_group_vars, int_end_nm),
                   wt = across(all_of(name)),
                   name = name)
     # If complete, full-join time sequence df onto ts data
@@ -245,11 +255,13 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                            expand_type = "nesting",
                            fill = setnames(list(0), name))
       set_rm_cols(out, c(from_nm, to_nm))
-      out[is.na(get("int_end")) & !is.na(get(time_var)),
-          ("int_end") := time_add2(get(time_var), time_by = time_by,
-                                   roll_dst = roll_dst,
-                                   roll_month = roll_month,
-                                   time_type = time_type)]
+      if (include_interval){
+        out[is.na(get(int_end_nm)) & !is.na(get(time_var)),
+            (int_end_nm) := time_add2(get(time_var), time_by = time_by,
+                                      roll_dst = roll_dst,
+                                      roll_month = roll_month,
+                                      time_type = time_type)]
+      }
     }
     int_nm <- character(0)
     if (include_interval){
@@ -261,7 +273,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
 
       int_nm <- new_var_nm(out, "interval")
       out[[int_nm]] <- lubridate::interval(out[[time_var]],
-                                           out[["int_end"]])
+                                           out[[int_end_nm]])
     }
     out <- fselect(out, .cols = c(grp_nm,
                                   group_vars,

@@ -108,15 +108,18 @@ ts_as_tibble.mts <- function(x, name = "time", value = "value", group = "group")
 #' @rdname ts_as_tibble
 ts_as_tibble.xts <- function(x, name = "time", value = "value", group = "group"){
   time <- attr(x, "index")
-  if ("POSIXt" %in% attr(time, "tclass")){
+  class_match <- match(attr(time, "tclass"), c("POSIXt", "Date"))
+  is_datetime <- isTRUE(1L %in% class_match)
+  is_date <- isTRUE(2L %in% class_match)
+  if (is_date || is_datetime){
     if (!is.null(attr(time, "tzone"))){
-      time <- lubridate::as_datetime(time,
-                                     tz = attr(time, "tzone"))
+      time <- lubridate::as_datetime(time, tz = attr(time, "tzone"))
     } else {
       time <- lubridate::as_datetime(time)
     }
-  } else if ("Date" %in% attr(time, "tclass")){
-    time <- lubridate::as_date(time)
+    if (is_date){
+      time <- lubridate::as_date(time)
+    }
   } else {
     time <- as.numeric(time)
   }
