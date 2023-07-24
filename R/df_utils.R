@@ -343,6 +343,14 @@ as_DT <- function(x){
     data.table::as.data.table(x)
   }
 }
+# df_complete_cases <- function(data, .cols = names(data)){
+#   df_row_slice(data, vctrs::vec_detect_complete(
+#     fselect(data, .cols = .cols)
+#   ))
+#   # df_row_slice(data, collapse::whichv(rowSums(is.na(
+#   #   fselect(data, .cols = .cols)
+#   # )), 0))
+# }
 
 # key and sort with na.last argument
 #

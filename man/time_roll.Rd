@@ -3,8 +3,9 @@
 \name{time_roll_sum}
 \alias{time_roll_sum}
 \alias{time_roll_mean}
-\alias{time_roll_window}
 \alias{time_roll_window_size}
+\alias{time_roll_window}
+\alias{time_roll_apply}
 \title{Fast time-based by-group rolling sum/mean - Currently experimental}
 \usage{
 time_roll_sum(
@@ -37,10 +38,10 @@ time_roll_mean(
   ...
 )
 
-time_roll_window(
+time_roll_window_size(
   x,
   window,
-  time,
+  g = NULL,
   partial = TRUE,
   close_left_boundary = FALSE,
   time_type = c("auto", "duration", "period"),
@@ -48,9 +49,24 @@ time_roll_window(
   roll_dst = "pre"
 )
 
-time_roll_window_size(
+time_roll_window(
   x,
   window,
+  time = seq_along(x),
+  g = NULL,
+  partial = TRUE,
+  close_left_boundary = FALSE,
+  time_type = c("auto", "duration", "period"),
+  roll_month = "preday",
+  roll_dst = "pre"
+)
+
+time_roll_apply(
+  x,
+  window,
+  fun,
+  time = seq_along(x),
+  g = NULL,
   partial = TRUE,
   close_left_boundary = FALSE,
   time_type = c("auto", "duration", "period"),
@@ -109,9 +125,14 @@ See \code{?timechange::time_add} for more details.}
 \code{data.table::frollsum}.}
 }
 \description{
-An efficient method for a rolling sum/mean for many groups with
-respect to a date or datetime time index. \cr
-It is always aligned "right".
+\code{time_roll_sum} and \code{time_roll_mean} are efficient
+methods for calculating a rolling sum and mean respectively given
+many groups and with respect to a date or datetime time index. \cr
+It is always aligned "right". \cr
+\code{time_roll_window} splits \code{x} into windows based on the index. \cr
+\code{time_roll_window_size} returns the window sizes for all indices of \code{x}. \cr
+\code{time_roll_apply} is a generic function that applies any function
+on a rolling basis with respect to a time index.
 }
 \details{
 It is much faster if your data are already sorted such that

@@ -872,33 +872,47 @@ check_null_dots <- function(...){
 # Sorting mimics CJ()
 # Overhead is small for small joins
 CJ2 <- function(X){
-  if (!is.list(X)) stop("X must be a list")
   nargs <- length(X)
-  if (nargs == 0L){
-    return(list())
-  }
-  if (nargs == 1L){
-    return(list(X[[1L]]))
+  if (nargs <= 1L){
+    return(X)
   }
   out <- vector("list", nargs)
-  iArgs <- seq_len(nargs)
-  rep.fac <- 1L
   d <- lengths(X, use.names = FALSE)
   orep <- prod(d)
   if (orep == 0L){
-    for (i in iArgs){
-      out[[i]] <- X[[i]][FALSE]
+    for (i in seq_len(nargs)){
+      out[[i]] <- .subset(.subset2(X, i), FALSE)
     }
+    return(out)
   }
-  else {
-    for (i in seq.int(from = nargs, to = 1L, by = -1L)) {
-      x <- X[[i]]
-      nx <- length(X[[i]])
-      orep <- orep/nx
-      x <- x[rep.int(rep.int(seq_len(nx), rep.int(rep.fac, nx)), orep)]
-      out[[i]] <- x
-      rep.fac <- rep.fac * nx
+  rep.fac <- 1L
+  for (i in seq.int(from = nargs, to = 1L, by = -1L)){
+    x <- .subset2(X, i)
+    nx <- .subset(d, i)
+    orep <- orep/nx
+    x <- x[rep.int(rep(seq_len(nx), each = rep.fac), times = orep)]
+    out[[i]] <- x
+    rep.fac <- rep.fac * nx
+  }
+  out
+}
+# Use this if you're going to sort afterwards
+CJ3 <- function(X){
+  nargs <- length(X)
+  if (nargs <= 1L){
+    return(X)
+  }
+  out <- vector("list", nargs)
+  d <- lengths(X, use.names = FALSE)
+  orep <- prod(d)
+  if (orep == 0L){
+    for (i in seq_len(nargs)){
+      out[[i]] <- .subset(.subset2(X, i), FALSE)
     }
+    return(out)
+  }
+  for (i in seq.int(from = nargs, to = 1L, by = -1L)){
+    out[[i]] <- rep_len(.subset2(X, i), orep)
   }
   out
 }

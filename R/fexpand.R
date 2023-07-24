@@ -184,9 +184,6 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
       #                            as_dt = FALSE)),
       #      keyby = grp_nm,
       #      .SDcols = group_id_nms]
-      # out2 <- collapse::collapv(out1, FUN = function(x) list(collapse::funique(x)),
-      #                           by = grp_nm,
-      #                           cols = group_id_nms)
       data.table::setkeyv(out1, cols = grp_nm)
       out2 <- out1[, lapply(.SD, function(x) list(collapse::funique(x))),
                    keyby = grp_nm,
@@ -201,9 +198,15 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
       #                                     use.names = FALSE)),
       #             keyby = grp_nm,
       #             .SDcols = group_id_nms]
-      out <- out2[, CJ2(unlist(.SD, recursive = FALSE, use.names = FALSE)),
-                  keyby = grp_nm,
-                  .SDcols = group_id_nms]
+      # if (sort){
+      #   out <- out2[, CJ3(unlist(.SD, recursive = FALSE, use.names = FALSE)),
+      #               keyby = grp_nm,
+      #               .SDcols = group_id_nms]
+      # } else {
+        out <- out2[, CJ2(unlist(.SD, recursive = FALSE, use.names = FALSE)),
+                    keyby = grp_nm,
+                    .SDcols = group_id_nms]
+      # }
       data.table::setnames(out, new = c(grp_nm, leftover_grp_nms))
       data.table::setalloccol(out)
       for (i in seq_along(group_id_nms)){

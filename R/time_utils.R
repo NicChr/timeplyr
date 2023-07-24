@@ -1206,11 +1206,11 @@ roll_chop <- function(x, sizes = collapse::alloc(1L, vec_length(x))){
   if (is.atomic(x)){
     for (i in seq_len(x_size)){
       # out[[i]] <- x[(i - sizes[i] + 1L):i]
-      out[[i]] <- x[seq_len(sizes[i]) + (i - sizes[i])]
+      out[[i]] <- x[seq_len(.subset(sizes, i)) + (i - .subset(sizes, i))]
     }
   } else {
     for (i in seq_len(x_size)){
-      out[[i]] <- vec_slice2(x, seq_len(sizes[i]) + (i - sizes[i]))
+      out[[i]] <- vec_slice2(x, seq_len(.subset(sizes, i)) + (i - .subset(sizes, i)))
     }
   }
   out

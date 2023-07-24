@@ -422,3 +422,14 @@ sorted_group_id_to_GRP <- function(x, n_groups, group_sizes){
     class = "GRP"
   )
 }
+gsplit2 <- function(x = NULL, g = NULL, use.g.names = FALSE, ...){
+  if (is.null(g)){
+    if (is.null(x)){
+      list(seq_along(x))
+    } else {
+     list(x)
+    }
+  } else {
+    collapse::gsplit(x, g = g, use.g.names = use.g.names, ...)
+  }
+}

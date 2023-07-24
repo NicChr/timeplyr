@@ -72,7 +72,7 @@ testthat::test_that("Expected outputs", {
 #     by = "g"]
 #  testthat::expect_equal(dt$mu1, dt$mu2)
 # })
-
+#
 # t <- time_seq_v2(100, Sys.Date(), time_by = lubridate::days(1))
 #
 # t <- sample(t, size = 10^3, replace = TRUE)
@@ -91,7 +91,7 @@ testthat::test_that("Expected outputs", {
 # z3 <- time_roll_mean(x, time = t, days(11), close_left_boundary = FALSE)
 # z4 <- runner::mean_run(x, idx = t, k = 11)
 # all.equal(z1, z2)
-# all.equal(z3, z4)
+# # all.equal(z3, z4)
 #
 #
 # # With NA -----------------------------------------------------------------
@@ -153,8 +153,7 @@ testthat::test_that("Expected outputs", {
 #                                       g = group_id)) %>%
 #   dplyr::pull(mean)
 # all.equal(z1, z2)
-#
-#
+
 testthat::test_that("simple tests", {
   testthat::expect_true(all(double_equal(
     time_roll_mean(c(10, 20, 30), time = lubridate::today() + lubridate::days(0:2),
