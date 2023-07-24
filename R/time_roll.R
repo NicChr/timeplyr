@@ -42,6 +42,7 @@
 #' Options are "preday", "boundary", "postday", "full" and "NA".
 #' See `?timechange::time_add` for more details.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
+#' @param fun A function.
 #' @param ... Additional arguments passed to `data.table::frollmean` and
 #' `data.table::frollsum`.
 #' @details

@@ -123,6 +123,8 @@ See \code{?timechange::time_add} for more details.}
 
 \item{...}{Additional arguments passed to \code{data.table::frollmean} and
 \code{data.table::frollsum}.}
+
+\item{fun}{A function.}
 }
 \description{
 \code{time_roll_sum} and \code{time_roll_mean} are efficient
