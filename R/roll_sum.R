@@ -43,7 +43,9 @@ roll_sum <- function(x, window = length(x),
   n_groups <- GRP_n_groups(g)
   groups_are_sorted <- !has_groups || GRP_is_sorted(g)
   if (!groups_are_sorted){
-    x <- x[GRP_order(g)]
+    group_order <- GRP_order(g)
+    x <- x[group_order]
+    weights <- weights[group_order]
   }
   roll_window <- window_sequence(group_sizes,
                                  k = rep.int(window, n_groups),
@@ -77,7 +79,9 @@ roll_mean <- function(x, window = length(x), g = NULL, partial = TRUE,
   n_groups <- GRP_n_groups(g)
   groups_are_sorted <- !has_groups || GRP_is_sorted(g)
   if (!groups_are_sorted){
-    x <- x[GRP_order(g)]
+    group_order <- GRP_order(g)
+    x <- x[group_order]
+    weights <- weights[group_order]
   }
   roll_window <- window_sequence(group_sizes,
                                  k = rep.int(window, n_groups),

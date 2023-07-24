@@ -245,7 +245,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                            time_floor = time_floor, week_start = week_start,
                            keep_class = FALSE,
                            expand_type = "nesting",
-                           fill = setnames(list(0), name))
+                           fill = setnames(list(0L), name))
       set_rm_cols(out, c(from_nm, to_nm))
       if (include_interval){
         out[is.na(get(int_end_nm)) & !is.na(get(time_var)),

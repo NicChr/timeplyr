@@ -72,6 +72,47 @@ eu_stock %>%
 
 ![](man/figures/README-unnamed-chunk-2-1.png)<!-- -->
 
+## By-group rolling mean and sum
+
+``` r
+set.seed(4321)
+t <- today() + days(seq(0, 120, 3))
+t <- sample(t, size = 10^3, replace = TRUE)
+x <- rnorm(length(t))
+g <- sample(letters[1:3], size = 10^3, replace = TRUE)
+
+irregular_df <- tibble(g, t, x) %>%
+  arrange(g, t)
+
+irregular_df %>%
+  mutate(month_mean = time_roll_mean(x, months(1), time = t, g = g)) %>%
+  time_ggplot(t, month_mean, g)
+```
+
+![](man/figures/README-unnamed-chunk-3-1.png)<!-- -->
+
+## Cut the data into windows and apply any function
+
+Let’s visualise the rolling range of values over a monthly window
+
+``` r
+irregular_df <- arrange(irregular_df, t)
+# For now this is ungrouped
+month_windows <- time_roll_window(irregular_df$x, 
+                                  time = irregular_df$t,
+                                  window = months(1))
+rolling_min <- map_dbl(month_windows, min)
+rolling_max <- map_dbl(month_windows, max)
+
+irregular_df %>%
+  mutate(rolling_min, rolling_max) %>%
+  ggplot(aes(x = t)) + 
+  geom_linerange(aes(ymin = rolling_min, ymax = rolling_max)) +
+  labs(title = "Rolling monthly range of normally distributed data")
+```
+
+![](man/figures/README-unnamed-chunk-4-1.png)<!-- -->
+
 For the next examples we use flights departing from New York City in
 2013.
 
@@ -138,7 +179,7 @@ flights %>%
   time_by(time_hour)
 #> # A tibble: 336,776 x 20
 #> # Time:     time_hour [6,936]
-#> # By:       3600 seconds
+#> # By:       hour
 #> # Span:     2013-01-01 05:00:00 - 2013-12-31 23:00:00
 #>     year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
 #>    <int> <int> <int>    <int>          <int>     <dbl>    <int>          <int>
@@ -615,11 +656,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2023-W27"
+#> [1] "2023-W30"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W27-1"
+#> [1] "2023-W30-1"
 iso_week(today(), year = FALSE)
-#> [1] "W27"
+#> [1] "W30"
 ```
 
 ## `time_cut()`
@@ -644,14 +685,13 @@ weekly_data <- flights %>%
   # Filter full weeks
   mutate(n_days = interval/days(1)) %>%
   filter(n_days == 7)
-#> data.table converted to tibble as data.table cannot include interval class
 weekly_data %>%
   ggplot(aes(x = date, y = n)) + 
   geom_bar(stat = "identity", fill = "#0072B2") + 
   scale_x_date(breaks = date_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-28-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-30-1.png)<!-- -->
 
 ``` r
 flights %>%
@@ -660,7 +700,7 @@ flights %>%
   scale_x_datetime(breaks = time_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-28-2.png)<!-- -->
+![](man/figures/README-unnamed-chunk-30-2.png)<!-- -->
 
 ## Efficient grouped functions
 

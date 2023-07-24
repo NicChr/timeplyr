@@ -104,14 +104,15 @@ time_by <- function(data, time, time_by = NULL,
   time_span_end <- collapse::fmax(data[[time_var]], g = time_span_GRP,
                                   use.g.names = FALSE)
   # Aggregate time data
-  time_agg <- time_aggregate_left(data[[time_var]],
-                                  time_by = time_by,
-                                  g = time_span_GRP,
-                                  time_type = time_type,
-                                  roll_month = roll_month,
-                                  roll_dst = roll_dst,
-                                  time_floor = time_floor,
-                                  week_start = week_start)
+  time_agg <- time_aggregate_switch(data[[time_var]],
+                                    time_by = time_by,
+                                    g = time_span_GRP,
+                                    time_type = time_type,
+                                    roll_month = roll_month,
+                                    roll_dst = roll_dst,
+                                    time_floor = time_floor,
+                                    week_start = week_start,
+                                    as_int = FALSE)
   time_agg <- time_int_rm_attrs(time_agg)
   data <- dplyr::mutate(data, !!time_var := time_agg)
   time_span_start <- collapse::fmin(time_agg, g = time_span_GRP,

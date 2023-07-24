@@ -1406,7 +1406,7 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
       stop("start must be the same length as x")
     }
     start <- time_cast(start, x)
-    x[x > end] <- time_na
+    x[x < start] <- time_na
   }
   if (is.null(end)){
     end <- gmax(x, g = g, na.rm = TRUE)
@@ -1415,7 +1415,7 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
       stop("end must be the same length as x")
     }
     end <- time_cast(end, x)
-    x[x < start] <- time_na
+    x[x > end] <- time_na
   }
   .start <- start[group_starts]
   .end <- end[group_starts]
@@ -1432,21 +1432,9 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
                            roll_dst = roll_dst)
   group_id <- rep.int(seq_len(n_groups), times = seq_sizes)
   # Creating a GRP object from scratch
-  g2 <- structure(
-    list(
-      "N.groups" = n_groups,
-      "group.id" = group_id,
-      "group.sizes" = seq_sizes,
-      "groups" = NULL,
-      "group.vars" = NULL,
-      "ordered" = c("ordered" = TRUE, "sorted" = TRUE),
-      "order" = structure(seq_along(group_id), sorted = TRUE),
-      "group.starts" = cumsum(c(rep_len(1L, min(length(seq_sizes), 1L)),
-                                                       seq_sizes[-length(seq_sizes)])),
-      "call" = NULL
-    ),
-    class = "GRP"
-  )
+  g2 <- sorted_group_id_to_GRP(group_id,
+                               n_groups = n_groups,
+                               group_sizes = seq_sizes)
   # group_ends <- cumsum(collapse::GRPN(group_id, expand = FALSE))
     if (no_groups){
       out <- cut_time2(time_cast(x, time_full), time_full)

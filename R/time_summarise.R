@@ -105,8 +105,7 @@ time_summarise <- function(data, time = NULL, ..., time_by = NULL,
                                .keep = "none",
                                time_floor = time_floor,
                                week_start = week_start,
-                               roll_month = roll_month, roll_dst = roll_dst),
-                   sort = sort)
+                               roll_month = roll_month, roll_dst = roll_dst))
   time_var <- tidy_transform_names(data, !!enquo(time))
   group_info <- get_group_info(data, ...,
                                type = "data-mask",
@@ -117,7 +116,11 @@ time_summarise <- function(data, time = NULL, ..., time_by = NULL,
   if (include_interval){
     int_nm <- new_var_nm(c(group_vars, time_var, extra_group_vars), "interval")
   }
-  fselect(out, .cols = c(group_vars, time_var, int_nm, extra_group_vars))
+  out <- fselect(out, .cols = c(group_vars, time_var, int_nm, extra_group_vars))
+  if (sort){
+    out <- farrange(out, .cols = c(group_vars, time_var))
+  }
+  out
 }
 #' @rdname time_summarise
 #' @export
@@ -147,7 +150,7 @@ time_reframe <- function(data, time = NULL, ..., time_by = NULL,
   out <- dplyr_summarise(safe_ungroup(out), ...,
                          .by = dplyr::any_of(c(group_vars, time_var, int_nm)))
   if (sort){
-    out <- farrange(out, .cols = names(out))
+    out <- farrange(out, .cols = c(group_vars, time_var))
   }
   out
 }

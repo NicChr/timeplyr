@@ -97,7 +97,7 @@ fslice <- function(data, ..., .by = NULL,
         row_lens <- row_lens[keep]
         size <- size[keep]
       }
-      i <- unlist(lapply(rows, function(x) x[n]),
+      i <- unlist(lapply(rows, function(x) .subset(x, n)),
                   use.names = FALSE,
                   recursive = FALSE)
       i <- collapse::na_rm(i)
@@ -276,10 +276,10 @@ fslice_sample <- function(data, ..., n, prop,
     weights <- NULL
   }
   for (i in seq_along(rows)){
-    rows[[i]] <- sample.int(group_sizes[[i]],
-                            size = slice_sizes[[i]],
+    rows[[i]] <- sample.int(.subset2(group_sizes, i),
+                            size = .subset2(slice_sizes, i),
                             replace = replace,
-                            prob = weights[[i]])
+                            prob = .subset2(weights, i))
   }
   rows <- unlist(rows, use.names = FALSE, recursive = FALSE)
   if (length(rows) > 0L){
