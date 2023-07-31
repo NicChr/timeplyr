@@ -111,7 +111,7 @@ time_cut <- function(x, n = 5, time_by = NULL,
     # Duplicate datetime due to levels not having timezone, which means
     # 2 datetimes with the same clock time but different timezone
     # Cause a duplicate factor level error
-    if (sum(collapse::fduplicated(time_levels)) > 0){
+    if (length(gwhich_duplicated(time_levels, order = FALSE)) > 0){
       out <- factor(out,
                     levels = as.character(time_breaks),
                     labels = time_labels,

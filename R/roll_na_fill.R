@@ -54,71 +54,44 @@
 #' }
 #' @export
 roll_na_fill <- function(x, g = NULL, fill_limit = NULL){
-  if (length(g) == 0L){
-    # Ungrouped method 1
-    if (is.null(fill_limit)){
-      is_not_na <- !is.na(x)
-      if (sum(is_not_na) %in% c(0L, length(x))){
-        return(x)
-      }
-      rollsum_not_na <- collapse::fcumsum(is_not_na, na.rm = FALSE)
-      collapse::setop(rollsum_not_na, op = "+", V = 1L)
-      out <- c(x[NA_integer_], x[is_not_na])[rollsum_not_na]
-    } else {
-      # Ungrouped method 2 (more flexible, slower)
-      which_na <- collapse::whichNA(x)
-      if (length(which_na) %in% c(0L, length(x))){
-        return(x)
-      }
-      roll_lag <- integer(length(x))
-      setv(roll_lag,
-           which_na,
-           data.table::rleidv(x)[which_na],
-           vind1 = TRUE)
-      setv(roll_lag,
-           which_na,
-           frowid(roll_lag[which_na], order = FALSE),
-           vind1 = TRUE)
-      # consecutive_id <- integer(length(x))
-      # consecutive_id[which_na] <- qg_to_integer(collapse::groupid(x))[which_na]
-      # roll_lag <- integer(length(x))
-      # roll_lag[which_na] <- frowid(consecutive_id[which_na],
-      #                              order = FALSE)
-      roll_lag[roll_lag >= seq_along(x)] <- 0L
-      if (!is.null(fill_limit)){
-        if (length(fill_limit) != 1L){
-          stop("fill_limit must be a single whole number")
-        }
-        roll_lag[roll_lag > fill_limit] <- 0L
-      }
-      out <- roll_lag(x, roll_lag, check = FALSE)
-    }
-  } else {
-    # Grouped method
-    g <- GRP2(g)
-    if (!GRP_is_sorted(g)){
-      g2 <- collapse::GRP(GRP_group_id(g)[GRP_order(g)])
-      x  <- x[GRP_order(g)]
-    } else {
-      g2 <- g
-    }
-    is_na <- is.na(x)
-    which_na <- which(is_na)
+  g <- GRP2(g)
+  if (is.null(g)){
+    # Ungrouped method 2 (more flexible, slower)
+    which_na <- collapse::whichNA(x)
     if (length(which_na) %in% c(0L, length(x))){
-      if (!GRP_is_sorted(g)){
-        x <- collapse::greorder(x, g = g)
-      }
       return(x)
     }
+    roll_lag <- integer(length(x))
+    roll_lag[which_na] <- data.table::rleidv(x)[which_na]
+    roll_lag[which_na] <- frowid(roll_lag[which_na], order = FALSE)
+    roll_lag[roll_lag >= seq_along(x)] <- 0L
+    if (!is.null(fill_limit)){
+      if (length(fill_limit) != 1L){
+        stop("fill_limit must be a single whole number")
+      }
+      roll_lag[roll_lag > fill_limit] <- 0L
+    }
+    out <- roll_lag(x, roll_lag, check = FALSE)
+  } else {
+    # Grouped method
+    sorted_group_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
+    sorted_g <- sorted_group_info[["sorted_GRP"]]
+    sorted_by_groups <- sorted_group_info[["sorted"]]
+    sorted_x <- sorted_group_info[["x"]]
+    sorted_group_id <- GRP_group_id(sorted_g)
+    is_na <- is.na(sorted_x)
+    if (sum(is_na) %in% c(0L, length(x))){
+      return(x)
+    }
+    which_na <- which(is_na)
     consecutive_id <- data.table::fifelse(is_na,
-                                          data.table::rleidv(x),
+                                          data.table::rleidv(sorted_x),
                                           0L)
     roll_lag <- integer(length(x))
-    setv(roll_lag, which_na, frowid(roll_lag, g = list(GRP_group_id(g2),
-                                                       consecutive_id),
-                                    order = FALSE)[which_na],
-         vind1 = TRUE)
-    row_id <- frowid(x, g = g2)
+    roll_lag[which_na] <- frowid(roll_lag, g = list(sorted_group_id,
+                                                    consecutive_id),
+                                    order = FALSE)[which_na]
+    row_id <- frowid(x, g = sorted_g)
     roll_lag[roll_lag >= row_id] <- 0L
     if (!is.null(fill_limit)){
       if (length(fill_limit) != 1L){
@@ -127,86 +100,86 @@ roll_na_fill <- function(x, g = NULL, fill_limit = NULL){
       roll_lag[roll_lag > fill_limit] <- 0L
     }
     out <- roll_lag(x, roll_lag, check = FALSE)
-    if (!GRP_is_sorted(g)){
+    if (!sorted_by_groups){
       out <- collapse::greorder(out, g = g)
     }
   }
   out
 }
-# roll_na_fill <- function(x, g = NULL){
-#   # is_na <- is.na(x)
-#   # which_na <- which(is_na)
-#   # consecutive_id <- data.table::fifelse(is_na, data.table::rleidv(x), 0L)
-#   if (is.null(g)){
-#     which_na <- collapse::whichNA(x)
-#     consecutive_id <- integer(length(x))
-#     consecutive_id[which_na] <- data.table::rleidv(x)[which_na]
-#     roll_lag <- integer(length(x))
-#     # For every distinct rolling-group of NAs
-#     # We calculate the row IDs per group
-#     roll_lag[which_na] <- frowid(consecutive_id[which_na],
-#                                  order = FALSE)
-#     # If these row IDs exceed the overall row ID, then replace these
-#     # with zero
-#     roll_lag[roll_lag >= seq_along(x)] <- 0L
-#     # roll_lag[roll_lag[which_na] >= seq_along(x)[which_na]] <- 0L
-#     out <- rolling_lag(x, roll_lag, check = FALSE)
+# roll_na_fill <- function(x, g = NULL, fill_limit = NULL){
+#   if (length(g) == 0L){
+#     # Ungrouped method 1
+#     if (is.null(fill_limit)){
+#       is_not_na <- !is.na(x)
+#       if (sum(is_not_na) %in% c(0L, length(x))){
+#         return(x)
+#       }
+#       rollsum_not_na <- collapse::fcumsum(is_not_na, na.rm = FALSE)
+#       collapse::setop(rollsum_not_na, op = "+", V = 1L)
+#       out <- c(x[NA_integer_], x[is_not_na])[rollsum_not_na]
+#     } else {
+#       # Ungrouped method 2 (more flexible, slower)
+#       which_na <- collapse::whichNA(x)
+#       if (length(which_na) %in% c(0L, length(x))){
+#         return(x)
+#       }
+#       roll_lag <- integer(length(x))
+#       setv(roll_lag,
+#            which_na,
+#            data.table::rleidv(x)[which_na],
+#            vind1 = TRUE)
+#       setv(roll_lag,
+#            which_na,
+#            frowid(roll_lag[which_na], order = FALSE),
+#            vind1 = TRUE)
+#       # consecutive_id <- integer(length(x))
+#       # consecutive_id[which_na] <- qg_to_integer(collapse::groupid(x))[which_na]
+#       # roll_lag <- integer(length(x))
+#       # roll_lag[which_na] <- frowid(consecutive_id[which_na],
+#       #                              order = FALSE)
+#       roll_lag[roll_lag >= seq_along(x)] <- 0L
+#       if (!is.null(fill_limit)){
+#         if (length(fill_limit) != 1L){
+#           stop("fill_limit must be a single whole number")
+#         }
+#         roll_lag[roll_lag > fill_limit] <- 0L
+#       }
+#       out <- roll_lag(x, roll_lag, check = FALSE)
+#     }
 #   } else {
-#     is_na <- is.na(x)
-#     consecutive_id <- data.table::fifelse(is_na, data.table::rleidv(x), 0L)
+#     # Grouped method
 #     g <- GRP2(g)
 #     if (!GRP_is_sorted(g)){
 #       g2 <- collapse::GRP(GRP_group_id(g)[GRP_order(g)])
 #       x  <- x[GRP_order(g)]
-#       is_na <- is_na[GRP_order(g)]
-#       which_na <- which(is_na)
-#       consecutive_id <- consecutive_id[GRP_order(g)]
 #     } else {
 #       g2 <- g
-#       which_na <- which(is_na)
 #     }
+#     is_na <- is.na(x)
+#     which_na <- which(is_na)
+#     if (length(which_na) %in% c(0L, length(x))){
+#       if (!GRP_is_sorted(g)){
+#         x <- collapse::greorder(x, g = g)
+#       }
+#       return(x)
+#     }
+#     consecutive_id <- data.table::fifelse(is_na,
+#                                           data.table::rleidv(x),
+#                                           0L)
 #     roll_lag <- integer(length(x))
-#     # roll_lag[which_na] <- frowid(which_na,
-#     #                              g = list(GRP_group_id(g2)[which_na],
-#     #                                       consecutive_id[which_na]))
 #     setv(roll_lag, which_na, frowid(roll_lag, g = list(GRP_group_id(g2),
 #                                                        consecutive_id),
 #                                     order = FALSE)[which_na],
 #          vind1 = TRUE)
 #     row_id <- frowid(x, g = g2)
 #     roll_lag[roll_lag >= row_id] <- 0L
-#     out <- rolling_lag(x, roll_lag, check = FALSE)
-#     if (!GRP_is_sorted(g)){
-#       out <- collapse::greorder(out, g = g)
+#     if (!is.null(fill_limit)){
+#       if (length(fill_limit) != 1L){
+#         stop("fill_limit must be a single whole number")
+#       }
+#       roll_lag[roll_lag > fill_limit] <- 0L
 #     }
-#   }
-#   out
-# }
-# roll_na_fill <- function(x, g = NULL){
-#   is_na <- is.na(x)
-#   consecutive_id <- data.table::fifelse(is_na, data.table::rleidv(x), 0L)
-#   if (is.null(g)){
-#     roll_lag <- data.table::fifelse(is_na, frowid(consecutive_id), 0L)
-#     row_id <- seq_along(x)
-#     roll_lag <- data.table::fifelse(roll_lag >= row_id, row_id - 1L, roll_lag)
-#     out <- rolling_lag(x, roll_lag, check = FALSE)
-#   } else {
-#     g <- GRP2(g)
-#     if (!GRP_is_sorted(g)){
-#       g2 <- collapse::GRP(GRP_group_id(g)[GRP_order(g)])
-#       x  <- x[GRP_order(g)]
-#       is_na <- is_na[GRP_order(g)]
-#       consecutive_id <- consecutive_id[GRP_order(g)]
-#     } else {
-#       g2 <- g
-#     }
-#     roll_lag <- data.table::fifelse(is_na, frowid(x, g = list(GRP_group_id(g2),
-#                                                               consecutive_id)), 0L)
-#     row_id <- frowid(x, g = g2)
-#     roll_lag[roll_lag >= frowid(x, g = g2)] <- 0L
-#     # roll_lag <- data.table::fifelse(roll_lag >= row_id, row_id - 1L,
-#     #                                 roll_lag)
-#     out <- rolling_lag(x, roll_lag, check = FALSE)
+#     out <- roll_lag(x, roll_lag, check = FALSE)
 #     if (!GRP_is_sorted(g)){
 #       out <- collapse::greorder(out, g = g)
 #     }

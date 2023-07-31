@@ -45,6 +45,34 @@ is_whole_num <- function(x, tol) {
     .Call(`_timeplyr_is_whole_num`, x, tol)
 }
 
+roll_apply_max_fast <- function(x, before, after) {
+    .Call(`_timeplyr_roll_apply_max_fast`, x, before, after)
+}
+
+roll_apply_max <- function(x, before, after, na_rm, partial) {
+    .Call(`_timeplyr_roll_apply_max`, x, before, after, na_rm, partial)
+}
+
+before_sequence <- function(size, k) {
+    .Call(`_timeplyr_before_sequence`, size, k)
+}
+
+after_sequence <- function(size, k) {
+    .Call(`_timeplyr_after_sequence`, size, k)
+}
+
+window_sequence <- function(size, k, partial, ascending) {
+    .Call(`_timeplyr_window_sequence`, size, k, partial, ascending)
+}
+
+lag_sequence <- function(size, k) {
+    .Call(`_timeplyr_lag_sequence`, size, k)
+}
+
+lead_sequence <- function(size, k) {
+    .Call(`_timeplyr_lead_sequence`, size, k)
+}
+
 roll_int_threshold <- function(x, threshold = 1L, switch_on_boundary = TRUE) {
     .Call(`_timeplyr_roll_int_threshold`, x, threshold, switch_on_boundary)
 }

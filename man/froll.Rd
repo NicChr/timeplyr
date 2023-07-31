@@ -50,21 +50,3 @@ See \code{?data.table::frollmean} details for more information.}
 \description{
 This function is deprecated, use \code{roll_mean} and \code{roll_sum} instead.
 }
-\examples{
-library(timeplyr)
-
-x <- 1:10
-frollsum2(x) # Simple rolling total
-frollmean2(x) # Simple moving average
-frollsum2(x, n = 3)
-frollmean2(x, n = 3)
-frollsum2(x, n = 3, partial = FALSE)
-frollmean2(x, n = 3, partial = FALSE)
-
-# Plot of expected value of 'coin toss' over many flips
-set.seed(42)
-x <- sample(c(1, 0), 10^3, replace = TRUE)
-ev <- frollmean2(x)
-plot(1:length(x), ev)
-abline(h = 0.5, lty = 2)
-}

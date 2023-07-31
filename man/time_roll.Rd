@@ -3,6 +3,7 @@
 \name{time_roll_sum}
 \alias{time_roll_sum}
 \alias{time_roll_mean}
+\alias{time_roll_growth_rate}
 \alias{time_roll_window_size}
 \alias{time_roll_window}
 \alias{time_roll_apply}
@@ -11,7 +12,7 @@
 time_roll_sum(
   x,
   window,
-  time = NULL,
+  time = seq_along(x),
   weights = NULL,
   g = NULL,
   partial = TRUE,
@@ -26,7 +27,7 @@ time_roll_sum(
 time_roll_mean(
   x,
   window,
-  time = NULL,
+  time = seq_along(x),
   weights = NULL,
   g = NULL,
   partial = TRUE,
@@ -36,6 +37,20 @@ time_roll_mean(
   roll_month = "preday",
   roll_dst = "pre",
   ...
+)
+
+time_roll_growth_rate(
+  x,
+  window,
+  time = seq_along(x),
+  weights = NULL,
+  g = NULL,
+  partial = TRUE,
+  close_left_boundary = FALSE,
+  na.rm = TRUE,
+  time_type = c("auto", "duration", "period"),
+  roll_month = "preday",
+  roll_dst = "pre"
 )
 
 time_roll_window_size(
@@ -88,8 +103,7 @@ Must be one of the following:
 
 \item{time}{(Optional) time index. \cr
 Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer},
-\code{yearmon}, or \code{yearqtr} vector.
-If this is left \code{NULL}, a regular rolling sum/mean will be calculated.}
+\code{yearmon}, or \code{yearqtr} vector.}
 
 \item{weights}{Importance weights. Must be the same length as x.
 Currently, no normalisation of weights occurs.}
@@ -135,6 +149,9 @@ It is always aligned "right". \cr
 \code{time_roll_window_size} returns the window sizes for all indices of \code{x}. \cr
 \code{time_roll_apply} is a generic function that applies any function
 on a rolling basis with respect to a time index.
+
+\code{time_roll_growth_rate} can efficiently calculate by-group
+rolling growth rates with respect to a date/datetime index.
 }
 \details{
 It is much faster if your data are already sorted such that
@@ -161,12 +178,8 @@ x_chunks <- time_roll_window(x, window = 7, time = time)
 x_chunks
 purrr::map_dbl(x_chunks, mean)
 
-# Interval [x - 3 x]
-time_roll_sum(x, window = ddays(3), time = time,
-              close_left_boundary = TRUE)
 # Interval (x - 3 x]
-time_roll_sum(x, window = ddays(3), time = time,
-              close_left_boundary = FALSE)
+time_roll_sum(x, window = ddays(3), time = time)
 
 # An example with an irregular time series
 

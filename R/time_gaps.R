@@ -109,9 +109,7 @@ time_num_gaps <- function(x, time_by = NULL,
     return(0L)
   }
   g <- GRP2(g)
-  if (!is.null(g)){
-    check_data_GRP_size(x, g)
-  }
+  check_data_GRP_size(x, g)
   tby <- time_by_get(x, time_by = time_by)
   if (!is.null(time_by) && check_time_regular){
     is_regular <- time_is_regular(x, g = g, time_by = tby,
@@ -150,94 +148,3 @@ time_has_gaps <- function(x, time_by = NULL,
                 time_type = time_type,
                 check_time_regular = check_time_regular) > 0
 }
-# check_time_regular <- function(x, seq, time_by){
-#   if (!is.null(time_by)){
-#     if (length(setdiff(x, seq) > 0L)){
-#       stop("x is not regular given the chosen time unit")
-#     }
-#   }
-# }
-# time_which_gaps <- function(x, time_by = NULL,
-#                             time_type = c("auto", "duration", "period"),
-#                             na.rm = TRUE){
-#   t_seq_id <- time_seq_id(x,
-#                           time_by = time_by,
-#                           time_type = time_type,
-#                           na.rm = na.rm)
-#   out <- collapse::flast(seq_along(x), g = t_seq_id, use.g.names = FALSE,
-#                          na.rm = FALSE)
-#   out[-length(out)]
-# }
-# time_gaps <- function(x, time_by = NULL,
-#                       time_type = c("auto", "duration", "period"),
-#                       check_regular = TRUE,
-#                       na.rm = TRUE){
-#   if (!na.rm && sum(is.na(x)) > 0){
-#     vctrs::vec_init(x, n = 1L)
-#   } else {
-#     time_seq <- time_expandv(x, time_by = time_by,
-#                              time_type = time_type)
-#     if (check_regular){
-#       check_time_regular(x, time_seq, time_by)
-#     }
-#     time_seq[!time_seq %in% x]
-#   }
-# }
-# time_which_gaps <- function(x, time_by = NULL,
-#                             time_type = c("auto", "duration", "period"),
-#                             check_regular = TRUE, na.rm = TRUE){
-#   stopifnot(is_time_or_num(x))
-#   if (length(x) <= 1L){
-#     return(0L)
-#   }
-#   n_unique <- n_unique(x, na.rm = na.rm)
-#   if (n_unique == 1){
-#     return(0L)
-#   }
-#   time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
-#   tby <- time_by_get(x, time_by = time_by)
-#
-#   if (!na.rm && sum(is.na(x)) > 0){
-#     out <- NA_integer_
-#   } else {
-#     time_seq <- time_expandv(x, time_by = time_by,
-#                              time_type = time_type)
-#     x_completed <- fcomplete(dplyr::tibble(x = x, .time.id = seq_along(x)),
-#                              x = time_seq, sort = TRUE)
-#     out <- which(is.na(fpluck(x_completed, ".time.id"))) - 1L
-#     if (check_regular){
-#       check_time_regular(x, time_seq, time_by)
-#     }
-#   }
-#   out
-# }
-# time_num_gaps <- function(x, time_by = NULL,
-#                           time_type = c("auto", "duration", "period"),
-#                           check_regular = TRUE,
-#                           na.rm = TRUE){
-#   stopifnot(is_time_or_num(x))
-#   if (length(x) <= 1L){
-#     return(0L)
-#   }
-#   n_unique <- n_unique(x, na.rm = na.rm)
-#   if (n_unique == 1){
-#     return(0L)
-#   }
-#   time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
-#   tby <- time_by_get(x, time_by = time_by)
-#   x_rng <- collapse::frange(x, na.rm = na.rm)
-#   if (check_regular && !is.null(time_by)){
-#     full_seq <- time_seq(x_rng[1L],
-#                          x_rng[2L],
-#                          time_by = tby,
-#                          time_type = time_type)
-#     full_seq_size <- length(full_seq)
-#     check_time_regular(x, full_seq, time_by)
-#   } else {
-#     full_seq_size <- time_seq_sizes(x_rng[1L],
-#                                     x_rng[2L],
-#                                     time_by = tby,
-#                                     time_type = time_type)
-#   }
-#   full_seq_size - n_unique
-# }

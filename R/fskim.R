@@ -35,7 +35,7 @@ fskim <- function(data, hist = FALSE){
                         value = "class"))
   out <- data.table::copy(out)
   data.table::setalloccol(out, n = 1000)
-  chr_vars <- data_nms[vapply(data, is.character, logical(1), USE.NAMES = FALSE)]
+  chr_vars <- data_nms[vapply(data, is.character, FALSE, USE.NAMES = FALSE)]
   # Convert character to factor
   if (length(chr_vars) > 0L){
     data[, (chr_vars) :=
@@ -43,13 +43,13 @@ fskim <- function(data, hist = FALSE){
          .SDcols = chr_vars]
   }
   # Separate vars
-  lgl_vars <- data_nms[vapply(data, is.logical, logical(1))]
-  num_vars <- data_nms[vapply(data, function(x) inherits(x, c("integer", "numeric")), logical(1))]
+  lgl_vars <- data_nms[vapply(data, is.logical, FALSE)]
+  num_vars <- data_nms[vapply(data, function(x) inherits(x, c("integer", "numeric")), FALSE)]
   # exotic_num_vars <- data_nms[vapply(data, function(x) !inherits(x, c("integer", "numeric")) &&
   #                                      is.numeric(x), logical(1))]
-  date_vars <- data_nms[vapply(data, is_date, logical(1))]
-  datetime_vars <- data_nms[vapply(data, is_datetime, logical(1))]
-  cat_vars <- data_nms[vapply(data, is.factor, logical(1))]
+  date_vars <- data_nms[vapply(data, is_date, FALSE)]
+  datetime_vars <- data_nms[vapply(data, is_datetime, FALSE)]
+  cat_vars <- data_nms[vapply(data, is.factor, FALSE)]
   other_vars <- setdiff(data_nms,
                         c(lgl_vars, num_vars,
                           # exotic_num_vars,

@@ -112,6 +112,14 @@ time_by_is_num <- function(time_by){
        length(time_by_unit(time_by)) == 1L &&
        time_by_unit(time_by) == "numeric")
 }
+time_by_sign <- function(time_by){
+  sign(time_by_num(time_by))
+}
+check_time_by_length_is_one <- function(time_by){
+  if (time_by_length(time_by) != 1){
+    stop("Please supply only one numeric value in time_by")
+  }
+}
 time_by_pretty <- function(time_by){
   time_by <- time_by_list(time_by)
   units <- names(time_by)
@@ -771,77 +779,6 @@ bound_to <- function(to, x){
   }
   to
 }
-# Get rolling window sizes, including partial
-window_seq <- function(k, n, partial = TRUE){
-  if (length(k) != 1L) stop("k must be of length 1.")
-  if (length(n) != 1L) stop("n must be of length 1.")
-  if (n > .Machine[["integer.max"]]){
-    stop("n must not be greater than .Machine$integer.max")
-  }
-  n <- as.integer(n)
-  k[is.infinite(k)] <- n
-  k <- as.integer(k)
-  k <- max(k, 0L) # Bound k to >= 0
-  pk <- min(max(k - 1L, 0L), n) # Partial k, bounded to >= 0
-  p_seq <- seq_len(pk) # Partial window sequence
-  out <- collapse::alloc(k, n)
-  # Replace partial part with partial sequence
-  if (partial){
-    out[p_seq] <- p_seq
-  } else {
-    out[p_seq] <- NA_integer_
-  }
-  out
-}
-# Get rolling window sizes for multiple groups
-window_sequence <- function(size, k, partial = TRUE, ascending = TRUE){
-  if (length(k) == 1L){
-    k <- rep_len(k, length(size))
-  }
-  if (length(k) != length(size)){
-    stop("k must be of length 1 or have same length as size")
-  }
-  input_k <- k
-  k <- pmin(size, k)
-  k <- pmax(k, 0L) # Bound k to >= 0
-  k <- as.integer(k)
-  k <- rep.int(k, times = size)
-  out <- pmin(sequence(size, from = 1L, by = 1L), k)
-  if (!partial){
-    input_k <- rep.int(input_k, times = size)
-    out[out < input_k] <- NA_integer_
-  }
-  if (!ascending){
-    out <- out[sequence(size, from = size, by = -1L)]
-  }
-  out
-}
-
-# This checks if time aggregation is necessary
-# needs_aggregation <- function(time_by, granularity){
-#   if (is.null(time_by)){
-#     out <- FALSE
-#   } else {
-#     by_unit_info <- unit_guess(time_by)
-#     granularity_unit_info <- unit_guess(granularity)
-#
-#     by_seconds <- as.numeric(time_unit(by_unit_info[["unit"]],
-#                                        time_type = "duration")(
-#       by_unit_info[["num"]] * by_unit_info[["scale"]]))
-#     granularity_seconds <- as.numeric(time_unit(granularity_unit_info[["unit"]],
-#                                                 time_type = "duration")(
-#       granularity_unit_info[["num"]] * granularity_unit_info[["scale"]]))
-#
-#     if (length(granularity_seconds) > 0L &&
-#         length(by_seconds) > 0L &&
-#         granularity_seconds < by_seconds){
-#       out <- TRUE
-#     } else {
-#       out <- FALSE
-#     }
-#   }
-#   out
-# }
 
 fcut_ind <- function(x, breaks, rightmost.closed = FALSE,
                      left.open = FALSE, all.inside = FALSE){
@@ -931,9 +868,7 @@ is_interval <- function(x){
 }
 # Check if data has lubridate interval
 has_interval <- function(data, quiet = TRUE){
-  out <- any(vapply(data, FUN = is_interval,
-                    FUN.VALUE = logical(1)))
-  # out <- any(collapse::vclasses(flights, use.names = FALSE) == "Interval")
+  out <- any(vapply(data, FUN = is_interval, FALSE))
   if (out && !quiet){
     message("A variable of class 'Interval' exists.
     The grouping will be done using 'dplyr'.
@@ -965,18 +900,18 @@ has_interval <- function(data, quiet = TRUE){
 #     dplyr::left_join(lookup, by = by, multiple = "any") %>%
 #     dplyr::pull(all_of("seq"))
 # }
-taggregate <- function(x, seq, gx = NULL, gseq = NULL){
-  dt1 <- data.table::data.table(g = gx, t = x)
-  dt2 <- data.table::data.table(g = gseq, t = seq)
-  # Set key directly as inputs should all be pre-sorted.
-  data.table::setattr(dt1, "sorted", names(dt1))
-  data.table::setattr(dt2, "sorted", names(dt2))
-  dt1[dt2, ("tagg") := .SD, .SDcols = "t", mult = "first",
-      roll = -Inf, on = names(dt1)]
-  # dt1[dt2, ("tagg") := .SD, .SDcols = "t", mult = "first", on = .(g, t >= t)]
-  data.table::setnafill(dt1, cols = "tagg", type = "locf")
-  dt1[["tagg"]]
-}
+# taggregate <- function(x, seq, gx = NULL, gseq = NULL){
+#   dt1 <- data.table::data.table(g = gx, t = x)
+#   dt2 <- data.table::data.table(g = gseq, t = seq)
+#   # Set key directly as inputs should all be pre-sorted.
+#   data.table::setattr(dt1, "sorted", names(dt1))
+#   data.table::setattr(dt2, "sorted", names(dt2))
+#   dt1[dt2, ("tagg") := .SD, .SDcols = "t", mult = "first",
+#       roll = -Inf, on = names(dt1)]
+#   # dt1[dt2, ("tagg") := .SD, .SDcols = "t", mult = "first", on = .(g, t >= t)]
+#   data.table::setnafill(dt1, cols = "tagg", type = "locf")
+#   dt1[["tagg"]]
+# }
 
 # Convert time sequence to interval
 tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
@@ -1171,6 +1106,7 @@ time_as_character <- function(x){
 # Fast NA check for lubridate intervals
 int_is_na <- function(x){
   X <- interval_separate(x)
+  # is.na(.subset2(X, 1L)) & is.na(.subset2(X, 2L))
   is.na(X[[1L]]) & is.na(X[[2L]])
 }
 check_is_time_or_num <- function(x){
@@ -1178,41 +1114,9 @@ check_is_time_or_num <- function(x){
     stop("x must be a date, datetime, or numeric vector")
   }
 }
-# int_is_na <- function(x){
-#   .rowSums(
-#     is.na(
-#       collapse::qM(
-#         interval_separate(x)
-#       )
-#     )
-#     , n = 2L, m = length(x)) == 2
-# }
 time_as_number <- function(x){
   out <- unclass(x)
   attributes(out) <- NULL
-  out
-}
-# Like vctrs::vec_chop but the sizes argument implies a rolling chop
-roll_chop <- function(x, sizes = collapse::alloc(1L, vec_length(x))){
-  x_size <- vec_length(x)
-  if (x_size != length(sizes)){
-    stop("length of x must equal length of sizes")
-  }
-  if (log10(sum(sizes)) >= 9){
-    warning("The result contains more than 1e09 elements, this may take time",
-            immediate. = TRUE)
-  }
-  out <- vector("list", x_size)
-  if (is.atomic(x)){
-    for (i in seq_len(x_size)){
-      # out[[i]] <- x[(i - sizes[i] + 1L):i]
-      out[[i]] <- x[seq_len(.subset(sizes, i)) + (i - .subset(sizes, i))]
-    }
-  } else {
-    for (i in seq_len(x_size)){
-      out[[i]] <- vec_slice2(x, seq_len(.subset(sizes, i)) + (i - .subset(sizes, i)))
-    }
-  }
   out
 }
 time_aggregate_left <- function(x, time_by, g = NULL,
@@ -1318,56 +1222,6 @@ time_aggregate_right <- function(x, time_by, g = NULL,
   out
   # class = c("time_int", class(out)))
 }
-# time_aggregate_left <- function(x, time_by, g = NULL,
-#                                 time_type = c("auto", "duration", "period"),
-#                                 roll_month = "preday", roll_dst = "pre"){
-#   time_by <- time_by_list(time_by)
-#   num <- time_by_num(time_by)
-#   units <- time_by_unit(time_by)
-#   g <- GRP2(g)
-#   tfirst <- gmin(x, g = g, na.rm = TRUE)
-#   tlast <- gmax(x, g = g, na.rm = TRUE)
-#   tdiff <- time_diff(tfirst, x, time_by = time_by, time_type = time_type)
-#   time_to_add <- setnames(list(trunc(tdiff) * num), units)
-#   out <- time_add2(tfirst, time_by = time_to_add, time_type = time_type,
-#                    roll_month = roll_month, roll_dst = roll_dst)
-#   end <- time_add2(out, time_by = time_by, time_type = time_type,
-#                    roll_month = roll_month, roll_dst = roll_dst)
-#   set_time_cast(out, end)
-#   which_out_of_bounds <- which(double_gt(time_as_number(end),
-#                                          time_as_number(tlast)))
-#   end[which_out_of_bounds] <- tlast[which_out_of_bounds]
-#   structure(out,
-#             end = end,
-#             direction = "left-to-right")
-#             # class = c("time_int", class(out)))
-#
-# }
-# time_aggregate_right <- function(x, time_by, g = NULL,
-#                             time_type = c("auto", "duration", "period"),
-#                             roll_month = "preday", roll_dst = "pre"){
-#   time_by <- time_by_list(time_by)
-#   num <- time_by_num(time_by)
-#   units <- time_by_unit(time_by)
-#   g <- GRP2(g)
-#   tfirst <- gmin(x, g = g, na.rm = TRUE)
-#   tlast <- gmax(x, g = g, na.rm = TRUE)
-#   tdiff <- time_diff(tlast, x, time_by = time_by, time_type = time_type)
-#   time_to_add <- setnames(list(trunc(tdiff) * num), units)
-#   out <- time_add2(tlast, time_by = time_to_add, time_type = time_type,
-#                    roll_month = roll_month, roll_dst = roll_dst)
-#   end <- time_add2(out, time_by = time_by, time_type = time_type,
-#                    roll_month = roll_month, roll_dst = roll_dst)
-#   set_time_cast(out, end)
-#   which_out_of_bounds <- which(double_lt(time_as_number(end),
-#                                          time_as_number(tfirst)))
-#   end[which_out_of_bounds] <- tfirst[which_out_of_bounds]
-#   structure(out,
-#             end = end,
-#             direction = "right-to-left")
-#             # class = c("time_int", class(out)))
-#
-# }
 time_int_end <- function(x){
   attr(x, "end")
 }
@@ -1467,9 +1321,9 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
 }
 
 # Time aggregation using expanded sequences when:
-# * Data is over 1m rows
-# * Expansion size is less than a million
-# * Number of groups are less than 100k
+# * Data is over 100k rows
+# * Expansion size is less than 10 million
+# * Number of groups are less than 1m
 # And using time differencing otherwise
 time_aggregate_switch <- function(x, time_by, time_type,
                                   g = NULL,
@@ -1478,9 +1332,11 @@ time_aggregate_switch <- function(x, time_by, time_type,
                                   week_start = getOption("lubridate.week.start", 1),
                                   roll_month = "preday", roll_dst = "pre",
                                   as_int = TRUE){
+  check_is_time_or_num(x)
   time_by <- time_by_list(time_by)
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
+  check_time_by_length_is_one(time_by)
   time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
   g <- GRP2(g, return.groups = FALSE)
   if (is.null(g)){
@@ -1488,11 +1344,24 @@ time_aggregate_switch <- function(x, time_by, time_type,
   } else {
     n_groups <- GRP_n_groups(g)
   }
-  time_span_sizes <- time_span_size(x, g = g, time_by = time_by,
-                                    time_type = time_type,
-                                    roll_month = roll_month,
-                                    roll_dst = roll_dst,
-                                    use.g.names = FALSE)
+  ###
+  if (is.null(start)){
+    from <- collapse::fmin(x, g = g, use.g.names = FALSE, na.rm = TRUE)
+  } else {
+    from <- ffirst(start, g = g, use.g.names = FALSE)
+  }
+  if (is.null(end)){
+    to <- collapse::fmax(x, g = g, use.g.names = FALSE, na.rm = TRUE)
+  } else {
+    to <- ffirst(end, g = g, use.g.names = FALSE)
+  }
+  # Make sure from/to are datetimes if x is datetime
+  from <- time_cast(from, x)
+  to <- time_cast(to, x)
+  time_span_sizes <- time_seq_sizes(from = from, to = to,
+                                    time_by = time_by,
+                                    time_type = time_type)
+  ###
   if (time_type == "auto"){
     time_type <- guess_seq_type(units)
   }

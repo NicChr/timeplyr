@@ -2,10 +2,20 @@
 % Please edit documentation in R/growth_rate.R
 \name{growth_rate}
 \alias{growth_rate}
+\alias{roll_growth_rate}
 \alias{rolling_growth_rate}
 \title{Fast Growth Rates}
 \usage{
 growth_rate(x, na.rm = FALSE, log = FALSE, inf_fill = NULL)
+
+roll_growth_rate(
+  x,
+  window = length(x),
+  partial = TRUE,
+  na.rm = FALSE,
+  log = FALSE,
+  inf_fill = NULL
+)
 
 rolling_growth_rate(
   x,
@@ -28,19 +38,35 @@ are adjusted to the number of non-\code{NA} values in each window.}
 \item{inf_fill}{Numeric value to replace \code{Inf} values with.
 Default behaviour is to keep \code{Inf} values.}
 
-\item{n}{Rolling window size of length 1.
-The default is \code{n = length(x)}
-which calculates a simple rolling growth rate of \code{x}
-compared to the starting value.
-When \code{n = 2}, this is equivalent to a rolling basic growth calculation.}
+\item{window}{Size of the rolling window.
+This must be of length 1 or the same length as x.
+The default calculates a simple rolling growth rate of \code{x}
+compared to the first value.
+You can specify a vector of window sizes as well, allowing for
+a flexible calculation.}
 
 \item{partial}{Should rates be calculated outwith the window
 using partial windows? Default is \code{TRUE}.}
+
+\item{n}{Window size (\bold{deprecated}).}
+}
+\value{
+\code{growth_rate} returns a \code{numeric(1)} and \code{roll_growth_rate}
+returns a \code{numeric(length(x))}.
 }
 \description{
-Calculate the rate of percentage change per unit (time) of a numeric vector.
+Calculate the rate of percentage
+change per unit time.
+}
+\details{
 This metric is equivalent to the compound annual growth rate (CAGR): doi.org/10.1002/smr.1847
-It is assumed that \code{x} is a vector of values corresponding to regular units of time with no gaps.
+It is assumed that \code{x} is a vector of values with
+a corresponding time index that increases regularly with no gaps or missing values.
 The output is to be interpreted as the average percent change per unit time.
 This can also be calculated using the geometric mean of percent changes.
+\code{growth_rate} calculates the growth rate of a numeric vector by comparing
+the first and last values while \code{roll_growth_rate} does the same but on a
+rolling basis.
+The identity \cr \code{tail(roll_growth_rate(x, window = length(x)), 1) == growth_rate(x)}
+should always hold.
 }

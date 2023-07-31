@@ -147,6 +147,96 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// roll_apply_max_fast
+NumericVector roll_apply_max_fast(NumericVector x, int before, int after);
+RcppExport SEXP _timeplyr_roll_apply_max_fast(SEXP xSEXP, SEXP beforeSEXP, SEXP afterSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type before(beforeSEXP);
+    Rcpp::traits::input_parameter< int >::type after(afterSEXP);
+    rcpp_result_gen = Rcpp::wrap(roll_apply_max_fast(x, before, after));
+    return rcpp_result_gen;
+END_RCPP
+}
+// roll_apply_max
+NumericVector roll_apply_max(NumericVector x, int before, int after, bool na_rm, bool partial);
+RcppExport SEXP _timeplyr_roll_apply_max(SEXP xSEXP, SEXP beforeSEXP, SEXP afterSEXP, SEXP na_rmSEXP, SEXP partialSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type before(beforeSEXP);
+    Rcpp::traits::input_parameter< int >::type after(afterSEXP);
+    Rcpp::traits::input_parameter< bool >::type na_rm(na_rmSEXP);
+    Rcpp::traits::input_parameter< bool >::type partial(partialSEXP);
+    rcpp_result_gen = Rcpp::wrap(roll_apply_max(x, before, after, na_rm, partial));
+    return rcpp_result_gen;
+END_RCPP
+}
+// before_sequence
+IntegerVector before_sequence(IntegerVector size, int k);
+RcppExport SEXP _timeplyr_before_sequence(SEXP sizeSEXP, SEXP kSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    rcpp_result_gen = Rcpp::wrap(before_sequence(size, k));
+    return rcpp_result_gen;
+END_RCPP
+}
+// after_sequence
+IntegerVector after_sequence(IntegerVector size, int k);
+RcppExport SEXP _timeplyr_after_sequence(SEXP sizeSEXP, SEXP kSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    rcpp_result_gen = Rcpp::wrap(after_sequence(size, k));
+    return rcpp_result_gen;
+END_RCPP
+}
+// window_sequence
+IntegerVector window_sequence(IntegerVector size, int k, bool partial, bool ascending);
+RcppExport SEXP _timeplyr_window_sequence(SEXP sizeSEXP, SEXP kSEXP, SEXP partialSEXP, SEXP ascendingSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    Rcpp::traits::input_parameter< bool >::type partial(partialSEXP);
+    Rcpp::traits::input_parameter< bool >::type ascending(ascendingSEXP);
+    rcpp_result_gen = Rcpp::wrap(window_sequence(size, k, partial, ascending));
+    return rcpp_result_gen;
+END_RCPP
+}
+// lag_sequence
+IntegerVector lag_sequence(IntegerVector size, int k);
+RcppExport SEXP _timeplyr_lag_sequence(SEXP sizeSEXP, SEXP kSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    rcpp_result_gen = Rcpp::wrap(lag_sequence(size, k));
+    return rcpp_result_gen;
+END_RCPP
+}
+// lead_sequence
+IntegerVector lead_sequence(IntegerVector size, int k);
+RcppExport SEXP _timeplyr_lead_sequence(SEXP sizeSEXP, SEXP kSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    rcpp_result_gen = Rcpp::wrap(lead_sequence(size, k));
+    return rcpp_result_gen;
+END_RCPP
+}
 // roll_int_threshold
 IntegerVector roll_int_threshold(IntegerVector x, int threshold, bool switch_on_boundary);
 RcppExport SEXP _timeplyr_roll_int_threshold(SEXP xSEXP, SEXP thresholdSEXP, SEXP switch_on_boundarySEXP) {
@@ -186,6 +276,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_any_int_equal", (DL_FUNC) &_timeplyr_any_int_equal, 2},
     {"_timeplyr_any_num_equal", (DL_FUNC) &_timeplyr_any_num_equal, 3},
     {"_timeplyr_is_whole_num", (DL_FUNC) &_timeplyr_is_whole_num, 2},
+    {"_timeplyr_roll_apply_max_fast", (DL_FUNC) &_timeplyr_roll_apply_max_fast, 3},
+    {"_timeplyr_roll_apply_max", (DL_FUNC) &_timeplyr_roll_apply_max, 5},
+    {"_timeplyr_before_sequence", (DL_FUNC) &_timeplyr_before_sequence, 2},
+    {"_timeplyr_after_sequence", (DL_FUNC) &_timeplyr_after_sequence, 2},
+    {"_timeplyr_window_sequence", (DL_FUNC) &_timeplyr_window_sequence, 4},
+    {"_timeplyr_lag_sequence", (DL_FUNC) &_timeplyr_lag_sequence, 2},
+    {"_timeplyr_lead_sequence", (DL_FUNC) &_timeplyr_lead_sequence, 2},
     {"_timeplyr_roll_int_threshold", (DL_FUNC) &_timeplyr_roll_int_threshold, 3},
     {"_timeplyr_roll_time_threshold", (DL_FUNC) &_timeplyr_roll_time_threshold, 3},
     {NULL, NULL, 0}

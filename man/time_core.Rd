@@ -91,9 +91,7 @@ time_span_size(
   use.g.names = TRUE,
   time_type = c("auto", "duration", "period"),
   time_floor = FALSE,
-  week_start = getOption("lubridate.week.start", 1),
-  roll_month = "preday",
-  roll_dst = "pre"
+  week_start = getOption("lubridate.week.start", 1)
 )
 }
 \arguments{

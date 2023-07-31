@@ -7,22 +7,23 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 IntegerVector roll_time_threshold(NumericVector x, double threshold = 1,
                                   bool switch_on_boundary = true) {
-  if (x.length() == 0) {
+  int n = x.length();
+  if (n == 0) {
     return IntegerVector(0);
   }
   double tol = sqrt(std::numeric_limits<double>::epsilon());
-  IntegerVector out(x.length());
+  IntegerVector out(n);
   double init_threshold = threshold;
-  LogicalVector x_na = is_na(x);
   if (switch_on_boundary == true){
     tol = -tol;
   }
-  for (int i = 0; i < x.length(); ++i) {
-    if (!x_na[i] && (x[i] - threshold > tol)) {
-      out[i] = 1L;
+  for (int i = 0; i < n; ++i) {
+    if (NumericVector::is_na(x[i])){
+      out[i] = NA_INTEGER;
+    } else if ((x[i] - threshold) > tol) {
+      out[i] = 1;
       threshold = init_threshold + x[i];
     }
   }
-  out[x_na] = NA_INTEGER;
   return out;
 }

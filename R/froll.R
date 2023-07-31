@@ -13,29 +13,13 @@
 #' See `?data.table::frollmean` details for more information.
 #' @param na.rm Should missing values be removed when calculating window? Defaults to \code{FALSE}.
 #' @param hasNA If it is known that x contains \code{NA} then setting to \code{TRUE} will speed up.
-#' @examples
-#' library(timeplyr)
-#'
-#' x <- 1:10
-#' frollsum2(x) # Simple rolling total
-#' frollmean2(x) # Simple moving average
-#' frollsum2(x, n = 3)
-#' frollmean2(x, n = 3)
-#' frollsum2(x, n = 3, partial = FALSE)
-#' frollmean2(x, n = 3, partial = FALSE)
-#'
-#' # Plot of expected value of 'coin toss' over many flips
-#' set.seed(42)
-#' x <- sample(c(1, 0), 10^3, replace = TRUE)
-#' ev <- frollmean2(x)
-#' plot(1:length(x), ev)
-#' abline(h = 0.5, lty = 2)
 #' @rdname froll
 #' @export
 frollsum2 <- function(x, n = length(x), partial = TRUE,
                       weights = NULL,
                       fill = NA, algo = c("fast", "exact"),
                       na.rm = FALSE, hasNA = NA){
+  .Deprecated("roll_sum")
   stopifnot(length(n) == 1L)
   if (!is.null(weights)){
     stopifnot(length(weights) == length(x))
@@ -59,6 +43,7 @@ frollmean2 <- function(x, n = length(x), partial = TRUE,
                        weights = NULL,
                        fill = NA, algo = c("fast", "exact"),
                        na.rm = FALSE, hasNA = NA){
+  .Deprecated("roll_mean")
   stopifnot(length(n) == 1L)
   if (is.null(weights)){
     if (partial){
@@ -86,25 +71,6 @@ frollmean2 <- function(x, n = length(x), partial = TRUE,
                              fill = fill, algo = algo,
                              na.rm = na.rm, hasNA = hasNA)
     out <- numerator/denominator
-  }
-  out
-}
-# No partial argument, just a weights extension to data.table::frollsum()
-# Internal function
-frollsum3 <- function(x, n, weights = NULL, ...){
-  if (!is.null(weights)){
-    x <- x * weights
-  }
-  data.table::frollsum(x, n = n, ...)
-}
-# Also internal
-frollmean3 <- function(x, n, weights = NULL, ...){
-  if (!is.null(weights)){
-    x <- x * weights
-    weights[is.na(x)] <- NA_real_
-    out <- data.table::frollsum(x, n = n, ...)/data.table::frollsum(weights, n = n, ...)
-  } else {
-    out <- data.table::frollmean(x, n = n, ...)
   }
   out
 }

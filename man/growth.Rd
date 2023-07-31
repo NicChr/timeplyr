@@ -78,6 +78,6 @@ rolling_growth(x, n = 3, lag = 1)
 rolling_growth(x, n = 3, partial = FALSE)
 
 # Seven day moving average growth
-frollmean2(rolling_growth(x), n = 7, partial = FALSE)
+roll_mean(rolling_growth(x), window = 7, partial = FALSE)
 
 }

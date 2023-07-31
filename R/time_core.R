@@ -659,8 +659,7 @@ time_span_size <- function(x, time_by = NULL, from = NULL, to = NULL,
                            g = NULL, use.g.names = TRUE,
                            time_type = c("auto", "duration", "period"),
                            time_floor = FALSE,
-                           week_start = getOption("lubridate.week.start", 1),
-                           roll_month = "preday", roll_dst = "pre"){
+                           week_start = getOption("lubridate.week.start", 1)){
   check_is_time_or_num(x)
   if (length(from) > 1L){
     stop("from must be of length 1")

@@ -164,17 +164,11 @@ across_col_names <- function(.cols = NULL, .fns = NULL,
     if (nms_null){
       for (.col in .cols){
         out[seq_along(.fns) + init] <- stringr::str_c(.col, "_", .fn)
-        # setv(out, seq_along(.fns) + init,
-        #      stringr::str_c(.col, "_", .fn),
-        #      vind1 = TRUE)
         init <- init + length(.fns)
       }
     } else {
       for (.col in .cols){
         out[seq_along(.fns) + init] <- stringr::str_glue(.names)
-        # setv(out, seq_along(.fns) + init,
-        #      stringr::str_glue(.names),
-        #      vind1 = TRUE)
         init <- init + length(.fns)
       }
     }

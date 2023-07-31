@@ -39,11 +39,13 @@ testthat::test_that("Normal cases", {
   testthat::expect_identical(rolling_growth(x, n = 1, lag = 3),
                              x/dplyr::lag(x, n = 3))
   testthat::expect_identical(rolling_growth(x, n = 3, lag = 3, partial = FALSE),
-                             frollmean2(x, n = 3, partial = FALSE)/
-                               frollmean2(dplyr::lag(x, n = 3), n = 3, partial = FALSE))
+                             roll_mean(x, window = 3, partial = FALSE)/
+                               roll_mean(dplyr::lag(x, n = 3), window = 3, partial = FALSE,
+                                        na.rm = FALSE))
   testthat::expect_identical(rolling_growth(x, n = 3, lag = 2, partial = FALSE),
-                             frollmean2(x, n = 3, partial = FALSE)/
-                               frollmean2(dplyr::lag(x, n = 2), n = 3, partial = FALSE))
+                             roll_mean(x, window = 3, partial = FALSE, na.rm = FALSE)/
+                               roll_mean(dplyr::lag(x, n = 2), window = 3, partial = FALSE,
+                                        na.rm = FALSE))
 })
 
 testthat::test_that("Weights and offsets", {

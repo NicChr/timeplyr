@@ -257,7 +257,7 @@ group_id.GRP <- function(data, ..., order = TRUE, as_qg = FALSE){
     if (as_qg){
       out <- group_id_to_qg(out,
                             n_groups = GRP_n_groups(data),
-                            # group_sizes = GRP_group_sizes(data),
+                            group_sizes = GRP_group_sizes(data),
                             # group_starts = data[["group.starts"]],
                             ordered = order)
     }

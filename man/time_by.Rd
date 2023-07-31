@@ -11,6 +11,9 @@ time_by(
   data,
   time,
   time_by = NULL,
+  from = NULL,
+  to = NULL,
+  .name = "{.col}",
   .add = FALSE,
   time_type = c("auto", "duration", "period"),
   time_floor = FALSE,
@@ -45,6 +48,14 @@ e.g. \code{list("days" = 1:10)}.
 \item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
 then arithmetic is used, e.g \code{time_by = 1}.
 }}
+
+\item{from}{(Optional) Start time.}
+
+\item{to}{(Optional) end time.}
+
+\item{.name}{An optional glue specification passed to \code{stringr::glue()}
+which can be used to concatenate
+strings to the time column name or replace it.}
 
 \item{.add}{Should the time groups be added to existing groups?
 Default is \code{FALSE}.}

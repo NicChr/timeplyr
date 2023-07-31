@@ -2,30 +2,32 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-IntegerVector roll_int_threshold(IntegerVector x, int threshold = 1L,
+IntegerVector roll_int_threshold(IntegerVector x, int threshold = 1,
                                   bool switch_on_boundary = true) {
-  if (x.length() == 0) {
+  int n = x.length();
+  if (n == 0) {
     return IntegerVector(0);
   }
-  IntegerVector out(x.length());
+  IntegerVector out(n);
   int init_threshold = threshold;
-  LogicalVector x_na = is_na(x);
   if (switch_on_boundary == true){
-    for (int i = 0; i < x.length(); ++i) {
-      if (!x_na[i] && x[i] >= threshold) {
-        out[i] = 1L;
+    for (int i = 0; i < n; ++i) {
+      if (IntegerVector::is_na(x[i])){
+        out[i] = NA_INTEGER;
+      } else if (x[i] >= threshold) {
+        out[i] = 1;
         threshold = init_threshold + x[i];
       }
     }
   } else {
-    for (int i = 0; i < x.length(); ++i) {
-      if (!x_na[i] && x[i] > threshold) {
-        out[i] = 1L;
+    for (int i = 0; i < n; ++i) {
+      if (IntegerVector::is_na(x[i])){
+        out[i] = NA_INTEGER;
+      } else if (x[i] > threshold) {
+        out[i] = 1;
         threshold = init_threshold + x[i];
       }
     }
   }
-
-  out[x_na] = NA_INTEGER;
   return out;
 }

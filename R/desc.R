@@ -24,7 +24,7 @@
 #' @rdname desc
 #' @export
 asc <- function(x){
-  if (is_time_or_num(x)){
+  if (is_s3_numeric(x)){
     xtfrm(x)
   } else {
     qg_to_integer(qG2(x, sort = TRUE, na.exclude = TRUE))

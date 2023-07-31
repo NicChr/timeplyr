@@ -32,20 +32,20 @@ roll_lag <- function(x, lag = 1L, check = TRUE){
   }
   x[lagged_indices]
 }
-# lagged_indices <- seq_along(x)
-# collapse::setop(lagged_indices, "-", lag)
-# setv(lagged_indices, which(lagged_indices < 1L), N + 1L,
-#      vind1 = TRUE)
 #' @rdname roll_lag
 #' @export
 lag_seq <- function(x, lag = 1L){
-  n <- length(x)
-  if (length(lag) != 1L) stop("lag must be of length 1.")
-  lag <- min(lag, n) # Bound lag to <= n
-  lag <- max(lag, 0L) # Bound lag to >= 0
-  p_seq <- seq_len(lag) # Partial window sequence
-  out <- rep_len(lag, n)
-  # Replace partial part with partial sequence
-  out[p_seq] <- NA_integer_
-  out
+  if (length(lag) != 1L){
+    stop("lag must be of length 1")
+  }
+  if (lag >= 0){
+    lag_sequence(length(x), k = lag)
+  } else {
+    -lead_sequence(length(x), k = -lag)
+  }
+  # if (lag >= 0){
+  #   before_sequence(length(x), k = lag, partial = FALSE)
+  # } else {
+  #   -after_sequence(length(x), k = -lag,  partial = FALSE)
+  # }
 }

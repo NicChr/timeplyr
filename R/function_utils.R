@@ -778,6 +778,15 @@ vec_slice2 <- function(x, i){
     collapse::ss(x, i)
   }
 }
+vec_slice3 <- function(x, i){
+  if (is.atomic(x)){
+    x[i]
+  } else if (is_df(x)){
+    df_row_slice(x, i)
+  } else {
+    collapse::ss(x, i)
+  }
+}
 # Vctrs version of utils::head/tail
 vec_head <- function(x, n = 1L){
   if (length(n) != 1L){
@@ -1101,30 +1110,27 @@ pretty_ceiling <- function(x){
 #   }
 #   out
 # }
-fdiff2 <- function(x, n =  min(length(x), 1L), g = NULL, ...){
-  x - flag2(x, n = n, g = g, ...)
-}
-flag2 <- function(x, n = min(length(x), 1L), g = NULL, ...){
-  if (!is.null(g)){
-    g <- GRP2(g)
-  }
-  if (!is.null(g) && !GRP_is_sorted(g)){
-    group_order <- GRP_order(g)
-    x <- x[group_order]
-    group_id <- group_id_to_qg(
-      GRP_group_id(g)[group_order],
-      n_groups = GRP_n_groups(g)
-    )
-    out <- collapse::flag(x, n = n, g = group_id, ...)
-    out <- collapse::greorder(out, g = g)
-    # g <- GRP_group_id(g)[group_order]
-    # out <- collapse::flag(x, n = n, g = g, ...)
-    # out <- out[order(group_order)]
-  } else {
-    out <- collapse::flag(x, n = n, g = g, ...)
-  }
-  out
-}
+# flag2 <- function(x, n = 1L, g = NULL, ...){
+#   if (is.null(x)){
+#     return(NULL)
+#   }
+#   n <- as.integer(sign(n) * min(length(x), abs(n)))
+#   g <- GRP2(g)
+#   if (!is.null(g) && !GRP_is_sorted(g)){
+#     group_order <- GRP_order(g)
+#     x <- x[group_order]
+#     group_id <- GRP_group_id(g)[group_order]
+#     g_sorted <- sorted_group_id_to_GRP(group_id,
+#                                        n_groups = GRP_n_groups(g),
+#                                        group_sizes = GRP_group_sizes(g),
+#                                        group.starts = FALSE)
+#     out <- collapse::flag(x, n = n, g = g_sorted, ...)
+#     out <- collapse::greorder(out, g = g)
+#   } else {
+#     out <- collapse::flag(x, n = n, g = g, ...)
+#   }
+#   out
+# }
 fill_with_na <- function(x, n = NULL, prop = NULL){
   if (!is.null(n) && !is.null(prop)){
     stop("either n or prop must be supplied")
@@ -1217,4 +1223,59 @@ check_sorted <- function(x){
 # Taken from base R to avoid needing R >= 4
 deparse1 <- function(expr, collapse = " ", width.cutoff = 500L, ...){
   paste(deparse(expr, width.cutoff, ...), collapse = collapse)
+}
+# Bin x by breaks for each group in g
+# Function that takes x (sorted by g) and
+# breaks (sorted by g and itself)
+fbincode <- function(x, breaks, right = TRUE, include.lowest = FALSE,
+                     gx = NULL, gbreaks = NULL){
+  x_list <- gsplit2(x, g = gx)
+  # gbreaks <- GRP2(gbreaks)
+  # if (is.null(gbreaks)){
+  #   n_groups <- min(length(breaks), 1L)
+  #   group_sizes <- length(breaks)
+  #   group_ends <- length(breaks)
+  #   group_id <- NULL
+  # } else {
+  #   n_groups <- GRP_n_groups(gbreaks)
+  #   group_sizes <- GRP_group_sizes(gbreaks)
+  #   group_ends <- GRP_ends(gbreaks)
+  #   group_id <- GRP_group_id(gbreaks)
+  # }
+  # if (append_inf){
+  #   appended_indices <- group_ends + cumsum(seq_ones(n_groups))
+  #   new_breaks <- numeric(length(breaks) + n_groups)
+  #   new_breaks[-appended_indices] <- breaks
+  #   new_breaks[appended_indices] <- Inf
+  #   if (!is.null(gbreaks)){
+  #     new_group_id <- integer(length(breaks) + n_groups)
+  #     new_group_id[-appended_indices] <- group_id
+  #     new_group_id[appended_indices] <- group_id[group_ends]
+  #     gbreaks <- group_id_to_qg(new_group_id, n_groups = n_groups,
+  #                               group_sizes = group_sizes)
+  #   }
+  #   breaks <- new_breaks
+  # }
+  breaks_list <- gsplit2(breaks, g = gbreaks)
+  out <- vector("list", length(x_list))
+  for (i in seq_along(out)){
+    out[[i]] <- .bincode(.subset2(x_list, i),
+                         .subset2(breaks_list, i),
+                         right = right,
+                         include.lowest = include.lowest)
+  }
+  unlist(out, recursive = FALSE, use.names = FALSE)
+  # Parallel options
+  # out <- foreach(i = seq_along(x_list)) %dopar%
+  #   .bincode(.subset2(x_list, i),
+  #            .subset2(breaks_list, i),
+  #            right = right,
+  #            include.lowest = include.lowest)
+  # out <- furrr::future_map2(x_list, breaks_list,
+  #                           function(x, y) .bincode(x, y,
+  #                                                   right = right,
+  #                                                   include.lowest = include.lowest))
+}
+is_s3_numeric <- function(x){
+  typeof(x) %in% c("integer", "double") && !isS4(x)
 }

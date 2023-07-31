@@ -161,7 +161,7 @@ nrow2 <- function(data){
 is_list_df_like <- function(X){
   stopifnot(is.list(X))
   lens <- collapse::vlengths(X, use.names = FALSE)
-  isTRUE(n_unique(lens) <= 1)
+  isTRUE(collapse::fnunique(lens) <= 1)
 }
 # Convenience function
 is_df <- function(x){
@@ -196,9 +196,9 @@ fdeframe <- function(x){
   if (!(is_df(x) || ncol %in% (1:2))){
     stop("`x` must be a 1 or 2 col data frame")
   }
-  out <- x[[ncol]]
+  out <- fpluck(x, ncol)
   if (ncol == 2){
-    names(out) <- as.character(x[[1L]])
+    names(out) <- as.character(fpluck(x, 1L))
   }
   out
 }
@@ -236,8 +236,11 @@ pluck_row <- function(x, i = 1L, j = collapse::seq_col(x),
     stop("length(j) must be >= 1")
   }
   x <- collapse::ss(x, i = i, j = j)
-  out <- data.table::melt(as_DT(x), measure.vars = names(x),
-                          value.name = "value")[["value"]]
+  out <- fpluck(
+    data.table::melt(as_DT(x), measure.vars = names(x),
+                     value.name = "value"),
+    "value"
+  )
   if (use.names){
     if (length(out) == 0L){
       names(out) <- character(0)

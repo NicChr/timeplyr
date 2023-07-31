@@ -18,6 +18,11 @@
 #' e.g. `list("days" = 1:10)`.
 #' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
 #' then arithmetic is used, e.g `time_by = 1`.
+#' @param from (Optional) Start time.
+#' @param to (Optional) end time.
+#' @param .name An optional glue specification passed to `stringr::glue()`
+#' which can be used to concatenate
+#' strings to the time column name or replace it.
 #' @param .add Should the time groups be added to existing groups?
 #' Default is `FALSE`.
 #' @param time_type If "auto", `periods` are used for
@@ -73,16 +78,24 @@
 #' @rdname time_by
 #' @export
 time_by <- function(data, time, time_by = NULL,
+                    from = NULL, to = NULL,
+                    .name = "{.col}",
                     .add = FALSE,
                     time_type = c("auto", "duration", "period"),
                     time_floor = FALSE,
                     week_start = getOption("lubridate.week.start", 1),
                     roll_month = "preday", roll_dst = "pre",
                     .time_by_group = TRUE){
+  data_nms <- names(data)
   time_quo <- enquo(time)
   group_vars <- group_vars(data)
-  data <- mutate2(safe_ungroup(data), !!time_quo)
+  data <- mutate2(safe_ungroup(data),
+                  !!time_quo,
+                  !!enquo(from),
+                  !!enquo(to))
   time_var <- tidy_transform_names(data, !!time_quo)
+  from_var <- tidy_transform_names(data, !!enquo(from))
+  to_var <- tidy_transform_names(data, !!enquo(to))
   if (length(time_var) > 0L){
     if (length(time_var) > 1L){
       stop("Please choose one time variable.")
@@ -101,22 +114,28 @@ time_by <- function(data, time, time_by = NULL,
   }
   time_span_GRP <- df_to_GRP(data, .cols = time_span_groups,
                              return.groups = TRUE)
-  time_span_end <- collapse::fmax(data[[time_var]], g = time_span_GRP,
-                                  use.g.names = FALSE)
+  from_to_list <- get_from_to(data, time = time_var,
+                              from = from_var, to = to_var,
+                              .by = all_of(time_span_groups))
   # Aggregate time data
   time_agg <- time_aggregate_switch(data[[time_var]],
                                     time_by = time_by,
+                                    start = fpluck(from_to_list, 1L),
+                                    end = fpluck(from_to_list, 2L),
                                     g = time_span_GRP,
                                     time_type = time_type,
                                     roll_month = roll_month,
                                     roll_dst = roll_dst,
                                     time_floor = time_floor,
                                     week_start = week_start,
-                                    as_int = FALSE)
-  time_agg <- time_int_rm_attrs(time_agg)
-  data <- dplyr::mutate(data, !!time_var := time_agg)
+                                    as_int = TRUE)
   time_span_start <- collapse::fmin(time_agg, g = time_span_GRP,
                                     use.g.names = FALSE)
+  time_span_end <- collapse::fmax(time_int_end(time_agg), g = time_span_GRP,
+                                    use.g.names = FALSE)
+  time_agg <- time_int_rm_attrs(time_agg)
+  time_var <- across_col_names(time_var, .fns = "", .names = .name)
+  data <- dplyr::mutate(data, "{time_var}" := time_agg)
   time_span <- GRP_group_data(time_span_GRP)
   if (nrow2(time_span) == 0L){
     time_span <- vctrs::vec_init(time_span, n = 1L)
@@ -135,6 +154,12 @@ time_by <- function(data, time, time_by = NULL,
     groups <- c(group_vars, time_var)
   }
   out <- fgroup_by(data, .cols = groups)
+  if (isTRUE(is.na(match(from_var, data_nms)))){
+    out <- df_rm_cols(out, from_var)
+  }
+  if (isTRUE(is.na(match(to_var, data_nms)))){
+    out <- df_rm_cols(out, to_var)
+  }
   if (length(groups) > 0L){
     out <- dplyr::new_grouped_df(out,
                                  groups = group_data(out),
@@ -179,11 +204,14 @@ tbl_sum.time_tbl_df <- function(x, ...){
   non_time_group_vars <- setdiff(group_vars, time_var)
   time_by <- time_by_pretty(attr(x, "time_by"))
   time <- group_data(x)[[time_var]]
-  time_range <- collapse::frange(time, na.rm = TRUE)
+  time_span <- time_by_span(x)
+  time_range <- c(min(time_span[["start"]], na.rm = TRUE),
+                  max(time_span[["end"]], na.rm = TRUE))
   if (length(non_time_group_vars) > 0L){
-    n_non_time_groups <- nrow2(fdistinct(group_data(x),
-                                         .cols = non_time_group_vars,
-                                         sort = TRUE))
+    n_non_time_groups <- df_n_distinct(
+      fselect(group_data(x),
+              .cols = non_time_group_vars)
+    )
     n_time_groups <- n_unique(time)
     groups_header <- c("Groups" =
                          paste0(paste(non_time_group_vars, collapse = ", "),
