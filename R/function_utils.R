@@ -5,7 +5,7 @@ lump_categories <- function(x, n = 10, factor = TRUE,
                             descending = TRUE,
                             drop_levels = FALSE
                             # na_exclude = TRUE
-                            ){
+){
   sort <- match.arg(sort)
   y <- as.character(x)
   if (is.factor(x)){
@@ -109,7 +109,7 @@ col_select_pos <- function(data, .cols = character(0)){
     if (rng_sign == -1){
       .cols <- setdiff(nm_seq, abs(.cols))
     } else {
-      .cols <- .cols[.cols != 0]
+      .cols <- .subset(.cols, .cols != 0)
     }
     out <- match(.cols, nm_seq, nomatch = NA_integer_)
   } else if (is.character(.cols)){
@@ -117,9 +117,9 @@ col_select_pos <- function(data, .cols = character(0)){
   } else {
     stop(".cols must be a numeric or character vector")
   }
-  out_na <- is.na(out)
-  if (any(out_na)){
-    first_na_col <- .cols[which(out_na)[1L]]
+  which_na <- which(is.na(out))
+  if (length(which_na) > 0){
+    first_na_col <- .subset(.cols, .subset(which_na, 1L))
     if (is.numeric(first_na_col)){
       stop(paste("Location", first_na_col, "doesn't exist",
                  sep = " "))
@@ -130,11 +130,10 @@ col_select_pos <- function(data, .cols = character(0)){
   }
   out_nms <- names(.cols)
   if (is.null(out_nms)){
-    names(out) <- data_nms[out]
+    names(out) <- .subset(data_nms, out)
   } else {
     es <- !nzchar(out_nms)
-    out_nms[es] <- data_nms[out[es]]
-    # out_nms[out_nms == ""] <- data_nms[out[out_nms == ""]]
+    out_nms[es] <- .subset(data_nms, .subset(out, es))
     names(out) <- out_nms
   }
   out
@@ -145,7 +144,7 @@ col_select_names <- function(data, ..., .cols = NULL){
 }
 # (Internal) Fast col rename
 col_rename <- function(data, .cols = integer(0)){
-  .cols <- .cols[nzchar(names(.cols))]
+  .cols <- .subset(.cols, nzchar(names(.cols)))
   out_nms <- names(.cols)
   if (length(out_nms) == 0L){
     return(data)
@@ -158,8 +157,8 @@ col_rename <- function(data, .cols = integer(0)){
     pos <- .cols
   }
   pos_nms <- names(pos)
-  renamed <- data_nms[pos] != pos_nms
-  names(data)[pos[renamed]] <- out_nms[renamed]
+  renamed <- .subset(data_nms, pos) != pos_nms
+  names(data)[.subset(pos, renamed)] <- .subset(out_nms, renamed)
   data
 }
 # Tidyselect col positions with names
@@ -238,9 +237,9 @@ mutate2 <- function(data, ..., .by = NULL,
   is_identity <- quo_info[["is_identity"]]
   if (all(is_identity) &&
       !has_dup_names &&
-    .keep %in% c("all", "none") &&
-    rlang::quo_is_null(before_quo) &&
-    rlang::quo_is_null(after_quo)){
+      .keep %in% c("all", "none") &&
+      rlang::quo_is_null(before_quo) &&
+      rlang::quo_is_null(after_quo)){
     if (.keep == "all"){
       data
     } else {
@@ -310,36 +309,37 @@ summarise_list <- function(data, ..., fix.names = TRUE){
   data <- safe_ungroup(data)
   dots <- enquos(...)
   quo_info <- quo_summarise_info(dots, data)
-  quo_text <- quo_info[["quo_text"]]
-  is_identity <- quo_info[["is_identity"]]
+  quo_text <- .subset2(quo_info, "quo_text")
+  is_identity <- .subset2(quo_info, "is_identity")
   # Check for dots referencing exact cols (identity)
   out <- vector("list", length(quo_text))
   quo_identity_pos <- which(is_identity)
-  quo_data_nms <- quo_text[quo_identity_pos]
+  quo_data_nms <- .subset(quo_text, quo_identity_pos)
 
   quo_other_pos <- which(!is_identity)
   data_pos <- match(quo_data_nms, names(data))
   # Where expressions are identity function, just select
   for (i in seq_along(quo_identity_pos)){
-    out[[quo_identity_pos[[i]]]] <- collapse::get_vars(data, vars = data_pos[[i]],
-                                                       return = "data",
-                                                       regex = FALSE,
-                                                       rename = TRUE)
+    out[[.subset2(quo_identity_pos, i)]] <- collapse::get_vars(data,
+                                                               vars = .subset2(data_pos, i),
+                                                               return = "data",
+                                                               regex = FALSE,
+                                                               rename = TRUE)
   }
   # For all other expressions, use reframe()
   if (length(quo_other_pos) > 0L){
-    out[quo_other_pos] <- lapply(dots[quo_other_pos],
+    out[quo_other_pos] <- lapply(.subset(dots, quo_other_pos),
                                  function(quo) dplyr_summarise(data, !!quo))
   }
-  names(out) <- quo_info[["quo_nms"]]
+  names(out) <- .subset2(quo_info, "quo_nms")
   # Remove NULL entries
   out_sizes <- lengths(out, use.names = FALSE)
-  if (all(out_sizes == 0)){
+  if (sum(out_sizes) == 0){
     return(setnames(list(), character(0)))
   }
   # The below code takes columns of data frame summaries
   # and flattens them into separate list elements basically.
-  out <- out[out_sizes > 0]
+  out <- .subset(out, out_sizes > 0)
   # Outer names
   outer_nms <- names(out)
   # Lengths of each list
@@ -347,26 +347,29 @@ summarise_list <- function(data, ..., fix.names = TRUE){
   # Expand list elements that have multiple elements
   which_less_than2 <- which(out_sizes < 2)
   which_greater_than1 <- which(out_sizes > 1)
-  out1 <- out[which_less_than2]
-  out2 <- out[which_greater_than1]
-  out_order <- order(c(which_less_than2, rep(which_greater_than1,
-                                             out_sizes[which_greater_than1])))
-  outer_nms <- c(outer_nms[which_less_than2],
-                 rep(outer_nms[which_greater_than1],
-                     out_sizes[which_greater_than1]))[out_order]
+  out1 <- .subset(out, which_less_than2)
+  out2 <- .subset(out, which_greater_than1)
+  out_order <- order(c(which_less_than2, rep.int(which_greater_than1,
+                                                 .subset(out_sizes, which_greater_than1))))
+  outer_nms <- .subset(
+    c(.subset(outer_nms, which_less_than2),
+      rep.int(.subset(outer_nms, which_greater_than1),
+              .subset(out_sizes, which_greater_than1))),
+    out_order
+  )
   out2 <- unlist(out2, recursive = FALSE)
   out1 <- unlist(unname(out1), recursive = FALSE)
   inner_nms <- c(names(out1), names(out2))[out_order]
-  out <- c(out1, out2)[out_order]
+  out <- .subset(c(out1, out2), out_order)
   out_lengths <- lengths(out, use.names = FALSE)
   # Fix names so that list names are always output names and not empty
   if (fix.names){
     final_nms <- character(length(out))
     for (i in seq_along(out)){
-      if (outer_nms[[i]] == ""){
-        final_nms[[i]] <- inner_nms[[i]]
+      if (.subset(outer_nms, i) == ""){
+        final_nms[[i]] <- .subset(inner_nms, i)
       } else {
-        final_nms[[i]] <- outer_nms[[i]]
+        final_nms[[i]] <- .subset(outer_nms, i)
       }
     }
     names(out) <- final_nms
@@ -478,25 +481,25 @@ tbl_append <- function(x, y, id, keep_id = TRUE, y_suffix = ".x",
   z
 }
 # Bind columns from y to x without destroying names in x
-tbl_append2 <- function(x, y,
-                        suffix = ".x",
-                        # .name_repair = function(x) paste0(x, ".x"),
-                        quiet = FALSE){
-  if (missing(y)) return(x)
-  x_nms <- names(x)
-  y_nms <- names(y)
-  common_cols <- intersect(x_nms, y_nms)
-  suffix <- rep_len(suffix, length(common_cols))
-  new_col_nms <- paste0(common_cols, suffix)
-  y_nms[y_nms %in% common_cols] <- new_col_nms
-  names(y) <- y_nms
-  z <- dplyr::bind_cols(x, y)
-  if (!quiet){
-    new_cols <- names(z)[seq_len(ncol(y)) + ncol(x)]
-    message(paste0("New columns added:\n", paste(new_cols, collapse = ", ")))
-  }
-  z
-}
+# tbl_append2 <- function(x, y,
+#                         suffix = ".x",
+#                         # .name_repair = function(x) paste0(x, ".x"),
+#                         quiet = FALSE){
+#   if (missing(y)) return(x)
+#   x_nms <- names(x)
+#   y_nms <- names(y)
+#   common_cols <- intersect(x_nms, y_nms)
+#   suffix <- rep_len(suffix, length(common_cols))
+#   new_col_nms <- paste0(common_cols, suffix)
+#   y_nms[y_nms %in% common_cols] <- new_col_nms
+#   names(y) <- y_nms
+#   z <- dplyr::bind_cols(x, y)
+#   if (!quiet){
+#     new_cols <- names(z)[seq_len(ncol(y)) + ncol(x)]
+#     message(paste0("New columns added:\n", paste(new_cols, collapse = ", ")))
+#   }
+#   z
+# }
 # Fast top n
 top_n <- function(x, n, na.rm = FALSE, with_ties = TRUE, sort = TRUE){
   n <- min(length(x), n)
@@ -580,9 +583,6 @@ group_info <- function(data, ..., .by = NULL, .cols = NULL,
       renamed <- is.na(match(extra_groups, names(out)) != pos)
       renamed_pos <- pos[renamed]
       out <- frename(out, .cols = renamed_pos)
-      # if (length(renamed_pos) > 0L){
-      #   names(out)[renamed_pos] <- extra_groups[renamed]
-      # }
     } else {
       extra_groups <- names(out)[pos]
     }
@@ -628,11 +628,11 @@ ffactor <- function(x, levels = NULL, ordered = FALSE, na.exclude = TRUE){
                         na.exclude = na.exclude)
   } else {
     levels <- as.character(levels)
-      if (na.exclude){
-        exclude <- NA
-      } else {
-        exclude <- NULL
-      }
+    if (na.exclude){
+      exclude <- NA
+    } else {
+      exclude <- NULL
+    }
     x_unique <- collapse::funique(x, sort = TRUE)
     if (na.exclude) x_unique <- x_unique[!is.na(x_unique)]
     # This check is to ensure that if there are more or less
@@ -875,7 +875,7 @@ check_null_dots <- function(...){
   length(squashed_quos) == 0L ||
     (length(squashed_quos) == 1L &&
        rlang::quo_is_null(squashed_quos[[1L]]))
-       # is.null(rlang::quo_get_expr(squashed_quos[[1L]])))
+  # is.null(rlang::quo_get_expr(squashed_quos[[1L]])))
 }
 # Wrapper around expand.grid without factors and df coercion
 # Sorting mimics CJ()
@@ -897,31 +897,11 @@ CJ2 <- function(X){
   rep.fac <- 1L
   for (i in seq.int(from = nargs, to = 1L, by = -1L)){
     x <- .subset2(X, i)
-    nx <- .subset(d, i)
+    nx <- .subset2(d, i)
     orep <- orep/nx
     x <- x[rep.int(rep(seq_len(nx), each = rep.fac), times = orep)]
     out[[i]] <- x
     rep.fac <- rep.fac * nx
-  }
-  out
-}
-# Use this if you're going to sort afterwards
-CJ3 <- function(X){
-  nargs <- length(X)
-  if (nargs <= 1L){
-    return(X)
-  }
-  out <- vector("list", nargs)
-  d <- lengths(X, use.names = FALSE)
-  orep <- prod(d)
-  if (orep == 0L){
-    for (i in seq_len(nargs)){
-      out[[i]] <- .subset(.subset2(X, i), FALSE)
-    }
-    return(out)
-  }
-  for (i in seq.int(from = nargs, to = 1L, by = -1L)){
-    out[[i]] <- rep_len(.subset2(X, i), orep)
   }
   out
 }
@@ -931,9 +911,9 @@ quo_null <- function(quos){
          FUN.VALUE = logical(1))
 }
 expr_nms <- function(exprs){
-    vapply(exprs,
-           FUN = rlang::expr_name,
-           FUN.VALUE = character(1))
+  vapply(exprs,
+         FUN = rlang::expr_name,
+         FUN.VALUE = character(1))
 
 }
 quo_exprs <- function(quos){
@@ -1038,14 +1018,10 @@ check_range_sign <- function(x){
   }
   sign(out)
 }
-# Collapse/vctrs style complete rate
-prop_complete <- function(x, ...){
-  1 - (fnmiss(x, ...) / vec_length(x))
-}
 # Base R version of purrr::pluck, alternative to [[
 fpluck <- function(x, .cols = NULL, .default = NULL){
   if (is.null(.cols)){
-   return(x)
+    return(x)
   }
   if (length(.cols) > 1L){
     stop(".cols must have length 1")
@@ -1216,7 +1192,7 @@ any_equal <- function(x, value, tol = sqrt(.Machine$double.eps)){
 }
 check_sorted <- function(x){
   is_sorted <- !is.unsorted(x)
-  if (!is_sorted){
+  if (!isTRUE(is_sorted)){
     stop("x must be in ascending order")
   }
 }
@@ -1278,4 +1254,64 @@ fbincode <- function(x, breaks, right = TRUE, include.lowest = FALSE,
 }
 is_s3_numeric <- function(x){
   typeof(x) %in% c("integer", "double") && !isS4(x)
+}
+prop_complete <- fprop_complete
+
+# Faster cut.default
+fast_cut <- function (x, breaks, labels = NULL, include.lowest = FALSE, right = TRUE,
+                  dig.lab = 3L, ordered_result = FALSE, ...){
+  if (!is.numeric(x))
+    stop("'x' must be numeric")
+  if (length(breaks) == 1L) {
+    if (is.na(breaks) || breaks < 2L)
+      stop("invalid number of intervals")
+    nb <- as.integer(breaks + 1)
+    dx <- diff.default(rx <- range(x, na.rm = TRUE))
+    if (dx == 0) {
+      dx <- if (rx[1L] != 0)
+        abs(rx[1L])
+      else 1
+      breaks <- seq.int(rx[1L] - dx/1000, rx[2L] + dx/1000,
+                        length.out = nb)
+    }
+    else {
+      breaks <- seq.int(rx[1L], rx[2L], length.out = nb)
+      breaks[c(1L, nb)] <- c(rx[1L] - dx/1000, rx[2L] +
+                               dx/1000)
+    }
+  }
+  else nb <- length(breaks <- sort.int(as.double(breaks)))
+  if (anyDuplicated(breaks))
+    stop("'breaks' are not unique")
+  codes.only <- FALSE
+  if (is.null(labels)) {
+    for (dig in dig.lab:max(12L, dig.lab)) {
+      ch.br <- formatC(0 + breaks, digits = dig, width = 1L)
+      if (ok <- all(ch.br[-1L] != ch.br[-nb]))
+        break
+    }
+    labels <- if (ok)
+      paste0(if (right)
+        "("
+        else "[", ch.br[-nb], ",", ch.br[-1L], if (right)
+          "]"
+        else ")")
+    else paste0("Range_", seq_len(nb - 1L))
+    if (ok && include.lowest) {
+      if (right)
+        substr(labels[1L], 1L, 1L) <- "["
+      else substring(labels[nb - 1L], nchar(labels[nb -
+                                                     1L], "c")) <- "]"
+    }
+  }
+  else if (is.logical(labels) && !labels)
+    codes.only <- TRUE
+  else if (length(labels) != nb - 1L)
+    stop("number of intervals and length of 'labels' differ")
+  code <- .bincode(x, breaks, right, include.lowest)
+  if (!codes.only) {
+    levels(code) <- as.character(labels)
+    class(code) <- c(if (ordered_result) "ordered" else character(0), "factor")
+  }
+  code
 }

@@ -3,24 +3,6 @@
 #' @param data A data frame.
 #' @param time Time variable.
 #' @param x date or datetime vector.
-#' @param from Start date/datetime of sequence.
-#' @param to End date/datetime of sequence.
-#' @param time_by Unit increment of the sequence.
-#' @param length.out Length of the sequence.
-#' @param time_type If "auto", `periods` are used for
-#' the time expansion when days, weeks, months or years are specified, and `durations`
-#' are used otherwise.
-#' @param roll_month Control how impossible dates are handled when
-#' month or year arithmetic is involved.
-#' Options are "preday", "boundary", "postday", "full" and "NA".
-#' See `?timechange::time_add` for more details.
-#' @param roll_dst See `?timechange::time_add` for the full list of details.
-#' @param time_floor Should `from` be floored to the nearest unit
-#' specified through the `time_by`
-#' argument? This is particularly useful for starting sequences
-#' at the beginning of a week
-#' or month for example.
-#' @param tz Timezone of returned time sequence.
 #' @param label Logical. Should labeled (ordered factor) versions of
 #' week day and month be returned? Default is `TRUE`.
 #' @param week_start day on which week starts following ISO conventions - 1
@@ -40,16 +22,6 @@
 #' from <- floor_date(today(), unit = "year")
 #' to <- ceiling_date(today(), unit = "year", change_on_boundary = TRUE) - days(1)
 #'
-#' calendar <- create_calendar(from, to, time_by = "day")
-#' calendar
-#'
-#' # Create any unit time sequence tables
-#' create_calendar(from, to, time_by = "week")
-#' create_calendar(from, to, time_by = "month")
-#' create_calendar(from, to, time_by = "quarter")
-#' create_calendar(from, to, time_by = "year")
-#'
-#' # Or alternatively using calendar()
 #' my_seq <- time_seq(from, to, time_by = "day")
 #' calendar(my_seq)
 #'
@@ -123,35 +95,5 @@ add_calendar <- function(data, time = NULL, label = TRUE,
   }
   calendar <- fselect(calendar(data[[time_var]], label = label, week_start = week_start,
                        fiscal_start = fiscal_start), .cols = -1L)
-  data <- tbl_append2(data, calendar, suffix = ".y", quiet = FALSE)
-  data
-}
-#' @rdname calendar
-#' @export
-create_calendar <- function(from, to, time_by,
-                            length.out = NULL, time_type = c("auto", "duration", "period"),
-                            roll_month = "preday", roll_dst = "pre",
-                            tz,
-                            label = TRUE,
-                            time_floor = FALSE,
-                            week_start = getOption("lubridate.week.start", 1),
-                            fiscal_start = getOption("lubridate.fiscal.start", 1),
-                            name = "time"){
-  args <- as.list(match.call())
-  default_args <- as.list(match.call.defaults())
-  args <- args[names(args) %in% c("from", "to", "time_by", "length.out",
-                                  "time_type",
-                                  "roll_month", "roll_dst",
-                                  "tz",
-                                  "time_floor", "week_start")]
-  default_args <- default_args[names(default_args) %in%
-                                 c("from", "to", "time_by", "length.out",
-                                  "time_type",
-                                  "roll_month", "roll_dst",
-                                  "tz",
-                                  "time_floor", "week_start")]
-  args <- c(args, default_args[setdiff(names(default_args), names(args))])
-  time_seq <-  do.call(time_seq, args, envir = parent.frame())
-  calendar(time_seq, label = label, week_start = week_start,
-           fiscal_start = fiscal_start, name = name)
+  dplyr::bind_cols(data, calendar)
 }

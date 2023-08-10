@@ -454,6 +454,8 @@ fspark_bar <- function(x){
     fcut_ind(x, breaks = seq(0, 1, length.out = length(bars) + 1),
              rightmost.closed = TRUE, left.open = FALSE, all.inside = FALSE)
   ]
+  # out <- bars[.bincode(x, breaks = seq(0, 1, length.out = length(bars) + 1),
+  #                      right = TRUE, include.lowest = TRUE)]
   paste0(out, collapse = "")
 }
 # Fast skimr::inline_hist
@@ -464,7 +466,7 @@ finline_hist <- function(x, n_bins = 5L){
   if (is.infinite(collapse::fmax(abs(x)))){
     x[is.infinite(x)] <- NA
   }
-  if (all(is.na(x))) {
+  if (collapse::allNA(x)) {
     return(" ")
   }
   if (collapse::allv(collapse::na_rm(x), 0)){

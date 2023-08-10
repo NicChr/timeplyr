@@ -147,6 +147,8 @@ time_seq <- function(from, to, time_by, length.out = NULL,
     if (length(from) == 1L && length(to) == 0L){
       stop("to must be of length 1")
     }
+    # Make from and to most granular data type between them
+    set_time_cast(from, to)
   }
   # Unit parsing
   if (!missing_by){
@@ -163,6 +165,12 @@ time_seq <- function(from, to, time_by, length.out = NULL,
                           !missing_to && !is_time(to)))){
     args <- as.list(match.call())[-1]
     args <- args[names(args) %in% c("from", "to", "time_by", "length.out")]
+    if (!missing_from){
+     args[["from"]] <- from
+    }
+    if (!missing_to){
+      args[["to"]] <- to
+    }
     if (!missing_from && time_floor){
       args[["from"]] <- time_floor(from, time_by)
     }
@@ -182,10 +190,6 @@ time_seq <- function(from, to, time_by, length.out = NULL,
     # Guess seq type
     if (time_type == "auto" && !missing_by){
       time_type <- guess_seq_type(by_unit)
-    }
-    # Make from and to most granular data type between them
-    if (from_and_to){
-      set_time_cast(from, to)
     }
     # From, to, length, no time_by
     if (from_and_to && missing_by && !missing_len){

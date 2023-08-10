@@ -13,7 +13,11 @@
 age_years <- function(start, end = if (is_date(start)) Sys.Date() else Sys.time()){
   if (!is_time(start)) stop("start must be a date or datetime")
   if (!is_time(end)) stop("end must be a date or datetime")
-  as.integer(time_diff(start, end, time_by = list("years" = 1),
-                       as_period = TRUE,
-                       time_type = "period"))
+  as.integer(
+    lubridate::year(
+      lubridate::as.period(
+        lubridate::interval(start, end)
+      )
+    )
+  )
 }

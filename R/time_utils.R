@@ -42,8 +42,8 @@ unit_match <- function(x){
   if (length(x) != 1L) stop("x must be of length 1.")
   units <- .time_units
   match_i <- pmatch(x, units,
-                  nomatch = NA_character_,
-                  duplicates.ok = FALSE)
+                    nomatch = NA_character_,
+                    duplicates.ok = FALSE)
   .subset(.time_units, match_i)
 }
 # Unit string parsing
@@ -51,7 +51,7 @@ unit_parse <- function(x){
   # Extract numbers from string
   # Try decimal numbers
   num_str <- regmatches(x, m = regexpr(pattern = ".*[[:digit:]]*\\.[[:digit:]]+",
-                                        text = x))
+                                       text = x))
   # If not try regular numbers
   if (length(num_str) == 0L){
     num_str <- regmatches(x, m = regexpr(pattern = ".*[[:digit:]]+",
@@ -147,7 +147,7 @@ time_by_pretty <- function(time_by){
     # pretty_num <- prettyNum(round(num_seconds / scale, 2))
     pretty_num <- round(num, 2)
     if (!double_equal(num, pretty_num)){
-     pretty_num <- paste0("~", pretty_num)
+      pretty_num <- paste0("~", pretty_num)
     }
     if (num == 1){
       paste0(substr(units, 1L, nchar(units) -1L))
@@ -394,7 +394,7 @@ guess_seq_type <- function(units){
                           "seconds", "minutes", "hours")){
     "duration"
   } else {
-   "numeric"
+    "numeric"
   }
 }
 # get_time_type <- function(time_type, time_by){
@@ -801,16 +801,21 @@ cut_time2 <- function(x, breaks, rightmost.closed = FALSE, left.open = FALSE){
              all.inside = FALSE)
   ]
 }
+cut_time3 <- function(x, breaks, right = FALSE, include.lowest = FALSE){
+  bin_codes <- .bincode(x, breaks = breaks,
+                        right = right, include.lowest = include.lowest)
+  breaks[bin_codes]
+}
 is_date_or_utc <- function(x){
   is_date(x) || lubridate::tz(x) == "UTC"
 }
 # Check for date sequences that should not be coerced to datetimes
 is_special_case_days <- function(from, to, unit, num, time_type){
   time_type == "auto" &&
-  unit %in% c("days", "weeks") &&
-  is_date(from) &&
-  is_date(to) &&
-  is_whole_number(num)
+    unit %in% c("days", "weeks") &&
+    is_date(from) &&
+    is_date(to) &&
+    is_whole_number(num)
 }
 is_special_case_utc <- function(from, to, unit, num, time_type){
   time_type == "auto" &&
@@ -957,7 +962,7 @@ tseq_levels <- function(x, seq, gx = NULL, gseq = NULL, fmt = NULL){
                         time_breaks_fmt,
                         ", ",
                         flag2(time_breaks_fmt,
-                                       g = gseq, n = max(-1L, -n)),
+                              g = gseq, n = max(-1L, -n)),
                         ")")
   to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
   end_points <- which(is.na(out) & !is.na(seq))
@@ -1171,12 +1176,12 @@ time_aggregate_left <- function(x, time_by, g = NULL,
   out
 }
 time_aggregate_right <- function(x, time_by, g = NULL,
-                                start = NULL, end = NULL,
-                                time_ceiling = FALSE,
-                                week_start = getOption("lubridate.week.start", 1),
-                                time_type = c("auto", "duration", "period"),
-                                roll_month = "preday", roll_dst = "pre",
-                                as_int = TRUE){
+                                 start = NULL, end = NULL,
+                                 time_ceiling = FALSE,
+                                 week_start = getOption("lubridate.week.start", 1),
+                                 time_type = c("auto", "duration", "period"),
+                                 roll_month = "preday", roll_dst = "pre",
+                                 as_int = TRUE){
   time_by <- time_by_list(time_by)
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
@@ -1290,22 +1295,22 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
                                n_groups = n_groups,
                                group_sizes = seq_sizes)
   # group_ends <- cumsum(collapse::GRPN(group_id, expand = FALSE))
-    if (no_groups){
-      out <- cut_time2(time_cast(x, time_full), time_full)
-    } else {
-      time_list <- collapse::gsplit(time_as_number(x), g = g)
-      time_full_list <- collapse::gsplit(time_as_number(time_full), g = g2)
-      out <- vector("list", n_groups)
-      for (i in seq_len(n_groups)){
-        ti <- .bincode(.subset2(time_list, i),
-                       breaks = c(.subset2(time_full_list, i), Inf),
-                       include.lowest = FALSE, right = FALSE)
-        out[[i]] <- .subset(.subset2(time_full_list, i), ti)
-      }
-      out <- unlist(out, recursive = FALSE, use.names = FALSE)
-      out <- collapse::greorder(out, g = g)
-      out <- time_cast(out, time_full)
+  if (no_groups){
+    out <- cut_time2(time_cast(x, time_full), time_full)
+  } else {
+    time_list <- collapse::gsplit(time_as_number(x), g = g)
+    time_full_list <- collapse::gsplit(time_as_number(time_full), g = g2)
+    out <- vector("list", n_groups)
+    for (i in seq_len(n_groups)){
+      ti <- .bincode(.subset2(time_list, i),
+                     breaks = c(.subset2(time_full_list, i), Inf),
+                     include.lowest = FALSE, right = FALSE)
+      out[[i]] <- .subset(.subset2(time_full_list, i), ti)
     }
+    out <- unlist(out, recursive = FALSE, use.names = FALSE)
+    out <- collapse::greorder(out, g = g)
+    out <- time_cast(out, time_full)
+  }
   if (as_int){
     int_end <- time_add2(out, time_by = time_by, time_type = time_type,
                          roll_month = roll_month, roll_dst = roll_dst)
