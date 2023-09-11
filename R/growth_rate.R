@@ -18,7 +18,6 @@
 #' a flexible calculation.
 #' @param partial Should rates be calculated outwith the window
 #' using partial windows? Default is \code{TRUE}.
-#' @param n Window size (\bold{deprecated}).
 #' @return `growth_rate` returns a `numeric(1)` and `roll_growth_rate`
 #' returns a `numeric(length(x))`.
 #' @details
@@ -99,53 +98,6 @@ roll_growth_rate <- function(x, window = length(x),
   if (!is.null(inf_fill)){
     # Any growth change from 0 is replaced with inf_fill
     gr[is.infinite(gr)] <- inf_fill
-  }
-  gr
-}
-#' @rdname growth_rate
-#' @export
-rolling_growth_rate <- function(x, n = length(x),
-                                partial = TRUE,
-                                na.rm = FALSE,
-                                log = FALSE, inf_fill = NULL){
-  .Deprecated("roll_growth_rate")
-  x_len <- length(x)
-  n_len <- length(n)
-  stopifnot(n_len <= 1)
-  n <- as.integer(n)
-  n <- max(1L, n)
-  n <- min(x_len, n)
-  lag <- max(0L, n - 1L)
-  # if (!isTRUE(n_len == 1 || n_len == x_len)){
-  #   stop("n must be of length 1 or length(x)")
-  # }
-  # if (n_len == x_len){
-  #   x_lagged <- runner::lag_run(x, lag = n - 1)
-  # } else
-  if (partial){
-    x_lagged <- collapse::flag(x, n = lag)
-    setv(x_lagged, seq_len(n), vec_head(x), vind1 = TRUE)
-    n <- window_seq(k = n, n = x_len, partial = TRUE)
-    # x_lagged <- runner::lag_run(x, lag = n - 1)
-  } else {
-    x_lagged <- collapse::flag(x, n = lag)
-    n <- rep_len(n, x_len)
-  }
-  if (na.rm){
-    n <- frollsum3(!is.na(x), n = n, adaptive = TRUE)
-  }
-  if (log){
-    gr <- exp(( log(x) - log(x_lagged) ) / (n - 1))
-    setv(gr, which((n - 1) == 0), 1, vind1 = TRUE)
-  } else {
-    gr <- ( (x / x_lagged) ^ (1 / (n - 1)) )
-    setv(gr, which(x == 0 & x_lagged == 0), 1, vind1 = TRUE)
-  }
-  which_inf <- which(is.infinite(gr))
-  if (length(which_inf) > 0 && !is.null(inf_fill)){
-    if (is.na(inf_fill)) inf_fill <- NA_real_
-    # Any growth change from 0 is replaced with inf_fill
-    setv(gr, which_inf, inf_fill, vind1 = TRUE)
   }
   gr
 }

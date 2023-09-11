@@ -277,7 +277,7 @@ add_group_id <- function(data, ...,
                          .name = NULL,
                          as_qg = FALSE){
   if (is.null(.name)) .name <- new_var_nm(names(data), "group_id")
-  dplyr::dplyr_col_modify(data, setnames(list(group_id(data, ...,
+  dplyr::dplyr_col_modify(data, add_names(list(group_id(data, ...,
                                                        order = order,
                                                        ascending = ascending,
                                                        .by = {{ .by }},
@@ -325,7 +325,7 @@ add_row_id <- function(data, ..., ascending = TRUE,
                        .by = NULL, .cols = NULL,
                        .name = NULL){
   if (is.null(.name)) .name <- new_var_nm(names(data), "row_id")
-  dplyr::dplyr_col_modify(data, setnames(list(row_id(data, ...,
+  dplyr::dplyr_col_modify(data, add_names(list(row_id(data, ...,
                                                      ascending = ascending,
                                                      .by = {{ .by }}, .cols = .cols)),
                                          .name))
@@ -399,7 +399,7 @@ add_group_order <- function(data, ..., ascending = TRUE,
                             .by = NULL, .cols = NULL,
                             .name = NULL){
   if (is.null(.name)) .name <- new_var_nm(names(data), "group_order")
-  dplyr::dplyr_col_modify(data, setnames(list(group_order(data, ...,
+  dplyr::dplyr_col_modify(data, add_names(list(group_order(data, ...,
                                                           .by = {{ .by }}, .cols = .cols,
                                                           ascending = ascending)),
                                          .name))

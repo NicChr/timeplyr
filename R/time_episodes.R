@@ -163,7 +163,7 @@ time_episodes <- function(data, time, time_by = NULL,
     }
     # Add event identifier col
     event_id_nm <- new_var_nm(data, ".event.id")
-    data <- dplyr::dplyr_col_modify(data, cols = setnames(list(
+    data <- dplyr::dplyr_col_modify(data, cols = add_names(list(
       data.table::fifelse(fpluck(data, event_col) %in%
                             event[[1L]],
                           1L, 0L)
@@ -249,7 +249,7 @@ calc_episodes <- function(data,
   time_na <- fpluck(data, time)[N + 1L] # time NA with correct class
   time_num <- time_by_num(time_by)
   time_unit <- time_by_unit(time_by)
-  # time_threshold <- setnames(list(time_num * window), time_unit)
+  # time_threshold <- add_names(list(time_num * window), time_unit)
 
   ##### (More efficient) METHOD assuming all rows are events #####
 

@@ -82,7 +82,7 @@ time_aggregate <- function(x, time_by = NULL, g = NULL,
     index <- gmax(x, g = g, na.rm = TRUE)
   }
   tdiff <- time_diff(index, x, time_by = time_by, time_type = time_type)
-  time_to_add <- setnames(list(trunc(tdiff) * num), units)
+  time_to_add <- add_names(list(trunc(tdiff) * num), units)
   time_add2(index, time_by = time_to_add, time_type = time_type,
             roll_month = roll_month, roll_dst = roll_dst)
 }

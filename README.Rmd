@@ -42,7 +42,7 @@ library(timeplyr)
 
 # Basic examples
 
-## Convert `ts`, `mts`, `xts` and `timeSeries` objects using `ts_as_tibble`
+## Convert `ts`, `mts`, `xts`, `zoo`and `timeSeries` objects using `ts_as_tibble`
 
 ```{r}
 library(tidyverse)
@@ -361,7 +361,7 @@ Dealing with impossible dates and datetimes is very simple
 time_seq(start, end, time_by = "month", roll_month = "postday") # roll impossible months forward
 time_seq(start, end, time_by = "month", roll_month = "NA") # no roll
 
-time_seq(start, end, time_by = "month", time_type = "duration") # lubridate version with durations
+time_seq(start, end, time_by = dmonths(1)) # lubridate version with durations
 ```
 
 ## `iso_week()`

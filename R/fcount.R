@@ -109,9 +109,9 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                            na.rm = TRUE,
                            use.g.names = FALSE,
                            fill = FALSE)
-    if (length(nobs) == 0L || isTRUE((
-      collapse::fmax(nobs, na.rm = TRUE) <= .Machine$integer.max
-    ))){
+    if (length(nobs) == 0L || isTRUE(
+      is_integerable(collapse::fmax(nobs, na.rm = TRUE))
+    )){
       nobs <- as.integer(nobs)
     }
     # Replace NA with 0
@@ -170,15 +170,15 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                    na.rm = TRUE)
     # Replace NA with 0
     nobs[is.na(nobs)] <- 0
-    if (isTRUE((
-      collapse::fmax(nobs, na.rm = TRUE) <= .Machine$integer.max
-    ))){
+    if (isTRUE(
+      is_integerable(collapse::fmax(nobs, na.rm = TRUE))
+    )){
       nobs <- as.integer(nobs)
     }
   } else {
     nobs <- GRP_expanded_group_sizes(g)
   }
-  out <- dplyr::dplyr_col_modify(out, cols = setnames(list(nobs),
+  out <- dplyr::dplyr_col_modify(out, cols = add_names(list(nobs),
                                                       name))
   if (sort){
     out <- farrange(out, desc(.data[[name]]))

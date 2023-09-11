@@ -607,7 +607,7 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
   # Replace allocated integer with counts
   setv(out, seq_len(out_len), collapse::GRPN(cnt_grps, expand = TRUE),
        vind1 = TRUE)
-  # if (use.names && !include_interval) out <- setnames(out, x)
+  # if (use.names && !include_interval) out <- add_names(out, x)
   if (include_interval){
     time_seq_int <- tseq_interval(x = .to, time_breaks)
     time_int <- time_seq_int[time_break_ind]
@@ -640,11 +640,11 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
       }
       out <- dt[["out"]]
       if (use.names){
-        out <- setnames(out, dt[["x"]])
+        out <- add_names(out, dt[["x"]])
       }
     } else {
       if (use.names){
-        out <- setnames(out, x)
+        out <- add_names(out, x)
       }
     }
   }

@@ -50,10 +50,10 @@ time_id <- function(x, time_by = NULL, g = NULL, na_skip = TRUE,
                       na_skip = na_skip,
                       time_type = time_type,
                       rolling = FALSE)
-  # To more closely match collapse::timeid one can use the below 3 lines
-  # time_diff_gcd <- time_diff_gcd(x)
-  # first_time <- collapse::fmin(x, g = g, na.rm = na_skip,
-  #                              TRA = "replace_fill")
-  # out <- time_diff(first_time, x, time_by = time_diff_gcd, time_type = time_type)
   as.integer(out) + 1L
 }
+# To more closely match collapse::timeid one can use the below 3 lines
+# time_diff_gcd <- time_diff_gcd(x)
+# first_time <- collapse::fmin(x, g = g, na.rm = na_skip,
+#                              TRA = "replace_fill")
+# out <- time_diff(first_time, x, time_by = time_diff_gcd, time_type = time_type)

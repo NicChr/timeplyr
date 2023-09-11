@@ -85,19 +85,11 @@ weighted_mean <- function (x, w = NULL, na.rm = FALSE) {
 }
 # Weighted geometric mean
 geometric_mean <- function(x, weights = NULL, na.rm = FALSE){
-  if (!is.null(weights)){
-    exp(weighted_mean(log(x), w = weights, na.rm = na.rm))
-  } else {
-    exp(mean(log(x), na.rm = na.rm))
-  }
+  exp(weighted_mean(log(x), w = weights, na.rm = na.rm))
 }
 # Weighted harmonic mean
 harmonic_mean <- function(x, weights = NULL, na.rm = FALSE){
-  if (!is.null(weights)){
-    1 / weighted_mean(1/x, w = weights, na.rm = na.rm)
-  } else {
-    1 / mean(1/x, na.rm = na.rm)
-  }
+  1 / weighted_mean(1/x, w = weights, na.rm = na.rm)
 }
 
 # Transform variables using tidy data masking
@@ -170,7 +162,7 @@ col_rename <- function(data, .cols = integer(0)){
   }
   data_nms <- names(data)
   if (is.character(.cols)){
-    pos <- setnames(match(.cols, data_nms),
+    pos <- add_names(match(.cols, data_nms),
                     out_nms)
   } else {
     pos <- .cols
@@ -310,7 +302,7 @@ summarise_list <- function(data, ..., fix.names = TRUE){
   # Remove NULL entries
   out_sizes <- lengths(out, use.names = FALSE)
   if (sum(out_sizes) == 0){
-    return(setnames(list(), character(0)))
+    return(add_names(list(), character(0)))
   }
   # The below code takes columns of data frame summaries
   # and flattens them into separate list elements basically.
@@ -478,6 +470,18 @@ top_n <- function(x, n, na.rm = FALSE, with_ties = TRUE, sort = TRUE){
   }
   out
 }
+# top_n <- function(x, n = 5, na_rm = FALSE, with_ties = TRUE){
+#   out <- fn(x, g = x, sort = FALSE, use.g.names = TRUE)
+#   if (na_rm){
+#     out <- out[!is.na(names(out))]
+#   }
+#   out <- radix_sort(out, decreasing = TRUE)
+#   if (with_ties){
+#     out[out %in% out[seq_len(n)]]
+#   } else {
+#     out[seq_len(n)]
+#   }
+# }
 # This function is for functions like count() where extra groups need
 # to be created
 get_group_info <- function(data, ..., type = c("select", "data-mask"),
@@ -668,7 +672,7 @@ radix_sort <- function(x, na.last = TRUE, ...){
 # Creates a sequence of ones.
 # This is used primarily for sums
 seq_ones <- function(length){
-  if (length <= .Machine$integer.max){
+  if (is_integerable(length)){
     collapse::alloc(1L, length)
   } else {
     collapse::alloc(1, length)
@@ -714,6 +718,7 @@ are_whole_numbers <- function(x){
   }
   double_equal(x, round(x))
 }
+# Unique number from positive numbers
 pair_unique <- function(x, y){
   ( ( (x + y + 1) * (x + y) ) / 2 ) + x
 }
@@ -903,8 +908,8 @@ check_cols <- function(n_dots, .cols = NULL){
 # NULL is removed.
 quo_select_info <- function(quos, data){
   quo_nms <- names(quos)
-  quo_text <- setnames(character(length(quos)), quo_nms)
-  quo_is_null <- setnames(logical(length(quos)), quo_nms)
+  quo_text <- add_names(character(length(quos)), quo_nms)
+  quo_is_null <- add_names(logical(length(quos)), quo_nms)
   for (i in seq_along(quos)){
     quo_text[[i]] <- deparse(rlang::quo_get_expr(quos[[i]]))
     # quo_text[[i]] <- rlang::expr_name(rlang::quo_get_expr(quos[[i]]))
@@ -923,8 +928,8 @@ quo_select_info <- function(quos, data){
 # unnamed NULL exprs are removed.
 quo_mutate_info <- function(quos, data){
   quo_nms <- names(quos)
-  quo_text <- setnames(character(length(quos)), quo_nms)
-  quo_is_null <- setnames(logical(length(quos)), quo_nms)
+  quo_text <- add_names(character(length(quos)), quo_nms)
+  quo_is_null <- add_names(logical(length(quos)), quo_nms)
   for (i in seq_along(quos)){
     quo_text[[i]] <- deparse1(rlang::quo_get_expr(quos[[i]]))
     # quo_text[[i]] <- rlang::expr_name(rlang::quo_get_expr(quos[[i]]))
@@ -940,8 +945,8 @@ quo_mutate_info <- function(quos, data){
 # Used only for summarise_list()
 quo_summarise_info <- function(quos, data){
   quo_nms <- names(quos)
-  quo_text <- setnames(character(length(quos)), quo_nms)
-  quo_is_null <- setnames(logical(length(quos)), quo_nms)
+  quo_text <- add_names(character(length(quos)), quo_nms)
+  quo_is_null <- add_names(logical(length(quos)), quo_nms)
   for (i in seq_along(quos)){
     quo_text[[i]] <- deparse1(rlang::quo_get_expr(quos[[i]]))
     # quo_text[[i]] <- rlang::expr_name(rlang::quo_get_expr(quos[[i]]))
@@ -1245,4 +1250,23 @@ na_init <- function(x){
 strip_attrs <- function(x){
   `attributes<-`(x, NULL)
 }
-
+is_integerable <- function(x){
+  x <= .Machine$integer.max
+}
+add_attrs <- function(x, value){
+  attributes(x) <- value
+  x
+}
+add_names <- function(x, value){
+  names(x) <- value
+  x
+}
+flip_names_values <- function(x){
+  x_nms <- names(x)
+  if (is.null(x_nms)){
+    stop("x must be a named vector")
+  }
+  out <- x_nms
+  names(out) <- as.character(unname(x))
+  out
+}

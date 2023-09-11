@@ -80,7 +80,7 @@ time_by_list <- function(time_by){
   unit_info <- unit_guess(time_by)
   units <- .subset2(unit_info, "unit")
   num <- .subset2(unit_info, "num") * .subset2(unit_info, "scale")
-  setnames(list(num), units)
+  add_names(list(num), units)
 }
 # Returns list with numeric vector element, where the name of the list
 # is the time unit name
@@ -91,7 +91,7 @@ time_by_get <- function(x, time_by = NULL, is_sorted = FALSE,
                                   msg = !quiet)
     by_n <- unit_info[["num"]]
     by_unit <- unit_info[["unit"]]
-    out <- setnames(list(by_n), by_unit)
+    out <- add_names(list(by_n), by_unit)
   } else {
     out <- time_by_list(time_by)
   }
@@ -548,7 +548,7 @@ time_unit_info <- function(time_unit){
     #              "day",
     #              "month",
     #              "year")
-    # out <- setnames(vector("list", length(periods)),
+    # out <- add_names(vector("list", length(periods)),
     #                 periods)
     # keep <- logical(length(periods))
     # for (i in seq_along(periods)){
@@ -577,7 +577,7 @@ time_unit_info <- function(time_unit){
     #                  byrow = FALSE, ncol = 2L)
     # out <- m[keep_m]
     # out_nms <- c("second", lubridate_units)[keep]
-    # out <- setnames(as.list(out), out_nms)
+    # out <- add_names(as.list(out), out_nms)
     # out
   } else {
     list("numeric" = time_value)
@@ -1015,7 +1015,7 @@ time_add2 <- function(x, time_by,
     }
     if (time_type == "period"){
       unit <- substr(time_unit, 1L, nchar(time_unit) -1L)
-      time_add(x, periods = setnames(list(time_num), unit),
+      time_add(x, periods = add_names(list(time_num), unit),
                roll_month = roll_month, roll_dst = roll_dst)
     } else {
       x + duration_unit(time_unit)(time_num)
@@ -1039,7 +1039,7 @@ time_floor2 <- function(x, time_by, week_start = getOption("lubridate.week.start
     num <- unlist(time_by, use.names = FALSE, recursive = FALSE)
     floor(x / num) * num
   } else {
-    time_floor(x, time_by = setnames(list(1), names(time_by)), week_start = week_start)
+    time_floor(x, time_by = add_names(list(1), names(time_by)), week_start = week_start)
   }
 }
 time_ceiling <- function(x, time_by, week_start = getOption("lubridate.week.start", 1),
@@ -1061,7 +1061,7 @@ time_ceiling2 <- function(x, time_by, week_start = getOption("lubridate.week.sta
     num <- unlist(time_by, use.names = FALSE, recursive = FALSE)
     ceiling(x / num) * num
   } else {
-    time_ceiling(x, time_by = setnames(list(1), names(time_by)),
+    time_ceiling(x, time_by = add_names(list(1), names(time_by)),
                  week_start = week_start,
                  change_on_boundary = change_on_boundary)
   }
@@ -1157,7 +1157,7 @@ time_aggregate_left <- function(x, time_by, g = NULL,
                          week_start = week_start)
   }
   tdiff <- time_diff(start, x, time_by = time_by, time_type = time_type)
-  time_to_add <- setnames(list(trunc(tdiff) * num), units)
+  time_to_add <- add_names(list(trunc(tdiff) * num), units)
   out <- time_add2(start, time_by = time_to_add, time_type = time_type,
                    roll_month = roll_month, roll_dst = roll_dst)
   if (as_int){
@@ -1208,7 +1208,7 @@ time_aggregate_right <- function(x, time_by, g = NULL,
                            week_start = week_start)
   }
   tdiff <- time_diff(end, x, time_by = time_by, time_type = time_type)
-  time_to_add <- setnames(list(trunc(tdiff) * num), units)
+  time_to_add <- add_names(list(trunc(tdiff) * num), units)
   out <- time_add2(end, time_by = time_to_add, time_type = time_type,
                    roll_month = roll_month, roll_dst = roll_dst)
   if (as_int){

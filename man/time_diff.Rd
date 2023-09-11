@@ -7,7 +7,7 @@
 time_diff(
   x,
   y,
-  time_by,
+  time_by = 1,
   time_type = c("auto", "duration", "period"),
   as_period = FALSE
 )
@@ -17,7 +17,7 @@ time_diff(
 
 \item{y}{End date or datetime.}
 
-\item{time_by}{Must be one of the three:
+\item{time_by}{Must be one of the three (Default is 1):
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
 \code{time_by = "days"} or \code{time_by = "2 weeks"}
@@ -34,6 +34,9 @@ then arithmetic is used, e.g \code{time_by = 1}.
 \item{as_period}{Logical. Should time interval be coerced to a period
 before time difference is calculated? This is useful for calculating
 for example age in exact years or months.}
+}
+\value{
+A numeric vector.
 }
 \description{
 This is a neat wrapper around lubridate's

@@ -3,7 +3,6 @@
 \name{growth_rate}
 \alias{growth_rate}
 \alias{roll_growth_rate}
-\alias{rolling_growth_rate}
 \title{Fast Growth Rates}
 \usage{
 growth_rate(x, na.rm = FALSE, log = FALSE, inf_fill = NULL)
@@ -11,15 +10,6 @@ growth_rate(x, na.rm = FALSE, log = FALSE, inf_fill = NULL)
 roll_growth_rate(
   x,
   window = length(x),
-  partial = TRUE,
-  na.rm = FALSE,
-  log = FALSE,
-  inf_fill = NULL
-)
-
-rolling_growth_rate(
-  x,
-  n = length(x),
   partial = TRUE,
   na.rm = FALSE,
   log = FALSE,
@@ -47,8 +37,6 @@ a flexible calculation.}
 
 \item{partial}{Should rates be calculated outwith the window
 using partial windows? Default is \code{TRUE}.}
-
-\item{n}{Window size (\bold{deprecated}).}
 }
 \value{
 \code{growth_rate} returns a \code{numeric(1)} and \code{roll_growth_rate}

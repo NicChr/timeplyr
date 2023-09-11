@@ -23,7 +23,7 @@
 #' @export
 sequence2 <- function(nvec, from = 1L, by = 1L){
   out_len <- sum(nvec)
-  out_is_int <- isTRUE(out_len <= .Machine$integer.max)
+  out_is_int <- isTRUE(is_integerable(out_len))
   if (is.integer(from) &&
       is.integer(by) &&
       out_is_int){

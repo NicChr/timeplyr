@@ -155,7 +155,7 @@ time_seq <- function(from, to, time_by, length.out = NULL,
     unit_info <- unit_guess(time_by)
     by_n <- unit_info[["num"]] * unit_info[["scale"]]
     by_unit <- unit_info[["unit"]]
-    tby <- setnames(list(by_n), by_unit)
+    tby <- add_names(list(by_n), by_unit)
     time_by_is_num <- time_by_is_num(tby)
   } else {
     time_by_is_num <- FALSE
@@ -198,7 +198,7 @@ time_seq <- function(from, to, time_by, length.out = NULL,
       unit_info <- time_unit_info(time_unit)
       by_n <- unname(unit_info)[[1L]]
       by_unit <- paste0(names(unit_info), "s")
-      tby <- setnames(list(by_n), by_unit)
+      tby <- add_names(list(by_n), by_unit)
       if (time_floor){
         warning("Ambiguous how to floor from. Please supply the time_by argument.")
       }
@@ -216,7 +216,7 @@ time_seq <- function(from, to, time_by, length.out = NULL,
     if (time_type == "auto") time_type <- guess_seq_type(by_unit)
     ### After this we will always have both length and time_by
     if (missing_from){
-      from <- time_add2(to, setnames(list(-(by_n * length.out) + by_n),
+      from <- time_add2(to, add_names(list(-(by_n * length.out) + by_n),
                                      by_unit),
                         time_type = time_type,
                         roll_month = roll_month, roll_dst = roll_dst)
@@ -245,9 +245,9 @@ time_seq <- function(from, to, time_by, length.out = NULL,
       if (by_unit == "weeks"){
         by_n <- by_n * 7
       }
-      out <- seq.int(from = as.integer(from),
+      out <- seq.int(from = from,
                      length.out = length.out,
-                     by = as.integer(by_n))
+                     by = as.double(by_n))
       class(out) <- "Date"
     } else if (time_type == "duration"){
       out <- duration_seq(from = as_datetime2(from),
@@ -275,8 +275,8 @@ time_seq_sizes <- function(from, to, time_by,
                          as_period = as_period))
   # Accounting for when from - to / by = 0 / 0
   tdiff[is.nan(tdiff)] <- 0
-  # tdiff[tby[[1L]] == 0 & from == to] <- 0
-  if (length(tdiff) == 0L || isTRUE((collapse::fmax(tdiff) + 1) <= .Machine$integer.max)){
+  if (length(tdiff) == 0L ||
+      isTRUE(is_integerable(collapse::fmax(tdiff) + 1))){
     as.integer(tdiff) + 1L
   } else {
     tdiff + 1
@@ -344,14 +344,14 @@ time_seq_v2 <- function(sizes, from, time_by,
 }
 # faster seq.Date() and handles zero length from differently
 # by must be numeric
-date_seq <- function(from, to, by = 1L){
+date_seq <- function(from, to, by = 1){
   if (length(from) == 0L) return(from)
   if (!is_date(from) || !is_date(to)){
     stop("from and to must be dates")
   }
-  out <- seq.int(from = as.integer(from),
-                 to = as.integer(to),
-                 by = by)
+  out <- seq.int(from = from,
+                 to = to,
+                 by = as.double(by))
   class(out) <- "Date"
   out
 }
@@ -391,13 +391,13 @@ period_seq <- function(from, length, unit, num = 1,
   if (length == 0L){
     from <- from[0L]
   }
-  time_add(from, periods = setnames(list(num * int_seq),
+  time_add(from, periods = add_names(list(num * int_seq),
                                                        unit),
                        roll_month = roll_month, roll_dst = roll_dst)
 }
 # Duration sequence vectorised over from, to and num
 duration_seq_v <- function(from, to, units, num = 1){
-  time_by <- setnames(list(num), units)
+  time_by <- add_names(list(num), units)
   seq_sizes <- time_seq_sizes(from, to, time_by = time_by,
                               time_type = "duration")
   duration_seq_v2(seq_sizes, from = from, units = units, num = num)
@@ -407,7 +407,7 @@ duration_seq_v <- function(from, to, units, num = 1){
 duration_seq_v2 <- function(sizes, from, units, num = 1){
   units <- rlang::arg_match0(units, .duration_units)
   from <- as_datetime2(from)
-  time_by <- setnames(list(num), units)
+  time_by <- add_names(list(num), units)
   num_seconds <- unit_to_seconds(time_by)
   time_seq <- sequence2(sizes,
                         from = time_as_number(from),
@@ -418,20 +418,20 @@ duration_seq_v2 <- function(sizes, from, units, num = 1){
 # Date sequence vectorised over from, to and num
 date_seq_v <- function(from, to, units = c("days", "weeks"), num = 1){
   stopifnot(is_date(to))
-  seq_sizes <- time_seq_sizes(from, to, time_by = setnames(list(num), units))
+  seq_sizes <- time_seq_sizes(from, to, time_by = add_names(list(num), units))
   date_seq_v2(seq_sizes,
               from = from, units = units, num = num)
 }
 # Alternate version of date_seq_v with sizes arg instead of to
 # If you have the sequence sizes pre-calculated, you can use this
-date_seq_v2 <- function(sizes, from, units = c("days", "weeks"), num = 1L){
+date_seq_v2 <- function(sizes, from, units = c("days", "weeks"), num = 1){
   units <- rlang::arg_match0(units, c("days", "weeks"))
   stopifnot(is_date(from))
   if (units == "weeks"){
     units <- "days"
-    num <- as.integer(num * 7)
+    num <- as.double(num * 7)
   }
-  out <- sequence(sizes, from = unclass(from), by = num)
+  out <- sequence2(sizes, from = unclass(from), by = num)
   class(out) <- "Date"
   out
 }
@@ -444,7 +444,7 @@ period_seq_v <- function(from, to, units, num = 1,
   if (length(to) == 0L){
     return(vec_head(from, n = 0L))
   }
-  seq_sizes <- time_seq_sizes(from, to, time_by = setnames(list(num), units),
+  seq_sizes <- time_seq_sizes(from, to, time_by = add_names(list(num), units),
                               time_type = "period")
   period_seq_v2(sizes = seq_sizes,
                 from = from, units = units,
@@ -505,7 +505,7 @@ period_seq_v2 <- function(sizes, from, units, num = 1,
   out <- rep_len(from[0L],
                  sum(out_sizes))
   # Setnames on the list for timechange::time_add
-  by <- setnames(by, rep_len(unit, length(by)))
+  by <- add_names(by, rep_len(unit, length(by)))
   out <- vector("list", nrow2(period_df))
   for (i in df_seq_along(period_df)){
     out[[i]] <- C_time_add(from[i], .subset(by, i), roll_month, roll_dst)
@@ -521,7 +521,7 @@ period_seq_v2 <- function(sizes, from, units, num = 1,
 # period_seq_v3 <- function(from, to, units, num = 1,
 #                          roll_month = "preday", roll_dst = "pre"){
 #   units <- match.arg(units, .period_units)
-#   seq_len <- time_seq_len(from, to, by = setnames(list(num), units),
+#   seq_len <- time_seq_len(from, to, by = add_names(list(num), units),
 #                           seq_type = "period")
 #   out_len <- sum(seq_len)
 #   unit <- substr(units, 1L, nchar(units) -1L)
@@ -544,7 +544,7 @@ period_seq_v2 <- function(sizes, from, units, num = 1,
 #   period_dt <- data.table::data.table(g = g_seq, from = from, by = by,
 #                                       key = "g")
 #   period_dt[, list("time" = time_add(get("from"),
-#                                      periods = setnames(as.list(get("by")), unit),
+#                                      periods = add_names(as.list(get("by")), unit),
 #                                      roll_month = roll_month,
 #                                      roll_dst = roll_dst)),
 #             keyby = "g"][["time"]]

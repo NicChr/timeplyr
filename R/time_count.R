@@ -230,8 +230,8 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                   name = name)
     # If complete, full-join time sequence df onto ts data
     if (complete){
-      message("\nFilling in implicit gaps in time, counts are replaced with 0
-              to disable this set complete = FALSE")
+      # message("\nFilling in implicit gaps in time, counts are replaced with 0
+      #         to disable this set complete = FALSE")
       out[start_end_tbl, (c(from_nm, to_nm)) := mget(c(from_nm, to_nm)),
           on = grp_nm, allow.cartesian = FALSE]
       # Expanded time sequences for each group
