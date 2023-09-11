@@ -188,9 +188,8 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
             # If data was grouped, we can do a full join on these variables
           } else {
             if (length(setdiff(expanded_nms, group_vars)) > 0L){
-              out <- merge(out, expanded_df,
-                           all = TRUE, by = group_vars, sort = FALSE,
-                           allow.cartesian = TRUE)
+              out <- dplyr::full_join(out, expanded_df, by = group_vars,
+                                      relationship = "many-to-many")
             }
           }
         }
@@ -255,8 +254,7 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
     if (length(time_var) > 0){
       out[, (time_var) := time_cast(get(time_var), expanded_df[[time_var]])]
     }
-    out <- merge(out, expanded_df,
-                 all = TRUE, by = names(expanded_df), sort = FALSE)
+    out <- dplyr::full_join(out, expanded_df, by = names(expanded_df))
     if (sort){
       setorderv2(out, cols = c(group_vars, time_var,
                                           setdiff(names(expanded_df),

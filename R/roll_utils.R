@@ -272,3 +272,13 @@ frollmean3 <- function(x, n, weights = NULL, ...){
   }
   out
 }
+check_before <- function(before){
+  if (!is.numeric(before)){
+    stop("before must be an integer vector")
+  }
+}
+check_after <- function(after){
+  if (!is.numeric(after)){
+    stop("after must be an integer vector")
+  }
+}

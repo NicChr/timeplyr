@@ -306,9 +306,7 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
   fill_na <- any(!is.na(fill))
   # Full-join
   if (nrow2(expanded_df) > 0 && ncol(expanded_df) > 0){
-    out <- merge(out, expanded_df,
-                 all = TRUE, by = names(expanded_df),
-                 allow.cartesian = TRUE, sort = FALSE)
+    out <- dplyr::full_join(out, expanded_df, by = names(expanded_df))
     if (sort){
       setorderv2(out, cols = names(expanded_df))
     }

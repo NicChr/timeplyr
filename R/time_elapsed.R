@@ -67,9 +67,7 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
                          na_skip = TRUE){
   check_is_time_or_num(x)
   time_by <- time_by_get(x, time_by = time_by)
-  if (time_by_length(time_by) > 1){
-    stop("Please supply only one numeric value in time_by")
-  }
+  check_time_by_length_is_one(time_by)
   if (!is.na(fill) && length(fill) > 1){
     stop("fill must be a single number")
   }

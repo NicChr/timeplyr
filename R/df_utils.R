@@ -192,13 +192,13 @@ fenframe <- function(x, name = "name", value = "value"){
 }
 # alternative tibble::deframe
 fdeframe <- function(x){
-  ncol <- collapse::fncol(x)
+  ncol <- length(attr(x, "names"))
   if (!(is_df(x) || ncol %in% (1:2))){
     stop("`x` must be a 1 or 2 col data frame")
   }
-  out <- fpluck(x, ncol)
+  out <- .subset2(x, ncol)
   if (ncol == 2){
-    names(out) <- as.character(fpluck(x, 1L))
+    names(out) <- as.character(.subset2(x, 1L))
   }
   out
 }

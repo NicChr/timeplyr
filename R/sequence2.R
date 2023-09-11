@@ -47,10 +47,10 @@ sequence2 <- function(nvec, from = 1L, by = 1L){
     g_add <- sequence(nvec, from = 0L, by = 1L)
   } else {
     g <- seq_id(nvec)
-    g_add <- fcumsum(seq_ones(out_len),
-                     check.o = FALSE,
-                     na.rm = FALSE,
-                     g = g) - 1
+    g_add <- collapse::fcumsum(seq_ones(out_len),
+                               check.o = FALSE,
+                               na.rm = FALSE,
+                               g = g) - 1
   }
   from + (g_add * by)
 }

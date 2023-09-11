@@ -519,3 +519,34 @@ IntegerVector lead_sequence(IntegerVector size, int k) {
 //   return out;
 // }
 
+// Fill n NA values with last non NA observation
+// NumericVector fill_n(NumericVector x, int n) {
+//   NumericVector out = clone(x);
+//   int size = x.length();
+//   int j = 0;
+//   bool first_non_na = false;
+//   bool fill_flag = false;
+//   bool is_na;
+//   double fill;
+//   for (int i = 0; i < size; ++i) {
+//     is_na = NumericVector::is_na(x[i]);
+//     // First non-NA
+//     if (!is_na){
+//       first_non_na = true;
+//     }
+//     // Fill NA value
+//     if (first_non_na && is_na && !fill_flag){
+//       fill = x[i - 1];
+//       fill_flag = true;
+//     }
+//     if (first_non_na && is_na){
+//       out[i] = fill;
+//       j = j + 1;
+//     }
+//     // Reset searching for first fill value
+//     if (j == n){
+//       break;
+//     }
+//   }
+//   return out;
+// }

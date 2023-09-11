@@ -16,7 +16,8 @@ age_years <- function(start, end = if (is_date(start)) Sys.Date() else Sys.time(
   as.integer(
     lubridate::year(
       lubridate::as.period(
-        lubridate::interval(start, end)
+        lubridate::interval(start, end),
+        unit = "years"
       )
     )
   )

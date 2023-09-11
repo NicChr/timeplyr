@@ -78,7 +78,8 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
   # Groups
   groups <- df_to_GRP(out, .cols = dup_vars,
                       return.order = FALSE,
-                      return.groups = FALSE)
+                      return.groups = FALSE,
+                      order = FALSE)
   group_sizes <- GRP_expanded_group_sizes(groups)
   if (.add_count){
     n_var_nm <- new_n_var_nm(out)

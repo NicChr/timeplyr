@@ -6,6 +6,7 @@
 \usage{
 time_diff_gcd(
   x,
+  time_by = 1,
   time_type = c("auto", "duration", "period"),
   is_sorted = FALSE,
   tol = sqrt(.Machine$double.eps)
@@ -14,6 +15,19 @@ time_diff_gcd(
 \arguments{
 \item{x}{Time variable. \cr
 Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, or \code{yearqtr}.}
+
+\item{time_by}{Time unit (default is 1). \cr
+Must be one of the following:
+\itemize{
+\item string, specifying either the unit or the number and unit, e.g
+\code{time_by = "days"} or \code{time_by = "2 weeks"}
+\item named list of length one, the unit being the name, and
+the number the value of the list, e.g. \code{list("days" = 7)}.
+For the vectorized time functions, you can supply multiple values,
+e.g. \code{list("days" = 1:10)}.
+\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
+then arithmetic is used, e.g \code{time_by = 1}.
+}}
 
 \item{time_type}{If "auto", \code{periods} are used if \code{x} is a Date and
 durations are used if \code{x} is a datetime.
@@ -35,12 +49,18 @@ Fast greatest common divisor of time differences
 }
 \examples{
 library(timeplyr)
+library(lubridate)
 time_diff_gcd(1:10)
 time_diff_gcd(seq(0, 1, 0.2))
 
-time_diff_gcd(time_seq(Sys.Date(), Sys.Date() + 100, time_by = "3 days"))
-time_diff_gcd(time_seq(Sys.time(), Sys.time() + 10^3, time_by = "125 seconds"))
+time_diff_gcd(time_seq(today(), today() + 100, time_by = "3 days"))
+time_diff_gcd(time_seq(now(), len = 10^2, time_by = "125 seconds"))
+
+# Monthly gcd using lubridate periods
+quarter_seq <- time_seq(today(), len = 24, time_by = months(4))
+time_diff_gcd(quarter_seq, time_by = months(1))
+time_diff_gcd(quarter_seq, time_by = "months", time_type = "duration")
 
 # Detects monthly granularity
-dplyr::near(time_diff_gcd(time(AirPassengers)), 1/12)
+dplyr::near(time_diff_gcd(time(AirPassengers)), 1/12, tol = 1e-06)
 }

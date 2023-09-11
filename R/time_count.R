@@ -195,7 +195,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
       time_by <- time_by_list(time_by)
     } else {
       # Function to determine implicit time units
-      granularity <- time_granularity(data[[time_var]], is_sorted = FALSE, msg = TRUE)
+      granularity <- time_granularity(ts_data[[time_var]], is_sorted = FALSE, msg = TRUE)
       time_by <- setnames(list(granularity[["num"]]), granularity[["unit"]])
     }
     # Frequency table
@@ -230,6 +230,8 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                   name = name)
     # If complete, full-join time sequence df onto ts data
     if (complete){
+      message("\nFilling in implicit gaps in time, counts are replaced with 0
+              to disable this set complete = FALSE")
       out[start_end_tbl, (c(from_nm, to_nm)) := mget(c(from_nm, to_nm)),
           on = grp_nm, allow.cartesian = FALSE]
       # Expanded time sequences for each group

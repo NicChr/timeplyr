@@ -63,11 +63,30 @@ n_unique <- function(x, na.rm = FALSE){
 is_length_one <- function(x){
   isTRUE(length(x) == 1)
 }
-
+# Taken from stats::weighted.mean
+weighted_mean <- function (x, w = NULL, na.rm = FALSE) {
+  if (is.null(w)) {
+    if (na.rm) {
+      x <- x[!is.na(x)]
+    }
+    out <- sum(x)/length(x)
+  }
+  else {
+    if (length(w) != length(x))
+      stop("'x' and 'w' must have the same length")
+    if (na.rm) {
+      i <- !is.na(x)
+      w <- w[i]
+      x <- x[i]
+    }
+    out <- sum(x * w)/sum(w)
+  }
+  out
+}
 # Weighted geometric mean
 geometric_mean <- function(x, weights = NULL, na.rm = FALSE){
   if (!is.null(weights)){
-    exp(stats::weighted.mean(log(x), w = weights, na.rm = na.rm))
+    exp(weighted_mean(log(x), w = weights, na.rm = na.rm))
   } else {
     exp(mean(log(x), na.rm = na.rm))
   }
@@ -75,7 +94,7 @@ geometric_mean <- function(x, weights = NULL, na.rm = FALSE){
 # Weighted harmonic mean
 harmonic_mean <- function(x, weights = NULL, na.rm = FALSE){
   if (!is.null(weights)){
-    1 / stats::weighted.mean(1/x, w = weights, na.rm = na.rm)
+    1 / weighted_mean(1/x, w = weights, na.rm = na.rm)
   } else {
     1 / mean(1/x, na.rm = na.rm)
   }
@@ -261,50 +280,6 @@ mutate2 <- function(data, ..., .by = NULL,
 # The result is always a list.
 # Useful way of returning the column names after supplying data-masking variables too
 
-# KEEP THIS FOR NOW
-
-# summarise_list <- function(data, ..., fix.names = TRUE){
-#   if (inherits(data, "grouped_df")) data <- dplyr::ungroup(data)
-#   quo_list <- rlang::eval_tidy(enquos(...), data)
-#   out <- lapply(quo_list, function(quo) dplyr_summarise(data, !!quo))
-#   # Remove NULL entries
-#   out_sizes <- lengths(out, use.names = FALSE)
-#   if (all(out_sizes == 0)){
-#     return(setnames(list(), character(0)))
-#   }
-#   out <- out[out_sizes > 0]
-#   # Outer names
-#   outer_nms <- names(out)
-#   # Lengths of each list
-#   out_sizes <- lengths(out)
-#   # Expand list elements that have multiple elements
-#   which_less_than2 <- which(out_sizes < 2)
-#   which_greater_than1 <- which(out_sizes > 1)
-#   out1 <- out[which_less_than2]
-#   out2 <- out[which_greater_than1]
-#   out_order <- radix_order(c(which_less_than2, rep(which_greater_than1,
-#                                              out_sizes[which_greater_than1])))
-#   outer_nms <- c(outer_nms[which_less_than2],
-#                  rep(outer_nms[which_greater_than1],
-#                      out_sizes[which_greater_than1]))[out_order]
-#   out2 <- unlist(out2, recursive = FALSE)
-#   out1 <- unlist(unname(out1), recursive = FALSE)
-#   inner_nms <- c(names(out1), names(out2))[out_order]
-#   out <- c(out1, out2)[out_order]
-#   out_lengths <- lengths(out)
-#   if (fix.names){
-#     final_nms <- character(length(out))
-#     for (i in seq_along(out)){
-#       if (outer_nms[[i]] == ""){
-#         final_nms[[i]] <- inner_nms[[i]]
-#       } else {
-#         final_nms[[i]] <- outer_nms[[i]]
-#       }
-#     }
-#     names(out) <- final_nms
-#   }
-#   out
-# }
 summarise_list <- function(data, ..., fix.names = TRUE){
   data <- safe_ungroup(data)
   dots <- enquos(...)
@@ -376,27 +351,6 @@ summarise_list <- function(data, ..., fix.names = TRUE){
   }
   out
 }
-# This is like summarise_list but works on grouped data
-# summarise_list3 <- function(data, ..., fix.names = FALSE){
-#   quo_list <- rlang::eval_tidy(enquos(...), data)
-#   out <- purrr::map(quo_list, function(quo) dplyr_summarise(data, !!quo))
-#   if (fix.names){
-#     nms_out_nms <- names(out)
-#     if (is.null(nms_out_nms)) nms_out_nms <- character(length(out))
-#     out_lengths <- collapse::vlengths(out)
-#     out_nms <- purrr::flatten_chr(purrr::map2(out, out_lengths, function(x, y) names(x)[y]))
-#     final_nms <- character(length(out))
-#       for (i in seq_along(out)){
-#         if (nms_out_nms[i] == ""){
-#           final_nms[i] <- out_nms[i]
-#         } else {
-#           final_nms[i] <- nms_out_nms[i]
-#         }
-#       }
-#     names(out) <- final_nms
-#   }
-#   out
-# }
 
 # N expressions in ...
 dots_length <- function(...){
@@ -753,8 +707,6 @@ flast <- getFromNamespace("flast", "collapse")
 # quo_name(enquo(wt))
 # quo_is_null()
 
-CJ <- getFromNamespace("CJ", "data.table")
-# Ccj <- getFromNamespace("Ccj", "data.table")
 
 are_whole_numbers <- function(x){
   if (is.integer(x)){
@@ -1003,7 +955,7 @@ quo_summarise_info <- function(quos, data){
        is_identity = is_identity)
 }
 conditional_sort <- function(x){
-  if (isTRUE(!is.unsorted(x))){
+  if (is_sorted(x)){
     x
   } else {
     radix_sort(x)
@@ -1058,55 +1010,6 @@ pretty_floor <- function(x){
 pretty_ceiling <- function(x){
   ceiling_nearest_n(x, n = 10^(log10_divisibility(x)))
 }
-# collapse flag/fdiff gives basically
-# wrong answers if your data isn't sorted
-# And yes I've read the documentation
-# fdiff2 <- function(x, n = 1, g = NULL, diff = 1, ...){
-#   if (length(x) == 1L){
-#     n <- 0L
-#     diff <- 0L
-#   }
-#   if (!is.null(g)){
-#     g <- GRP2(g)
-#   }
-#   if (!is.null(g) && !GRP_is_sorted(g)){
-#     group_order <- GRP_order(g)
-#     x <- x[group_order]
-#     group_id <- group_id_to_qg(
-#       GRP_group_id(g)[group_order],
-#       n_groups = GRP_n_groups(g)
-#     )
-#     out <- collapse::fdiff(x, n = n, g = group_id, ...)
-#     out <- collapse::greorder(out, g = g)
-#     # g <- collapse::GRP(GRP_group_id(g)[group_order])
-#     # out <- collapse::fdiff(x, n = n, g = g, ...)
-#     # out <- out[order(group_order)]
-#   } else {
-#     out <- collapse::fdiff(x, n = n, g = g, ...)
-#   }
-#   out
-# }
-# flag2 <- function(x, n = 1L, g = NULL, ...){
-#   if (is.null(x)){
-#     return(NULL)
-#   }
-#   n <- as.integer(sign(n) * min(length(x), abs(n)))
-#   g <- GRP2(g)
-#   if (!is.null(g) && !GRP_is_sorted(g)){
-#     group_order <- GRP_order(g)
-#     x <- x[group_order]
-#     group_id <- GRP_group_id(g)[group_order]
-#     g_sorted <- sorted_group_id_to_GRP(group_id,
-#                                        n_groups = GRP_n_groups(g),
-#                                        group_sizes = GRP_group_sizes(g),
-#                                        group.starts = FALSE)
-#     out <- collapse::flag(x, n = n, g = g_sorted, ...)
-#     out <- collapse::greorder(out, g = g)
-#   } else {
-#     out <- collapse::flag(x, n = n, g = g, ...)
-#   }
-#   out
-# }
 fill_with_na <- function(x, n = NULL, prop = NULL){
   if (!is.null(n) && !is.null(prop)){
     stop("either n or prop must be supplied")
@@ -1128,7 +1031,10 @@ fill_with_na <- function(x, n = NULL, prop = NULL){
 sqrt_double_eps <- function(){
   sqrt(.Machine$double.eps)
 }
-
+# Relative difference
+relative_diff <- function(x, y){
+  abs(x - y) / min(abs(x), abs(y))
+}
 # Convenience comparison functions for doubles
 double_equal <- function(x, y, tol = sqrt(.Machine$double.eps)){
   abs(x - y) < tol
@@ -1190,12 +1096,6 @@ any_equal <- function(x, value, tol = sqrt(.Machine$double.eps)){
     any_num_equal(x, value, tol)
   }
 }
-check_sorted <- function(x){
-  is_sorted <- !is.unsorted(x)
-  if (!isTRUE(is_sorted)){
-    stop("x must be in ascending order")
-  }
-}
 # Taken from base R to avoid needing R >= 4
 deparse1 <- function(expr, collapse = " ", width.cutoff = 500L, ...){
   paste(deparse(expr, width.cutoff, ...), collapse = collapse)
@@ -1252,12 +1152,13 @@ fbincode <- function(x, breaks, right = TRUE, include.lowest = FALSE,
   #                                                   right = right,
   #                                                   include.lowest = include.lowest))
 }
+# Is x numeric and not S4?
 is_s3_numeric <- function(x){
   typeof(x) %in% c("integer", "double") && !isS4(x)
 }
 prop_complete <- fprop_complete
 
-# Faster cut.default
+# Much faster and more efficient cut.default
 fast_cut <- function (x, breaks, labels = NULL, include.lowest = FALSE, right = TRUE,
                   dig.lab = 3L, ordered_result = FALSE, ...){
   if (!is.numeric(x))
@@ -1315,3 +1216,33 @@ fast_cut <- function (x, breaks, labels = NULL, include.lowest = FALSE, right = 
   }
   code
 }
+check_is_num <- function(x){
+  if (!is.numeric(x)){
+    stop("x must be numeric")
+  }
+}
+# TRUE when x is sorted and contains no NA
+is_sorted <- function(x){
+  isTRUE(!is.unsorted(x))
+}
+check_sorted <- function(x){
+  if (!is_sorted(x)){
+    stop("x must be in ascending order")
+  }
+}
+# Retains integer class of a if b is 1 and a is integer
+divide <- function(a, b){
+  if (collapse::allv(b, 1)){
+    a
+  } else {
+    a / b
+  }
+}
+# Initialise a single NA value of correct type
+na_init <- function(x){
+  x[NA_integer_]
+}
+strip_attrs <- function(x){
+  `attributes<-`(x, NULL)
+}
+

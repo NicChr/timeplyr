@@ -154,6 +154,8 @@ roll_mean <- function(x, window = length(x), g = NULL, partial = TRUE,
 roll_apply <- function(x, fun, before = 0L, after = 0L,
                        g = NULL){
                        # partial = TRUE){
+  check_before(before)
+  check_after(after)
   sorted_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
   group_sizes <- fpluck(sorted_info, "group_sizes")
   x <- fpluck(sorted_info, "x")

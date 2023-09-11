@@ -29,7 +29,7 @@ fselect <- function(data, ..., .cols = NULL){
 #' @export
 fselect.data.frame <- function(data, ..., .cols = NULL){
   pos <- tidy_select_pos(data, ..., .cols = .cols)
-  out <- collapse::ss(data, j = unname(pos))
+  out <- collapse::ss(data, j = unname(pos), check = FALSE)
   names(out) <- names(pos)
   out
 }

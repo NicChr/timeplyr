@@ -1120,9 +1120,7 @@ check_is_time_or_num <- function(x){
   }
 }
 time_as_number <- function(x){
-  out <- unclass(x)
-  attributes(out) <- NULL
-  out
+  strip_attrs(unclass(x))
 }
 time_aggregate_left <- function(x, time_by, g = NULL,
                                 start = NULL, end = NULL,
@@ -1397,4 +1395,14 @@ check_index_not_missing <- function(x){
   if (anyNA(x)){
     stop("time index must not contain NA values")
   }
+}
+check_is_date <- function(x){
+  if (!is_date(x)){
+    stop("x must be a date")
+  }
+}
+# Turn date storage into integer
+as_int_date <- function(x){
+  check_is_date(x)
+  `class<-`(as.integer(unclass(x)), "Date")
 }

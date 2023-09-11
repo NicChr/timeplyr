@@ -112,8 +112,11 @@ ts_as_tibble.xts <- function(x, name = "time", value = "value", group = "group")
   is_datetime <- isTRUE(1L %in% class_match)
   is_date <- isTRUE(2L %in% class_match)
   if (is_date || is_datetime){
-    if (!is.null(attr(time, "tzone"))){
-      time <- lubridate::as_datetime(time, tz = attr(time, "tzone"))
+    tzone <- attr(time, "tzone")
+    has_tz <- !is.null(tzone)
+    attributes(time) <- NULL
+    if (has_tz){
+      time <- lubridate::as_datetime(time, tz = tzone)
     } else {
       time <- lubridate::as_datetime(time)
     }

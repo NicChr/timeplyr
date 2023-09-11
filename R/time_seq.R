@@ -235,11 +235,24 @@ time_seq <- function(from, to, time_by, length.out = NULL,
       by_n <- -abs(by_n)
       tby[[1L]] <- by_n
     }
-    if (time_type == "duration"){
+    is_special_case_days <- {
+      input_time_type == "auto" &&
+        by_unit %in% c("days", "weeks") &&
+        is_date(from) &&
+        is_whole_number(by_n)
+    }
+    if (is_special_case_days){
+      if (by_unit == "weeks"){
+        by_n <- by_n * 7
+      }
+      out <- seq.int(from = as.integer(from),
+                     length.out = length.out,
+                     by = as.integer(by_n))
+      class(out) <- "Date"
+    } else if (time_type == "duration"){
       out <- duration_seq(from = as_datetime2(from),
                           length = length.out,
                           duration = duration_unit(by_unit)(by_n))
-      # duration = unit_to_seconds(tby))
     } else {
       out <- period_seq(from = from,
                         length = length.out,
@@ -411,14 +424,14 @@ date_seq_v <- function(from, to, units = c("days", "weeks"), num = 1){
 }
 # Alternate version of date_seq_v with sizes arg instead of to
 # If you have the sequence sizes pre-calculated, you can use this
-date_seq_v2 <- function(sizes, from, units = c("days", "weeks"), num = 1){
+date_seq_v2 <- function(sizes, from, units = c("days", "weeks"), num = 1L){
   units <- rlang::arg_match0(units, c("days", "weeks"))
   stopifnot(is_date(from))
   if (units == "weeks"){
     units <- "days"
-    num <- num * 7
+    num <- as.integer(num * 7)
   }
-  out <- sequence2(sizes, from = as.double(from), by = num)
+  out <- sequence(sizes, from = unclass(from), by = num)
   class(out) <- "Date"
   out
 }
@@ -427,7 +440,7 @@ date_seq_v2 <- function(sizes, from, units = c("days", "weeks"), num = 1){
 # their sequences are repeated at the end.
 period_seq_v <- function(from, to, units, num = 1,
                          roll_month = "preday", roll_dst = "pre"){
-  units <- match.arg(units, .period_units)
+  units <- rlang::arg_match0(units, .period_units)
   if (length(to) == 0L){
     return(vec_head(from, n = 0L))
   }

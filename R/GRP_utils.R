@@ -181,7 +181,7 @@ GRP_order <- function(GRP){
   out <- GRP[["order"]]
   if (is.null(out)){
     group_id <- GRP_group_id(GRP)
-    if (GRP_is_sorted(GRP) || isTRUE(!is.unsorted(group_id))){
+    if (GRP_is_sorted(GRP) || is_sorted(group_id)){
       out <- seq_along(group_id)
       attr(out, "sorted") <- TRUE
     } else {
