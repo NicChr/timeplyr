@@ -91,7 +91,7 @@ testthat::test_that("Compared to tidyr", {
                                          expand_type = "nest",
                                          sort = TRUE),
                              tidyr::expand_grid(1:10, 1:10) %>%
-                               setnames(c("1:10", "yes")))
+                               add_names(c("1:10", "yes")))
   res1 <- flights %>%
     fcomplete(origin, dest, carrier, sort = FALSE)
   res2 <- flights %>%

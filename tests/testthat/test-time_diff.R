@@ -51,7 +51,7 @@ testthat::test_that("time diff", {
                              numeric(0))
   for (i in seq_along(.duration_units)){
     unit <- .duration_units[i]
-    by <- setnames(list(1), unit)
+    by <- add_names(list(1), unit)
     testthat::expect_identical(time_diff(start1, end1, time_by = by,
                                          time_type = "duration"),
                                lubridate::interval(start1, end1) /
@@ -60,7 +60,7 @@ testthat::test_that("time diff", {
   }
   for (i in seq_along(.period_units)){
     unit <- .period_units[i]
-    by <- setnames(list(1), unit)
+    by <- add_names(list(1), unit)
     testthat::expect_identical(time_diff(start1, end1, time_by = by,
                                          time_type = "period"),
                                lubridate::interval(start1, end1) /

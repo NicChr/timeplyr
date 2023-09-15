@@ -27,22 +27,24 @@ time_lag <- function(x, k = 1L,
                      time_type = c("auto", "duration", "period"),
                      roll_month = "preday", roll_dst = "pre"){
   k <- time_by_list(k)
-  # k <- setnames(list(time_by_num(k) + 1), time_by_unit(k))
+  time_num <- time_by_num(k)
+  time_by_unit <- time_by_unit(k)
+  k_sign <- time_by_sign(k)
+  time_window <- add_names(list(time_num + (k_sign * 1)),
+                           time_by_unit)
+  # k <- add_names(list(time_by_num(k) + 1), time_by_unit(k))
   sizes <- time_roll_window_size(time,
-                                 window = k,
+                                 window = time_window,
                                  g = g,
                                  partial = TRUE,
-                                 close_left_boundary = TRUE,
+                                 close_left_boundary = FALSE,
                                  time_type = time_type,
                                  roll_month = roll_month,
                                  roll_dst = roll_dst)
-  time_lag <- sizes - (as.integer(1L * time_by_sign(k)))
+  time_lag <- sizes - (as.integer(1L * k_sign))
   # time_lag <- sizes - 1L
   out <- roll_lag(x, time_lag)
-  which_rolled <- collapse::whichv(
-    time_diff(roll_lag(time, time_lag), time, time_by = k),
-    1L, invert = TRUE
-  )
-  out[which_rolled] <- out[NA_integer_]
+  which_rolled <- which(time_diff(roll_lag(time, time_lag), time, time_by = k) != 1)
+  out[which_rolled] <- na_init(out)
   out
 }

@@ -136,38 +136,16 @@ roll_chop <- function(x, sizes = collapse::alloc(1L, vec_length(x))){
             immediate. = TRUE)
   }
   sizes <- as.integer(sizes)
-  # Without vctrs
-  #   out <- vector("list", x_size)
-  #   if (is.atomic(x)){
-  #     for (i in seq_len(x_size)){
-  #       # out[[i]] <- x[(i - sizes[i] + 1L):i]
-  #       out[[i]] <- x[seq_len(.subset(sizes, i)) + (i - .subset(sizes, i))]
-  #     }
-  #   } else {
-  #     for (i in seq_len(x_size)){
-  #       out[[i]] <- vec_slice2(x, seq_len(.subset(sizes, i)) + (i - .subset(sizes, i)))
-  #     }
-  #   }
-  #   out
   which_size_gt_zero <- which(sizes > 0L)
   which_size_zero <- which(sizes == 0L)
-  sizes <- sizes[which_size_gt_zero]
-  seq_id_GRP <- sorted_group_id_to_GRP(seq_id(sizes),
-                                       n_groups = length(sizes),
-                                       group_sizes = sizes)
+  sizes_gt_zero <- sizes[which_size_gt_zero]
+  seq_id_GRP <- sorted_group_id_to_GRP(seq_id(sizes_gt_zero),
+                                       n_groups = length(sizes_gt_zero),
+                                       group_sizes = sizes_gt_zero)
   ind <- collapse::gsplit(sequence(sizes,
                                    from = (seq_along(sizes) - sizes + 1L),
                                    by = 1L),
                           g = seq_id_GRP)
-  # vctrs::vec_chop(x, indices = ind)
-  # which_size_gt_zero <- which(sizes > 0L)
-  # seq_id_GRP <- sorted_group_id_to_GRP(seq_id(.subset(sizes, which_size_gt_zero)),
-  #                                      n_groups = length(sizes),
-  #                                      group_sizes = sizes)
-  # ind <- collapse::gsplit(sequence(.subset(sizes, which_size_gt_zero),
-  #                                  from =  (seq_along(x) - sizes + 1L),
-  #                                  by = 1L),
-  #                         g = seq_id_GRP)
   out <- vector("list", out_length)
   out[which_size_zero] <- list(vec_head(x, n = 0L))
   out[which_size_gt_zero] <- vctrs::vec_chop(x, indices = ind)
@@ -235,6 +213,9 @@ roll_chop2 <- function(x, before = 0L, after = 0L, partial = TRUE){
   }
   out
 }
+# Safer versions of collapse::flag and collapse::fdiff
+# It is safer in the sense that if the data isn't ordered by group
+# The result is reordered to be correct
 flag2 <- function(x, n = 1L, g = NULL, ...){
   if (is.null(x)){
     return(NULL)
@@ -282,3 +263,28 @@ check_after <- function(after){
     stop("after must be an integer vector")
   }
 }
+# Mostly base R rolling chop
+# roll_chop3 <- function(x, sizes = collapse::alloc(1L, vec_length(x))){
+#   x_size <- vec_length(x)
+#   out_length <- length(sizes)
+#   if (x_size != length(sizes)){
+#     stop("length of x must equal length of sizes")
+#   }
+#   if (log10(sum(sizes)) >= 9){
+#     warning("The result contains more than 1e09 elements, this may take time",
+#             immediate. = TRUE)
+#   }
+#   sizes <- as.integer(sizes)
+#   out <- vector("list", x_size)
+#   if (is.atomic(x)){
+#     for (i in seq_len(x_size)){
+#       # out[[i]] <- x[(i - sizes[i] + 1L):i]
+#       out[[i]] <- x[seq_len(.subset(sizes, i)) + (i - .subset(sizes, i))]
+#     }
+#   } else {
+#     for (i in seq_len(x_size)){
+#       out[[i]] <- vec_slice2(x, seq_len(.subset(sizes, i)) + (i - .subset(sizes, i)))
+#     }
+#   }
+#   out
+# }

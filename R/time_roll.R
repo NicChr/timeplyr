@@ -125,16 +125,15 @@ time_roll_sum <- function(x, window,
                           time_type = c("auto", "duration", "period"),
                           roll_month = "preday", roll_dst = "pre",
                           ...){
-  if (anyNA(time)){
-    stop("time index must not contain NA values")
-  }
+  check_time_contains_na(time)
   # if (length(lag) != 1L){
   #   stop("lag must be of length 1")
   # }
   window <- time_by_get(time, time_by = window)
   time_num <- time_by_num(window)
   time_unit <- time_by_unit(window)
-  time_subtract <- setnames(list(-time_num), time_unit)
+  time_subtract <- add_names(list(-time_num), time_unit)
+  unit_time_by <- add_names(list(1), time_unit)
   window_size <- time_num
   if (length(window_size) != 1L){
     stop("time window size must be of length 1")
@@ -200,9 +199,14 @@ time_roll_sum <- function(x, window,
                    adaptive = TRUE, align = "right",
                    na.rm = na.rm, ...)
   if (!partial){
-    elapsed <- time_elapsed(time, time_by = window, g = sorted_g,
-                            rolling = FALSE)
-    out[double_lt(abs(elapsed), 1)] <- NA_real_
+    elapsed <- time_elapsed(time, time_by = unit_time_by,
+                            g = sorted_g, rolling = FALSE)
+    if (close_left_boundary){
+      is_partial <- double_lte(abs(elapsed) + 1, time_num)
+    } else {
+      is_partial <- double_lt(abs(elapsed) + 1, time_num)
+    }
+    out[is_partial] <- NA_real_
   }
   # For duplicate times, we take the last value of each duplicate
   out <- glast(out, g = sorted_g2)
@@ -224,16 +228,15 @@ time_roll_mean <- function(x, window,
                            time_type = c("auto", "duration", "period"),
                            roll_month = "preday", roll_dst = "pre",
                            ...){
-  if (anyNA(time)){
-    stop("time index must not contain NA values")
-  }
+  check_time_contains_na(time)
   # if (length(lag) != 1L){
   #   stop("lag must be of length 1")
   # }
   window <- time_by_get(time, time_by = window)
   time_num <- time_by_num(window)
   time_unit <- time_by_unit(window)
-  time_subtract <- setnames(list(-time_num), time_unit)
+  time_subtract <- add_names(list(-time_num), time_unit)
+  unit_time_by <- add_names(list(1), time_unit)
   window_size <- time_num
   if (length(window_size) != 1L){
     stop("time window size must be of length 1")
@@ -298,9 +301,14 @@ time_roll_mean <- function(x, window,
                     adaptive = TRUE, align = "right",
                     na.rm = na.rm, ...)
   if (!partial){
-    elapsed <- time_elapsed(time, time_by = window, g = sorted_g,
-                            rolling = FALSE)
-    out[double_lt(abs(elapsed), 1)] <- NA_real_
+    elapsed <- time_elapsed(time, time_by = unit_time_by,
+                            g = sorted_g, rolling = FALSE)
+    if (close_left_boundary){
+      is_partial <- double_lte(abs(elapsed) + 1, time_num)
+    } else {
+      is_partial <- double_lt(abs(elapsed) + 1, time_num)
+    }
+    out[is_partial] <- NA_real_
   }
   # For duplicate times, we take the last mean value of each duplicate
   out <- glast(out, g = sorted_g2)
@@ -320,13 +328,12 @@ time_roll_growth_rate <- function(x, window,
                                   na.rm = TRUE,
                                   time_type = c("auto", "duration", "period"),
                                   roll_month = "preday", roll_dst = "pre"){
-  if (anyNA(time)){
-    stop("time index must not contain NA values")
-  }
+  check_time_contains_na(time)
   window <- time_by_get(time, time_by = window)
   time_num <- time_by_num(window)
   time_unit <- time_by_unit(window)
-  time_subtract <- setnames(list(-time_num), time_unit)
+  time_subtract <- add_names(list(-time_num), time_unit)
+  unit_time_by <- add_names(list(1), time_unit)
   window_size <- time_num
   if (length(window_size) != 1L){
     stop("time window size must be of length 1")
@@ -382,9 +389,14 @@ time_roll_growth_rate <- function(x, window,
   final_window <- naive_window - adj_window
   out <- roll_growth_rate(x, window = final_window, na.rm = na.rm)
   if (!partial){
-    elapsed <- time_elapsed(time, time_by = window, g = sorted_g,
-                            rolling = FALSE)
-    out[double_lt(abs(elapsed), 1)] <- NA_real_
+    elapsed <- time_elapsed(time, time_by = unit_time_by,
+                            g = sorted_g, rolling = FALSE)
+    if (close_left_boundary){
+      is_partial <- double_lte(abs(elapsed) + 1, time_num)
+    } else {
+      is_partial <- double_lt(abs(elapsed) + 1, time_num)
+    }
+    out[is_partial] <- NA_real_
   }
   out <- glast(out, g = sorted_g2)
   if (!groups_are_sorted){
@@ -407,7 +419,7 @@ time_roll_growth_rate <- function(x, window,
 #   window <- time_by_get(time, time_by = window)
 #   time_num <- time_by_num(window)
 #   time_unit <- time_by_unit(window)
-#   time_subtract <- setnames(list(-time_num), time_unit)
+#   time_subtract <- add_names(list(-time_num), time_unit)
 #   window_size <- time_num
 #   if (length(window_size) != 1L){
 #     stop("time window size must be of length 1")
@@ -472,7 +484,7 @@ time_roll_growth_rate <- function(x, window,
 #   out
 # }
 # Using a rolling-join method
-# time_roll_mean <- function(x, window,
+# time_roll_mean2 <- function(x, window,
 #                            time = NULL,
 #                            weights = NULL,
 #                            g = NULL,
@@ -492,7 +504,7 @@ time_roll_growth_rate <- function(x, window,
 #   window <- time_by_get(time, time_by = window)
 #   time_num <- time_by_num(window)
 #   time_unit <- time_by_unit(window)
-#   time_subtract <- setnames(list(-time_num), time_unit)
+#   time_subtract <- add_names(list(-time_num), time_unit)
 #   window_size <- time_num
 #   if (length(window_size) != 1L){
 #     stop("time window size must be of length 1")
@@ -558,7 +570,7 @@ time_roll_growth_rate <- function(x, window,
 # }
 #' @rdname time_roll
 #' @export
-time_roll_window_size <- function(x, window,
+time_roll_window_size <- function(time, window,
                                   g = NULL,
                                   partial = TRUE,
                                   close_left_boundary = FALSE,
@@ -568,26 +580,27 @@ time_roll_window_size <- function(x, window,
   check_time_by_length_is_one(window)
   time_num <- time_by_num(window)
   time_unit <- time_by_unit(window)
-  time_subtract <- setnames(list(-time_num), time_unit)
+  time_subtract <- add_names(list(-time_num), time_unit)
+  unit_time_by <- add_names(list(1), time_unit)
   g <- GRP2(g, return.groups = FALSE)
-  if (!gis_sorted(x, g = g)){
-    stop("x must be sorted and if g is supplied,
+  if (!gis_sorted(time, g = g)){
+    stop("time must be sorted and if g is supplied,
          it must be sorted also by g first")
   }
   if (is.null(g)){
-    group_sizes <- length(x)
-    n_groups <- min(1L, length(x))
-    group_ends <- length(x)
+    group_sizes <- length(time)
+    n_groups <- min(1L, length(time))
+    group_ends <- length(time)
   } else {
     group_sizes <- GRP_group_sizes(g)
     n_groups <- GRP_n_groups(g)
     group_ends <- GRP_ends(g)
   }
-  start <- time_add2(x, time_by = time_subtract,
+  start <- time_add2(time, time_by = time_subtract,
                      time_type = time_type,
                      roll_month = roll_month,
                      roll_dst = roll_dst)
-  x <- time_cast(x, start)
+  time <- time_cast(time, start)
   naive_window <- sequence(group_sizes)
   if (time_num < 0){
     # prepend <- -Inf
@@ -596,13 +609,13 @@ time_roll_window_size <- function(x, window,
   }
   if (isTRUE(time_num == 0)){
     if (close_left_boundary){
-      out <- frowid(x, g = as_DT(list(group_id = group_id(g), x = x)))
+      out <- frowid(time, g = as_DT(list(group_id = group_id(g), time = time)))
     } else {
-      out <- integer(length(x))
+      out <- integer(length(time))
     }
   } else {
     adj_window <- fbincode(time_as_number(start),
-                           breaks = time_as_number(x),
+                           breaks = time_as_number(time),
                            gx = g,
                            gbreaks = g,
                            right = close_left_boundary)
@@ -611,13 +624,19 @@ time_roll_window_size <- function(x, window,
     out <- naive_window - adj_window
   }
   if (time_num < 0){
-    rev_window <- sequence(group_sizes, from = group_sizes, to = min(1L, length(x)), by = -1L)
+    rev_window <- sequence(group_sizes, from = group_sizes, to = min(1L, length(time)), by = -1L)
     out[which_na] <- -rev_window[which_na]
     out[-which_na] <- out[-which_na] - 1L
   }
   if (!partial){
-    elapsed <- time_elapsed(x, time_by = window, g = g, rolling = FALSE)
-    out[double_lt(abs(elapsed), 1)] <- NA_real_
+    elapsed <- time_elapsed(time, time_by = unit_time_by,
+                            g = g, rolling = FALSE)
+    if (close_left_boundary){
+      is_partial <- double_lte(abs(elapsed) + 1, time_num)
+    } else {
+      is_partial <- double_lt(abs(elapsed) + 1, time_num)
+    }
+    out[is_partial] <- NA_integer_
   }
   out
 }
@@ -731,7 +750,7 @@ time_roll_apply <- function(x, window, fun,
 #   window <- time_by_get(time, time_by = window)
 #   time_num <- time_by_num(window)
 #   time_unit <- time_by_unit(window)
-#   time_subtract <- setnames(list(-time_num), time_unit)
+#   time_subtract <- add_names(list(-time_num), time_unit)
 #   window_size <- time_num
 #   if (length(window_size) != 1L){
 #     stop("time window size must be of length 1")
@@ -800,7 +819,7 @@ time_roll_apply <- function(x, window, fun,
 #   out
 # }
 # Working alternative
-# time_roll_mean2 <- function(x, window,
+# time_roll_mean3 <- function(x, window,
 #                            time = NULL, g = NULL,
 #                            weights = NULL,
 #                            partial = TRUE,
@@ -821,7 +840,7 @@ time_roll_apply <- function(x, window, fun,
 #   window <- time_by_get(time, time_by = window)
 #   time_num <- time_by_num(window)
 #   time_unit <- time_by_unit(window)
-#   time_subtract <- setnames(list(-time_num), time_unit)
+#   time_subtract <- add_names(list(-time_num), time_unit)
 #   window_size <- time_num
 #   if (length(window_size) != 1L){
 #     stop("time window size must be of length 1")

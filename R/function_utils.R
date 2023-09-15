@@ -651,11 +651,6 @@ recycle_args <- function (..., length = NULL, use.names = FALSE){
   }
   out
 }
-# Convenience function to set names without stats namespace call
-setnames <- function(object = nm, nm){
-  names(object) <- nm
-  object
-}
 # Row products
 rowProds <- function(x, na.rm = FALSE, dims = 1L){
   exp(rowSums(log(x), na.rm = na.rm, dims = dims))
@@ -1037,9 +1032,15 @@ sqrt_double_eps <- function(){
   sqrt(.Machine$double.eps)
 }
 # Relative difference
-relative_diff <- function(x, y){
-  abs(x - y) / min(abs(x), abs(y))
+rel_diff <- function(x, y){
+  abs(x - y) / pmax(abs(x), abs(y))
 }
+
+# Convenience comparison functions for doubles
+# double_equal_rel <- function(x, y, tol = sqrt(.Machine$double.eps)){
+#   rel_diff(x, y) < tol
+# }
+
 # Convenience comparison functions for doubles
 double_equal <- function(x, y, tol = sqrt(.Machine$double.eps)){
   abs(x - y) < tol

@@ -38,7 +38,7 @@ fselect.grouped_df <- function(data, ..., .cols = NULL){
   data_nms <- names(data)
   group_vars <- group_vars(data)
   pos <- tidy_select_pos(data, ..., .cols = .cols)
-  group_pos <- setnames(match(group_vars, data_nms),
+  group_pos <- add_names(match(group_vars, data_nms),
                         group_vars)
   pos_nms <- names(pos)
   # Add group vars missed

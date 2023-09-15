@@ -170,12 +170,12 @@ fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
                  .by = all_of(grp_nm1))
   order_by_nm <- tidy_transform_names(data, !!enquo(order_by))
   row_nm <- new_var_nm(names(out), "row_id")
-  out <- dplyr::dplyr_col_modify(out, setnames(list(seq_along(attr(out, "row.names"))),
+  out <- dplyr::dplyr_col_modify(out, add_names(list(seq_along(attr(out, "row.names"))),
                                                row_nm))
   g2 <- group_id(out[[order_by_nm]])
   # Order by Groups + desc order by var
   grp_nm <- new_var_nm(names(out), "g")
-  out <- dplyr::dplyr_col_modify(out, setnames(list(group_id(list(g1, g2))),
+  out <- dplyr::dplyr_col_modify(out, add_names(list(group_id(list(g1, g2))),
                                                grp_nm))
   out <- farrange(out, .cols = grp_nm)
   out1 <- fslice_head(out, n = n, prop = prop, .by = all_of(grp_nm1),

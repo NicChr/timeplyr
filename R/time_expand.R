@@ -148,7 +148,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
     size_nm <- new_var_nm(out, ".size")
     time_tbl[, (size_nm) := time_seq_sizes(get(from_nm),
                                            get(to_nm),
-                                           time_by = setnames(list(get(by_nm)),
+                                           time_by = add_names(list(get(by_nm)),
                                                               by_unit),
                                            time_type = time_type)]
       expanded_nrow <- sum(time_tbl[[size_nm]])
@@ -156,7 +156,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
       # Vectorised time sequence
       time_seq <- time_seq_v2(time_tbl[[size_nm]],
                               time_tbl[[from_nm]],
-                              time_by = setnames(list(time_tbl[[by_nm]]),
+                              time_by = add_names(list(time_tbl[[by_nm]]),
                                                  by_unit),
                               roll_month = roll_month,
                               roll_dst = roll_dst,

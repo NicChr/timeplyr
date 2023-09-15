@@ -74,7 +74,7 @@ calendar <- function(x, label = TRUE,
               hour, minute, second)
   out_is_null <- vapply(out, FUN = is.null, FUN.VALUE = logical(1))
   out <- out[!out_is_null]
-  list_to_tibble(setnames(out, out_nms))
+  list_to_tibble(add_names(out, out_nms))
 }
 #' @rdname calendar
 #' @export

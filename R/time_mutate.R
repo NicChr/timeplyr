@@ -101,7 +101,7 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
                                       msg = FALSE)
       message(paste("Assuming a time granularity of", granularity[["num"]]/granularity[["scale"]],
                     granularity[["granularity"]], sep = " "))
-      time_by <- setnames(list(granularity[["num"]]), granularity[["unit"]])
+      time_by <- add_names(list(granularity[["num"]]), granularity[["unit"]])
     }
     # Aggregate time data
     time_agg <- time_aggregate_switch(data[[time_var]],
@@ -118,7 +118,7 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
     time_int_end <- time_int_end(time_agg)
     time_agg <- time_int_rm_attrs(time_agg)
     data <- dplyr::dplyr_col_modify(data,
-                                    setnames(
+                                    add_names(
                                       list(time_agg), time_var
                                     )
     )
@@ -130,7 +130,7 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
         }
         int_nm <- new_var_nm(names(data), "interval")
         data <- dplyr::dplyr_col_modify(data,
-                                        setnames(
+                                        add_names(
                                           list(
                                             lubridate::interval(time_agg, time_int_end)
                                           ), int_nm

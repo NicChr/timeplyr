@@ -54,7 +54,7 @@ time_roll_growth_rate(
 )
 
 time_roll_window_size(
-  x,
+  time,
   window,
   g = NULL,
   partial = TRUE,

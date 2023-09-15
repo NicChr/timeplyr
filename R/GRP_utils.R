@@ -194,7 +194,7 @@ GRP_order <- function(GRP){
 GRP_loc <- function(GRP, use.g.names = FALSE){
   if (length(GRP_group_id(GRP)) == 0L){
     if (use.g.names){
-      setnames(list(), character(0))
+      add_names(list(), character(0))
     } else {
       list()
     }

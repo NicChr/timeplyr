@@ -119,7 +119,7 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
   grps_missed <- setdiff(group_vars, names(summarise_vars))
   # Add group vars to summary list
   if (length(grps_missed) > 0){
-    summarise_vars <- c(setnames(
+    summarise_vars <- c(add_names(
       lapply(
         grps_missed, function(x) fpluck(
           dplyr_summarise(

@@ -57,7 +57,7 @@ testthat::test_that("Tests for time_countv", {
                                                           c(tbreaks, max(tbreaks) + 1))) %>%
                            fcount(time) %>%
                            dplyr::pull(n) %>%
-                           setnames(tbreaks))
+                           add_names(tbreaks))
 
   res5 <- time_countv(flights2$time_hour, time_by = "month",
                       from = from, to = to, sort = FALSE,

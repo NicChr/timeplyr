@@ -53,7 +53,7 @@ crossed_join <- function(X, sort = FALSE, unique = TRUE,
   # do.call(CJ, args = c(X, list(sorted = FALSE, unique = FALSE)))
   out <- CJ2(X)
   if (!is.null(x_nms)){
-    out <- setnames(out, x_nms)
+    out <- add_names(out, x_nms)
   }
   as_dt2 <- as_dt || (sort && !unique)
   if (as_dt2){

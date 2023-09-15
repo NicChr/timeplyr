@@ -190,7 +190,7 @@ time_breaks <- function(x, n = 5, time_by = NULL,
     start <- from
     while(i < length(units_to_try)){
       i <- i + 1
-      tby <- setnames(list(unit_nums[i]),
+      tby <- add_names(list(unit_nums[i]),
                       units_to_try[i])
       if (time_floor){
         start <- time_floor2(from, time_by = tby, week_start = week_start)
@@ -214,7 +214,7 @@ time_breaks <- function(x, n = 5, time_by = NULL,
     scale <- unit_info[["scale"]]
     num <- unit_info[["num"]]
     by <- unit
-    tby <- setnames(list(1 * scale * num),
+    tby <- add_names(list(1 * scale * num),
                     unit)
     if (time_floor){
       from <- time_floor2(from, time_by = tby, week_start = week_start)
@@ -232,7 +232,7 @@ time_breaks <- function(x, n = 5, time_by = NULL,
     }
   }
   time_seq_v(from, to,
-                time_by = setnames(list(num * scale * unit_multiplier), unit),
+                time_by = add_names(list(num * scale * unit_multiplier), unit),
                 time_floor = FALSE,
                 week_start = week_start,
                 time_type = time_type,

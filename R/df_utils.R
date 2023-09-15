@@ -104,7 +104,7 @@ df_row_slice <- function(data, i, reconstruct = TRUE){
 }
 df_rm_cols <- function(data, .cols){
   cols_to_remove <- col_select_names(data, .cols = .cols)
-  dplyr::dplyr_col_modify(data, setnames(vector("list", length(cols_to_remove)),
+  dplyr::dplyr_col_modify(data, add_names(vector("list", length(cols_to_remove)),
                                          cols_to_remove))
 }
 # Seq along df rows/cols

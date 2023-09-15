@@ -196,7 +196,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
     } else {
       # Function to determine implicit time units
       granularity <- time_granularity(ts_data[[time_var]], is_sorted = FALSE, msg = TRUE)
-      time_by <- setnames(list(granularity[["num"]]), granularity[["unit"]])
+      time_by <- add_names(list(granularity[["num"]]), granularity[["unit"]])
     }
     # Frequency table
     out <- ts_data %>%
@@ -247,7 +247,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                            time_floor = time_floor, week_start = week_start,
                            keep_class = FALSE,
                            expand_type = "nesting",
-                           fill = setnames(list(0L), name))
+                           fill = add_names(list(0L), name))
       set_rm_cols(out, c(from_nm, to_nm))
       if (include_interval){
         out[is.na(get(int_end_nm)) & !is.na(get(time_var)),

@@ -1406,3 +1406,8 @@ as_int_date <- function(x){
   check_is_date(x)
   `class<-`(as.integer(unclass(x)), "Date")
 }
+check_time_contains_na <- function(x){
+  if (anyNA(x)){
+    stop("time index must not contain NA values")
+  }
+}
