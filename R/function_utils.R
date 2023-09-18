@@ -1,56 +1,5 @@
 #' @noRd
 
-lump_categories <- function(x, n = 10, factor = TRUE,
-                            sort = c("frequency", "values"),
-                            descending = TRUE,
-                            drop_levels = FALSE
-                            # na_exclude = TRUE
-){
-  sort <- match.arg(sort)
-  y <- as.character(x)
-  if (is.factor(x)){
-    x_unique <- levels(x)
-    if (descending){
-      x_unique_sorted <- rev(x_unique)
-    } else {
-      x_unique_sorted <- x_unique
-    }
-  } else {
-    x_unique <- collapse::funique(x[!is.na(x)])
-    # x_unique_sorted <- sort(x_unique, decreasing = descending)
-    x_unique_sorted <- x_unique[radix_order(x_unique, decreasing = descending)]
-  }
-  if (sort == "frequency"){
-    # ranked_categories <- sort(table(x), decreasing = descending)
-    # ranked_categories <- collapse::qtab(x, sort = FALSE, dnn = NULL, na.exclude = na_exclude)
-    ranked_categories <- collapse::qtab(x, sort = FALSE, dnn = NULL, na.exclude = TRUE)
-    ranked_categories <- ranked_categories[radix_order(ranked_categories,
-                                                       decreasing = descending)]
-    top_n_categories <- vec_head(ranked_categories, n = n)
-    top_n_categories <- names(top_n_categories[radix_order(top_n_categories,
-                                                           decreasing = descending)])
-  } else {
-    top_n_categories <- vec_head(x_unique_sorted, n = n)
-  }
-  top_n_category_levels <- as.character(top_n_categories)
-  if (length(x_unique) > length(top_n_categories)){
-    y[(!y %in% top_n_category_levels) & !is.na(y)] <- "Other"
-    top_n_category_levels <- collapse::funique(c(top_n_category_levels, "Other"))
-  }
-  if (factor){
-    # if (na_exclude){
-    #   na_factor_exclude <- NA
-    # } else {
-    #   na_factor_exclude <- NULL
-    # }
-    # y <- factor(y, levels = top_n_category_levels, exclude = na_factor_exclude)
-    y <- ffactor(y, levels = top_n_category_levels)
-    if (drop_levels){
-      y <- droplevels(y)
-    }
-  }
-  y
-}
 # Memory efficient n unique
 n_unique <- function(x, na.rm = FALSE){
   if (is_interval(x)){
@@ -426,50 +375,7 @@ tbl_append <- function(x, y, id, keep_id = TRUE, y_suffix = ".x",
   }
   z
 }
-# Bind columns from y to x without destroying names in x
-# tbl_append2 <- function(x, y,
-#                         suffix = ".x",
-#                         # .name_repair = function(x) paste0(x, ".x"),
-#                         quiet = FALSE){
-#   if (missing(y)) return(x)
-#   x_nms <- names(x)
-#   y_nms <- names(y)
-#   common_cols <- intersect(x_nms, y_nms)
-#   suffix <- rep_len(suffix, length(common_cols))
-#   new_col_nms <- paste0(common_cols, suffix)
-#   y_nms[y_nms %in% common_cols] <- new_col_nms
-#   names(y) <- y_nms
-#   z <- dplyr::bind_cols(x, y)
-#   if (!quiet){
-#     new_cols <- names(z)[seq_len(ncol(y)) + ncol(x)]
-#     message(paste0("New columns added:\n", paste(new_cols, collapse = ", ")))
-#   }
-#   z
-# }
-# Fast top n
-top_n <- function(x, n, na.rm = FALSE, with_ties = TRUE, sort = TRUE){
-  n <- min(length(x), n)
-  if (na.rm) x <- x[!is.na(x)]
-  x_order <- radix_order(x, decreasing = TRUE)
-  x_sorted <- x[x_order]
-  if (sort) x <- x_sorted
-  top_n <- x_sorted[seq_len(n)]
-  top_n2 <- collapse::funique(top_n, sort = FALSE)
-  if (with_ties){
-    out <- x[x %in% top_n2]
-  } else {
-    if (sort){
-      out <- top_n
-    } else {
-      out <- x[x %in% top_n2]
-      ranks <- radix_order(out, na.last = TRUE, decreasing = TRUE)
-      which_ranks <- which(ranks <= n)
-      out <- out[which_ranks[radix_order(ranks[which_ranks], na.last = TRUE,
-                                         decreasing = FALSE)]]
-    }
-  }
-  out
-}
+
 # top_n <- function(x, n = 5, na_rm = FALSE, with_ties = TRUE){
 #   out <- fn(x, g = x, sort = FALSE, use.g.names = TRUE)
 #   if (na_rm){
@@ -1251,23 +1157,45 @@ na_init <- function(x){
 strip_attrs <- function(x){
   `attributes<-`(x, NULL)
 }
+strip_attr <- function(x, which){
+  attr(x, which) <- NULL
+  x
+}
 is_integerable <- function(x){
   x <= .Machine$integer.max
 }
-add_attrs <- function(x, value){
-  attributes(x) <- value
+# add_attrs <- function(x, value){
+#   attributes(x) <- value
+#   x
+# }
+add_attr <- function(x, which, value){
+  attr(x, which) <- value
   x
 }
 add_names <- function(x, value){
   names(x) <- value
   x
 }
-flip_names_values <- function(x){
-  x_nms <- names(x)
-  if (is.null(x_nms)){
-    stop("x must be a named vector")
+# flip_names_values <- function(x){
+#   x_nms <- names(x)
+#   if (is.null(x_nms)){
+#     stop("x must be a named vector")
+#   }
+#   out <- x_nms
+#   names(out) <- as.character(unname(x))
+#   out
+# }
+# Use data.table matching if both are character, otherwise base R
+fmatch <- function(x, table, nomatch = NA_integer_){
+  if (is.character(x) && is.character(table)){
+    data.table::chmatch(x, table, nomatch = nomatch)
+  } else {
+    match(x, table, nomatch = nomatch)
   }
-  out <- x_nms
-  names(out) <- as.character(unname(x))
+}
+match_and_factor <- function(x, table){
+  out <- fmatch(x, table)
+  levels(out) <- as.character(table)
+  class(out) <- "factor"
   out
 }

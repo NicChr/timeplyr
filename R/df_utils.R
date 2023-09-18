@@ -1,5 +1,12 @@
 ##### Data frame helpers #####
 
+# Fast nrow/ncol for data frames
+df_nrow <- function(x){
+  length(attr(x, "row.names"))
+}
+df_ncol <- function(x){
+  length(attr(x, "names"))
+}
 # Slightly faster dplyr::group_vars
 group_vars <- function(x){
   if (is_df(x)){
@@ -111,13 +118,13 @@ df_rm_cols <- function(data, .cols){
 df_seq_along <- function(data, along = c("rows", "cols")){
   along <- rlang::arg_match0(along, c("rows", "cols"))
   if (along == "rows"){
-    seq_along(attr(data, "row.names"))
+    seq_len(df_nrow(data))
   } else {
-    seq_along(names(data))
+    seq_len(df_ncol(data))
   }
 }
 df_rep <- function(data, times){
-  N <- nrow2(data)
+  N <- df_nrow(data)
   if (N > 0L && length(times) > N){
     stop("times must not be greater than nrow(data)")
   }
@@ -131,7 +138,7 @@ df_rep <- function(data, times){
 }
 df_rep_each <- function(data, each){
   if (length(each) == 1L){
-    each <- rep_len(each, nrow2(data))
+    each <- rep_len(each, df_nrow(data))
   }
   df_rep(data, each)
   # N <- nrow2(data)
@@ -214,7 +221,7 @@ df_n_distinct <- function(data){
 # or different length list elements
 list_to_tibble <- function(x){
   if (is_df(x)){
-    N <- nrow2(x)
+    N <- df_nrow(x)
   } else {
     N <- collapse::fnrow(x)
   }
@@ -288,12 +295,12 @@ group_data_equal <- function(x, y){
   groups2 <- group_data(y)
   group_vars1 <- group_vars(x)
   group_vars2 <- group_vars(y)
-  out <- nrow2(x) == nrow2(y)
+  out <- df_nrow(x) == df_nrow(y)
   if (out){
     out <- isTRUE(all.equal(names(groups1), names(groups2)))
   }
   if (out){
-    out <- nrow2(groups1) == nrow2(groups2)
+    out <- df_nrow(groups1) == df_nrow(groups2)
   }
   if (out){
     # out <- dplyr::setequal(
@@ -332,6 +339,18 @@ empty_tbl <- function(){
 # Faster as_tibble
 df_as_tibble <- function(x){
   df_reconstruct(x, empty_tbl())
+}
+# Initialise data frame with NA
+df_init <- function(x, size = 1L){
+  nrows <- df_nrow(x)
+  if (df_ncol(x) == 0){
+    df_reconstruct(structure(list(), class = "data.frame",
+                             row.names = .set_row_names(size),
+                             names = character()),
+                   x)
+  } else {
+    collapse::ss(x, i = collapse::alloc(nrows + 1L, size))
+  }
 }
 ##### data.table specific helpers #####
 

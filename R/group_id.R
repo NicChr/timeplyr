@@ -182,7 +182,7 @@ group_id.data.frame <- function(data, ...,
                                 ascending = TRUE,
                                 .by = NULL, .cols = NULL,
                                 as_qg = FALSE){
-  N <- nrow2(data)
+  N <- df_nrow(data)
   group_info <- group_info(data, ..., .by = {{ .by }},
                            .cols = .cols,
                            ungroup = TRUE,
@@ -230,7 +230,7 @@ group_id.grouped_df <- function(data, ...,
     out <- dplyr::group_indices(data)
     if (as_qg){
       out <- group_id_to_qg(out,
-                            n_groups = nrow2(group_data(data)),
+                            n_groups = df_nrow(group_data(data)),
                             group_sizes = collapse::vlengths(group_data(data)[[".rows"]],
                                                              use.names = FALSE),
                             ordered = order)
@@ -276,14 +276,17 @@ add_group_id <- function(data, ...,
                          .by = NULL, .cols = NULL,
                          .name = NULL,
                          as_qg = FALSE){
-  if (is.null(.name)) .name <- new_var_nm(names(data), "group_id")
-  dplyr::dplyr_col_modify(data, add_names(list(group_id(data, ...,
-                                                       order = order,
-                                                       ascending = ascending,
-                                                       .by = {{ .by }},
-                                                       .cols = .cols,
-                                                       as_qg = as_qg)),
-                                         .name))
+  if (is.null(.name)){
+    .name <- new_var_nm(names(data), "group_id")
+  }
+  group_ids <- group_id(data, ...,
+                        order = order,
+                        ascending = ascending,
+                        .by = {{ .by }},
+                        .cols = .cols,
+                        as_qg = as_qg)
+  col_to_add <- add_names(list(group_ids), .name)
+  dplyr::dplyr_col_modify(data, col_to_add)
 }
 #' @rdname group_id
 #' @export
@@ -299,7 +302,7 @@ row_id.default <- function(data, ..., ascending = TRUE, order = TRUE){
 row_id.data.frame <- function(data, ...,
                               ascending = TRUE, order = TRUE,
                               .by = NULL, .cols = NULL){
-  N <- nrow2(data)
+  N <- df_nrow(data)
   group_info <- group_info(data, ..., .by = {{ .by }},
                            .cols = .cols,
                            ungroup = TRUE,
@@ -324,11 +327,14 @@ row_id.grouped_df <- row_id.data.frame
 add_row_id <- function(data, ..., ascending = TRUE,
                        .by = NULL, .cols = NULL,
                        .name = NULL){
-  if (is.null(.name)) .name <- new_var_nm(names(data), "row_id")
-  dplyr::dplyr_col_modify(data, add_names(list(row_id(data, ...,
-                                                     ascending = ascending,
-                                                     .by = {{ .by }}, .cols = .cols)),
-                                         .name))
+  if (is.null(.name)){
+    .name <- new_var_nm(names(data), "row_id")
+  }
+  row_ids <- row_id(data, ...,
+                    ascending = ascending,
+                    .by = {{ .by }}, .cols = .cols)
+  col_to_add <- add_names(list(row_ids), .name)
+  dplyr::dplyr_col_modify(data, col_to_add)
 }
 #' @rdname group_id
 #' @export
@@ -368,7 +374,7 @@ group_order.Interval <- function(data, ..., ascending = TRUE){
 #' @export
 group_order.data.frame <- function(data, ..., ascending = TRUE,
                                    .by = NULL, .cols = NULL){
-  N <- nrow2(data)
+  N <- df_nrow(data)
   group_info <- group_info(data, ..., .by = {{ .by }},
                            .cols = .cols,
                            ungroup = TRUE,
@@ -398,7 +404,9 @@ group_order.grouped_df <- group_order.data.frame
 add_group_order <- function(data, ..., ascending = TRUE,
                             .by = NULL, .cols = NULL,
                             .name = NULL){
-  if (is.null(.name)) .name <- new_var_nm(names(data), "group_order")
+  if (is.null(.name)){
+    .name <- new_var_nm(names(data), "group_order")
+  }
   dplyr::dplyr_col_modify(data, add_names(list(group_order(data, ...,
                                                           .by = {{ .by }}, .cols = .cols,
                                                           ascending = ascending)),
@@ -518,8 +526,7 @@ group_id_to_qg <- function(x,
 }
 # Efficiently convert qG to integer
 qg_to_integer <- function(x){
-  attributes(x) <- NULL
-  x
+  strip_attrs(x)
 }
 # group_id_to_GRP <- function(x, ordered = TRUE, return_order = FALSE){
 #   if (length(x) == 0L){

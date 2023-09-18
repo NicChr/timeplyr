@@ -1391,11 +1391,6 @@ time_aggregate_switch <- function(x, time_by, time_type,
                         as_int = as_int)
   }
 }
-check_index_not_missing <- function(x){
-  if (anyNA(x)){
-    stop("time index must not contain NA values")
-  }
-}
 check_is_date <- function(x){
   if (!is_date(x)){
     stop("x must be a date")
@@ -1406,7 +1401,7 @@ as_int_date <- function(x){
   check_is_date(x)
   `class<-`(as.integer(unclass(x)), "Date")
 }
-check_time_contains_na <- function(x){
+check_time_not_missing <- function(x){
   if (anyNA(x)){
     stop("time index must not contain NA values")
   }

@@ -248,8 +248,8 @@ GRP_group_data <- function(GRP, expand = FALSE){
   out
 }
 
-GRP_names <- function(GRP, sep = "_", expand = FALSE){
-  g_names <- collapse::GRPnames(GRP, force.char = FALSE, sep = sep)
+GRP_names <- function(GRP, sep = "_", expand = FALSE, force.char = FALSE){
+  g_names <- collapse::GRPnames(GRP, force.char = force.char, sep = sep)
   if (expand && !is.null(g_names)){
     g_names[GRP_group_id(GRP)]
   } else {
@@ -268,7 +268,7 @@ df_as_GRP <- function(data, return.groups = TRUE, return.order = TRUE){
                   "group.starts", "call")
   gdata <- group_data(data)
   gvars <- group_vars(data)
-  n_groups <- nrow2(gdata)
+  n_groups <- df_nrow(gdata)
   group_id <- dplyr::group_indices(data)
   gsizes <- collapse::vlengths(gdata[[".rows"]], use.names = FALSE)
   if (return.order){
@@ -317,7 +317,7 @@ df_as_one_GRP <- function(data, order = TRUE,
                   "group.vars",
                   "ordered", "order",
                   "group.starts", "call")
-  gsizes <- nrow2(data)
+  gsizes <- df_nrow(data)
   n_groups <- min(gsizes, 1L)
   group_id <- collapse::alloc(1L, gsizes)
   if (order && return.order){

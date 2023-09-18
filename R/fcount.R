@@ -43,18 +43,6 @@
 #'   fcount(across(where(is.numeric), mean))
 #' iris %>%
 #'   fadd_count(across(where(is.numeric), mean))
-#' @importFrom dplyr %>%
-#' @importFrom data.table :=
-#' @importFrom data.table .N
-#' @importFrom data.table .SD
-#' @importFrom data.table .GRP
-#' @importFrom dplyr .data
-#' @importFrom dplyr across
-#' @importFrom dplyr all_of
-#' @importFrom rlang enquo
-#' @importFrom rlang enquos
-#' @importFrom timechange time_add
-#' @importFrom pillar tbl_sum
 #' @export
 fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                    .by = NULL, .cols = NULL){
@@ -99,7 +87,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   if (is.null(name)) name <- new_n_var_nm(out)
   # Edge-case, not sure how to fix this
   if (N == 0L && length(all_vars) == 0L){
-    out <- vctrs::vec_init(out, n = 1L)
+    out <- df_init(out, 1L)
   }
   if (length(wt_var) == 0){
     nobs <- group_sizes

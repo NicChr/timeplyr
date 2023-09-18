@@ -137,8 +137,8 @@ time_by <- function(data, time, time_by = NULL,
   time_var <- across_col_names(time_var, .fns = "", .names = .name)
   data <- dplyr::mutate(data, "{time_var}" := time_agg)
   time_span <- GRP_group_data(time_span_GRP)
-  if (nrow2(time_span) == 0L){
-    time_span <- vctrs::vec_init(time_span, n = 1L)
+  if (df_nrow(time_span) == 0L){
+    time_span <- df_init(time_span, 1L)
   }
   time_span$start <- time_span_start
   time_span$end <- time_span_end
@@ -166,7 +166,7 @@ time_by <- function(data, time, time_by = NULL,
                                  time = time_var,
                                  time_by = time_by,
                                  time_span = time_span,
-                                 class = c("time_tbl_df"))
+                                 class = "time_tbl_df")
   }
   out
 }

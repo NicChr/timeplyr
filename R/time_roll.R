@@ -125,7 +125,7 @@ time_roll_sum <- function(x, window,
                           time_type = c("auto", "duration", "period"),
                           roll_month = "preday", roll_dst = "pre",
                           ...){
-  check_time_contains_na(time)
+  check_time_not_missing(time)
   # if (length(lag) != 1L){
   #   stop("lag must be of length 1")
   # }
@@ -228,7 +228,7 @@ time_roll_mean <- function(x, window,
                            time_type = c("auto", "duration", "period"),
                            roll_month = "preday", roll_dst = "pre",
                            ...){
-  check_time_contains_na(time)
+  check_time_not_missing(time)
   # if (length(lag) != 1L){
   #   stop("lag must be of length 1")
   # }
@@ -328,7 +328,7 @@ time_roll_growth_rate <- function(x, window,
                                   na.rm = TRUE,
                                   time_type = c("auto", "duration", "period"),
                                   roll_month = "preday", roll_dst = "pre"){
-  check_time_contains_na(time)
+  check_time_not_missing(time)
   window <- time_by_get(time, time_by = window)
   time_num <- time_by_num(window)
   time_unit <- time_by_unit(window)
@@ -576,6 +576,7 @@ time_roll_window_size <- function(time, window,
                                   close_left_boundary = FALSE,
                                   time_type = c("auto", "duration", "period"),
                                   roll_month = "preday", roll_dst = "pre"){
+  check_time_not_missing(time)
   window <- time_by_list(window)
   check_time_by_length_is_one(window)
   time_num <- time_by_num(window)

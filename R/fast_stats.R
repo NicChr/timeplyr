@@ -127,7 +127,7 @@ fprop_complete <- function(x, ...){
 }
 #' @rdname fast_stats
 fcummean <- function(x, g = NULL, na.rm = FALSE, ...){
-  g <- GRP2(g)
+  g <- GRP2(g, sort = FALSE, return.groups = FALSE)
   sizes <- frowid(x, g = g)
   if (na.rm){
     sizes <- sizes - collapse::fcumsum(is.na(x), g = g, na.rm = FALSE)

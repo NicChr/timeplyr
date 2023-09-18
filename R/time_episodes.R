@@ -246,7 +246,7 @@ calc_episodes <- function(data,
                           fill){ # How to fill first time elapsed for rolling calc
   N <- nrow2(data)
   lag <- min(N, 1L) # Bound lag to >= 0
-  time_na <- fpluck(data, time)[N + 1L] # time NA with correct class
+  time_na <- na_init(fpluck(data, time)) # time NA with correct class
   time_num <- time_by_num(time_by)
   time_unit <- time_by_unit(time_by)
   # time_threshold <- add_names(list(time_num * window), time_unit)

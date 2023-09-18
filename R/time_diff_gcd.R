@@ -48,10 +48,10 @@ time_diff_gcd <- function(x, time_by = 1,
   }
   x <- collapse::funique(x, sort = !is_sorted)
   all_na <- collapse::allNA(x)
-  x <- x[!is.na(x)]
   if (all_na){
     return(NA_real_)
   }
+  x <- x[!is.na(x)]
   if (length(x) == 0L){
     return(numeric(0))
   }
@@ -76,74 +76,3 @@ time_diff_gcd <- function(x, time_by = 1,
   }
   collapse::vgcd(tdiff)
 }
-time_diff_gcd2 <- function(x, time_type = c("auto", "duration", "period"),
-                          is_sorted = FALSE,
-                          tol = sqrt(.Machine$double.eps)){
-  if (!is_sorted){
-    is_sorted <- is_sorted(x)
-  }
-  x <- collapse::funique(x, sort = !is_sorted)
-  x <- x[!is.na(x)]
-  if (length(x) == 0L){
-    gcd_diff <- numeric(0)
-  } else if (length(x) == 1L){
-    gcd_diff <- 1
-  } else {
-    if (is_date(x)){
-      tby <- "days"
-    } else if (is_datetime(x)){
-      tby <- "seconds"
-    } else {
-      tby <- 1
-    }
-    tdiff <- time_elapsed(x, rolling = TRUE,
-                          time_by = tby,
-                          time_type = time_type,
-                          fill = NA, g = NULL,
-                          na_skip = FALSE)
-    # tdiff <- fdiff2(tdiff)
-    log10_tol <- ceiling(abs(log10(tol)))
-    tdiff <- abs(tdiff[-1L])
-    if (!is.integer(tdiff)){
-      tdiff <- round(tdiff, digits = log10_tol)
-    }
-    tdiff <- collapse::funique(tdiff, sort = FALSE)
-    tdiff <- tdiff[double_gt(tdiff, 0, tol = tol)]
-    if (length(tdiff) == 0L){
-      return(10^(-log10_tol))
-    }
-    gcd_diff <- collapse::vgcd(tdiff)
-  }
-  gcd_diff
-}
-
-# Very simple version
-# time_diff_gcd <- function(x, is_sorted = FALSE, tol = sqrt(.Machine$double.eps)){
-#   if (!is_sorted){
-#     is_sorted <- is_sorted(x)
-#   }
-#   x <- collapse::funique(x, sort = !is_sorted)
-#   all_na <- collapse::allNA(x)
-#   x <- x[!is.na(x)]
-#   if (all_na){
-#     return(NA_real_)
-#   }
-#   if (length(x) == 0L){
-#     return(numeric(0))
-#   }
-#   if (length(x) == 1L){
-#     return(1)
-#   }
-#   tdiff <- collapse::fdiff.default(time_as_number(x), n = 1)
-#   log10_tol <- ceiling(abs(log10(tol)))
-#   tdiff <- collapse::funique.default(
-#     round(
-#       abs(tdiff), digits = log10_tol
-#     )
-#   )
-#   tdiff <- tdiff[double_gt(tdiff, 0, tol = tol)]
-#   if (length(tdiff) == 1 && tdiff == Inf){
-#     return(10^(-log10_tol))
-#   }
-#   collapse::vgcd(tdiff)
-# }

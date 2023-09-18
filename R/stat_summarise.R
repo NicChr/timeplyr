@@ -58,6 +58,7 @@ stat_summarise <- function(data, ...,
                            na.rm = TRUE, sort = TRUE,
                            .names = NULL, .by = NULL, .cols = NULL,
                            as_tbl = FALSE){
+  inform_available_stats()
   funs <- .stat_fns
   if (!is.character(stat)){
     stop("stat must be a character vector")
@@ -91,8 +92,8 @@ stat_summarise <- function(data, ...,
   if (length(group_vars) == 0){
     g <- NULL
   }
-  if (nrow2(out) == 0L && length(group_vars) == 0L){
-    out <- vctrs::vec_init(out, n = 1L)
+  if (df_nrow(out) == 0L && length(group_vars) == 0L){
+    out <- df_init(out, 1L)
   }
   out <- as_DT(out)
   if ("n" %in% stat){
@@ -182,3 +183,11 @@ across_col_names <- function(.cols = NULL, .fns = NULL,
 .stat_fns <- c("n", "nmiss", "min", "max", "mean", "median",
                "sd", "var", "mode", "first", "last", "sum",
                "prop_complete")
+
+inform_available_stats <- function(){
+  rlang::inform(message = c("The below stat functions are available for use in stat_summarise",
+                            .stat_fns),
+                use_cli_format = TRUE,
+                .frequency = "once",
+                .frequency_id = "rlang_stat_inform")
+}
