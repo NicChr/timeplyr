@@ -68,7 +68,9 @@ top_n <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE){
   }
   N <- GRP_data_size(g)
   out <- GRP_group_sizes(g)
-  df <- data.frame(name = g_names, n = out)
+  df <- list_to_data_frame(
+    list(name = g_names, n = out)
+  )
   if (na_rm){
     df <- df_row_slice(df, !is.na(df[["name"]]))
   }
@@ -114,7 +116,9 @@ bottom_n <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE){
   }
   N <- GRP_data_size(g)
   out <- GRP_group_sizes(g)
-  df <- data.frame(name = g_names, n = out)
+  df <- list_to_data_frame(
+    list(name = g_names, n = out)
+  )
   if (na_rm){
     df <- df_row_slice(df, !is.na(df[["name"]]))
   }
@@ -135,7 +139,7 @@ lump_top_n <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE,
                        as_factor = TRUE,
                        other_category = "Other"){
   top_n_vals <- top_n(x, n = n, na_rm = na_rm, with_ties = with_ties)
-  out <- fmatch(x, top_n_vals, nomatch = min(length(top_n_vals) + 1L, length(x)))
+  out <- fmatch(x, top_n_vals, nomatch = length(top_n_vals) + 1L)
   factor_levels <- as.character(top_n_vals)
   if (length(top_n_vals) < n_unique(x, na.rm = na_rm)){
     factor_levels <- c(factor_levels, other_category)
@@ -155,7 +159,7 @@ lump_bottom_n <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE,
                           as_factor = TRUE,
                           other_category = "Other"){
   bottom_n_vals <- bottom_n(x, n = n, na_rm = na_rm, with_ties = with_ties)
-  out <- fmatch(x, bottom_n_vals, nomatch = min(length(bottom_n_vals) + 1L, length(x)))
+  out <- fmatch(x, bottom_n_vals, nomatch = length(bottom_n_vals) + 1L)
   factor_levels <- as.character(bottom_n_vals)
   if (length(bottom_n_vals) < n_unique(x, na.rm = na_rm)){
     factor_levels <- c(factor_levels, other_category)

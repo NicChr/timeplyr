@@ -1199,3 +1199,8 @@ match_and_factor <- function(x, table){
   class(out) <- "factor"
   out
 }
+check_is_list <- function(x){
+  if (!is.list(x)){
+    stop("x must be a list")
+  }
+}

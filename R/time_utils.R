@@ -873,7 +873,13 @@ is_interval <- function(x){
 }
 # Check if data has lubridate interval
 has_interval <- function(data, quiet = TRUE){
-  out <- any(vapply(data, FUN = is_interval, FALSE))
+  out <- FALSE
+  for (i in seq_along(data)){
+    if (is_interval(.subset2(data, i))){
+      out <- TRUE
+      break
+    }
+  }
   if (out && !quiet){
     message("A variable of class 'Interval' exists.
     The grouping will be done using 'dplyr'.

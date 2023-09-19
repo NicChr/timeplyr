@@ -45,6 +45,10 @@ is_whole_num <- function(x, tol) {
     .Call(`_timeplyr_is_whole_num`, x, tol)
 }
 
+list_rm_null <- function(l) {
+    .Call(`_timeplyr_list_rm_null`, l)
+}
+
 roll_apply_max_fast <- function(x, before, after) {
     .Call(`_timeplyr_roll_apply_max_fast`, x, before, after)
 }

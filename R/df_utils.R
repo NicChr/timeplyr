@@ -166,9 +166,9 @@ nrow2 <- function(data){
 }
 # Do all list elements have same number of elements?
 is_list_df_like <- function(X){
-  stopifnot(is.list(X))
+  check_is_list(X)
   lens <- collapse::vlengths(X, use.names = FALSE)
-  isTRUE(collapse::fnunique(lens) <= 1)
+  collapse::fnunique(lens) <= 1
 }
 # Convenience function
 is_df <- function(x){
@@ -217,7 +217,7 @@ df_n_distinct <- function(data){
 }
 # list to tibble/DT
 # No checks are done so use with caution
-# Cannot contain duplicate names, NULL elements,
+# Cannot contain duplicate names
 # or different length list elements
 list_to_tibble <- function(x){
   if (is_df(x)){
@@ -225,7 +225,21 @@ list_to_tibble <- function(x){
   } else {
     N <- collapse::fnrow(x)
   }
+  # Remove NULL items
+  x <- list_rm_null(x)
   attr(x, "class") <- c("tbl_df", "tbl", "data.frame")
+  attr(x, "row.names") <- .set_row_names(N)
+  attr(x, "names") <- as.character(names(x))
+  x
+}
+# Very fast conversion of list to data frame
+# It must have unique names and list lengths must all be equal
+# NULL elements are removed
+list_to_data_frame <- function(x){
+  N <- collapse::fnrow(x)
+  # Remove NULL items
+  x <- list_rm_null(x)
+  attr(x, "class") <- "data.frame"
   attr(x, "row.names") <- .set_row_names(N)
   attr(x, "names") <- as.character(names(x))
   x

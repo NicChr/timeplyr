@@ -147,6 +147,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// list_rm_null
+List list_rm_null(List l);
+RcppExport SEXP _timeplyr_list_rm_null(SEXP lSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type l(lSEXP);
+    rcpp_result_gen = Rcpp::wrap(list_rm_null(l));
+    return rcpp_result_gen;
+END_RCPP
+}
 // roll_apply_max_fast
 NumericVector roll_apply_max_fast(NumericVector x, int before, int after);
 RcppExport SEXP _timeplyr_roll_apply_max_fast(SEXP xSEXP, SEXP beforeSEXP, SEXP afterSEXP) {
@@ -276,6 +287,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_any_int_equal", (DL_FUNC) &_timeplyr_any_int_equal, 2},
     {"_timeplyr_any_num_equal", (DL_FUNC) &_timeplyr_any_num_equal, 3},
     {"_timeplyr_is_whole_num", (DL_FUNC) &_timeplyr_is_whole_num, 2},
+    {"_timeplyr_list_rm_null", (DL_FUNC) &_timeplyr_list_rm_null, 1},
     {"_timeplyr_roll_apply_max_fast", (DL_FUNC) &_timeplyr_roll_apply_max_fast, 3},
     {"_timeplyr_roll_apply_max", (DL_FUNC) &_timeplyr_roll_apply_max, 5},
     {"_timeplyr_before_sequence", (DL_FUNC) &_timeplyr_before_sequence, 2},
