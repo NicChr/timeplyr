@@ -37,7 +37,7 @@ Can be \code{NULL} or a variable:
 \item If a variable, computes \code{sum(wt)} for each group.
 }}
 
-\item{sort}{If \code{TRUE}, will s how the largest groups at the top.}
+\item{sort}{If \code{TRUE}, will show the largest groups at the top.}
 
 \item{name}{The name of the new column in the output.
 If there's already a column called \code{n},

@@ -57,22 +57,20 @@
 #' }
 #' @rdname top_n
 #' @export
-top_n <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE){
+top_n_tbl <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE){
   if (length(n) != 1){
     stop("n must be of length 1")
   }
   g <- GRP2(x, sort = FALSE, return.order = FALSE)
   g_names <- GRP_names(g)
-  if (GRP_data_size(g) == 0){
-    return(add_attr(g_names, "n", 0L))
-  }
   N <- GRP_data_size(g)
+  # if (N == 0){
+  #   return(new_tbl(n = 0L))
+  # }
   out <- GRP_group_sizes(g)
-  df <- list_to_data_frame(
-    list(name = g_names, n = out)
-  )
+  df <- new_tbl(value = g_names, n = out)
   if (na_rm){
-    df <- df_row_slice(df, !is.na(df[["name"]]))
+    df <- df_row_slice(df, !is.na(df[["value"]]))
   }
   # Sort by freq (descending order)
   df <- df_row_slice(df, radix_order(desc(df[["n"]])))
@@ -82,45 +80,31 @@ top_n <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE){
   } else {
     keep <- first_n_seq
   }
-  df <- df_row_slice(df, keep)
-  add_attr(df[["name"]], "n", df[["n"]])
+  df_row_slice(df, keep)
 }
 #' @rdname top_n
 #' @export
-top_n_tbl <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE){
-  top_n_vals <- top_n(x, n = n, na_rm = na_rm, with_ties = with_ties)
-  counts <- attr(top_n_vals, "n")
-  top_n_vals <- strip_attr(top_n_vals, "n")
-  dplyr::tibble(value = top_n_vals,
-                n = counts)
+top_n <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE){
+  top_n_df <- top_n_tbl(x, n = n, na_rm = na_rm, with_ties = with_ties)
+  counts <- top_n_df[["n"]]
+  add_attr(top_n_df[["value"]], "n", counts)
 }
 #' @rdname top_n
 #' @export
 bottom_n_tbl <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE){
-  bottom_n_vals <- bottom_n(x, n = n, na_rm = na_rm, with_ties = with_ties)
-  counts <- attr(bottom_n_vals, "n")
-  bottom_n_vals <- strip_attr(bottom_n_vals, "n")
-  dplyr::tibble(value = bottom_n_vals,
-                n = counts)
-}
-#' @rdname top_n
-#' @export
-bottom_n <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE){
   if (length(n) != 1){
     stop("n must be of length 1")
   }
   g <- GRP2(x, sort = FALSE, return.order = FALSE)
   g_names <- GRP_names(g)
-  if (GRP_data_size(g) == 0){
-    return(add_attr(g_names, "n", 0L))
-  }
   N <- GRP_data_size(g)
+  # if (N == 0){
+  #   return(new_tbl(n = 0L))
+  # }
   out <- GRP_group_sizes(g)
-  df <- list_to_data_frame(
-    list(name = g_names, n = out)
-  )
+  df <- new_tbl(value = g_names, n = out)
   if (na_rm){
-    df <- df_row_slice(df, !is.na(df[["name"]]))
+    df <- df_row_slice(df, !is.na(df[["value"]]))
   }
   # Sort by freq (ascending order)
   df <- df_row_slice(df, radix_order(asc(df[["n"]])))
@@ -130,8 +114,14 @@ bottom_n <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE){
   } else {
     keep <- first_n_seq
   }
-  df <- df_row_slice(df, keep)
-  add_attr(df[["name"]], "n", df[["n"]])
+  df_row_slice(df, keep)
+}
+#' @rdname top_n
+#' @export
+bottom_n <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE){
+  bottom_n_df <- bottom_n_tbl(x, n = n, na_rm = na_rm, with_ties = with_ties)
+  counts <- bottom_n_df[["n"]]
+  add_attr(bottom_n_df[["value"]], "n", counts)
 }
 #' @rdname top_n
 #' @export

@@ -146,7 +146,7 @@ stat_summarise <- function(data, ...,
                     value = fselect(q_summary, .cols = add_cols))
   }
   if (as_tbl){
-    out <- df_reconstruct(out, empty_tbl())
+    out <- df_as_tibble(out)
   }
   out
 }

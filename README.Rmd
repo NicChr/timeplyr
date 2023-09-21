@@ -58,43 +58,6 @@ eu_stock %>%
   time_ggplot(time, value, group)
 ```
 
-## By-group rolling mean and sum
-
-```{r}
-set.seed(4321)
-t <- today() + days(seq(0, 120, 3))
-t <- sample(t, size = 10^3, replace = TRUE)
-x <- rnorm(length(t))
-g <- sample(letters[1:3], size = 10^3, replace = TRUE)
-
-irregular_df <- tibble(g, t, x) %>%
-  arrange(g, t)
-
-irregular_df %>%
-  mutate(month_mean = time_roll_mean(x, months(1), time = t, g = g)) %>%
-  time_ggplot(t, month_mean, g)
-```
-
-## Cut the data into windows and apply any function
-
-Let's visualise the rolling range of values over a monthly window
-
-```{r}
-irregular_df <- arrange(irregular_df, t)
-# For now this is ungrouped
-month_windows <- time_roll_window(irregular_df$x, 
-                                  time = irregular_df$t,
-                                  window = months(1))
-rolling_min <- map_dbl(month_windows, min)
-rolling_max <- map_dbl(month_windows, max)
-
-irregular_df %>%
-  mutate(rolling_min, rolling_max) %>%
-  ggplot(aes(x = t)) + 
-  geom_linerange(aes(ymin = rolling_min, ymax = rolling_max)) +
-  labs(title = "Rolling monthly range of normally distributed data")
-
-```
 
 For the next examples we use flights departing from New York City in 2013.
 
@@ -111,7 +74,7 @@ theme_set(theme_minimal())
 
 ## `time_by`
 
-### Summarise your time variable by any time unit
+### Group your time variable by any time unit
 
 ```{r}
 flights_monthly <- flights %>%
@@ -119,7 +82,12 @@ flights_monthly <- flights %>%
   time_by(date, "month")
 
 flights_monthly
+```
 
+We can then use this to create a monthly summary of the number of flights
+and average arrival delay
+
+```{r}
 flights_monthly %>%
   summarise(n = n(),
             mean_arr_delay = mean(arr_delay, na.rm = TRUE))
@@ -213,6 +181,43 @@ flights %>%
 ```
 
 # Grouped rolling time functions
+
+## By-group rolling mean and sum
+
+```{r}
+set.seed(4321)
+t <- today() + days(seq(0, 120, 3))
+t <- sample(t, size = 10^3, replace = TRUE)
+x <- rnorm(length(t))
+g <- sample(letters[1:3], size = 10^3, replace = TRUE)
+
+irregular_df <- tibble(g, t, x) %>%
+  arrange(g, t)
+
+irregular_df %>%
+  mutate(month_mean = time_roll_mean(x, months(1), time = t, g = g)) %>%
+  time_ggplot(t, month_mean, g)
+```
+
+## Cut the data into windows and apply any function
+
+Let's visualise the rolling range of values over a monthly window
+
+```{r}
+irregular_df <- arrange(irregular_df, t)
+# For now this is ungrouped
+month_windows <- time_roll_window(irregular_df$x, 
+                                  time = irregular_df$t,
+                                  window = months(1))
+rolling_min <- map_dbl(month_windows, min)
+rolling_max <- map_dbl(month_windows, max)
+
+irregular_df %>%
+  mutate(rolling_min, rolling_max) %>%
+  ggplot(aes(x = t)) + 
+  geom_linerange(aes(ymin = rolling_min, ymax = rolling_max)) +
+  labs(title = "Rolling monthly range of normally distributed data")
+```
 
 ## `time_elapsed()`
 

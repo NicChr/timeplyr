@@ -49,6 +49,18 @@ list_rm_null <- function(l) {
     .Call(`_timeplyr_list_rm_null`, l)
 }
 
+numeric_class <- function(x) {
+    .Call(`_timeplyr_numeric_class`, x)
+}
+
+list_has_interval <- function(l) {
+    .Call(`_timeplyr_list_has_interval`, l)
+}
+
+list_item_is_interval <- function(l) {
+    .Call(`_timeplyr_list_item_is_interval`, l)
+}
+
 roll_apply_max_fast <- function(x, before, after) {
     .Call(`_timeplyr_roll_apply_max_fast`, x, before, after)
 }

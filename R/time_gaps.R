@@ -111,11 +111,11 @@ time_num_gaps <- function(x, time_by = NULL,
   g <- GRP2(g)
   check_data_GRP_size(x, g)
   tby <- time_by_get(x, time_by = time_by)
-  if (!is.null(time_by) && check_time_regular){
+  if (check_time_regular){
     is_regular <- time_is_regular(x, g = g, time_by = tby,
                                   use.g.names = FALSE,
                                   time_type = time_type)
-    if (any(!is_regular, na.rm = TRUE)){
+    if (collapse::anyv(is_regular, FALSE)){
       stop("x is not regular given the chosen time unit")
     }
   }

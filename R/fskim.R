@@ -450,12 +450,12 @@ fskim <- function(data, hist = FALSE){
 # Fast skimr:::spark_bar
 fspark_bar <- function(x){
   bars <- intToUtf8(c(9601L, 9602L, 9603L, 9605L, 9606L, 9607L), multiple = TRUE)
-  out <- bars[
-    fcut_ind(x, breaks = seq(0, 1, length.out = length(bars) + 1),
-             rightmost.closed = TRUE, left.open = FALSE, all.inside = FALSE)
-  ]
-  # out <- bars[.bincode(x, breaks = seq(0, 1, length.out = length(bars) + 1),
-  #                      right = TRUE, include.lowest = TRUE)]
+  bar_codes <- findInterval(x, vec = seq.int(0, to = 1, length.out = length(bars) + 1L),
+                            rightmost.closed = TRUE,
+                            left.open = FALSE,
+                            all.inside = FALSE)
+  bar_codes[bar_codes == 0L] <- NA_integer_
+  out <- bars[bar_codes]
   paste0(out, collapse = "")
 }
 # Fast skimr::inline_hist

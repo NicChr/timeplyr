@@ -36,9 +36,10 @@ time_breaks(
 )
 }
 \arguments{
-\item{x}{A date/datetime.}
+\item{x}{Time variable. \cr
+Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, or \code{yearqtr}.}
 
-\item{n}{The minimum number of breaks.}
+\item{n}{Number of breaks.}
 
 \item{time_by}{Time unit. \cr
 Must be one of the three:
@@ -117,7 +118,7 @@ flights <- nycflights13::flights \%>\%
 # suitable way to cut the data
 time_cut(flights$date)
 # Works with datetimes as well
-time_cut(flights$time_hour, n = 5) # 5 breaks
+time_cut(flights$time_hour, n = 5) # <= 5 breaks
 # Custom formatting
 time_cut(flights$date, fmt = "\%Y \%b", time_by = "month")
 time_cut(flights$time_hour, fmt = "\%Y \%b", time_by = "month")

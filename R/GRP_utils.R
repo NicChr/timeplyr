@@ -5,7 +5,7 @@ GRP2 <- function(X, ...){
   is_list_with_intervals <- is.list(X) && has_interval(X, quiet = TRUE)
   if (is_list_with_intervals){
     x <- X
-    which_int <- which(vapply(X, FUN = is_interval, FUN.VALUE = logical(1)))
+    which_int <- which(list_item_is_interval(X))
     for (i in seq_along(which_int)){
       X[[.subset(which_int, i)]] <- group_id(.subset2(X, .subset(which_int, i)))
     }
@@ -72,7 +72,8 @@ GRP_expanded_group_sizes <- function(GRP){
 }
 # Groups
 GRP_groups <- function(GRP){
-  GRP[["groups"]]
+  # GRP[["groups"]]
+  .subset2(GRP, "groups")
 }
 check_GRP_has_groups <- function(GRP){
   if (is_GRP(GRP) && is.null(GRP_groups(GRP))){

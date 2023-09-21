@@ -111,7 +111,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
   to_var <- tidy_transform_names(data, !!enquo(to))
   out <- as_DT(out)
   if (length(time_var) > 0){
-    time_type <- match.arg(time_type)
+    time_type <- match_time_type(time_type)
     time_by <- time_by_get(out[[time_var]], time_by = time_by)
     by_unit <- names(time_by)
     by_n <- time_by[[1L]]
@@ -210,10 +210,9 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
     keep_class <- FALSE
   }
   if (keep_class){
-    df_reconstruct(out, data)
-  } else {
-    out
+    out <- df_reconstruct(out, data)
   }
+  out
 }
 #' @rdname time_expand
 #' @export
@@ -229,7 +228,7 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
                           roll_month = "preday", roll_dst = "pre",
                           log_limit = 8){
   expand_type <- match.arg(expand_type)
-  time_type <- match.arg(time_type)
+  time_type <- match_time_type(time_type)
   group_vars <- get_groups(data, {{ .by }})
   out <- mutate2(data, !!enquo(time))
   time_var <- tidy_transform_names(data, !!enquo(time))

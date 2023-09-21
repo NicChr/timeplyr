@@ -259,7 +259,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
     }
     int_nm <- character(0)
     if (include_interval){
-      out <- list_to_tibble(as.list(out))
+      out <- df_as_tibble(out)
       if (inherits(data, "data.table")){
         reconstruct <- FALSE
         message("data.table converted to tibble as data.table cannot include interval class")

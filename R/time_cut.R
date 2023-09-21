@@ -16,8 +16,9 @@
 #' otherwise `>= n` groups
 #' are calculated.
 #'
-#' @param x A date/datetime.
-#' @param n The minimum number of breaks.
+#' @param x Time variable. \cr
+#' Can be a `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, or `yearqtr`.
+#' @param n Number of breaks.
 #' @param time_by Time unit. \cr
 #' Must be one of the three:
 #' * string, specifying either the unit or the number and unit, e.g
@@ -65,7 +66,7 @@
 #' # suitable way to cut the data
 #' time_cut(flights$date)
 #' # Works with datetimes as well
-#' time_cut(flights$time_hour, n = 5) # 5 breaks
+#' time_cut(flights$time_hour, n = 5) # <= 5 breaks
 #' # Custom formatting
 #' time_cut(flights$date, fmt = "%Y %b", time_by = "month")
 #' time_cut(flights$time_hour, fmt = "%Y %b", time_by = "month")
@@ -90,7 +91,8 @@
 time_cut <- function(x, n = 5, time_by = NULL,
                      from = NULL, to = NULL,
                      fmt = NULL,
-                     time_floor = FALSE, week_start = getOption("lubridate.week.start", 1),
+                     time_floor = FALSE,
+                     week_start = getOption("lubridate.week.start", 1),
                      n_at_most = TRUE, as_factor = TRUE,
                      time_type = c("auto", "duration", "period"),
                      roll_month = "preday", roll_dst = "pre"){
@@ -100,29 +102,19 @@ time_cut <- function(x, n = 5, time_by = NULL,
                              week_start = week_start,
                              n_at_most = n_at_most,
                              time_type = time_type,
-                             roll_month = roll_month, roll_dst = roll_dst)
-  # x_unique <- collapse::na_rm(collapse::funique(x, sort = TRUE))
-  # if (length(time_breaks) > length(x_unique)) time_breaks <- x_unique
+                             roll_month = roll_month,
+                             roll_dst = roll_dst)
   to <- bound_to(to, x)
-  out <- cut_time2(x, c(time_breaks, to + 1))
+  out <- cut_time(x,
+                  breaks = c(time_as_number(time_breaks),
+                             time_as_number(to) + 1),
+                  codes = TRUE)
   if (as_factor){
     time_labels <- tseq_levels(x = to, time_breaks, fmt = fmt)
-    time_levels <- as.character(time_breaks)
-    # Duplicate datetime due to levels not having timezone, which means
-    # 2 datetimes with the same clock time but different timezone
-    # Cause a duplicate factor level error
-    if (length(gwhich_duplicated(time_levels, order = FALSE)) > 0){
-      out <- factor(out,
-                    levels = as.character(time_breaks),
-                    labels = time_labels,
-                    ordered = TRUE)
-    } else {
-      out <- ffactor(out,
-                     levels = time_levels,
-                     na.exclude = TRUE,
-                     ordered = TRUE)
-      levels(out) <- time_labels
-    }
+    levels(out) <- time_labels
+    class(out) <- c("ordered", "factor")
+  } else {
+    out <- time_breaks[out]
   }
   out
 }
@@ -135,9 +127,9 @@ time_breaks <- function(x, n = 5, time_by = NULL,
                         time_type = c("auto", "duration", "period"),
                         roll_month = "preday", roll_dst = "pre"){
   check_is_time_or_num(x)
-  stopifnot(is.numeric(n))
+  check_is_num(n)
   stopifnot(n >= 1)
-  stopifnot(length(n) == 1)
+  check_length_one(n)
   if (is.infinite(n)){
     stop("n must be a finite number")
   }
@@ -145,7 +137,6 @@ time_breaks <- function(x, n = 5, time_by = NULL,
   from <- bound_from(from, x)
   to <- bound_to(to, x)
   n_unique <- n_unique(x, na.rm = TRUE)
-  # n <- min(n, n_unique)
   if (is.null(time_by)){
     if (is_time(x)){
       date_units <- c("days", "weeks", "months", "years")
@@ -167,16 +158,16 @@ time_breaks <- function(x, n = 5, time_by = NULL,
       } else {
         # Multiply gcd by 10 until range of data
         # Another option..
-        unit_nums <- 10^(seq(log10(time_rng_diff/n),
-                             log10(time_rng_diff), by = 1))
+        unit_nums <- 10^(seq.int(log10(time_rng_diff/n),
+                                 log10(time_rng_diff), by = 1))
         # Continue multiplying by 5 until range
-        unit_nums <- c(unit_nums, 5^(seq(logb(max(unit_nums), 5),
-                                         logb(time_rng_diff, 5),
-                                         by = 1)))
+        unit_nums <- c(unit_nums, 5^(seq.int(logb(max(unit_nums), 5),
+                                             logb(time_rng_diff, 5),
+                                             by = 1)))
         # Continue multiplying by 2 until range
-        unit_nums <- c(unit_nums, 2^(seq(round(logb(max(unit_nums), 2), 7),
-                                         round(logb(time_rng_diff, 2), 7),
-                                         by = 1)))
+        unit_nums <- c(unit_nums, 2^(seq.int(round(logb(max(unit_nums), 2), 7),
+                                             round(logb(time_rng_diff, 2), 7),
+                                             by = 1)))
         # Round the numbers off due to loss of precision
         unit_nums <- round(unit_nums, 6)
         if (time_rng_diff >= 3){
@@ -207,7 +198,9 @@ time_breaks <- function(x, n = 5, time_by = NULL,
     unit_multiplier <- 1
     scale <- 1
     num <- unit_nums[i]
-    if (time_type == "auto") time_type <- guess_seq_type(unit)
+    if (time_type == "auto"){
+      time_type <- guess_seq_type(unit)
+    }
   } else {
     unit_info <- unit_guess(time_by)
     unit <- unit_info[["unit"]]

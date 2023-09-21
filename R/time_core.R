@@ -204,20 +204,19 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
                               roll_month = roll_month, roll_dst = roll_dst)
   x <- time_cast(x, time_breaks)
   # Cut time
-  time_break_ind <- fcut_ind(x, c(time_breaks, to + 1))
+  time_break_ind <- cut_time(x, breaks = c(time_as_number(time_breaks),
+                                           time_as_number(to) + 1),
+                             codes = TRUE)
   # Time breaks subset on cut indices
   out <- time_breaks[time_break_ind]
 
   if (include_interval){
     time_int <- tseq_interval(x = to, time_breaks)
     time_int <- time_int[time_break_ind]
-    out <- list("x" = out,
-                "interval" = time_int)
-    out <- list_to_tibble(out)
+    out <- new_tbl(x = out, interval = time_int)
     # Unique and sorting
     if (unique){
       out <- fdistinct(out, .cols = "x", .keep_all = TRUE)
-      # out <- gunique(out, g = out[["x"]])
     }
     if (sort){
       out <- farrange(out, .cols = "x")
@@ -584,7 +583,8 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
   # time_breaks <- time_cast(time_breaks, x)
   out_len <- length(x)
   # Aggregate time/cut time
-  time_break_ind <- fcut_ind(x, c(time_breaks, .to + 1))
+  time_break_ind <- cut_time(x, c(time_as_number(time_breaks),
+                                  time_as_number(.to) + 1), codes = TRUE)
   # Time breaks subset on cut indices
   x <- time_breaks[time_break_ind]
 
@@ -615,10 +615,7 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
       time_int <- c(time_int, time_seq_int[which(attr(time_seq_int, "start") %in%
                                                    time_cast(time_missed, attr(time_seq_int, "start")))])
     }
-    out <- list("x" = x,
-                "interval" = time_int,
-                "n" = out)
-    out <- list_to_tibble(out)
+    out <- new_tbl(x = x, interval = time_int, n = out)
     if (unique){
       out <- fdistinct(out, .cols = "x", .keep_all = TRUE)
     }

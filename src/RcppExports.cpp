@@ -158,6 +158,39 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// numeric_class
+CharacterVector numeric_class(NumericVector x);
+RcppExport SEXP _timeplyr_numeric_class(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(numeric_class(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// list_has_interval
+bool list_has_interval(List l);
+RcppExport SEXP _timeplyr_list_has_interval(SEXP lSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type l(lSEXP);
+    rcpp_result_gen = Rcpp::wrap(list_has_interval(l));
+    return rcpp_result_gen;
+END_RCPP
+}
+// list_item_is_interval
+LogicalVector list_item_is_interval(List l);
+RcppExport SEXP _timeplyr_list_item_is_interval(SEXP lSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type l(lSEXP);
+    rcpp_result_gen = Rcpp::wrap(list_item_is_interval(l));
+    return rcpp_result_gen;
+END_RCPP
+}
 // roll_apply_max_fast
 NumericVector roll_apply_max_fast(NumericVector x, int before, int after);
 RcppExport SEXP _timeplyr_roll_apply_max_fast(SEXP xSEXP, SEXP beforeSEXP, SEXP afterSEXP) {
@@ -288,6 +321,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_any_num_equal", (DL_FUNC) &_timeplyr_any_num_equal, 3},
     {"_timeplyr_is_whole_num", (DL_FUNC) &_timeplyr_is_whole_num, 2},
     {"_timeplyr_list_rm_null", (DL_FUNC) &_timeplyr_list_rm_null, 1},
+    {"_timeplyr_numeric_class", (DL_FUNC) &_timeplyr_numeric_class, 1},
+    {"_timeplyr_list_has_interval", (DL_FUNC) &_timeplyr_list_has_interval, 1},
+    {"_timeplyr_list_item_is_interval", (DL_FUNC) &_timeplyr_list_item_is_interval, 1},
     {"_timeplyr_roll_apply_max_fast", (DL_FUNC) &_timeplyr_roll_apply_max_fast, 3},
     {"_timeplyr_roll_apply_max", (DL_FUNC) &_timeplyr_roll_apply_max, 5},
     {"_timeplyr_before_sequence", (DL_FUNC) &_timeplyr_before_sequence, 2},

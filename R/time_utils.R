@@ -687,15 +687,13 @@ set_time_cast <- function(x, y){
   if (!isTRUE(class(x) == class(y))){
     if (is_date(x) && is_datetime(y)){
       x_nm <- deparse(substitute(x))
-      assign(x_nm, lubridate::with_tz(.POSIXct(unclass(x) * 86400),
-                                      tzone = lubridate::tz(y)),
+      assign(x_nm, lubridate::with_tz(x, tzone = lubridate::tz(y)),
              envir = parent.frame(n = 1))
 
     }
     if (is_date(y) && is_datetime(x)){
       y_nm <- deparse(substitute(y))
-      assign(y_nm, lubridate::with_tz(.POSIXct(unclass(y) * 86400),
-                                      tzone = lubridate::tz(x)),
+      assign(y_nm, lubridate::with_tz(y, tzone = lubridate::tz(x)),
              envir = parent.frame(n = 1))
     }
   }
@@ -789,7 +787,7 @@ fcut_ind <- function(x, breaks, rightmost.closed = FALSE,
                           all.inside = all.inside)
   # This makes it so that NA is returned for any x where findinterval
   # resorts to 0 and doesn't just remove them
-  setv(breaksi, 0L, length(breaks) + 1L, vind1 = FALSE)
+  setv(breaksi, 0L, NA_integer_, vind1 = FALSE)
   breaksi
 }
 cut_time2 <- function(x, breaks, rightmost.closed = FALSE, left.open = FALSE){
@@ -801,10 +799,23 @@ cut_time2 <- function(x, breaks, rightmost.closed = FALSE, left.open = FALSE){
              all.inside = FALSE)
   ]
 }
-cut_time3 <- function(x, breaks, right = FALSE, include.lowest = FALSE){
-  bin_codes <- .bincode(x, breaks = breaks,
-                        right = right, include.lowest = include.lowest)
-  breaks[bin_codes]
+# Newer version of cut_time2
+# min(breaks) is expected to be <= min(x)
+# Interval is closed on the left
+# out-of-bounds times can be included in the last interval
+# This can return either break codes or the cut vector
+cut_time <- function(x, breaks, include_oob = FALSE, codes = FALSE){
+  x <- time_as_number(x)
+  breaks_num <- time_as_number(breaks)
+  if (include_oob){
+    breaks_num <- c(breaks_num, Inf)
+  }
+  out <- .bincode(x, breaks = breaks_num, right = FALSE, include.lowest = FALSE)
+  if (codes){
+    out
+  } else {
+    breaks[out]
+  }
 }
 is_date_or_utc <- function(x){
   is_date(x) || lubridate::tz(x) == "UTC"
@@ -873,13 +884,14 @@ is_interval <- function(x){
 }
 # Check if data has lubridate interval
 has_interval <- function(data, quiet = TRUE){
-  out <- FALSE
-  for (i in seq_along(data)){
-    if (is_interval(.subset2(data, i))){
-      out <- TRUE
-      break
-    }
-  }
+  # out <- FALSE
+  # for (i in seq_along(data)){
+  #   if (is_interval(.subset2(data, i))){
+  #     out <- TRUE
+  #     break
+  #   }
+  # }
+  out <- list_has_interval(data)
   if (out && !quiet){
     message("A variable of class 'Interval' exists.
     The grouping will be done using 'dplyr'.
@@ -972,12 +984,11 @@ tseq_levels <- function(x, seq, gx = NULL, gseq = NULL, fmt = NULL){
                         ")")
   to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
   end_points <- which(is.na(out) & !is.na(seq))
-  setv(out, end_points, stringr::str_c("[",
-                                       time_breaks_fmt[end_points],
-                                       ", ",
-                                       fmt_f(to),
-                                       "]"),
-       vind1 = TRUE)
+  out[end_points] <- stringr::str_c("[",
+                                    time_breaks_fmt[end_points],
+                                    ", ",
+                                    fmt_f(to),
+                                    "]")
   out
 }
 # Internal helper to process from/to args
@@ -1411,4 +1422,7 @@ check_time_not_missing <- function(x){
   if (anyNA(x)){
     stop("time index must not contain NA values")
   }
+}
+match_time_type <- function(time_type){
+  rlang::arg_match0(time_type, c("auto", "duration", "period"))
 }

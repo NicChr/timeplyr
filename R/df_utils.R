@@ -2,10 +2,10 @@
 
 # Fast nrow/ncol for data frames
 df_nrow <- function(x){
-  length(attr(x, "row.names"))
+  length(attr(x, "row.names", TRUE))
 }
 df_ncol <- function(x){
-  length(attr(x, "names"))
+  length(attr(x, "names", TRUE))
 }
 # Slightly faster dplyr::group_vars
 group_vars <- function(x){
@@ -49,16 +49,17 @@ get_groups <- function(data, .by = NULL){
 # A collapse version of dplyr_reconstruct,
 # fast when lots of groups are involved
 df_reconstruct <- function(data, template){
-  if (!inherits(data, "data.frame") || !inherits(template, "data.frame")){
+  if (!is_df(data) || !is_df(template)){
     stop("data must be a data.frame")
   }
   data_attrs <- attributes(data)
   template_attrs <- attributes(template)
+
   if (identical(inherits(template, c("data.table", "data.frame"), which = TRUE),
                 c(1L, 2L))){
     if (!is.null(attr(data, "groups"))){
       attr(data, "groups") <- NULL
-      }
+    }
     out <- as_DT(safe_ungroup(data))
     invisible(data.table::setalloccol(out))
     return(out)
@@ -215,6 +216,10 @@ df_n_distinct <- function(data){
               return.groups = FALSE, return.order = FALSE)
   )
 }
+# list() that removes NULL elements
+list3 <- function(...){
+  list_rm_null(list(...))
+}
 # list to tibble/DT
 # No checks are done so use with caution
 # Cannot contain duplicate names
@@ -227,22 +232,60 @@ list_to_tibble <- function(x){
   }
   # Remove NULL items
   x <- list_rm_null(x)
-  attr(x, "class") <- c("tbl_df", "tbl", "data.frame")
-  attr(x, "row.names") <- .set_row_names(N)
-  attr(x, "names") <- as.character(names(x))
+  attributes(x) <- list(class = c("tbl_df", "tbl", "data.frame"),
+                        row.names = c(NA_integer_, -N),
+                        names = as.character(names(x)))
   x
 }
 # Very fast conversion of list to data frame
 # It must have unique names and list lengths must all be equal
 # NULL elements are removed
 list_to_data_frame <- function(x){
-  N <- collapse::fnrow(x)
+  if (is_df(x)){
+    N <- df_nrow(x)
+  } else {
+    N <- collapse::fnrow(x)
+  }
   # Remove NULL items
   x <- list_rm_null(x)
-  attr(x, "class") <- "data.frame"
-  attr(x, "row.names") <- .set_row_names(N)
-  attr(x, "names") <- as.character(names(x))
+  attributes(x) <- list(class = "data.frame",
+                        row.names = c(NA_integer_, -N),
+                        names = as.character(names(x)))
   x
+}
+# Create new df with no name checks or length checks
+new_df <- function(...){
+  out <- list3(...)
+  if (length(out) == 0L){
+    row_names <- integer()
+  } else {
+    N <- length(.subset2(out, 1L))
+    row_names <- c(NA_integer_, -N)
+  }
+  attributes(out) <- list(class = "data.frame",
+                        row.names = row_names,
+                        names = as.character(names(out)))
+  out
+}
+new_tbl <- function(...){
+  out <- list3(...)
+  if (length(out) == 0L){
+    row_names <- integer()
+  } else {
+    N <- length(.subset2(out, 1L))
+    row_names <- c(NA_integer_, -N)
+  }
+  attributes(out) <- list(class = c("tbl_df", "tbl", "data.frame"),
+                          row.names = row_names,
+                          names = as.character(names(out)))
+  out
+}
+# This makes a copy
+new_dt <- function(...){
+  out <- new_df(...)
+  out <- data.table::copy(out)
+  data.table::setDT(out)
+  out
 }
 # Pluck data frame row (works for matrices and df-like lists too)
 pluck_row <- function(x, i = 1L, j = collapse::seq_col(x),
@@ -346,8 +389,9 @@ group_data_equal <- function(x, y){
   out
 }
 empty_tbl <- function(){
-  structure(list(), class = c("tbl_df", "tbl", "data.frame"),
-            row.names = .set_row_names(0L),
+  structure(list(),
+            class = c("tbl_df", "tbl", "data.frame"),
+            row.names = integer(),
             names = character())
 }
 # Faster as_tibble

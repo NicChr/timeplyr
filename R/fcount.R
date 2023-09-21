@@ -18,7 +18,7 @@
 #'
 #'   * If `NULL` (the default), counts the number of rows in each group.
 #'   * If a variable, computes `sum(wt)` for each group.
-#' @param sort If `TRUE`, will s how the largest groups at the top.
+#' @param sort If `TRUE`, will show the largest groups at the top.
 #' @param name The name of the new column in the output.
 #'  If there's already a column called `n`,
 #'  it will use `nn`.
@@ -53,7 +53,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
                            rename = TRUE)
   out <- group_info[["data"]]
   all_vars <- group_info[["all_groups"]]
-  N <- nrow2(out)
+  N <- df_nrow(out)
   # Weights
   if (!rlang::quo_is_null(enquo(wt))){
     out <- mutate2(out, !!enquo(wt))
@@ -83,7 +83,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   if (length(all_vars) == 0L){
    g <- NULL
   }
-  N <- nrow2(out)
+  N <- df_nrow(out)
   if (is.null(name)) name <- new_n_var_nm(out)
   # Edge-case, not sure how to fix this
   if (N == 0L && length(all_vars) == 0L){

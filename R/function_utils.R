@@ -2,11 +2,19 @@
 
 # Memory efficient n unique
 n_unique <- function(x, na.rm = FALSE){
+  na_offset <- 0L
   if (is_interval(x)){
-    dplyr::n_distinct(x, na.rm = na.rm)
-  } else {
-    collapse::fndistinct(x, na.rm = na.rm)
+    x <- interval_separate(x)
   }
+  out <- collapse::fnunique(x)
+  if (na.rm){
+   if (is.list(x)){
+     na_offset <- as.integer(sum(collapse::missing_cases(x, prop = 1)) > 0)
+   } else {
+     na_offset <- as.integer(anyNA(x))
+   }
+  }
+  out - na_offset
 }
 
 is_length_one <- function(x){
@@ -1158,23 +1166,19 @@ strip_attrs <- function(x){
   `attributes<-`(x, NULL)
 }
 strip_attr <- function(x, which){
-  attr(x, which) <- NULL
-  x
+  `attr<-`(x, which, NULL)
 }
 is_integerable <- function(x){
   x <= .Machine$integer.max
 }
-# add_attrs <- function(x, value){
-#   attributes(x) <- value
-#   x
-# }
 add_attr <- function(x, which, value){
-  attr(x, which) <- value
-  x
+  `attr<-`(x, which, value)
+}
+add_attrs <- function(x, value){
+  `attributes<-`(x, value)
 }
 add_names <- function(x, value){
-  names(x) <- value
-  x
+  `names<-`(x, value)
 }
 # flip_names_values <- function(x){
 #   x_nms <- names(x)
@@ -1202,5 +1206,10 @@ match_and_factor <- function(x, table){
 check_is_list <- function(x){
   if (!is.list(x)){
     stop("x must be a list")
+  }
+}
+check_length_one <- function(x){
+  if (length(x) != 1L){
+    stop("x must be of length 1")
   }
 }

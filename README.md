@@ -43,6 +43,7 @@ library(tidyverse)
 #> ✖ dplyr::desc()   masks timeplyr::desc()
 #> ✖ dplyr::filter() masks stats::filter()
 #> ✖ dplyr::lag()    masks stats::lag()
+#> ✖ dplyr::top_n()  masks timeplyr::top_n()
 #> ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
 eu_stock <- EuStockMarkets %>%
   ts_as_tibble()
@@ -72,47 +73,6 @@ eu_stock %>%
 
 ![](man/figures/README-unnamed-chunk-2-1.png)<!-- -->
 
-## By-group rolling mean and sum
-
-``` r
-set.seed(4321)
-t <- today() + days(seq(0, 120, 3))
-t <- sample(t, size = 10^3, replace = TRUE)
-x <- rnorm(length(t))
-g <- sample(letters[1:3], size = 10^3, replace = TRUE)
-
-irregular_df <- tibble(g, t, x) %>%
-  arrange(g, t)
-
-irregular_df %>%
-  mutate(month_mean = time_roll_mean(x, months(1), time = t, g = g)) %>%
-  time_ggplot(t, month_mean, g)
-```
-
-![](man/figures/README-unnamed-chunk-3-1.png)<!-- -->
-
-## Cut the data into windows and apply any function
-
-Let’s visualise the rolling range of values over a monthly window
-
-``` r
-irregular_df <- arrange(irregular_df, t)
-# For now this is ungrouped
-month_windows <- time_roll_window(irregular_df$x, 
-                                  time = irregular_df$t,
-                                  window = months(1))
-rolling_min <- map_dbl(month_windows, min)
-rolling_max <- map_dbl(month_windows, max)
-
-irregular_df %>%
-  mutate(rolling_min, rolling_max) %>%
-  ggplot(aes(x = t)) + 
-  geom_linerange(aes(ymin = rolling_min, ymax = rolling_max)) +
-  labs(title = "Rolling monthly range of normally distributed data")
-```
-
-![](man/figures/README-unnamed-chunk-4-1.png)<!-- -->
-
 For the next examples we use flights departing from New York City in
 2013.
 
@@ -125,7 +85,7 @@ flights <- flights %>%
 
 ## `time_by`
 
-### Summarise your time variable by any time unit
+### Group your time variable by any time unit
 
 ``` r
 flights_monthly <- flights %>%
@@ -150,7 +110,12 @@ flights_monthly
 #>  9 2013-01-01        -8
 #> 10 2013-01-01         8
 #> # ℹ 336,766 more rows
+```
 
+We can then use this to create a monthly summary of the number of
+flights and average arrival delay
+
+``` r
 flights_monthly %>%
   summarise(n = n(),
             mean_arr_delay = mean(arr_delay, na.rm = TRUE))
@@ -231,9 +196,6 @@ flights %>%
 ``` r
 flights %>%
   time_count(date, time_by = "quarter")
-#> 
-#> Filling in implicit gaps in time, counts are replaced with 0
-#>               to disable this set complete = FALSE
 #> # A tibble: 4 × 2
 #>   date           n
 #>   <date>     <int>
@@ -250,9 +212,6 @@ start <- dmy("17-Jan-2013")
 flights %>%
   time_count(date,
              time_by = "week", from = start, time_floor = TRUE)
-#> 
-#> Filling in implicit gaps in time, counts are replaced with 0
-#>               to disable this set complete = FALSE
 #> # A tibble: 51 × 2
 #>    date           n
 #>    <date>     <int>
@@ -270,9 +229,6 @@ flights %>%
 flights %>%
   time_count(date,
              time_by = "month", from = start, time_floor = TRUE)
-#> 
-#> Filling in implicit gaps in time, counts are replaced with 0
-#>               to disable this set complete = FALSE
 #> # A tibble: 12 × 2
 #>    date           n
 #>    <date>     <int>
@@ -384,6 +340,47 @@ flights %>%
 ```
 
 # Grouped rolling time functions
+
+## By-group rolling mean and sum
+
+``` r
+set.seed(4321)
+t <- today() + days(seq(0, 120, 3))
+t <- sample(t, size = 10^3, replace = TRUE)
+x <- rnorm(length(t))
+g <- sample(letters[1:3], size = 10^3, replace = TRUE)
+
+irregular_df <- tibble(g, t, x) %>%
+  arrange(g, t)
+
+irregular_df %>%
+  mutate(month_mean = time_roll_mean(x, months(1), time = t, g = g)) %>%
+  time_ggplot(t, month_mean, g)
+```
+
+![](man/figures/README-unnamed-chunk-15-1.png)<!-- -->
+
+## Cut the data into windows and apply any function
+
+Let’s visualise the rolling range of values over a monthly window
+
+``` r
+irregular_df <- arrange(irregular_df, t)
+# For now this is ungrouped
+month_windows <- time_roll_window(irregular_df$x, 
+                                  time = irregular_df$t,
+                                  window = months(1))
+rolling_min <- map_dbl(month_windows, min)
+rolling_max <- map_dbl(month_windows, max)
+
+irregular_df %>%
+  mutate(rolling_min, rolling_max) %>%
+  ggplot(aes(x = t)) + 
+  geom_linerange(aes(ymin = rolling_min, ymax = rolling_max)) +
+  labs(title = "Rolling monthly range of normally distributed data")
+```
+
+![](man/figures/README-unnamed-chunk-16-1.png)<!-- -->
 
 ## `time_elapsed()`
 
@@ -664,11 +661,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2023-W37"
+#> [1] "2023-W38"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W37-1"
+#> [1] "2023-W38-4"
 iso_week(today(), year = FALSE)
-#> [1] "W37"
+#> [1] "W38"
 ```
 
 ## `time_cut()`
@@ -693,16 +690,13 @@ weekly_data <- flights %>%
   # Filter full weeks
   mutate(n_days = interval/days(1)) %>%
   filter(n_days == 7)
-#> 
-#> Filling in implicit gaps in time, counts are replaced with 0
-#>               to disable this set complete = FALSE
 weekly_data %>%
   ggplot(aes(x = date, y = n)) + 
   geom_bar(stat = "identity", fill = "#0072B2") + 
   scale_x_date(breaks = date_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-30-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-31-1.png)<!-- -->
 
 ``` r
 
@@ -712,7 +706,7 @@ flights %>%
   scale_x_datetime(breaks = time_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-30-2.png)<!-- -->
+![](man/figures/README-unnamed-chunk-31-2.png)<!-- -->
 
 ## Efficient grouped functions
 
@@ -1049,6 +1043,21 @@ Fast Grouped statistical functions
 # This is extremely fast and efficient, especially with lots of groups
 flights %>%
   stat_summarise(arr_time, .by = origin, stat = c("n", "mean", "min", "max"))
+#> The below stat functions are available for use in stat_summarise
+#> n
+#> nmiss
+#> min
+#> max
+#> mean
+#> median
+#> sd
+#> var
+#> mode
+#> first
+#> last
+#> sum
+#> prop_complete
+#> This message is displayed once per session.
 #>    origin      n     mean   min   max
 #>    <char>  <int>    <num> <int> <int>
 #> 1:    EWR 120835 1491.876     1  2400

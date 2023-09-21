@@ -85,9 +85,8 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
             drop = drop)
   out <- GRP_group_data(g)
   if (id){
-    out[[".group"]] <- frowid(out,
-                              g = NULL,
-                              ascending = !isTRUE(!ascending && order))
+    out[[".group"]] <- frowid(out, g = NULL)
+                              # ascending = !isTRUE(!ascending && order))
   }
   include_loc <- loc ||
     (start && is.null(g[["group.starts"]])) ||
@@ -228,7 +227,7 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
     rowids <- seq_len(N)
     ss <- min(N, 1L)
     rowids <- list(rowids)[ss]
-    out <- list_to_tibble(list(".group" = integer(ss) + 1L))
+    out <- new_tbl(".group" = integer(ss) + 1L)
     if (loc){
       out[[".loc"]] <- vctrs::new_list_of(rowids, ptype = integer(0))
     }

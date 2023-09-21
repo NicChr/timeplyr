@@ -185,19 +185,19 @@ get_time_delay <- function(data, origin, end, time_by = 1,
                    max_delay)
   max_delay <- max_delay[!is.infinite(max_delay)]
   if (length(min_delay) == 0 || length(max_delay) == 0){
-    delay_tbl <- list_to_tibble(list(delay = numeric(0),
-                                     n = integer(0),
-                                     cumulative = integer(0),
-                                     edf = numeric(0)))
+    delay_tbl <- new_tbl(delay = numeric(0),
+                         n = integer(0),
+                         cumulative = integer(0),
+                         edf = numeric(0))
   } else {
     delay_tbl <- out %>%
       fcount(across(all_of(c(grp_nm, group_vars))),
              across(all_of(delay_nm), ceiling),
              name = "n")
     data.table::setDT(delay_tbl)
-    delay_tbl[, ("cumulative") := fcumsum(get("n"),
-                                          g = get(grp_nm),
-                                          na.rm = TRUE)]
+    delay_tbl[, ("cumulative") := collapse::fcumsum(get("n"),
+                                                    g = get(grp_nm),
+                                                    na.rm = TRUE)]
     # delay_tbl[, ("edf") :=
     #             get("cumulative") / sum(get("n")), by = grp_nm]
     delay_tbl[, ("edf") :=

@@ -157,6 +157,13 @@ group_id.default <- function(data, ..., order = TRUE,
   out
 }
 #' @export
+group_id.factor <- function(data, ..., order = TRUE,
+                             ascending = TRUE,
+                             as_qg = FALSE){
+  group_id(strip_attrs(unclass(data)),
+           order = order, ascending = ascending, as_qg = as_qg)
+}
+#' @export
 group_id.Interval <- function(data, ..., order = TRUE,
                               ascending = TRUE, as_qg = FALSE){
   X <- interval_separate(data)
@@ -482,17 +489,18 @@ qG2 <- function(x, sort = TRUE, ordered = FALSE, na.exclude = FALSE, ...){
 }
 # Mutate interval columns to group IDs
 mutate_intervals_to_ids <- function(data){
-  which_int <- which(vapply(data, FUN = is_interval, FUN.VALUE = logical(1)))
+  which_int <- which(list_item_is_interval(data))
   for (i in seq_along(which_int)){
-    data[[which_int[[i]]]] <- group_id.Interval(data[[which_int[[i]]]],
-                                                order = TRUE, as_qg = FALSE)
+    data[[.subset2(which_int, i)]] <- group_id.Interval(.subset2(data, .subset2(which_int, i)))
   }
   data
 }
 interval_separate <- function(x){
-  list("start" = lubridate::int_start(x),
-       "data" = lubridate::int_length(x))
+  list("start" = attr(unclass(x), "start"),
+       "data" = strip_attrs(unclass(x)))
 }
+# list("start" = lubridate::int_start(x),
+#      "data" = lubridate::int_length(x))
 radixorderv2 <- function(x, ...){
   if (is_interval(x)){
     x <- interval_separate(x)

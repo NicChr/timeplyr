@@ -14,5 +14,5 @@ seq_tbl <- function(from = 1L, to = 1L, by = 1L){
   size <- seq_size(from = from, to = to, by = by)
   seq_out <- sequence2(size, from = from, by = by)
   seq_id <- seq_id(size)
-  list_to_tibble(list(id = seq_id, x = seq_out))
+  new_tbl(id = seq_id, x = seq_out)
 }
