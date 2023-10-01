@@ -41,6 +41,10 @@ any_num_equal <- function(x, value, tol) {
     .Call(`_timeplyr_any_num_equal`, x, value, tol)
 }
 
+cpp_df_group_indices <- function(rows, size) {
+    .Call(`_timeplyr_cpp_df_group_indices`, rows, size)
+}
+
 is_whole_num <- function(x, tol) {
     .Call(`_timeplyr_is_whole_num`, x, tol)
 }
@@ -59,6 +63,14 @@ list_has_interval <- function(l) {
 
 list_item_is_interval <- function(l) {
     .Call(`_timeplyr_list_item_is_interval`, l)
+}
+
+rcpp_cj <- function(X) {
+    .Call(`_timeplyr_rcpp_cj`, X)
+}
+
+num_na <- function(x) {
+    .Call(`_timeplyr_num_na`, x)
 }
 
 roll_apply_max_fast <- function(x, before, after) {

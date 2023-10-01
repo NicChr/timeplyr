@@ -11,7 +11,7 @@
 \usage{
 time_roll_sum(
   x,
-  window,
+  window = Inf,
   time = seq_along(x),
   weights = NULL,
   g = NULL,
@@ -26,7 +26,7 @@ time_roll_sum(
 
 time_roll_mean(
   x,
-  window,
+  window = Inf,
   time = seq_along(x),
   weights = NULL,
   g = NULL,
@@ -41,9 +41,9 @@ time_roll_mean(
 
 time_roll_growth_rate(
   x,
-  window,
+  window = Inf,
   time = seq_along(x),
-  weights = NULL,
+  time_step = NULL,
   g = NULL,
   partial = TRUE,
   close_left_boundary = FALSE,
@@ -55,7 +55,7 @@ time_roll_growth_rate(
 
 time_roll_window_size(
   time,
-  window,
+  window = Inf,
   g = NULL,
   partial = TRUE,
   close_left_boundary = FALSE,
@@ -66,7 +66,7 @@ time_roll_window_size(
 
 time_roll_window(
   x,
-  window,
+  window = Inf,
   time = seq_along(x),
   g = NULL,
   partial = TRUE,
@@ -78,11 +78,12 @@ time_roll_window(
 
 time_roll_apply(
   x,
-  window,
+  window = Inf,
   fun,
   time = seq_along(x),
   g = NULL,
   partial = TRUE,
+  unlist = FALSE,
   close_left_boundary = FALSE,
   time_type = c("auto", "duration", "period"),
   roll_month = "preday",
@@ -92,7 +93,7 @@ time_roll_apply(
 \arguments{
 \item{x}{Numeric vector.}
 
-\item{window}{Window size, default is \code{length(x)}.
+\item{window}{Time window size (Default is \code{Inf}).
 Must be one of the following:
 \itemize{
 \item string, e.g \code{window = "day"} or \code{window = "2 weeks"}
@@ -138,7 +139,17 @@ See \code{?timechange::time_add} for more details.}
 \item{...}{Additional arguments passed to \code{data.table::frollmean} and
 \code{data.table::frollsum}.}
 
+\item{time_step}{An optional but \bold{important} argument
+that follows the same input rules as \code{window}. \cr
+It is currently only used only in \code{time_roll_growth_rate}. \cr
+If this is supplied, the time differences across
+gaps in time are incorporated into the growth
+rate calculation. See \bold{details} for more info.}
+
 \item{fun}{A function.}
+
+\item{unlist}{Should the output of \code{time_roll_apply} be unlisted with
+\code{unlist}? Default is \code{FALSE}.}
 }
 \description{
 \code{time_roll_sum} and \code{time_roll_mean} are efficient
@@ -156,6 +167,23 @@ rolling growth rates with respect to a date/datetime index.
 \details{
 It is much faster if your data are already sorted such that
 \code{!is.unsorted(order(g, x))} is \code{TRUE}.
+\subsection{Growth rates}{
+
+For growth rates across time, one can use \code{time_step} to incorporate
+gaps in time into the calculation.
+
+For example: \cr
+\code{x <- c(10, 20)} \cr
+\code{t <- c(1, 10)} \cr
+\code{k <- Inf}\cr
+\code{time_roll_growth_rate(x, time = t, window = k)} = \code{c(1, 2)}
+whereas \cr
+\code{time_roll_growth_rate(x, time = t, window = k, time_step = 1)} = \code{c(1, 1.08)} \cr
+The first is a doubling from 10 to 20, whereas the second implies a growth of
+8\% for each time step from 1 to 10. \cr
+This allows us for example to calculate daily growth rates over the last x months,
+even with missing days.
+}
 }
 \examples{
 library(timeplyr)

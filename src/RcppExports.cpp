@@ -135,6 +135,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cpp_df_group_indices
+IntegerVector cpp_df_group_indices(SEXP rows, int size);
+RcppExport SEXP _timeplyr_cpp_df_group_indices(SEXP rowsSEXP, SEXP sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rows(rowsSEXP);
+    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_df_group_indices(rows, size));
+    return rcpp_result_gen;
+END_RCPP
+}
 // is_whole_num
 bool is_whole_num(NumericVector x, Nullable<NumericVector> tol);
 RcppExport SEXP _timeplyr_is_whole_num(SEXP xSEXP, SEXP tolSEXP) {
@@ -188,6 +200,28 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< List >::type l(lSEXP);
     rcpp_result_gen = Rcpp::wrap(list_item_is_interval(l));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rcpp_cj
+List rcpp_cj(List X);
+RcppExport SEXP _timeplyr_rcpp_cj(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcpp_cj(X));
+    return rcpp_result_gen;
+END_RCPP
+}
+// num_na
+int num_na(SEXP& x);
+RcppExport SEXP _timeplyr_num_na(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP& >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(num_na(x));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -319,11 +353,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_any_num_gte", (DL_FUNC) &_timeplyr_any_num_gte, 3},
     {"_timeplyr_any_int_equal", (DL_FUNC) &_timeplyr_any_int_equal, 2},
     {"_timeplyr_any_num_equal", (DL_FUNC) &_timeplyr_any_num_equal, 3},
+    {"_timeplyr_cpp_df_group_indices", (DL_FUNC) &_timeplyr_cpp_df_group_indices, 2},
     {"_timeplyr_is_whole_num", (DL_FUNC) &_timeplyr_is_whole_num, 2},
     {"_timeplyr_list_rm_null", (DL_FUNC) &_timeplyr_list_rm_null, 1},
     {"_timeplyr_numeric_class", (DL_FUNC) &_timeplyr_numeric_class, 1},
     {"_timeplyr_list_has_interval", (DL_FUNC) &_timeplyr_list_has_interval, 1},
     {"_timeplyr_list_item_is_interval", (DL_FUNC) &_timeplyr_list_item_is_interval, 1},
+    {"_timeplyr_rcpp_cj", (DL_FUNC) &_timeplyr_rcpp_cj, 1},
+    {"_timeplyr_num_na", (DL_FUNC) &_timeplyr_num_na, 1},
     {"_timeplyr_roll_apply_max_fast", (DL_FUNC) &_timeplyr_roll_apply_max_fast, 3},
     {"_timeplyr_roll_apply_max", (DL_FUNC) &_timeplyr_roll_apply_max, 5},
     {"_timeplyr_before_sequence", (DL_FUNC) &_timeplyr_before_sequence, 2},

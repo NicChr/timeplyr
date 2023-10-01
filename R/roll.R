@@ -3,7 +3,7 @@
 #' @description An efficient method for rolling sum/mean for many groups. \cr
 #'
 #' @param x Numeric vector, data frame, or list.
-#' @param window Rolling window size, default is `length(x)`.
+#' @param window Rolling window size, default is `Inf`.
 #' @param partial Should calculations be done using partial windows?
 #' Default is \code{TRUE}.
 #' @param weights Importance weights. Must be the same length as x.
@@ -21,8 +21,15 @@
 #' `data.table::frollsum`.
 #' @details `roll_sum` and `roll_mean` support parallel computations when
 #' `x` is a data frame of multiple columns. \cr
+#' `roll_geometric_mean` and `roll_harmonic_mean` are convenience functions that
+#' utilise `roll_mean`. \cr
 #' `roll_apply` accepts any user function and is more flexible but much
-#' less efficient. It also only accepts vector input.
+#' less efficient. It also only accepts vector input. \cr
+#' Please note that `roll_apply` and `time_roll_apply` are still experimental.
+#' @return Excluding `roll_apply`, these return a numeric vector the
+#' same length as `x` when `x` is a vector, and a list when `x` is a `data.frame`. \cr
+#' `roll_apply` returns a list the same length as `x`.
+#' @seealso [time_roll_mean] [roll_growth_rate]
 #' @examples
 #' library(timeplyr)
 #' x <- 1:10
@@ -54,12 +61,13 @@
 #' }
 #' @rdname roll_sum
 #' @export
-roll_sum <- function(x, window = length(x),
+roll_sum <- function(x, window = Inf,
                      g = NULL, partial = TRUE,
                      weights = NULL, na.rm = TRUE, ...){
   if (length(window) != 1L){
     stop("window must be of length 1")
   }
+  window <- min(window, .Machine[["integer.max"]])
   sorted_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
   group_sizes <- fpluck(sorted_info, "group_sizes")
   group_order <- fpluck(sorted_info, "group_order")
@@ -71,11 +79,14 @@ roll_sum <- function(x, window = length(x),
                                  k = window,
                                  partial = partial,
                                  ascending = TRUE)
-  out <- frollsum3(x,
-                   n = roll_window,
-                   weights = weights,
-                   adaptive = TRUE, align = "right",
-                   na.rm = na.rm, ...)
+  if (!is.null(weights)){
+    x <- x * weights
+  }
+  out <- data.table::frollsum(x,
+                              n = roll_window,
+                              adaptive = TRUE,
+                              align = "right",
+                              na.rm = na.rm, ...)
   if (!fpluck(sorted_info, "sorted")){
     out <- greorder2(out, g = fpluck(sorted_info, "GRP"))
   }
@@ -83,11 +94,12 @@ roll_sum <- function(x, window = length(x),
 }
 #' @rdname roll_sum
 #' @export
-roll_mean <- function(x, window = length(x), g = NULL, partial = TRUE,
+roll_mean <- function(x, window = Inf, g = NULL, partial = TRUE,
                       weights = NULL, na.rm = TRUE, ...){
   if (length(window) != 1L){
     stop("window must be of length 1")
   }
+  window <- min(window, .Machine[["integer.max"]])
   sorted_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
   group_sizes <- fpluck(sorted_info, "group_sizes")
   group_order <- fpluck(sorted_info, "group_order")
@@ -108,6 +120,20 @@ roll_mean <- function(x, window = length(x), g = NULL, partial = TRUE,
     out <- greorder2(out, g = fpluck(sorted_info, "GRP"))
   }
   out
+}
+#' @rdname roll_sum
+#' @export
+roll_geometric_mean <- function(x, window = Inf, g = NULL, partial = TRUE,
+                                weights = NULL, na.rm = TRUE, ...){
+  exp(roll_mean(log(x), window = window, g = g, partial = partial,
+                weights = weights, na.rm = na.rm, ...))
+}
+#' @rdname roll_sum
+#' @export
+roll_harmonic_mean <- function(x, window = Inf, g = NULL, partial = TRUE,
+                                weights = NULL, na.rm = TRUE, ...){
+  1 / roll_mean(1 / x, window = window, g = g, partial = partial,
+                weights = weights, na.rm = na.rm, ...)
 }
 # roll_max <- function(x, before = 0L, after = 0L,
 #                      g = NULL,

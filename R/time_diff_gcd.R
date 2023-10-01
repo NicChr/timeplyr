@@ -47,13 +47,12 @@ time_diff_gcd <- function(x, time_by = 1,
     is_sorted <- is_sorted(x)
   }
   x <- collapse::funique(x, sort = !is_sorted)
-  all_na <- collapse::allNA(x)
-  if (all_na){
+  if (allNA2(x)){
     return(NA_real_)
   }
   x <- x[!is.na(x)]
   if (length(x) == 0L){
-    return(numeric(0))
+    return(numeric())
   }
   if (length(x) == 1L){
     return(1)

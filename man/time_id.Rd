@@ -49,13 +49,13 @@ An integer vector.
 \description{
 Generate a time ID that signifies how many time steps away
 a time value is from the starting time point or more intuitively,
-this is the time that has passed since
-the first/index time.
+this is the time passed since
+the first time point.
 }
 \details{
 This is heavily inspired by \code{collapse::timeid} but differs in 3 ways:
 \itemize{
-\item The  time steps need not be the greatest common divisor of successive
+\item The time steps need not be the greatest common divisor of successive
 differences
 \item The starting time point may not necessarily
 be the earliest chronologically and thus \code{time_id} can generate negative IDs.

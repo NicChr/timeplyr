@@ -69,11 +69,6 @@ time_distinct <- function(data, time = NULL, ..., time_by = NULL,
     out <- mutate2(out, ...)
     dot_vars <- tidy_transform_names(data, ...)
   }
-  if (include_interval){
-    int_nm <- new_var_nm(out, "interval")
-  } else {
-    int_nm <- character(0)
-  }
   out <- time_mutate(out, across(all_of(dot_vars)),
                      time = !!enquo(time),
                      time_by = time_by,
@@ -87,6 +82,11 @@ time_distinct <- function(data, time = NULL, ..., time_by = NULL,
                      week_start = week_start,
                      roll_month = roll_month, roll_dst = roll_dst)
   time_var <- tidy_transform_names(data, !!enquo(time))
+  if (include_interval){
+    int_nm <- new_var_nm(c(time_var, names(data)), "interval")
+  } else {
+    int_nm <- character(0)
+  }
   out <- fdistinct(out, across(dplyr::any_of(c(group_vars, time_var, int_nm, dot_vars))),
                    .keep_all = .keep_all, sort = sort)
   out

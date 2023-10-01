@@ -286,6 +286,22 @@ time_granularity <- function(x, is_sorted = FALSE, msg = TRUE){
        "num_and_unit" = num_and_unit,
        "scale" = scale)
 }
+# A more focused version
+time_granularity2 <- function(x, is_sorted = FALSE){
+  gcd_diff <- time_diff_gcd(x, is_sorted = is_sorted)
+  if (is_date(x)){
+    unit <- "days"
+    scale <- 1
+  } else if (is_datetime(x)){
+    convert_seconds <- seconds_to_unit(gcd_diff)
+    unit <- convert_seconds[["unit"]]
+    scale <- convert_seconds[["scale"]]
+  } else {
+    unit <- "numeric"
+    scale <- 1
+  }
+  `names<-`(list(gcd_diff / scale), unit)
+}
 # Converts seconds to duration unit
 # Scale is in comparison to seconds
 seconds_to_unit <- function(x){
@@ -881,23 +897,6 @@ as_yearqtr <- function(x){
 }
 is_interval <- function(x){
   inherits(x, "Interval")
-}
-# Check if data has lubridate interval
-has_interval <- function(data, quiet = TRUE){
-  # out <- FALSE
-  # for (i in seq_along(data)){
-  #   if (is_interval(.subset2(data, i))){
-  #     out <- TRUE
-  #     break
-  #   }
-  # }
-  out <- list_has_interval(data)
-  if (out && !quiet){
-    message("A variable of class 'Interval' exists.
-    The grouping will be done using 'dplyr'.
-            See https://github.com/SebKrantz/collapse/issues/418")
-  }
-  out
 }
 # time_agg2 <- function(time_seq_data, data, time, g){
 #   by <- dplyr::join_by(!!rlang::sym(g), closest(!!rlang::sym(time) >= !!rlang::sym(time)))

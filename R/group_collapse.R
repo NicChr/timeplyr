@@ -139,58 +139,58 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
     group_names <- names(out)[!names(out) %in%
                                 c(".group", ".loc", ".start", ".end", ".size")]
     group_out <- fselect(out, .cols = group_names)
-    is_factor <- vapply(group_out, is.factor, logical(1))
-    if (any(is_factor)){
+    is_factor <- vapply(group_out, is.factor, FALSE, USE.NAMES = FALSE)
+    if (sum(is_factor) > 0){
+      # If we have a mix of factors and non factors
+      # Then we do not proceed
+      if (sum(is_factor) < length(is_factor)){
+        rlang::abort(c("There are a mix of factor and non-factor variables",
+                       "and there is currently no method for dealing with this.",
+                       "Please use dplyr::group_by for this behaviour."))
+      }
       group_out <- fselect(group_out, .cols = which(is_factor))
       group_data_size <- prod(
-        vapply(group_out, collapse::fnlevels, integer(1))
+        vapply(group_out, collapse::fnlevels, 0L)
       )
-      num_missing_categories <- group_data_size - nrow2(
-        fdistinct(group_out, .cols = names(group_out))
+      num_missing_categories <- group_data_size - n_unique(
+        fselect(group_out, .cols = names(group_out))
       )
       if (num_missing_categories > 0){
         # The below cross joins all factor categories
         # Removes existing category combinations
-        missed_categories <- data.table::fsetdiff(
-          crossed_join(
-            lapply(group_out,
-                   function(x) collapse::qF(levels(x), sort = FALSE)),
-            as_dt = TRUE
+        missed_categories <- vctrs::vec_set_difference(
+          list_to_tibble(
+            crossed_join(
+              lapply(group_out,
+                     function(x) collapse::qF(levels(x), sort = FALSE)),
+              as_dt = FALSE, unique = FALSE
+            )
           ),
-          as_DT(group_out)
+          df_as_tibble(group_out)
         )
-        missed_categories <- dplyr::as_tibble(missed_categories)
+        if (id){
+          missed_categories[[".group"]] <- NA_integer_
+        }
         # Bind the combinations that don't exist
         if (loc){
-          missed_categories <- dplyr::dplyr_col_modify(missed_categories,
-                                                       cols = list(
-                                                         ".loc" =
-                                                           structure(
-                                                             list(integer(0L)),
-                                                             "ptype" = integer(0L),
-                                                             "class" = c("vctrs_list_of",
-                                                                         "vctrs_vctr",
-                                                                         "list")
-                                                             )
-                                                         )
+          missed_categories[[".loc"]] <- structure(
+            list(integer()),
+            ptype = integer(),
+            class = c("vctrs_list_of",
+                      "vctrs_vctr",
+                      "list")
           )
         }
         if (start){
-          missed_categories <- dplyr::dplyr_col_modify(missed_categories,
-                                                       cols = list(".start" = 0L)
-          )
+          missed_categories[[".start"]] <- 0L
         }
         if (end){
-          missed_categories <- dplyr::dplyr_col_modify(missed_categories,
-                                                       cols = list(".end" = 0L)
-          )
+          missed_categories[[".end"]] <- 0L
         }
         if (size){
-          missed_categories <- dplyr::dplyr_col_modify(missed_categories,
-                                                       cols = list(".size" = 0L)
-          )
+          missed_categories[[".size"]] <- 0L
         }
-        out <- dplyr::bind_rows(out, missed_categories)
+        out <- vctrs::vec_rbind(out, missed_categories)
         if (id){
           out[[".group"]] <- group_id(out, .cols = group_names,
                                       order = order)
@@ -206,6 +206,28 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
     }
   }
   out
+}
+#' @export
+group_collapse.factor <- function(data, ..., order = TRUE, sort = FALSE,
+                                   ascending = TRUE,
+                                   id = TRUE,
+                                   size = TRUE, loc = TRUE,
+                                   # loc_order = TRUE,
+                                   start = TRUE, end = TRUE,
+                                   drop = TRUE){
+  # Doing this because collapse::GRP(x) coerces x
+  # into character if it is a factor
+  # whereas no coercion happens with collapse::GRP(data.frame(x))
+  group_collapse(new_df(data = data),
+                 .cols = "data",
+                 order = order,
+                 sort = sort,
+                 id = id,
+                 size = size,
+                 loc = loc,
+                 start = start,
+                 end = end,
+                 drop = drop)
 }
 #' @export
 group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,

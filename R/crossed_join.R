@@ -37,10 +37,8 @@ crossed_join <- function(X, sort = FALSE, unique = TRUE,
   expanded_n <- prod(collapse::vlengths(X, use.names = FALSE))
   expand_check(expanded_n, log_limit)
   if (strings_as_factors){
-    is_chr <- vapply(X, FUN = is.character,
-                     FUN.VALUE = logical(1),
-                     USE.NAMES = FALSE)
-    if (any(is_chr)){
+    is_chr <- vapply(X, is.character, FALSE, USE.NAMES = FALSE)
+    if (sum(is_chr) > 0){
       which_chr <- which(is_chr)
       X[which_chr] <- lapply(X[which_chr],
                              function(x) collapse::qF(x,
@@ -53,12 +51,12 @@ crossed_join <- function(X, sort = FALSE, unique = TRUE,
   # do.call(CJ, args = c(X, list(sorted = FALSE, unique = FALSE)))
   out <- CJ2(X)
   if (!is.null(x_nms)){
-    out <- add_names(out, x_nms)
+    names(out) <- x_nms
   }
   as_dt2 <- as_dt || (sort && !unique)
   if (as_dt2){
-    data.table::setDT(out)
-    data.table::setalloccol(out)
+    out <- collapse::qDT(out)
+    # data.table::setalloccol(out)
     if (sort){
       if (!unique){
         data.table::setorder(out, na.last = TRUE)

@@ -49,14 +49,16 @@ get_groups <- function(data, .by = NULL){
 # A collapse version of dplyr_reconstruct,
 # fast when lots of groups are involved
 df_reconstruct <- function(data, template){
-  if (!is_df(data) || !is_df(template)){
+  if (!inherits(data, "data.frame")){
     stop("data must be a data.frame")
+  }
+  if (!inherits(template, "data.frame")){
+    stop("template must be a data.frame")
   }
   data_attrs <- attributes(data)
   template_attrs <- attributes(template)
 
-  if (identical(inherits(template, c("data.table", "data.frame"), which = TRUE),
-                c(1L, 2L))){
+  if (inherits(template, "data.table")){
     if (!is.null(attr(data, "groups"))){
       attr(data, "groups") <- NULL
     }
@@ -96,7 +98,7 @@ df_reconstruct <- function(data, template){
 }
 # Row slice
 df_row_slice <- function(data, i, reconstruct = TRUE){
-  if (collapse::fncol(data) == 0L || has_interval(data)){
+  if (collapse::fncol(data) == 0L || list_has_interval(data)){
     if (is.logical(i)){
       i <- which(i)
     }
@@ -253,6 +255,21 @@ list_to_data_frame <- function(x){
                         names = as.character(names(x)))
   x
 }
+# List to data.table (NO COPY!)
+# list_to_data_table <- function(x){
+#   if (is_df(x)){
+#     N <- df_nrow(x)
+#   } else {
+#     N <- collapse::fnrow(x)
+#   }
+#   # Remove NULL items
+#   x <- list_rm_null(x)
+#   attributes(x) <- list(class = c("data.table", "data.frame"),
+#                         row.names = c(NA_integer_, -N),
+#                         names = as.character(names(x)))
+#   data.table::setDT(x)
+#   x
+# }
 # Create new df with no name checks or length checks
 new_df <- function(...){
   out <- list3(...)
@@ -360,14 +377,10 @@ group_data_equal <- function(x, y){
     out <- df_nrow(groups1) == df_nrow(groups2)
   }
   if (out){
-    # out <- dplyr::setequal(
-    #   fselect(groups1, .cols = group_vars1),
-    #   fselect(groups2, .cols = group_vars2)
-    # )
-    out <- nrow(
-      data.table::fsetdiff(
-        as_DT(fselect(groups1, .cols = group_vars1)),
-        as_DT(fselect(groups2, .cols = group_vars2))
+    out <- df_nrow(
+      vctrs::vec_set_difference(
+        fselect(groups1, .cols = group_vars1),
+        fselect(groups2, .cols = group_vars2)
       )
     ) == 0L
   }
@@ -389,10 +402,14 @@ group_data_equal <- function(x, y){
   out
 }
 empty_tbl <- function(){
-  structure(list(),
-            class = c("tbl_df", "tbl", "data.frame"),
-            row.names = integer(),
-            names = character())
+  `attributes<-`(
+    list(),
+    list(
+      class = c("tbl_df", "tbl", "data.frame"),
+      row.names = integer(),
+      names = character()
+    )
+  )
 }
 # Faster as_tibble
 df_as_tibble <- function(x){
@@ -410,73 +427,19 @@ df_init <- function(x, size = 1L){
     collapse::ss(x, i = collapse::alloc(nrows + 1L, size))
   }
 }
-##### data.table specific helpers #####
-
-# Convert to data table
-as_DT <- function(x){
-  if (inherits(x, "data.table")){
-    x[TRUE]
-  } else if (inherits(x, "data.frame") &&
-             collapse::fncol(x) > 0L){
-    collapse::qDT(x[TRUE])
+# Group IDs (same as dplyr::group_indices)
+df_group_id <- function(x){
+  if (!inherits(x, "grouped_df") && !inherits(x, "data.frame")){
+    stop("Can only calculate group indices on data frames")
+  }
+  N <- df_nrow(x)
+  groups <- attr(x, "groups")
+  n_groups <- df_nrow(groups)
+  if (is.null(groups)){
+    out <- collapse::alloc(1L, N)
   } else {
-    data.table::as.data.table(x)
+    rows <- groups[[".rows"]]
+    out <- cpp_df_group_indices(rows, N)
   }
+  out
 }
-# df_complete_cases <- function(data, .cols = names(data)){
-#   df_row_slice(data, vctrs::vec_detect_complete(
-#     fselect(data, .cols = .cols)
-#   ))
-#   # df_row_slice(data, collapse::whichv(rowSums(is.na(
-#   #   fselect(data, .cols = .cols)
-#   # )), 0))
-# }
-
-# key and sort with na.last argument
-#
-# When cols = character(0) nothing is changed
-# When cols = NULL the key is removed
-setorderv2 <- function(x, cols, order = 1L, na.last = TRUE){
-  if (length(cols) > 0L){
-    data.table::setorderv(x, cols = cols, order = order, na.last = na.last)
-  }
-}
-setkeyv2 <- function(x, cols, verbose = getOption("datatable.verbose"),
-                     physical = TRUE){
-  if (is.null(cols)){
-    data.table::setkeyv(x, cols = NULL, verbose = verbose, physical = physical)
-  } else {
-    stopifnot(is.character(cols))
-    if (length(cols) > 0L){
-      data.table::setkeyv(x,
-                          cols = cols,
-                          verbose = verbose,
-                          physical = physical)
-    }
-  }
-}
-# Slightly safer way of removing DT cols
-set_rm_cols <- function(DT, cols = NULL){
-  if (is.character(cols)){
-    length_check <- length(intersect(cols, names(DT))) > 0L
-  } else {
-    cols <- as.integer(cols)
-    length_check <- length(intersect(cols, seq_along(DT))) > 0L
-  }
-  if (length_check){
-    data.table::set(DT, j = cols, value = NULL)
-  }
-}
-# Data.table version of bind_cols, needs more work
-# set_bind_cols <- function(x, y,
-#                           suffix = ".y"){
-#   if (missing(y)) return(x)
-#   x_nms <- names(x)
-#   y_nms <- names(y)
-#   common_cols <- intersect(x_nms, y_nms)
-#   suffix <- rep_len(suffix, length(common_cols))
-#   new_col_nms <- paste0(common_cols, suffix)
-#   y_nms[y_nms %in% common_cols] <- new_col_nms
-#   names(y) <- y_nms
-#   data.table::set(x, j = y_nms, value = y)[]
-# }

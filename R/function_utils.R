@@ -40,14 +40,6 @@ weighted_mean <- function (x, w = NULL, na.rm = FALSE) {
   }
   out
 }
-# Weighted geometric mean
-geometric_mean <- function(x, weights = NULL, na.rm = FALSE){
-  exp(weighted_mean(log(x), w = weights, na.rm = na.rm))
-}
-# Weighted harmonic mean
-harmonic_mean <- function(x, weights = NULL, na.rm = FALSE){
-  1 / weighted_mean(1/x, w = weights, na.rm = na.rm)
-}
 
 # Transform variables using tidy data masking
 tidy_transform_names <- function(data, ...){
@@ -681,8 +673,8 @@ vec_tail <- function(x, n = 1L){
 # Returns the length or nrows (if list or df)
 vec_length <- function(x){
   if (is.list(x)){
-    if (is_df(x)){
-      out <- nrow2(x)
+    if (inherits(x, "data.frame")){
+      out <- df_nrow(x)
     } else {
       out <- collapse::vlengths(x, use.names = FALSE)
       nunique <- collapse::fnunique(out)
@@ -694,8 +686,6 @@ vec_length <- function(x){
       if (length(out) == 0L){
         out <- 0L
       }
-      # stopifnot(isTRUE(n_unique(lens) <= 1))
-      # out <- vec_head(lens, n = 1L)
     }
   } else if (is.array(x)){
     out <- dim(x)[1L]
@@ -771,6 +761,31 @@ CJ2 <- function(X){
   }
   out
 }
+# CJ3 <- function(X){
+#   nargs <- length(X)
+#   if (nargs <= 1L){
+#     return(X)
+#   }
+#   out <- vector("list", nargs)
+#   d <- lengths(X, use.names = FALSE)
+#   orep <- prod(d)
+#   if (orep == 0L){
+#     for (i in seq_len(nargs)){
+#       out[[i]] <- .subset(.subset2(X, i), FALSE)
+#     }
+#     return(out)
+#   }
+#   rep.fac <- 1L
+#   for (i in seq.int(from = nargs, to = 1L, by = -1L)){
+#     x <- .subset2(X, i)
+#     nx <- .subset2(d, i)
+#     orep <- orep/nx
+#     x <- x[rep.int(rep(seq_len(nx), each = rep.fac), times = orep)]
+#     out[[i]] <- x
+#     rep.fac <- rep.fac * nx
+#   }
+#   out
+# }
 
 quo_null <- function(quos){
   vapply(quos, FUN = rlang::quo_is_null,
@@ -1076,7 +1091,6 @@ fbincode <- function(x, breaks, right = TRUE, include.lowest = FALSE,
 is_s3_numeric <- function(x){
   typeof(x) %in% c("integer", "double") && !isS4(x)
 }
-prop_complete <- fprop_complete
 
 # Much faster and more efficient cut.default
 fast_cut <- function (x, breaks, labels = NULL, include.lowest = FALSE, right = TRUE,
@@ -1152,15 +1166,15 @@ check_sorted <- function(x){
 }
 # Retains integer class of a if b is 1 and a is integer
 divide <- function(a, b){
-  if (collapse::allv(b, 1)){
+  if (allv2(b, 1)){
     a
   } else {
     a / b
   }
 }
 # Initialise a single NA value of correct type
-na_init <- function(x){
-  x[NA_integer_]
+na_init <- function(x, size = 1L){
+  rep_len(x[NA_integer_], size)
 }
 strip_attrs <- function(x){
   `attributes<-`(x, NULL)
@@ -1213,3 +1227,25 @@ check_length_one <- function(x){
     stop("x must be of length 1")
   }
 }
+# collapse allv and allna with extra length check
+allv2 <- function(x, value){
+  if (!length(x)){
+   return(FALSE)
+  }
+  collapse::allv(x, value)
+}
+allNA2 <- function(x){
+  if (!length(x)){
+    return(FALSE)
+  }
+  collapse::allNA(x)
+}
+list_of_empty_vectors <- function(x){
+  lapply(x, function(x) x[0L])
+}
+# anyv2 <- function(x, value){
+#   if (!length(x)){
+#     return(FALSE)
+#   }
+#   collapse::anyv(x, value)
+# }

@@ -13,7 +13,7 @@
 #' rolling growth rates with respect to a date/datetime index.
 #'
 #' @param x Numeric vector.
-#' @param window Window size, default is `length(x)`.
+#' @param window Time window size (Default is `Inf`).
 #' Must be one of the following:
 #' * string, e.g `window = "day"` or `window = "2 weeks"`
 #' * lubridate duration or period object, e.g. `days(1)` or `ddays(1)`.
@@ -45,11 +45,35 @@
 #' See `?timechange::time_add` for more details.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
 #' @param fun A function.
+#' @param unlist Should the output of `time_roll_apply` be unlisted with
+#' `unlist`? Default is `FALSE`.
+#' @param time_step An optional but \bold{important} argument
+#' that follows the same input rules as `window`. \cr
+#' It is currently only used only in `time_roll_growth_rate`. \cr
+#' If this is supplied, the time differences across
+#' gaps in time are incorporated into the growth
+#' rate calculation. See \bold{details} for more info.
 #' @param ... Additional arguments passed to `data.table::frollmean` and
 #' `data.table::frollsum`.
 #' @details
 #' It is much faster if your data are already sorted such that
 #' `!is.unsorted(order(g, x))` is `TRUE`.
+#'
+#' ### Growth rates
+#' For growth rates across time, one can use `time_step` to incorporate
+#' gaps in time into the calculation.
+#'
+#' For example: \cr
+#' `x <- c(10, 20)` \cr
+#' `t <- c(1, 10)` \cr
+#' `k <- Inf`\cr
+#' `time_roll_growth_rate(x, time = t, window = k)` = `c(1, 2)`
+#' whereas \cr
+#' `time_roll_growth_rate(x, time = t, window = k, time_step = 1)` = `c(1, 1.08)` \cr
+#' The first is a doubling from 10 to 20, whereas the second implies a growth of
+#' 8% for each time step from 1 to 10. \cr
+#' This allows us for example to calculate daily growth rates over the last x months,
+#' even with missing days.
 #' @examples
 #' library(timeplyr)
 #' library(lubridate)
@@ -114,7 +138,7 @@
 #' }
 #' @rdname time_roll
 #' @export
-time_roll_sum <- function(x, window,
+time_roll_sum <- function(x, window = Inf,
                           time = seq_along(x),
                           # lag = 0L,
                           weights = NULL,
@@ -155,7 +179,7 @@ time_roll_sum <- function(x, window,
   group_id2 <- GRP_group_id(g2)
   if (!groups_are_sorted){
     group_order <- GRP_order(g2)
-    sorted_df <- dplyr::tibble(x = x, time = time,
+    sorted_df <- new_tbl(x = x, time = time,
                                group_id = group_id,
                                group_id2 = group_id2,
                                weights = weights) %>%
@@ -217,7 +241,7 @@ time_roll_sum <- function(x, window,
 }
 #' @rdname time_roll
 #' @export
-time_roll_mean <- function(x, window,
+time_roll_mean <- function(x, window = Inf,
                            time = seq_along(x),
                            # lag = 0L,
                            weights = NULL,
@@ -258,7 +282,7 @@ time_roll_mean <- function(x, window,
   group_id2 <- GRP_group_id(g2)
   if (!groups_are_sorted){
     group_order <- GRP_order(g2)
-    sorted_df <- dplyr::tibble(x = x, time = time,
+    sorted_df <- new_tbl(x = x, time = time,
                                group_id = group_id,
                                group_id2 = group_id2,
                                weights = weights) %>%
@@ -319,9 +343,9 @@ time_roll_mean <- function(x, window,
 }
 #' @rdname time_roll
 #' @export
-time_roll_growth_rate <- function(x, window,
+time_roll_growth_rate <- function(x, window = Inf,
                                   time = seq_along(x),
-                                  weights = NULL,
+                                  time_step = NULL,
                                   g = NULL,
                                   partial = TRUE,
                                   close_left_boundary = FALSE,
@@ -355,9 +379,10 @@ time_roll_growth_rate <- function(x, window,
   group_id2 <- GRP_group_id(g2)
   if (!groups_are_sorted){
     group_order <- GRP_order(g2)
-    sorted_df <- dplyr::tibble(x = x, time = time,
-                               group_id = group_id,
-                               group_id2 = group_id2) %>%
+    sorted_df <- new_tbl(x = x,
+                         time = time,
+                         group_id = group_id,
+                         group_id2 = group_id2) %>%
       df_row_slice(group_order)
     x <- .subset2(sorted_df, "x")
     time <- .subset2(sorted_df, "time")
@@ -366,14 +391,15 @@ time_roll_growth_rate <- function(x, window,
   }
   sorted_g2 <- sorted_group_id_to_GRP(group_id2,
                                       n_groups = GRP_n_groups(g2),
-                                      group_sizes = GRP_group_sizes(g2),
-                                      group.starts = FALSE)
+                                      group_sizes = GRP_group_sizes(g2))
   if (has_groups){
     sorted_g <- sorted_group_id_to_GRP(group_id,
                                        n_groups = n_groups,
                                        group_sizes = group_sizes)
+                                       # groups = GRP_groups(g),
+                                       # group.vars = GRP_group_vars(g))
   } else {
-    sorted_g <- sorted_g <- NULL
+    sorted_g <- NULL
   }
   time_start <- time_add2(time, time_by = time_subtract,
                           roll_month = roll_month,
@@ -387,7 +413,65 @@ time_roll_growth_rate <- function(x, window,
                          right = close_left_boundary)
   adj_window[is.na(adj_window)] <- 0L
   final_window <- naive_window - adj_window
-  out <- roll_growth_rate(x, window = final_window, na.rm = na.rm)
+  if (is.null(time_step)){
+    # Check first for gaps in time
+    time_step <- time_granularity2(time)
+    has_gaps <- time_has_gaps(time,
+                              time_by = time_step,
+                              g = sorted_g,
+                              use.g.names = TRUE)
+    if (sum(has_gaps) > 0){
+      if (has_groups){
+        group_ids <- which(has_gaps)
+        if (is.null(names(has_gaps))){
+          groups_with_gaps <- group_ids
+          group_sub_msg <- "in group ID:"
+        } else {
+          groups_with_gaps <- names(has_gaps)[group_ids]
+          group_sub_msg <- "in the group:"
+        }
+        rlang::warn(c("x" = paste("Time variable may have gaps", group_sub_msg),
+                      "*" = groups_with_gaps[1L],
+                      "Consider supplying the time_step argument",
+                      "",
+                      "For example:",
+                      paste0("time_step = list(",
+                             time_by_unit(time_step),
+                             " = ",
+                             time_by_num(time_step),
+                             ")")),
+                      use_cli_format = TRUE)
+      } else {
+        rlang::warn(c("x" = "Time variable may have gaps",
+                      "Consider supplying the time_step argument",
+                      "",
+                    "For example:",
+                    paste0("time_step = list(",
+                           time_by_unit(time_step),
+                           " = ",
+                           time_by_num(time_step),
+                           ")")),
+                    use_cli_format = TRUE)
+      }
+    }
+    out <- roll_growth_rate(x, window = final_window, na.rm = na.rm)
+  } else {
+    time_step <- time_by_list(time_step)
+    lag_window <- final_window - 1L
+    x_lagged <- roll_lag(x, lag = lag_window, check = FALSE)
+    if (na.rm){
+      final_window <- data.table::frollsum(!is.na(x), n = final_window,
+                                           adaptive = partial,
+                                           algo = "fast",
+                                           align = "right")
+    }
+    time_lagged <- roll_lag(time, lag = lag_window, check = FALSE)
+    time_differences <- time_diff(time_lagged, time,
+                                  time_by = time_step,
+                                  time_type = time_type)
+    out <- ( (x / x_lagged) ^ (1 / (time_differences)) )
+    out[which(x == 0 & x_lagged == 0)] <- 1
+  }
   if (!partial){
     elapsed <- time_elapsed(time, time_by = unit_time_by,
                             g = sorted_g, rolling = FALSE)
@@ -570,7 +654,7 @@ time_roll_growth_rate <- function(x, window,
 # }
 #' @rdname time_roll
 #' @export
-time_roll_window_size <- function(time, window,
+time_roll_window_size <- function(time, window = Inf,
                                   g = NULL,
                                   partial = TRUE,
                                   close_left_boundary = FALSE,
@@ -643,7 +727,7 @@ time_roll_window_size <- function(time, window,
 }
 #' @rdname time_roll
 #' @export
-time_roll_window <- function(x, window, time = seq_along(x),
+time_roll_window <- function(x, window = Inf, time = seq_along(x),
                              g = NULL,
                              partial = TRUE,
                              close_left_boundary = FALSE,
@@ -662,10 +746,11 @@ time_roll_window <- function(x, window, time = seq_along(x),
 }
 #' @rdname time_roll
 #' @export
-time_roll_apply <- function(x, window, fun,
+time_roll_apply <- function(x, window = Inf, fun,
                             time = seq_along(x),
                             g = NULL,
                             partial = TRUE,
+                            unlist = FALSE,
                             close_left_boundary = FALSE,
                             time_type = c("auto", "duration", "period"),
                             roll_month = "preday", roll_dst = "pre"){
@@ -686,19 +771,22 @@ time_roll_apply <- function(x, window, fun,
   if (!partial){
     which_zero <- collapse::whichv(sizes, 0L)
     if (length(which_zero) > 0L){
-      na_ptype <- out[[1L]][NA_integer_]
+      ptype <- out[[1L]][0L]
     }
-    for (i in which_zero){
-      out[[i]] <- na_ptype
-    }
+    out[which_zero] <- list(ptype)
   }
-  out <- vctrs::list_unchop(out)
   if (is.null(g)){
-    group_id <- group_id(time)
+    group_id <- group_id(time, as_qg = TRUE)
   } else {
-    group_id <- group_id(list(group_id(g), time))
+    group_id <- group_id(list(group_id(g), time), as_qg = TRUE)
   }
-  out <- glast(out, g = group_id)
+  # This only works because group_id should always be sorted here
+  # Which is already checked in time_roll_window_size
+  out <- out[cumsum(attr(group_id, "group.sizes"))[group_id]]
+  if (unlist){
+    out <- unlist(out, use.names = FALSE, recursive = FALSE)
+  }
+  # out <- glast(out, g = group_id)
   out
   # time_windows <- time_roll_window(x, window = window,
   #                                  time = time,

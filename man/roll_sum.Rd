@@ -3,12 +3,14 @@
 \name{roll_sum}
 \alias{roll_sum}
 \alias{roll_mean}
+\alias{roll_geometric_mean}
+\alias{roll_harmonic_mean}
 \alias{roll_apply}
 \title{Fast by-group rolling sum/mean}
 \usage{
 roll_sum(
   x,
-  window = length(x),
+  window = Inf,
   g = NULL,
   partial = TRUE,
   weights = NULL,
@@ -18,7 +20,27 @@ roll_sum(
 
 roll_mean(
   x,
-  window = length(x),
+  window = Inf,
+  g = NULL,
+  partial = TRUE,
+  weights = NULL,
+  na.rm = TRUE,
+  ...
+)
+
+roll_geometric_mean(
+  x,
+  window = Inf,
+  g = NULL,
+  partial = TRUE,
+  weights = NULL,
+  na.rm = TRUE,
+  ...
+)
+
+roll_harmonic_mean(
+  x,
+  window = Inf,
   g = NULL,
   partial = TRUE,
   weights = NULL,
@@ -31,7 +53,7 @@ roll_apply(x, fun, before = 0L, after = 0L, g = NULL)
 \arguments{
 \item{x}{Numeric vector, data frame, or list.}
 
-\item{window}{Rolling window size, default is \code{length(x)}.}
+\item{window}{Rolling window size, default is \code{Inf}.}
 
 \item{g}{Grouping object passed directly to \code{collapse::GRP()}.
 This can for example be a vector or data frame.}
@@ -56,14 +78,22 @@ basis.}
 \item{after}{A number denoting how many indices to look forward on a rolling
 basis.}
 }
+\value{
+Excluding \code{roll_apply}, these return a numeric vector the
+same length as \code{x} when \code{x} is a vector, and a list when \code{x} is a \code{data.frame}. \cr
+\code{roll_apply} returns a list the same length as \code{x}.
+}
 \description{
 An efficient method for rolling sum/mean for many groups. \cr
 }
 \details{
 \code{roll_sum} and \code{roll_mean} support parallel computations when
 \code{x} is a data frame of multiple columns. \cr
+\code{roll_geometric_mean} and \code{roll_harmonic_mean} are convenience functions that
+utilise \code{roll_mean}. \cr
 \code{roll_apply} accepts any user function and is more flexible but much
-less efficient. It also only accepts vector input.
+less efficient. It also only accepts vector input. \cr
+Please note that \code{roll_apply} and \code{time_roll_apply} are still experimental.
 }
 \examples{
 library(timeplyr)
@@ -94,4 +124,7 @@ df <- data.table(g = sample.int(10^5, 10^6, TRUE),
 mark(e1 = df[, mean := frollmean(x, n = 7, align = "right", na.rm = FALSE), by = "g"]$mean,
      e2 = df[, mean := roll_mean(x, window = 7, g = get("g"), partial = FALSE, na.rm = FALSE)]$mean)
 }
+}
+\seealso{
+\link{time_roll_mean} \link{roll_growth_rate}
 }

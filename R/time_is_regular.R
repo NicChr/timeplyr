@@ -226,21 +226,3 @@ check_time_elapsed_order <- function(x){
     stop("x must be in ascending or descending order")
   }
 }
-# check_diff_increasing <- function(x){
-#   if (diff_is_increasing(x)){
-#     stop("x must be in regular ascending or descending order")
-#   }
-# }
-# check_diff_gaps <- function(x){
-#   if (diff_has_gaps(x)){
-#     stop("x must be a regular sequence with no gaps")
-#   }
-# }
-# diff_is_increasing <- function(x, na.rm = TRUE, tol = sqrt(.Machine$double.eps)){
-#   double_gte(collapse::fmin(x, na.rm = na.rm), 0, tol = tol)
-#   # isTRUE( (collapse::fmin(x, na.rm = TRUE)) >= -tol)
-# }
-# diff_has_gaps <- function(x, na.rm = TRUE, tol = sqrt(.Machine$double.eps)){
-#   # isTRUE( (collapse::fmax(x, na.rm = TRUE) -2) >= -tol)
-#   double_gt(collapse::fmax(x, na.rm = na.rm), 1, tol = tol)
-# }

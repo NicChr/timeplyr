@@ -26,10 +26,10 @@
 #' fskim(flights)
 #' @export
 fskim <- function(data, hist = FALSE){
-  N <- nrow2(data)
+  N <- df_nrow(data)
   data <- as_DT(safe_ungroup(data))
   data_nms <- names(data)
-  col_classes <- vapply(data, function(x) vec_tail(class(x)), character(1))
+  col_classes <- vapply(data, function(x) vec_tail(class(x)), "")
   out <- as_DT(fenframe(col_classes,
                         name = "col",
                         value = "class"))
@@ -94,7 +94,7 @@ fskim <- function(data, hist = FALSE){
     data.table::set(lgl_out, j = "n_missing",
                     value = pluck_row(lgl_data[, lapply(.SD, fnmiss)]))
     data.table::set(lgl_out, j = "p_complete",
-                    value = pluck_row(lgl_data[, lapply(.SD, prop_complete)]))
+                    value = pluck_row(lgl_data[, lapply(.SD, fprop_complete)]))
     data.table::set(lgl_out, j = "n_true",
                     value = pluck_row(lgl_data[, lapply(.SD, collapse::fsum)]))
     data.table::set(lgl_out, j = "n_false",
@@ -116,7 +116,7 @@ fskim <- function(data, hist = FALSE){
                                                                    collapse = ", ")
                                                            })]))
   }
-  lgl_out <- list_to_tibble(as.list(lgl_out))
+  lgl_out <- df_as_tibble(lgl_out)
 
   ### Numeric variables ###
 
@@ -152,7 +152,7 @@ fskim <- function(data, hist = FALSE){
     data.table::set(num_out, j = "n_missing",
                     value = pluck_row(num_data[, lapply(.SD, fnmiss)]))
     data.table::set(num_out, j = "p_complete",
-                    value = pluck_row(num_data[, lapply(.SD, prop_complete)]))
+                    value = pluck_row(num_data[, lapply(.SD, fprop_complete)]))
     data.table::set(num_out, j = "n_unique",
                     value = pluck_row(num_data[,
                                                lapply(.SD,
@@ -196,7 +196,7 @@ fskim <- function(data, hist = FALSE){
                       value = pluck_row(num_data[, lapply(.SD, finline_hist)]))
     }
   }
-  num_out <- list_to_tibble(as.list(num_out))
+  num_out <- df_as_tibble(num_out)
 
   ### Exotic numeric variables ###
 
@@ -232,7 +232,7 @@ fskim <- function(data, hist = FALSE){
   #   data.table::set(num_out, j = "n_missing",
   #                   value = pluck_row(num_data[, lapply(.SD, fnmiss)]))
   #   data.table::set(num_out, j = "p_complete",
-  #                   value = pluck_row(num_data[, lapply(.SD, prop_complete)]))
+  #                   value = pluck_row(num_data[, lapply(.SD, fprop_complete)]))
   #   data.table::set(num_out, j = "n_unique",
   #                   value = pluck_row(num_data[,
   #                                              lapply(.SD,
@@ -275,7 +275,7 @@ fskim <- function(data, hist = FALSE){
   #                     value = pluck_row(num_data[, lapply(.SD, finline_hist)]))
   #   }
   # }
-  # num_out <- list_to_tibble(as.list(num_out))
+  # num_out <- df_as_tibble(num_out)
 
   ### Date variables ###
 
@@ -302,7 +302,7 @@ fskim <- function(data, hist = FALSE){
     data.table::set(date_out, j = "n_missing",
                     value = pluck_row(date_data[, lapply(.SD, fnmiss)]))
     data.table::set(date_out, j = "p_complete",
-                    value = pluck_row(date_data[, lapply(.SD, prop_complete)]))
+                    value = pluck_row(date_data[, lapply(.SD, fprop_complete)]))
     data.table::set(date_out, j = "n_unique",
                     value = pluck_row(date_data[,
                                                 lapply(.SD,
@@ -330,7 +330,7 @@ fskim <- function(data, hist = FALSE){
                                                                    collapse = ", ")
                                                            })]))
   }
-  date_out <- list_to_tibble(as.list(date_out))
+  date_out <- df_as_tibble(date_out)
 
   ### Datetime variables ###
 
@@ -357,7 +357,7 @@ fskim <- function(data, hist = FALSE){
     data.table::set(datetime_out, j = "n_missing",
                     value = pluck_row(datetime_data[, lapply(.SD, fnmiss)]))
   data.table::set(datetime_out, j = "p_complete",
-                  value = pluck_row(datetime_data[, lapply(.SD, prop_complete)]))
+                  value = pluck_row(datetime_data[, lapply(.SD, fprop_complete)]))
   data.table::set(datetime_out, j = "n_unique",
                   value = pluck_row(datetime_data[,
                                               lapply(.SD,
@@ -385,7 +385,7 @@ fskim <- function(data, hist = FALSE){
                                                                  collapse = ", ")
                                                          })]))
   }
-  datetime_out <- list_to_tibble(as.list(datetime_out))
+  datetime_out <- df_as_tibble(datetime_out)
 
   ### Categorical variables ###
 
@@ -409,7 +409,7 @@ fskim <- function(data, hist = FALSE){
     data.table::set(cat_out, j = "n_missing",
                     value = pluck_row(cat_data[, lapply(.SD, fnmiss)]))
     data.table::set(cat_out, j = "p_complete",
-                    value = pluck_row(cat_data[, lapply(.SD, prop_complete)]))
+                    value = pluck_row(cat_data[, lapply(.SD, fprop_complete)]))
     data.table::set(cat_out, j = "n_unique",
                     value = pluck_row(cat_data[,
                                                lapply(.SD,
@@ -437,7 +437,7 @@ fskim <- function(data, hist = FALSE){
                                                                    collapse = ", ")
                                                            })]))
   }
-  cat_out <- list_to_tibble(as.list(cat_out))
+  cat_out <- df_as_tibble(cat_out)
 
   list("nrow" = N,
        "ncol" = ncol(data),

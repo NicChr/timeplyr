@@ -31,6 +31,55 @@
 #' rolling basis.
 #' The identity \cr `tail(roll_growth_rate(x, window = length(x)), 1) == growth_rate(x)`
 #' should always hold.
+#' @seealso [time_roll_growth_rate]
+#' @examples
+#' library(timeplyr)
+#'
+#' set.seed(42)
+#' initial_investment <- 100
+#' years <- 1990:2000
+#' # Assume a rate of 8% increase with noise
+#' relative_increases <- 1.08 + rnorm(10, sd = 0.005)
+#'
+#' assets <- Reduce(`*`, relative_increases, init = initial_investment, accumulate = TRUE)
+#' assets
+#'
+#' # Note that this is approximately 8%
+#' growth_rate(assets)
+#'
+#' # We can also calculate the growth rate via geometric mean
+#'
+#' rel_diff <- exp(diff(log(assets)))
+#' all.equal(rel_diff, relative_increases)
+#'
+#' geometric_mean(rel_diff) == growth_rate(assets)
+#'
+#' # Weighted growth rate
+#'
+#' w <- c(rnorm(5)^2, rnorm(5)^4)
+#' geometric_mean(rel_diff, weights = w)
+#'
+#' # Rolling growth rate over the last n years
+#' roll_growth_rate(assets)
+#'
+#' # The same but using geometric means
+#' exp(roll_mean(log(c(NA, rel_diff))))
+#'
+#' # Rolling growth rate over the last 5 years
+#' roll_growth_rate(assets, window = 5)
+#' roll_growth_rate(assets, window = 5, partial = FALSE)
+#'
+#' ## Rolling growth rate with gaps in time
+#'
+#' years2 <- c(1990, 1993, 1994, 1997, 1998, 2000)
+#' assets2 <- assets[years %in% years2]
+#'
+#' # Below does not incorporate time gaps into growth rate calculation
+#' # But includes helpful warning
+#' time_roll_growth_rate(assets2, window = 5, time = years2)
+#' # Time step allows us to calculate correct rates across time gaps
+#' time_roll_growth_rate(assets2, window = 5, time = years2, time_step = 1) # Time aware
+#'
 #' @rdname growth_rate
 #' @export
 growth_rate <- function(x,
@@ -55,7 +104,7 @@ growth_rate <- function(x,
 }
 #' @rdname growth_rate
 #' @export
-roll_growth_rate <- function(x, window = length(x),
+roll_growth_rate <- function(x, window = Inf,
                              partial = TRUE,
                              na.rm = FALSE,
                              log = FALSE,
@@ -65,7 +114,7 @@ roll_growth_rate <- function(x, window = length(x),
   if (!window_len %in% c(1L, x_len)){
     stop("window must be of length 1 or length(x)")
   }
-  window[window > x_len] <- x_len
+  window[window > x_len] <- x_len + 1L
   window <- as.integer(window)
   window[window < 1L] <- 1L
   if (length(window) == 0L){
@@ -76,7 +125,7 @@ roll_growth_rate <- function(x, window = length(x),
   } else {
     x_lagged <- collapse::flag(x, n = window - 1L)
     if (partial){
-      x_lagged[seq_len(window)] <- x[min(x_len, 1L)]
+      x_lagged[seq_len(min(window, x_len))] <- x[min(x_len, 1L)]
       window <- window_sequence(x_len, k = window,
                                 partial = TRUE, ascending = TRUE)
     }

@@ -163,6 +163,7 @@ group_id.factor <- function(data, ..., order = TRUE,
   group_id(strip_attrs(unclass(data)),
            order = order, ascending = ascending, as_qg = as_qg)
 }
+# No need to have this anymore as there is a collapse::GRP.interval method..
 #' @export
 group_id.Interval <- function(data, ..., order = TRUE,
                               ascending = TRUE, as_qg = FALSE){
@@ -234,7 +235,7 @@ group_id.grouped_df <- function(data, ...,
   # Error checking on .by
   check_by(data, .by = {{ .by }})
   if (n_dots == 0 && is.null(.cols) && order && ascending){
-    out <- dplyr::group_indices(data)
+    out <- df_group_id(data)
     if (as_qg){
       out <- group_id_to_qg(out,
                             n_groups = df_nrow(group_data(data)),
@@ -451,7 +452,7 @@ group2 <- function(X, ...){
   if (is_interval(X)){
     X <- interval_separate(X)
   }
-  if (is.list(X) && has_interval(X, quiet = TRUE)){
+  if (is.list(X) && list_has_interval(X)){
     X <- mutate_intervals_to_ids(X)
   }
   collapse::group(X, ...)
@@ -496,8 +497,8 @@ mutate_intervals_to_ids <- function(data){
   data
 }
 interval_separate <- function(x){
-  list("start" = attr(unclass(x), "start"),
-       "data" = strip_attrs(unclass(x)))
+  list(start = attr(x, "start"),
+       data = strip_attrs(unclass(x)))
 }
 # list("start" = lubridate::int_start(x),
 #      "data" = lubridate::int_length(x))
@@ -505,7 +506,7 @@ radixorderv2 <- function(x, ...){
   if (is_interval(x)){
     x <- interval_separate(x)
   }
-  if (is.list(x) && has_interval(x, quiet = TRUE)){
+  if (is.list(x) && list_has_interval(x)){
     x <- mutate_intervals_to_ids(x)
   }
   collapse::radixorderv(x, ...)

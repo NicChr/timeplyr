@@ -2,8 +2,8 @@
 #'
 #' @description Generate a time ID that signifies how many time steps away
 #' a time value is from the starting time point or more intuitively,
-#' this is the time that has passed since
-#' the first/index time.
+#' this is the time passed since
+#' the first time point.
 #'
 #' @param x Time variable. \cr
 #' Can be a `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, or `yearqtr`.
@@ -31,7 +31,7 @@
 #' @return An integer vector.
 #' @details
 #' This is heavily inspired by `collapse::timeid` but differs in 3 ways:
-#' * The  time steps need not be the greatest common divisor of successive
+#' * The time steps need not be the greatest common divisor of successive
 #' differences
 #' * The starting time point may not necessarily
 #' be the earliest chronologically and thus `time_id` can generate negative IDs.
@@ -50,6 +50,10 @@ time_id <- function(x, time_by = NULL, g = NULL, na_skip = TRUE,
                       na_skip = na_skip,
                       time_type = time_type,
                       rolling = FALSE)
+  out_rounded <- round(out)
+  # Make sure we don't lose precision when converting to integer
+  which_whole_num <- which(rel_diff(out, out_rounded) < sqrt(.Machine$double.eps))
+  out[which_whole_num]  <- out_rounded[which_whole_num]
   as.integer(out) + 1L
 }
 # To more closely match collapse::timeid one can use the below 3 lines
