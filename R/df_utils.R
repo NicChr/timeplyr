@@ -443,3 +443,7 @@ df_group_id <- function(x){
   }
   out
 }
+# Reorder data frame to original order after having sorted it using a GRP
+df_reorder <- function(data, g){
+  df_row_slice(data, collapse::greorder(df_seq_along(data, "rows"), g = g))
+}

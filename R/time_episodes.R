@@ -36,11 +36,13 @@
 #' new episodes are defined based on how much cumulative time has
 #' passed since the first event of each episode.
 #' @param switch_on_boundary When an exact amount of time
-#' (specified in `time_by`) has passed, should there an increment in ID?
-#' The default is `FALSE`. For example, if `time_by = "days"` and
-#' `switch_on_boundary = FALSE`, `>` 1 day must have passed, otherwise
-#' `>=` 1 day must have passed.
+#' (specified in `time_by`) has passed, should there be an increment in ID? \cr
+#' The default is `TRUE`. \cr
+#' For example, if `time_by = "days"` and
+#' `switch_on_boundary = FALSE`, `> 1` day must have passed, otherwise
+#' `>= 1` day must have passed.
 #' @param fill Value to fill first time elapsed value. Only applicable when
+#' `roll_episode = TRUE`. \cr
 #' Default is `0`.
 #' @param .add 	Should episodic variables be added to the data? \cr
 #' If `FALSE` (the default), then only the relevant variables are returned. \cr
@@ -91,10 +93,10 @@
 #' first episode of infection,
 #' 2 are positives within the second episode of infection and so on.
 #' * \bold{ep_id_new} - An integer variable signifying the first
-#' instance of each episode.
+#' instance of each new episode.
 #' This is an increasing integer where
 #' 0 signifies within-episode observations and >= 1
-#' signifies the first instance of that numbered episode.
+#' signifies the first instance of the respective episode.
 #' * \bold{t_elapsed} - The time elapsed since the last event. \cr
 #' When `roll_episode = FALSE`, this becomes the time elapsed since the
 #' first event of the current episode.
@@ -185,7 +187,7 @@ time_episodes <- function(data, time, time_by = NULL,
                             event[[1L]],
                           1L, 0L)
     ), event_id_nm))
-    if (sum(is.na(fpluck(data, event_col)) != is.na(fpluck(data, time_col))) > 0){
+    if (num_na(fpluck(data, event_col)) != num_na(fpluck(data, time_col))){
       warning(paste0("There is a mismatch of NAs between ",
                      time_col, " and ",
                      event_col, ", please check."))
@@ -210,8 +212,9 @@ time_episodes <- function(data, time, time_by = NULL,
   # Group by group vars + time
   g2 <- collapse::GRP(fselect(out, .cols = c(grp_nm, time_col)),
                       sort = TRUE)
+  data_is_sorted <- GRP_is_sorted(g2)
   # If data is already sorted correctly, no need to sort it
-  if (!GRP_is_sorted(g2)){
+  if (!data_is_sorted){
     out <- df_row_slice(out, GRP_order(g2))
   }
   # # Group info
@@ -233,9 +236,8 @@ time_episodes <- function(data, time, time_by = NULL,
   new_cols <- c("t_elapsed", "ep_start", "ep_id", "ep_id_new")
   set_rm_cols(out, grp_nm)
   # Sort by initial order
-  if (!GRP_is_sorted(g2)){
-    out <- df_row_slice(out, collapse::greorder(df_seq_along(out, "rows"),
-                                                g = g2))
+  if (!data_is_sorted){
+    out <- df_reorder(out, g = g2)
   }
   if (.add){
     # Simply bind the cols together
@@ -385,7 +387,7 @@ calc_episodes <- function(data,
                                              time),
                                       time_by = time_by,
                                       time_type = time_type))
-
+    # Initialise episode ID
     data.table::set(data,
                     j = "ep_id",
                     value = NA_integer_)
@@ -404,6 +406,10 @@ calc_episodes <- function(data,
     g3 <- collapse::GRP(fselect(event_data,
                                 .cols = c(gid, "ep_id")))
     g3_starts <- GRP_starts(g3)
+    # Initialise new episode ID
+    data.table::set(data,
+                    j = "ep_id_new",
+                    value = NA_integer_)
     data.table::set(data,
                     i = which_is_event,
                     j = "ep_id_new",
@@ -411,6 +417,10 @@ calc_episodes <- function(data,
                                                   g3_starts,
                                                 fpluck(event_data, "ep_id"),
                                                 0L))
+    # Initialise episode start date
+    data.table::set(data,
+                    j = "ep_start",
+                    value = time_na)
     # Add episode start dates
     # Get min episode dates for each subject + episode
     data.table::set(data,

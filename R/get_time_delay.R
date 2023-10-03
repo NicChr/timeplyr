@@ -139,7 +139,7 @@ get_time_delay <- function(data, origin, end, time_by = 1,
   out[, (delay_nm) := time_diff(get(start_time), get(end_time),
                                     time_by = time_by,
                                     time_type = "duration")]
-  n_miss_delays <- sum(is.na(out[[delay_nm]]))
+  n_miss_delays <- num_na(out[[delay_nm]])
   if (n_miss_delays > 0){
     warning(paste(n_miss_delays, "missing observations will be
                   removed before calculation.",

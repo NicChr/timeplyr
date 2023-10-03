@@ -2,7 +2,7 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-int num_na(SEXP &x){
+int num_na(SEXP x){
   int count = 0;
   switch ( TYPEOF(x) ){
   case LGLSXP: {

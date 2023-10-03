@@ -37,7 +37,7 @@ a named character vector or numeric vector.
 If speed is an expensive resource, it is recommended to use this.}
 }
 \value{
-A data frame of unique groups.
+A \code{data.frame} of distinct groups.
 }
 \description{
 Like \code{dplyr::distinct()} but faster when lots of

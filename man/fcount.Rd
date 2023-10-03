@@ -52,6 +52,9 @@ Columns are specified using tidy-select.}
 a named character vector or numeric vector.
 If speed is an expensive resource, it is recommended to use this.}
 }
+\value{
+A \code{data.frame} of frequency counts by group.
+}
 \description{
 This is a fast and near-identical alternative to dplyr::count() using the \code{collapse} package.
 Unlike \code{collapse::fcount()}, this works very similarly to \code{dplyr::count()}.
@@ -60,8 +63,6 @@ is recycled and added as a data variable.
 Other than that everything works exactly as the dplyr equivalent.
 
 \code{fcount()} and \code{fadd_count()} can be up to >100x faster than the dplyr equivalents.
-\code{collapse} and \code{data.table} are used for computing, adding the count column
-and optionally sorting.
 }
 \examples{
 library(timeplyr)

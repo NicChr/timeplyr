@@ -130,9 +130,6 @@ time_breaks <- function(x, n = 5, time_by = NULL,
   check_is_num(n)
   stopifnot(n >= 1)
   check_length_one(n)
-  if (is.infinite(n)){
-    stop("n must be a finite number")
-  }
   time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
   from <- bound_from(from, x)
   to <- bound_to(to, x)

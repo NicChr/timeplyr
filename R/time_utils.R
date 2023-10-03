@@ -821,8 +821,8 @@ cut_time2 <- function(x, breaks, rightmost.closed = FALSE, left.open = FALSE){
 # out-of-bounds times can be included in the last interval
 # This can return either break codes or the cut vector
 cut_time <- function(x, breaks, include_oob = FALSE, codes = FALSE){
-  x <- time_as_number(x)
-  breaks_num <- time_as_number(breaks)
+  x <- `attributes<-`(unclass(x), NULL)
+  breaks_num <- `attributes<-`(unclass(breaks), NULL)
   if (include_oob){
     breaks_num <- c(breaks_num, Inf)
   }

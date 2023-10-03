@@ -51,6 +51,9 @@ Columns are specified using tidy-select.}
 a named character vector or numeric vector.
 If speed is an expensive resource, it is recommended to use this.}
 }
+\value{
+A \code{data.frame} of duplicate rows.
+}
 \description{
 This function works like \code{dplyr::distinct()} in its handling of
 arguments and data-masking but returns duplicate rows.

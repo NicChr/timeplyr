@@ -136,7 +136,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_df_group_indices
-IntegerVector cpp_df_group_indices(SEXP rows, int size);
+SEXP cpp_df_group_indices(SEXP rows, int size);
 RcppExport SEXP _timeplyr_cpp_df_group_indices(SEXP rowsSEXP, SEXP sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -215,12 +215,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // num_na
-int num_na(SEXP& x);
+int num_na(SEXP x);
 RcppExport SEXP _timeplyr_num_na(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
     rcpp_result_gen = Rcpp::wrap(num_na(x));
     return rcpp_result_gen;
 END_RCPP

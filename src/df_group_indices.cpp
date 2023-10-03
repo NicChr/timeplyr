@@ -16,7 +16,7 @@ using namespace Rcpp;
 // Taken from dplyr::group_indices,
 // All credits go to dplyr
 // [[Rcpp::export]]
-IntegerVector cpp_df_group_indices(SEXP rows, int size) {
+SEXP cpp_df_group_indices(SEXP rows, int size) {
   SEXP indices = PROTECT(Rf_allocVector(INTSXP, size));
   int* p_indices = INTEGER(indices);
   R_xlen_t ng = XLENGTH(rows);

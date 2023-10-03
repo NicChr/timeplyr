@@ -24,6 +24,7 @@
 #' @param .cols (Optional) alternative to `...` that accepts
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
+#' @return A `data.frame` of duplicate rows.
 #' @examples
 #' library(dplyr)
 #' library(timeplyr)

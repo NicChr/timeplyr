@@ -21,6 +21,9 @@ variables.}
 a named character vector or numeric vector.
 If speed is an expensive resource, it is recommended to use this.}
 }
+\value{
+A sorted \code{data.frame}.
+}
 \description{
 This is a fast and near-identical alternative to \code{dplyr::arrange()}
 using the \code{collapse} package.

@@ -8,8 +8,6 @@
 #' Other than that everything works exactly as the dplyr equivalent.
 #'
 #' `fcount()` and `fadd_count()` can be up to >100x faster than the dplyr equivalents.
-#' `collapse` and `data.table` are used for computing, adding the count column
-#' and optionally sorting.
 #'
 #' @param data A data frame.
 #' @param ... Variables to group by.
@@ -29,6 +27,7 @@
 #' @param .cols (Optional) alternative to `...` that accepts
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
+#' @return A `data.frame` of frequency counts by group.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -107,7 +106,8 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   }
   out[[name]] <- nobs
   if (sort){
-    out <- farrange(out, desc(.data[[name]]))
+    row_order <- radix_order(-nobs)
+    out <- df_row_slice(out, row_order)
   }
   df_reconstruct(out, data)
 }
@@ -123,11 +123,11 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   out <- group_info[["data"]]
   all_vars <- group_info[["all_groups"]]
   if (rlang::quo_is_null(enquo(wt))){
-    wt_var <- character(0)
+    wt_var <- character()
   } else {
-    ncol1 <- ncol(out)
+    ncol1 <- df_ncol(out)
     out <- mutate2(out, !!enquo(wt))
-    ncol2 <- ncol(out)
+    ncol2 <- df_ncol(out)
     if (ncol2 == ncol1){
       has_wt <- TRUE
     } else {
@@ -169,7 +169,8 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE, name = NULL,
   out <- dplyr::dplyr_col_modify(out, cols = add_names(list(nobs),
                                                       name))
   if (sort){
-    out <- farrange(out, desc(.data[[name]]))
+    row_order <- radix_order(-out[[name]])
+    out <- df_row_slice(out, row_order)
   }
   df_reconstruct(out, data)
 }

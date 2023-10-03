@@ -27,6 +27,7 @@
 #'
 #' `farrange()` is faster when there are many groups or a large number of
 #' rows.
+#' @return A sorted `data.frame`.
 #' @export
 farrange <- function(data, ..., .by = NULL, .by_group = FALSE,
                      .cols = NULL){
@@ -56,7 +57,6 @@ farrange <- function(data, ..., .by = NULL, .by_group = FALSE,
     group.sizes = FALSE, sort = TRUE
   )
   sorted <- attr(out_order, "sorted")
-  attributes(out_order) <- NULL
   if (isTRUE(sorted)){
     data
   } else {

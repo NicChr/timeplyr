@@ -59,12 +59,14 @@ new episodes are defined based on how much cumulative time has
 passed since the first event of each episode.}
 
 \item{switch_on_boundary}{When an exact amount of time
-(specified in \code{time_by}) has passed, should there an increment in ID?
-The default is \code{FALSE}. For example, if \code{time_by = "days"} and
-\code{switch_on_boundary = FALSE}, \code{>} 1 day must have passed, otherwise
-\code{>=} 1 day must have passed.}
+(specified in \code{time_by}) has passed, should there be an increment in ID? \cr
+The default is \code{TRUE}. \cr
+For example, if \code{time_by = "days"} and
+\code{switch_on_boundary = FALSE}, \verb{> 1} day must have passed, otherwise
+\verb{>= 1} day must have passed.}
 
 \item{fill}{Value to fill first time elapsed value. Only applicable when
+\code{roll_episode = TRUE}. \cr
 Default is \code{0}.}
 
 \item{.add}{Should episodic variables be added to the data? \cr
@@ -126,10 +128,10 @@ In the infections scenario, 1 are positives within the
 first episode of infection,
 2 are positives within the second episode of infection and so on.
 \item \bold{ep_id_new} - An integer variable signifying the first
-instance of each episode.
+instance of each new episode.
 This is an increasing integer where
 0 signifies within-episode observations and >= 1
-signifies the first instance of that numbered episode.
+signifies the first instance of the respective episode.
 \item \bold{t_elapsed} - The time elapsed since the last event. \cr
 When \code{roll_episode = FALSE}, this becomes the time elapsed since the
 first event of the current episode.
