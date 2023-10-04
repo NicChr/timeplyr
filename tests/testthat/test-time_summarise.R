@@ -101,3 +101,20 @@ testthat::test_that("General tests", {
                   n = c(1L, 14L))
   )
 })
+
+testthat::test_that("Test intervals", {
+  testthat::expect_equal(
+    new_tbl(x = 1:10) %>%
+      time_summarise(x, time_by = 3, include_interval = TRUE),
+    new_tbl(x = c(1, 4, 7, 10),
+            interval = add_attr(c(3, 3, 3, 0),
+                                "start", c(1, 4, 7, 10)))
+  )
+  set.seed(42)
+  df <- new_tbl(x = sample(1:100, replace = T, 10^3)) %>%
+    time_summarise(x, time_by = 13, include_interval = TRUE, sort = TRUE)
+
+  df$start <- attr(df$interval, "start")
+
+  testthat::expect_equal(df$x, df$start)
+})

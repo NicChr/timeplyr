@@ -1395,6 +1395,7 @@ time_aggregate_switch <- function(x, time_by, time_type,
                           roll_month = roll_month,
                           roll_dst = roll_dst,
                           time_floor = time_floor,
+                          week_start = week_start,
                           as_int = as_int)
   } else {
     time_aggregate_left(x, g = g, time_by = time_by,
@@ -1404,6 +1405,7 @@ time_aggregate_switch <- function(x, time_by, time_type,
                         roll_month = roll_month,
                         roll_dst = roll_dst,
                         time_floor = time_floor,
+                        week_start = week_start,
                         as_int = as_int)
   }
 }

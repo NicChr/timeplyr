@@ -266,8 +266,8 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
       }
 
       int_nm <- new_var_nm(out, "interval")
-      out[[int_nm]] <- lubridate::interval(out[[time_var]],
-                                           out[[int_end_nm]])
+      out[[int_nm]] <- time_interval(out[[time_var]],
+                                     out[[int_end_nm]])
     }
     out <- fselect(out, .cols = c(grp_nm,
                                   group_vars,
@@ -286,6 +286,9 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
              name = name,
              sort = sort)
     name <- names(out)[length(names(out))]
+  }
+  if (include_interval && !is_interval(out[[int_nm]])){
+    attr(out[[int_nm]], "start") <- out[[time_var]]
   }
   if (reconstruct){
     out <- df_reconstruct(out, data)

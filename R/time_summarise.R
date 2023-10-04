@@ -112,13 +112,16 @@ time_summarise <- function(data, time = NULL, ..., time_by = NULL,
                                .by = {{ .by }})
   group_vars <-  group_info[["dplyr_groups"]]
   extra_group_vars <- group_info[["extra_groups"]]
-  int_nm <- character(0)
+  int_nm <- character()
   if (include_interval){
     int_nm <- new_var_nm(c(group_vars, time_var, extra_group_vars), "interval")
   }
   out <- fselect(out, .cols = c(group_vars, time_var, int_nm, extra_group_vars))
   if (sort){
     out <- farrange(out, .cols = c(group_vars, time_var))
+  }
+  if (include_interval && !is_interval(out[[int_nm]])){
+    attr(out[[int_nm]], "start") <- out[[time_var]]
   }
   out
 }
@@ -155,6 +158,9 @@ time_reframe <- function(data, time = NULL, ..., time_by = NULL,
                          .by = dplyr::any_of(c(group_vars, time_var, int_nm)))
   if (sort){
     out <- farrange(out, .cols = c(group_vars, time_var))
+  }
+  if (include_interval && !is_interval(out[[int_nm]])){
+    attr(out[[int_nm]], "start") <- out[[time_var]]
   }
   out
 }

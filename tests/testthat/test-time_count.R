@@ -312,3 +312,44 @@ testthat::test_that("Compare to tidyr", {
                                                                   gseq = group_id(.$dest))) %>%
                            dplyr::select(dest, time_hour, interval, n))
 })
+
+
+testthat::test_that("Test flooring", {
+  out <- new_tbl(x = time_seq(lubridate::dmy(04102023),
+                       length.out = 200,
+                       time_by = "days")) %>%
+    time_count(x, time_by = "weeks", week_start = 2, time_floor = TRUE)
+
+  res <- new_tbl(
+    x = lubridate::ymd(c("2023-10-03","2023-10-10","2023-10-17",
+          "2023-10-24","2023-10-31","2023-11-07","2023-11-14",
+          "2023-11-21","2023-11-28","2023-12-05","2023-12-12","2023-12-19",
+          "2023-12-26","2024-01-02","2024-01-09","2024-01-16",
+          "2024-01-23","2024-01-30","2024-02-06","2024-02-13","2024-02-20",
+          "2024-02-27","2024-03-05","2024-03-12","2024-03-19",
+          "2024-03-26","2024-04-02","2024-04-09","2024-04-16")),
+    n = c(6L,7L,7L,7L,7L,7L,7L,7L,7L,7L,7L,
+          7L,7L,7L,7L,7L,7L,7L,7L,7L,7L,7L,7L,7L,7L,7L,7L,
+          7L,5L)
+  )
+
+  testthat::expect_equal(out, res)
+})
+
+testthat::test_that("Test intervals", {
+  testthat::expect_equal(
+    new_tbl(x = 1:10) %>%
+      time_count(x, time_by = 3, include_interval = TRUE),
+    new_tbl(x = c(1, 4, 7, 10),
+            interval = add_attr(c(3, 3, 3, 0),
+                                "start", c(1, 4, 7, 10)),
+            n = c(3, 3, 3, 1))
+  )
+  set.seed(42)
+  df <- new_tbl(x = sample(1:100, replace = T, 10^3)) %>%
+    time_count(x, time_by = 13, include_interval = TRUE, sort = TRUE)
+
+  df$start <- attr(df$interval, "start")
+
+  testthat::expect_equal(df$x, df$start)
+})

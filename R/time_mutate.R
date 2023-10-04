@@ -132,7 +132,7 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
         data <- dplyr::dplyr_col_modify(data,
                                         add_names(
                                           list(
-                                            lubridate::interval(time_agg, time_int_end)
+                                            time_interval(time_agg, time_int_end)
                                           ), int_nm
                                         )
         )
