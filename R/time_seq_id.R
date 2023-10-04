@@ -83,21 +83,16 @@ time_seq_id <- function(x, time_by = NULL, threshold = 1,
       over_threshold <- double_gt(telapsed, threshold)
     }
   } else {
-    if (is_whole_number(telapsed)){
-      roll_fun <- roll_int_threshold
-    } else {
-      roll_fun <- roll_time_threshold
-    }
     if (!is.null(g)){
       dt <- data.table::data.table(x = telapsed, group_id = GRP_group_id(g))
       over_threshold <- dt[, ("over") :=
-                             roll_fun(get("x"), threshold = threshold,
-                                      switch_on_boundary = switch_on_boundary),
+                             roll_time_threshold(get("x"), threshold = threshold,
+                                                 switch_on_boundary = switch_on_boundary),
                            by = "group_id"][["over"]]
     } else {
-      over_threshold <- roll_fun(telapsed,
-                                 threshold = threshold,
-                                 switch_on_boundary = switch_on_boundary)
+      over_threshold <- roll_time_threshold(telapsed,
+                                            threshold = threshold,
+                                            switch_on_boundary = switch_on_boundary)
     }
   }
   collapse::fcumsum(over_threshold, g = g, na.rm = na_skip) + 1L

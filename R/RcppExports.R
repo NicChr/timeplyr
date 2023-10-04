@@ -89,7 +89,7 @@ after_sequence <- function(size, k) {
     .Call(`_timeplyr_after_sequence`, size, k)
 }
 
-window_sequence <- function(size, k, partial, ascending) {
+window_sequence <- function(size, k, partial = TRUE, ascending = TRUE) {
     .Call(`_timeplyr_window_sequence`, size, k, partial, ascending)
 }
 
@@ -99,10 +99,6 @@ lag_sequence <- function(size, k) {
 
 lead_sequence <- function(size, k) {
     .Call(`_timeplyr_lead_sequence`, size, k)
-}
-
-roll_int_threshold <- function(x, threshold = 1L, switch_on_boundary = TRUE) {
-    .Call(`_timeplyr_roll_int_threshold`, x, threshold, switch_on_boundary)
 }
 
 roll_time_threshold <- function(x, threshold = 1, switch_on_boundary = TRUE) {

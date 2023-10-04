@@ -315,26 +315,13 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// roll_int_threshold
-IntegerVector roll_int_threshold(IntegerVector x, int threshold, bool switch_on_boundary);
-RcppExport SEXP _timeplyr_roll_int_threshold(SEXP xSEXP, SEXP thresholdSEXP, SEXP switch_on_boundarySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< int >::type threshold(thresholdSEXP);
-    Rcpp::traits::input_parameter< bool >::type switch_on_boundary(switch_on_boundarySEXP);
-    rcpp_result_gen = Rcpp::wrap(roll_int_threshold(x, threshold, switch_on_boundary));
-    return rcpp_result_gen;
-END_RCPP
-}
 // roll_time_threshold
-IntegerVector roll_time_threshold(NumericVector x, double threshold, bool switch_on_boundary);
+IntegerVector roll_time_threshold(SEXP x, double threshold, bool switch_on_boundary);
 RcppExport SEXP _timeplyr_roll_time_threshold(SEXP xSEXP, SEXP thresholdSEXP, SEXP switch_on_boundarySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
     Rcpp::traits::input_parameter< double >::type threshold(thresholdSEXP);
     Rcpp::traits::input_parameter< bool >::type switch_on_boundary(switch_on_boundarySEXP);
     rcpp_result_gen = Rcpp::wrap(roll_time_threshold(x, threshold, switch_on_boundary));
@@ -368,7 +355,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_window_sequence", (DL_FUNC) &_timeplyr_window_sequence, 4},
     {"_timeplyr_lag_sequence", (DL_FUNC) &_timeplyr_lag_sequence, 2},
     {"_timeplyr_lead_sequence", (DL_FUNC) &_timeplyr_lead_sequence, 2},
-    {"_timeplyr_roll_int_threshold", (DL_FUNC) &_timeplyr_roll_int_threshold, 3},
     {"_timeplyr_roll_time_threshold", (DL_FUNC) &_timeplyr_roll_time_threshold, 3},
     {NULL, NULL, 0}
 };

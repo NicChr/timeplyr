@@ -52,10 +52,8 @@ NumericVector roll_apply_max(NumericVector x,
   }
   Function before_sequence("before_sequence");
   Function after_sequence("after_sequence");
-  IntegerVector befores(n);
-  IntegerVector afters(n);
-  befores = before_sequence(n, before);
-  afters = after_sequence(n, after);
+  IntegerVector befores = before_sequence(n, before);
+  IntegerVector afters = after_sequence(n, after);
   NumericVector out(n);
   for (int i = 0; i < n; ++i) {
     istart = i - befores[i];
@@ -95,7 +93,7 @@ IntegerVector before_sequence(IntegerVector size, int k) {
       if (i < k){
         out[index] = i;
       }
-      index = index + 1;
+      index += 1;
     }
   }
   return out;
@@ -114,7 +112,7 @@ IntegerVector after_sequence(IntegerVector size, int k) {
       if (idiff < k){
         out[index] = idiff;
       }
-      index = index + 1;
+      index += 1;
     }
   }
   return out;
@@ -124,8 +122,8 @@ IntegerVector after_sequence(IntegerVector size, int k) {
 // [[Rcpp::export]]
 IntegerVector window_sequence(IntegerVector size,
                               int k,
-                              bool partial,
-                              bool ascending) {
+                              bool partial = true,
+                              bool ascending = true) {
   int size_n = size.length();
   k = std::max(k, 0);
   IntegerVector out(sum(size), k);
@@ -138,7 +136,7 @@ IntegerVector window_sequence(IntegerVector size,
           if (i < k){
             out[index] = i + 1;
           }
-          index = index + 1;
+          index += 1;
         }
       }
     } else {
@@ -147,7 +145,7 @@ IntegerVector window_sequence(IntegerVector size,
           if (i < (k - 1)){
             out[index] = NA_INTEGER;
           }
-          index = index + 1;
+          index += 1;
         }
       }
     }
@@ -161,7 +159,7 @@ IntegerVector window_sequence(IntegerVector size,
           if (idiff < k){
             out[index] = idiff + 1;
           }
-          index = index + 1;
+          index += 1;
         }
       }
     } else {
@@ -171,7 +169,7 @@ IntegerVector window_sequence(IntegerVector size,
           if (idiff < (k - 1)){
             out[index] = NA_INTEGER;
           }
-          index = index + 1;
+          index += 1;
         }
       }
     }
@@ -190,7 +188,7 @@ IntegerVector lag_sequence(IntegerVector size, int k) {
       if (i < k){
         out[index] = NA_INTEGER;
       }
-      index = index + 1;
+      index += 1;
     }
   }
   return out;
@@ -208,7 +206,7 @@ IntegerVector lead_sequence(IntegerVector size, int k) {
       if (idiff < k){
         out[index] = NA_INTEGER;
       }
-      index = index + 1;
+      index += 1;
     }
   }
   return out;
