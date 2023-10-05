@@ -148,7 +148,7 @@ tidy_select_pos <- function(data, ..., .cols = NULL){
     if (all_char || all_num){
       is_dup <- collapse::fduplicated(list(names(out), unname(out)))
       out <- out[!is_dup]
-      if (anyDuplicated(names(out)) > 0){
+      if (anyduplicated(names(out))){
         # Use tidyselect for error
         tidyselect::eval_select(rlang::expr(c(...)), data = data)
       }
@@ -190,7 +190,7 @@ mutate2 <- function(data, ..., .by = NULL,
   before_quo <- enquo(.before)
   after_quo <- enquo(.after)
   .keep <- rlang::arg_match0(.keep, c("all", "used", "unused", "none"))
-  has_dup_names <- anyDuplicated(names(data)) > 0
+  has_dup_names <- anyduplicated(names(data))
   quo_info <- quo_mutate_info(dots, data)
   quo_nms <- quo_info[["quo_nms"]]
   quo_text <- quo_info[["quo_text"]]
@@ -832,12 +832,13 @@ check_cols <- function(n_dots, .cols = NULL){
 # NULL is removed.
 quo_select_info <- function(quos, data){
   quo_nms <- names(quos)
-  quo_text <- add_names(character(length(quos)), quo_nms)
-  quo_is_null <- add_names(logical(length(quos)), quo_nms)
+  quo_text <- `names<-`(character(length(quos)), quo_nms)
+  quo_is_null <- `names<-`(logical(length(quos)), quo_nms)
   for (i in seq_along(quos)){
-    quo_text[[i]] <- deparse(rlang::quo_get_expr(quos[[i]]))
-    # quo_text[[i]] <- rlang::expr_name(rlang::quo_get_expr(quos[[i]]))
-    quo_is_null[[i]] <- rlang::quo_is_null(quos[[i]])
+    quo <- quos[[i]]
+    quo_text[[i]] <- deparse1(rlang::quo_get_expr(quo))
+    # quo_text[[i]] <- rlang::expr_name(rlang::quo_get_expr(quo))
+    quo_is_null[[i]] <- rlang::quo_is_null(quo)
   }
   quo_text <- quo_text[!quo_is_null]
   quo_nms <- quo_nms[!quo_is_null]
@@ -852,16 +853,16 @@ quo_select_info <- function(quos, data){
 # unnamed NULL exprs are removed.
 quo_mutate_info <- function(quos, data){
   quo_nms <- names(quos)
-  quo_text <- add_names(character(length(quos)), quo_nms)
-  quo_is_null <- add_names(logical(length(quos)), quo_nms)
+  quo_text <- `names<-`(character(length(quos)), quo_nms)
+  quo_is_null <- `names<-`(logical(length(quos)), quo_nms)
   for (i in seq_along(quos)){
-    quo_text[[i]] <- deparse1(rlang::quo_get_expr(quos[[i]]))
-    # quo_text[[i]] <- rlang::expr_name(rlang::quo_get_expr(quos[[i]]))
-    quo_is_null[[i]] <- rlang::quo_is_null(quos[[i]]) && quo_nms[[i]] == ""
+    quo <- quos[[i]]
+    quo_text[[i]] <- deparse1(rlang::quo_get_expr(quo))
+    quo_is_null[[i]] <- rlang::quo_is_null(quo) && !nzchar(quo_nms[[i]])
   }
   quo_text <- quo_text[!quo_is_null]
   quo_nms <- quo_nms[!quo_is_null]
-  is_identity <- quo_text %in% names(data) & quo_nms == ""
+  is_identity <- quo_text %in% names(data) & !nzchar(quo_nms)
   list(quo_nms = quo_nms,
        quo_text = unname(quo_text),
        is_identity = is_identity)
@@ -869,12 +870,12 @@ quo_mutate_info <- function(quos, data){
 # Used only for summarise_list()
 quo_summarise_info <- function(quos, data){
   quo_nms <- names(quos)
-  quo_text <- add_names(character(length(quos)), quo_nms)
-  quo_is_null <- add_names(logical(length(quos)), quo_nms)
+  quo_text <- `names<-`(character(length(quos)), quo_nms)
+  quo_is_null <- `names<-`(logical(length(quos)), quo_nms)
   for (i in seq_along(quos)){
-    quo_text[[i]] <- deparse1(rlang::quo_get_expr(quos[[i]]))
-    # quo_text[[i]] <- rlang::expr_name(rlang::quo_get_expr(quos[[i]]))
-    quo_is_null[[i]] <- rlang::quo_is_null(quos[[i]])
+    quo <- quos[[i]]
+    quo_text[[i]] <- deparse1(rlang::quo_get_expr(quo))
+    quo_is_null[[i]] <- rlang::quo_is_null(quo)
   }
   quo_text <- quo_text[!quo_is_null]
   quo_nms <- quo_nms[!quo_is_null]
@@ -1249,3 +1250,15 @@ list_of_empty_vectors <- function(x){
 #   }
 #   collapse::anyv(x, value)
 # }
+
+# Similar to collapse::fnobs
+# The same can be achieved using
+# length(x) - fnobs(x)
+# But num_na has support for complex & raw vectors
+num_na <- function(x){
+  .Call(`_timeplyr_cpp_num_na`, x)
+}
+# anyDuplicated but returns a logical(1)
+anyduplicated <- function(x){
+  anyDuplicated.default(x) > 0L
+}

@@ -122,7 +122,7 @@ fslice_head <- function(data, ..., n, prop, .by = NULL,
   group_sizes <- slice_info[["group_sizes"]]
   slice_sizes <- slice_info[["slice_sizes"]]
   # Start indices of sequences
-  start <- cumsum(c(1L, group_sizes[-length(group_sizes)]))
+  start <- calc_sorted_group_starts(group_sizes)
   # Vectorised sequences
   sequences <- sequence(slice_sizes, from = start, by = 1L)
   if (length(slice_sizes) > 1L){
@@ -146,7 +146,7 @@ fslice_tail <- function(data, ..., n, prop, .by = NULL,
                                  default_n = 1L)
   group_sizes <- slice_info[["group_sizes"]]
   slice_sizes <- slice_info[["slice_sizes"]]
-  start <- cumsum(group_sizes)
+  start <- calc_sorted_group_ends(group_sizes)
   sequences <- sequence(slice_sizes, from = start - slice_sizes + 1L, by = 1L)
   if (length(slice_sizes) > 1L){
     i <- unlist(slice_info[["rows"]], recursive = FALSE, use.names = FALSE)[sequences]
@@ -299,16 +299,16 @@ fslice_sample <- function(data, ..., n, prop,
                            times = slice_sizes)
   }
   i <- unlist(slice_info[["rows"]], use.names = FALSE, recursive = FALSE)[rows]
-  if (seed_exists && !seed_is_null){
-    .Random.seed <<- old
-  } else if (!seed_is_null){
-    remove(.Random.seed, envir = .GlobalEnv)
-  }
   if (is.null(i)){
     i <- integer(0)
   }
   if (keep_order){
     i <- conditional_sort(i)
+  }
+  if (seed_exists && !seed_is_null){
+    .Random.seed <<- old
+  } else if (!seed_is_null){
+    remove(.Random.seed, envir = .GlobalEnv)
   }
   df_row_slice(data, i)
 }

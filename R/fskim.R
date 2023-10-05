@@ -92,11 +92,11 @@ fskim <- function(data, hist = FALSE){
                   value = NA_character_)
   if (N > 0L && length(which_lgl) > 0){
     data.table::set(lgl_out, j = "n_missing",
-                    value = pluck_row(lgl_data[, lapply(.SD, fnmiss)]))
+                    value = pluck_row(lgl_data[, lapply(.SD, num_na)]))
     data.table::set(lgl_out, j = "p_complete",
                     value = pluck_row(lgl_data[, lapply(.SD, fprop_complete)]))
     data.table::set(lgl_out, j = "n_true",
-                    value = pluck_row(lgl_data[, lapply(.SD, collapse::fsum)]))
+                    value = pluck_row(lgl_data[, lapply(.SD, sum)]))
     data.table::set(lgl_out, j = "n_false",
                     value = N - lgl_out[["n_missing"]] - lgl_out[["n_true"]])
     data.table::set(lgl_out, j = "p_true",
@@ -150,7 +150,7 @@ fskim <- function(data, hist = FALSE){
   }
   if (N > 0L && length(which_num) > 0){
     data.table::set(num_out, j = "n_missing",
-                    value = pluck_row(num_data[, lapply(.SD, fnmiss)]))
+                    value = pluck_row(num_data[, lapply(.SD, num_na)]))
     data.table::set(num_out, j = "p_complete",
                     value = pluck_row(num_data[, lapply(.SD, fprop_complete)]))
     data.table::set(num_out, j = "n_unique",
@@ -230,7 +230,7 @@ fskim <- function(data, hist = FALSE){
   # }
   # if (N > 0L && length(which_num) > 0){
   #   data.table::set(num_out, j = "n_missing",
-  #                   value = pluck_row(num_data[, lapply(.SD, fnmiss)]))
+  #                   value = pluck_row(num_data[, lapply(.SD, num_na)]))
   #   data.table::set(num_out, j = "p_complete",
   #                   value = pluck_row(num_data[, lapply(.SD, fprop_complete)]))
   #   data.table::set(num_out, j = "n_unique",
@@ -300,7 +300,7 @@ fskim <- function(data, hist = FALSE){
                   value = NA_character_)
   if (N > 0L && length(which_date) > 0){
     data.table::set(date_out, j = "n_missing",
-                    value = pluck_row(date_data[, lapply(.SD, fnmiss)]))
+                    value = pluck_row(date_data[, lapply(.SD, num_na)]))
     data.table::set(date_out, j = "p_complete",
                     value = pluck_row(date_data[, lapply(.SD, fprop_complete)]))
     data.table::set(date_out, j = "n_unique",
@@ -355,7 +355,7 @@ fskim <- function(data, hist = FALSE){
                   value = NA_character_)
   if (N > 0L && length(which_datetime) > 0){
     data.table::set(datetime_out, j = "n_missing",
-                    value = pluck_row(datetime_data[, lapply(.SD, fnmiss)]))
+                    value = pluck_row(datetime_data[, lapply(.SD, num_na)]))
   data.table::set(datetime_out, j = "p_complete",
                   value = pluck_row(datetime_data[, lapply(.SD, fprop_complete)]))
   data.table::set(datetime_out, j = "n_unique",
@@ -407,7 +407,7 @@ fskim <- function(data, hist = FALSE){
                   value = NA_character_)
   if (N > 0L && length(which_cat) > 0){
     data.table::set(cat_out, j = "n_missing",
-                    value = pluck_row(cat_data[, lapply(.SD, fnmiss)]))
+                    value = pluck_row(cat_data[, lapply(.SD, num_na)]))
     data.table::set(cat_out, j = "p_complete",
                     value = pluck_row(cat_data[, lapply(.SD, fprop_complete)]))
     data.table::set(cat_out, j = "n_unique",

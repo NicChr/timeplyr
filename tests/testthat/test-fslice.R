@@ -519,3 +519,13 @@ testthat::test_that("fslice_max", {
                            dplyr::slice_max(arr_time, n = -10) %>%
                            dplyr::arrange(id))
 })
+
+testthat::test_that("Additional seed test", {
+  # The seed = 42 part should be set locally and original
+  # global seed should be restored
+  set.seed(42)
+  ok <- fslice_sample(iris, seed = 42)
+  ok2 <- dplyr::slice_sample(iris, n = nrow(iris))
+  testthat::expect_identical(ok, ok2)
+})
+

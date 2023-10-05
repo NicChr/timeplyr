@@ -69,8 +69,8 @@ rcpp_cj <- function(X) {
     .Call(`_timeplyr_rcpp_cj`, X)
 }
 
-num_na <- function(x) {
-    .Call(`_timeplyr_num_na`, x)
+cpp_num_na <- function(x) {
+    .Call(`_timeplyr_cpp_num_na`, x)
 }
 
 roll_apply_max_fast <- function(x, before, after) {

@@ -2,53 +2,52 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-int num_na(SEXP x){
+int cpp_num_na(SEXP x){
   int count = 0;
-  switch ( TYPEOF(x) ){
-  case LGLSXP: {
-    Rcpp::LogicalVector xv = Rcpp::as<Rcpp::LogicalVector>(x);
-    for (int i = 0; i < xv.size(); i++){
-      count += LogicalVector::is_na(xv[i]);
-    }
-    break;
+  int n = Rf_length(x);
+  // This nicely handles NULL and avoids loop too
+  if (n == 0){
+    return count;
   }
+  switch ( TYPEOF(x) ){
+  case LGLSXP:
   case INTSXP: {
-    Rcpp::IntegerVector xv = Rcpp::as<Rcpp::IntegerVector>(x);
-    for (int i = 0; i < xv.size(); i++){
-      count += IntegerVector::is_na(xv[i]);
+    int *p_count = INTEGER(x);
+    for (int i = 0; i < n; i++){
+      count += (p_count[i] == NA_INTEGER);
     }
     break;
   }
   case REALSXP: {
-    Rcpp::NumericVector xv = Rcpp::as<Rcpp::NumericVector>(x);
-    for (int i = 0; i < xv.size(); i++){
-      count += NumericVector::is_na(xv[i]);
+    double *p_count = REAL(x);
+    for (int i = 0; i < n; i++){
+      count += (p_count[i] != p_count[i]);
     }
     break;
   }
   case STRSXP: {
-    Rcpp::CharacterVector xv = Rcpp::as<Rcpp::CharacterVector>(x);
-    for (int i = 0; i < xv.size(); i++){
-      count += CharacterVector::is_na(xv[i]);
+    SEXP *p_count = STRING_PTR(x);
+    for (int i = 0; i < n; i++){
+      count += (p_count[i] == NA_STRING);
     }
     break;
   }
   case RAWSXP: {
     Rcpp::RawVector xv = Rcpp::as<Rcpp::RawVector>(x);
-    for (int i = 0; i < xv.size(); i++){
+    for (int i = 0; i < n; i++){
       count += RawVector::is_na(xv[i]);
     }
     break;
   }
   case CPLXSXP: {
     Rcpp::ComplexVector xv = Rcpp::as<Rcpp::ComplexVector>(x);
-    for (int i = 0; i < xv.size(); i++){
+    for (int i = 0; i < n; i++){
       count += ComplexVector::is_na(xv[i]);
     }
     break;
   }
   default: {
-    stop("Unknown type");
+    stop("num_na cannot handle the supplied SEXP");
   }
   }
   return count;

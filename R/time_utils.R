@@ -150,7 +150,7 @@ time_by_pretty <- function(time_by){
       pretty_num <- paste0("~", pretty_num)
     }
     if (num == 1){
-      paste0(substr(units, 1L, nchar(units) -1L))
+      paste0(plural_unit_to_single(units))
     } else {
       paste0(pretty_num, " ", units)
     }
@@ -546,54 +546,12 @@ time_unit_info <- function(time_unit){
     seconds <- lubridate::second(time_unit)
     out[["second"]] <- seconds
     sum_rng <- lapply(out, function(x) sum(abs(collapse::frange(x, na.rm = TRUE))))
-    keep <- vapply(sum_rng, function(x) isTRUE(double_gt(x, 0)), logical(1))
+    keep <- vapply(sum_rng, function(x) isTRUE(double_gt(x, 0)), FALSE)
     if (sum(keep) == 0){
       out["second"]
     } else {
       out[keep]
     }
-    # if (!any(keep, na.rm = TRUE)){
-    #   out["second"]
-    # } else {
-    #   out[keep]
-    # }
-    # periods <- c("second",
-    #              "minute",
-    #              "hour",
-    #              "day",
-    #              "month",
-    #              "year")
-    # out <- add_names(vector("list", length(periods)),
-    #                 periods)
-    # keep <- logical(length(periods))
-    # for (i in seq_along(periods)){
-    #   out[[i]] <- do.call(get(periods[[i]],
-    #                           asNamespace("lubridate")),
-    #                       list(time_unit))
-    #   keep[[i]] <- sum(abs(out[[i]])) > 0
-    # }
-    # out[keep]
-    # tattr <- attributes(time_unit)
-    # lubridate_units <- intersect(names(tattr), substr(.period_units, 1L, nchar(.period_units) -1L))
-    # tattr <- tattr[lubridate_units]
-    # m <- matrix(unlist(tattr, use.names = FALSE), nrow = length(time_unit),
-    #             ncol = length(lubridate_units), byrow = FALSE)
-    # m <- cbind(lubridate::second(time_unit), m)
-    # colnames(m) <- c("second", lubridate_units)
-    # which_zero <- which(rowSums(m) == 0)
-    # # Replace empty rows with one temporarily..
-    # m[which_zero, 1] <- 1
-    # keep <- which(t(m) != 0) %% 6
-    # keep[keep == 0] <- 6 # If exactly divisible, then these are years.
-    # # Replace the zero rows with zeroes again
-    # m[which_zero, 1] <- 0
-    # keep[is.na(keep)] <- 1L # Keep seconds if NA
-    # keep_m <- matrix(c(seq_len(nrow(m)), keep),
-    #                  byrow = FALSE, ncol = 2L)
-    # out <- m[keep_m]
-    # out_nms <- c("second", lubridate_units)[keep]
-    # out <- add_names(as.list(out), out_nms)
-    # out
   } else {
     list("numeric" = time_value)
   }
@@ -1037,7 +995,7 @@ time_add2 <- function(x, time_by,
       time_type <- guess_seq_type(time_unit)
     }
     if (time_type == "period"){
-      unit <- substr(time_unit, 1L, nchar(time_unit) -1L)
+      unit <- plural_unit_to_single(time_unit)
       time_add(x, periods = add_names(list(time_num), unit),
                roll_month = roll_month, roll_dst = roll_dst)
     } else {

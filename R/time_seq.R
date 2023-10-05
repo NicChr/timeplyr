@@ -256,7 +256,7 @@ time_seq <- function(from, to, time_by, length.out = NULL,
     } else {
       out <- period_seq(from = from,
                         length = length.out,
-                        unit = substr(by_unit, 1L, nchar(by_unit) -1L),
+                        unit = plural_unit_to_single(by_unit),
                         num = by_n,
                         roll_month = roll_month,
                         roll_dst = roll_dst)
@@ -458,7 +458,7 @@ period_seq_v2 <- function(sizes, from, units, num = 1,
                           roll_month = "preday", roll_dst = "pre"){
   units <- rlang::arg_match0(units, .period_units)
   out_len <- sum(sizes)
-  unit <- substr(units, 1L, nchar(units) -1L)
+  unit <- plural_unit_to_single(units)
   if (length(from) == 0L || length(sizes) == 0L){
     return(from[0L])
   }

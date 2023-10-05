@@ -177,13 +177,6 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
       sizes <- rowProds(out_temp)
       expanded_nrow <- sum(sizes)
       expand_check(expanded_nrow, log_limit)
-      # out <- out1[, do.call(crossed_join,
-      #                args = list(X = .SD,
-      #                            unique = TRUE,
-      #                            strings_as_factors = FALSE,
-      #                            as_dt = FALSE)),
-      #      keyby = grp_nm,
-      #      .SDcols = group_id_nms]
       data.table::setkeyv(out1, cols = grp_nm)
       out2 <- out1[, lapply(.SD, function(x) list(collapse::funique(x))),
                    keyby = grp_nm,
@@ -192,21 +185,9 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
       # out <- out2[, .Call(Ccj, unlist(.SD, recursive = FALSE, use.names = FALSE)),
       #             keyby = grp_nm,
       #             .SDcols = group_id_nms]
-      # out <- out2[, do.call(CJ2,
-      #                       args = unlist(.SD,
-      #                                     recursive = FALSE,
-      #                                     use.names = FALSE)),
-      #             keyby = grp_nm,
-      #             .SDcols = group_id_nms]
-      # if (sort){
-      #   out <- out2[, CJ3(unlist(.SD, recursive = FALSE, use.names = FALSE)),
-      #               keyby = grp_nm,
-      #               .SDcols = group_id_nms]
-      # } else {
         out <- out2[, CJ2(unlist(.SD, recursive = FALSE, use.names = FALSE)),
                     keyby = grp_nm,
                     .SDcols = group_id_nms]
-      # }
       data.table::setnames(out, new = c(grp_nm, leftover_grp_nms))
       data.table::setalloccol(out)
       for (i in seq_along(group_id_nms)){

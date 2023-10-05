@@ -115,6 +115,13 @@ GRP_which_duplicated <- function(GRP, all = FALSE){
   }
   out
 }
+calc_sorted_group_starts <- function(group_sizes){
+  n_groups <- length(group_sizes)
+  collapse::fcumsum(c(rep_len(1L, min(n_groups, 1L)), group_sizes[-n_groups]))
+}
+calc_sorted_group_ends <- function(group_sizes){
+  collapse::fcumsum(group_sizes)
+}
 # Extract group starts from GRP object safely and efficiently
 GRP_starts <- function(GRP, use.g.names = FALSE,
                        loc = NULL){
@@ -122,8 +129,7 @@ GRP_starts <- function(GRP, use.g.names = FALSE,
   if (is.null(out)){
     GRP_sizes <- GRP_group_sizes(GRP)
     if (GRP_is_sorted(GRP)){
-      out <- collapse::fcumsum(c(rep_len(1L, min(length(GRP_sizes), 1L)),
-                                 GRP_sizes[-length(GRP_sizes)]))
+      out <- calc_sorted_group_starts(GRP_sizes)
       # For factors with 0 size, replace 0 with NA
       setv(out, collapse::whichv(GRP_sizes, 0L),
            0L, vind1 = TRUE)
@@ -155,10 +161,9 @@ GRP_ends <- function(GRP, use.g.names = FALSE,
                      loc = NULL){
   GRP_sizes <- GRP_group_sizes(GRP)
   if (GRP_is_sorted(GRP)){
-    out <- collapse::fcumsum(GRP_sizes)
+    out <- calc_sorted_group_ends(GRP_sizes)
     # For factors with 0 size, replace 0 with NA
-    setv(out, collapse::whichv(GRP_sizes, 0L),
-         0L, vind1 = TRUE)
+    collapse::setv(out, collapse::whichv(GRP_sizes, 0L), 0L, vind1 = TRUE)
   } else {
     if (is.null(loc)){
       loc <- GRP_loc(GRP, use.g.names = FALSE)
@@ -167,8 +172,7 @@ GRP_ends <- function(GRP, use.g.names = FALSE,
     # Accounting for factors with no data
     if (collapse::anyv(GRP_sizes, 0L)){
       out <- integer(length(loc))
-      setv(out, which(GRP_sizes != 0L),
-           gends, vind1 = TRUE)
+      collapse::setv(out, which(GRP_sizes != 0L), gends, vind1 = TRUE)
     } else {
       out <- gends
     }
@@ -413,11 +417,11 @@ GRP_row_id <- function(GRP, ascending = TRUE){
     } else {
      o <- NULL
     }
-    out <- fcumsum(seq_ones(size),
-                   na.rm = FALSE,
-                   check.o = FALSE,
-                   o = o,
-                   g = GRP)
+    out <- collapse::fcumsum(seq_ones(size),
+                             na.rm = FALSE,
+                             check.o = FALSE,
+                             o = o,
+                             g = GRP)
   }
   out
 }
@@ -442,8 +446,7 @@ sorted_group_id_to_GRP <- function(x,
     ),
     class = "GRP"
   )
-  gstarts <- cumsum(c(rep_len(1L, min(length(group_sizes), 1L)),
-                      group_sizes[-length(group_sizes)]))
+  gstarts <- calc_sorted_group_starts(group_sizes)
   if (group.starts){
     out[["group.starts"]] <- gstarts
   }
@@ -457,7 +460,7 @@ sorted_group_id_to_GRP <- function(x,
 gsplit2 <- function(x = NULL, g = NULL, use.g.names = FALSE, ...){
   if (is.null(g)){
     if (is.null(x)){
-      list(seq_along(x))
+      list(integer())
     } else {
      list(x)
     }
@@ -494,8 +497,7 @@ sort_data_by_GRP <- function(x, g, sorted_group_starts = TRUE){
     if (groups_are_sorted){
       sorted_group_starts <- GRP_starts(g)
     } else {
-      sorted_group_starts <- cumsum(c(rep_len(1L, min(length(group_sizes), 1L)),
-                                      group_sizes[-length(group_sizes)]))
+      sorted_group_starts <- calc_sorted_group_starts(group_sizes)
     }
   } else {
     sorted_group_starts <- NULL

@@ -214,14 +214,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// num_na
-int num_na(SEXP x);
-RcppExport SEXP _timeplyr_num_na(SEXP xSEXP) {
+// cpp_num_na
+int cpp_num_na(SEXP x);
+RcppExport SEXP _timeplyr_cpp_num_na(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(num_na(x));
+    rcpp_result_gen = Rcpp::wrap(cpp_num_na(x));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -347,7 +347,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_list_has_interval", (DL_FUNC) &_timeplyr_list_has_interval, 1},
     {"_timeplyr_list_item_is_interval", (DL_FUNC) &_timeplyr_list_item_is_interval, 1},
     {"_timeplyr_rcpp_cj", (DL_FUNC) &_timeplyr_rcpp_cj, 1},
-    {"_timeplyr_num_na", (DL_FUNC) &_timeplyr_num_na, 1},
+    {"_timeplyr_cpp_num_na", (DL_FUNC) &_timeplyr_cpp_num_na, 1},
     {"_timeplyr_roll_apply_max_fast", (DL_FUNC) &_timeplyr_roll_apply_max_fast, 3},
     {"_timeplyr_roll_apply_max", (DL_FUNC) &_timeplyr_roll_apply_max, 5},
     {"_timeplyr_before_sequence", (DL_FUNC) &_timeplyr_before_sequence, 2},
