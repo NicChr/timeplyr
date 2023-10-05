@@ -723,6 +723,9 @@ time_c <- function(...){
 # You can move from left to right but not right to left
 time_cast <- function(x, template){
   if (inherits(template, "POSIXt")){
+    if (!inherits(x, c("Date", "POSIXt"))){
+      x <- as.POSIXct(x, origin = lubridate::origin)
+    }
     lubridate::with_tz(x, tzone = lubridate::tz(template))
   } else if (inherits(template, "Date") && !inherits(x, "POSIXt")){
     lubridate::as_date(x)
