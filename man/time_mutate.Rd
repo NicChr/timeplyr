@@ -81,6 +81,7 @@ See \code{?timechange::time_add} for more details.}
 This works much the same as \code{dplyr::mutate()}, except that
 you can supply an additional \code{time} argument to allow for
 aggregating time to a higher unit.
+
 Currently, this does \bold{not} support
 filling in missing gaps in time. \cr
 Use \code{time_count()} or \code{time_complete()}

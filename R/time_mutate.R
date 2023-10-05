@@ -3,7 +3,7 @@
 #' @description  This works much the same as `dplyr::mutate()`, except that
 #' you can supply an additional `time` argument to allow for
 #' aggregating time to a higher unit.
-
+#'
 #' Currently, this does \bold{not} support
 #' filling in missing gaps in time. \cr
 #' Use `time_count()` or `time_complete()`
@@ -99,8 +99,12 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
       # Function to determine implicit time units
       granularity <- time_granularity(data[[time_var]], is_sorted = FALSE,
                                       msg = FALSE)
-      message(paste("Assuming a time granularity of", granularity[["num"]]/granularity[["scale"]],
+      message(paste("Assuming a time granularity of",
+                    granularity[["num"]] / granularity[["scale"]],
                     granularity[["granularity"]], sep = " "))
+      # rlang::inform(c("i" = paste("Assuming a time granularity of",
+      #                             granularity[["num"]] / granularity[["scale"]],
+      #                             granularity[["granularity"]], sep = " ")))
       time_by <- add_names(list(granularity[["num"]]), granularity[["unit"]])
     }
     # Aggregate time data

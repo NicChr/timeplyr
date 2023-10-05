@@ -184,3 +184,6 @@ episodes \%>\%
     filter(ep_id_new > 0)
 }
 }
+\seealso{
+\link{time_elapsed} \link{time_seq_id}
+}

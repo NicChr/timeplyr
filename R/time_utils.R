@@ -264,8 +264,7 @@ time_granularity <- function(x, is_sorted = FALSE, msg = TRUE){
     convert_seconds <- seconds_to_unit(gcd_diff)
     scale <- convert_seconds[["scale"]]
     granularity <- convert_seconds[["unit"]]
-    granularity <- paste0(substr(granularity, 1L, nchar(granularity) -1L),
-                          "(s)")
+    granularity <- paste0(plural_unit_to_single(granularity), "(s)")
     unit <- "seconds"
     num_and_unit <- stringr::str_c(gcd_diff, unit, sep = " ")
   } else {
@@ -719,41 +718,19 @@ set_time_cast <- function(x, y){
 time_c <- function(...){
   vctrs::vec_c(...)
 }
-# This coerces x into template class if template class is more granular
+# Faster time_cast
+# numeric > yearqtr > yearmon > date > datetime
+# You can move from left to right but not right to left
 time_cast <- function(x, template){
-  if (is.null(x) || is.null(template)){
-    return(x)
-  }
-  x_dttm <- is_datetime(x)
-  temp_dttm <- is_datetime(template)
-  if (x_dttm){
-    x_tz <- lubridate::tz(x)
-  } else {
-    x_tz <- ""
-  }
-  if (temp_dttm){
-    temp_tz <- lubridate::tz(template)
-  } else {
-    temp_tz <- ""
-  }
-  if (identical(class(x), class(template)) &&
-      identical(x_tz, temp_tz)){
-    return(x)
-  }
-  if (temp_dttm && !x_dttm){
-    lubridate::with_tz(lubridate::as_datetime(x), tzone = temp_tz)
-  } else if (x_dttm && temp_dttm){
-    if (!isTRUE(x_tz == temp_tz)){
-      lubridate::with_tz(x, tzone = temp_tz)
-    } else {
-      x
-    }
-  } else if (is_date(template) && !is_date(x) && !x_dttm){
+  if (inherits(template, "POSIXt")){
+    lubridate::with_tz(x, tzone = lubridate::tz(template))
+  } else if (inherits(template, "Date") && !inherits(x, "POSIXt")){
     lubridate::as_date(x)
-  }
-  else if (inherits(template, "yearmon")){
+  } else if (inherits(template, "yearmon") &&
+             !inherits(x, c("POSIXt", "Date"))){
     as_yearmon(x)
-  } else if (inherits(template, "yearqtr")){
+  } else if (inherits(template, "yearqtr") &&
+             !inherits(x, c("POSIXt", "Date", "yearmon"))){
     as_yearqtr(x)
   } else {
     x
@@ -820,13 +797,40 @@ cut_time2 <- function(x, breaks, rightmost.closed = FALSE, left.open = FALSE){
 # Interval is closed on the left
 # out-of-bounds times can be included in the last interval
 # This can return either break codes or the cut vector
+# cut_time <- function(x, breaks, include_oob = FALSE, codes = FALSE,
+#                      end = NULL){
+#   x <- `attributes<-`(unclass(x), NULL)
+#   breaks_num <- `attributes<-`(unclass(breaks), NULL)
+#   end <- `attributes<-`(unclass(end), NULL) + 1
+#   inf_val <- Inf * (numeric(as.integer(include_oob)) + 1)
+#   breaks_num <- c(breaks_num, end, inf_val)
+#   out <- .bincode(x, breaks = breaks_num, right = FALSE, include.lowest = FALSE)
+#   if (codes){
+#     out
+#   } else {
+#     breaks[out]
+#   }
+# }
 cut_time <- function(x, breaks, include_oob = FALSE, codes = FALSE){
-  x <- `attributes<-`(unclass(x), NULL)
-  breaks_num <- `attributes<-`(unclass(breaks), NULL)
-  if (include_oob){
-    breaks_num <- c(breaks_num, Inf)
+  breaks_num <- unclass(breaks)
+  # Cheeky way of converting FALSE to numeric() and TRUE to Inf without if statement
+  inf_val <- Inf * (numeric(as.integer(include_oob)) + 1)
+  breaks_num <- c(breaks_num, inf_val)
+  out <- .bincode(unclass(x), breaks = breaks_num, right = FALSE, include.lowest = TRUE)
+  if (codes){
+    out
+  } else {
+    breaks[out]
   }
-  out <- .bincode(x, breaks = breaks_num, right = FALSE, include.lowest = FALSE)
+}
+cut_time_intervals <- function(x, breaks, codes = FALSE, end = NULL){
+  x <- unclass(x)
+  breaks_num <- unclass(breaks)
+  end <- unclass(end) + 0
+  breaks_num <- c(breaks_num, end)
+  out <- findInterval(x, breaks_num, rightmost.closed = TRUE)
+  # n_breaks <- length(breaks_num)
+  # collapse::setv(out, n_breaks, NA_integer_, vind1 = FALSE)
   if (codes){
     out
   } else {
@@ -1138,6 +1142,8 @@ check_is_time_or_num <- function(x){
 time_as_number <- function(x){
   strip_attrs(unclass(x))
 }
+# Important that this holds:
+# length(x) == length(start) == length(end)
 time_aggregate_left <- function(x, time_by, g = NULL,
                                 start = NULL, end = NULL,
                                 time_floor = FALSE,
@@ -1148,7 +1154,7 @@ time_aggregate_left <- function(x, time_by, g = NULL,
   time_by <- time_by_list(time_by)
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
-  time_na <- x[NA_integer_]
+  time_na <- na_init(x)
   g <- GRP2(g, return.groups = FALSE)
   if (!is.null(start)){
     if (length(start) != length(x)){
@@ -1189,6 +1195,8 @@ time_aggregate_left <- function(x, time_by, g = NULL,
   }
   out
 }
+# Important that this holds:
+# length(x) == length(start) == length(end)
 time_aggregate_right <- function(x, time_by, g = NULL,
                                  start = NULL, end = NULL,
                                  time_ceiling = FALSE,
@@ -1199,7 +1207,7 @@ time_aggregate_right <- function(x, time_by, g = NULL,
   time_by <- time_by_list(time_by)
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
-  time_na <- x[NA_integer_]
+  time_na <- na_init(x)
   g <- GRP2(g, return.groups = FALSE)
   if (!is.null(start)){
     if (length(start) != length(x)){
@@ -1260,7 +1268,7 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
   time_by <- time_by_list(time_by)
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
-  time_na <- x[NA_integer_]
+  time_na <- na_init(x)
   no_groups <- is.null(g)
   g <- GRP2(g)
   if (no_groups){
@@ -1308,9 +1316,10 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
   g2 <- sorted_group_id_to_GRP(group_id,
                                n_groups = n_groups,
                                group_sizes = seq_sizes)
+  x <- time_cast(x, time_full)
   # group_ends <- cumsum(collapse::GRPN(group_id, expand = FALSE))
   if (no_groups){
-    out <- cut_time2(time_cast(x, time_full), time_full)
+    out <- cut_time(x, time_full, include_oob = TRUE)
   } else {
     time_list <- collapse::gsplit(time_as_number(x), g = g)
     time_full_list <- collapse::gsplit(time_as_number(time_full), g = g2)
@@ -1323,8 +1332,8 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
     }
     out <- unlist(out, recursive = FALSE, use.names = FALSE)
     out <- collapse::greorder(out, g = g)
-    out <- time_cast(out, time_full)
   }
+  out <- time_cast(out, time_full)
   if (as_int){
     int_end <- time_add2(out, time_by = time_by, time_type = time_type,
                          roll_month = roll_month, roll_dst = roll_dst)
@@ -1356,7 +1365,7 @@ time_aggregate_switch <- function(x, time_by, time_type,
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
   check_time_by_length_is_one(time_by)
-  time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
+  time_type <- match_time_type(time_type)
   g <- GRP2(g, return.groups = FALSE)
   if (is.null(g)){
     n_groups <- min(1L, length(x))
@@ -1367,12 +1376,12 @@ time_aggregate_switch <- function(x, time_by, time_type,
   if (is.null(start)){
     from <- collapse::fmin(x, g = g, use.g.names = FALSE, na.rm = TRUE)
   } else {
-    from <- ffirst(start, g = g, use.g.names = FALSE)
+    from <- collapse::ffirst(start, g = g, use.g.names = FALSE)
   }
   if (is.null(end)){
     to <- collapse::fmax(x, g = g, use.g.names = FALSE, na.rm = TRUE)
   } else {
-    to <- ffirst(end, g = g, use.g.names = FALSE)
+    to <- collapse::ffirst(end, g = g, use.g.names = FALSE)
   }
   # Make sure from/to are datetimes if x is datetime
   from <- time_cast(from, x)
@@ -1426,4 +1435,8 @@ check_time_not_missing <- function(x){
 }
 match_time_type <- function(time_type){
   rlang::arg_match0(time_type, c("auto", "duration", "period"))
+}
+# Turn "days" into "day", etc
+plural_unit_to_single <- function(x){
+  substr(x, 1L, nchar(x) -1L)
 }

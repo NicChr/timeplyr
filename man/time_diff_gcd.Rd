@@ -62,5 +62,5 @@ time_diff_gcd(quarter_seq, time_by = months(1))
 time_diff_gcd(quarter_seq, time_by = "months", time_type = "duration")
 
 # Detects monthly granularity
-dplyr::near(time_diff_gcd(time(AirPassengers)), 1/12, tol = 1e-06)
+dplyr::near(time_diff_gcd(as.vector(time(AirPassengers))), 1/12, tol = 1e-06)
 }

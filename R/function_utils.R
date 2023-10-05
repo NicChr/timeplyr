@@ -541,12 +541,12 @@ recycle_args <- function (..., length = NULL, use.names = FALSE){
   dots <- list(...)
   missing_length <- is.null(length)
   if (missing_length) {
-    recycle_length <- max(lengths(dots, use.names = FALSE))
-  }
-  else {
+    lens <- lengths(dots, use.names = FALSE)
+    recycle_length <- max(lens)
+  } else {
     recycle_length <- length
   }
-  if (missing_length && base::length(unique(lengths(dots, use.names = FALSE))) == 1L){
+  if (missing_length && collapse::fnunique(lens) == 1L){
     out <- dots
   }
   else {

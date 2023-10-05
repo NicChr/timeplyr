@@ -104,6 +104,7 @@
 #' * \bold{ep_start} - Start date/datetime of the episode.
 #'
 #' `data.table` and `collapse` are used for speed and efficiency.
+#' @seealso [time_elapsed] [time_seq_id]
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -156,7 +157,7 @@ time_episodes <- function(data, time, time_by = NULL,
                           event = NULL,
                           time_type = c("auto", "duration", "period"),
                           .by = NULL){
-  N <- nrow2(data)
+  N <- df_nrow(data)
   if (window < 0){
     stop("window must be strictly greater or equal to 0")
   }

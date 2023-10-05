@@ -41,8 +41,19 @@ testthat::test_that("Tests for time_countv", {
                                time_complete(time = time_hour,
                                              fill = list(n = 0)) %>%
                                dplyr::pull(n))
-  res4 <- time_countv(flights2$time_hour, time_by = "month",
+  res4 <- time_countv(flights2$time_hour,
+                      time_by = "month",
                       from = from, to = to)
+  testthat::expect_equal(table(time_aggregate_left(flights2$time_hour,
+                                                   time_by = "month",
+                                                   start = rep_len(from, nrow(flights2)),
+                                                   end = rep_len(to, nrow(flights2)))),
+                           table(
+                             time_summarisev(flights2$time_hour,
+                                             time_by = "month",
+                                             from = from, to = to)
+                           )
+  )
   tbreaks <- lubridate::with_tz(
     time_seq(from, to, time_by = "month"),
     lubridate::tz(flights2$time_hour)
@@ -54,7 +65,7 @@ testthat::test_that("Tests for time_countv", {
                                                         from,
                                                         lubridate::with_tz(to, tz = "America/New_York"))) %>%
                            dplyr::mutate(time = cut_time2(time_hour,
-                                                          c(tbreaks, max(tbreaks) + 1))) %>%
+                                                          c(tbreaks, time_cast(to, time_hour) + 1))) %>%
                            fcount(time) %>%
                            dplyr::pull(n) %>%
                            add_names(tbreaks))

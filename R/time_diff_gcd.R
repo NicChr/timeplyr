@@ -37,7 +37,7 @@
 #' time_diff_gcd(quarter_seq, time_by = "months", time_type = "duration")
 #'
 #' # Detects monthly granularity
-#' dplyr::near(time_diff_gcd(time(AirPassengers)), 1/12, tol = 1e-06)
+#' dplyr::near(time_diff_gcd(as.vector(time(AirPassengers))), 1/12, tol = 1e-06)
 #' @export
 time_diff_gcd <- function(x, time_by = 1,
                           time_type = c("auto", "duration", "period"),
@@ -50,7 +50,7 @@ time_diff_gcd <- function(x, time_by = 1,
   if (allNA2(x)){
     return(NA_real_)
   }
-  x <- x[!is.na(x)]
+  x <- collapse::na_rm(x)
   if (length(x) == 0L){
     return(numeric())
   }

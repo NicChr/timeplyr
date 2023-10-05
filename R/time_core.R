@@ -174,7 +174,7 @@ time_completev <- function(x, time_by = NULL, from = NULL, to = NULL,
                             roll_dst = roll_dst)
   out <- time_c(x, time_full[!time_full %in% x])
   if (sort){
-    out <- radix_sort(out)
+    out <- conditional_sort(out)
   }
   out
 }
@@ -189,24 +189,26 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
                             include_interval = FALSE){
   if (is.null(from)){
     from <- collapse::fmin(x, na.rm = TRUE)
-  } else {
-    from <- time_cast(from, x)
   }
   if (is.null(to)){
     to <- collapse::fmax(x, na.rm = TRUE)
-  } else {
-    to <- time_cast(to, x)
   }
   # Time sequence
-  time_breaks <- time_expandv(x, time_by = time_by, from = from, to = to,
+  time_breaks <- time_expandv(x, time_by = time_by,
+                              from = from, to = to,
                               time_type = time_type,
-                              time_floor = time_floor, week_start = week_start,
-                              roll_month = roll_month, roll_dst = roll_dst)
+                              time_floor = time_floor,
+                              week_start = week_start,
+                              roll_month = roll_month,
+                              roll_dst = roll_dst)
   x <- time_cast(x, time_breaks)
+  from <- time_cast(from, x)
+  to <- time_cast(to, x)
   # Cut time
-  time_break_ind <- cut_time(x, breaks = c(time_as_number(time_breaks),
-                                           time_as_number(to) + 1),
-                             codes = TRUE)
+  time_bins <- c(time_as_number(time_breaks),
+                 time_as_number(to))
+  time_break_ind <- cut_time(x, breaks = time_bins, codes = TRUE)
+  # time_break_ind <- fcut_ind(x, c(time_breaks, to + 1))
   # Time breaks subset on cut indices
   out <- time_breaks[time_break_ind]
 
@@ -558,33 +560,39 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
                         week_start = getOption("lubridate.week.start", 1),
                         roll_month = "preday", roll_dst = "pre"){
   check_is_time_or_num(x)
-  x_na <- which(is.na(x))
+  x_na <- collapse::whichNA(x)
+  missing_from <- is.null(from)
+  missing_to <- is.null(to)
   time_by <- time_by_get(x, time_by = time_by, is_sorted = FALSE)
-  if (is.null(from)){
-    .from <- collapse::fmin(x, na.rm = TRUE, use.g.names = FALSE)
+  if (missing_from){
+    from <- collapse::fmin(x, na.rm = TRUE, use.g.names = FALSE)
   } else {
-    .from <- time_cast(from, x)
+    from <- time_cast(from, x)
   }
-  if (is.null(to)){
-    .to <- collapse::fmax(x, na.rm = TRUE, use.g.names = FALSE)
+  if (missing_to){
+    to <- collapse::fmax(x, na.rm = TRUE, use.g.names = FALSE)
   } else {
-    .to <- time_cast(to, x)
-  }
-  if (!is.null(from) || !is.null(to)){
-    x <- x[data.table::between(x, .from, .to, incbounds = TRUE, NAbounds = NA)]
+    to <- time_cast(to, x)
   }
   # Time sequence
-  time_breaks <- time_seq_v(from = .from, to = .to,
+  time_breaks <- time_seq_v(from = from, to = to,
                             time_by = time_by,
                             time_type = time_type,
                             time_floor = time_floor,
                             week_start = week_start,
                             roll_month = roll_month, roll_dst = roll_dst)
-  # time_breaks <- time_cast(time_breaks, x)
+  x <- time_cast(x, time_breaks)
+  from <- time_cast(from, x)
+  to <- time_cast(to, x)
+  if (!missing_from || !missing_to){
+    x <- x[data.table::between(x, from, to, incbounds = TRUE, NAbounds = NA)]
+  }
   out_len <- length(x)
   # Aggregate time/cut time
-  time_break_ind <- cut_time(x, c(time_as_number(time_breaks),
-                                  time_as_number(.to) + 1), codes = TRUE)
+  time_bins <- c(time_as_number(time_breaks),
+                 time_as_number(to))
+  time_break_ind <- cut_time(x, breaks = time_bins, codes = TRUE)
+  # time_break_ind <- cut_time_intervals(x, time_breaks, end = to, codes = TRUE)
   # Time breaks subset on cut indices
   x <- time_breaks[time_break_ind]
 
@@ -609,7 +617,7 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
        vind1 = TRUE)
   # if (use.names && !include_interval) out <- add_names(out, x)
   if (include_interval){
-    time_seq_int <- tseq_interval(x = .to, time_breaks)
+    time_seq_int <- tseq_interval(x = to, time_breaks)
     time_int <- time_seq_int[time_break_ind]
     if (complete && length(time_missed) > 0L){
       time_int <- c(time_int, time_seq_int[which(attr(time_seq_int, "start") %in%
