@@ -59,16 +59,15 @@
 #' flights <- nycflights13::flights
 #' x <- flights$time_hour
 #'
-#' # n_time_missing(x, time_by = "hour") # Missing hours
-#' # This returns missing dates, even for datetimes
-#' # where time_missing() returns missing gaps in a date/datetime sequence
-#' missing_dates(x)
+#' # Number of missing hours
+#' time_num_gaps(x)
+#'
+#' # Same as above
+#' time_span_size(x) - length(unique(x))
+#'
 #' # Time sequence that spans the data
+#' time_span(x) # Automatically detects hour granularity
 #' time_span(x, time_by = "hour")
-#' as_datetime(time_span(as.numeric(x), time_by = 3600), # Also works
-#'             tz = tz(x))
-#' # No need to specify by as it automatically detects granularity
-#' time_span(x)
 #' time_span(x, time_by = "month")
 #' time_span(x, time_by = list("quarters" = 1),
 #'              to = today(),
@@ -76,36 +75,15 @@
 #'              time_floor = TRUE)
 #'
 #' # Complete missing gaps in time using time_completev
-#' y <- time_completev(x, time_by = "hour")
-#' all.equal(y[!y %in% x], time_gaps(x, time_by = "hour"))
+#' ux <- unique(x)
+#' y <- time_completev(ux, time_by = "hour")
+#' all.equal(y[!y %in% ux], time_gaps(ux))
 #'
 #' # Summarise time using time_summarisev
 #' time_summarisev(y, time_by = "quarter")
-#' # Set unique = FALSE to return vector same length as input
-#' time_summarisev(y, time_by = "quarter", unique = FALSE)
+#' time_summarisev(y, time_by = "quarter", unique = TRUE)
 #' flights %>%
-#'   mutate(quarter_start = time_summarisev(time_hour,
-#'                                          time_by = "quarter",
-#'                                          unique = FALSE)) %>%
-#'   fcount(quarter_start)
-#' # You can include the associated time interval
-#' time_summarisev(y, time_by = "quarter", unique = TRUE,
-#'                 include_interval = TRUE)
-#'
-#' # Count time using time_countv
-#' time_countv(x, time_by = list("months" = 3))
-#' time_countv(x, time_by = list("months" = 3), include_interval = TRUE)
-#'
-#' # No completing of missing gaps in time with complete = FALSE
-#' flights %>%
-#'   reframe(time = unique(time_hour),
-#'           n = time_countv(time_hour, complete = FALSE,
-#'                           use.names = FALSE))
-#' # With completion
-#' flights %>%
-#'   reframe(time = time_expandv(time_hour),
-#'           n = time_countv(time_hour, complete = TRUE,
-#'                           use.names = FALSE))
+#'   fcount(quarter_start = time_summarisev(time_hour, "quarter"))
 #' @rdname time_core
 #' @export
 time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,

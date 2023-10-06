@@ -41,7 +41,8 @@
 #' it may be more efficient to cut the data using the period sequence which can
 #' be achieved using `time_summarisev`.
 #'
-#' @return
+#' @seealso [time_summarisev]
+#' @returns
 #' A time aggregated vector the same class and length as `x`.
 #'
 #' @examples
@@ -52,24 +53,29 @@
 #'
 #' sunique <- function(x) sort(unique(x))
 #'
-#' sunique(time_aggregate(flights$time_hour, ddays(7)))
-#' sunique(time_aggregate(flights$time_hour, days(7)))
+#' hours <- sunique(flights$time_hour)
+#' days <- as_date(hours)
+#'
+#' # Aggregate by week or any time unit easily
+#' unique(time_aggregate(hours, "week"))
+#' unique(time_aggregate(hours, ddays(14)))
+#' unique(time_aggregate(hours, "month"))
+#' unique(time_aggregate(days, "month"))
 #'
 #' # Left aligned
-#' sunique(time_aggregate(flights$time_hour, "quarter"))
+#' unique(time_aggregate(days, "quarter"))
 #' # Right aligned
-#' sunique(time_aggregate(flights$time_hour, "quarter", direction = "r2l"))
+#' unique(time_aggregate(days, "quarter", direction = "r2l"))
 #'
-#' # For quarter aggregations with small numbers of groups it is better to use this
-#' time_summarisev(flights$time_hour, "quarter", unique = TRUE)
-#'
+#' # Very fast by group aggregation
+#' week_by_tailnum <- time_aggregate(flights$time_hour, time_by = ddays(7),
+#'                                   g = flights$tailnum)
+#' # Confirm this has been done by group as each group will have a
+#' # Different aggregate start date
 #' flights %>%
-#'   add_group_id(origin, dest, tailnum) %>%
-#'   mutate(week = time_aggregate(time_hour, dweeks(1), g = group_id)) %>%
-#'   mutate(n_weeks = collapse::fndistinct(week, g = group_id,
-#'                                         # Expand to match nrow
-#'                                         TRA = "replace_fill")) %>%
-#'   fdistinct(origin, dest, tailnum, n_weeks)
+#'   mutate(week_by_tailnum) %>%
+#'   stat_summarise(week_by_tailnum, .by = tailnum, stat = "min",
+#'                  sort = FALSE)
 #' @export
 time_aggregate <- function(x, time_by = NULL, g = NULL,
                            time_type = c("auto", "duration", "period"),

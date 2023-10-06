@@ -4,7 +4,7 @@
 \name{timeplyr-package}
 \alias{timeplyr}
 \alias{timeplyr-package}
-\title{timeplyr: Date and datetime extension to dplyr}
+\title{timeplyr: Date and Datetime Extension to dplyr}
 \description{
 A framework for handling raw date & datetime data \cr
 using tidy best-practices from the tidyverse, the efficiency of data.table,
@@ -15,7 +15,7 @@ data.table and collapse using the links below
 
 \href{https://www.tidyverse.org/learn/}{tidyverse}
 
-\href{https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html}{data.table}
+\href{https://CRAN.R-project.org/package=data.table}{data.table}
 
 \href{https://sebkrantz.github.io/collapse/articles/collapse_intro.html}{collapse}
 }
@@ -27,6 +27,6 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Nick Christofides \email{nick.christofides.r@gmail.com} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
+\strong{Maintainer}: Nick Christofides \email{nick.christofides.r@gmail.com} (\href{https://orcid.org/0000-0002-9743-7342}{ORCID})
 
 }

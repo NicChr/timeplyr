@@ -8,7 +8,7 @@
 #'
 #' \href{https://www.tidyverse.org/learn/}{tidyverse}
 #'
-#' \href{https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html}{data.table}
+#' \href{https://CRAN.R-project.org/package=data.table}{data.table}
 #'
 #' \href{https://sebkrantz.github.io/collapse/articles/collapse_intro.html}{collapse}
 #'

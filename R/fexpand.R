@@ -78,7 +78,7 @@
 #' # 2 extra groups, this is where the grouped calculation actually happens
 #' # still very quick
 #' flights %>%
-#'   group_by(origin, dest, tailnum) %>%
+#'   group_by(origin, dest) %>%
 #'   fexpand(carrier, flight)
 #'
 #' # Tidyverse select helpers and data masking can be used
@@ -86,27 +86,6 @@
 #'   fexpand(date = as_date(time_hour),
 #'           across(all_of(c("origin", "dest"))),
 #'           pick("carrier"))
-#' # Alternatively
-#' # flights %>%
-#' #   fexpand(carrier, flight,
-#' #           .by = c(origin, dest, tailnum))
-#' # Return data.table
-#' # flights %>%
-#' #   fexpand(carrier, flight,
-#' #           .by = c(origin, dest, tailnum), keep_class = FALSE)
-#'
-#' \dontrun{
-#' library(microbenchmark)
-#' library(tidyr)
-#' # ~ 20x faster
-#' microbenchmark(m1 = flights %>%
-#'                  group_by(origin, dest, tailnum) %>%
-#'                  fexpand(carrier, flight),
-#'                m2 = flights %>%
-#'                  group_by(origin, dest, tailnum) %>%
-#'                  expand(carrier, flight),
-#'                times = 1)
-#' }
 #' @rdname fexpand
 #' @export
 fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
