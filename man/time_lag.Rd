@@ -44,6 +44,9 @@ See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
 }
+\value{
+A vector of \code{length(x)} lagged by a specified time unit.
+}
 \description{
 Time-lagged values
 }

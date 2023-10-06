@@ -7,8 +7,9 @@
 #' @param to Vector of sequence ends.
 #' @param by Vector of sequence increments.
 #'
-#' @return
+#' @returns
 #' A `tibble` of 2 columns with the sequence IDs and sequences.
+#'
 #' @export
 seq_tbl <- function(from = 1L, to = 1L, by = 1L){
   size <- seq_size(from = from, to = to, by = by)

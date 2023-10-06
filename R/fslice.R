@@ -32,9 +32,13 @@
 #' Default is `FALSE`, without replacement.
 #' @param weights Probability weights used in `fslice_sample()`.
 #' @param seed Seed number defining RNG state.
-#' If supplied, this is only applied locally within the function
+#' If supplied, this is only applied \bold{locally} within the function
 #' and the seed state isn't retained after sampling.
-#'
+#' To clarify, whatever seed state was in place before the function call,
+#' is restored to ensure seed continuity.
+#' If left `NULL` (the default), then the seed is never modified.
+#' @returns
+#' A `data.frame` of specified rows.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -256,6 +260,14 @@ fslice_sample <- function(data, ..., n, prop,
                           .by = NULL,
                           keep_order = FALSE, sort_groups = TRUE,
                           replace = FALSE, weights = NULL, seed = NULL){
+  # Check if a seed already exists in global environment
+  seed_exists <- exists(".Random.seed")
+  # Save it in the first instance
+  if (seed_exists){
+    old <- .Random.seed
+  }
+  # Does user want to use local seed?
+  seed_is_null <- is.null(seed)
   rlang::check_dots_empty0(...)
   has_weights <- !rlang::quo_is_null(enquo(weights))
   if (has_weights){
@@ -269,23 +281,20 @@ fslice_sample <- function(data, ..., n, prop,
                                  default_n = df_nrow(data))
   group_sizes <- slice_info[["group_sizes"]]
   slice_sizes <- slice_info[["slice_sizes"]]
-  seed_exists <- exists(".Random.seed")
-  seed_is_null <- is.null(seed)
-  if (!seed_is_null){
-    if (seed_exists){
-      old <- .Random.seed
-    }
-    set.seed(seed)
-  }
-  # Pre-allocate a list with lengths = slice sizes
-  # rows <- vctrs::vec_chop(collapse::alloc(0L, sum(slice_sizes)),
-  #                         sizes = slice_sizes)
   rows <- vector("list", length(slice_info[["rows"]]))
   if (has_weights){
     g <- group_id(data, .by = {{ .by }}, order = sort_groups)
     weights <- collapse::gsplit(data[[weights_var]], g = g)
   } else {
     weights <- NULL
+  }
+  # If user wants to use local seed
+  # We must first save the current seed
+  # Set the new seed
+  # Discard the newly created seed after sampling
+  # Restore the old seed (if there existed an old seed)
+  if (!seed_is_null){
+    set.seed(seed)
   }
   for (i in seq_along(rows)){
     rows[[i]] <- sample.int(.subset2(group_sizes, i),
@@ -300,15 +309,15 @@ fslice_sample <- function(data, ..., n, prop,
   }
   i <- unlist(slice_info[["rows"]], use.names = FALSE, recursive = FALSE)[rows]
   if (is.null(i)){
-    i <- integer(0)
+    i <- integer()
   }
   if (keep_order){
     i <- conditional_sort(i)
   }
   if (seed_exists && !seed_is_null){
-    .Random.seed <<- old
+    on.exit(assign(".Random.seed", old, envir = globalenv()))
   } else if (!seed_is_null){
-    remove(.Random.seed, envir = .GlobalEnv)
+    on.exit(remove(".Random.seed", envir = globalenv()))
   }
   df_row_slice(data, i)
 }
@@ -325,11 +334,11 @@ df_slice_prepare <- function(data, n, prop, .by = NULL, sort_groups = TRUE,
     type <- "n"
   }
   if (!missing_n && missing_prop){
-    stopifnot(length(n) == 1L)
+    check_length(n, 1L)
     type <- "n"
   }
   if (missing_n && !missing_prop){
-    stopifnot(length(prop) == 1L)
+    check_length(prop, 1L)
     type <- "prop"
   }
 

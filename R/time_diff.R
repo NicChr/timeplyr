@@ -24,7 +24,8 @@
 #' @param as_period Logical. Should time interval be coerced to a period
 #' before time difference is calculated? This is useful for calculating
 #' for example age in exact years or months.
-#' @returns A numeric vector.
+#' @returns
+#' A numeric vector recycle to the length of `max(length(x), length(y))`.
 #' @examples
 #' library(timeplyr)
 #' library(lubridate)

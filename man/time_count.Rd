@@ -101,34 +101,17 @@ The rightmost interval will always be closed.}
 An object of class \code{data.frame}
 containing the input time variable
 which is expanded for each supplied group.
-When a grouped_df, or the .by argument is supplied, time expansions are done on a
-group-by-group basis.
-
-The \code{time_by} argument controls the level at which the
-time variable is expanded/aggregated.
-If it is set to "1 month", then a seq of months is created, using the
-\code{from} and \code{to} arguments, and every date/datetime is matched to the appropriate
-intervals within that sequence.
-Once they are matched, they are aggregated to the month
-level.
-
-To avoid time expansion, simply set \code{complete = FALSE},
-which will simply perform a count across your time variable and specified groups.
-The time aggregation through \code{time_by} works even when
-\code{complete = FALSE} and even when \code{time_by} is more granular than the data.
 }
 \description{
 This function operates like \code{dplyr::count()}
 but with emphasis on
-a specified time variable. This creates an
-aggregated frequency time series where
-implicit missing gaps in time are filled are
-expanded and further aggregated to
-both lower and higher levels of time.
-It is conceptually a wrapper around \code{count()} and \code{complete()},
-but uses data.table for data frame handling,
-collapse for grouping calculations,
-as well as lubridate and timechange for the time sequence calculations. \cr
+a specified time variable.
+}
+\details{
+\code{time_count} Creates an
+aggregated frequency time series where time
+can be aggregated to
+both lower and higher time units.
 
 An important note is that when the data are grouped, time ranges are expanded
 on a group-by-group basis. This works like dplyr where you can supply either a
@@ -137,19 +120,15 @@ When groups are supplied through
 \code{...}, the time range of the entire data is used for
 the expansion of each group.
 Depending on the analysis, this may or may not be what you want
-and can sometimes result in huge expansions,
-so generally it is recommended to
-use a grouped_df or supply the additional groups through .\code{by}.
-
-Another important note is that when working with
-many groups (>= 500k), period calculations
-may be slow and so duration calculations are recommended in this case.
-Numeric/duration expansions are
-internally vectorised so can easily handle many groups.
+and can sometimes result in huge expansions if dealing with time variables
+with large span sizes.
 
 If \code{complete = TRUE} then the gaps in the time are expanded.
-If \code{by} is supplied, then the time series is aggregated
-to this specified level.
+
+To avoid filling in missing gaps in time, as well as possible expansion,
+simply set \code{complete = FALSE}
+which will simply perform a count
+across your aggregated time variable and specified groups.
 }
 \examples{
 library(timeplyr)

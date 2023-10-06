@@ -53,6 +53,9 @@ are used the output is always of class \code{POSIXt}.}
 
 \item{allow_dups}{Should duplicates be allowed? Default is \code{TRUE}.}
 }
+\value{
+A logical vector the same length as the number of supplied groups.
+}
 \description{
 This function is a fast way to check if a time vector
 is a regular sequence, possibly for many groups.

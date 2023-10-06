@@ -49,6 +49,9 @@
 #' This can for example be a vector or data frame.
 #' @param use.g.names Should the result include group names?
 #' Default is `TRUE`.
+#' @returns
+#' Vectors (typically the same class as `x`) of varying lengths depending
+#' on the arguments supplied.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -124,10 +127,8 @@ time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
     stop("time_by must be a time unit containing a single numeric increment")
   }
   g <- GRP2(g)
-  has_groups <- length(g) > 0
-  if (has_groups){
-    check_data_GRP_size(x, g)
-  }
+  check_data_GRP_size(x, g)
+  has_groups <- !is.null(g)
   if (is.null(from)){
     from <- collapse::fmin(x, g = g, use.g.names = FALSE, na.rm = TRUE)
   }
@@ -144,11 +145,14 @@ time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
   if (isTRUE(log10(sum(seq_sizes)) >= 8)){
     message("The final size exceeds 100m rows, this may take a while")
   }
-  out <- time_seq_v2(seq_sizes, from = from, time_by = time_by,
+  out <- time_seq_v2(seq_sizes,
+                     from = from,
+                     time_by = time_by,
                      time_type = time_type,
                      time_floor = FALSE,
                      week_start = week_start,
-                     roll_month = roll_month, roll_dst = roll_dst)
+                     roll_month = roll_month,
+                     roll_dst = roll_dst)
   if (has_groups && use.g.names){
     group_names <- GRP_names(g)
     if (!is.null(group_names)){
@@ -187,6 +191,7 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
                             week_start = getOption("lubridate.week.start", 1),
                             roll_month = "preday", roll_dst = "pre",
                             include_interval = FALSE){
+  check_is_time_or_num(x)
   if (is.null(from)){
     from <- collapse::fmin(x, na.rm = TRUE)
   }
@@ -208,10 +213,8 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
   time_bins <- c(time_as_number(time_breaks),
                  time_as_number(to))
   time_break_ind <- cut_time(x, breaks = time_bins, codes = TRUE)
-  # time_break_ind <- fcut_ind(x, c(time_breaks, to + 1))
   # Time breaks subset on cut indices
   out <- time_breaks[time_break_ind]
-
   if (include_interval){
     time_int <- tseq_interval(x = to, time_breaks)
     time_int <- time_int[time_break_ind]
@@ -678,10 +681,8 @@ time_span_size <- function(x, time_by = NULL, from = NULL, to = NULL,
     stop("time_by must be a time unit containing a single numeric increment")
   }
   g <- GRP2(g)
-  has_groups <- length(g) > 0
-  if (has_groups){
-    check_data_GRP_size(x, g)
-  }
+  check_data_GRP_size(x, g)
+  has_groups <- is.null(g)
   if (is.null(from)){
     from <- collapse::fmin(x, g = g, use.g.names = FALSE, na.rm = TRUE)
   }

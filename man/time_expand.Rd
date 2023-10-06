@@ -105,6 +105,9 @@ Anything exceeding this will throw an error.}
 
 \item{fill}{A named list containing value-name pairs to fill the named implicit missing values.}
 }
+\value{
+A \code{data.frame} of expanded time by or across groups.
+}
 \description{
 This works much the same as \code{tidyr::complete()}, except that
 you can supply an additional \code{time} argument to allow for filling in time gaps,

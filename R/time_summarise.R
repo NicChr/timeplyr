@@ -50,6 +50,8 @@
 #' @param sort Should the result be sorted? Default is `TRUE`.
 #' If `FALSE` then original (input) order is kept.
 #' The sorting only applies to groups and time variable.
+#' @returns
+#' A summarised `data.frame`.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)

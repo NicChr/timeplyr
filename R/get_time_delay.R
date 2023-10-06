@@ -34,7 +34,7 @@
 #' @param include_plot Should a `ggplot` graph of delay distributions be included in the output?
 #' @param x_scales Option to control how the x-axis is displayed for multiple facets.
 #' Choices are "fixed" or "free_x".
-#' @param bw The smoothing bandwidth selector for the Kernal Density estimator.
+#' @param bw The smoothing bandwidth selector for the Kernel Density estimator.
 #' If numeric, the standard deviation of the smoothing kernel.
 #' If character, a rule to choose the bandwidth. See `?stats::bw.nrd` for more details.
 #' The default has been set to "SJ" which implements the Sheather & Jones (1991) method,
@@ -42,6 +42,7 @@
 #' This differs from the default implemented by `stats::density()`
 #' which uses Silverman's rule-of-thumb.
 #' @param ... Further arguments to be passed on to `ggplot2::geom_density()`.
+#' @return A list containing summary data, summary statistics and an optional `ggplot`.
 #' @examples
 #' library(timeplyr)
 #' library(outbreaks)

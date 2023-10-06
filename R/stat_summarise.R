@@ -25,7 +25,6 @@
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
 #' @param as_tbl Should the result be a `tibble`? Default is `FALSE`.
-#' @return A summary `data.table` containing the summary values for each group.
 #' @details
 #'
 #' `stat_summarise()` can apply multiple functions to multiple variables.
@@ -33,7 +32,9 @@
 #' `stat_summarise()` is equivalent to \cr
 #' `data %>% group_by(...) %>% summarise(across(..., list(...)))` \cr
 #' but is faster and more efficient and accepts limited statistical functions.
-#' @seealso \link[timeplyr]{q_summarise}
+#' @return
+#' A summary `data.table` containing the summary values for each group.
+#' @seealso [q_summarise]
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)

@@ -7,7 +7,7 @@
 #' `time_roll_window` splits `x` into windows based on the index. \cr
 #' `time_roll_window_size` returns the window sizes for all indices of `x`. \cr
 #' `time_roll_apply` is a generic function that applies any function
-#' on a rolling basis with respect to a time index.
+#' on a rolling basis with respect to a time index. \cr
 #'
 #' `time_roll_growth_rate` can efficiently calculate by-group
 #' rolling growth rates with respect to a date/datetime index.
@@ -74,6 +74,8 @@
 #' 8% for each time step from 1 to 10. \cr
 #' This allows us for example to calculate daily growth rates over the last x months,
 #' even with missing days.
+#' @returns
+#' A vector the same length as `time`.
 #' @examples
 #' library(timeplyr)
 #' library(lubridate)
@@ -149,6 +151,7 @@ time_roll_sum <- function(x, window = Inf,
                           time_type = c("auto", "duration", "period"),
                           roll_month = "preday", roll_dst = "pre",
                           ...){
+  check_is_time_or_num(time)
   check_time_not_missing(time)
   # if (length(lag) != 1L){
   #   stop("lag must be of length 1")
@@ -163,7 +166,6 @@ time_roll_sum <- function(x, window = Inf,
     stop("time window size must be of length 1")
   }
   has_groups <- !is.null(g)
-  check_is_time_or_num(time)
   g <- GRP2(g, return.groups = FALSE, return.order = TRUE)
   group_id <- group_id(g)
   if (has_groups){
@@ -252,6 +254,7 @@ time_roll_mean <- function(x, window = Inf,
                            time_type = c("auto", "duration", "period"),
                            roll_month = "preday", roll_dst = "pre",
                            ...){
+  check_is_time_or_num(time)
   check_time_not_missing(time)
   # if (length(lag) != 1L){
   #   stop("lag must be of length 1")
@@ -266,7 +269,6 @@ time_roll_mean <- function(x, window = Inf,
     stop("time window size must be of length 1")
   }
   has_groups <- !is.null(g)
-  check_is_time_or_num(time)
   g <- GRP2(g, return.groups = FALSE, return.order = TRUE)
   group_id <- group_id(g)
   if (has_groups){
@@ -353,6 +355,7 @@ time_roll_growth_rate <- function(x, window = Inf,
                                   time_type = c("auto", "duration", "period"),
                                   roll_month = "preday", roll_dst = "pre"){
   check_time_not_missing(time)
+  check_is_time_or_num(time)
   window <- time_by_get(time, time_by = window)
   time_num <- time_by_num(window)
   time_unit <- time_by_unit(window)
@@ -363,7 +366,6 @@ time_roll_growth_rate <- function(x, window = Inf,
     stop("time window size must be of length 1")
   }
   has_groups <- !is.null(g)
-  check_is_time_or_num(time)
   g <- GRP2(g, return.groups = FALSE, return.order = TRUE)
   group_id <- group_id(g)
   if (has_groups){
@@ -660,6 +662,7 @@ time_roll_window_size <- function(time, window = Inf,
                                   close_left_boundary = FALSE,
                                   time_type = c("auto", "duration", "period"),
                                   roll_month = "preday", roll_dst = "pre"){
+  check_is_time_or_num(time)
   check_time_not_missing(time)
   window <- time_by_list(window)
   check_time_by_length_is_one(window)
@@ -754,6 +757,7 @@ time_roll_apply <- function(x, window = Inf, fun,
                             close_left_boundary = FALSE,
                             time_type = c("auto", "duration", "period"),
                             roll_month = "preday", roll_dst = "pre"){
+  stopifnot(is.function(fun))
   sizes <- time_roll_window_size(time,
                                  window = window,
                                  g = g,

@@ -8,7 +8,8 @@
 #' * Lubridate duration or period object, e.g. `days(1)` or `ddays(1)`.
 #' * A list, e.g. list("days" = 7)
 #' * A number, e.g. 5
-#' @return A list of length 3, including the unit, number and scale.
+#' @returns
+#' A list of length 3, including the unit, number and scale.
 #' @examples
 #' library(timeplyr)
 #' # Single units

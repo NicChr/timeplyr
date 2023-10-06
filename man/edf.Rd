@@ -13,6 +13,9 @@ edf(x, g = NULL, wt = NULL)
 
 \item{wt}{Frequency weights.}
 }
+\value{
+A numeric vector the same length as \code{x}.
+}
 \description{
 Like \code{dplyr::cume_dist(x)} and \code{ecdf(x)(x)}
 but with added grouping and weighting functionality.\cr

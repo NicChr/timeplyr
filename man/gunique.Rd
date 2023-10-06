@@ -41,6 +41,7 @@ These functions use \code{collapse} and are like the
 which allows for more flexible by-group sorting.
 }
 \examples{
+\dontrun{
 library(timeplyr)
 library(dplyr)
 library(tibble)
@@ -73,4 +74,5 @@ df <- data.frame(group = sample.int(10^6, 10^4, TRUE))
 which(gduplicated(df))
 # More efficient
 gwhich_duplicated(df)
+}
 }

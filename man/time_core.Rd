@@ -157,6 +157,10 @@ The rightmost interval will always be closed.}
 before counting and after time aggregation (controlled using \code{time_by}).
 The default is \code{TRUE}.}
 }
+\value{
+Vectors (typically the same class as \code{x}) of varying lengths depending
+on the arguments supplied.
+}
 \description{
 These are atomic vector-based functions
 of the tidy equivalents which all have a "v" suffix to denote this.

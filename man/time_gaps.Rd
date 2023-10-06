@@ -65,7 +65,12 @@ speed and efficiency.}
 checked to see if it is regular (with or without gaps)?
 Default is \code{FALSE}.}
 
-\item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
+\item{na.rm}{(Currently unused) Should \code{NA} values be removed? Default is \code{TRUE}.}
+}
+\value{
+\code{time_gaps} returns a vector of time gaps. \cr
+\code{time_num_gaps} returns the number of time gaps. \cr
+\code{time_has_gaps} returns a logical(1) of whether there are gaps.
 }
 \description{
 \code{time_gaps()} checks for missing gaps in time for any

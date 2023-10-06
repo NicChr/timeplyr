@@ -48,7 +48,7 @@ roll_harmonic_mean(
   ...
 )
 
-roll_apply(x, fun, before = 0L, after = 0L, g = NULL)
+roll_apply(x, fun, before = 0L, after = 0L, g = NULL, partial = TRUE)
 }
 \arguments{
 \item{x}{Numeric vector, data frame, or list.}

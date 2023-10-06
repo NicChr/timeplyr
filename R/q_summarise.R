@@ -67,7 +67,9 @@ q_summarise <- function(data, ...,
   quantile_ties <- paste0("q", type)
   q_prcnts <- quantile_probs * 100
   quantile_nms <- paste0(rep_len("p", length(quantile_probs)), q_prcnts)
-  quantile_out_nms <- factor(quantile_nms, levels = quantile_nms)
+  quantile_out_nms <- structure(strip_attrs(collapse::group(q_prcnts)),
+                                levels = collapse::funique(quantile_nms),
+                                class = "factor")
   # Turn data frame into GRP object
   groups <- df_to_GRP(out, .cols = group_vars, order = sort)
   n_groups <- GRP_n_groups(groups)
@@ -86,7 +88,7 @@ q_summarise <- function(data, ...,
   # Distinct groups
   q_df <- df_row_slice(out, group_starts)
   # If nrow is 0 or no probs
-  if (nrow2(data) == 0L || length(probs) == 0L){
+  if (df_nrow(data) == 0L || length(probs) == 0L){
     if (wide){
       q_df <- matrix(integer(0), ncol = length(quantile_out_nms), nrow = 0)
       colnames(q_df) <- quantile_nms
@@ -111,7 +113,7 @@ q_summarise <- function(data, ...,
       .SDcols = dot_vars]
       data.table::set(q_df,
                       j = ".quantile",
-                      value = rep(quantile_out_nms, times = nrow2(q_df) / length(probs)))
+                      value = rep(quantile_out_nms, times = df_nrow(q_df) / length(probs)))
       if (length(group_vars) > 0L){
         data.table::set(q_df,
                         j = group_vars,
@@ -130,7 +132,7 @@ q_summarise <- function(data, ...,
       data.table::set(q_df,
                       j = (".quantile"),
                       value = rep(quantile_out_nms,
-                                  each = nrow2(q_df) / length(probs)))
+                                  each = df_nrow(q_df) / length(probs)))
       # Coerce variables to numeric for safety
       q_df[, (dot_vars) := lapply(.SD, as.double),
            .SDcols = dot_vars]
@@ -207,112 +209,3 @@ q_summarise <- function(data, ...,
   }
   q_df[]
 }
-# q_summarise_old <- function(data, ...,
-#                             probs = seq(0, 1, 0.25),
-#                             type = 7L,
-#                             pivot = c("wide", "long"),
-#                             na.rm = TRUE, sort = TRUE,
-#                             .by = NULL, .cols = NULL){
-#   pivot <- rlang::arg_match0(pivot, c("wide", "long"))
-#   wide <- pivot == "wide"
-#   group_info <- group_info(data, ..., .by = {{ .by }},
-#                            .cols = .cols,
-#                            ungroup = TRUE,
-#                            rename = TRUE,
-#                            unique_groups = FALSE)
-#   group_vars <- group_info[["dplyr_groups"]]
-#   dot_vars <- group_info[["extra_groups"]]
-#   non_group_dot_vars <- setdiff(dot_vars, group_vars)
-#   if (length(dot_vars) == 0L){
-#     stop("Please supply at least 1 non-group variable to ...")
-#   }
-#   out <- group_info[["data"]]
-#   q_prcnts <- probs * 100
-#   quantile_nms <- paste0(rep_len("p", length(probs)), q_prcnts)
-#   quantile_nms <- factor(quantile_nms, levels = quantile_nms)
-#   # Group ID
-#   g <- group_id(out, .cols = group_vars, order = sort)
-#   grp_nm <- new_var_nm(out, ".group.id")
-#   # Add group ID to df
-#   out[[grp_nm]] <- g
-#   out <- as_DT(out)
-#   # Select necessary cols
-#   out <- fselect(out, .cols = c(grp_nm, group_vars, dot_vars))
-#   if (nrow2(out) == 0L || length(probs) == 0L){
-#     if (wide){
-#       q_df <- matrix(integer(0), ncol = length(quantile_nms), nrow = 0)
-#       colnames(q_df) <- quantile_nms
-#       q_df <- data.table::as.data.table(q_df)
-#     } else {
-#       q_df <- data.table::data.table(.quantile = quantile_nms)
-#       data.table::set(q_df, j = dot_vars, value = NA_real_)
-#     }
-#   } else {
-#     # out <- farrange(out, .cols = c(grp_nm, dot_vars))
-#     # Feed (by-group) order vector
-#     # out[[".qorder"]] <- data.table::rowidv(out[[grp_nm]])
-#     # Lookup table using group ID as key
-#     grp_df <- collapse::funique(fselect(out, .cols = c(grp_nm, group_vars)),
-#                                 cols = grp_nm, sort = sort)
-#     # Quantile calculation
-#     # data.table method
-#     q_df <- out[, lapply(.SD, function(x) collapse::fquantile(x,
-#                                                               probs = probs,
-#                                                               names = FALSE,
-#                                                               na.rm = na.rm,
-#                                                               check.o = FALSE
-#                                                               # o = get(".qorder"),
-#                                                               # check.o = TRUE
-#                                                               )),
-#                 keyby = grp_nm,
-#                 .SDcols = dot_vars]
-#     # collapse method
-#     # out <- collapse::fgroup_by(out, grp_nm, sort = sort)
-#     # q_df <- collapse::fsummarise(
-#     #   out,
-#     #   across(.cols = dot_vars,
-#     #          list(function(x)
-#     #            collapse::.quantile(x, probs = probs,
-#     #                                names = FALSE,
-#     #                                type = type,
-#     #                                na.rm = na.rm)))
-#     # )
-#     # Add quantile names as variable
-#     data.table::set(q_df,
-#                     j = ".quantile",
-#                     value = rep(quantile_nms, times = nrow2(q_df) / length(probs)))
-#     cast_formula <- stats::as.formula(paste0(grp_nm, " ~ .quantile"))
-#     # if wide is true then pivot wider
-#     if (wide){
-#       q_df <- data.table::dcast(q_df,
-#                                 formula = cast_formula,
-#                                 value.var = dot_vars)
-#       # q_df <- q_df[grp_df]
-#       if (length(group_vars) > 0L){
-#         # Bind group variables
-#         q_df[, (group_vars) := fselect(grp_df, .cols = setdiff(names(grp_df), grp_nm))]
-#       }
-#       out_nms <- c(group_vars,
-#                    setdiff(names(q_df),
-#                            group_vars))
-#     } else {
-#       # Join group variables
-#       if (length(group_vars) > 0L){
-#         q_df[, (group_vars) := fselect(grp_df, .cols = setdiff(names(grp_df), grp_nm))[
-#                                         rep(seq_len(.N),
-#                                             each = length(quantile_nms))
-#                                       ]]
-#       }
-#       out_nms <- c(group_vars,
-#                    setdiff(names(q_df),
-#                            c(group_vars,
-#                              dot_vars)),
-#                    dot_vars)
-#     }
-#     data.table::setcolorder(q_df, neworder = out_nms)
-#     # Remove group ID variable
-#     data.table::set(q_df, j = grp_nm, value = NULL)
-#   }
-#   q_df[]
-# }
-

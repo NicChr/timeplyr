@@ -20,6 +20,8 @@
 #' Options are "preday", "boundary", "postday", "full" and "NA".
 #' See `?timechange::time_add` for more details.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
+#' @returns
+#' A vector of `length(x)` lagged by a specified time unit.
 #' @export
 time_lag <- function(x, k = 1L,
                      time = seq_along(x),

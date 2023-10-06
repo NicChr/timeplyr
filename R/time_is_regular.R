@@ -33,6 +33,8 @@
 #' are used the output is always of class `POSIXt`.
 #' @param allow_gaps Should gaps be allowed? Default is `TRUE`.
 #' @param allow_dups Should duplicates be allowed? Default is `TRUE`.
+#' @returns
+#' A logical vector the same length as the number of supplied groups.
 #' @export
 time_is_regular <- function(x, time_by = NULL,
                             g = NULL, use.g.names = TRUE,

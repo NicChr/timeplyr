@@ -11,6 +11,7 @@
 #' equivalents, `fsum()`, `fmean()`, `fmin()`, `fmax()`,
 #' `fsd()`, `fvar()`, `fmode()`, `fmedian()`, `ffirst()`, `flast()` and
 #' `fnobs()`
+#' @return A vector the same length as `x`.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)

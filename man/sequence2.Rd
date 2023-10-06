@@ -4,7 +4,7 @@
 \alias{sequence2}
 \alias{seq_id}
 \alias{seq_v}
-\title{Extension to \code{base::sequence()} that handles decimals}
+\title{Extension to \code{base::sequence()}}
 \usage{
 sequence2(nvec, from = 1L, by = 1L)
 
@@ -21,9 +21,19 @@ seq_v(from = 1L, to = 1L, by = 1L)
 
 \item{to}{End of sequence(s).}
 }
+\value{
+\code{sequence2} and \code{seq_id} return a vector \code{length(sum(nvec))}. \cr
+\code{seq_v} returns a vector of size \code{sum((to - from) / (by + 1))}
+}
 \description{
+Like \code{sequence()} but it accepts decimal increments.
+}
+\details{
+\code{sequence2()} works in the same as \code{sequence()} but can accept
+non-whole number \code{by} values.
+It also doesn't recycle \code{from} and \code{to}, in the same as \code{sequence()}. \cr
 \code{seq_v()} is a vectorised version of \code{seq()} that strictly accepts
-only the arguments \code{from}, \code{to} and \code{by}.
+only the arguments \code{from}, \code{to} and \code{by}. \cr
 \code{seq_id()} is a helper function to efficiently return unique IDs for
 each sequence.
 }

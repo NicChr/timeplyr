@@ -21,6 +21,9 @@ Default is \code{FALSE}, or together.}
 
 \item{...}{Further arguments passed to \code{geom_line()}.}
 }
+\value{
+A \code{ggplot}.
+}
 \description{
 \code{time_ggplot()} is a neat way to quickly
 plot aggregate time-series data.
@@ -67,5 +70,5 @@ ebola \%>\%
   time_ggplot(date_of_infection, n)
 }
 \seealso{
-\link[timeplyr]{ts_as_tibble}
+\link{ts_as_tibble}
 }

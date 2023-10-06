@@ -18,6 +18,9 @@ is_time_or_num(x)
 \arguments{
 \item{x}{date or datetime.}
 }
+\value{
+A logical(1).
+}
 \description{
 Utility functions for checking if date or datetime
 }

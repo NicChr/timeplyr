@@ -102,8 +102,14 @@ Default is \code{FALSE}, without replacement.}
 \item{weights}{Probability weights used in \code{fslice_sample()}.}
 
 \item{seed}{Seed number defining RNG state.
-If supplied, this is only applied locally within the function
-and the seed state isn't retained after sampling.}
+If supplied, this is only applied \bold{locally} within the function
+and the seed state isn't retained after sampling.
+To clarify, whatever seed state was in place before the function call,
+is restored to ensure seed continuity.
+If left \code{NULL} (the default), then the seed is never modified.}
+}
+\value{
+A \code{data.frame} of specified rows.
 }
 \description{
 When there are lots of groups, the \code{fslice()} functions are much faster.

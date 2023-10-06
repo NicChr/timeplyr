@@ -38,6 +38,12 @@
 #' the current value and the first non-NA value of the series are calculated.
 #' For example,
 #' `c(NA, NA, 3, 4, 6, NA, 8)` becomes `c(NA, NA, 0, 1, 3, NA, 5)`.
+#'
+#' `roll_time_diff` is a more bare-bones ungrouped version of
+#' `time_elapsed` which operates like base R's `diff` function and allows
+#' lagged time differences.
+#'
+#' @returns A numeric vector the same length as `x`.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -85,7 +91,7 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
       x_filled <- roll_na_fill(x, g = sorted_g)
       x_lag <- flag2(x_filled, g = sorted_g)
       group_starts <- group_starts +
-        fnmiss(x_lag, g = sorted_g, use.g.names = FALSE, na.rm = FALSE) - 1L
+        fnmiss(x_lag, g = sorted_g, use.g.names = FALSE) - 1L
     } else {
       x_lag <- flag2(x, g = sorted_g)
     }

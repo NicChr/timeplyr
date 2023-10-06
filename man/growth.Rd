@@ -49,6 +49,10 @@ Currently, no normalisation of weights occurs.}
 
 \item{...}{Further arguments to be passed on to \code{frollmean}.}
 }
+\value{
+\code{growth} returns a \code{numeric(1)} and \code{rolling_growth}
+returns a \code{numeric(length(x))}.
+}
 \description{
 Calculate basic growth calculations on a rolling basis.
 \code{growth()} calculates the percent change between the totals of two numeric vectors

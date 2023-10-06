@@ -15,6 +15,7 @@
 #' @param all If `TRUE`, `gduplicated()` returns all duplicated values,
 #' including the first occurrence.
 #' @examples
+#' \dontrun{
 #' library(timeplyr)
 #' library(dplyr)
 #' library(tibble)
@@ -47,8 +48,8 @@
 #' which(gduplicated(df))
 #' # More efficient
 #' gwhich_duplicated(df)
+#' }
 #' @rdname gunique
-#' @export
 gunique <- function(x, g = NULL, sort = FALSE, order = TRUE,
                     use.g.names = TRUE){
   if (is.null(g)){
@@ -78,7 +79,6 @@ gunique <- function(x, g = NULL, sort = FALSE, order = TRUE,
   vec_slice2(x, GRP_starts(g))
 }
 #' @rdname gunique
-#' @export
 gduplicated <- function(x, g = NULL, order = TRUE, all = FALSE){
   # out_nms <- names(x)
   if (is.null(g)){
@@ -95,7 +95,6 @@ gduplicated <- function(x, g = NULL, order = TRUE, all = FALSE){
   GRP_duplicated(g, all = all)
 }
 #' @rdname gunique
-#' @export
 gwhich_duplicated <- function(x, g = NULL, order = TRUE, all = FALSE){
   if (is.null(g)){
     g <- GRP2(x, sort = order,
@@ -110,7 +109,6 @@ gwhich_duplicated <- function(x, g = NULL, order = TRUE, all = FALSE){
   GRP_which_duplicated(g, all = all)
 }
 #' @rdname gunique
-#' @export
 gsort <- function(x, g = NULL, order = TRUE, use.g.names = TRUE){
   if (is.null(g)){
     order <- radixorderv2(x)
@@ -143,7 +141,6 @@ gsort <- function(x, g = NULL, order = TRUE, use.g.names = TRUE){
   }
 }
 #' @rdname gunique
-#' @export
 gorder <- function(x, g = NULL, order = TRUE){
   if (is.null(g)){
     order <- radixorderv2(x)

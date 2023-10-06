@@ -647,9 +647,7 @@ vec_slice3 <- function(x, i){
 }
 # Vctrs version of utils::head/tail
 vec_head <- function(x, n = 1L){
-  if (length(n) != 1L){
-    stop("n must be of length 1.")
-  }
+  check_length(n, 1L)
   N <- vctrs::vec_size(x)
   if (n >= 0){
     size <- min(n, N)
@@ -659,9 +657,7 @@ vec_head <- function(x, n = 1L){
   vctrs::vec_slice(x, seq_len(size))
 }
 vec_tail <- function(x, n = 1L){
-  if (length(n) != 1L){
-    stop("n must be of length 1.")
-  }
+  check_length(n, 1L)
   N <- vctrs::vec_size(x)
   if (n >= 0){
     size <- min(n, N)
@@ -1153,7 +1149,7 @@ fast_cut <- function (x, breaks, labels = NULL, include.lowest = FALSE, right = 
 }
 check_is_num <- function(x){
   if (!is.numeric(x)){
-    stop("x must be numeric")
+    stop(paste(deparse1(substitute(x)), "must be numeric"))
   }
 }
 # TRUE when x is sorted and contains no NA
@@ -1162,7 +1158,7 @@ is_sorted <- function(x){
 }
 check_sorted <- function(x){
   if (!is_sorted(x)){
-    stop("x must be in ascending order")
+    stop(paste(deparse1(substitute(x)), "must be in ascending order"))
   }
 }
 # Retains integer class of a if b is 1 and a is integer
@@ -1220,12 +1216,17 @@ match_and_factor <- function(x, table){
 }
 check_is_list <- function(x){
   if (!is.list(x)){
-    stop("x must be a list")
+    stop(paste(deparse1(substitute(x)), "must be a list"))
   }
 }
 check_length_one <- function(x){
   if (length(x) != 1L){
-    stop("x must be of length 1")
+    stop(paste(deparse1(substitute(x)), "must be of length 1"))
+  }
+}
+check_length <- function(x, size){
+  if (length(x) != size){
+    stop(paste(deparse1(substitute(x)), "must be of length", size))
   }
 }
 # collapse allv and allna with extra length check
@@ -1244,12 +1245,6 @@ allNA2 <- function(x){
 list_of_empty_vectors <- function(x){
   lapply(x, function(x) x[0L])
 }
-# anyv2 <- function(x, value){
-#   if (!length(x)){
-#     return(FALSE)
-#   }
-#   collapse::anyv(x, value)
-# }
 
 # Similar to collapse::fnobs
 # The same can be achieved using
@@ -1261,4 +1256,7 @@ num_na <- function(x){
 # anyDuplicated but returns a logical(1)
 anyduplicated <- function(x){
   anyDuplicated.default(x) > 0L
+}
+simple_deparse <- function(expr){
+  deparse(expr, backtick = FALSE, control = NULL)
 }

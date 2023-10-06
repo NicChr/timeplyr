@@ -1,3 +1,26 @@
+# Safer versions of collapse::flag and collapse::fdiff
+# It is safer in the sense that if the data isn't ordered by group
+# The result is reordered to be correct
+flag2 <- function(x, n = 1L, g = NULL, ...){
+  if (is.null(x)){
+    return(NULL)
+  }
+  n <- as.integer(sign(n) * min(length(x), abs(n)))
+  sorted_group_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
+  g <- sorted_group_info[["GRP"]]
+  sorted_g <- sorted_group_info[["sorted_GRP"]]
+  sorted_x <- sorted_group_info[["x"]]
+  is_sorted <- sorted_group_info[["sorted"]]
+  out <- collapse::flag(sorted_x, n = n, g = sorted_g, ...)
+  if (!is_sorted){
+    out <- greorder2(out, g = g)
+  }
+  out
+}
+fdiff2 <- function(x, n = 1L, g = NULL, ...){
+  x - flag2(x, n = n, g = g, ...)
+}
+
 # Get rolling window sizes for multiple groups
 # window_sequence <- function(size, k, partial = TRUE, ascending = TRUE){
 #   if (length(size) == 1L){
@@ -49,82 +72,7 @@ window_seq <- function(k, n, partial = TRUE, ascending = TRUE){
   }
   out
 }
-# before_sequence <- function(size, before = 0L, partial = TRUE){
-#   if (length(before) != 1L){
-#     stop("before must of be length 1")
-#   }
-#   start_fill <- if (partial) 0L else NA_integer_
-#   seq_id_GRP <- sorted_group_id_to_GRP(seq_id(size),
-#                                        n_groups = length(size),
-#                                        group_sizes = size,
-#                                        group.starts = FALSE)
-#   flag2(window_sequence(size, before, ascending = TRUE, partial = partial),
-#         g = seq_id_GRP, fill = start_fill, n = 1L)
-# }
-# after_sequence2 <- function(size, k, partial = TRUE){
-#   before_sequence(size, k = k, partial = partial)[
-#     sequence(size, from = size, by = -1L)
-#   ]
-# }
-# before_sequence2 <- function(size, k, partial = TRUE){
-#   if (length(k) != 1L){
-#     stop("k must be of length 1")
-#   }
-#   input_k <- k
-#   k <- max(k, 0L)
-#   k <- as.integer(k)
-#   out <- pmin(sequence(size, from = 0L, by = 1L), k)
-#   if (!partial){
-#     out[out < input_k] <- NA_integer_
-#   }
-#   out
-# }
-# after_sequence <- function(size, after = 0L, partial = TRUE){
-#   if (length(after) != 1L){
-#     stop("after must of be length 1")
-#   }
-#   start_fill <- if (partial) 0L else NA_integer_
-#   seq_id_GRP <- sorted_group_id_to_GRP(seq_id(size),
-#                                        n_groups = length(size),
-#                                        group_sizes = size,
-#                                        group.starts = FALSE)
-#   flag2(window_sequence(size, after, ascending = FALSE, partial = partial),
-#         g = seq_id_GRP, fill = start_fill, n = -1L)
-# }
-# before_sequence <- function(x, before = 0L, g = NULL, partial = TRUE){
-#   if (length(before) != 1L){
-#     stop("before must of be length 1")
-#   }
-#   g <- GRP2(g)
-#   if (is.null(g)){
-#     is_sorted <- TRUE
-#     group_sizes <- length(x)
-#   } else {
-#     is_sorted <- isTRUE(attr(GRP_order(g), "sorted"))
-#     group_sizes <- GRP_group_sizes(g)
-#   }
-#   stopifnot(is_sorted)
-#   start_fill <- if (partial) 0L else NA_integer_
-#   flag2(window_sequence(group_sizes, before, ascending = TRUE, partial = partial),
-#         g = g, fill = start_fill, n = 1L)
-# }
-# after_sequence <- function(x, after = 0L, g = NULL, partial = TRUE){
-#   if (length(after) != 1L){
-#     stop("after must of be length 1")
-#   }
-#   g <- GRP2(g)
-#   if (is.null(g)){
-#     is_sorted <- TRUE
-#     group_sizes <- length(x)
-#   } else {
-#     is_sorted <- isTRUE(attr(GRP_order(g), "sorted"))
-#     group_sizes <- GRP_group_sizes(g)
-#   }
-#   stopifnot(is_sorted)
-#   start_fill <- if (partial) 0L else NA_integer_
-#   flag2(window_sequence(group_sizes, after, ascending = FALSE, partial = partial),
-#         g = g, fill = start_fill, n = -1L)
-# }
+# Vctrs style rolling chop
 roll_chop <- function(x, sizes = collapse::alloc(1L, vec_length(x))){
   x_size <- vec_length(x)
   out_length <- length(sizes)
@@ -212,28 +160,6 @@ roll_chop2 <- function(x, before = 0L, after = 0L, partial = TRUE){
     }
   }
   out
-}
-# Safer versions of collapse::flag and collapse::fdiff
-# It is safer in the sense that if the data isn't ordered by group
-# The result is reordered to be correct
-flag2 <- function(x, n = 1L, g = NULL, ...){
-  if (is.null(x)){
-    return(NULL)
-  }
-  n <- as.integer(sign(n) * min(length(x), abs(n)))
-  sorted_group_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
-  g <- sorted_group_info[["GRP"]]
-  sorted_g <- sorted_group_info[["sorted_GRP"]]
-  sorted_x <- sorted_group_info[["x"]]
-  is_sorted <- sorted_group_info[["sorted"]]
-  out <- collapse::flag(sorted_x, n = n, g = sorted_g, ...)
-  if (!is_sorted){
-    out <- greorder2(out, g = g)
-  }
-  out
-}
-fdiff2 <- function(x, n = 1L, g = NULL, ...){
-  x - flag2(x, n = n, g = g, ...)
 }
 # No partial argument, just a weights extension to data.table::frollsum()
 frollsum3 <- function(x, n, weights = NULL, ...){

@@ -77,6 +77,9 @@ See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
 }
+\value{
+A \code{data.frame} with added columns.
+}
 \description{
 This works much the same as \code{dplyr::mutate()}, except that
 you can supply an additional \code{time} argument to allow for

@@ -10,6 +10,7 @@
 #' @param x Numeric vector.
 #' @param g Numeric vector of group IDs.
 #' @param wt Frequency weights.
+#' @return A numeric vector the same length as `x`.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)

@@ -91,6 +91,10 @@ different time sequences. This only applies when \code{.add = TRUE}.}
 
 \item{x}{A \code{time_tbl_df}.}
 }
+\value{
+A \code{time_tbl_df} which for practical purposes can be treated the
+same way as a dplyr \code{grouped_df}.
+}
 \description{
 \code{time_by} groups a time variable by a specified time unit like
 for example "days" or "weeks". \cr

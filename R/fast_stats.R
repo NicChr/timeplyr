@@ -92,41 +92,9 @@ fn <- function(x, g = NULL, sort = TRUE,
   }
   nobs
 }
-# gn <- function(..., g = NULL){
-#   n_dots <- dots_length(...)
-#   if (n_dots > 1){
-#     stop("Please supply <= 1 arguments to ...")
-#   }
-#   if (is.null(g)){
-#     if (n_dots == 0){
-#       stop("when g = NULL, ... must be supplied")
-#     }
-#     x <- list(...)[[1L]]
-#     N <- vec_length(x)
-#     nobs <- alloc(N, N)
-#   } else {
-#     g <- GRP2(g, sort = TRUE, return.groups = FALSE)
-#     nobs <- collapse::GRPN(g, expand = TRUE)
-#     if (n_dots == 1){
-#       x <- list(...)[[1L]]
-#       N <- vec_length(x)
-#       if (N != length(nobs)){
-#         stop("g must be the same size as the data")
-#       }
-#     }
-#   }
-#   nobs
-# }
-#' @rdname fast_stats
-fnmiss <- function(x, ...){
-  collapse::fsum(is.na(x), ...)
-}
-#' @rdname fast_stats
-fprop_complete <- function(x, ...){
-  1 - (fnmiss(x, ...) / vec_length(x))
-}
 #' @rdname fast_stats
 fcummean <- function(x, g = NULL, na.rm = FALSE, ...){
+  x <- safe_ungroup(x)
   g <- GRP2(g, sort = FALSE, return.groups = FALSE)
   sizes <- frowid(x, g = g)
   if (na.rm){
@@ -134,4 +102,38 @@ fcummean <- function(x, g = NULL, na.rm = FALSE, ...){
   }
   cum_sum <- collapse::fcumsum(x, g = g, na.rm = na.rm)
   cum_sum / sizes
+}
+#' @rdname fast_stats
+fnmiss <- function(x, g = NULL, sort = TRUE, use.g.names = TRUE,
+                   na.rm = FALSE){
+  if (is.null(x)){
+    return(0L)
+  }
+  x <- safe_ungroup(x)
+  g <- GRP2(g, sort = sort)
+  N <- fn(x, g = g, use.g.names = FALSE)
+  nobs <- collapse::fnobs(x, g = g, use.g.names = use.g.names)
+  if (!is.null(collapse::fncol(nobs))){
+    nobs <- collapse::qM(nobs)
+  }
+  N - nobs
+}
+#' @rdname fast_stats
+fprop_complete <- function(x, g = NULL, sort = TRUE, use.g.names = TRUE,
+                           na.rm = FALSE){
+  if (is.null(x)){
+    return(0L)
+  }
+  x <- safe_ungroup(x)
+  g <- GRP2(g, sort = sort)
+  N <- fn(x, g = g, use.g.names = FALSE)
+  nobs <- collapse::fnobs(x, g = g, use.g.names = use.g.names)
+  if (!is.null(collapse::fncol(nobs))){
+    nobs <- collapse::qM(nobs)
+  }
+  nobs / N
+}
+#' @rdname fast_stats
+fprop_missing <- function(x, g = NULL, sort = TRUE, use.g.names = TRUE){
+  1 - fprop_complete(x, g = g, sort = sort, use.g.names = use.g.names)
 }

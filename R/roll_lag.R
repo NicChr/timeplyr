@@ -12,7 +12,9 @@
 #' you can set this to `FALSE` if you need this to be speed-performant.
 #' @details This function is simple and fast. It should generally be equivalent
 #' to
-#' `diag(matrix(unlist(data.table::shift(x, lag)), ncol = length(x)))`.
+#' `diag(matrix(unlist(data.table::shift(x, lag)), ncol = length(x)))`. \cr
+#' where `length(lag) = length(x)`.
+#' @return A lagged vector of `x` the same length as `x`.
 #' @rdname roll_lag
 #' @export
 roll_lag <- function(x, lag = 1L, check = TRUE){
@@ -35,17 +37,10 @@ roll_lag <- function(x, lag = 1L, check = TRUE){
 #' @rdname roll_lag
 #' @export
 lag_seq <- function(x, lag = 1L){
-  if (length(lag) != 1L){
-    stop("lag must be of length 1")
-  }
+  check_length(lag, 1L)
   if (lag >= 0){
     lag_sequence(length(x), k = lag)
   } else {
     -lead_sequence(length(x), k = -lag)
   }
-  # if (lag >= 0){
-  #   before_sequence(length(x), k = lag, partial = FALSE)
-  # } else {
-  #   -after_sequence(length(x), k = -lag,  partial = FALSE)
-  # }
 }

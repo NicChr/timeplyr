@@ -8,6 +8,7 @@
 #' This may be a vector or data frame for example.
 #' @param fill_limit (Optional) maximum number of consecutive NAs to fill
 #' per `NA` cluster.
+#' @return A filled vector of `x` the same length as `x`.
 #' @examples
 #' library(dplyr)
 #' library(data.table)

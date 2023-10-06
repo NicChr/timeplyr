@@ -21,7 +21,8 @@
 #' @param tol Tolerance of comparison. The time differences are rounded
 #' using `digits = ceiling(abs(log10(tol)))` to try and avoid
 #' precision issues.
-#' @return A double vector of length 1 or length 0 if `length(x)` is 0.
+#' @returns
+#' A double vector of length 1 or length 0 if `length(x)` is 0.
 #' @examples
 #' library(timeplyr)
 #' library(lubridate)

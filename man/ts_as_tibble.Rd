@@ -87,5 +87,5 @@ timeSeries::MSFT \%>\%
 }
 }
 \seealso{
-\link[timeplyr]{time_ggplot}
+\link{time_ggplot}
 }

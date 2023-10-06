@@ -1,7 +1,7 @@
 #' Utility functions for checking if date or datetime
 #'
 #' @param x date or datetime.
-#'
+#' @return A logical(1).
 #' @rdname is_date
 #' @export
 is_date <- function(x){

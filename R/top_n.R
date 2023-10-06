@@ -18,7 +18,7 @@
 #' `lump_top_n` returns a factor such that any values not in the top n values are
 #' placed into a separate category "Other".
 #'
-#' @return
+#' @returns
 #' `top_n`/`bottom_n` return a vector the same class as `x`. \cr
 #' `top_n_tbl`/`bottom_n_tbl` return a 2-col `data.frame`. \cr
 #' `lump_top_n`/`lump_bottom_n` return a `factor` (or `character` vector).

@@ -23,7 +23,7 @@ Default is \code{NULL} which performs an unweighted mean.}
 \item{...}{Further arguments passed to \code{collapse::fmean}.}
 }
 \value{
-A numeric vector of length 1.
+\code{numeric(min(length(x), 1))}.
 }
 \description{
 Convenience functions for fast unweighted and weighted mean calculations.

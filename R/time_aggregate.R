@@ -26,15 +26,23 @@
 #' reference time, otherwise the maximum time is used.
 #' @details `time_aggregate` aggregates time using
 #' distinct moving time range blocks of a specified time unit.
-#' If for example `time_by = "week"`then all dates or datetimes
+#'
+#' The actual calculation is extremely simple and essentially requires
+#' a subtraction, a rounding and an addition.
+#'
+#'
+#' If for example `time_by = "week"` then all dates or datetimes
 #' will be shifted backwards (or forwards if direction is "r2l") to the
 #' nearest start of the week, where the start of week is based on `min(x)`.
 #' This is identical to building a weekly sequence and using this as
 #' breakpoints to cut `x`. No time expansion occurs so this is very efficient
 #' except when `periods` are used and there is a lot of data.
-#' In this case, provided the expension is not too big,
+#' In this case, provided the expansion is not too big,
 #' it may be more efficient to cut the data using the period sequence which can
 #' be achieved using `time_summarisev`.
+#'
+#' @return
+#' A time aggregated vector the same class and length as `x`.
 #'
 #' @examples
 #' library(timeplyr)

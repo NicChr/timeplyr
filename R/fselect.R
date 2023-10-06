@@ -13,6 +13,7 @@
 #' a named character vector or numeric vector. \cr
 #' No checks on duplicates column names are done when using `.cols`. \cr
 #' If speed is an expensive resource, it is recommended to use this.
+#' @return A `data.frame` of selected columns.
 #' @examples
 #' \dontrun{
 #'   library(timeplyr)

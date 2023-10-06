@@ -56,6 +56,12 @@
 #' before time difference is calculated? This is useful for calculating
 #' for example age in exact years or months.
 #' @param sizes Time sequence sizes.
+#' @returns
+#' `time_seq` returns a time sequence. \cr
+#' `time_seq_sizes` returns an integer vector of sequence sizes. \cr
+#' `time_seq_v` returns time sequences. \cr
+#' `time_seq_v2` also returns time sequences.
+#'
 #' @seealso \link[timeplyr]{seq_id} \link[timeplyr]{time_seq_id}
 #' @examples
 #' library(timeplyr)
@@ -346,9 +352,8 @@ time_seq_v2 <- function(sizes, from, time_by,
 # by must be numeric
 date_seq <- function(from, to, by = 1){
   if (length(from) == 0L) return(from)
-  if (!is_date(from) || !is_date(to)){
-    stop("from and to must be dates")
-  }
+  check_is_date(from)
+  check_is_date(to)
   out <- seq.int(from = from,
                  to = to,
                  by = as.double(by))
@@ -358,7 +363,7 @@ date_seq <- function(from, to, by = 1){
 # datetime sequence using from + length + by
 duration_seq <- function(from, length, duration){
   if (length(from) == 0L){
-    if (!is_datetime(from)) stop("from must be a datetime")
+    check_is_datetime(from)
     return(from)
   }
   seq.POSIXt(from = from,
@@ -367,15 +372,11 @@ duration_seq <- function(from, length, duration){
 # datetime sequence using from + to + by
 duration_seq2 <- function(from, to, duration){
   if (length(from) == 0L){
-    if (!is_datetime(from)){
-      stop("to must be a datetime")
-    }
+    check_is_datetime(from)
     return(from)
   }
   if (length(to) == 0L){
-    if (!is_datetime(to)){
-      stop("to must be a datetime")
-    }
+    check_is_datetime(to)
     return(to)
   }
   seq.POSIXt(from = from, to = to, by = unclass(duration))
@@ -417,7 +418,7 @@ duration_seq_v2 <- function(sizes, from, units, num = 1){
 }
 # Date sequence vectorised over from, to and num
 date_seq_v <- function(from, to, units = c("days", "weeks"), num = 1){
-  stopifnot(is_date(to))
+  check_is_date(to)
   seq_sizes <- time_seq_sizes(from, to, time_by = add_names(list(num), units))
   date_seq_v2(seq_sizes,
               from = from, units = units, num = num)
@@ -426,7 +427,7 @@ date_seq_v <- function(from, to, units = c("days", "weeks"), num = 1){
 # If you have the sequence sizes pre-calculated, you can use this
 date_seq_v2 <- function(sizes, from, units = c("days", "weeks"), num = 1){
   units <- rlang::arg_match0(units, c("days", "weeks"))
-  stopifnot(is_date(from))
+  check_is_date(from)
   if (units == "weeks"){
     units <- "days"
     num <- as.double(num * 7)

@@ -1,14 +1,26 @@
-#' Extension to `base::sequence()` that handles decimals
+#' Extension to `base::sequence()`
 #'
-#' `seq_v()` is a vectorised version of `seq()` that strictly accepts
-#' only the arguments `from`, `to` and `by`.
-#' `seq_id()` is a helper function to efficiently return unique IDs for
-#' each sequence.
+#' @description
+#' Like `sequence()` but it accepts decimal increments.
 #'
 #' @param nvec Vector of sequence lengths.
 #' @param from Start of sequence(s).
 #' @param to End of sequence(s).
 #' @param by Unit increment of sequence(s).
+#'
+#' @returns
+#' `sequence2` and `seq_id` return a vector `length(sum(nvec))`. \cr
+#' `seq_v` returns a vector of size `sum((to - from) / (by + 1))`
+#'
+#' @details
+#' `sequence2()` works in the same as `sequence()` but can accept
+#' non-whole number `by` values.
+#' It also doesn't recycle `from` and `to`, in the same as `sequence()`. \cr
+#' `seq_v()` is a vectorised version of `seq()` that strictly accepts
+#' only the arguments `from`, `to` and `by`. \cr
+#' `seq_id()` is a helper function to efficiently return unique IDs for
+#' each sequence.
+#'
 #' @examples
 #' library(timeplyr)
 #' sequence(1:3)

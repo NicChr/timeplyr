@@ -82,5 +82,5 @@ iris \%>\%
             stat = c("min", "max", "mean", "sd"))
 }
 \seealso{
-\link[timeplyr]{q_summarise}
+\link{q_summarise}
 }

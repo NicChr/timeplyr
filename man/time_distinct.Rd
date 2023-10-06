@@ -81,6 +81,9 @@ See \code{?timechange::time_add} for more details.}
 \item{sort}{Should the result be sorted? Default is \code{TRUE}.
 If \code{FALSE} then original (input) order is kept.}
 }
+\value{
+A \code{data.frame} of distinct aggregate time values across groups.
+}
 \description{
 This works much the same as \code{dplyr::distinct()}, except that
 you can supply an additional \code{time} argument to allow for

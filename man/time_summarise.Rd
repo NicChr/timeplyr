@@ -97,6 +97,9 @@ See \code{?timechange::time_add} for more details.}
 If \code{FALSE} then original (input) order is kept.
 The sorting only applies to groups and time variable.}
 }
+\value{
+A summarised \code{data.frame}.
+}
 \description{
 This works much the same as \code{dplyr::summarise()}, except that
 you can supply an additional \code{time} argument to allow for

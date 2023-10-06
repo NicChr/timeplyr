@@ -63,7 +63,7 @@
 #' speed and efficiency.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using `tidyselect`.
-#' @return
+#' @returns
 #' A `data.frame` in the same order as it was given.
 #' @details
 #' `time_episodes()` calculates the time elapsed (rolling or fixed) between
@@ -157,6 +157,7 @@ time_episodes <- function(data, time, time_by = NULL,
                           event = NULL,
                           time_type = c("auto", "duration", "period"),
                           .by = NULL){
+  rlang::check_required(time)
   N <- df_nrow(data)
   if (window < 0){
     stop("window must be strictly greater or equal to 0")

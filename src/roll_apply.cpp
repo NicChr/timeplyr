@@ -93,7 +93,7 @@ IntegerVector before_sequence(IntegerVector size, int k) {
       if (i < k){
         out[index] = i;
       }
-      index += 1;
+      ++index;
     }
   }
   return out;
@@ -112,7 +112,7 @@ IntegerVector after_sequence(IntegerVector size, int k) {
       if (idiff < k){
         out[index] = idiff;
       }
-      index += 1;
+      ++index;
     }
   }
   return out;
@@ -136,7 +136,7 @@ IntegerVector window_sequence(IntegerVector size,
           if (i < k){
             out[index] = i + 1;
           }
-          index += 1;
+          ++index;
         }
       }
     } else {
@@ -145,7 +145,7 @@ IntegerVector window_sequence(IntegerVector size,
           if (i < (k - 1)){
             out[index] = NA_INTEGER;
           }
-          index += 1;
+          ++index;
         }
       }
     }
@@ -159,7 +159,7 @@ IntegerVector window_sequence(IntegerVector size,
           if (idiff < k){
             out[index] = idiff + 1;
           }
-          index += 1;
+          ++index;
         }
       }
     } else {
@@ -169,7 +169,7 @@ IntegerVector window_sequence(IntegerVector size,
           if (idiff < (k - 1)){
             out[index] = NA_INTEGER;
           }
-          index += 1;
+          ++index;
         }
       }
     }
@@ -188,7 +188,7 @@ IntegerVector lag_sequence(IntegerVector size, int k) {
       if (i < k){
         out[index] = NA_INTEGER;
       }
-      index += 1;
+      ++index;
     }
   }
   return out;
@@ -206,7 +206,7 @@ IntegerVector lead_sequence(IntegerVector size, int k) {
       if (idiff < k){
         out[index] = NA_INTEGER;
       }
-      index += 1;
+      ++index;
     }
   }
   return out;

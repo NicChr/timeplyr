@@ -36,7 +36,7 @@ before time difference is calculated? This is useful for calculating
 for example age in exact years or months.}
 }
 \value{
-A numeric vector.
+A numeric vector recycle to the length of \code{max(length(x), length(y))}.
 }
 \description{
 This is a neat wrapper around lubridate's

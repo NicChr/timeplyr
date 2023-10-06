@@ -169,90 +169,6 @@ time_interval <- function(from, to){
   }
   out
 }
-# Calculates greatest common divisor of
-# rolling time difference, taking into account
-# time type
-####### GROUPED TIME DIFF GCD
-####### IN PROGRESS
-# time_diff_gcd2 <- function(x, g = NULL, use.g.names = TRUE,
-#                           time_type = c("auto", "duration", "period"),
-#                           is_sorted = FALSE,
-#                           tol = sqrt(.Machine$double.eps)){
-#   if (!is.null(g)){
-#     g <- GRP2(g)
-#     check_data_GRP_size(x, g)
-#   }
-#   x <- gunique(unname(x), g = g, sort = TRUE, use.g.names = TRUE)
-#   # g <- collapse::group(names(x), starts = TRUE, group.sizes = TRUE)
-#   is_na <- is.na(x)
-#   x <- x[!is_na]
-#   # g <- g[!is_na]
-#   if (length(x) == 0L){
-#     gcd_diff <- numeric(0)
-#   } else if (length(x) == 1L){
-#     gcd_diff <- 1
-#   } else {
-#     if (is_date(x)){
-#       tby <- "days"
-#     } else if (is_datetime(x)){
-#       tby <- "seconds"
-#     } else {
-#       tby <- 1
-#     }
-#     tdiff <- time_elapsed(x, rolling = TRUE,
-#                           g = g,
-#                           time_by = tby,
-#                           time_type = time_type,
-#                           fill = 1,
-#                           na_skip = FALSE)
-#     names(tdiff) <- names(x)
-#     log10_tol <- floor(abs(log10(tol)))
-#     # g <- g[-1L]
-#     tdiff <- round(abs(tdiff[-1L]), digits = log10_tol)
-#     # g <- g[double_gt(tdiff, 0)]
-#     tdiff <- tdiff[double_gt(tdiff, 0)]
-#     # group_starts <- attr(g, "starts")
-#     # group_sizes <- attr(g, "group.sizes")
-#     # group_ends <- group_starts + group_sizes - 1L
-#     # group_ends <- pmax(group_ends, 0L)
-#     #
-#     # for (i in seq_along(group_starts)){
-#     #
-#     # }
-#     gcd_diff <- vapply(collapse::gsplit(tdiff, g = names(tdiff)),
-#                        collapse::vgcd, numeric(1))
-#   }
-#   gcd_diff
-# }
-# Calculates time granularity with numeric tolerance
-# time_diff_gcd <- function(x, is_sorted = FALSE,
-#                           tol = sqrt(.Machine$double.eps)){
-#   x <- as.double(x)
-#   x <- collapse::funique(x, sort = !is_sorted)
-#   N <- length(x)
-#   x <- x[!is.na(x)]
-#   if (N == 0L){
-#     gcd_diff <- numeric(0)
-#   } else if (N < 2){
-#     gcd_diff <- 1
-#   } else {
-#     y_diff <- collapse::fdiff(x,
-#                               n = 1, diff = 1, g = NULL,
-#                               fill = NA, log = FALSE, rho = 1,
-#                               stubs = FALSE)
-#     log10_tol <- floor(abs(log10(tol)))
-#     y_diff <- round(abs(y_diff[-1L]), digits = log10_tol)
-#     y_diff <- collapse::funique(y_diff, sort = FALSE)
-#     y_diff <- y_diff[double_gt(y_diff, 0)]
-#     if (length(y_diff) == 0L){
-#       gcd_diff <- 10^(-log10_tol)
-#     } else {
-#       gcd_diff <- collapse::vgcd(y_diff)
-#     }
-#     # gcd_diff <- Reduce(gcd, y_diff)
-#   }
-#   gcd_diff
-# }
 time_granularity <- function(x, is_sorted = FALSE, msg = TRUE){
   gcd_diff <- time_diff_gcd(x, is_sorted = is_sorted)
   if (is_date(x)){
@@ -657,18 +573,16 @@ time_unit <- function(units, time_type = c("duration", "period", "numeric")){
 # Coerce pair of dates/datetimes to the most informative
 # class between them
 set_time_cast <- function(x, y){
-  if (!isTRUE(class(x) == class(y))){
-    if (is_date(x) && is_datetime(y)){
-      x_nm <- deparse(substitute(x))
-      assign(x_nm, lubridate::with_tz(x, tzone = lubridate::tz(y)),
-             envir = parent.frame(n = 1))
+  if (is_date(x) && is_datetime(y)){
+    x_nm <- simple_deparse(substitute(x))
+    assign(x_nm, lubridate::with_tz(x, tzone = lubridate::tz(y)),
+           envir = parent.frame(n = 1))
 
-    }
-    if (is_date(y) && is_datetime(x)){
-      y_nm <- deparse(substitute(y))
-      assign(y_nm, lubridate::with_tz(y, tzone = lubridate::tz(x)),
-             envir = parent.frame(n = 1))
-    }
+  }
+  if (is_date(y) && is_datetime(x)){
+    y_nm <- simple_deparse(substitute(y))
+    assign(y_nm, lubridate::with_tz(y, tzone = lubridate::tz(x)),
+           envir = parent.frame(n = 1))
   }
 }
 
@@ -903,7 +817,7 @@ is_interval <- function(x){
 # Convert time sequence to interval
 tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
   n <- length(x)
-  out <- time_interval(seq, flag2(seq, n = max(-1L, -n), g = gseq))
+  out <- time_interval(seq, flag2(seq, n = -1, g = gseq))
   to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
   end_points <- which(is.na(out) & !is.na(seq))
   out[end_points] <- time_interval(seq[end_points], to)
@@ -1094,11 +1008,6 @@ int_is_na <- function(x){
   X <- interval_separate(x)
   # is.na(.subset2(X, 1L)) & is.na(.subset2(X, 2L))
   is.na(X[[1L]]) & is.na(X[[2L]])
-}
-check_is_time_or_num <- function(x){
-  if (!is_time_or_num(x)){
-    stop("x must be a date, datetime, or numeric vector")
-  }
 }
 time_as_number <- function(x){
   strip_attrs(unclass(x))
@@ -1381,7 +1290,28 @@ time_aggregate_switch <- function(x, time_by, time_type,
 }
 check_is_date <- function(x){
   if (!is_date(x)){
-    stop("x must be a date")
+    stop(paste(deparse1(substitute(x)),
+               "must be a date"))
+  }
+}
+check_is_datetime <- function(x){
+  if (!is_datetime(x)){
+    stop(paste(deparse1(substitute(x)),
+               "must be a datetime"))
+  }
+}
+check_is_time <- function(x){
+  if (!is_time(x)){
+    # Alternative and better way for future errors.
+    # cli::cli_abort("{.x {x}} must be a date or datetime")
+    stop(paste(deparse1(substitute(x)),
+                "must be a date or datetime"))
+  }
+}
+check_is_time_or_num <- function(x){
+  if (!is_time_or_num(x)){
+    stop(paste(deparse1(substitute(x)),
+               "must be a date, datetime, or numeric vector"))
   }
 }
 # Turn date storage into integer

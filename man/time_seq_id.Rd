@@ -65,7 +65,7 @@ the time expansion when days, weeks, months or years are specified,
 and \code{durations} are used otherwise.}
 }
 \value{
-An integer vector, starting
+An integer vector of \code{length(x)}.
 }
 \description{
 A unique identifier is created every time a specified amount of

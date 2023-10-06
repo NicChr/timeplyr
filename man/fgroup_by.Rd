@@ -34,6 +34,9 @@ If speed is an expensive resource, it is recommended to use this.}
 
 \item{.drop}{Should unused factor levels be dropped? Default is \code{TRUE}.}
 }
+\value{
+A \code{grouped_df}.
+}
 \description{
 This works the exact same as \code{dplyr::group_by()} and typically
 performs around the same speed but uses slightly less memory.

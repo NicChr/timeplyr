@@ -20,6 +20,9 @@ a named character vector or numeric vector. \cr
 No checks on duplicates column names are done when using \code{.cols}. \cr
 If speed is an expensive resource, it is recommended to use this.}
 }
+\value{
+A \code{data.frame} of selected columns.
+}
 \description{
 \code{fselect()} operates the exact same way as \code{dplyr::select()} and
 can be used naturally with \code{tidyselect} helpers.

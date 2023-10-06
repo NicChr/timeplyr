@@ -45,6 +45,9 @@ month or year arithmetic is involved.}
 If "l2r" (the default), then the minimum time is used as the
 reference time, otherwise the maximum time is used.}
 }
+\value{
+A time aggregated vector the same class and length as \code{x}.
+}
 \description{
 Aggregate time to a higher unit for possibly many groups
 with respect to a time index.
@@ -52,13 +55,17 @@ with respect to a time index.
 \details{
 \code{time_aggregate} aggregates time using
 distinct moving time range blocks of a specified time unit.
-If for example \code{time_by = "week"}then all dates or datetimes
+
+The actual calculation is extremely simple and essentially requires
+a subtraction, a rounding and an addition.
+
+If for example \code{time_by = "week"} then all dates or datetimes
 will be shifted backwards (or forwards if direction is "r2l") to the
 nearest start of the week, where the start of week is based on \code{min(x)}.
 This is identical to building a weekly sequence and using this as
 breakpoints to cut \code{x}. No time expansion occurs so this is very efficient
 except when \code{periods} are used and there is a lot of data.
-In this case, provided the expension is not too big,
+In this case, provided the expansion is not too big,
 it may be more efficient to cut the data using the period sequence which can
 be achieved using \code{time_summarisev}.
 }

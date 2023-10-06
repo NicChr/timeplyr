@@ -53,6 +53,8 @@
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
 #' @param log_limit The maximum log10 number of rows that can be expanded.
 #' Anything exceeding this will throw an error.
+#' @returns
+#' A `data.frame` of expanded time by or across groups.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)

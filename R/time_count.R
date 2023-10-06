@@ -3,36 +3,7 @@
 #'
 #' @description This function operates like `dplyr::count()`
 #' but with emphasis on
-#' a specified time variable. This creates an
-#' aggregated frequency time series where
-#' implicit missing gaps in time are filled are
-#' expanded and further aggregated to
-#' both lower and higher levels of time.
-#' It is conceptually a wrapper around `count()` and `complete()`,
-#' but uses data.table for data frame handling,
-#' collapse for grouping calculations,
-#' as well as lubridate and timechange for the time sequence calculations. \cr
-#'
-#' An important note is that when the data are grouped, time ranges are expanded
-#' on a group-by-group basis. This works like dplyr where you can supply either a
-#' grouped_df or specify the groupings through `.by`.
-#' When groups are supplied through
-#' `...`, the time range of the entire data is used for
-#' the expansion of each group.
-#' Depending on the analysis, this may or may not be what you want
-#' and can sometimes result in huge expansions,
-#' so generally it is recommended to
-#' use a grouped_df or supply the additional groups through .`by`.
-#'
-#' Another important note is that when working with
-#' many groups (>= 500k), period calculations
-#' may be slow and so duration calculations are recommended in this case.
-#' Numeric/duration expansions are
-#' internally vectorised so can easily handle many groups.
-#'
-#' If `complete = TRUE` then the gaps in the time are expanded.
-#' If `by` is supplied, then the time series is aggregated
-#' to this specified level.
+#' a specified time variable.
 #'
 #' @param data A data frame.
 #' @param time Time variable.
@@ -85,24 +56,33 @@
 #' a column "interval" of the form `time_min <= x < time_max` is added
 #' showing the time interval in which the respective counts belong to.
 #' The rightmost interval will always be closed.
-#' @return An object of class `data.frame`
+#' @returns
+#' An object of class `data.frame`
 #' containing the input time variable
 #' which is expanded for each supplied group.
-#' When a grouped_df, or the .by argument is supplied, time expansions are done on a
-#' group-by-group basis.
 #'
-#' The `time_by` argument controls the level at which the
-#' time variable is expanded/aggregated.
-#' If it is set to "1 month", then a seq of months is created, using the
-#' `from` and `to` arguments, and every date/datetime is matched to the appropriate
-#' intervals within that sequence.
-#' Once they are matched, they are aggregated to the month
-#' level.
+#' @details
+#' `time_count` Creates an
+#' aggregated frequency time series where time
+#' can be aggregated to
+#' both lower and higher time units.
 #'
-#' To avoid time expansion, simply set `complete = FALSE`,
-#' which will simply perform a count across your time variable and specified groups.
-#' The time aggregation through `time_by` works even when
-#' `complete = FALSE` and even when `time_by` is more granular than the data.
+#' An important note is that when the data are grouped, time ranges are expanded
+#' on a group-by-group basis. This works like dplyr where you can supply either a
+#' grouped_df or specify the groupings through `.by`.
+#' When groups are supplied through
+#' `...`, the time range of the entire data is used for
+#' the expansion of each group.
+#' Depending on the analysis, this may or may not be what you want
+#' and can sometimes result in huge expansions if dealing with time variables
+#' with large span sizes.
+#'
+#' If `complete = TRUE` then the gaps in the time are expanded.
+#'
+#' To avoid filling in missing gaps in time, as well as possible expansion,
+#' simply set `complete = FALSE`
+#' which will simply perform a count
+#' across your aggregated time variable and specified groups.
 #'
 #' @examples
 #' library(timeplyr)
@@ -165,7 +145,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
   group_vars <-  group_info[["dplyr_groups"]]
   extra_group_vars <- group_info[["extra_groups"]]
   all_group_vars <- group_info[["all_groups"]]
-  N <- nrow2(ts_data)
+  N <- df_nrow(ts_data)
   if (length(time_var) > 0){
     ts_data <- as_DT(ts_data)
     # Add variable to keep track of group IDs
@@ -180,7 +160,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                                                to = to_var,
                                                .by = all_of(grp_nm))]
     start_end_tbl <- fdistinct(ts_data, .cols = c(grp_nm, from_nm, to_nm))
-    if (!isTRUE(nrow2(start_end_tbl) == n_groups)){
+    if (!isTRUE(df_nrow(start_end_tbl) == n_groups)){
       warning("Multiple start-end values detected.
               Please supply one pair per group",
               immediate. = TRUE)

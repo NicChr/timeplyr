@@ -49,6 +49,9 @@ equivalents, \code{fsum()}, \code{fmean()}, \code{fmin()}, \code{fmax()},
 \code{fsd()}, \code{fvar()}, \code{fmode()}, \code{fmedian()}, \code{ffirst()}, \code{flast()} and
 \code{fnobs()}}
 }
+\value{
+A vector the same length as \code{x}.
+}
 \description{
 These functions are wrappers around the collapse equivalents
 but always return a vector the same length and same order as x.\cr

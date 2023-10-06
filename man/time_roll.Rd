@@ -151,6 +151,9 @@ rate calculation. See \bold{details} for more info.}
 \item{unlist}{Should the output of \code{time_roll_apply} be unlisted with
 \code{unlist}? Default is \code{FALSE}.}
 }
+\value{
+A vector the same length as \code{time}.
+}
 \description{
 \code{time_roll_sum} and \code{time_roll_mean} are efficient
 methods for calculating a rolling sum and mean respectively given
@@ -159,7 +162,7 @@ It is always aligned "right". \cr
 \code{time_roll_window} splits \code{x} into windows based on the index. \cr
 \code{time_roll_window_size} returns the window sizes for all indices of \code{x}. \cr
 \code{time_roll_apply} is a generic function that applies any function
-on a rolling basis with respect to a time index.
+on a rolling basis with respect to a time index. \cr
 
 \code{time_roll_growth_rate} can efficiently calculate by-group
 rolling growth rates with respect to a date/datetime index.

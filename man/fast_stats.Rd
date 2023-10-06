@@ -2,18 +2,21 @@
 % Please edit documentation in R/fast_stats.R
 \name{fn}
 \alias{fn}
+\alias{fcummean}
 \alias{fnmiss}
 \alias{fprop_complete}
-\alias{fcummean}
+\alias{fprop_missing}
 \title{Supplementary fast statistical functions, \code{collapse} style}
 \usage{
 fn(x, g = NULL, sort = TRUE, expand = FALSE, use.g.names = !expand)
 
-fnmiss(x, ...)
-
-fprop_complete(x, ...)
-
 fcummean(x, g = NULL, na.rm = FALSE, ...)
+
+fnmiss(x, g = NULL, sort = TRUE, use.g.names = TRUE, na.rm = FALSE)
+
+fprop_complete(x, g = NULL, sort = TRUE, use.g.names = TRUE, na.rm = FALSE)
+
+fprop_missing(x, g = NULL, sort = TRUE, use.g.names = TRUE)
 }
 \arguments{
 \item{x}{A vector or data frame.
@@ -34,9 +37,9 @@ and order of the data? Default is \code{FALSE}.}
 \item{use.g.names}{If \code{TRUE} group names are added to the result as names.
 This only applies to \code{fn()}. Default is \code{TRUE}.}
 
-\item{...}{Additional parameters passed to \code{collapse::fsum()}.}
-
 \item{na.rm}{Should \code{NA} values be removed? Default is \code{FALSE}.}
+
+\item{...}{Additional parameters passed to \code{collapse::fsum()}.}
 }
 \description{
 Supplementary fast statistical functions, \code{collapse} style

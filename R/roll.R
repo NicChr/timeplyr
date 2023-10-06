@@ -178,10 +178,12 @@ roll_harmonic_mean <- function(x, window = Inf, g = NULL, partial = TRUE,
 #' @rdname roll_sum
 #' @export
 roll_apply <- function(x, fun, before = 0L, after = 0L,
-                       g = NULL){
-                       # partial = TRUE){
-  check_before(before)
-  check_after(after)
+                       g = NULL, partial = TRUE){
+  check_is_num(before)
+  check_is_num(after)
+  check_length(before, 1L)
+  check_length(after, 1L)
+  stopifnot(is.function(fun))
   sorted_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
   group_sizes <- fpluck(sorted_info, "group_sizes")
   x <- fpluck(sorted_info, "x")
@@ -189,7 +191,12 @@ roll_apply <- function(x, fun, before = 0L, after = 0L,
   after_seq <- after_sequence(group_sizes, k = after)
   x_size <- length(x)
   out <- vector("list", x_size)
-  for (i in seq_len(x_size)){
+  if (partial){
+    ind <- seq_len(x_size)
+  } else {
+    ind <- which((before_seq + after_seq) == (before + after))
+  }
+  for (i in ind){
     start <- i - .subset(before_seq, i)
     end <- .subset(after_seq, i) + i
     out[[i]] <- fun(x[start:end])

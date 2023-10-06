@@ -44,7 +44,7 @@ the time expansion when days, weeks, months or years are specified,
 and \code{durations} are used otherwise.}
 }
 \value{
-An integer vector.
+An integer vector the same length as \code{x}.
 }
 \description{
 Generate a time ID that signifies how many time steps away

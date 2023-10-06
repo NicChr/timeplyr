@@ -82,9 +82,7 @@
 #'
 #' @rdname growth_rate
 #' @export
-growth_rate <- function(x,
-                        na.rm = FALSE, log = FALSE,
-                        inf_fill = NULL){
+growth_rate <- function(x, na.rm = FALSE, log = FALSE, inf_fill = NULL){
   if (na.rm){
     x <- collapse::na_rm(x)
   }
@@ -150,44 +148,3 @@ roll_growth_rate <- function(x, window = Inf,
   }
   gr
 }
-# Working fast function that accepts a window arg of length 1
-# roll_growth_rate2 <- function(x, window = length(x),
-#                              partial = TRUE,
-#                              na.rm = FALSE,
-#                              log = FALSE,
-#                              inf_fill = NULL){
-#   x_len <- length(x)
-#   window_len <- length(window)
-#   if (window_len != 1L){
-#     stop("window must be of length 1")
-#   }
-#   window <- as.integer(window)
-#   window <- max(1L, window)
-#   window <- min(x_len, window)
-#   lag <- max(0L, window - 1L)
-#   x_lagged <- collapse::flag(x, n = lag)
-#   if (partial){
-#     x_lagged[seq_len(window)] <- x[min(length(x), 1L)]
-#     window <- window_sequence(x_len, k = window,
-#                               partial = TRUE, ascending = TRUE)
-#   }
-#   if (na.rm){
-#     window <- data.table::frollsum(!is.na(x), n = window,
-#                                    adaptive = partial,
-#                                    algo = "fast",
-#                                    align = "right")
-#   }
-#   if (log){
-#     window_denom <- (window - 1L)
-#     gr <- exp(( log(x) - log(x_lagged) ) / window_denom)
-#     gr[which(window_denom == 0L)] <- 1
-#   } else {
-#     gr <- ( (x / x_lagged) ^ (1 / (window - 1L)) )
-#     gr[which(x == 0 & x_lagged == 0)] <- 1
-#   }
-#   if (!is.null(inf_fill)){
-#     # Any growth change from 0 is replaced with inf_fill
-#     gr[is.infinite(gr)] <- inf_fill
-#   }
-#   gr
-# }

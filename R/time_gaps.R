@@ -21,7 +21,7 @@
 #' This can for example be a vector or data frame.
 #' @param use.g.names Should the result include group names?
 #' Default is `TRUE`.
-#' @param na.rm Should `NA` values be removed? Default is `TRUE`.
+#' @param na.rm (Currently unused) Should `NA` values be removed? Default is `TRUE`.
 #' @param check_time_regular Should the time vector be
 #' checked to see if it is regular (with or without gaps)?
 #' Default is `FALSE`.
@@ -30,7 +30,10 @@
 #' `time_is_regular`, which checks that the time elapsed between successive
 #' values are in increasing order and are whole numbers.
 #' For more strict checks, see `?time_is_regular`.
-#'
+#' @returns
+#' `time_gaps` returns a vector of time gaps. \cr
+#' `time_num_gaps` returns the number of time gaps. \cr
+#' `time_has_gaps` returns a logical(1) of whether there are gaps.
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -73,21 +76,11 @@ time_gaps <- function(x, time_by = NULL,
   time_tbl <- fenframe(x,
                        name = "group",
                        value = "time")
-  # num_na <- fnmiss(x, g = g, TRA = "replace_fill")
   time_not_na <- !is.na(time_tbl[["time"]])
   time_tbl <- df_row_slice(time_tbl, time_not_na)
   time_full_tbl <- fenframe(time_seq,
                             name = "group",
                             value = "time")
-  # if (!is.null(time_by) && check_time_regular){
-  #   if (nrow2(
-  #     dplyr::anti_join(time_tbl,
-  #                      time_full_tbl,
-  #                      by = names(time_tbl))
-  #   ) > 0L){
-  #     stop("x is not regular given the chosen time unit")
-  #   }
-  # }
   out_tbl <- dplyr::anti_join(time_full_tbl,
                               time_tbl,
                               by = names(time_tbl))
@@ -104,7 +97,7 @@ time_num_gaps <- function(x, time_by = NULL,
                           time_type = c("auto", "duration", "period"),
                           check_time_regular = FALSE){
   check_is_time_or_num(x)
-  time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
+  time_type <- match_time_type(time_type)
   if (length(x) == 0L){
     return(0L)
   }
@@ -125,7 +118,7 @@ time_num_gaps <- function(x, time_by = NULL,
   #                                 end,
   #                                 time_by = tby,
   #                                 time_type = time_type)
-  n_unique <- collapse::fndistinct(x, g = g, na.rm = na.rm, use.g.names = FALSE)
+  n_unique <- collapse::fndistinct(x, g = g, use.g.names = FALSE)
   full_seq_size <- time_span_size(x, time_by = tby,
                                   time_type = time_type,
                                   g = g, use.g.names = FALSE)

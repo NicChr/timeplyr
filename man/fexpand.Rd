@@ -54,6 +54,9 @@ Anything exceeding this will throw an error.}
 \item{fill}{A named list containing value-name pairs
 to fill the named implicit missing values.}
 }
+\value{
+A \code{data.frame} of expanded groups.
+}
 \description{
 For un-grouped data \code{fexpand()} is similar in speed to \code{tidyr::expand()}.
 When the data contain many groups, \code{fexpand()} is much much faster (see examples).

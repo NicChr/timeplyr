@@ -15,6 +15,9 @@ This may be a vector or data frame for example.}
 \item{fill_limit}{(Optional) maximum number of consecutive NAs to fill
 per \code{NA} cluster.}
 }
+\value{
+A filled vector of \code{x} the same length as \code{x}.
+}
 \description{
 A fast by-group method for
 "last-observation-carried-forward" \code{NA} filling.

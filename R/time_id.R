@@ -28,7 +28,8 @@
 #' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations` are used otherwise.
-#' @return An integer vector.
+#' @returns
+#' An integer vector the same length as `x`.
 #' @details
 #' This is heavily inspired by `collapse::timeid` but differs in 3 ways:
 #' * The time steps need not be the greatest common divisor of successive

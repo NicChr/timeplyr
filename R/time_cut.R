@@ -50,6 +50,10 @@
 #' Options are "preday", "boundary", "postday", "full" and "NA".
 #' See `?timechange::time_add` for more details.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
+#' @returns
+#' `time_breaks` returns a vector of breaks. \cr
+#' `time_cut` returns either a `factor` or a vector the same class as `x`.
+#' In both cases it is the same length as `x`.
 #' @examples
 #' library(timeplyr)
 #' library(lubridate)
@@ -107,7 +111,7 @@ time_cut <- function(x, n = 5, time_by = NULL,
   to <- bound_to(to, x)
   out <- cut_time(x,
                   breaks = c(time_as_number(time_breaks),
-                             time_as_number(to) + 1),
+                             time_as_number(to)),
                   codes = TRUE)
   if (as_factor){
     time_labels <- tseq_levels(x = to, time_breaks, fmt = fmt)
@@ -129,7 +133,7 @@ time_breaks <- function(x, n = 5, time_by = NULL,
   check_is_time_or_num(x)
   check_is_num(n)
   stopifnot(n >= 1)
-  check_length_one(n)
+  check_length(n, 1L)
   time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
   from <- bound_from(from, x)
   to <- bound_to(to, x)

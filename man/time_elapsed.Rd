@@ -46,6 +46,9 @@ the first elapsed time. The default is \code{NA}.}
 
 \item{na_skip}{Should \code{NA} values be skipped? Default is \code{TRUE}.}
 }
+\value{
+A numeric vector the same length as \code{x}.
+}
 \description{
 Calculate how much time has passed
 on a rolling or fixed cumulative basis. \cr
@@ -63,6 +66,10 @@ When \code{na_skip} is \code{TRUE} and \code{rolling} is \code{FALSE}, time diff
 the current value and the first non-NA value of the series are calculated.
 For example,
 \code{c(NA, NA, 3, 4, 6, NA, 8)} becomes \code{c(NA, NA, 0, 1, 3, NA, 5)}.
+
+\code{roll_time_diff} is a more bare-bones ungrouped version of
+\code{time_elapsed} which operates like base R's \code{diff} function and allows
+lagged time differences.
 }
 \examples{
 library(timeplyr)

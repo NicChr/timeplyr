@@ -57,6 +57,7 @@
 #' If `FALSE`, which is sometimes faster, a `data.table` is returned.
 #' @param log_limit The maximum log10 number of rows that can be expanded.
 #' Anything exceeding this will throw an error.
+#' @returns A `data.frame` of expanded groups.
 #'
 #' @examples
 #' library(timeplyr)

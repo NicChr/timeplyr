@@ -98,6 +98,12 @@ for example age in exact years or months.}
 
 \item{sizes}{Time sequence sizes.}
 }
+\value{
+\code{time_seq} returns a time sequence. \cr
+\code{time_seq_sizes} returns an integer vector of sequence sizes. \cr
+\code{time_seq_v} returns time sequences. \cr
+\code{time_seq_v2} also returns time sequences.
+}
 \description{
 Time based version of \code{base::seq()}
 }

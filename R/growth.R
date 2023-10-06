@@ -25,7 +25,8 @@
 #' @param log If `TRUE` Growth (relative change) in total and mean events will be
 #'  calculated on the log-scale.
 #' @param ... Further arguments to be passed on to `frollmean`.
-#'
+#' @return `growth` returns a `numeric(1)` and `rolling_growth`
+#' returns a `numeric(length(x))`.
 #' @examples
 #' library(timeplyr)
 #' set.seed(42)

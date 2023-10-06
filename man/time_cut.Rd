@@ -85,6 +85,11 @@ See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
 }
+\value{
+\code{time_breaks} returns a vector of breaks. \cr
+\code{time_cut} returns either a \code{factor} or a vector the same class as \code{x}.
+In both cases it is the same length as \code{x}.
+}
 \description{
 \code{time_cut()} is very useful for plotting with dates and datetimes
 and always returns breaks of regular width. \cr

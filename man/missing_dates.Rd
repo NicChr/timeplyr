@@ -3,18 +3,18 @@
 \name{missing_dates}
 \alias{missing_dates}
 \alias{n_missing_dates}
-\title{Check for missing dates}
+\title{Check for missing dates between first and last date}
 \usage{
-missing_dates(x, na.rm = TRUE)
+missing_dates(x)
 
-n_missing_dates(x, na.rm = TRUE)
+n_missing_dates(x)
 }
 \arguments{
-\item{x}{A date or datetime vector, list, or data frame.}
-
-\item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
+\item{x}{A date or datetime vector, or a data frame.}
+}
+\value{
+A date vector if x is a vector, or a list if x is a \code{data.frame}.
 }
 \description{
-\code{missing_dates()} returns missing dates between
-the first and last date of a date/datetime vector.
+Check for missing dates between first and last date
 }

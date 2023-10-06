@@ -19,6 +19,9 @@ lag_seq(x, lag = 1L)
 The default is \code{TRUE} but
 you can set this to \code{FALSE} if you need this to be speed-performant.}
 }
+\value{
+A lagged vector of \code{x} the same length as \code{x}.
+}
 \description{
 An efficient rolling lag.
 
@@ -27,5 +30,6 @@ An efficient rolling lag.
 \details{
 This function is simple and fast. It should generally be equivalent
 to
-\code{diag(matrix(unlist(data.table::shift(x, lag)), ncol = length(x)))}.
+\code{diag(matrix(unlist(data.table::shift(x, lag)), ncol = length(x)))}. \cr
+where \code{length(lag) = length(x)}.
 }

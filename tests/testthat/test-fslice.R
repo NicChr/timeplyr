@@ -520,12 +520,39 @@ testthat::test_that("fslice_max", {
                            dplyr::arrange(id))
 })
 
-testthat::test_that("Additional seed test", {
+testthat::test_that("Additional seed tests", {
   # The seed = 42 part should be set locally and original
   # global seed should be restored
   set.seed(42)
   ok <- fslice_sample(iris, seed = 42)
   ok2 <- dplyr::slice_sample(iris, n = nrow(iris))
   testthat::expect_identical(ok, ok2)
+
+
+  # Let's ensure seed continuity..
+
+  set.seed(600)
+  x <- rnorm(100)
+
+  set.seed(600)
+  y <- rnorm(50)
+  fslice_sample(iris, seed = 11230)
+  testthat::expect_equal(x, c(y, rnorm(50)))
+
+  set.seed(600)
+  y <- rnorm(50)
+  fslice_sample(iris, seed = 600)
+  testthat::expect_equal(x, c(y, rnorm(50)))
+
+  # If we DONT set a local seed, seed continuity SHOULDNT be kept.
+  # As one would expect
+  set.seed(600)
+  y <- rnorm(50)
+  fslice_sample(iris)
+  testthat::expect_true(!isTRUE(all.equal(x, c(y, rnorm(50)))))
+
+  current_seed <- .Random.seed
+  fslice_sample(iris, seed = 99)
+  testthat::expect_identical(current_seed, .Random.seed)
 })
 

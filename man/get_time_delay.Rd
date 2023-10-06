@@ -57,7 +57,7 @@ Columns are specified using tidy-select.}
 \item{x_scales}{Option to control how the x-axis is displayed for multiple facets.
 Choices are "fixed" or "free_x".}
 
-\item{bw}{The smoothing bandwidth selector for the Kernal Density estimator.
+\item{bw}{The smoothing bandwidth selector for the Kernel Density estimator.
 If numeric, the standard deviation of the smoothing kernel.
 If character, a rule to choose the bandwidth. See \code{?stats::bw.nrd} for more details.
 The default has been set to "SJ" which implements the Sheather & Jones (1991) method,
@@ -66,6 +66,9 @@ This differs from the default implemented by \code{stats::density()}
 which uses Silverman's rule-of-thumb.}
 
 \item{...}{Further arguments to be passed on to \code{ggplot2::geom_density()}.}
+}
+\value{
+A list containing summary data, summary statistics and an optional \code{ggplot}.
 }
 \description{
 The output is a \code{list} containing summary statistics of time delay between two date/datetime vectors.

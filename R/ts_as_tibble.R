@@ -12,10 +12,11 @@
 #' @param value Name of the output value column.
 #' @param group Name of the output group column
 #' when there are multiple series.
-#' @return A 2-column `tibble` containing the time index and values for each
+#' @returns
+#' A 2-column `tibble` containing the time index and values for each
 #' time index. In the case where there are multiple series, this becomes
 #' a 3-column `tibble` with an additional "group" column added.
-#' @seealso \link[timeplyr]{time_ggplot}
+#' @seealso [time_ggplot]
 #' @examples
 #' library(timeplyr)
 #' library(ggplot2)
