@@ -570,19 +570,26 @@ time_unit <- function(units, time_type = c("duration", "period", "numeric")){
     period_unit(units)
   }
 }
-# Coerce pair of dates/datetimes to the most informative
+# Coerce pair of time based vectors to the most informative
 # class between them
 set_time_cast <- function(x, y){
-  if (is_date(x) && is_datetime(y)){
-    x_nm <- simple_deparse(substitute(x))
-    assign(x_nm, lubridate::with_tz(x, tzone = lubridate::tz(y)),
-           envir = parent.frame(n = 1))
-
+  if (identical(parent.frame(n = 1), globalenv())){
+    stop("Users cannot use set_time_cast from the global environment")
   }
-  if (is_date(y) && is_datetime(x)){
+  xcl <- class(x)
+  ycl <- class(y)
+  # We time cast when either:
+  # * length  of classes differ
+  # * class values differ
+  # We do the length check first to avoid length recycling messages
+  if (
+    ( length(xcl) != length(ycl) ) ||
+    ( sum(xcl != ycl) > 0 )
+  ){
+    x_nm <- simple_deparse(substitute(x))
     y_nm <- simple_deparse(substitute(y))
-    assign(y_nm, lubridate::with_tz(y, tzone = lubridate::tz(x)),
-           envir = parent.frame(n = 1))
+    assign(x_nm, time_cast(x, y), envir = parent.frame(n = 1))
+    assign(y_nm, time_cast(y, x), envir = parent.frame(n = 1))
   }
 }
 
@@ -698,20 +705,20 @@ cut_time <- function(x, breaks, include_oob = FALSE, codes = FALSE){
     breaks[out]
   }
 }
-cut_time_intervals <- function(x, breaks, codes = FALSE, end = NULL){
-  x <- unclass(x)
-  breaks_num <- unclass(breaks)
-  end <- unclass(end) + 0
-  breaks_num <- c(breaks_num, end)
-  out <- findInterval(x, breaks_num, rightmost.closed = TRUE)
-  # n_breaks <- length(breaks_num)
-  # collapse::setv(out, n_breaks, NA_integer_, vind1 = FALSE)
-  if (codes){
-    out
-  } else {
-    breaks[out]
-  }
-}
+# cut_time_intervals <- function(x, breaks, codes = FALSE, end = NULL){
+#   x <- unclass(x)
+#   breaks_num <- unclass(breaks)
+#   end <- unclass(end) + 0
+#   breaks_num <- c(breaks_num, end)
+#   out <- findInterval(x, breaks_num, rightmost.closed = TRUE)
+#   # n_breaks <- length(breaks_num)
+#   # collapse::setv(out, n_breaks, NA_integer_, vind1 = FALSE)
+#   if (codes){
+#     out
+#   } else {
+#     breaks[out]
+#   }
+# }
 is_date_or_utc <- function(x){
   is_date(x) || lubridate::tz(x) == "UTC"
 }
@@ -893,6 +900,8 @@ get_from_to <- function(data, ..., time, from = NULL, to = NULL,
   list(.from = .from,
        .to = .to)
 }
+# Taken from timechange to be used in a tight period sequence loop
+# All credits go to the authors of timechange
 C_time_add <- getFromNamespace("C_time_add", "timechange")
 time_add2 <- function(x, time_by,
                       time_type = c("auto", "duration", "period"),
@@ -1056,6 +1065,7 @@ time_aggregate_left <- function(x, time_by, g = NULL,
     int_end <- time_add2(out, time_by = time_by, time_type = time_type,
                          roll_month = roll_month, roll_dst = roll_dst)
     set_time_cast(out, int_end)
+    end <- time_cast(end, out)
     which_out_of_bounds <- which(double_gt(time_as_number(int_end),
                                            time_as_number(end)))
     int_end[which_out_of_bounds] <- end[which_out_of_bounds]
@@ -1109,6 +1119,7 @@ time_aggregate_right <- function(x, time_by, g = NULL,
     int_end <- time_add2(out, time_by = time_by, time_type = time_type,
                          roll_month = roll_month, roll_dst = roll_dst)
     set_time_cast(out, int_end)
+    start <- time_cast(start, out)
     which_out_of_bounds <- which(double_lt(time_as_number(int_end),
                                            time_as_number(start)))
     int_end[which_out_of_bounds] <- start[which_out_of_bounds]
@@ -1208,6 +1219,7 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
     int_end <- time_add2(out, time_by = time_by, time_type = time_type,
                          roll_month = roll_month, roll_dst = roll_dst)
     set_time_cast(out, int_end)
+    end <- time_cast(end, out)
     which_out_of_bounds <- which(double_gt(time_as_number(int_end),
                                            time_as_number(end)))
     int_end[which_out_of_bounds] <- end[which_out_of_bounds]

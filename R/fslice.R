@@ -296,6 +296,11 @@ fslice_sample <- function(data, ..., n, prop,
   if (!seed_is_null){
     set.seed(seed)
   }
+  if (seed_exists && !seed_is_null){
+    on.exit({ assign(".Random.seed", old, envir = globalenv())})
+  } else if (!seed_is_null){
+    on.exit({remove(".Random.seed", envir = globalenv())})
+  }
   for (i in seq_along(rows)){
     rows[[i]] <- sample.int(.subset2(group_sizes, i),
                             size = .subset2(slice_sizes, i),
@@ -313,11 +318,6 @@ fslice_sample <- function(data, ..., n, prop,
   }
   if (keep_order){
     i <- conditional_sort(i)
-  }
-  if (seed_exists && !seed_is_null){
-    on.exit(assign(".Random.seed", old, envir = globalenv()))
-  } else if (!seed_is_null){
-    on.exit(remove(".Random.seed", envir = globalenv()))
   }
   df_row_slice(data, i)
 }

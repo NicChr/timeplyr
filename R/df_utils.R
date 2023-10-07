@@ -271,6 +271,10 @@ list_to_data_frame <- function(x){
 #   x
 # }
 # Create new df with no name checks or length checks
+# The only thing new_df can't do is create
+# A (n > 0) x 0 data frame.
+# But internally there's usually no need to do that and
+# if there is, one can just use data.frame or tibble
 new_df <- function(...){
   out <- list3(...)
   if (length(out) == 0L){

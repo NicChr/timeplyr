@@ -988,46 +988,46 @@ double_lte <- function(x, y, tol = sqrt(.Machine$double.eps)){
 # `%~<=%` <- double_lte
 # `%~>%` <- double_gt
 # `%~<%` <- double_lt
-any_lt <- function(x, value, tol = sqrt(.Machine$double.eps)){
-  stopifnot(inherits(x, c("integer", "numeric")))
-  if (is.integer(x)){
-    any_int_lt(x, value)
-  } else {
-    any_num_lt(x, value, tol)
-  }
-}
-any_lte <- function(x, value, tol = sqrt(.Machine$double.eps)){
-  stopifnot(inherits(x, c("integer", "numeric")))
-  if (is.integer(x)){
-    any_int_lte(x, value)
-  } else {
-    any_num_lte(x, value, tol)
-  }
-}
-any_gt <- function(x, value, tol = sqrt(.Machine$double.eps)){
-  stopifnot(inherits(x, c("integer", "numeric")))
-  if (is.integer(x)){
-    any_int_gt(x, value)
-  } else {
-    any_num_gt(x, value, tol)
-  }
-}
-any_gte <- function(x, value, tol = sqrt(.Machine$double.eps)){
-  stopifnot(inherits(x, c("integer", "numeric")))
-  if (is.integer(x)){
-    any_int_gte(x, value)
-  } else {
-    any_num_gte(x, value, tol)
-  }
-}
-any_equal <- function(x, value, tol = sqrt(.Machine$double.eps)){
-  stopifnot(inherits(x, c("integer", "numeric")))
-  if (is.integer(x)){
-    any_int_equal(x, value)
-  } else {
-    any_num_equal(x, value, tol)
-  }
-}
+# any_lt <- function(x, value, tol = sqrt(.Machine$double.eps)){
+#   stopifnot(inherits(x, c("integer", "numeric")))
+#   if (is.integer(x)){
+#     any_int_lt(x, value)
+#   } else {
+#     any_num_lt(x, value, tol)
+#   }
+# }
+# any_lte <- function(x, value, tol = sqrt(.Machine$double.eps)){
+#   stopifnot(inherits(x, c("integer", "numeric")))
+#   if (is.integer(x)){
+#     any_int_lte(x, value)
+#   } else {
+#     any_num_lte(x, value, tol)
+#   }
+# }
+# any_gt <- function(x, value, tol = sqrt(.Machine$double.eps)){
+#   stopifnot(inherits(x, c("integer", "numeric")))
+#   if (is.integer(x)){
+#     any_int_gt(x, value)
+#   } else {
+#     any_num_gt(x, value, tol)
+#   }
+# }
+# any_gte <- function(x, value, tol = sqrt(.Machine$double.eps)){
+#   stopifnot(inherits(x, c("integer", "numeric")))
+#   if (is.integer(x)){
+#     any_int_gte(x, value)
+#   } else {
+#     any_num_gte(x, value, tol)
+#   }
+# }
+# any_equal <- function(x, value, tol = sqrt(.Machine$double.eps)){
+#   stopifnot(inherits(x, c("integer", "numeric")))
+#   if (is.integer(x)){
+#     any_int_equal(x, value)
+#   } else {
+#     any_num_equal(x, value, tol)
+#   }
+# }
 # Taken from base R to avoid needing R >= 4
 deparse1 <- function(expr, collapse = " ", width.cutoff = 500L, ...){
   paste(deparse(expr, width.cutoff, ...), collapse = collapse)
@@ -1259,4 +1259,14 @@ anyduplicated <- function(x){
 }
 simple_deparse <- function(expr){
   deparse(expr, backtick = FALSE, control = NULL)
+}
+# Taken from stats
+hasTsp <- function(x){
+  if (is.null(attr(x, "tsp"))){
+    attr(x, "tsp") <- c(1, NROW(x), 1)
+  }
+  x
+}
+tsp <- function(x){
+  attr(x, "tsp")
 }
