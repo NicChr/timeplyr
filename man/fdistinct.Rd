@@ -26,8 +26,8 @@ default is \code{FALSE}.}
 When \code{order = FALSE} this option has no effect on the result.}
 
 \item{order}{Should the groups be calculated as ordered groups?
-This can be beneficial speed-wise to set to \code{TRUE}
-when the data are large and messy. The default is \code{FALSE}.}
+Setting to \code{TRUE} may sometimes offer a speed benefit, but usually this
+is not the case. The default is \code{FALSE}.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
@@ -43,9 +43,6 @@ A \code{data.frame} of distinct groups.
 Like \code{dplyr::distinct()} but faster when lots of
 groups are involved.
 }
-\details{
-See \code{?group_collapse} for a more flexible method.
-}
 \examples{
 library(dplyr)
 library(timeplyr)
@@ -58,5 +55,5 @@ mpg \%>\%
 
 }
 \seealso{
-\link[timeplyr]{group_collapse}
+\link{group_collapse} \link{duplicate_rows}
 }

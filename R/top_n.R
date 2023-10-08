@@ -58,15 +58,10 @@
 #' @rdname top_n
 #' @export
 top_n_tbl <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE){
-  if (length(n) != 1){
-    stop("n must be of length 1")
-  }
+  check_length(n, 1L)
   g <- GRP2(x, sort = FALSE, return.order = FALSE)
   g_names <- GRP_names(g)
   N <- GRP_data_size(g)
-  # if (N == 0){
-  #   return(new_tbl(n = 0L))
-  # }
   out <- GRP_group_sizes(g)
   df <- new_tbl(value = g_names, n = out)
   if (na_rm){
@@ -92,15 +87,10 @@ top_n <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE){
 #' @rdname top_n
 #' @export
 bottom_n_tbl <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE){
-  if (length(n) != 1){
-    stop("n must be of length 1")
-  }
+  check_length(n, 1L)
   g <- GRP2(x, sort = FALSE, return.order = FALSE)
   g_names <- GRP_names(g)
   N <- GRP_data_size(g)
-  # if (N == 0){
-  #   return(new_tbl(n = 0L))
-  # }
   out <- GRP_group_sizes(g)
   df <- new_tbl(value = g_names, n = out)
   if (na_rm){

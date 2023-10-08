@@ -69,5 +69,5 @@ The time difference GCD is always calculated using all the data and not
 by-group.
 }
 \seealso{
-\link[timeplyr]{time_elapsed} \link[timeplyr]{time_seq_id}
+\link{time_elapsed} \link{time_seq_id}
 }

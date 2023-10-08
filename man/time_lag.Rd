@@ -50,3 +50,16 @@ A vector of \code{length(x)} lagged by a specified time unit.
 \description{
 Time-lagged values
 }
+\examples{
+library(timeplyr)
+
+x <- 1:10
+t <- time_seq(Sys.Date(), len = 10, time_by = "3 days")
+
+dplyr::lag(x)
+time_lag(x)
+time_lag(x, time = t, k = "3 days")
+
+# No values exist at t-1 days
+time_lag(x, time = t, k = 1)
+}

@@ -43,7 +43,7 @@
 #' should be equal to  `collapse::timeid(sort(x))`.
 #' The time difference GCD is always calculated using all the data and not
 #' by-group.
-#' @seealso \link[timeplyr]{time_elapsed} \link[timeplyr]{time_seq_id}
+#' @seealso [time_elapsed] [time_seq_id]
 #' @export
 time_id <- function(x, time_by = NULL, g = NULL, na_skip = TRUE,
                     time_type = c("auto", "duration", "period")){

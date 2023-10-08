@@ -188,12 +188,12 @@ fenframe <- function(x, name = "name", value = "value"){
     stop("x must be a vector")
   }
   x_nms <- names(x)
+  x <- unname(x)
   if (is.null(x_nms)){
-    out <- list(unname(x))
+    out <- list(x)
     names(out) <- value
   } else {
-    out <- list(x_nms,
-                unname(x))
+    out <- list(x_nms, x)
     names(out) <- c(name, value)
   }
   attr(out, "class") <- c("tbl_df", "tbl", "data.frame")
@@ -202,7 +202,7 @@ fenframe <- function(x, name = "name", value = "value"){
 }
 # alternative tibble::deframe
 fdeframe <- function(x){
-  ncol <- length(attr(x, "names"))
+  ncol <- df_ncol(x)
   if (!(is_df(x) || ncol %in% (1:2))){
     stop("`x` must be a 1 or 2 col data frame")
   }
@@ -271,37 +271,30 @@ list_to_data_frame <- function(x){
 #   x
 # }
 # Create new df with no name checks or length checks
-# The only thing new_df can't do is create
-# A (n > 0) x 0 data frame.
-# But internally there's usually no need to do that and
-# if there is, one can just use data.frame or tibble
-new_df <- function(...){
+# ..N is there purely to create an (n > 0) x 0 data frame
+new_df <- function(..., ..N = NULL){
   out <- list3(...)
-  if (length(out) == 0L){
-    row_names <- integer()
+  if (is.null(..N)){
+    if (length(out) == 0L){
+      row_names <- integer()
+    } else {
+      N <- length(.subset2(out, 1L))
+      row_names <- c(NA_integer_, -N)
+    }
   } else {
-    N <- length(.subset2(out, 1L))
-    row_names <- c(NA_integer_, -N)
+    row_names <- .set_row_names(..N)
   }
   attributes(out) <- list(class = "data.frame",
                         row.names = row_names,
                         names = as.character(names(out)))
   out
 }
-new_tbl <- function(...){
-  out <- list3(...)
-  if (length(out) == 0L){
-    row_names <- integer()
-  } else {
-    N <- length(.subset2(out, 1L))
-    row_names <- c(NA_integer_, -N)
-  }
-  attributes(out) <- list(class = c("tbl_df", "tbl", "data.frame"),
-                          row.names = row_names,
-                          names = as.character(names(out)))
-  out
+new_tbl <- function(..., ..N = NULL){
+  out <- new_df(..., ..N = ..N)
+  add_attr(out, "class", c("tbl_df", "tbl", "data.frame"))
 }
 # This makes a copy
+# Also data.tables currently can't have (n > 0) x 0 structure
 new_dt <- function(...){
   out <- new_df(...)
   out <- data.table::copy(out)
@@ -423,12 +416,13 @@ df_as_tibble <- function(x){
 df_init <- function(x, size = 1L){
   nrows <- df_nrow(x)
   if (df_ncol(x) == 0){
-    df_reconstruct(structure(list(), class = "data.frame",
-                             row.names = .set_row_names(size),
-                             names = character()),
-                   x)
+    df_reconstruct(new_df(..N = size), x)
   } else {
-    collapse::ss(x, i = collapse::alloc(nrows + 1L, size))
+    if (list_has_interval(x)){
+      vctrs::vec_init(x, n = size)
+    } else {
+      collapse::ss(x, i = collapse::alloc(nrows + 1L, size))
+    }
   }
 }
 # Group IDs (same as dplyr::group_indices)
@@ -450,4 +444,14 @@ df_group_id <- function(x){
 # Reorder data frame to original order after having sorted it using a GRP
 df_reorder <- function(data, g){
   df_row_slice(data, collapse::greorder(df_seq_along(data, "rows"), g = g))
+}
+# Drop rows that are all empty
+df_drop_empty <- function(data, .cols = names(data)){
+  is_empty_row <- collapse::missing_cases(fselect(data, .cols = .cols), prop = 1)
+  which_not_empty <- collapse::whichv(is_empty_row, FALSE)
+  df_row_slice(data, which_not_empty)
+}
+# Alternative dplyr way, just for fun
+dplyr_drop_empty <- function(data, .cols = dplyr::everything()){
+  dplyr::filter(data, !dplyr::if_all(.cols = {{ .cols }}, .fns = is.na))
 }

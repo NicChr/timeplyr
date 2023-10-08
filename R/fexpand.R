@@ -151,7 +151,7 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                              recursive = FALSE, use.names = FALSE)
       # Figure out final size before expansion, to do this we can
       # Calculate the vector product of unique expanded elements across groups.
-      out_temp <- collapse::fndistinct(out1[, group_id_nms, with = FALSE],
+      out_temp <- collapse::fndistinct(fselect(out1, .cols = group_id_nms),
                                        g = out1[[grp_nm]],
                                        use.g.names = FALSE, na.rm = FALSE)
       sizes <- rowProds(out_temp)
@@ -168,8 +168,7 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
         out <- out2[, CJ2(unlist(.SD, recursive = FALSE, use.names = FALSE)),
                     keyby = grp_nm,
                     .SDcols = group_id_nms]
-      data.table::setnames(out, new = c(grp_nm, leftover_grp_nms))
-      data.table::setalloccol(out)
+      out <- frename(out, .cols = add_names(names(out), c(grp_nm, leftover_grp_nms)))
       for (i in seq_along(group_id_nms)){
         data.table::set(out, j = leftover_grp_nms[[i]],
                         value = out1[[leftover_grp_nms[[i]]]][match(out[[leftover_grp_nms[[i]]]],
@@ -192,8 +191,7 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                           log_limit = log_limit)
     }
   }
-  if (length(out_nms) == 0L) out_nms <- NULL
-  data.table::setcolorder(out, out_nms)
+  out <- fselect(out, .cols = out_nms)
   if (keep_class){
     out <- df_reconstruct(out, data)
   }
@@ -211,7 +209,7 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
   if (missing(N)){
     N <- unique(X_lens)
   }
-  stopifnot(length(N) == 1L)
+  check_length(N, 1L)
   # Data variables
   data_nms <- X_nms[(X_lens %% N) == 0]
   # Newly created variables

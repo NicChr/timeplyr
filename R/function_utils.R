@@ -757,31 +757,6 @@ CJ2 <- function(X){
   }
   out
 }
-# CJ3 <- function(X){
-#   nargs <- length(X)
-#   if (nargs <= 1L){
-#     return(X)
-#   }
-#   out <- vector("list", nargs)
-#   d <- lengths(X, use.names = FALSE)
-#   orep <- prod(d)
-#   if (orep == 0L){
-#     for (i in seq_len(nargs)){
-#       out[[i]] <- .subset(.subset2(X, i), FALSE)
-#     }
-#     return(out)
-#   }
-#   rep.fac <- 1L
-#   for (i in seq.int(from = nargs, to = 1L, by = -1L)){
-#     x <- .subset2(X, i)
-#     nx <- .subset2(d, i)
-#     orep <- orep/nx
-#     x <- x[rep.int(rep(seq_len(nx), each = rep.fac), times = orep)]
-#     out[[i]] <- x
-#     rep.fac <- rep.fac * nx
-#   }
-#   out
-# }
 
 quo_null <- function(quos){
   vapply(quos, FUN = rlang::quo_is_null,
@@ -960,6 +935,9 @@ sqrt_double_eps <- function(){
 # Relative difference
 rel_diff <- function(x, y){
   abs(x - y) / pmax(abs(x), abs(y))
+}
+abs_diff <- function(x, y){
+  abs(x - y)
 }
 
 # Convenience comparison functions for doubles

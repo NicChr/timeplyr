@@ -10,6 +10,7 @@ fcount(
   ...,
   wt = NULL,
   sort = FALSE,
+  order = TRUE,
   name = NULL,
   .by = NULL,
   .cols = NULL
@@ -20,6 +21,7 @@ fadd_count(
   ...,
   wt = NULL,
   sort = FALSE,
+  order = TRUE,
   name = NULL,
   .by = NULL,
   .cols = NULL
@@ -39,6 +41,12 @@ Can be \code{NULL} or a variable:
 
 \item{sort}{If \code{TRUE}, will show the largest groups at the top.}
 
+\item{order}{Should the groups be calculated as ordered groups?
+If \code{FALSE}, this will return the groups in order of first appearance,
+and in many cases is faster.
+If \code{TRUE} (the default), the groups are returned in sorted order,
+exactly the same way as \code{dplyr::count}.}
+
 \item{name}{The name of the new column in the output.
 If there's already a column called \code{n},
 it will use \code{nn}.
@@ -56,6 +64,9 @@ If speed is an expensive resource, it is recommended to use this.}
 A \code{data.frame} of frequency counts by group.
 }
 \description{
+Near-identical alternative to \code{dplyr::count()}.
+}
+\details{
 This is a fast and near-identical alternative to dplyr::count() using the \code{collapse} package.
 Unlike \code{collapse::fcount()}, this works very similarly to \code{dplyr::count()}.
 The only main difference is that anything supplied to \code{wt}
@@ -70,12 +81,25 @@ library(dplyr)
 iris \%>\%
   fcount()
 iris \%>\%
-  fadd_count()
+  fadd_count(name = "count") \%>\%
+  fslice_head(n = 10)
 iris \%>\%
   group_by(Species) \%>\%
   fcount()
 iris \%>\%
-  fcount(across(where(is.numeric), mean))
+  fcount(Species)
 iris \%>\%
-  fadd_count(across(where(is.numeric), mean))
+  fcount(across(where(is.numeric), mean))
+
+### Sorting behaviour
+
+# Sorted by group
+starwars \%>\%
+  fcount(hair_color)
+# Sorted by frequency
+starwars \%>\%
+  fcount(hair_color, sort = TRUE)
+# Groups sorted by order of first appearance (faster)
+starwars \%>\%
+  fcount(hair_color, order = FALSE)
 }

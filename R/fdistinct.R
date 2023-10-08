@@ -2,6 +2,7 @@
 #'
 #' @description Like `dplyr::distinct()` but faster when lots of
 #' groups are involved.
+#'
 #' @param data A data frame.
 #' @param ... Variables used to find distinct rows.
 #' @param .keep_all If `TRUE` then all columns of data frame are kept,
@@ -9,16 +10,18 @@
 #' @param sort Should result be sorted? Default is `FALSE`.
 #' When `order = FALSE` this option has no effect on the result.
 #' @param order Should the groups be calculated as ordered groups?
-#' This can be beneficial speed-wise to set to `TRUE`
-#' when the data are large and messy. The default is `FALSE`.
+#' Setting to `TRUE` may sometimes offer a speed benefit, but usually this
+#' is not the case. The default is `FALSE`.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
 #' @param .cols (Optional) alternative to `...` that accepts
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
-#' @details See `?group_collapse` for a more flexible method.
-#' @seealso \link[timeplyr]{group_collapse}
-#' @return A `data.frame` of distinct groups.
+#'
+#' @seealso [group_collapse] [duplicate_rows]
+#'
+#' @returns
+#' A `data.frame` of distinct groups.
 #' @examples
 #' library(dplyr)
 #' library(timeplyr)

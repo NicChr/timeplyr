@@ -1,6 +1,35 @@
 #' Find duplicate rows
 #'
-#' @description This function works like `dplyr::distinct()` in its handling of
+#'
+#' @param data A data frame.
+#' @param ... Variables used to find duplicate rows.
+#' @param .keep_all If `TRUE` then all columns of data frame are kept,
+#' default is `FALSE`.
+#' @param .both_ways If `TRUE` then duplicates and non-duplicate first instances
+#' are retained. The default is `FALSE` which returns only duplicate rows. \cr
+#' Setting this to `TRUE` can be particularly useful when examining
+#' the differences between duplicate rows.
+#' @param .add_count If `TRUE` then a count column is added to denote the
+#' number of duplicates (including first non-duplicate instance).
+#' The naming convention of this column follows `dplyr::add_count()`.
+#' @param .drop_empty If `TRUE` then empty rows with all `NA` values are removed.
+#' The default is `FALSE`.
+#' @param sort Should result be sorted?
+#' If `FALSE` (the default), then rows are returned in the exact same order as
+#' they appear in the data.
+#' If `TRUE` then the duplicate rows are sorted.
+#' @param .by (Optional). A selection of columns to group by for this operation.
+#' Columns are specified using tidy-select.
+#' @param .cols (Optional) alternative to `...` that accepts
+#' a named character vector or numeric vector.
+#' If speed is an expensive resource, it is recommended to use this.
+#' @param .keep_na \bold{Deprecated}. Please use `.drop_empty` instead.
+#'
+#' @returns
+#' A `data.frame` of duplicate rows.
+#'
+#' @details
+#' This function works like `dplyr::distinct()` in its handling of
 #' arguments and data-masking but returns duplicate rows.
 #' In certain situations in can be much faster than `data %>% group_by() %>% filter(n() > 1)`
 #' when there are many groups.
@@ -8,23 +37,9 @@
 #' method which utilises joins and is written almost entirely using dplyr.
 #'
 #'
-#' @param data A data frame.
-#' @param ... Variables used to find duplicate rows.
-#' @param .keep_all If `TRUE` then all columns of data frame are kept,
-#' default is `FALSE`.
-#' @param .both_ways If `TRUE` then duplicates and non-duplicate first instances
-#' are retained. The default is `FALSE` which returns only duplicated rows.
-#' @param .add_count If `TRUE` then a count column is added to denote the
-#' number of duplicates (including first non-duplicate instance).
-#' The naming convention of this column follows `dplyr::add_count()`.
-#' @param .keep_na If `FALSE` then rows with all `NA` values are removed.
-#' The default is `TRUE`.
-#' @param .by (Optional). A selection of columns to group by for this operation.
-#' Columns are specified using tidy-select.
-#' @param .cols (Optional) alternative to `...` that accepts
-#' a named character vector or numeric vector.
-#' If speed is an expensive resource, it is recommended to use this.
-#' @return A `data.frame` of duplicate rows.
+#' @seealso [fcount] [group_collapse] [fdistinct]
+#'
+#'
 #' @examples
 #' library(dplyr)
 #' library(timeplyr)
@@ -32,26 +47,31 @@
 #'
 #' # Duplicates across all columns
 #' flights %>%
-#'   fduplicates()
+#'   duplicate_rows()
 #' # Duplicate flights with the same tail number and departure time
 #' flights %>%
-#'   fduplicates(tailnum, dep_time)
+#'   duplicate_rows(tailnum, dep_time)
 #' # Can use tidyverse select notation
 #' flights %>%
-#'   fduplicates(across(contains("dep_time")), .keep_all = FALSE)
+#'   duplicate_rows(across(contains("dep_time")), .keep_all = FALSE)
 #' # Similar to janitor::get_dupes()
 #' flights %>%
-#'   fduplicates(tailnum, dep_time, .keep_all = FALSE, .add_count = TRUE)
+#'   duplicate_rows(tailnum, dep_time, .keep_all = FALSE, .add_count = TRUE)
 #' # For every day were there multiple flights that departed at the same time?
 #' flights %>%
 #'   group_by(year, month, day) %>%
-#'   fduplicates(dep_time, arr_time, .both_ways = TRUE)
-#' @rdname fduplicates
+#'   duplicate_rows(dep_time, arr_time, .both_ways = TRUE)
+#' @rdname duplicate_rows
 #' @export
-fduplicates <- function(data, ..., .keep_all = FALSE,
-                        .both_ways = FALSE, .add_count = FALSE,
-                        .keep_na = TRUE,
-                        .by = NULL, .cols = NULL){
+duplicate_rows <- function(data, ..., .keep_all = FALSE,
+                           .both_ways = FALSE, .add_count = FALSE,
+                           .drop_empty = FALSE, sort = FALSE,
+                           .by = NULL, .cols = NULL,
+                           .keep_na = TRUE){
+  if (!missing(.keep_na)){
+    warning(".keep_na has been deprecated, please use .drop_empty")
+    .drop_empty <- !.keep_na
+  }
   n_dots <- dots_length(...)
   group_info <- group_info(data, ..., .by = {{ .by }},
                            .cols = .cols,
@@ -81,24 +101,35 @@ fduplicates <- function(data, ..., .keep_all = FALSE,
                       return.order = FALSE,
                       return.groups = FALSE,
                       order = FALSE)
-  group_sizes <- GRP_expanded_group_sizes(groups)
   if (.add_count){
+    group_sizes <- GRP_expanded_group_sizes(groups)
     n_var_nm <- new_n_var_nm(out)
     out[[n_var_nm]] <- group_sizes
   }
-  out <- df_row_slice(out, GRP_which_duplicated(groups, all = .both_ways))
+  which_dup <- GRP_which_duplicated(groups, all = .both_ways)
+  out <- df_row_slice(out, which_dup)
+  if (sort){
+    out <- farrange(out, .cols = dup_vars)
+  }
   # Remove empty rows (rows with all NA values)
-  if (!.keep_na){
-    out <- df_row_slice(out, collapse::whichv(rowSums(is.na(fselect(out, .cols = dup_vars))),
-                                              0))
+  if (.drop_empty){
+    out <- df_drop_empty(out, .cols = dup_vars)
   }
   df_reconstruct(out, data)
 }
-#' @rdname fduplicates
+#' @rdname duplicate_rows
+#' @export
+fduplicates <- duplicate_rows
+#' @rdname duplicate_rows
 #' @export
 fduplicates2 <- function(data, ..., .keep_all = FALSE,
                          .both_ways = FALSE, .add_count = FALSE,
-                         .keep_na = TRUE, .by = NULL){
+                         .drop_empty = FALSE, .by = NULL,
+                         .keep_na = TRUE){
+  if (!missing(.keep_na)){
+    warning(".keep_na has been deprecated, please use .drop_empty")
+    .drop_empty <- !.keep_na
+  }
   n_dots <- dots_length(...)
   out <- safe_ungroup(data)
   if (n_dots > 0){
@@ -129,7 +160,7 @@ fduplicates2 <- function(data, ..., .keep_all = FALSE,
   id_nm <- new_var_nm(names(out), ".id")
   out <- out %>%
     dplyr::select(all_of(out_vars)) %>%
-    dplyr::group_by(dplyr::across(dplyr::all_of(group_vars))) %>%
+    dplyr::group_by(across(all_of(group_vars))) %>%
     dplyr::mutate(!!grp_nm := dplyr::cur_group_id()) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(!!id_nm := dplyr::row_number(),
@@ -147,9 +178,8 @@ fduplicates2 <- function(data, ..., .keep_all = FALSE,
   out2 <- out %>%
     dplyr::anti_join(df_unique, by = c(grp_nm, id_nm))
   # Remove empty rows (rows with all NA values)
-  if (!.keep_na){
-    out2 <- out2 %>%
-      dplyr::filter(!dplyr::if_all(.cols = all_of(dup_vars), is.na))
+  if (.drop_empty){
+    out2 <- dplyr_drop_empty(out2, .cols = all_of(dup_vars))
   }
   # Keep duplicates including first instance of duplicated rows
   if (.both_ways){
