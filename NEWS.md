@@ -1,3 +1,5 @@
-# timeplyr (development version)
+# timeplyr
 
-# timeplyr 0.1.9000
+# timeplyr 0.2.0
+
+* Initial CRAN submission.
