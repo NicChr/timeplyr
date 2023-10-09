@@ -26,7 +26,9 @@
 #' fskim(flights)
 #' @export
 fskim <- function(data, hist = FALSE){
+  check_is_df(data)
   N <- df_nrow(data)
+  num_cols <- df_ncol(data)
   data <- as_DT(safe_ungroup(data))
   data_nms <- names(data)
   col_classes <- vapply(data, function(x) vec_tail(class(x)), "")
@@ -66,7 +68,8 @@ fskim <- function(data, hist = FALSE){
     cat_vars <- data_nms[sort(match(cat_vars, data_nms))]
   }
 
-  ### Logical variables ###
+
+  ### Logical variables -----
 
   lgl_data <- fselect(data, .cols = lgl_vars)
   which_lgl <- which(out[["col"]] %in% lgl_vars)
@@ -118,7 +121,8 @@ fskim <- function(data, hist = FALSE){
   }
   lgl_out <- df_as_tibble(lgl_out)
 
-  ### Numeric variables ###
+
+  ### Numeric variables -----
 
   num_data <- fselect(data, .cols = num_vars)
   which_num <- which(out[["col"]] %in% num_vars)
@@ -198,7 +202,8 @@ fskim <- function(data, hist = FALSE){
   }
   num_out <- df_as_tibble(num_out)
 
-  ### Exotic numeric variables ###
+
+  ### Exotic numeric variables -----
 
   # num_data <- fselect(data, .cols = num_vars)
   # which_num <- which(out[["col"]] %in% num_vars)
@@ -277,7 +282,7 @@ fskim <- function(data, hist = FALSE){
   # }
   # num_out <- df_as_tibble(num_out)
 
-  ### Date variables ###
+  ### Date variables -----
 
   date_data <- fselect(data, .cols = date_vars)
   which_date <- which(out[["col"]] %in% date_vars)
@@ -332,7 +337,8 @@ fskim <- function(data, hist = FALSE){
   }
   date_out <- df_as_tibble(date_out)
 
-  ### Datetime variables ###
+
+  ### Datetime variables -----
 
   datetime_data <- fselect(data, .cols = datetime_vars)
   which_datetime <- which(out[["col"]] %in% datetime_vars)
@@ -387,7 +393,8 @@ fskim <- function(data, hist = FALSE){
   }
   datetime_out <- df_as_tibble(datetime_out)
 
-  ### Categorical variables ###
+
+  ### Categorical variables -----
 
   cat_data <- fselect(data, .cols = cat_vars)
   which_cat <- which(out[["col"]] %in% cat_vars)
@@ -440,7 +447,7 @@ fskim <- function(data, hist = FALSE){
   cat_out <- df_as_tibble(cat_out)
 
   list("nrow" = N,
-       "ncol" = ncol(data),
+       "ncol" = num_cols,
        "logical" = lgl_out,
        "numeric" = num_out,
        "date" = date_out,

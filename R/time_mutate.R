@@ -79,6 +79,7 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
                         time_floor = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
                         roll_month = "preday", roll_dst = "pre"){
+  check_is_df(data)
   group_vars <- get_groups(data, {{ .by }})
   data <- mutate2(data,
                   !!enquo(time),

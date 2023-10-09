@@ -98,6 +98,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
                         keep_class = TRUE,
                         roll_month = "preday", roll_dst = "pre",
                         log_limit = 8){
+  check_is_df(data)
   expand_type <- match.arg(expand_type)
   group_vars <- get_groups(data, {{ .by }})
   out <- mutate2(data,
@@ -227,6 +228,7 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
                           fill = NA,
                           roll_month = "preday", roll_dst = "pre",
                           log_limit = 8){
+  check_is_df(data)
   expand_type <- match.arg(expand_type)
   time_type <- match_time_type(time_type)
   group_vars <- get_groups(data, {{ .by }})

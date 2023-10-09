@@ -1,5 +1,10 @@
 ##### Data frame helpers #####
 
+check_is_df <- function(x){
+  if (!is_df(x)){
+    stop(paste(deparse1(substitute(x)), "must be a data.frame"))
+  }
+}
 # Fast nrow/ncol for data frames
 df_nrow <- function(x){
   length(attr(x, "row.names", TRUE))

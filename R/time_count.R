@@ -122,7 +122,8 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                        time_type = c("auto", "duration", "period"),
                        roll_month = "preday", roll_dst = "pre",
                        include_interval = FALSE){
-  time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
+  check_is_df(data)
+  time_type <- match_time_type(time_type)
   reconstruct <- TRUE
   ts_data <- mutate2(data,
                      ...,

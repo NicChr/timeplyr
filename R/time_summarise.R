@@ -96,6 +96,7 @@ time_summarise <- function(data, time = NULL, ..., time_by = NULL,
                            week_start = getOption("lubridate.week.start", 1),
                            roll_month = "preday", roll_dst = "pre",
                            sort = TRUE){
+  check_is_df(data)
   out <- fdistinct(time_mutate(data, ...,
                                time = !!enquo(time),
                                time_by = time_by,
@@ -138,6 +139,7 @@ time_reframe <- function(data, time = NULL, ..., time_by = NULL,
                          week_start = getOption("lubridate.week.start", 1),
                          roll_month = "preday", roll_dst = "pre",
                          sort = TRUE){
+  check_is_df(data)
   group_vars <- get_groups(data, {{ .by }})
   out <- time_mutate(data, time = !!enquo(time),
                      time_by = time_by,

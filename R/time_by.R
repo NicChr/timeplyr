@@ -88,6 +88,7 @@ time_by <- function(data, time, time_by = NULL,
                     week_start = getOption("lubridate.week.start", 1),
                     roll_month = "preday", roll_dst = "pre",
                     .time_by_group = TRUE){
+  check_is_df(data)
   data_nms <- names(data)
   group_vars <- group_vars(data)
   rlang::check_required(time)

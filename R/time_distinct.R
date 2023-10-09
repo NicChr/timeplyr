@@ -63,6 +63,7 @@ time_distinct <- function(data, time = NULL, ..., time_by = NULL,
                           week_start = getOption("lubridate.week.start", 1),
                           roll_month = "preday", roll_dst = "pre",
                           sort = FALSE){
+  check_is_df(data)
   n_dots <- dots_length(...)
   group_vars <- get_groups(data, .by = {{ .by }})
   out <- safe_ungroup(data)
