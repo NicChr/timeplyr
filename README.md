@@ -6,7 +6,7 @@
 
 # timeplyr
 
-# **A date and datetime extension to dplyr**
+# **Fast Tidy Tools for Date and Datetime Manipulation**
 
 This package provides a set of functions to make working with date and
 datetime data much easier!
@@ -14,6 +14,11 @@ datetime data much easier!
 While most time-based packages are designed to work with clean and
 pre-aggregate data, timeplyr contains a set of tidy tools to complete,
 expand and summarise both raw and aggregate date/datetime data.
+
+Significant efforts have been made to ensure that grouped calculations
+are fast and efficient thanks to the excellent functionality within the
+[collapse](https://sebkrantz.github.io/collapse/reference/collapse-package.html)
+package.
 
 ## Installation
 
@@ -661,11 +666,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2023-W38"
+#> [1] "2023-W41"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W38-4"
+#> [1] "2023-W41-1"
 iso_week(today(), year = FALSE)
-#> [1] "W38"
+#> [1] "W41"
 ```
 
 ## `time_cut()`
