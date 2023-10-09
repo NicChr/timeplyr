@@ -109,13 +109,15 @@ Anything exceeding this will throw an error.}
 A \code{data.frame} of expanded time by or across groups.
 }
 \description{
+A time based extension to \code{tidyr::complete()}.
+}
+\details{
 This works much the same as \code{tidyr::complete()}, except that
 you can supply an additional \code{time} argument to allow for filling in time gaps,
 expansion of time, as well as aggregating time to a higher unit.
 \code{lubridate} is used for handling time, while \code{data.table} and \code{collapse} are used for
 the data frame expansion.
-}
-\details{
+
 At the moment, within group combinations are ignored. This means when \code{expand_type = nesting},
 existing combinations of supplied groups across the entire dataset are used, and
 when \code{expand_type = crossing}, all possible combinations of supplied groups across the \bold{entire}
@@ -131,15 +133,11 @@ data(flights)
 x <- flights$time_hour
 
 time_num_gaps(x) # Missing hours
-length(missing_dates(x)) # No missing dates though
-x_filled <- time_completev(x) # Expand by hour through heuristic
-time_gaps(x_filled, "hour") # No missing hours
-
-# Easier through tidyverse style functions
 
 flights_count <- flights \%>\%
   fcount(time_hour)
 
+# Fill in missing hours
 flights_count \%>\%
   time_complete(time = time_hour)
 
@@ -152,6 +150,5 @@ flights_count \%>\%
 # Where time_expand() and time_complete() really shine is how fast they are with groups
 flights \%>\%
   group_by(origin, dest, tailnum) \%>\%
-  time_expand(time = time_hour, time_by = "week",
-              time_type = "duration")
+  time_expand(time = time_hour, time_by = dweeks(1))
 }

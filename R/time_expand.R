@@ -1,16 +1,5 @@
 #' A time based extension to `tidyr::complete()`.
 #'
-#' This works much the same as `tidyr::complete()`, except that
-#' you can supply an additional `time` argument to allow for filling in time gaps,
-#' expansion of time, as well as aggregating time to a higher unit.
-#' `lubridate` is used for handling time, while `data.table` and `collapse` are used for
-#' the data frame expansion.
-#'
-#' At the moment, within group combinations are ignored. This means when `expand_type = nesting`,
-#' existing combinations of supplied groups across the entire dataset are used, and
-#' when `expand_type = crossing`, all possible combinations of supplied groups across the \bold{entire}
-#' dataset are used as well.
-#'
 #'
 #' @param data A data frame.
 #' @param time Time variable.
@@ -53,8 +42,22 @@
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
 #' @param log_limit The maximum log10 number of rows that can be expanded.
 #' Anything exceeding this will throw an error.
+#'
+#' @details
+#' This works much the same as `tidyr::complete()`, except that
+#' you can supply an additional `time` argument to allow for filling in time gaps,
+#' expansion of time, as well as aggregating time to a higher unit.
+#' `lubridate` is used for handling time, while `data.table` and `collapse` are used for
+#' the data frame expansion.
+#'
+#' At the moment, within group combinations are ignored. This means when `expand_type = nesting`,
+#' existing combinations of supplied groups across the entire dataset are used, and
+#' when `expand_type = crossing`, all possible combinations of supplied groups across the \bold{entire}
+#' dataset are used as well.
+#'
 #' @returns
 #' A `data.frame` of expanded time by or across groups.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -65,15 +68,11 @@
 #' x <- flights$time_hour
 #'
 #' time_num_gaps(x) # Missing hours
-#' length(missing_dates(x)) # No missing dates though
-#' x_filled <- time_completev(x) # Expand by hour through heuristic
-#' time_gaps(x_filled, "hour") # No missing hours
-#'
-#' # Easier through tidyverse style functions
 #'
 #' flights_count <- flights %>%
 #'   fcount(time_hour)
 #'
+#' # Fill in missing hours
 #' flights_count %>%
 #'   time_complete(time = time_hour)
 #'
@@ -86,8 +85,7 @@
 #' # Where time_expand() and time_complete() really shine is how fast they are with groups
 #' flights %>%
 #'   group_by(origin, dest, tailnum) %>%
-#'   time_expand(time = time_hour, time_by = "week",
-#'               time_type = "duration")
+#'   time_expand(time = time_hour, time_by = dweeks(1))
 #' @rdname time_expand
 #' @export
 time_expand <- function(data, time = NULL, ..., .by = NULL,
@@ -178,11 +176,11 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
                                sort = FALSE, .by = {{ .by }},
                                log_limit = log_limit)
         expanded_nms <- names(expanded_df)
-        if (nrow2(expanded_df) > 0L){
+        if (df_nrow(expanded_df) > 0L){
           # If there are no common cols, just cross join them
           if (length(intersect(group_vars, expanded_nms)) == 0L){
-            out_n <- nrow2(out)
-            expanded_n <- nrow2(expanded_df)
+            out_n <- df_nrow(out)
+            expanded_n <- df_nrow(expanded_df)
             out <- df_rep_each(out, expanded_n)
             for (i in seq_along(expanded_nms)){
               out[, (expanded_nms[i]) := rep(expanded_df[[expanded_nms[i]]], out_n)]
@@ -250,7 +248,7 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
                              roll_month = roll_month, roll_dst = roll_dst,
                              log_limit = log_limit)
   # Full-join
-  if (nrow2(expanded_df) > 0 && ncol(expanded_df) > 0){
+  if (df_nrow(expanded_df) > 0 && ncol(expanded_df) > 0){
     # Check to see if time has turned to POSIX
     if (length(time_var) > 0){
       out[, (time_var) := time_cast(get(time_var), expanded_df[[time_var]])]
@@ -270,7 +268,6 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
       out[, (fill_nms[[i]]) := data.table::fifelse(is.na(get(fill_nms[[i]])),
                                                    fill[[i]],
                                                    get(fill_nms[[i]]))]
-      # data.table::setnafill(out, cols = fill_nms[i], type = "const", fill = fill[[i]], nan = NaN)
     }
   }
   out_vars <- c(names(data), setdiff(names(out), names(data)))

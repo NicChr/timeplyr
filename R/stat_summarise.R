@@ -2,6 +2,7 @@
 #'
 #' @description
 #' `collapse` and `data.table` are used for the calculations.
+#'
 #' @param data A data frame.
 #' @param ... Variables to apply the statistical functions to.
 #' Tidy data-masking applies.
@@ -25,16 +26,21 @@
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
 #' @param as_tbl Should the result be a `tibble`? Default is `FALSE`.
-#' @details
 #'
+#' @returns
+#' A summary `data.table` containing the summary values for each group.
+#'
+#' @details
 #' `stat_summarise()` can apply multiple functions to multiple variables.
 #'
 #' `stat_summarise()` is equivalent to \cr
 #' `data %>% group_by(...) %>% summarise(across(..., list(...)))` \cr
 #' but is faster and more efficient and accepts limited statistical functions.
-#' @return
-#' A summary `data.table` containing the summary values for each group.
+#'
 #' @seealso [q_summarise]
+#'
+#' @format `.stat_fns`
+#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
@@ -180,6 +186,7 @@ across_col_names <- function(.cols = NULL, .fns = NULL,
   }
   out
 }
+#' @rdname stat_summarise
 #' @export
 .stat_fns <- c("n", "nmiss", "min", "max", "mean", "median",
                "sd", "var", "mode", "first", "last", "sum",
