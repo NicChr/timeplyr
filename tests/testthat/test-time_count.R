@@ -11,7 +11,7 @@ testthat::test_that("Compare to tidyr", {
   date_seq2 <- seq(from1, to1, by = "day")
   year_seq <- seq(from2, to2, by = "year")
   start1 <- lubridate::ymd_hms("2013-03-16 11:43:48",
-                               tz = "GB")
+                               tz = "Europe/London")
   end1 <- start1 + lubridate::ddays(10)
   start2 <- lubridate::as_date(start1)
   end2 <- lubridate::as_date(end1)

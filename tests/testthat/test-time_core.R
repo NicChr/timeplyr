@@ -159,7 +159,7 @@ testthat::test_that("Tests for time_countv", {
 
 testthat::test_that("Tests for time_span", {
   start1 <- lubridate::ymd_hms("2013-03-16 11:43:48",
-                               tz = "GB")
+                               tz = "Europe/London")
   end1 <- start1 + lubridate::ddays(10)
   start2 <- lubridate::as_date(start1)
   end2 <- lubridate::as_date(end1)
@@ -201,7 +201,7 @@ testthat::test_that("Tests for time_span", {
 
 testthat::test_that("Tests for time_completev", {
   start1 <- lubridate::ymd_hms("2013-03-16 11:43:48",
-                               tz = "GB")
+                               tz = "Europe/London")
   end1 <- start1 + lubridate::ddays(10)
   start2 <- lubridate::as_date(start1)
   end2 <- lubridate::as_date(end1)
@@ -217,7 +217,7 @@ testthat::test_that("Tests for time_completev", {
 })
 testthat::test_that("Tests for time_summarisev", {
   start1 <- lubridate::ymd_hms("2013-03-16 11:43:48",
-                               tz = "GB")
+                               tz = "Europe/London")
   end1 <- start1 + lubridate::ddays(10)
   start2 <- lubridate::as_date(start1)
   end2 <- lubridate::as_date(end1)

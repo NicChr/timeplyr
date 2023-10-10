@@ -1,12 +1,12 @@
 testthat::test_that("time diff", {
   start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
-                               tz = "GB")
+                               tz = "Europe/London")
   end1 <- start1 + lubridate::ddays(37)
   end2 <- start1 + lubridate::days(37)
   testthat::expect_identical(as.double(difftime(end1, start1, units = "secs")),
                              time_diff(start1, end1, time_by = 1))
   testthat::expect_identical(as.double(difftime(
-    lubridate::with_tz(lubridate::as_date(end1), tzone = "GB"),
+    lubridate::with_tz(lubridate::as_date(end1), tzone = "Europe/London"),
     start1, units = "secs")),
     time_diff(start1, lubridate::as_date(end1), time_by = 1))
   testthat::expect_identical(as.double(difftime(lubridate::as_date(end1),

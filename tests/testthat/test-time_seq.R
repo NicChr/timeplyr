@@ -62,8 +62,8 @@ testthat::test_that("Dates", {
                          time_cast(start2, lubridate::origin))
   # testthat::expect_equal(time_seq(start2, time_by = "day", length.out = 1,
   #                                 time_type = "duration",
-  #                                 tz = "GB"),
-  #                        lubridate::with_tz(start2, tzone = "GB"))
+  #                                 tz = "Europe/London"),
+  #                        lubridate::with_tz(start2, tzone = "Europe/London"))
   # When by isn't specified, the output may be POSIX even if from and to are dates
   testthat::expect_equal(time_seq(start2, end2, length.out = 0),
                              lubridate::POSIXct(0))
@@ -121,7 +121,7 @@ testthat::test_that("Dates", {
 
 testthat::test_that("Datetimes", {
   start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
-                               tz = "GB")
+                               tz = "Europe/London")
   end1 <- start1 + lubridate::ddays(10)
   start2 <- lubridate::as_date(start1)
   end2 <- lubridate::as_date(end1)
@@ -212,13 +212,13 @@ testthat::test_that("Datetimes", {
   # Extreme cases
   testthat::expect_equal(time_seq(start1, time_by = "day", length.out = 0,
                                       time_type = "duration"),
-                             lubridate::with_tz(lubridate::POSIXct(0), tz = "GB"))
+                             lubridate::with_tz(lubridate::POSIXct(0), tz = "Europe/London"))
   testthat::expect_equal(time_seq(start1, time_by = "day", length.out = 1,
                                       time_type = "duration"),
                              start1)
   testthat::expect_equal(time_seq(start1, time_by = "day", length.out = 0,
                                   time_type = "duration"),
-                         lubridate::with_tz(lubridate::POSIXct(0), tz = "GB"))
+                         lubridate::with_tz(lubridate::POSIXct(0), tz = "Europe/London"))
   testthat::expect_equal(time_seq(start1, time_by = "day", length.out = 1,
                                   time_type = "duration"),
                          start1)
@@ -228,13 +228,13 @@ testthat::test_that("Datetimes", {
   #                        lubridate::with_tz(start1, tzone = "UTC"))
   # When by isn't specified, the output may be POSIX even if from and to are dates
   testthat::expect_equal(time_seq(start1, end1, length.out = 0),
-                         lubridate::with_tz(lubridate::POSIXct(0), tz = "GB"))
+                         lubridate::with_tz(lubridate::POSIXct(0), tz = "Europe/London"))
   testthat::expect_equal(time_seq(start1, end1, length.out = 0, time_type = "period"),
-                         lubridate::with_tz(lubridate::POSIXct(0), tz = "GB"))
+                         lubridate::with_tz(lubridate::POSIXct(0), tz = "Europe/London"))
   testthat::expect_equal(time_seq(start1, end1,  length.out = 1),
                          start1)
   testthat::expect_equal(time_seq(start1, end1,  length.out = 0, time_type = "duration"),
-                         lubridate::with_tz(lubridate::POSIXct(0), tz = "GB"))
+                         lubridate::with_tz(lubridate::POSIXct(0), tz = "Europe/London"))
   testthat::expect_equal(time_seq(start1, end1,  length.out = 1, time_type = "duration"),
                          start1)
   # Special case where by calculates to 0 seconds, and so the output is a datetime.
@@ -302,7 +302,7 @@ testthat::test_that("Datetimes", {
 
 testthat::test_that("Time sequence lengths", {
   start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
-                               tz = "GB")
+                               tz = "Europe/London")
   end1 <- start1 + lubridate::ddays(37)
   end2 <- start1 + lubridate::days(37)
   testthat::expect_equal(time_seq_sizes(lubridate::Date(0), lubridate::Date(0), time_by = "days", time_type = "period"),
@@ -330,7 +330,7 @@ testthat::test_that("Time sequence lengths", {
 })
 testthat::test_that("Vectorised time sequences", {
   start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
-                               tz = "GB")
+                               tz = "Europe/London")
   end1 <- start1 + lubridate::ddays(37)
   end2 <- start1 + lubridate::days(37)
   testthat::expect_equal(time_seq_v(lubridate::Date(0), lubridate::Date(0), time_by = "days", time_type = "period"),
@@ -352,9 +352,9 @@ testthat::test_that("Vectorised time sequences", {
   testthat::expect_equal(time_seq_v(start1, end2, time_by = "days", time_type = "duration"),
                              time_seq(start1, end2, time_by = "days", time_type = "duration"))
   testthat::expect_equal(time_seq_v(start1, lubridate::POSIXct(0), time_by = "days", time_type = "period"),
-                         lubridate::with_tz(lubridate::POSIXct(0), tzone = "GB"))
+                         lubridate::with_tz(lubridate::POSIXct(0), tzone = "Europe/London"))
   testthat::expect_equal(time_seq_v(start1, lubridate::Date(0), time_by = "days", time_type = "period"),
-                         lubridate::with_tz(lubridate::POSIXct(0), tzone = "GB"))
+                         lubridate::with_tz(lubridate::POSIXct(0), tzone = "Europe/London"))
   testthat::expect_equal(time_seq_v(lubridate::as_date(start1), lubridate::Date(0), time_by = "days", time_type = "period"),
                          lubridate::Date(0))
   foo1 <- function(x) time_seq(from = start1, to = end1, time_by = list("days" = x), time_type = "duration")
@@ -367,7 +367,7 @@ testthat::test_that("Vectorised time sequences", {
 
 testthat::test_that("ftseq compared to time_seq", {
   start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
-                               tz = "GB")
+                               tz = "Europe/London")
   end1 <- start1 + lubridate::ddays(37)
   end2 <- start1 + lubridate::days(37)
   # testthat::expect_equal(time_seq(start1, end1, time_by = "2 days", time_type = "period"),
@@ -418,7 +418,7 @@ testthat::test_that("ftseq compared to time_seq", {
 
 testthat::test_that("dates, datetimes and numeric increments", {
   start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
-                               tz = "GB")
+                               tz = "Europe/London")
   end1 <- start1 + lubridate::ddays(10)
   start2 <- lubridate::as_date(start1)
   end2 <- lubridate::as_date(end1)

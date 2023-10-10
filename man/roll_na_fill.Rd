@@ -23,6 +23,7 @@ A fast by-group method for
 "last-observation-carried-forward" \code{NA} filling.
 }
 \examples{
+library(timeplyr)
 library(dplyr)
 library(data.table)
 

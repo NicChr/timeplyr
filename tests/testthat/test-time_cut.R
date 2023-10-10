@@ -1,6 +1,6 @@
 testthat::test_that("time breaks", {
   start1 <- lubridate::ymd_hms("2013-03-16 11:43:48",
-                               tz = "GB")
+                               tz = "Europe/London")
   end1 <- start1 + lubridate::ddays(10)
   start2 <- lubridate::as_date(start1)
   end2 <- lubridate::as_date(end1)
@@ -52,7 +52,7 @@ testthat::test_that("time breaks", {
 
 testthat::test_that("time cut", {
   start1 <- lubridate::ymd_hms("2013-03-16 11:43:48",
-                               tz = "GB")
+                               tz = "Europe/London")
   end1 <- start1 + lubridate::ddays(10)
   start2 <- lubridate::as_date(start1)
   end2 <- lubridate::as_date(end1)

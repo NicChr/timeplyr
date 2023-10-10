@@ -1,7 +1,7 @@
 testthat::test_that("General tests", {
   flights <- nycflights13::flights
   start <- lubridate::ymd_hms("2013-03-16 11:43:48",
-                              tz = "GB")
+                              tz = "Europe/London")
   end <- start + lubridate::ddays(10)
   testthat::expect_equal(flights,
                          flights %>% time_mutate(time_hour))

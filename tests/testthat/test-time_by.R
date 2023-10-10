@@ -2,7 +2,7 @@ testthat::test_that("time_by", {
   flights <- nycflights13::flights
 
   start <- lubridate::ymd_hms("2013-03-16 11:43:48",
-                               tz = "GB")
+                               tz = "Europe/London")
   end <- start + lubridate::ddays(10)
   flights_weekly <- flights %>%
     time_by(time_hour, time_by = "week")
