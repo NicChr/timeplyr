@@ -4,7 +4,7 @@
 \name{timeplyr-package}
 \alias{timeplyr}
 \alias{timeplyr-package}
-\title{timeplyr: Fast Tidy Tools for Date and Datetime Manipulation}
+\title{timeplyr: Fast Tidy Tools for Date and Date-Time Manipulation}
 \description{
 A framework for handling raw date & datetime data \cr
 using tidy best-practices from the tidyverse, the efficiency of data.table,

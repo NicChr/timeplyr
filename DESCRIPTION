@@ -1,12 +1,12 @@
 Package: timeplyr
-Title: Fast Tidy Tools for Date and Datetime Manipulation
+Title: Fast Tidy Tools for Date and Date-Time Manipulation
 Version: 0.2.0
 Authors@R: 
     person("Nick", "Christofides", , "nick.christofides.r@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-9743-7342"))
 Description: A set of fast tidy functions for wrangling, completing and
-    summarising date and time data. It combines tidyverse friendly
-    syntax with the efficiency of data.table and speed of collapse.
+    summarising date and date-time data. It combines tidy syntax with the
+    efficiency of data.table and speed of collapse.
 License: GPL (>= 2)
 BugReports: https://github.com/NicChr/timeplyr/issues
 Depends:
