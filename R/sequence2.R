@@ -24,7 +24,7 @@
 #' @examples
 #' library(timeplyr)
 #' \dontshow{
-#' data.table::setDTthreads(threads = 1L)
+#' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
 #' sequence(1:3)

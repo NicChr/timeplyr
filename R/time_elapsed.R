@@ -51,7 +51,7 @@
 #' library(dplyr)
 #' library(lubridate)
 #' \dontshow{
-#' data.table::setDTthreads(threads = 1L)
+#' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
 #' x <- time_seq(today(), length.out = 25, time_by = "3 days")

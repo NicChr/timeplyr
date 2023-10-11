@@ -51,7 +51,7 @@ Fast greatest common divisor of time differences
 library(timeplyr)
 library(lubridate)
 \dontshow{
-data.table::setDTthreads(threads = 1L)
+data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
 time_diff_gcd(1:10)

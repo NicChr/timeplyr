@@ -113,7 +113,7 @@ library(lubridate)
 library(ggplot2)
 library(dplyr)
 \dontshow{
-data.table::setDTthreads(threads = 1L)
+data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
 # Easily create custom time breaks

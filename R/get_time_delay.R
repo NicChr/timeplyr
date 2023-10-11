@@ -54,7 +54,7 @@
 #' library(purrr)
 #' library(lubridate)
 #' \dontshow{
-#' data.table::setDTthreads(threads = 1L)
+#' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
 #' ebola_linelist <- outbreaks::ebola_sim_clean$linelist

@@ -32,7 +32,7 @@
 #' library(data.table)
 #' library(nycflights13)
 #' \dontshow{
-#' data.table::setDTthreads(threads = 1L)
+#' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
 #' # Simple row numbers

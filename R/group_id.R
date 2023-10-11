@@ -80,7 +80,7 @@
 #' library(dplyr)
 #' library(ggplot2)
 #' \dontshow{
-#' data.table::setDTthreads(threads = 1L)
+#' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
 #' group_id(iris) # No groups

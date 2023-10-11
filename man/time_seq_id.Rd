@@ -82,7 +82,7 @@ library(dplyr)
 library(timeplyr)
 library(lubridate)
 \dontshow{
-data.table::setDTthreads(threads = 1L)
+data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
 # Weekly sequence, with 2 gaps in between

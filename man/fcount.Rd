@@ -79,7 +79,7 @@ Other than that everything works exactly as the dplyr equivalent.
 library(timeplyr)
 library(dplyr)
 \dontshow{
-data.table::setDTthreads(threads = 1L)
+data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
 iris \%>\%

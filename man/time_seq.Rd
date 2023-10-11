@@ -132,7 +132,7 @@ function to calculate time sequence lengths, given start/end times.
 library(timeplyr)
 library(lubridate)
 \dontshow{
-data.table::setDTthreads(threads = 1L)
+data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
 # Dates
