@@ -2,6 +2,7 @@
 #'
 #' @description When there are lots of groups, the `fslice()` functions are much faster.
 #'
+#' @details
 #' `fslice()` and friends allow for more flexibility in how you order the by-group slicing. \cr
 #' Furthermore, you can control whether the returned data frame is sliced in
 #' the order of the supplied row indices, or whether the
@@ -37,12 +38,18 @@
 #' To clarify, whatever seed state was in place before the function call,
 #' is restored to ensure seed continuity.
 #' If left `NULL` (the default), then the seed is never modified.
+#'
 #' @returns
 #' A `data.frame` of specified rows.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
 #' library(nycflights13)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' flights <- flights %>%
 #'   group_by(origin, dest)
 #'

@@ -58,6 +58,9 @@ to fill the named implicit missing values.}
 A \code{data.frame} of expanded groups.
 }
 \description{
+Fast versions of \code{tidyr::expand()} and \code{tidyr::complete()}.
+}
+\details{
 For un-grouped data \code{fexpand()} is similar in speed to \code{tidyr::expand()}.
 When the data contain many groups, \code{fexpand()} is much much faster (see examples).
 
@@ -101,7 +104,10 @@ library(timeplyr)
 library(dplyr)
 library(lubridate)
 library(nycflights13)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 flights \%>\%
   fexpand(origin, dest)
 flights \%>\%
@@ -112,6 +118,7 @@ flights \%>\%
 flights \%>\%
   group_by(origin, dest, tailnum) \%>\%
   fexpand(carrier)
+\dontrun{
 # 2 extra groups, this is where the grouped calculation actually happens
 # still very quick
 flights \%>\%
@@ -123,4 +130,5 @@ flights \%>\%
   fexpand(date = as_date(time_hour),
           across(all_of(c("origin", "dest"))),
           pick("carrier"))
+}
 }

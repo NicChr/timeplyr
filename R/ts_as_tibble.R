@@ -12,16 +12,22 @@
 #' @param value Name of the output value column.
 #' @param group Name of the output group column
 #' when there are multiple series.
+#'
 #' @returns
 #' A 2-column `tibble` containing the time index and values for each
 #' time index. In the case where there are multiple series, this becomes
 #' a 3-column `tibble` with an additional "group" column added.
+#'
 #' @seealso [time_ggplot]
+#'
 #' @examples
 #' library(timeplyr)
 #' library(ggplot2)
 #' library(dplyr)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' # Using the examples from ?ts
 #'
 #' # Univariate

@@ -1,6 +1,7 @@
 #' A time based extension to `dplyr::mutate()`.
 #'
-#' @description  This works much the same as `dplyr::mutate()`, except that
+#' @description
+#' This works much the same as `dplyr::mutate()`, except that
 #' you can supply an additional `time` argument to allow for
 #' aggregating time to a higher unit.
 #'
@@ -48,14 +49,19 @@
 #' Options are "preday", "boundary", "postday", "full" and "NA".
 #' See `?timechange::time_add` for more details.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
+#'
 #' @returns
 #' A `data.frame` with added columns.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
 #' library(lubridate)
 #' library(nycflights13)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' # Works the same way as mutate()
 #' identical(flights %>%
 #'             mutate(across(where(is.numeric), mean)),

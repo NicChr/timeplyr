@@ -95,7 +95,10 @@ method which utilises joins and is written almost entirely using dplyr.
 library(dplyr)
 library(timeplyr)
 library(nycflights13)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 # Duplicates across all columns
 flights \%>\%
   duplicate_rows()

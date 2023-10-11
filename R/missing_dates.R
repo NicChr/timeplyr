@@ -1,7 +1,10 @@
 #' Check for missing dates between first and last date
 #'
 #' @param x A date or datetime vector, or a data frame.
-#' @return A date vector if x is a vector, or a list if x is a `data.frame`.
+#'
+#' @returns
+#' A date vector if x is a vector, or a list if x is a `data.frame`.
+#'
 #' @rdname missing_dates
 #' @export
 missing_dates <- function(x){

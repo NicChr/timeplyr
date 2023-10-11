@@ -46,7 +46,10 @@
 #' @param as_qg Should the group IDs be returned as a
 #' collapse "qG" class? The default (`FALSE`) always returns
 #' an integer vector.
-#' @return An integer vector.
+#'
+#' @returns
+#' An integer vector.
+#'
 #' @details
 #' It's important to note for data frames, these functions by default assume
 #' no groups unless you supply them.
@@ -76,6 +79,10 @@
 #' library(timeplyr)
 #' library(dplyr)
 #' library(ggplot2)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' group_id(iris) # No groups
 #' group_id(iris, Species) # Species groups
 #' row_id(iris) # Plain row IDs
@@ -537,32 +544,3 @@ group_id_to_qg <- function(x,
 qg_to_integer <- function(x){
   strip_attrs(x)
 }
-# group_id_to_GRP <- function(x, ordered = TRUE, return_order = FALSE){
-#   if (length(x) == 0L){
-#     g_sizes <- integer(0)
-#   } else {
-#     g_sizes <- collapse::fnobs(x, g = x, use.g.names = FALSE)
-#   }
-#   n_groups <- length(g_sizes)
-#   if (ordered){
-#     sorted <- !is.unsorted(x)
-#     # Placeholder
-#     # if (return_order){
-#     #
-#     # }
-#   } else {
-#     sorted <- NA
-#   }
-#   out <- list("N.groups" = n_groups,
-#               "group.id" = x,
-#               "group.sizes" = g_sizes,
-#               "groups" = NULL,
-#               "group.vars" = NULL,
-#               "ordered" = c("ordered" = ordered,
-#                             "sorted" = sorted),
-#               "order" = NULL,
-#               "group.starts" = NULL,
-#               "call" = NULL)
-#   class(out) <- "GRP"
-#   out
-# }

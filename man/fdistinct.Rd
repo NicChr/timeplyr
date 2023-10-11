@@ -47,7 +47,10 @@ groups are involved.
 library(dplyr)
 library(timeplyr)
 library(ggplot2)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 mpg \%>\%
   distinct(manufacturer)
 mpg \%>\%

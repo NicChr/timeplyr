@@ -26,18 +26,15 @@ Are all numbers whole numbers?
 This is a very efficient function that returns \code{FALSE} if any number
 is not a whole-number and \code{TRUE} if all of them are.
 
-It operates on vectors with integer, double and logical types and so will
-return \code{TRUE} for factors, logical vectors and usually dates.
-
-For a more strict implementation, \cr
-use \code{is.numeric(x) && is_whole_number(x)}.
-
 Inspired by the discussion in this thread:
 \href{https://stackoverflow.com/questions/3476782/check-if-the-number-is-integer/76655734}{check-if-the-number-is-integer}
 }
 \examples{
 library(timeplyr)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 # Has built-in tolerance
 sqrt(2)^2 \%\% 1 == 0
 is_whole_number(sqrt(2)^2)
@@ -50,8 +47,5 @@ x2 <- c(0:10^5, 0.02)
 
 is_whole_number(x1)
 is_whole_number(x2)
-
-is_whole_number(TRUE)
-is_whole_number(FALSE)
 
 }

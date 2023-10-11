@@ -171,7 +171,11 @@ datetime vectors.
 library(timeplyr)
 library(dplyr)
 library(lubridate)
-flights <- nycflights13::flights
+library(nycflights13)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 x <- flights$time_hour
 
 # Number of missing hours

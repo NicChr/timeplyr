@@ -29,6 +29,10 @@ ISO weeks, with optional ISO year and ISO day.
 \examples{
 library(timeplyr)
 library(lubridate)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 iso_week(today())
 iso_week(today(), day = TRUE)
 iso_week(today(), year = FALSE, day = TRUE)

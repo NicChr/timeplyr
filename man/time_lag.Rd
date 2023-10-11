@@ -52,7 +52,10 @@ Time-lagged values
 }
 \examples{
 library(timeplyr)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 x <- 1:10
 t <- time_seq(Sys.Date(), len = 10, time_by = "3 days")
 

@@ -215,7 +215,7 @@ time_granularity2 <- function(x, is_sorted = FALSE){
     unit <- "numeric"
     scale <- 1
   }
-  `names<-`(list(gcd_diff / scale), unit)
+  add_names(list(gcd_diff / scale), unit)
 }
 # Converts seconds to duration unit
 # Scale is in comparison to seconds
@@ -823,7 +823,6 @@ is_interval <- function(x){
 
 # Convert time sequence to interval
 tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
-  n <- length(x)
   out <- time_interval(seq, flag2(seq, n = -1, g = gseq))
   to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
   end_points <- which(is.na(out) & !is.na(seq))
@@ -912,8 +911,7 @@ time_add2 <- function(x, time_by,
   if (time_by_is_num(time_by)){
     x + time_num
   } else {
-    time_type <- rlang::arg_match0(time_type,
-                                   c("auto", "duration", "period"))
+    time_type <- match_time_type(time_type)
     if (time_type == "auto"){
       time_type <- guess_seq_type(time_unit)
     }
@@ -971,7 +969,9 @@ time_ceiling2 <- function(x, time_by, week_start = getOption("lubridate.week.sta
   }
 }
 tomorrow <- function(){
-  Sys.Date() + 1L
+  out <- time_as_number(Sys.Date()) + 1
+  class(out) <- "Date"
+  out
 }
 ### All credit goes to the scales package developers for this function
 label_date_short <- function(format = c("%Y", "%b", "%d", "%H:%M"),
@@ -1015,7 +1015,6 @@ time_as_character <- function(x){
 # Fast NA check for lubridate intervals
 int_is_na <- function(x){
   X <- interval_separate(x)
-  # is.na(.subset2(X, 1L)) & is.na(.subset2(X, 2L))
   is.na(X[[1L]]) & is.na(X[[2L]])
 }
 time_as_number <- function(x){
@@ -1329,7 +1328,9 @@ check_is_time_or_num <- function(x){
 # Turn date storage into integer
 as_int_date <- function(x){
   check_is_date(x)
-  `class<-`(as.integer(unclass(x)), "Date")
+  out <- as.integer(unclass(x))
+  class(out) <- "Date"
+  out
 }
 check_time_not_missing <- function(x){
   if (anyNA(x)){

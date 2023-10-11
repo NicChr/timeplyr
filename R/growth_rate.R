@@ -18,8 +18,11 @@
 #' a flexible calculation.
 #' @param partial Should rates be calculated outwith the window
 #' using partial windows? Default is \code{TRUE}.
-#' @return `growth_rate` returns a `numeric(1)` and `roll_growth_rate`
+#'
+#' @returns
+#' `growth_rate` returns a `numeric(1)` and `roll_growth_rate`
 #' returns a `numeric(length(x))`.
+#'
 #' @details
 #' This metric is equivalent to the compound annual growth rate (CAGR): doi.org/10.1002/smr.1847
 #' It is assumed that `x` is a vector of values with
@@ -31,10 +34,15 @@
 #' rolling basis.
 #' The identity \cr `tail(roll_growth_rate(x, window = length(x)), 1) == growth_rate(x)`
 #' should always hold.
+#'
 #' @seealso [time_roll_growth_rate]
+#'
 #' @examples
 #' library(timeplyr)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' set.seed(42)
 #' initial_investment <- 100
 #' years <- 1990:2000

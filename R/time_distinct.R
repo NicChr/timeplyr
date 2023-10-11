@@ -1,6 +1,7 @@
 #' A time based extension to `dplyr::distinct()`.
 #'
-#' @description This works much the same as `dplyr::distinct()`, except that
+#' @description
+#' This works much the same as `dplyr::distinct()`, except that
 #' you can supply an additional `time` argument to allow for
 #' aggregating time to a higher unit.
 #'
@@ -50,8 +51,10 @@
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
 #' @param sort Should the result be sorted? Default is `TRUE`.
 #' If `FALSE` then original (input) order is kept.
+#'
 #' @returns
 #' A `data.frame` of distinct aggregate time values across groups.
+#'
 #' @export
 time_distinct <- function(data, time = NULL, ..., time_by = NULL,
                           from = NULL, to = NULL,

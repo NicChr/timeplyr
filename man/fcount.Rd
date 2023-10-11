@@ -78,6 +78,10 @@ Other than that everything works exactly as the dplyr equivalent.
 \examples{
 library(timeplyr)
 library(dplyr)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 iris \%>\%
   fcount()
 iris \%>\%

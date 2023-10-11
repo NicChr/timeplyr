@@ -1,6 +1,7 @@
 #' Fast time-based by-group rolling sum/mean - Currently experimental
 #'
-#' @description `time_roll_sum` and `time_roll_mean` are efficient
+#' @description
+#' `time_roll_sum` and `time_roll_mean` are efficient
 #' methods for calculating a rolling sum and mean respectively given
 #' many groups and with respect to a date or datetime time index. \cr
 #' It is always aligned "right". \cr
@@ -55,6 +56,7 @@
 #' rate calculation. See \bold{details} for more info.
 #' @param ... Additional arguments passed to `data.table::frollmean` and
 #' `data.table::frollsum`.
+#'
 #' @details
 #' It is much faster if your data are already sorted such that
 #' `!is.unsorted(order(g, x))` is `TRUE`.
@@ -74,13 +76,18 @@
 #' 8% for each time step from 1 to 10. \cr
 #' This allows us for example to calculate daily growth rates over the last x months,
 #' even with missing days.
+#'
 #' @returns
 #' A vector the same length as `time`.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(lubridate)
 #' library(dplyr)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' time <- time_seq(today(), today() + weeks(3),
 #'                  time_by = "3 days")
 #' set.seed(99)

@@ -10,11 +10,29 @@
 #'
 #' The default is `TRUE` but
 #' you can set this to `FALSE` if you need this to be speed-performant.
-#' @details This function is simple and fast. It should generally be equivalent
-#' to
+#'
+#' @details
+#' This function is simple and fast. It should generally be equivalent to
 #' `diag(matrix(unlist(data.table::shift(x, lag)), ncol = length(x)))`. \cr
 #' where `length(lag) = length(x)`.
-#' @return A lagged vector of `x` the same length as `x`.
+#'
+#' @returns
+#' A lagged vector of `x` the same length as `x`.
+#'
+#' @examples
+#' library(timeplyr)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
+#' x <- 1:10
+#'
+#' roll_lag(x, 2) # Lag
+#' roll_lag(x, -2) # Lead
+#'
+#'
+#' roll_lag(x, lag_seq(x, 2), check = FALSE) # Lag
+#' roll_lag(x, lag_seq(x, -2), check = FALSE) # Lead
 #' @rdname roll_lag
 #' @export
 roll_lag <- function(x, lag = 1L, check = TRUE){

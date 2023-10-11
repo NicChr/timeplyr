@@ -65,6 +65,10 @@ otherwise \code{data.table::frollmean()} is used.
 }
 \examples{
 library(timeplyr)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 set.seed(42)
 # Growth rate is 6\% per day
 x <- 10 * (1.06)^(0:25)

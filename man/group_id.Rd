@@ -137,6 +137,10 @@ group_id2 <- function(data, ...){
 library(timeplyr)
 library(dplyr)
 library(ggplot2)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 group_id(iris) # No groups
 group_id(iris, Species) # Species groups
 row_id(iris) # Plain row IDs

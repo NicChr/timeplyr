@@ -21,11 +21,17 @@
 #' @param tol Tolerance of comparison. The time differences are rounded
 #' using `digits = ceiling(abs(log10(tol)))` to try and avoid
 #' precision issues.
+#'
 #' @returns
 #' A double vector of length 1 or length 0 if `length(x)` is 0.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(lubridate)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' time_diff_gcd(1:10)
 #' time_diff_gcd(seq(0, 1, 0.2))
 #'

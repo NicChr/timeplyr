@@ -1,6 +1,7 @@
 #' Fast by-group rolling sum/mean
 #'
-#' @description An efficient method for rolling sum/mean for many groups. \cr
+#' @description
+#' An efficient method for rolling sum/mean for many groups. \cr
 #'
 #' @param x Numeric vector, data frame, or list.
 #' @param window Rolling window size, default is `Inf`.
@@ -26,12 +27,20 @@
 #' `roll_apply` accepts any user function and is more flexible but much
 #' less efficient. It also only accepts vector input. \cr
 #' Please note that `roll_apply` and `time_roll_apply` are still experimental.
-#' @return Excluding `roll_apply`, these return a numeric vector the
+#'
+#' @returns
+#' Excluding `roll_apply`, these return a numeric vector the
 #' same length as `x` when `x` is a vector, and a list when `x` is a `data.frame`. \cr
 #' `roll_apply` returns a list the same length as `x`.
+#'
 #' @seealso [time_roll_mean] [roll_growth_rate]
+#'
 #' @examples
 #' library(timeplyr)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' x <- 1:10
 #' roll_sum(x) # Simple rolling total
 #' roll_mean(x) # Simple moving average

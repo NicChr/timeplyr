@@ -8,12 +8,18 @@
 #' This may be a vector or data frame for example.
 #' @param fill_limit (Optional) maximum number of consecutive NAs to fill
 #' per `NA` cluster.
-#' @return A filled vector of `x` the same length as `x`.
+#'
+#' @returns
+#' A filled vector of `x` the same length as `x`.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
 #' library(data.table)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' words <- do.call(paste0,
 #'                  do.call(expand.grid, rep(list(letters), 3)))
 #' groups <- sample(words, size = 10^5, replace = TRUE)

@@ -2,6 +2,7 @@
 #'
 #' @description
 #' `collapse` and `data.table` are used for the calculations.
+#'
 #' @param data A data frame.
 #' @param ... Variables used to calculate quantiles for.
 #' Tidy data-masking applies.
@@ -16,11 +17,19 @@
 #' @param .cols (Optional) alternative to `...` that accepts
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
-#' @return A `data.table` containing the quantile values for each group.
-#' @seealso \link[timeplyr]{stat_summarise}
+#'
+#' @returns
+#' A `data.table` containing the quantile values for each group.
+#'
+#' @seealso [stat_summarise]
+#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' # Standard quantiles
 #' iris %>%
 #'   q_summarise(Sepal.Length)

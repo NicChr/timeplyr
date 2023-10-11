@@ -16,7 +16,10 @@
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
 #' @param .drop Should unused factor levels be dropped? Default is `TRUE`.
-#' @return A `grouped_df`.
+#'
+#' @returns
+#' A `grouped_df`.
+#'
 #' @export
 fgroup_by <- function(data, ..., .add = FALSE,
                       order = TRUE,

@@ -1,6 +1,7 @@
 #' Is time a regular sequence? (Experimental)
 #'
-#' @description This function is a fast way to check if a time vector
+#' @description
+#' This function is a fast way to check if a time vector
 #' is a regular sequence, possibly for many groups.
 #' Regular in this context means that the lagged time differences are a
 #' whole multiple of the specified time unit. \cr
@@ -33,8 +34,47 @@
 #' are used the output is always of class `POSIXt`.
 #' @param allow_gaps Should gaps be allowed? Default is `TRUE`.
 #' @param allow_dups Should duplicates be allowed? Default is `TRUE`.
+#'
 #' @returns
 #' A logical vector the same length as the number of supplied groups.
+#'
+#' @examples
+#' library(timeplyr)
+#' library(lubridate)
+#' library(dplyr)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
+#' x <- 1:5
+#' y <- c(1, 1, 2, 3, 5)
+#'
+#' time_is_regular(x)
+#' time_is_regular(y)
+#'
+#' increment <- 1
+#'
+#' # No duplicates allowed
+#' time_is_regular(x, increment, allow_dups = FALSE)
+#' time_is_regular(y, increment, allow_dups = FALSE)
+#'
+#' # No gaps allowed
+#' time_is_regular(x, increment, allow_gaps = FALSE)
+#' time_is_regular(y, increment, allow_gaps = FALSE)
+#'
+#' # Grouped
+#' eu_stock <- ts_as_tibble(EuStockMarkets)
+#' eu_stock <- eu_stock %>%
+#'   mutate(date = as_date(
+#'     date_decimal(time)
+#'   ))
+#'
+#' time_is_regular(eu_stock$date, g = eu_stock$group,
+#'                 time_by = 1)
+#' # This makes sense as no trading occurs on weekends and holidays
+#' time_is_regular(eu_stock$date, g = eu_stock$group,
+#'                 time_by = 1,
+#'                 allow_gaps = FALSE)
 #' @export
 time_is_regular <- function(x, time_by = NULL,
                             g = NULL, use.g.names = TRUE,
@@ -42,6 +82,7 @@ time_is_regular <- function(x, time_by = NULL,
                             time_type = c("auto", "duration", "period"),
                             allow_gaps = TRUE,
                             allow_dups = TRUE){
+  check_is_time_or_num(x)
   if (is.null(g)){
     return(time_is_reg(x, time_by = time_by,
                        na.rm = na.rm,
@@ -49,14 +90,13 @@ time_is_regular <- function(x, time_by = NULL,
                        allow_gaps = allow_gaps,
                        allow_dups = allow_dups))
   }
-  stopifnot(is_time_or_num(x))
   if (length(x) == 0L){
     return(TRUE)
   }
   x <- unname(x)
   g <- GRP2(g)
+  check_data_GRP_size(x, g)
   if (!is.null(g)){
-    check_data_GRP_size(x, g)
     n_groups <- GRP_n_groups(g)
   } else {
     n_groups <- 1L
@@ -78,11 +118,11 @@ time_is_regular <- function(x, time_by = NULL,
   n_whole_num <- collapse::fsum(is_whole_num, g = g, use.g.names = FALSE,
                                 na.rm = na.rm, fill = FALSE)
   out <- n_whole_num == fn(telapsed, g = g, use.g.names = FALSE)
-  is_increasing <- double_gte(collapse::fmin(roll_time_diff, g = g, na.rm = TRUE,
+  is_increasing <- double_gte(collapse::fmin(roll_time_diff, g = g, na.rm = na.rm,
                                              use.g.names = FALSE), 0)
   out <- out & is_increasing
   if (!allow_gaps){
-    has_gaps <- double_gt(collapse::fmax(roll_time_diff, g = g, na.rm = TRUE,
+    has_gaps <- double_gt(collapse::fmax(roll_time_diff, g = g, na.rm = na.rm,
                                          use.g.names = FALSE), 1)
     out <- out & !has_gaps
   }
@@ -91,7 +131,7 @@ time_is_regular <- function(x, time_by = NULL,
     if (na.rm){
       gduplicated <- gduplicated & !is.na(x)
     }
-    has_dups <- collapse::fsum(gduplicated) > 0
+    has_dups <- any(gduplicated)
     out <- out & !has_dups
   }
   if (use.g.names){
@@ -99,81 +139,6 @@ time_is_regular <- function(x, time_by = NULL,
   }
   out
 }
-# time_is_regular2 <- function(x, time_by = NULL,
-#                             g = NULL, use.g.names = TRUE,
-#                             na.rm = TRUE,
-#                             time_type = c("auto", "duration", "period"),
-#                             allow_gaps = TRUE,
-#                             allow_dups = TRUE){
-#   stopifnot(is_time_or_num(x))
-#   if (length(x) == 0L){
-#     return(TRUE)
-#   }
-#   x <- unname(x)
-#   if (!is.null(g)){
-#     g <- GRP2(g)
-#     if (GRP_data_size(g) != length(x)){
-#       stop("g must have the same size as x")
-#     }
-#     group_sizes <- GRP_group_sizes(g)
-#     if (use.g.names){
-#       names(x) <- GRP_names(g, expand = TRUE)
-#     }
-#   } else {
-#     group_sizes <- n_unique(x)
-#   }
-#   time_by <- time_by_get(x, time_by = time_by)
-#   time <- gunique(x, sort = TRUE, g = g, use.g.names = TRUE)
-#   groups <- names(time)
-#   telapsed <- time_elapsed(time, time_by = time_by, g = groups,
-#                            time_type = time_type, rolling = FALSE,
-#                            na_skip = na.rm,
-#                            fill = 0)
-#   # telapsed <- gunique(telapsed, g = groups, use.g.names = TRUE, sort = FALSE)
-#   # # telapsed <- telapsed[!is.na(telapsed)]
-#   # groups <- names(telapsed)
-#   # x_na <- is.na(x)
-#   if (is.null(time_by)){
-#     if (is.null(g)){
-#       out <- TRUE
-#     } else {
-#       out <- rep_len(TRUE, n_unique(groups))
-#     }
-#   } else {
-#     tol <- sqrt(.Machine$double.eps)
-#     is_whole_num <- abs(round(telapsed) - telapsed) < tol
-#     if (na.rm){
-#       is_whole_num[is.na(is_whole_num)] <- TRUE
-#     }
-#     n_whole_num <- collapse::fsum(is_whole_num, g = groups, use.g.names = FALSE,
-#                                   na.rm = na.rm, fill = FALSE)
-#     if (is.null(g)){
-#       group_size <- length(telapsed)
-#     } else {
-#       group_size <- fn(groups, g = groups, sort = TRUE)
-#     }
-#     out <- n_whole_num == group_size
-#   }
-#   if (use.g.names){
-#     names(out) <- unique(groups)
-#   }
-#   if (!allow_gaps){
-#     has_gaps <- time_has_gaps(x, time_by = time_by,
-#                               g = g, use.g.names = TRUE,
-#                               time_type = time_type,
-#                               check_time_regular = FALSE)
-#     out <- out & !has_gaps
-#   }
-#   if (!allow_dups){
-#     gduplicated <- gduplicated(x, g = g)
-#     if (na.rm){
-#       gduplicated <- gduplicated & !is.na(x)
-#     }
-#     has_dups <- collapse::fsum(gduplicated) > 0
-#     out <- out & !has_dups
-#   }
-#   out
-# }
 # Ungrouped version.
 time_is_reg <- function(x, time_by = NULL,
                         na.rm = TRUE,
@@ -194,7 +159,11 @@ time_is_reg <- function(x, time_by = NULL,
   } else {
     out <- is_whole_number(telapsed, na.rm = na.rm)
     # Check that the sequence is increasing/decreasing
-    is_increasing <- !is.unsorted(telapsed[!is.na(telapsed)])
+    if (na.rm){
+      is_increasing <- is_sorted(telapsed[!is.na(telapsed)])
+    } else {
+      is_increasing <- !is.unsorted(telapsed)
+    }
     # is_increasing <- diff_is_increasing(roll_time_diff)
     out <- out && is_increasing
   }
@@ -207,24 +176,24 @@ time_is_reg <- function(x, time_by = NULL,
     out <- out && !has_gaps
   }
   if (!allow_dups){
-    which_dups <- which(collapse::fduplicated(x))
+    is_dup <- collapse::fduplicated(x)
     if (na.rm){
-      which_dups <- setdiff(which_dups, collapse::whichNA(x))
+      is_dup <- is_dup & !is.na(x)
     }
-    has_dups <- length(which_dups) > 0L
+    has_dups <- any(is_dup)
     out <- out & !has_dups
   }
   out
 }
-check_time_elapsed_regular <- function(x){
-    unique_elapsed <- collapse::funique(x)
-    is_regular <- is_whole_number(unique_elapsed, na.rm = TRUE)
-    if (!is_regular){
-      stop("x is not regular given the chosen time unit")
-    }
-}
-check_time_elapsed_order <- function(x){
-  if (isTRUE(collapse::fmin(x, na.rm = TRUE) < 0)){
-    stop("x must be in ascending or descending order")
-  }
-}
+# check_time_elapsed_regular <- function(x){
+#     unique_elapsed <- collapse::funique(x)
+#     is_regular <- is_whole_number(unique_elapsed, na.rm = TRUE)
+#     if (!is_regular){
+#       stop("x is not regular given the chosen time unit")
+#     }
+# }
+# check_time_elapsed_order <- function(x){
+#   if (isTRUE(collapse::fmin(x, na.rm = TRUE) < 0)){
+#     stop("x must be in ascending or descending order")
+#   }
+# }

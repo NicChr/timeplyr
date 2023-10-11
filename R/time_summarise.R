@@ -1,6 +1,7 @@
 #' A time based extension to `dplyr::summarise()`/`dplyr::reframe()`
 #'
-#' @description This works much the same as `dplyr::summarise()`, except that
+#' @description
+#' This works much the same as `dplyr::summarise()`, except that
 #' you can supply an additional `time` argument to allow for
 #' aggregating time to a higher unit.
 #'
@@ -50,14 +51,19 @@
 #' @param sort Should the result be sorted? Default is `TRUE`.
 #' If `FALSE` then original (input) order is kept.
 #' The sorting only applies to groups and time variable.
+#'
 #' @returns
 #' A summarised `data.frame`.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
 #' library(lubridate)
 #' library(nycflights13)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' # Works the same way as summarise()
 #' flights %>%
 #'   summarise(across(where(is.numeric), mean))

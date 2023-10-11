@@ -81,6 +81,10 @@ To check this condition formally, use \code{time_is_regular()}.
 library(dplyr)
 library(timeplyr)
 library(lubridate)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 # Weekly sequence, with 2 gaps in between
 x <- time_seq(today(), length.out = 10, time_by = "week")
 x <- x[-c(3, 7)]

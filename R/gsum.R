@@ -3,6 +3,7 @@
 #' @description These functions are wrappers around the collapse equivalents
 #' but always return a vector the same length and same order as x.\cr
 #' They all accept group IDs for grouped calculations.
+#'
 #' @param x An atomic vector.
 #' @param g Group IDs passed directly to `collapse::GRP()`.
 #' This can be a vector, list or data frame.
@@ -11,11 +12,18 @@
 #' equivalents, `fsum()`, `fmean()`, `fmin()`, `fmax()`,
 #' `fsd()`, `fvar()`, `fmode()`, `fmedian()`, `ffirst()`, `flast()` and
 #' `fnobs()`
-#' @return A vector the same length as `x`.
+#'
+#' @returns
+#' A vector the same length as `x`.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
 #' library(ggplot2)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' # Dplyr
 #' iris %>%
 #'   mutate(mean = mean(Sepal.Length), .by = Species)

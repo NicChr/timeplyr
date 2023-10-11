@@ -39,7 +39,10 @@
 #' library(dplyr)
 #' library(lubridate)
 #' library(nycflights13)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' missing_dates(flights$time_hour)
 #' time_has_gaps(flights$time_hour)
 #' time_num_gaps(flights$time_hour)
@@ -57,8 +60,8 @@ time_gaps <- function(x, time_by = NULL,
                       time_type = c("auto", "duration", "period"),
                       check_time_regular = FALSE){
   g <- GRP2(g)
+  check_data_GRP_size(x, g)
   if (!is.null(g)){
-    check_data_GRP_size(x, g)
     names(x) <- GRP_names(g, expand = TRUE)
   }
   time_by <- time_by_get(x, time_by = time_by)

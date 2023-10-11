@@ -113,7 +113,8 @@ A \code{data.frame} of specified rows.
 }
 \description{
 When there are lots of groups, the \code{fslice()} functions are much faster.
-
+}
+\details{
 \code{fslice()} and friends allow for more flexibility in how you order the by-group slicing. \cr
 Furthermore, you can control whether the returned data frame is sliced in
 the order of the supplied row indices, or whether the
@@ -129,6 +130,10 @@ maximum group size like in \code{dplyr::slice_sample()}.
 library(timeplyr)
 library(dplyr)
 library(nycflights13)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 flights <- flights \%>\%
   group_by(origin, dest)
 

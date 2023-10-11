@@ -25,6 +25,7 @@
 #' @param fill When `rolling = TRUE`, this is the value that fills
 #' the first elapsed time. The default is `NA`.
 #' @param na_skip Should `NA` values be skipped? Default is `TRUE`.
+#'
 #' @details
 #' `time_elapsed()` is quite efficient when there are many groups,
 #' especially if your data is sorted in order of those groups.
@@ -44,10 +45,15 @@
 #' lagged time differences.
 #'
 #' @returns A numeric vector the same length as `x`.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
 #' library(lubridate)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' x <- time_seq(today(), length.out = 25, time_by = "3 days")
 #' time_elapsed(x)
 #' time_elapsed(x, rolling = FALSE, time_by = "day")

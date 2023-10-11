@@ -47,6 +47,10 @@ are sorted last and therefore a key is not set.
 }
 \examples{
 library(timeplyr)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 crossed_join(list(1:3, -2:2))
 crossed_join(iris, sort = TRUE)
 }

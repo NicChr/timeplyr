@@ -75,6 +75,10 @@ lagged time differences.
 library(timeplyr)
 library(dplyr)
 library(lubridate)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 x <- time_seq(today(), length.out = 25, time_by = "3 days")
 time_elapsed(x)
 time_elapsed(x, rolling = FALSE, time_by = "day")

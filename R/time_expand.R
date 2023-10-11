@@ -1,6 +1,5 @@
 #' A time based extension to `tidyr::complete()`.
 #'
-#'
 #' @param data A data frame.
 #' @param time Time variable.
 #' @param ... Groups to expand.
@@ -63,8 +62,10 @@
 #' library(dplyr)
 #' library(lubridate)
 #' library(nycflights13)
-#'
-#' data(flights)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' x <- flights$time_hour
 #'
 #' time_num_gaps(x) # Missing hours
@@ -84,7 +85,7 @@
 #'
 #' # Where time_expand() and time_complete() really shine is how fast they are with groups
 #' flights %>%
-#'   group_by(origin, dest, tailnum) %>%
+#'   group_by(origin, dest) %>%
 #'   time_expand(time = time_hour, time_by = dweeks(1))
 #' @rdname time_expand
 #' @export

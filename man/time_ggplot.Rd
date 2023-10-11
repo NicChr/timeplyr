@@ -31,7 +31,10 @@ plot aggregate time-series data.
 \examples{
 library(dplyr)
 library(timeplyr)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 # It's as easy as this
 AirPassengers \%>\%
   ts_as_tibble() \%>\%

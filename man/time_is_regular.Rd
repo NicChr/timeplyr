@@ -63,3 +63,41 @@ Regular in this context means that the lagged time differences are a
 whole multiple of the specified time unit. \cr
 This means \code{x} can be a regular sequence with or without gaps in time.
 }
+\examples{
+library(timeplyr)
+library(lubridate)
+library(dplyr)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
+x <- 1:5
+y <- c(1, 1, 2, 3, 5)
+
+time_is_regular(x)
+time_is_regular(y)
+
+increment <- 1
+
+# No duplicates allowed
+time_is_regular(x, increment, allow_dups = FALSE)
+time_is_regular(y, increment, allow_dups = FALSE)
+
+# No gaps allowed
+time_is_regular(x, increment, allow_gaps = FALSE)
+time_is_regular(y, increment, allow_gaps = FALSE)
+
+# Grouped
+eu_stock <- ts_as_tibble(EuStockMarkets)
+eu_stock <- eu_stock \%>\%
+  mutate(date = as_date(
+    date_decimal(time)
+  ))
+
+time_is_regular(eu_stock$date, g = eu_stock$group,
+                time_by = 1)
+# This makes sense as no trading occurs on weekends and holidays
+time_is_regular(eu_stock$date, g = eu_stock$group,
+                time_by = 1,
+                allow_gaps = FALSE)
+}

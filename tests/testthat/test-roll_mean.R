@@ -1,3 +1,8 @@
+# Set number of data.table threads to 1
+data.table::setDTthreads(threads = 1L)
+# Set number of collapse threads to 1
+collapse::set_collapse(nthreads = 1L)
+
 testthat::test_that("Expect error", {
   testthat::expect_error(roll_sum(NA_character_))
   testthat::expect_error(roll_mean(NA_character_))

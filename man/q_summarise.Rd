@@ -49,6 +49,10 @@ A \code{data.table} containing the quantile values for each group.
 \examples{
 library(timeplyr)
 library(dplyr)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 # Standard quantiles
 iris \%>\%
   q_summarise(Sepal.Length)
@@ -71,5 +75,5 @@ df <- data.frame(x = rnorm(10^5),
 q_summarise(df, x, .by = g, sort = FALSE)
 }
 \seealso{
-\link[timeplyr]{stat_summarise}
+\link{stat_summarise}
 }

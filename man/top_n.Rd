@@ -67,7 +67,10 @@ placed into a separate category "Other".
 \examples{
 library(dplyr)
 library(timeplyr)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 ### Top 3 hair colours
 timeplyr::top_n(starwars$hair_color, n = 3)
 

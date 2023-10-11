@@ -1,6 +1,7 @@
 #' Group by a time variable at a higher time unit
 #'
-#' @description `time_by` groups a time variable by a specified time unit like
+#' @description
+#' `time_by` groups a time variable by a specified time unit like
 #' for example "days" or "weeks". \cr
 #' It can be used exactly like `dplyr::group_by`.
 #'
@@ -49,12 +50,19 @@
 #' using the full data? If done by group, different groups may contain
 #' different time sequences. This only applies when `.add = TRUE`.
 #' @param x A `time_tbl_df`.
-#' @return A `time_tbl_df` which for practical purposes can be treated the
+#'
+#' @returns
+#' A `time_tbl_df` which for practical purposes can be treated the
 #' same way as a dplyr `grouped_df`.
+#'
 #' @examples
 #' library(dplyr)
 #' library(timeplyr)
 #' library(nycflights13)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' monthly_flights <- flights %>%
 #'   time_by(time_hour, "month")
 #'

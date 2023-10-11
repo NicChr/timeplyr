@@ -1,6 +1,7 @@
 #' Fast `dplyr::select()`/`dplyr::rename()`
 #'
-#' @description `fselect()` operates the exact same way as `dplyr::select()` and
+#' @description
+#' `fselect()` operates the exact same way as `dplyr::select()` and
 #' can be used naturally with `tidyselect` helpers.
 #' It uses `collapse` to perform the actual selecting of variables and is
 #' considerably faster than `dplyr` for selecting exact columns,
@@ -13,7 +14,10 @@
 #' a named character vector or numeric vector. \cr
 #' No checks on duplicates column names are done when using `.cols`. \cr
 #' If speed is an expensive resource, it is recommended to use this.
-#' @return A `data.frame` of selected columns.
+#'
+#' @returns
+#' A `data.frame` of selected columns.
+#'
 #' @examples
 #' \dontrun{
 #'   library(timeplyr)

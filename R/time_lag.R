@@ -20,11 +20,16 @@
 #' Options are "preday", "boundary", "postday", "full" and "NA".
 #' See `?timechange::time_add` for more details.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
+#'
 #' @returns
 #' A vector of `length(x)` lagged by a specified time unit.
+#'
 #' @examples
 #' library(timeplyr)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' x <- 1:10
 #' t <- time_seq(Sys.Date(), len = 10, time_by = "3 days")
 #'

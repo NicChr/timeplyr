@@ -147,7 +147,10 @@ library(dplyr)
 library(nycflights13)
 library(lubridate)
 library(ggplot2)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 # Say we want to flag origin-destination pairs
 # that haven't seen departures or arrivals for a week
 

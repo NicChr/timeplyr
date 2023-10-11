@@ -1,6 +1,7 @@
 #' Fast grouped row numbers
 #'
-#' @description `frowid()` is like `data.table::rowid()` but uses
+#' @description
+#' `frowid()` is like `data.table::rowid()` but uses
 #' `collapse` for the grouping.
 #'
 #' For a more  tidyverse friendly version for data frames, see `?row_id`.
@@ -17,18 +18,23 @@
 #' This makes no difference on the result but can sometimes be faster for
 #' unsorted vectors.
 #'
-#' @return An integer vector of row IDs
+#' @returns
+#' An integer vector of row IDs
 #' or double if `length > .Machine$integer.max`
 #' If `x` is a vector, a vector `length(x)` will be returned.\cr
 #' If `x` is a data frame, a vector `nrow(x)` will be returned.\cr
 #' If `x` is a list, a vector `unique(lengths(x))` will be returned as
 #' long as the number of unique lengths is `<= 1`.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
 #' library(data.table)
 #' library(nycflights13)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' # Simple row numbers
 #' frowid(flights, g = NULL)
 #' # Row numbers by origin

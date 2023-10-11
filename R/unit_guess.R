@@ -1,17 +1,25 @@
 #' Guess time unit and extract basic information.
+#'
 #' @description This is a simple R function to convert time units to a
 #' common unit, with number and scale. \cr
 #' See `.time_units` for a list of accepted
 #' time units.
+#'
 #' @param x This can be 1 of 4 options:
 #' * A string, e.g. "7 days"
 #' * Lubridate duration or period object, e.g. `days(1)` or `ddays(1)`.
 #' * A list, e.g. list("days" = 7)
 #' * A number, e.g. 5
+#'
 #' @returns
 #' A list of length 3, including the unit, number and scale.
+#'
 #' @examples
 #' library(timeplyr)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' # Single units
 #' unit_guess("days")
 #' unit_guess("hours")

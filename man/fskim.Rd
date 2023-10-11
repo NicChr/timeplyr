@@ -37,5 +37,9 @@ Character vectors are internally converted to factors using
 \examples{
 library(timeplyr)
 library(nycflights13)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 fskim(flights)
 }

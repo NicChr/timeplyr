@@ -11,13 +11,19 @@
 #' plotted separately or on the same plot?
 #' Default is `FALSE`, or together.
 #' @param ... Further arguments passed to `geom_line()`.
+#'
 #' @returns
 #' A `ggplot`.
+#'
 #' @seealso [ts_as_tibble]
+#'
 #' @examples
 #' library(dplyr)
 #' library(timeplyr)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' # It's as easy as this
 #' AirPassengers %>%
 #'   ts_as_tibble() %>%

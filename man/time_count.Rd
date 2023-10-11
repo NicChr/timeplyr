@@ -135,7 +135,10 @@ library(timeplyr)
 library(dplyr)
 library(lubridate)
 library(nycflights13)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 flights <- flights \%>\%
   mutate(date = as_date(time_hour),
          date_num = as.integer(date)) \%>\%

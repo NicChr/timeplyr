@@ -468,6 +468,7 @@ gsplit2 <- function(x = NULL, g = NULL, use.g.names = FALSE, ...){
     collapse::gsplit(x, g = g, use.g.names = use.g.names, ...)
   }
 }
+# Sorts data by groups and returns key info
 sort_data_by_GRP <- function(x, g, sorted_group_starts = TRUE){
   has_groups <- !is.null(g)
   if (!has_groups){
@@ -519,111 +520,6 @@ sort_data_by_GRP <- function(x, g, sorted_group_starts = TRUE){
        has_groups = has_groups)
 
 }
-# Basic GRP info for when
-# you need to sort data by groups
-# and pass that to a grouped function
-# sort_data_by_GRP <- function(x, g, sorted_group_starts = TRUE){
-#   has_groups <- !is.null(g)
-#   g <- GRP2(g)
-#   check_data_GRP_size(x, g)
-#   group_id <- group_id(g)
-#   if (has_groups){
-#     group_sizes <- GRP_group_sizes(g)
-#     n_groups <- GRP_n_groups(g)
-#     group_order <- GRP_order(g)
-#     groups_are_sorted <- isTRUE(attr(group_order, "sorted"))
-#     if (groups_are_sorted){
-#       if (sorted_group_starts){
-#         sorted_group_starts <- GRP_starts(g)
-#       }
-#     } else {
-#       x <- x[group_order]
-#       group_id <- group_id[group_order]
-#       if (sorted_group_starts){
-#         sorted_group_starts <- cumsum(c(rep_len(1L, min(length(group_sizes), 1L)),
-#                                         group_sizes[-length(group_sizes)]))
-#       }
-#     }
-#     sorted_GRP[["group.starts"]] <- sorted_group_starts
-#   } else {
-#     group_sizes <- length(x)
-#     n_groups <- min(length(x), 1L)
-#     groups_are_sorted <- TRUE
-#     group_order <- NULL
-#     sorted_GRP <- NULL
-#   }
-#   list(x = x,
-#        n_groups = n_groups,
-#        group_sizes = group_sizes,
-#        GRP = g,
-#        sorted_GRP = sorted_GRP,
-#        sorted = groups_are_sorted,
-#        group_order = group_order,
-#        has_groups = has_groups)
-#
-# }
-# sort_data_by_GRP <- function(x, g, sorted_group_starts = TRUE){
-#   has_groups <- !is.null(g)
-#   g <- GRP2(g)
-#   check_data_GRP_size(x, g)
-#   group_id <- group_id(g)
-#   if (has_groups){
-#     group_sizes <- GRP_group_sizes(g)
-#     n_groups <- GRP_n_groups(g)
-#     group_order <- GRP_order(g)
-#     groups_are_sorted <- isTRUE(attr(group_order, "sorted"))
-#     if (!groups_are_sorted){
-#       x <- x[group_order]
-#       group_id <- group_id[group_order]
-#     }
-#     if (sorted_group_starts){
-#       if (groups_are_sorted){
-#         sorted_group_starts <- GRP_starts(g)
-#       } else {
-#         sorted_group_starts <- cumsum(c(rep_len(1L, min(length(group_sizes), 1L)),
-#                                         group_sizes[-length(group_sizes)]))
-#       }
-#     } else {
-#       sorted_group_starts <- NULL
-#     }
-#     sorted_GRP <- sorted_group_id_to_GRP(
-#       group_id,
-#       n_groups = n_groups,
-#       group_sizes = group_sizes,
-#       group.starts = FALSE
-#     )
-#     sorted_GRP[["group.starts"]] <- sorted_group_starts
-#   } else {
-#     group_sizes <- length(x)
-#     n_groups <- min(length(x), 1L)
-#     groups_are_sorted <- TRUE
-#     group_order <- NULL
-#     sorted_GRP <- NULL
-#   }
-#   # if (!groups_are_sorted){
-#   #   group_order <- GRP_order(g)
-#   #   x <- x[group_order]
-#   #   group_id <- group_id[group_order]
-#   # } else {
-#   #   group_order <- seq_along(group_id)
-#   # }
-#   # if (has_groups && groups_are_sorted && sorted_group_starts){
-#   #   sorted_group_starts <- GRP_starts(g)
-#   # } else if (sorted_group_starts){
-#   #   sorted_group_starts <- cumsum(c(rep_len(1L, min(length(group_sizes), 1L)),
-#   #                                   group_sizes[-length(group_sizes)]))
-#   # }
-#   # sorted_GRP[["group.starts"]] <- sorted_group_starts
-#   list(x = x,
-#        n_groups = n_groups,
-#        group_sizes = group_sizes,
-#        GRP = g,
-#        sorted_GRP = sorted_GRP,
-#        sorted = groups_are_sorted,
-#        group_order = group_order,
-#        has_groups = has_groups)
-#
-# }
 # greorder but x can be a data frame or list
 greorder2 <- function(x, g, ...){
   if (is.list(x)){

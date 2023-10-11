@@ -28,8 +28,22 @@ An efficient rolling lag.
 \code{lag_seq()} is a helper that creates a safe vector of lags.
 }
 \details{
-This function is simple and fast. It should generally be equivalent
-to
+This function is simple and fast. It should generally be equivalent to
 \code{diag(matrix(unlist(data.table::shift(x, lag)), ncol = length(x)))}. \cr
 where \code{length(lag) = length(x)}.
+}
+\examples{
+library(timeplyr)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
+x <- 1:10
+
+roll_lag(x, 2) # Lag
+roll_lag(x, -2) # Lead
+
+
+roll_lag(x, lag_seq(x, 2), check = FALSE) # Lag
+roll_lag(x, lag_seq(x, -2), check = FALSE) # Lead
 }

@@ -3,7 +3,7 @@
 \name{asc}
 \alias{asc}
 \alias{desc}
-\title{Ascending & Descending order of vector}
+\title{Helpers to sort variables in ascending or descending order}
 \usage{
 asc(x)
 
@@ -17,15 +17,17 @@ A numeric vector that can be ordered in ascending or descending order. \cr
 Useful in \code{dplyr::arrange()} or \code{farrange()}.
 }
 \description{
-An alternate to \code{dplyr::desc()} which is much faster
+An alternative to \code{dplyr::desc()} which is much faster
 for character vectors and factors.
 }
 \examples{
 library(dplyr)
 library(timeplyr)
 library(nycflights13)
-data(flights)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 flights \%>\%
   fdistinct(dest) \%>\%
   farrange(desc(dest))

@@ -60,7 +60,10 @@ should always hold.
 }
 \examples{
 library(timeplyr)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 set.seed(42)
 initial_investment <- 100
 years <- 1990:2000

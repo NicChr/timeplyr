@@ -1,3 +1,8 @@
+# Set number of data.table threads to 1
+data.table::setDTthreads(threads = 1L)
+# Set number of collapse threads to 1
+collapse::set_collapse(nthreads = 1L)
+
 testthat::test_that("stat_summarise", {
   iris2 <- list_to_tibble(fslice_sample(iris, n = 10^3, replace = TRUE,
                                         seed = 918291))

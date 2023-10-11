@@ -39,6 +39,10 @@ each sequence.
 }
 \examples{
 library(timeplyr)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 sequence(1:3)
 sequence2(1:3)
 

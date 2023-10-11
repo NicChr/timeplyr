@@ -1,5 +1,12 @@
 ##### data.table specific helpers #####
 
+# set_dt_threads <- function(threads = 1L){
+#   setDTthreads <- try(get("setDTthreads", asNamespace("data.table")))
+#   if (exists("setDTthreads", inherits = FALSE)){
+#     setDTthreads(threads = threads)
+#   }
+# }
+
 # Convert to data table
 as_DT <- function(x){
   if (inherits(x, "data.table")){

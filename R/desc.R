@@ -1,18 +1,22 @@
-#' Ascending & Descending order of vector
+#' Helpers to sort variables in ascending or descending order
 #'
-#' @description An alternate to `dplyr::desc()` which is much faster
+#' @description An alternative to `dplyr::desc()` which is much faster
 #' for character vectors and factors.
 #'
 #' @param x Vector.
-#' @return
+#'
+#' @returns
 #' A numeric vector that can be ordered in ascending or descending order. \cr
 #' Useful in `dplyr::arrange()` or `farrange()`.
+#'
 #' @examples
 #' library(dplyr)
 #' library(timeplyr)
 #' library(nycflights13)
-#' data(flights)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' flights %>%
 #'   fdistinct(dest) %>%
 #'   farrange(desc(dest))

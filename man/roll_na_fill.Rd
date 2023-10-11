@@ -26,7 +26,10 @@ A fast by-group method for
 library(timeplyr)
 library(dplyr)
 library(data.table)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 words <- do.call(paste0,
                  do.call(expand.grid, rep(list(letters), 3)))
 groups <- sample(words, size = 10^5, replace = TRUE)

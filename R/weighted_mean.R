@@ -8,8 +8,10 @@
 #' Default is `NULL` which performs an unweighted mean.
 #' @param na.rm [logical] Value (Default is `TRUE`).
 #' @param ... Further arguments passed to `collapse::fmean`.
+#'
 #' @returns
 #' `numeric(min(length(x), 1))`.
+#'
 #' @rdname weighted_mean
 #' @export
 arithmetic_mean <- function(x, weights = NULL, na.rm = TRUE, ...){

@@ -59,6 +59,9 @@ If speed is an expensive resource, it is recommended to use this.}
 A \code{tibble} of unique groups and an integer ID uniquely identifying each group.
 }
 \description{
+Key group information
+}
+\details{
 \code{group_collapse()} is similar to \code{dplyr::group_data()} but differs in 3 key regards:
 \itemize{
 \item The output tries to convey as much information about the groups as possible.
@@ -79,7 +82,10 @@ There are 3 ways to specify the groups:
 \examples{
 library(timeplyr)
 library(dplyr)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 iris <- dplyr::as_tibble(iris)
 group_collapse(iris) # No groups
 group_collapse(iris, Species) # Species groups

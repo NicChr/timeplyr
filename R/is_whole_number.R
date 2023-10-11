@@ -1,6 +1,5 @@
 #' Are all numbers whole numbers?
 #'
-#'
 #' @param x A numeric vector.
 #' @param na.rm Should `NA` values be removed before calculation?
 #' Default is `TRUE`.
@@ -15,17 +14,15 @@
 #' This is a very efficient function that returns `FALSE` if any number
 #' is not a whole-number and `TRUE` if all of them are.
 #'
-#' It operates on vectors with integer, double and logical types and so will
-#' return `TRUE` for factors, logical vectors and usually dates.
-#'
-#' For a more strict implementation, \cr
-#' use `is.numeric(x) && is_whole_number(x)`.
-#'
 #' Inspired by the discussion in this thread:
 #' \href{https://stackoverflow.com/questions/3476782/check-if-the-number-is-integer/76655734}{check-if-the-number-is-integer}
+#'
 #' @examples
 #' library(timeplyr)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' # Has built-in tolerance
 #' sqrt(2)^2 %% 1 == 0
 #' is_whole_number(sqrt(2)^2)
@@ -39,15 +36,12 @@
 #' is_whole_number(x1)
 #' is_whole_number(x2)
 #'
-#' is_whole_number(TRUE)
-#' is_whole_number(FALSE)
-#'
 #' @export
 is_whole_number <- function(x, na.rm = TRUE, tol = sqrt(.Machine$double.eps)){
   if (is.integer(x)){
     return(TRUE)
   }
-  if (!typeof(x) %in% c("integer", "double", "logical")){
+  if (!is.numeric(x)){
     return(FALSE)
   }
   if (!na.rm){

@@ -97,6 +97,10 @@ Please note that \code{roll_apply} and \code{time_roll_apply} are still experime
 }
 \examples{
 library(timeplyr)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 x <- 1:10
 roll_sum(x) # Simple rolling total
 roll_mean(x) # Simple moving average

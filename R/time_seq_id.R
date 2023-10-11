@@ -1,6 +1,7 @@
 #' Generate a unique identifier for a regular time sequence with gaps
 #'
-#' @description A unique identifier is created every time a specified amount of
+#' @description
+#' A unique identifier is created every time a specified amount of
 #' time has passed, or in the case of regular sequences, when there is a gap
 #' in time.
 #'
@@ -42,9 +43,12 @@
 #' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations` are used otherwise.
+#'
 #' @returns
 #' An integer vector of `length(x)`.
-#' @details `time_seq_id()` Assumes `x` is regular and in
+#'
+#' @details
+#' `time_seq_id()` Assumes `x` is regular and in
 #' ascending or descending order.
 #' To check this condition formally, use `time_is_regular()`.
 #'
@@ -52,6 +56,10 @@
 #' library(dplyr)
 #' library(timeplyr)
 #' library(lubridate)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' # Weekly sequence, with 2 gaps in between
 #' x <- time_seq(today(), length.out = 10, time_by = "week")
 #' x <- x[-c(3, 7)]

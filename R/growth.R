@@ -8,6 +8,7 @@
 #' a similar manner.
 #' When `lag = n` then `data.table::frollsum()` is used,
 #' otherwise `data.table::frollmean()` is used.
+#'
 #' @param x Numeric vector.
 #' @param y numeric vector
 #' @param n Rolling window size, default is 1.
@@ -25,10 +26,17 @@
 #' @param log If `TRUE` Growth (relative change) in total and mean events will be
 #'  calculated on the log-scale.
 #' @param ... Further arguments to be passed on to `frollmean`.
-#' @return `growth` returns a `numeric(1)` and `rolling_growth`
+#'
+#' @returns
+#' `growth` returns a `numeric(1)` and `rolling_growth`
 #' returns a `numeric(length(x))`.
+#'
 #' @examples
 #' library(timeplyr)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' set.seed(42)
 #' # Growth rate is 6% per day
 #' x <- 10 * (1.06)^(0:25)

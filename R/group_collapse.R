@@ -1,6 +1,6 @@
 #' Key group information
 #'
-#' @description
+#' @details
 #' `group_collapse()` is similar to `dplyr::group_data()` but differs in 3 key regards:
 #'
 #' * The output tries to convey as much information about the groups as possible.
@@ -38,12 +38,17 @@
 #' @param start Should group start locations be added? Default is `TRUE`.
 #' @param end Should group end locations be added? Default is `TRUE`.
 #' @param drop Should unused factor levels be dropped? Default is `TRUE`.
-#' @return
+#'
+#' @returns
 #' A `tibble` of unique groups and an integer ID uniquely identifying each group.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' iris <- dplyr::as_tibble(iris)
 #' group_collapse(iris) # No groups
 #' group_collapse(iris, Species) # Species groups
@@ -140,7 +145,7 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
                                 c(".group", ".loc", ".start", ".end", ".size")]
     group_out <- fselect(out, .cols = group_names)
     is_factor <- vapply(group_out, is.factor, FALSE, USE.NAMES = FALSE)
-    if (sum(is_factor) > 0){
+    if (any(is_factor)){
       # If we have a mix of factors and non factors
       # Then we do not proceed
       if (sum(is_factor) < length(is_factor)){

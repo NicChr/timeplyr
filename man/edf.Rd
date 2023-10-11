@@ -28,6 +28,10 @@ for this type of data, of which plotting is a common application.
 library(timeplyr)
 library(dplyr)
 library(ggplot2)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 set.seed(9123812)
 x <- sample(seq(-10, 10, 0.5), size = 10^2, replace = TRUE)
 plot(sort(edf(x)))

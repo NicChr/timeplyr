@@ -131,7 +131,10 @@ function to calculate time sequence lengths, given start/end times.
 \examples{
 library(timeplyr)
 library(lubridate)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 # Dates
 today <- today()
 now <- now()
@@ -187,5 +190,5 @@ time_seq(leap, to = end, time_by = "year",
          roll_month = "preday")
 }
 \seealso{
-\link[timeplyr]{seq_id} \link[timeplyr]{time_seq_id}
+\link{seq_id} \link{time_seq_id}
 }

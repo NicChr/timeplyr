@@ -16,6 +16,7 @@
 #' @param .cols (Optional) alternative to `...` that accepts
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
+#'
 #' @details
 #' `farrange()` is inspired by `collapse::roworder()` but also supports
 #' `dplyr` style `data-masking` which makes it a
@@ -27,7 +28,10 @@
 #'
 #' `farrange()` is faster when there are many groups or a large number of
 #' rows.
-#' @return A sorted `data.frame`.
+#'
+#' @returns
+#' A sorted `data.frame`.
+#'
 #' @export
 farrange <- function(data, ..., .by = NULL, .by_group = FALSE,
                      .cols = NULL){

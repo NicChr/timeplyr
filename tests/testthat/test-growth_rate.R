@@ -1,3 +1,8 @@
+# Set number of data.table threads to 1
+data.table::setDTthreads(threads = 1L)
+# Set number of collapse threads to 1
+collapse::set_collapse(nthreads = 1L)
+
 testthat::test_that("Normal cases", {
   x <- seq(0.5, 25, 0.5)
   y <- 2 * 1.075^(0:100)

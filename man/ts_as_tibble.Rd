@@ -49,7 +49,10 @@ is multivariate.
 library(timeplyr)
 library(ggplot2)
 library(dplyr)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 # Using the examples from ?ts
 
 # Univariate

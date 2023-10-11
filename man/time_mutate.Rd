@@ -95,7 +95,10 @@ library(timeplyr)
 library(dplyr)
 library(lubridate)
 library(nycflights13)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 # Works the same way as mutate()
 identical(flights \%>\%
             mutate(across(where(is.numeric), mean)),

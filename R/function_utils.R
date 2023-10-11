@@ -9,37 +9,38 @@ n_unique <- function(x, na.rm = FALSE){
   out <- collapse::fnunique(x)
   if (na.rm){
    if (is.list(x)){
-     na_offset <- as.integer(sum(collapse::missing_cases(x, prop = 1)) > 0)
+     any_na <- any(collapse::missing_cases(x, prop = 1))
    } else {
-     na_offset <- as.integer(anyNA(x))
+     any_na <- anyNA(x)
    }
+    na_offset <- as.integer(any_na)
   }
   out - na_offset
 }
 
-is_length_one <- function(x){
-  isTRUE(length(x) == 1)
-}
-# Taken from stats::weighted.mean
-weighted_mean <- function (x, w = NULL, na.rm = FALSE) {
-  if (is.null(w)) {
-    if (na.rm) {
-      x <- x[!is.na(x)]
-    }
-    out <- sum(x)/length(x)
-  }
-  else {
-    if (length(w) != length(x))
-      stop("'x' and 'w' must have the same length")
-    if (na.rm) {
-      i <- !is.na(x)
-      w <- w[i]
-      x <- x[i]
-    }
-    out <- sum(x * w)/sum(w)
-  }
-  out
-}
+# Weighted mean
+# weighted_mean <- function (x, w = NULL, na.rm = FALSE) {
+#   if (is.null(w)) {
+#     N <- length(x)
+#     if (na.rm){
+#       N <- N - num_na(x)
+#     }
+#     out <- sum(x, na.rm = na.rm) / N
+#   }
+#   else {
+#     if (length(w) != length(x)){
+#       stop("'x' and 'w' must have the same length")
+#     }
+#     denom <- x * w
+#     if (na.rm){
+#       complete <- !is.na(denom)
+#       x <- x[complete]
+#       w <- w[complete]
+#     }
+#     out <- sum(denom, na.rm = na.rm) / sum(w)
+#   }
+#   out
+# }
 
 # Transform variables using tidy data masking
 tidy_transform_names <- function(data, ...){
@@ -60,7 +61,7 @@ tidy_transform_names <- function(data, ...){
 # }
 
 # Fast way of getting named col positions
-col_select_pos <- function(data, .cols = character(0)){
+col_select_pos <- function(data, .cols = character()){
   data_nms <- names(data)
   nm_seq <- seq_along(data_nms)
   # Method for when cols is supplied
@@ -71,15 +72,15 @@ col_select_pos <- function(data, .cols = character(0)){
     } else {
       .cols <- .subset(.cols, .cols != 0)
     }
-    out <- match(.cols, nm_seq, nomatch = NA_integer_)
+    out <- match(.cols, nm_seq)
   } else if (is.character(.cols)){
-    out <- match(.cols, data_nms, nomatch = NA_integer_)
+    out <- match(.cols, data_nms)
   } else {
     stop(".cols must be a numeric or character vector")
   }
-  which_na <- which(is.na(out))
-  if (length(which_na) > 0){
-    first_na_col <- .subset(.cols, .subset(which_na, 1L))
+  is_na <- is.na(out)
+  if (any(is_na)){
+    first_na_col <- .subset(.cols, .subset(which(is_na), 1L))
     if (is.numeric(first_na_col)){
       stop(paste("Location", first_na_col, "doesn't exist",
                  sep = " "))
@@ -103,7 +104,7 @@ col_select_names <- function(data, ..., .cols = NULL){
   names(col_select_pos(data, ..., .cols = .cols))
 }
 # (Internal) Fast col rename
-col_rename <- function(data, .cols = integer(0)){
+col_rename <- function(data, .cols = integer()){
   .cols <- .subset(.cols, nzchar(names(.cols)))
   out_nms <- names(.cols)
   if (length(out_nms) == 0L){
@@ -111,8 +112,7 @@ col_rename <- function(data, .cols = integer(0)){
   }
   data_nms <- names(data)
   if (is.character(.cols)){
-    pos <- add_names(match(.cols, data_nms),
-                    out_nms)
+    pos <- add_names(match(.cols, data_nms), out_nms)
   } else {
     pos <- .cols
   }
@@ -328,66 +328,41 @@ gcd <- function(x, y) {
 lcm <- function(x, y){
   ( abs(x) / gcd(x, y) ) * abs(y)
 }
-# Normalise weights to sum to length x
-normalise_weights <- function(x, weights, na.rm = TRUE){
-  x_na <- is.na(x)
-  weights[x_na] <- NA_real_
-  if (na.rm){
-    n <- sum(!x_na)
-  } else {
-    n <- length(x)
-  }
-  out <- n * ( weights/sum(weights, na.rm = na.rm))
-  out[weights == 0] <- 0
-  out
-}
 
 # Exponentially weighted moving average
-ewma <- function (x, ratio) {
-  c(stats::filter(x * ratio, 1 - ratio, "recursive", init = x[1]))
-}
-# Append columns from y to x using a common ID and a sql type join.
-tbl_append <- function(x, y, id, keep_id = TRUE, y_suffix = ".x",
-                       side = c("left", "right"), message = TRUE){
-  side <- match.arg(side)
-  if (missing(id)){
-    id <- ".join.index"
-    x[[".join.index"]] <- seq_len(nrow(x))
-    y[[".join.index"]] <- seq_len(nrow(y))
-  }
-  if (n_unique(x[[id]]) != nrow(x)) stop("id must uniquely and commonly identify rows in x and y")
-  if (n_unique(y[[id]]) != nrow(y)) stop("id must uniquely and commonly identify rows in x and y")
-  common_cols <- setdiff(intersect(names(x), names(y)), id)
-  # Join new variables onto original data
-  if (side == "left"){
-    init_names <- names(x)
-    z <- dplyr::left_join(x, y, by = id, suffix = c("", y_suffix))
-  } else {
-    init_names <- names(y)
-    z <- dplyr::right_join(x, y, by = id, suffix = c(y_suffix, ""))
-  }
-  if (!keep_id){
-    z <- dplyr::select(z, -dplyr::all_of(id))
-  }
-  if (message){
-    new_renamed_cols <- setdiff(names(z), init_names)
-    message(paste0("New columns added:\n", paste(new_renamed_cols, collapse = ", ")))
-  }
-  z
-}
-
-# top_n <- function(x, n = 5, na_rm = FALSE, with_ties = TRUE){
-#   out <- fn(x, g = x, sort = FALSE, use.g.names = TRUE)
-#   if (na_rm){
-#     out <- out[!is.na(names(out))]
-#   }
-#   out <- radix_sort(out, decreasing = TRUE)
-#   if (with_ties){
-#     out[out %in% out[seq_len(n)]]
-#   } else {
-#     out[seq_len(n)]
-#   }
+# ewma <- function (x, ratio) {
+#   c(stats::filter(x * ratio, 1 - ratio, "recursive", init = x[1]))
 # }
+# Append columns from y to x using a common ID and a sql type join.
+# tbl_append <- function(x, y, id, keep_id = TRUE, y_suffix = ".x",
+#                        side = c("left", "right"), message = TRUE){
+#   side <- match.arg(side)
+#   if (missing(id)){
+#     id <- ".join.index"
+#     x[[".join.index"]] <- seq_len(nrow(x))
+#     y[[".join.index"]] <- seq_len(nrow(y))
+#   }
+#   if (n_unique(x[[id]]) != nrow(x)) stop("id must uniquely and commonly identify rows in x and y")
+#   if (n_unique(y[[id]]) != nrow(y)) stop("id must uniquely and commonly identify rows in x and y")
+#   common_cols <- setdiff(intersect(names(x), names(y)), id)
+#   # Join new variables onto original data
+#   if (side == "left"){
+#     init_names <- names(x)
+#     z <- dplyr::left_join(x, y, by = id, suffix = c("", y_suffix))
+#   } else {
+#     init_names <- names(y)
+#     z <- dplyr::right_join(x, y, by = id, suffix = c(y_suffix, ""))
+#   }
+#   if (!keep_id){
+#     z <- dplyr::select(z, -dplyr::all_of(id))
+#   }
+#   if (message){
+#     new_renamed_cols <- setdiff(names(z), init_names)
+#     message(paste0("New columns added:\n", paste(new_renamed_cols, collapse = ", ")))
+#   }
+#   z
+# }
+
 # This function is for functions like count() where extra groups need
 # to be created
 get_group_info <- function(data, ..., type = c("select", "data-mask"),
@@ -481,37 +456,6 @@ match.call.defaults <- function(...) {
   match.call(sys.function(sys.parent()), call)
 }
 
-# Fast factor()
-ffactor <- function(x, levels = NULL, ordered = FALSE, na.exclude = TRUE){
-  # Bug-fix when sort is TRUE and length(x) == 0 in qf()
-  if (length(x) == 0L){
-    out <- factor(x, levels = levels, ordered = ordered, exclude = NULL)
-  } else if (is.null(levels)){
-    # If no supplied levels, collapse can be used safely
-    out <- collapse::qF(x, sort = TRUE, ordered = ordered,
-                        na.exclude = na.exclude)
-  } else {
-    levels <- as.character(levels)
-    if (na.exclude){
-      exclude <- NA
-    } else {
-      exclude <- NULL
-    }
-    x_unique <- collapse::funique(x, sort = TRUE)
-    if (na.exclude) x_unique <- x_unique[!is.na(x_unique)]
-    # This check is to ensure that if there are more or less
-    # supplied levels then unique categories, then base factor()
-    # is used because collapse::qF() only creates categories
-    # that exist in the data
-    if (isTRUE(all.equal(as.character(x_unique), levels))){
-      out <- collapse::qF(x, sort = TRUE, ordered = ordered,
-                          na.exclude = na.exclude)
-    } else {
-      out <- factor(x, levels = levels, ordered = ordered, exclude = exclude)
-    }
-  }
-  out
-}
 # Checks if dataset has variable named "n" and adds n
 # Until it finds unique var name.
 # Recursive implementation.
@@ -694,13 +638,13 @@ vec_length <- function(x){
 vec_width <- function(x){
   if (is.list(x)){
     if (is_df(x)){
-      out <- collapse::fncol(x)
+      out <- df_ncol(x)
     } else {
-      lens <- unique(collapse::vlengths(x, use.names = FALSE))
-      if (length(lens) > 1L){
+      lens <- collapse::vlengths(x, use.names = FALSE)
+      if (collapse::fnunique(lens) > 1L){
         stop("x must be a vector, matrix, data frame or list with equal lengths")
       }
-      out <- collapse::fncol(x)
+      out <- length(lens)
     }
   } else if (is.array(x)) {
     out <- dim(x)[2L]
@@ -803,8 +747,8 @@ check_cols <- function(n_dots, .cols = NULL){
 # NULL is removed.
 quo_select_info <- function(quos, data){
   quo_nms <- names(quos)
-  quo_text <- `names<-`(character(length(quos)), quo_nms)
-  quo_is_null <- `names<-`(logical(length(quos)), quo_nms)
+  quo_text <- add_names(character(length(quos)), quo_nms)
+  quo_is_null <- add_names(logical(length(quos)), quo_nms)
   for (i in seq_along(quos)){
     quo <- quos[[i]]
     quo_text[[i]] <- deparse1(rlang::quo_get_expr(quo))
@@ -824,8 +768,8 @@ quo_select_info <- function(quos, data){
 # unnamed NULL exprs are removed.
 quo_mutate_info <- function(quos, data){
   quo_nms <- names(quos)
-  quo_text <- `names<-`(character(length(quos)), quo_nms)
-  quo_is_null <- `names<-`(logical(length(quos)), quo_nms)
+  quo_text <- add_names(character(length(quos)), quo_nms)
+  quo_is_null <- add_names(logical(length(quos)), quo_nms)
   for (i in seq_along(quos)){
     quo <- quos[[i]]
     quo_text[[i]] <- deparse1(rlang::quo_get_expr(quo))
@@ -841,8 +785,8 @@ quo_mutate_info <- function(quos, data){
 # Used only for summarise_list()
 quo_summarise_info <- function(quos, data){
   quo_nms <- names(quos)
-  quo_text <- `names<-`(character(length(quos)), quo_nms)
-  quo_is_null <- `names<-`(logical(length(quos)), quo_nms)
+  quo_text <- add_names(character(length(quos)), quo_nms)
+  quo_is_null <- add_names(logical(length(quos)), quo_nms)
   for (i in seq_along(quos)){
     quo <- quos[[i]]
     quo_text[[i]] <- deparse1(rlang::quo_get_expr(quo))
@@ -1152,22 +1096,27 @@ na_init <- function(x, size = 1L){
   rep_len(x[NA_integer_], size)
 }
 strip_attrs <- function(x){
-  `attributes<-`(x, NULL)
+  attributes(x) <- NULL
+  x
 }
 strip_attr <- function(x, which){
-  `attr<-`(x, which, NULL)
+  attr(x, which) <- NULL
+  x
 }
 is_integerable <- function(x){
   x <= .Machine$integer.max
 }
 add_attr <- function(x, which, value){
-  `attr<-`(x, which, value)
+  attr(x, which) <- value
+  x
 }
 add_attrs <- function(x, value){
-  `attributes<-`(x, value)
+  attributes(x) <- value
+  x
 }
 add_names <- function(x, value){
-  `names<-`(x, value)
+  names(x) <- value
+  x
 }
 # flip_names_values <- function(x){
 #   x_nms <- names(x)
@@ -1248,3 +1197,9 @@ hasTsp <- function(x){
 tsp <- function(x){
   attr(x, "tsp")
 }
+# set_collapse_threads <- function(nthreads = 1L){
+#   set_collapse <- try(get("set_collapse", asNamespace("collapse")))
+#   if (exists("setDTthreads", inherits = FALSE)){
+#     set_collapse(nthreads = nthreads)
+#   }
+# }

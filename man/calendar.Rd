@@ -49,7 +49,10 @@ Create a table of common time units from a date or datetime sequence.
 \examples{
 library(timeplyr)
 library(lubridate)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 # Create a calendar for the current year
 from <- floor_date(today(), unit = "year")
 to <- ceiling_date(today(), unit = "year", change_on_boundary = TRUE) - days(1)

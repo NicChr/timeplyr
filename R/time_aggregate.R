@@ -50,6 +50,10 @@
 #' library(nycflights13)
 #' library(lubridate)
 #' library(dplyr)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #'
 #' sunique <- function(x) sort(unique(x))
 #'

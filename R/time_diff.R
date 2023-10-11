@@ -29,6 +29,10 @@
 #' @examples
 #' library(timeplyr)
 #' library(lubridate)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' time_diff(today(), today() + days(10),
 #'           time_by = "days")
 #' time_diff(today(), today() + days(0:100),

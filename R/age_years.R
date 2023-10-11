@@ -3,11 +3,11 @@
 #' @description Correct calculation of ages in years using lubridate periods.
 #' Leap year calculations work as well.
 #'
-#' @return
-#' Integer vector of age in years.
-#'
 #' @param start Start date/datetime, typically date of birth.
 #' @param end End date/datetime. Default is current date/datetime.
+#'
+#' @returns
+#' Integer vector of age in years.
 #'
 #' @export
 age_years <- function(start, end = if (is_date(start)) Sys.Date() else Sys.time()){

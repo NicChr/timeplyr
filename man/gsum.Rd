@@ -61,6 +61,10 @@ They all accept group IDs for grouped calculations.
 library(timeplyr)
 library(dplyr)
 library(ggplot2)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 # Dplyr
 iris \%>\%
   mutate(mean = mean(Sepal.Length), .by = Species)

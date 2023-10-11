@@ -104,6 +104,10 @@ It can be used exactly like \code{dplyr::group_by}.
 library(dplyr)
 library(timeplyr)
 library(nycflights13)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 monthly_flights <- flights \%>\%
   time_by(time_hour, "month")
 

@@ -63,8 +63,10 @@
 #' speed and efficiency.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using `tidyselect`.
+#'
 #' @returns
 #' A `data.frame` in the same order as it was given.
+#'
 #' @details
 #' `time_episodes()` calculates the time elapsed (rolling or fixed) between
 #' successive events, and flags these events as episodes or not based on how much
@@ -104,14 +106,19 @@
 #' * \bold{ep_start} - Start date/datetime of the episode.
 #'
 #' `data.table` and `collapse` are used for speed and efficiency.
+#'
 #' @seealso [time_elapsed] [time_seq_id]
+#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
 #' library(nycflights13)
 #' library(lubridate)
 #' library(ggplot2)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' # Say we want to flag origin-destination pairs
 #' # that haven't seen departures or arrivals for a week
 #'

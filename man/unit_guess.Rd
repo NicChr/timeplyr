@@ -26,6 +26,10 @@ time units.
 }
 \examples{
 library(timeplyr)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 # Single units
 unit_guess("days")
 unit_guess("hours")

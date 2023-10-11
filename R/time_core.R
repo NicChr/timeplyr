@@ -49,14 +49,20 @@
 #' This can for example be a vector or data frame.
 #' @param use.g.names Should the result include group names?
 #' Default is `TRUE`.
+#'
 #' @returns
 #' Vectors (typically the same class as `x`) of varying lengths depending
 #' on the arguments supplied.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
 #' library(lubridate)
-#' flights <- nycflights13::flights
+#' library(nycflights13)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' x <- flights$time_hour
 #'
 #' # Number of missing hours
@@ -154,7 +160,8 @@ time_completev <- function(x, time_by = NULL, from = NULL, to = NULL,
                             week_start = week_start,
                             roll_month = roll_month,
                             roll_dst = roll_dst)
-  out <- time_c(x, time_full[!time_full %in% x])
+  x <- time_cast(x, time_full)
+  out <- c(x, time_full[!time_full %in% x])
   if (sort){
     out <- conditional_sort(out)
   }

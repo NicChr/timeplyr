@@ -5,6 +5,7 @@
 #' It has less overhead for small joins, especially when `unique = FALSE` and
 #' `as_dt = FALSE`. \cr
 #' `NA`s are by default sorted last.
+#'
 #' @param X A list or data frame.
 #' @param sort Should the expansion be sorted? By default it is `FALSE`.
 #' @param unique Should unique values across each column or list element
@@ -18,9 +19,16 @@
 #' Anything >= this results in an error.
 #' @details An important note is that currently `NA`s
 #' are sorted last and therefore a key is not set.
-#' @return A data.table or list object.
+#'
+#' @returns
+#' A data.table or list object.
+#'
 #' @examples
 #' library(timeplyr)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' crossed_join(list(1:3, -2:2))
 #' crossed_join(iris, sort = TRUE)
 #' @export

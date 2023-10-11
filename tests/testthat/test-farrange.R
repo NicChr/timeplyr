@@ -1,3 +1,8 @@
+# Set number of data.table threads to 1
+data.table::setDTthreads(threads = 1L)
+# Set number of collapse threads to 1
+collapse::set_collapse(nthreads = 1L)
+
 testthat::test_that("farrange", {
   testthat::expect_equal(iris, farrange(iris))
   flights2 <- add_row_id(fslice_sample(nycflights13::flights, seed = 9192919))

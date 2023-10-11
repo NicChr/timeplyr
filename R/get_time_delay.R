@@ -9,6 +9,7 @@
 #' * \bold{delay} - `tibble` containing the empirical cumulative distribution function
 #'  values by time delay.
 #' * \bold{plot} - A `ggplot` of the time delay distribution.
+#'
 #' @param data A data frame.
 #' @param origin Origin date variable.
 #' @param end End date variable.
@@ -42,14 +43,20 @@
 #' This differs from the default implemented by `stats::density()`
 #' which uses Silverman's rule-of-thumb.
 #' @param ... Further arguments to be passed on to `ggplot2::geom_density()`.
-#' @return A list containing summary data, summary statistics and an optional `ggplot`.
+#'
+#' @returns
+#' A list containing summary data, summary statistics and an optional `ggplot`.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(outbreaks)
 #' library(dplyr)
 #' library(purrr)
 #' library(lubridate)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' ebola_linelist <- outbreaks::ebola_sim_clean$linelist
 #'
 #' # Incubation period distribution

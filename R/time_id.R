@@ -28,8 +28,10 @@
 #' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations` are used otherwise.
+#'
 #' @returns
 #' An integer vector the same length as `x`.
+#'
 #' @details
 #' This is heavily inspired by `collapse::timeid` but differs in 3 ways:
 #' * The time steps need not be the greatest common divisor of successive
@@ -43,7 +45,9 @@
 #' should be equal to  `collapse::timeid(sort(x))`.
 #' The time difference GCD is always calculated using all the data and not
 #' by-group.
+#'
 #' @seealso [time_elapsed] [time_seq_id]
+#'
 #' @export
 time_id <- function(x, time_by = NULL, g = NULL, na_skip = TRUE,
                     time_type = c("auto", "duration", "period")){

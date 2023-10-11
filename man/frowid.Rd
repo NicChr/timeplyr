@@ -41,7 +41,10 @@ library(timeplyr)
 library(dplyr)
 library(data.table)
 library(nycflights13)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 # Simple row numbers
 frowid(flights, g = NULL)
 # Row numbers by origin

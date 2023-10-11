@@ -76,6 +76,10 @@ but is faster and more efficient and accepts limited statistical functions.
 \examples{
 library(timeplyr)
 library(dplyr)
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 stat_df <- iris \%>\%
   stat_summarise(Sepal.Length, .by = Species)
 # Join quantile info too

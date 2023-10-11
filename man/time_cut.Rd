@@ -112,7 +112,10 @@ library(timeplyr)
 library(lubridate)
 library(ggplot2)
 library(dplyr)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 # Easily create custom time breaks
 flights <- nycflights13::flights \%>\%
   fslice_sample(n = 10^3, seed = 8192821) \%>\%

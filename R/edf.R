@@ -1,6 +1,7 @@
 #' Grouped empirical cumulative distribution function applied to data
 #'
-#' @description Like `dplyr::cume_dist(x)` and `ecdf(x)(x)`
+#' @description
+#'  Like `dplyr::cume_dist(x)` and `ecdf(x)(x)`
 #' but with added grouping and weighting functionality.\cr
 #' You can calculate the empirical distribution of x using
 #' aggregated data by supplying frequency weights.
@@ -10,11 +11,18 @@
 #' @param x Numeric vector.
 #' @param g Numeric vector of group IDs.
 #' @param wt Frequency weights.
-#' @return A numeric vector the same length as `x`.
+#'
+#' @returns
+#' A numeric vector the same length as `x`.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
 #' library(ggplot2)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' set.seed(9123812)
 #' x <- sample(seq(-10, 10, 0.5), size = 10^2, replace = TRUE)
 #' plot(sort(edf(x)))
@@ -49,7 +57,8 @@
 #' all.equal(edf1, edf2)
 #' @export
 edf <- function(x, g = NULL, wt = NULL){
-  n_na <- sum(is.na(x))
+  is_na <-  is.na(x)
+  n_na <- sum(is_na)
   nx <- length(x)
   if (is.null(g)){
     x_order <- radix_order(x)
@@ -95,12 +104,13 @@ edf <- function(x, g = NULL, wt = NULL){
     # Original order
     df[, ("id") := seq_len(.N)]
     # Order if NAs are shifted to the end
-    which_na <- which(is.na(x))
-    df[, ("id") := data.table::fifelse(is.na(get("x")), NA_integer_,
-                                       get("id"))]
+    which_na <- which(is_na)
+    df[, ("id") := data.table::fifelse(is_na, NA_integer_, get("id"))]
     # Sort data in ascending order
     data.table::setorderv(df, cols = "g3")
-    if (n_na > 0) df <- df[!is.na(get("x"))]
+    if (n_na > 0){
+      df <- df[!is.na(get("x"))]
+    }
     # Group sizes
     grp_n2 <- collapse::GRPN(df[["g"]], expand = TRUE)
     times <- collapse::GRPN(df[["g3"]], expand = FALSE)

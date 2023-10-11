@@ -22,10 +22,14 @@
 #' `top_n`/`bottom_n` return a vector the same class as `x`. \cr
 #' `top_n_tbl`/`bottom_n_tbl` return a 2-col `data.frame`. \cr
 #' `lump_top_n`/`lump_bottom_n` return a `factor` (or `character` vector).
+#'
 #' @examples
 #' library(dplyr)
 #' library(timeplyr)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' ### Top 3 hair colours
 #' timeplyr::top_n(starwars$hair_color, n = 3)
 #'

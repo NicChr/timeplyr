@@ -192,7 +192,10 @@ even with missing days.
 library(timeplyr)
 library(lubridate)
 library(dplyr)
-
+\dontshow{
+data.table::setDTthreads(threads = 1L)
+collapse::set_collapse(nthreads = 1L)
+}
 time <- time_seq(today(), today() + weeks(3),
                  time_by = "3 days")
 set.seed(99)

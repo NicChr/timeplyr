@@ -38,9 +38,14 @@
 #'
 #' @returns
 #' A `data.frame` of frequency counts by group.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' iris %>%
 #'   fcount()
 #' iris %>%

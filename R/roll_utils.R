@@ -1,6 +1,7 @@
 # Safer versions of collapse::flag and collapse::fdiff
 # It is safer in the sense that if the data isn't ordered by group
 # The result is reordered to be correct
+
 flag2 <- function(x, n = 1L, g = NULL, ...){
   if (is.null(x)){
     return(NULL)
@@ -20,33 +21,6 @@ flag2 <- function(x, n = 1L, g = NULL, ...){
 fdiff2 <- function(x, n = 1L, g = NULL, ...){
   x - flag2(x, n = n, g = g, ...)
 }
-
-# Get rolling window sizes for multiple groups
-# window_sequence <- function(size, k, partial = TRUE, ascending = TRUE){
-#   if (length(size) == 1L){
-#     return(window_seq(n = size, k = k, partial = partial, ascending = ascending))
-#   }
-#   if (length(k) == 1L){
-#     k <- rep_len(k, length(size))
-#   }
-#   if (length(k) != length(size)){
-#     stop("k must be of length 1 or have same length as size")
-#   }
-#   input_k <- k
-#   k <- pmin(size, k)
-#   k <- pmax(k, 0L) # Bound k to >= 0
-#   k <- as.integer(k)
-#   k <- rep.int(k, times = size)
-#   out <- pmin(sequence(size, from = 1L, by = 1L), k)
-#   if (!partial){
-#     input_k <- rep.int(input_k, times = size)
-#     out[out < input_k] <- NA_integer_
-#   }
-#   if (!ascending){
-#     out <- out[sequence(size, from = size, by = -1L)]
-#   }
-#   out
-# }
 # Get rolling window sizes, including partial
 window_seq <- function(k, n, partial = TRUE, ascending = TRUE){
   if (length(k) != 1L) stop("k must be of length 1.")
@@ -178,16 +152,6 @@ frollmean3 <- function(x, n, weights = NULL, ...){
     out <- data.table::frollmean(x, n = n, ...)
   }
   out
-}
-check_before <- function(before){
-  if (!is.numeric(before)){
-    stop("before must be an integer vector")
-  }
-}
-check_after <- function(after){
-  if (!is.numeric(after)){
-    stop("after must be an integer vector")
-  }
 }
 # Mostly base R rolling chop
 # roll_chop3 <- function(x, sizes = collapse::alloc(1L, vec_length(x))){

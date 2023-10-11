@@ -1,3 +1,8 @@
+# Set number of data.table threads to 1
+data.table::setDTthreads(threads = 1L)
+# Set number of collapse threads to 1
+collapse::set_collapse(nthreads = 1L)
+
 testthat::test_that("time diff", {
   start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
                                tz = "Europe/London")

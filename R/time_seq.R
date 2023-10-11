@@ -56,17 +56,22 @@
 #' before time difference is calculated? This is useful for calculating
 #' for example age in exact years or months.
 #' @param sizes Time sequence sizes.
+#'
 #' @returns
 #' `time_seq` returns a time sequence. \cr
 #' `time_seq_sizes` returns an integer vector of sequence sizes. \cr
 #' `time_seq_v` returns time sequences. \cr
 #' `time_seq_v2` also returns time sequences.
 #'
-#' @seealso \link[timeplyr]{seq_id} \link[timeplyr]{time_seq_id}
+#' @seealso [seq_id] [time_seq_id]
+#'
 #' @examples
 #' library(timeplyr)
 #' library(lubridate)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' # Dates
 #' today <- today()
 #' now <- now()

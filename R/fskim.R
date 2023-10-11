@@ -6,7 +6,8 @@
 #' @param data A data frame.
 #' @param hist Logical. If `TRUE`, histogram spark graphs are produced
 #' in the numeric summary.
-#' @return A list of length 7 with the elements:
+#'
+#' @returns A list of length 7 with the elements:
 #' * `nrow` - Number of rows
 #' * `ncol` - Number of columns
 #' * `logical` - A `tibble` summary of the logical columns.
@@ -23,6 +24,10 @@
 #' @examples
 #' library(timeplyr)
 #' library(nycflights13)
+#' \dontshow{
+#' data.table::setDTthreads(threads = 1L)
+#' collapse::set_collapse(nthreads = 1L)
+#' }
 #' fskim(flights)
 #' @export
 fskim <- function(data, hist = FALSE){
