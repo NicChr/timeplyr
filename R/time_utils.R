@@ -743,8 +743,8 @@ is_special_case_utc <- function(from, to, unit, num, time_type){
 rep_len.yearmon <- function(x, length.out){
   x[rep_len(seq_along(x), length.out = length.out)]
 }
-rep.int.yearmon <- function(x, times){
-  x[rep.int(seq_along(x), times = times)]
+rep.int.yearmon <- function(x, ...){
+  x[rep.int(seq_along(x), ...)]
 }
 rep.yearmon <- function(x, ...){
   x[rep(seq_along(x), ...)]
@@ -752,8 +752,8 @@ rep.yearmon <- function(x, ...){
 rep_len.yearqtr <- function(x, length.out){
   x[rep_len(seq_along(x), length.out = length.out)]
 }
-rep.int.yearqtr <- function(x, times){
-  x[rep.int(seq_along(x), times = times)]
+rep.int.yearqtr <- function(x, ...){
+  x[rep.int(seq_along(x), ...)]
 }
 rep.yearqtr <- function(x, ...){
   x[rep(seq_along(x), ...)]

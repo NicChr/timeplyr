@@ -50,6 +50,7 @@ Create a table of common time units from a date or datetime sequence.
 library(timeplyr)
 library(lubridate)
 \dontshow{
+# .n_dt_threads <- data.table::getDTthreads()
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
@@ -59,5 +60,7 @@ to <- ceiling_date(today(), unit = "year", change_on_boundary = TRUE) - days(1)
 
 my_seq <- time_seq(from, to, time_by = "day")
 calendar(my_seq)
-
+\dontshow{
+# data.table::setDTthreads(threads = .n_dt_threads)
+}
 }

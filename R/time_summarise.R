@@ -78,7 +78,7 @@
 #' flights %>%
 #'   time_summarise(mean_arr_time = mean(arr_time, na.rm = TRUE),
 #'                  time = across(time_hour, as_date),
-#'                  by = "month",
+#'                  time_by = "month",
 #'                  include_interval = TRUE)
 #' # Example of monthly summary using zoo's yearmon
 #' \dontrun{
