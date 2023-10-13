@@ -51,6 +51,8 @@
 #' library(dplyr)
 #' library(lubridate)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -65,13 +67,10 @@
 #' g <- sample.int(10^5, 10^6, TRUE)
 #'
 #' time_elapsed(x, time_by = "day", g = g)
-#' # Equivalently (not as efficiently) using dplyr
-#' \dontrun{
-#' tibble(x = x, g = g) %>%
-#'   group_by(g) %>%
-#'   mutate(elapsed = time_elapsed(x, "day")) %>%
-#'   pull(elapsed)
-#' }
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @export
 time_elapsed <- function(x, time_by = NULL, g = NULL,
                          time_type = c("auto", "duration", "period"),

@@ -2,9 +2,9 @@
 #'
 #' @description
 #' `frowid()` is like `data.table::rowid()` but uses
-#' `collapse` for the grouping.
+#' collapse for the grouping.
 #'
-#' For a more  tidyverse friendly version for data frames, see `?row_id`.
+#' For general use it is recommended to use `row_id()`.
 #'
 #' @param x A vector or data frame.
 #' @param g (Optional) Group IDs passed directly to `collapse::GRP()`.
@@ -26,12 +26,16 @@
 #' If `x` is a list, a vector `unique(lengths(x))` will be returned as
 #' long as the number of unique lengths is `<= 1`.
 #'
+#' @seealso [row_id] [add_row_id]
+#'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
 #' library(data.table)
 #' library(nycflights13)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -46,18 +50,15 @@
 #' # On vectors, this is like base::seq_len()
 #' frowid(flights$year, g = NULL)
 #'
-#' # Comparison to rowidv()
-#' \dontrun{
-#'   bench::mark(rowidv(flights),
-#'               frowid(flights))
-#' }
-#'
-#' # Comparison to dplyr
+#' # With data frames, better to use row_id()
 #' flights %>%
-#'   mutate(id1 = row_number(),
-#'          .by = c(origin, dest)) %>%
-#'   mutate(id2 = frowid(pick(origin, dest))) %>%
-#'   filter(id1 != id2)
+#'   add_row_id() %>%
+#'   add_row_id(origin, dest,
+#'              .name = "grouped_row_id") # Row IDs by group
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @rdname frowid
 #' @export
 frowid <- function(x, g, ascending = TRUE, order = TRUE){
@@ -67,9 +68,10 @@ frowid <- function(x, g, ascending = TRUE, order = TRUE){
               return.order = TRUE)
   }
   if (is.null(g)){
-    out <- seq_len(len)
-    if (!ascending){
-      out <- rev(out)
+    if (ascending){
+      out <- seq_len(len)
+    } else {
+      out <- sequence2(len, from = len, by = -1L)
     }
   } else {
     g <- GRP2(g, sort = order, call = FALSE, return.groups = FALSE,

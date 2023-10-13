@@ -60,39 +60,45 @@
 #' library(ggplot2)
 #' library(dplyr)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
 #' # Easily create custom time breaks
-#' flights <- nycflights13::flights %>%
+#' df <- nycflights13::flights %>%
 #'   fslice_sample(n = 10^3, seed = 8192821) %>%
 #'   select(time_hour) %>%
 #'   mutate(date = as_date(time_hour))
 #'
 #' # time_cut() and time_breaks() automatically find a
 #' # suitable way to cut the data
-#' time_cut(flights$date)
+#' time_cut(df$date)
 #' # Works with datetimes as well
-#' time_cut(flights$time_hour, n = 5) # <= 5 breaks
+#' time_cut(df$time_hour, n = 5) # <= 5 breaks
 #' # Custom formatting
-#' time_cut(flights$date, fmt = "%Y %b", time_by = "month")
-#' time_cut(flights$time_hour, fmt = "%Y %b", time_by = "month")
+#' time_cut(df$date, fmt = "%Y %b", time_by = "month")
+#' time_cut(df$time_hour, fmt = "%Y %b", time_by = "month")
 #' # Just the breaks
-#' time_breaks(flights$date, n = 5, time_by = "month")
-#' time_breaks(flights$time_hour, n = 5, time_by = "month")
+#' time_breaks(df$date, n = 5, time_by = "month")
+#' time_breaks(df$time_hour, n = 5, time_by = "month")
 #'
 #' # To get exact breaks at regular intervals, use time_expandv
-#' weekly_breaks <- time_expandv(flights$date,
+#' weekly_breaks <- time_expandv(df$date,
 #'                               time_by = "5 weeks",
 #'                               week_start = 1, # Monday
 #'                               time_floor = TRUE)
 #' weekly_labels <- format(weekly_breaks, "%b-%d")
-#' flights %>%
+#' df %>%
 #'   time_count(time = date, time_by = "week") %>%
 #'   ggplot(aes(x = date, y = n)) +
 #'   geom_bar(stat = "identity") +
 #'   scale_x_date(breaks = weekly_breaks,
 #'                labels = weekly_labels)
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @rdname time_cut
 #' @export
 time_cut <- function(x, n = 5, time_by = NULL,

@@ -87,11 +87,15 @@ values by time delay.
 library(timeplyr)
 library(outbreaks)
 library(dplyr)
-library(purrr)
 library(lubridate)
 \dontshow{
+.n_dt_threads <- data.table::getDTthreads()
+.n_collapse_threads <- collapse::get_collapse()$nthreads
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
+}
+base_pluck <- function(x, i){
+  x[[i]]
 }
 ebola_linelist <- outbreaks::ebola_sim_clean$linelist
 
@@ -115,7 +119,7 @@ ebola_linelist \%>\%
                  date_of_onset,
                  time_by = "day",
                  bw = "nrd") \%>\% # Scott's rule-of-thumb, normality assumption
-  pluck("plot")
+  base_pluck("plot")
 
 # Can choose any time units
 inc_distr_weeks <- ebola_linelist \%>\%
@@ -131,7 +135,7 @@ ebola_linelist \%>\%
                  date_of_onset,
                  time_by = "day",
                  include_plot = FALSE) \%>\%
-  pluck("summary")
+  base_pluck("summary")
 
 # Time from symptom onset to hospitalisation stratified by clinical outcome
 ebola_linelist \%>\%
@@ -140,7 +144,7 @@ ebola_linelist \%>\%
                  date_of_hospitalisation,
                  time_by = "days",
                  include_plot = FALSE) \%>\%
-  pluck("summary")
+  base_pluck("summary")
 
 # Those who died may have presented to hospital faster than those that recovered
 
@@ -151,5 +155,9 @@ mers_cases \%>\%
   get_time_delay(dt_onset, dt_report,
                  time_by = "days",
                  include_plot = FALSE) \%>\%
-  pluck("summary")  # Mean of ~ 6 days
+  base_pluck("summary")  # Mean of ~ 6 days
+\dontshow{
+data.table::setDTthreads(threads = .n_dt_threads)
+collapse::set_collapse(nthreads = .n_collapse_threads)
+}
 }

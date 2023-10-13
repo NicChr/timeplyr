@@ -20,6 +20,8 @@
 #' library(dplyr)
 #' library(ggplot2)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -55,6 +57,10 @@
 #'   pull(edf)
 #' edf2 <- edf(x, g = g)
 #' all.equal(edf1, edf2)
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @export
 edf <- function(x, g = NULL, wt = NULL){
   is_na <-  is.na(x)

@@ -24,13 +24,13 @@ add_calendar(
 \arguments{
 \item{x}{date or datetime vector.}
 
-\item{label}{Logical. Should labeled (ordered factor) versions of
+\item{label}{Logical. Should labelled (ordered factor) versions of
 week day and month be returned? Default is \code{TRUE}.}
 
 \item{week_start}{day on which week starts following ISO conventions - 1
 means Monday, 7 means Sunday (default). When \code{label = TRUE},
 this will be the first level of the returned factor.
-You can set lubridate.week.start option to control this parameter globally.}
+You can set \code{lubridate.week.start} option to control this parameter globally.}
 
 \item{fiscal_start}{Numeric indicating the starting month of a fiscal year.}
 
@@ -50,7 +50,8 @@ Create a table of common time units from a date or datetime sequence.
 library(timeplyr)
 library(lubridate)
 \dontshow{
-# .n_dt_threads <- data.table::getDTthreads()
+.n_dt_threads <- data.table::getDTthreads()
+.n_collapse_threads <- collapse::get_collapse()$nthreads
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
@@ -61,6 +62,7 @@ to <- ceiling_date(today(), unit = "year", change_on_boundary = TRUE) - days(1)
 my_seq <- time_seq(from, to, time_by = "day")
 calendar(my_seq)
 \dontshow{
-# data.table::setDTthreads(threads = .n_dt_threads)
+data.table::setDTthreads(threads = .n_dt_threads)
+collapse::set_collapse(nthreads = .n_collapse_threads)
 }
 }

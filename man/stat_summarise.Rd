@@ -77,6 +77,8 @@ but is faster and more efficient and accepts limited statistical functions.
 library(timeplyr)
 library(dplyr)
 \dontshow{
+.n_dt_threads <- data.table::getDTthreads()
+.n_collapse_threads <- collapse::get_collapse()$nthreads
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
@@ -93,6 +95,10 @@ iris \%>\%
   group_by(Species) \%>\%
   stat_summarise(across(contains("Width")),
             stat = c("min", "max", "mean", "sd"))
+\dontshow{
+data.table::setDTthreads(threads = .n_dt_threads)
+collapse::set_collapse(nthreads = .n_collapse_threads)
+}
 }
 \seealso{
 \link{q_summarise}

@@ -357,13 +357,6 @@ seqs <- time_seq_v2(seq_lengths, start, time_by = list("days" = c(1, 5, 10)))
 seqs
 ```
 
-## Extra: Use `seq_id()` to name the unique sequences
-
-```{r}
-names(seqs) <- seq_id(seq_lengths)
-tibble::enframe(seqs)
-```
-
 Dealing with impossible dates and datetimes is very simple
 
 ```{r}

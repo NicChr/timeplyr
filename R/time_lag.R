@@ -27,6 +27,8 @@
 #' @examples
 #' library(timeplyr)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -39,6 +41,10 @@
 #'
 #' # No values exist at t-1 days
 #' time_lag(x, time = t, k = 1)
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @export
 time_lag <- function(x, k = 1L,
                      time = seq_along(x),

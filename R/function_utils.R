@@ -1104,7 +1104,7 @@ strip_attr <- function(x, which){
   x
 }
 is_integerable <- function(x){
-  x <= .Machine$integer.max
+  abs(x) <= .Machine$integer.max
 }
 add_attr <- function(x, which, value){
   attr(x, which) <- value

@@ -25,40 +25,6 @@
 #' is similar to `collapse::fnobs(rep(1, 3), g = c(2, 2, 1))`. \cr
 #' While `fn()` is not entirely useful as a function, it is useful for
 #' internal code that utilises `GRP` objects.
-#' @examples
-#' \dontrun{
-#' library(timeplyr)
-#' library(dplyr)
-#' library(nycflights13)
-#' flights <- flights
-#' fn(flights)
-#' fn(flights, g = flights$origin)
-#' fn(flights, g = flights$origin, expand = TRUE)
-#'
-#' fnmiss(flights)
-#' fprop_complete(flights)
-#'
-#' bench::mark(e1 = fnmiss(flights),
-#'             e2 = colSums(is.na(flights)))
-#'
-#' # Compared to dplyr
-#' bench::mark(e1 = fnmiss(flights, g = collapse::GRP(flights$tailnum, sort = FALSE)),
-#'             e2 = flights %>%
-#'               summarise(across(everything(), ~ sum(is.na(.x))),
-#'                         .by = tailnum),
-#'             e3 = flights %>%
-#'               stat_summarise(.cols = names(flights),
-#'                              stat = "nmiss",
-#'                              .by = tailnum, sort = FALSE),
-#'             check = FALSE)
-#'
-#' library(data.table)
-#' dt <- data.table(g = sample.int(10, size = 10^5, replace = TRUE))
-#' dt[, .N, by = g] # Usual DT method
-#' dt[, list(N = fn(g = g, sort = F))] # Using fn
-#' fcount(dt, g) # fcount (preferred)
-#' stat_summarise(dt, .by = g) # stat_summarise
-#' }
 #' @rdname fast_stats
 fn <- function(x, g = NULL, sort = TRUE,
                expand = FALSE, use.g.names = !expand){

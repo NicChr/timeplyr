@@ -2,13 +2,13 @@
 #'
 #' @description
 #' `fselect()` operates the exact same way as `dplyr::select()` and
-#' can be used naturally with `tidyselect` helpers.
-#' It uses `collapse` to perform the actual selecting of variables and is
-#' considerably faster than `dplyr` for selecting exact columns,
+#' can be used naturally with `tidy-select` helpers.
+#' It uses collapse to perform the actual selecting of variables and is
+#' considerably faster than dplyr for selecting exact columns,
 #' and even more so when supplying the `.cols` argument.
 #'
 #' @param data A data frame.
-#' @param ... Variables to select using `tidyselect`.
+#' @param ... Variables to select using `tidy-select`.
 #' See `?dplyr::select` for more info.
 #' @param .cols (Optional) faster alternative to `...` that accepts
 #' a named character vector or numeric vector. \cr
@@ -19,14 +19,26 @@
 #' A `data.frame` of selected columns.
 #'
 #' @examples
-#' \dontrun{
-#'   library(timeplyr)
-#'   library(dplyr)
-#'   bench::mark(e1 = fselect(iris, Species, Sepal.Length),
-#'               e2 = fselect(iris, .cols = c("Species", "Sepal.Length")),
-#'               e3 = fselect(iris, all_of(c("Species", "Sepal.Length"))),
-#'               e4 = select(iris, all_of(c("Species", "Sepal.Length"))))
+#' library(timeplyr)
+#' library(dplyr)
+#' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
+#' data.table::setDTthreads(threads = 2L)
+#' collapse::set_collapse(nthreads = 1L)
 #' }
+#' df <- slice_head(iris, n = 5)
+#' fselect(df, Species, SL = Sepal.Length)
+#' fselect(df, .cols = c("Species", "Sepal.Length"))
+#' fselect(df, all_of(c("Species", "Sepal.Length")))
+#' fselect(df, 5, 1)
+#' fselect(df, .cols = c(5, 1))
+#' df %>%
+#'   fselect(where(is.numeric))
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @export
 fselect <- function(data, ..., .cols = NULL){
   UseMethod("fselect")

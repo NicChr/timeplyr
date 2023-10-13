@@ -62,6 +62,8 @@ library(timeplyr)
 library(dplyr)
 library(ggplot2)
 \dontshow{
+.n_dt_threads <- data.table::getDTthreads()
+.n_collapse_threads <- collapse::get_collapse()$nthreads
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
@@ -100,4 +102,8 @@ iris \%>\%
            max, max2,
            sum, sum2,
            mean, mean2)
+\dontshow{
+data.table::setDTthreads(threads = .n_dt_threads)
+collapse::set_collapse(nthreads = .n_collapse_threads)
+}
 }

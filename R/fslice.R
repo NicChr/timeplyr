@@ -47,6 +47,8 @@
 #' library(dplyr)
 #' library(nycflights13)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -72,6 +74,10 @@
 #' # (or stratified random sampling)
 #' flights %>%
 #'   fslice_sample()
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @rdname fslice
 #' @export
 fslice <- function(data, ..., .by = NULL,

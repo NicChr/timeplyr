@@ -5,8 +5,8 @@ Authors@R:
     person("Nick", "Christofides", , "nick.christofides.r@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-9743-7342"))
 Description: A set of fast tidy functions for wrangling, completing and
-    summarising date and date-time data. It combines tidy syntax with the
-    efficiency of data.table and speed of collapse.
+    summarising date and date-time data. It combines 'tidyverse' syntax
+    with the efficiency of 'data.table' and speed of 'collapse'.
 License: GPL (>= 2)
 BugReports: https://github.com/NicChr/timeplyr/issues
 Depends:
@@ -25,14 +25,14 @@ Imports:
     timechange (>= 0.2.0),
     vctrs (>= 0.6.0)
 Suggests: 
+    bench,
     knitr,
     nycflights13,
     outbreaks,
-    purrr,
     rmarkdown,
     testthat (>= 3.0.0),
-    tibble,
-    tidyr
+    tidyr,
+    zoo
 LinkingTo: 
     Rcpp
 Config/testthat/edition: 3

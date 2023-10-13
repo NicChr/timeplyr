@@ -116,34 +116,30 @@ library(dplyr)
 library(lubridate)
 library(nycflights13)
 \dontshow{
+.n_dt_threads <- data.table::getDTthreads()
+.n_collapse_threads <- collapse::get_collapse()$nthreads
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
 # Works the same way as summarise()
+# Monthly average arrival time
 flights \%>\%
-  summarise(across(where(is.numeric), mean))
-flights \%>\%
-  time_summarise(time = NULL,
-                 across(where(is.numeric), mean))
-
-# Like the other time_ functions, it allows for an additional time variable to
-# aggregate by
-
-# Monthly average arr time
-flights \%>\%
+  mutate(date = as_date(time_hour)) \%>\%
   time_summarise(mean_arr_time = mean(arr_time, na.rm = TRUE),
-                 time = across(time_hour, as_date),
+                 time = date,
                  time_by = "month",
                  include_interval = TRUE)
 # Example of monthly summary using zoo's yearmon
-\dontrun{
+\donttest{
 flights \%>\%
   mutate(yearmon = zoo::as.yearmon(as_date(time_hour))) \%>\%
   time_summarise(time = yearmon,
                  n = n(),
                  mean_arr_time = mean(arr_time, na.rm = TRUE),
-                 mean_dep_time = mean(dep_time, na.rm = TRUE),
-                 mean_diff_time = mean(arr_time - dep_time, na.rm = TRUE),
                  include_interval = TRUE)
+}
+\dontshow{
+data.table::setDTthreads(threads = .n_dt_threads)
+collapse::set_collapse(nthreads = .n_collapse_threads)
 }
 }

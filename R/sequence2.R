@@ -16,6 +16,9 @@
 #' `sequence2()` works in the same as `sequence()` but can accept
 #' non-whole number `by` values.
 #' It also doesn't recycle `from` and `to`, in the same as `sequence()`. \cr
+#' If any of the sequences contain integers > .Machine$integer.max,
+#' then the result will always be a double vector.
+#'
 #' `seq_v()` is a vectorised version of `seq()` that strictly accepts
 #' only the arguments `from`, `to` and `by`. \cr
 #' `seq_id()` is a helper function to efficiently return unique IDs for
@@ -24,6 +27,8 @@
 #' @examples
 #' library(timeplyr)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -35,14 +40,26 @@
 #'
 #' sequence(c(3, 2), by = c(-0.1, 0.1))
 #' sequence2(c(3, 2), by = c(-0.1, 0.1))
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @rdname sequence2
 #' @export
 sequence2 <- function(nvec, from = 1L, by = 1L){
+  out_maybe_int <- all(is_integerable(
+    collapse::frange(
+      time_as_number(from) + (by * (pmax(nvec - 1, 0))),
+      na.rm = TRUE
+    )
+  ))
   out_len <- sum(nvec)
-  out_is_int <- isTRUE(is_integerable(out_len))
-  if (is.integer(from) &&
-      is.integer(by) &&
-      out_is_int){
+  out_is_long <- out_len >= (2^31)
+  out_is_int <- is.integer(from) &&
+    is.integer(by) &&
+    out_maybe_int
+
+  if (out_is_int && !out_is_long){
     return(sequence(nvec = nvec, from = from, by = by))
   }
   g_len <- length(nvec)
@@ -59,7 +76,7 @@ sequence2 <- function(nvec, from = 1L, by = 1L){
     by <- rep.int(by, times = nvec)
   }
   # Arithmetic
-  if (out_is_int){
+  if (!out_is_long){
     g_add <- sequence(nvec, from = 0L, by = 1L)
   } else {
     g <- seq_id(nvec)
@@ -78,8 +95,6 @@ seq_id <- function(nvec){
 #' @rdname sequence2
 #' @export
 seq_v <- function(from = 1L, to = 1L, by = 1L){
-  # size <- seq_size(from = from, to = to, by = by)
-  # sequence2(size, from = from, by = by)
   sequence2( ( (to - from) / by) + 1L, from = from, by = by)
 }
 seq_size <- function(from, to, by = 1L){

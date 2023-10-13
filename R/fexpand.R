@@ -67,6 +67,8 @@
 #' library(lubridate)
 #' library(nycflights13)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -80,19 +82,10 @@
 #' flights %>%
 #'   group_by(origin, dest, tailnum) %>%
 #'   fexpand(carrier)
-#' \dontrun{
-#' # 2 extra groups, this is where the grouped calculation actually happens
-#' # still very quick
-#' flights %>%
-#'   group_by(origin, dest) %>%
-#'   fexpand(carrier, flight)
-#'
-#' # Tidyverse select helpers and data masking can be used
-#' flights %>%
-#'   fexpand(date = as_date(time_hour),
-#'           across(all_of(c("origin", "dest"))),
-#'           pick("carrier"))
-#' }
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @rdname fexpand
 #' @export
 fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),

@@ -15,7 +15,7 @@ harmonic_mean(x, weights = NULL, na.rm = TRUE, ...)
 \arguments{
 \item{x}{\link{numeric} Vector.}
 
-\item{weights}{\link{numeric} Vector. \cr
+\item{weights}{\link{numeric} Vector of weights. \cr
 Default is \code{NULL} which performs an unweighted mean.}
 
 \item{na.rm}{\link{logical} Value (Default is \code{TRUE}).}

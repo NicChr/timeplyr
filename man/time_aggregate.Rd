@@ -75,10 +75,11 @@ library(nycflights13)
 library(lubridate)
 library(dplyr)
 \dontshow{
+.n_dt_threads <- data.table::getDTthreads()
+.n_collapse_threads <- collapse::get_collapse()$nthreads
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
-
 sunique <- function(x) sort(unique(x))
 
 hours <- sunique(flights$time_hour)
@@ -104,6 +105,10 @@ flights \%>\%
   mutate(week_by_tailnum) \%>\%
   stat_summarise(week_by_tailnum, .by = tailnum, stat = "min",
                  sort = FALSE)
+\dontshow{
+data.table::setDTthreads(threads = .n_dt_threads)
+collapse::set_collapse(nthreads = .n_collapse_threads)
+}
 }
 \seealso{
 \link{time_summarisev}

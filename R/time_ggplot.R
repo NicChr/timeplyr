@@ -21,6 +21,8 @@
 #' library(dplyr)
 #' library(timeplyr)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -60,6 +62,10 @@
 #' ebola %>%
 #'   time_count(date_of_infection) %>%
 #'   time_ggplot(date_of_infection, n)
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @export
 time_ggplot <- function(data, time, value, group = NULL,
                         facet = FALSE,

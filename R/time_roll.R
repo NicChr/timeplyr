@@ -85,6 +85,8 @@
 #' library(lubridate)
 #' library(dplyr)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -102,7 +104,7 @@
 #' # Alternatively and more verbosely
 #' x_chunks <- time_roll_window(x, window = 7, time = time)
 #' x_chunks
-#' purrr::map_dbl(x_chunks, mean)
+#' vapply(x_chunks, mean, 0)
 #'
 #' # Interval (x - 3 x]
 #' time_roll_sum(x, window = ddays(3), time = time)
@@ -116,25 +118,25 @@
 #' tibble(x, t) %>%
 #'   mutate(sum = time_roll_sum(x, time = t, window = days(3))) %>%
 #'   time_ggplot(t, sum)
-#' \dontrun{
+#'
+#' \donttest{
 #' ### Rolling mean example with many time series
 #'
 #' # Sparse time with duplicates
 #' index <- sort(sample(seq(now(), now() + dyears(3), by = "333 hours"),
 #'                      250, TRUE))
-#' x <- matrix(rnorm(length(index) * 10^5),
-#'             ncol = 10^5, nrow = length(index),
+#' x <- matrix(rnorm(length(index) * 10^3),
+#'             ncol = 10^3, nrow = length(index),
 #'             byrow = FALSE)
 #'
 #' zoo_ts <- zoo::zoo(x, order.by = index)
 #'
-#' # Say you started with data like zoo_ts
 #' # Normally you might attempt something like this
-#' # apply(zoo_ts, 2,
-#' #       function(x){
-#' #         slider::slide_index_mean(x, i = index, before = dmonths(1))
-#' #       }
-#' # )
+#' apply(x, 2,
+#'       function(x){
+#'         time_roll_mean(x, window = dmonths(1), time = index)
+#'       }
+#' )
 #' # Unfortunately this is too slow and inefficient
 #'
 #'
@@ -143,8 +145,12 @@
 #'
 #' tbl %>%
 #'   mutate(monthly_mean = time_roll_mean(value, window = dmonths(1),
-#'                                 time = time, g = group))
+#'                                        time = time, g = group))
 #' }
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @rdname time_roll
 #' @export
 time_roll_sum <- function(x, window = Inf,

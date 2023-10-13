@@ -48,6 +48,8 @@ library(dplyr)
 library(timeplyr)
 library(ggplot2)
 \dontshow{
+.n_dt_threads <- data.table::getDTthreads()
+.n_collapse_threads <- collapse::get_collapse()$nthreads
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
@@ -55,7 +57,10 @@ mpg \%>\%
   distinct(manufacturer)
 mpg \%>\%
   fdistinct(manufacturer)
-
+\dontshow{
+data.table::setDTthreads(threads = .n_dt_threads)
+collapse::set_collapse(nthreads = .n_collapse_threads)
+}
 }
 \seealso{
 \link{group_collapse} \link{duplicate_rows}

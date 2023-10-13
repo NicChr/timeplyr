@@ -20,6 +20,8 @@
 #' @examples
 #' library(timeplyr)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -35,7 +37,10 @@
 #'
 #' is_whole_number(x1)
 #' is_whole_number(x2)
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @export
 is_whole_number <- function(x, na.rm = TRUE, tol = sqrt(.Machine$double.eps)){
   if (is.integer(x)){

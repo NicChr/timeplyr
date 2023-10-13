@@ -17,6 +17,8 @@
 #' library(dplyr)
 #' library(data.table)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -47,7 +49,7 @@
 #' bench::mark(e1 = dt[, filled := timeplyr::roll_na_fill(x)]$filled,
 #'             e2 = dt[, filled := data.table::nafill(x, type = "locf")]$filled,
 #'             e3 = dt[, filled := vctrs::vec_fill_missing(x)]$filled,
-#'             e4 = dt[, filled := zoo:::na.locf0(x)]$filled,
+#'             e4 = dt[, filled := zoo::na.locf0(x)]$filled,
 #'             e5 = dt[, filled := imputeTS::na_locf(x, na_remaining = "keep")]$filled,
 #'             e6 = dt[, filled := runner::fill_run(x, run_for_first = FALSE)]$filled)
 #' # With group
@@ -60,6 +62,10 @@
 #'             e2 = dt[, filled := data.table::nafill(x, type = "locf"), by = groups]$filled,
 #'             e3 = dt[, filled := vctrs::vec_fill_missing(x), by = groups]$filled)
 #' }
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @export
 roll_na_fill <- function(x, g = NULL, fill_limit = NULL){
   g <- GRP2(g)

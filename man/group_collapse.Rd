@@ -83,6 +83,8 @@ There are 3 ways to specify the groups:
 library(timeplyr)
 library(dplyr)
 \dontshow{
+.n_dt_threads <- data.table::getDTthreads()
+.n_collapse_threads <- collapse::get_collapse()$nthreads
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
@@ -96,4 +98,8 @@ iris \%>\%
 
 # Group entire data frame
 group_collapse(iris, .by = everything())
+\dontshow{
+data.table::setDTthreads(threads = .n_dt_threads)
+collapse::set_collapse(nthreads = .n_collapse_threads)
+}
 }

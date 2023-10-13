@@ -24,22 +24,35 @@
 #' returns a `numeric(length(x))`.
 #'
 #' @details
-#' This metric is equivalent to the compound annual growth rate (CAGR): doi.org/10.1002/smr.1847
+#' This metric is equivalent to the compound annual growth rate (CAGR): \cr
+#' \href{https://doi.org/10.1002/smr.1847}{Les Hatton et al. (2017)}
+#'
+#' ## Method
 #' It is assumed that `x` is a vector of values with
 #' a corresponding time index that increases regularly with no gaps or missing values.
+#'
 #' The output is to be interpreted as the average percent change per unit time.
+#'
+#' For a more generalised method that incorporates time gaps and complex time windows,
+#' use `time_roll_growth_rate`.
+#'
 #' This can also be calculated using the geometric mean of percent changes.
 #' `growth_rate` calculates the growth rate of a numeric vector by comparing
 #' the first and last values while `roll_growth_rate` does the same but on a
 #' rolling basis.
-#' The identity \cr `tail(roll_growth_rate(x, window = length(x)), 1) == growth_rate(x)`
-#' should always hold.
+#'
+#' The below identity should always hold:
+#' \preformatted{
+#' `tail(roll_growth_rate(x, window = length(x)), 1) == growth_rate(x)`
+#' }
 #'
 #' @seealso [time_roll_growth_rate]
 #'
 #' @examples
 #' library(timeplyr)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -87,7 +100,10 @@
 #' time_roll_growth_rate(assets2, window = 5, time = years2)
 #' # Time step allows us to calculate correct rates across time gaps
 #' time_roll_growth_rate(assets2, window = 5, time = years2, time_step = 1) # Time aware
-#'
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @rdname growth_rate
 #' @export
 growth_rate <- function(x, na.rm = FALSE, log = FALSE, inf_fill = NULL){

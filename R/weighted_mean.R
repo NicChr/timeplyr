@@ -4,7 +4,7 @@
 #' Convenience functions for fast unweighted and weighted mean calculations.
 #'
 #' @param x [numeric] Vector.
-#' @param weights [numeric] Vector. \cr
+#' @param weights [numeric] Vector of weights. \cr
 #' Default is `NULL` which performs an unweighted mean.
 #' @param na.rm [logical] Value (Default is `TRUE`).
 #' @param ... Further arguments passed to `collapse::fmean`.

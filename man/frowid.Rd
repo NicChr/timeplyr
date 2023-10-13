@@ -32,9 +32,9 @@ long as the number of unique lengths is \verb{<= 1}.
 }
 \description{
 \code{frowid()} is like \code{data.table::rowid()} but uses
-\code{collapse} for the grouping.
+collapse for the grouping.
 
-For a more  tidyverse friendly version for data frames, see \code{?row_id}.
+For general use it is recommended to use \code{row_id()}.
 }
 \examples{
 library(timeplyr)
@@ -42,6 +42,8 @@ library(dplyr)
 library(data.table)
 library(nycflights13)
 \dontshow{
+.n_dt_threads <- data.table::getDTthreads()
+.n_collapse_threads <- collapse::get_collapse()$nthreads
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
@@ -56,16 +58,16 @@ frowid(flights) > 1
 # On vectors, this is like base::seq_len()
 frowid(flights$year, g = NULL)
 
-# Comparison to rowidv()
-\dontrun{
-  bench::mark(rowidv(flights),
-              frowid(flights))
-}
-
-# Comparison to dplyr
+# With data frames, better to use row_id()
 flights \%>\%
-  mutate(id1 = row_number(),
-         .by = c(origin, dest)) \%>\%
-  mutate(id2 = frowid(pick(origin, dest))) \%>\%
-  filter(id1 != id2)
+  add_row_id() \%>\%
+  add_row_id(origin, dest,
+             .name = "grouped_row_id") # Row IDs by group
+\dontshow{
+data.table::setDTthreads(threads = .n_dt_threads)
+collapse::set_collapse(nthreads = .n_collapse_threads)
+}
+}
+\seealso{
+\link{row_id} \link{add_row_id}
 }

@@ -14,41 +14,6 @@
 #' @param use.g.names Should group names be used? Default is `TRUE`.
 #' @param all If `TRUE`, `gduplicated()` returns all duplicated values,
 #' including the first occurrence.
-#' @examples
-#' \dontrun{
-#' library(timeplyr)
-#' library(dplyr)
-#' library(tibble)
-#' set.seed(81234)
-#' iris <- slice_sample(iris, n = nrow(iris)) %>%
-#'   as_tibble()
-#'
-#' # gunique vs dplyr
-#' # Unsorted unique values by group
-#' gunique(iris$Sepal.Width, g = iris$Species, sort = FALSE)
-#' iris %>%
-#'   distinct(Species, Sepal.Width) %>%
-#'   pull(Sepal.Width)
-#' # Sorted unique values by ordered groups
-#' gunique(iris$Sepal.Width, g = iris$Species, sort = TRUE)
-#' iris %>%
-#'   distinct(Species, Sepal.Width) %>%
-#'   arrange(Species, Sepal.Width) %>%
-#'   pull(Sepal.Width)
-#' # Sorted unique values by unordered groups
-#' gunique(iris$Sepal.Width, g = iris$Species,
-#'         sort = TRUE, order = FALSE)
-#' iris %>%
-#'   reframe(Sepal.Width = sort(unique(Sepal.Width)), .by = Species) %>%
-#'   pull(Sepal.Width)
-#'
-#' # Very fast way of finding duplicate rows
-#' df <- data.frame(group = sample.int(10^6, 10^4, TRUE))
-#'
-#' which(gduplicated(df))
-#' # More efficient
-#' gwhich_duplicated(df)
-#' }
 #' @rdname gunique
 gunique <- function(x, g = NULL, sort = FALSE, order = TRUE,
                     use.g.names = TRUE){

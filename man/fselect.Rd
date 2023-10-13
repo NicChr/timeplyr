@@ -12,7 +12,7 @@ frename(data, ..., .cols = NULL)
 \arguments{
 \item{data}{A data frame.}
 
-\item{...}{Variables to select using \code{tidyselect}.
+\item{...}{Variables to select using \code{tidy-select}.
 See \code{?dplyr::select} for more info.}
 
 \item{.cols}{(Optional) faster alternative to \code{...} that accepts
@@ -25,18 +25,30 @@ A \code{data.frame} of selected columns.
 }
 \description{
 \code{fselect()} operates the exact same way as \code{dplyr::select()} and
-can be used naturally with \code{tidyselect} helpers.
-It uses \code{collapse} to perform the actual selecting of variables and is
-considerably faster than \code{dplyr} for selecting exact columns,
+can be used naturally with \code{tidy-select} helpers.
+It uses collapse to perform the actual selecting of variables and is
+considerably faster than dplyr for selecting exact columns,
 and even more so when supplying the \code{.cols} argument.
 }
 \examples{
-\dontrun{
-  library(timeplyr)
-  library(dplyr)
-  bench::mark(e1 = fselect(iris, Species, Sepal.Length),
-              e2 = fselect(iris, .cols = c("Species", "Sepal.Length")),
-              e3 = fselect(iris, all_of(c("Species", "Sepal.Length"))),
-              e4 = select(iris, all_of(c("Species", "Sepal.Length"))))
+library(timeplyr)
+library(dplyr)
+\dontshow{
+.n_dt_threads <- data.table::getDTthreads()
+.n_collapse_threads <- collapse::get_collapse()$nthreads
+data.table::setDTthreads(threads = 2L)
+collapse::set_collapse(nthreads = 1L)
+}
+df <- slice_head(iris, n = 5)
+fselect(df, Species, SL = Sepal.Length)
+fselect(df, .cols = c("Species", "Sepal.Length"))
+fselect(df, all_of(c("Species", "Sepal.Length")))
+fselect(df, 5, 1)
+fselect(df, .cols = c(5, 1))
+df \%>\%
+  fselect(where(is.numeric))
+\dontshow{
+data.table::setDTthreads(threads = .n_dt_threads)
+collapse::set_collapse(nthreads = .n_collapse_threads)
 }
 }

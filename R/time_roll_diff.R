@@ -21,9 +21,11 @@
 #' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations` are used otherwise.
+#'
 #' @returns
 #' A numeric vector the same length as `x.`
 #' on the arguments supplied.
+#'
 #' @seealso [time_elapsed]
 #'
 #' @details `time_elapsed` is very similar to `time_roll_diff` but

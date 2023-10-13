@@ -620,24 +620,6 @@ seqs
 #> [6] "2020-01-31" "2020-02-10" "2020-02-20"
 ```
 
-## Extra: Use `seq_id()` to name the unique sequences
-
-``` r
-names(seqs) <- seq_id(seq_lengths)
-tibble::enframe(seqs)
-#> # A tibble: 8 × 2
-#>   name  value     
-#>   <chr> <date>    
-#> 1 1     2020-01-31
-#> 2 1     2020-02-01
-#> 3 2     2020-01-31
-#> 4 2     2020-02-05
-#> 5 2     2020-02-10
-#> 6 3     2020-01-31
-#> 7 3     2020-02-10
-#> 8 3     2020-02-20
-```
-
 Dealing with impossible dates and datetimes is very simple
 
 ``` r
@@ -668,7 +650,7 @@ Simple function to get formatted ISO weeks.
 iso_week(today())
 #> [1] "2023-W41"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W41-1"
+#> [1] "2023-W41-5"
 iso_week(today(), year = FALSE)
 #> [1] "W41"
 ```
@@ -701,7 +683,7 @@ weekly_data %>%
   scale_x_date(breaks = date_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-31-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-30-1.png)<!-- -->
 
 ``` r
 
@@ -711,7 +693,7 @@ flights %>%
   scale_x_datetime(breaks = time_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-31-2.png)<!-- -->
+![](man/figures/README-unnamed-chunk-30-2.png)<!-- -->
 
 ## Efficient grouped functions
 

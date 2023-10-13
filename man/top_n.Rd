@@ -68,6 +68,8 @@ placed into a separate category "Other".
 library(dplyr)
 library(timeplyr)
 \dontshow{
+.n_dt_threads <- data.table::getDTthreads()
+.n_collapse_threads <- collapse::get_collapse()$nthreads
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
@@ -78,26 +80,8 @@ starwars \%>\%
   count(hair_col = lump_top_n(hair_color, n = 3))
 
 top_n_tbl(starwars$hair_color, n = 3)
-
-## Benchmark vs forcats
-\dontrun{
-library(microbenchmark)
-library(bench)
-library(forcats)
-library(ggplot2)
-set.seed(99999)
-x <- as.character(as.integer(rnorm(1e06)))
-
-# lump_top_n levels are in order of most freq
-
-m <- microbenchmark(lump_top_n(x, n = 10),
-                    fct_lump_n(x, n = 10))
-m
-autoplot(m)
-
-m2 <- mark(lump_top_n(x, n = 10),
-           fct_lump_n(x, n = 10),
-           check = FALSE)
-m2
+\dontshow{
+data.table::setDTthreads(threads = .n_dt_threads)
+collapse::set_collapse(nthreads = .n_collapse_threads)
 }
 }

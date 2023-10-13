@@ -40,6 +40,8 @@
 #' library(lubridate)
 #' library(nycflights13)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -53,6 +55,10 @@
 #' flights %>%
 #'   group_by(origin, dest) %>%
 #'   summarise(n_missing = time_num_gaps(time_hour, "hours"))
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @rdname time_gaps
 #' @export
 time_gaps <- function(x, time_by = NULL,

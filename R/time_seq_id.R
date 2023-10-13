@@ -57,6 +57,8 @@
 #' library(timeplyr)
 #' library(lubridate)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -73,6 +75,10 @@
 #' # A new ID when more than 4 cumulative weeks have passed
 #' time_seq_id(x, time_by = "4 weeks",
 #'             switch_on_boundary = FALSE, rolling = FALSE)
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @export
 time_seq_id <- function(x, time_by = NULL, threshold = 1,
                         g = NULL, na_skip = TRUE,

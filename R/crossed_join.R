@@ -26,11 +26,17 @@
 #' @examples
 #' library(timeplyr)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
 #' crossed_join(list(1:3, -2:2))
-#' crossed_join(iris, sort = TRUE)
+#' crossed_join(iris)
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @export
 crossed_join <- function(X, sort = FALSE, unique = TRUE,
                          as_dt = TRUE,
@@ -46,14 +52,12 @@ crossed_join <- function(X, sort = FALSE, unique = TRUE,
   expand_check(expanded_n, log_limit)
   if (strings_as_factors){
     is_chr <- vapply(X, is.character, FALSE, USE.NAMES = FALSE)
-    if (sum(is_chr) > 0){
-      which_chr <- which(is_chr)
-      X[which_chr] <- lapply(X[which_chr],
-                             function(x) collapse::qF(x,
-                                                      sort = FALSE,
-                                                      ordered = FALSE,
-                                                      na.exclude = TRUE))
-    }
+    which_chr <- which(is_chr)
+    X[which_chr] <- lapply(X[which_chr],
+                           function(x) collapse::qF(x,
+                                                    sort = FALSE,
+                                                    ordered = FALSE,
+                                                    na.exclude = TRUE))
   }
   # out <- .Call(Ccj, X)
   # do.call(CJ, args = c(X, list(sorted = FALSE, unique = FALSE)))

@@ -116,6 +116,8 @@
 #' library(lubridate)
 #' library(ggplot2)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -137,23 +139,10 @@
 #'   time_count(time = ep_start, time_by = "week", time_floor = TRUE) %>%
 #'   ggplot(aes(x = ep_start, y = n)) +
 #'   geom_bar(stat = "identity")
-#' \dontrun{
-#' # Using data from
-#' # https://www.kaggle.com/datasets/ashishsahani/hospital-admissions-data
-#'
-#'   # Count distribution of new hospital admissions
-#'   # Where a new hospital admission is defined as
-#'   # a first admission, such that 42 days have passed since their last
-#'   # admission date
-#'   admissions %>%
-#'     mutate(admission_date1 = dmy(`D.O.A`),
-#'            admission_date2 = mdy(`D.O.A`)) %>%
-#'     mutate(admission_date = coalesce(admission_date1, admission_date2)) %>%
-#'     time_episodes(admission_date, .by = `MRD No.`,
-#'                   time_by = "days", window = 42) %>%
-#'     count(ep_id_new) %>%
-#'     filter(ep_id_new > 0)
-#' }
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @export
 time_episodes <- function(data, time, time_by = NULL,
                           window = 1,

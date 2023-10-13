@@ -29,6 +29,8 @@ library(timeplyr)
 library(dplyr)
 library(ggplot2)
 \dontshow{
+.n_dt_threads <- data.table::getDTthreads()
+.n_collapse_threads <- collapse::get_collapse()$nthreads
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
@@ -64,4 +66,8 @@ edf1 <- tibble(x, g) \%>\%
   pull(edf)
 edf2 <- edf(x, g = g)
 all.equal(edf1, edf2)
+\dontshow{
+data.table::setDTthreads(threads = .n_dt_threads)
+collapse::set_collapse(nthreads = .n_collapse_threads)
+}
 }

@@ -96,6 +96,8 @@ library(dplyr)
 library(timeplyr)
 library(nycflights13)
 \dontshow{
+.n_dt_threads <- data.table::getDTthreads()
+.n_collapse_threads <- collapse::get_collapse()$nthreads
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
@@ -115,6 +117,10 @@ flights \%>\%
 flights \%>\%
   group_by(year, month, day) \%>\%
   duplicate_rows(dep_time, arr_time, .both_ways = TRUE)
+\dontshow{
+data.table::setDTthreads(threads = .n_dt_threads)
+collapse::set_collapse(nthreads = .n_collapse_threads)
+}
 }
 \seealso{
 \link{fcount} \link{group_collapse} \link{fdistinct}

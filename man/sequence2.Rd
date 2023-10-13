@@ -32,6 +32,9 @@ Like \code{sequence()} but it accepts decimal increments.
 \code{sequence2()} works in the same as \code{sequence()} but can accept
 non-whole number \code{by} values.
 It also doesn't recycle \code{from} and \code{to}, in the same as \code{sequence()}. \cr
+If any of the sequences contain integers > .Machine$integer.max,
+then the result will always be a double vector.
+
 \code{seq_v()} is a vectorised version of \code{seq()} that strictly accepts
 only the arguments \code{from}, \code{to} and \code{by}. \cr
 \code{seq_id()} is a helper function to efficiently return unique IDs for
@@ -40,6 +43,8 @@ each sequence.
 \examples{
 library(timeplyr)
 \dontshow{
+.n_dt_threads <- data.table::getDTthreads()
+.n_collapse_threads <- collapse::get_collapse()$nthreads
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
@@ -51,4 +56,8 @@ sequence2(1:3, by = 0.1)
 
 sequence(c(3, 2), by = c(-0.1, 0.1))
 sequence2(c(3, 2), by = c(-0.1, 0.1))
+\dontshow{
+data.table::setDTthreads(threads = .n_dt_threads)
+collapse::set_collapse(nthreads = .n_collapse_threads)
+}
 }

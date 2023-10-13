@@ -90,29 +90,31 @@
 #' library(lubridate)
 #' library(nycflights13)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
-#' flights <- flights %>%
+#' df <- flights %>%
 #'   mutate(date = as_date(time_hour),
 #'          date_num = as.integer(date)) %>%
 #'   select(year, month, day, origin, dest, date, time_hour, date_num)
 #'
 #' # By default time_count() guesses the time granularity
-#' flights %>%
-#'   time_count(time = time_hour)
+#' df %>%
+#'   time_count(time_hour)
 #' # Aggregated to week level
-#' flights %>%
+#' df %>%
 #'   time_count(time = date, time_by = "2 weeks")
-#' flights %>%
+#' df %>%
 #'   time_count(time = date, time_by = list("months" = 3),
 #'              from = dmy("15-01-2013"),
 #'              time_floor = TRUE,
 #'              include_interval = TRUE)
-#' # By week using numbers
-#' flights %>%
-#'   time_expand(time = date_num, time_by = 7) %>%
-#'   mutate(date = as_date(date_num))
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @export
 time_count <- function(data, time = NULL, ..., time_by = NULL,
                        from = NULL, to = NULL,

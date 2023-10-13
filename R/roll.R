@@ -20,6 +20,7 @@
 #' basis.
 #' @param ... Additional arguments passed to `data.table::frollmean` and
 #' `data.table::frollsum`.
+#'
 #' @details `roll_sum` and `roll_mean` support parallel computations when
 #' `x` is a data frame of multiple columns. \cr
 #' `roll_geometric_mean` and `roll_harmonic_mean` are convenience functions that
@@ -38,6 +39,8 @@
 #' @examples
 #' library(timeplyr)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -60,14 +63,20 @@
 #'           ave(iris$Sepal.Length, iris$Species, FUN = cumsum))
 #' # The below is run using parallel computations where applicable
 #' roll_sum(iris[, 1:4], window = 7, g = iris$Species)
-#' \dontrun{
-#' library(data.table)
-#' library(bench)
-#' df <- data.table(g = sample.int(10^5, 10^6, TRUE),
-#'                  x = rnorm(10^6))
-#' mark(e1 = df[, mean := frollmean(x, n = 7, align = "right", na.rm = FALSE), by = "g"]$mean,
-#'      e2 = df[, mean := roll_mean(x, window = 7, g = get("g"), partial = FALSE, na.rm = FALSE)]$mean)
+#' \donttest{
+#'   library(data.table)
+#'   library(bench)
+#'   df <- data.table(g = sample.int(10^4, 10^5, TRUE),
+#'                    x = rnorm(10^5))
+#'   mark(e1 = df[, mean := frollmean(x, n = 7,
+#'                                    align = "right", na.rm = FALSE), by = "g"]$mean,
+#'        e2 = df[, mean := roll_mean(x, window = 7, g = get("g"),
+#'                                    partial = FALSE, na.rm = FALSE)]$mean)
 #' }
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @rdname roll_sum
 #' @export
 roll_sum <- function(x, window = Inf,

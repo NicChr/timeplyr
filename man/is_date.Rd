@@ -16,7 +16,8 @@ is_time(x)
 is_time_or_num(x)
 }
 \arguments{
-\item{x}{date or datetime.}
+\item{x}{Time variable. \cr
+Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, or \code{yearqtr}.}
 }
 \value{
 A logical(1).

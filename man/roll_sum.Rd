@@ -98,6 +98,8 @@ Please note that \code{roll_apply} and \code{time_roll_apply} are still experime
 \examples{
 library(timeplyr)
 \dontshow{
+.n_dt_threads <- data.table::getDTthreads()
+.n_collapse_threads <- collapse::get_collapse()$nthreads
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
@@ -120,13 +122,19 @@ all.equal(roll_sum(iris$Sepal.Length, g = iris$Species),
           ave(iris$Sepal.Length, iris$Species, FUN = cumsum))
 # The below is run using parallel computations where applicable
 roll_sum(iris[, 1:4], window = 7, g = iris$Species)
-\dontrun{
-library(data.table)
-library(bench)
-df <- data.table(g = sample.int(10^5, 10^6, TRUE),
-                 x = rnorm(10^6))
-mark(e1 = df[, mean := frollmean(x, n = 7, align = "right", na.rm = FALSE), by = "g"]$mean,
-     e2 = df[, mean := roll_mean(x, window = 7, g = get("g"), partial = FALSE, na.rm = FALSE)]$mean)
+\donttest{
+  library(data.table)
+  library(bench)
+  df <- data.table(g = sample.int(10^4, 10^5, TRUE),
+                   x = rnorm(10^5))
+  mark(e1 = df[, mean := frollmean(x, n = 7,
+                                   align = "right", na.rm = FALSE), by = "g"]$mean,
+       e2 = df[, mean := roll_mean(x, window = 7, g = get("g"),
+                                   partial = FALSE, na.rm = FALSE)]$mean)
+}
+\dontshow{
+data.table::setDTthreads(threads = .n_dt_threads)
+collapse::set_collapse(nthreads = .n_collapse_threads)
 }
 }
 \seealso{

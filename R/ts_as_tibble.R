@@ -25,6 +25,8 @@
 #' library(ggplot2)
 #' library(dplyr)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -63,6 +65,10 @@
 #'   ts_as_tibble() %>%
 #'   time_ggplot(time, value, group, facet = TRUE)
 #' }
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @rdname ts_as_tibble
 #' @export
 ts_as_tibble <- function(x, name = "time", value = "value", group = "group"){

@@ -173,6 +173,8 @@ library(dplyr)
 library(lubridate)
 library(nycflights13)
 \dontshow{
+.n_dt_threads <- data.table::getDTthreads()
+.n_collapse_threads <- collapse::get_collapse()$nthreads
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
@@ -203,4 +205,8 @@ time_summarisev(y, time_by = "quarter")
 time_summarisev(y, time_by = "quarter", unique = TRUE)
 flights \%>\%
   fcount(quarter_start = time_summarisev(time_hour, "quarter"))
+\dontshow{
+data.table::setDTthreads(threads = .n_dt_threads)
+collapse::set_collapse(nthreads = .n_collapse_threads)
+}
 }

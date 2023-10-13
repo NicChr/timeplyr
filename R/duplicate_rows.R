@@ -1,6 +1,5 @@
 #' Find duplicate rows
 #'
-#'
 #' @param data A data frame.
 #' @param ... Variables used to find duplicate rows.
 #' @param .keep_all If `TRUE` then all columns of data frame are kept,
@@ -43,6 +42,8 @@
 #' library(timeplyr)
 #' library(nycflights13)
 #' \dontshow{
+#' .n_dt_threads <- data.table::getDTthreads()
+#' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
@@ -62,6 +63,10 @@
 #' flights %>%
 #'   group_by(year, month, day) %>%
 #'   duplicate_rows(dep_time, arr_time, .both_ways = TRUE)
+#' \dontshow{
+#' data.table::setDTthreads(threads = .n_dt_threads)
+#' collapse::set_collapse(nthreads = .n_collapse_threads)
+#'}
 #' @rdname duplicate_rows
 #' @export
 duplicate_rows <- function(data, ..., .keep_all = FALSE,
