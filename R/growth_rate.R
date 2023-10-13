@@ -24,10 +24,6 @@
 #' returns a `numeric(length(x))`.
 #'
 #' @details
-#' This metric is equivalent to the compound annual growth rate (CAGR): \cr
-#' \href{https://doi.org/10.1002/smr.1847}{Les Hatton et al. (2017)}
-#'
-#' ## Method
 #' It is assumed that `x` is a vector of values with
 #' a corresponding time index that increases regularly with no gaps or missing values.
 #'

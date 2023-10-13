@@ -47,10 +47,6 @@ Calculate the rate of percentage
 change per unit time.
 }
 \details{
-This metric is equivalent to the compound annual growth rate (CAGR): \cr
-\href{https://doi.org/10.1002/smr.1847}{Les Hatton et al. (2017)}
-\subsection{Method}{
-
 It is assumed that \code{x} is a vector of values with
 a corresponding time index that increases regularly with no gaps or missing values.
 
@@ -67,7 +63,6 @@ rolling basis.
 The below identity should always hold:
 \preformatted{
 `tail(roll_growth_rate(x, window = length(x)), 1) == growth_rate(x)`
-}
 }
 }
 \examples{
