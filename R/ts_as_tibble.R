@@ -47,24 +47,12 @@
 #' mts_tbl %>%
 #'   time_ggplot(time, value, group, facet = TRUE)
 #'
-#' \dontrun{
-#' # xts example
-#' data(sample_matrix, package = "xts")
-#' sample.xts <- xts::as.xts(sample_matrix)
-#' sample.xts %>%
-#'   ts_as_tibble() %>%
-#'   time_ggplot(time, value, group)
 #' # zoo example
 #' x.Date <- as.Date("2003-02-01") + c(1, 3, 7, 9, 14) - 1
 #' x <- zoo::zoo(rnorm(5), x.Date)
 #' ts_as_tibble(x)
 #' x <- zoo::zoo(matrix(1:12, 4, 3), as.Date("2003-01-01") + 0:3)
 #' ts_as_tibble(x)
-#' # timeSeries example
-#' timeSeries::MSFT %>%
-#'   ts_as_tibble() %>%
-#'   time_ggplot(time, value, group, facet = TRUE)
-#' }
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)

@@ -47,32 +47,20 @@ EuStockMarkets \%>\%
   ts_as_tibble() \%>\%
   time_ggplot(time, value, group)
 
-\dontrun{
-# xts example
-data(sample_matrix, package = "xts")
-sample.xts <- xts::as.xts(sample_matrix)
-sample.xts \%>\%
-  ts_as_tibble() \%>\%
-  time_ggplot(time, value, group)
-
-# timeSeries example
-timeSeries::MSFT \%>\%
-  ts_as_tibble() \%>\%
-  time_ggplot(time, value, group, facet = TRUE)
 # zoo example
 x.Date <- as.Date("2003-02-01") + c(1, 3, 7, 9, 14) - 1
 x <- zoo::zoo(rnorm(5), x.Date)
 x \%>\%
   ts_as_tibble() \%>\%
   time_ggplot(time, value)
-}
 
 # An example using raw data
 
 ebola <- outbreaks::ebola_sim$linelist
 ebola \%>\%
-  time_count(date_of_infection) \%>\%
-  time_ggplot(date_of_infection, n)
+  time_count(date_of_infection, time_by = "week",
+             outcome) \%>\%
+  time_ggplot(date_of_infection, n, outcome)
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

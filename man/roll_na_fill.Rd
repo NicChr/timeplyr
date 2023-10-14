@@ -41,10 +41,8 @@ x[sample.int(10^5, 10^4)] <- NA
 dt <- data.table(x, groups)
 
 roll_na_fill(x, groups)
-\dontrun{
+\donttest{
 library(zoo)
-library(imputeTS)
-library(runner)
 
   # Summary
 # Latest version of vctrs with their vec_fill_missing
@@ -56,21 +54,19 @@ library(runner)
 # timeplyr is fastest, but not memory efficient
 
 # No groups
-bench::mark(e1 = dt[, filled := timeplyr::roll_na_fill(x)]$filled,
-            e2 = dt[, filled := data.table::nafill(x, type = "locf")]$filled,
-            e3 = dt[, filled := vctrs::vec_fill_missing(x)]$filled,
-            e4 = dt[, filled := zoo::na.locf0(x)]$filled,
-            e5 = dt[, filled := imputeTS::na_locf(x, na_remaining = "keep")]$filled,
-            e6 = dt[, filled := runner::fill_run(x, run_for_first = FALSE)]$filled)
+bench::mark(e1 = dt[, filled1 := timeplyr::roll_na_fill(x)][]$filled1,
+            e2 = dt[, filled2 := data.table::nafill(x, type = "locf")][]$filled2,
+            e3 = dt[, filled3 := vctrs::vec_fill_missing(x)][]$filled3,
+            e4 = dt[, filled4 := zoo::na.locf0(x)][]$filled4)
 # With group
-bench::mark(e1 = dt[, filled := timeplyr::roll_na_fill(x, groups)]$filled,
-            e2 = dt[, filled := data.table::nafill(x, type = "locf"), by = groups]$filled,
-            e3 = dt[, filled := vctrs::vec_fill_missing(x), by = groups]$filled)
+bench::mark(e1 = dt[, filled1 := timeplyr::roll_na_fill(x, groups)][]$filled1,
+            e2 = dt[, filled2 := data.table::nafill(x, type = "locf"), by = groups][]$filled2,
+            e3 = dt[, filled3 := vctrs::vec_fill_missing(x), by = groups][]$filled3)
 # Data sorted by groups
 setkey(dt, groups)
-bench::mark(e1 = dt[, filled := timeplyr::roll_na_fill(x, groups)]$filled,
-            e2 = dt[, filled := data.table::nafill(x, type = "locf"), by = groups]$filled,
-            e3 = dt[, filled := vctrs::vec_fill_missing(x), by = groups]$filled)
+bench::mark(e1 = dt[, filled1 := timeplyr::roll_na_fill(x, groups)][]$filled1,
+            e2 = dt[, filled2 := data.table::nafill(x, type = "locf"), by = groups][]$filled2,
+            e3 = dt[, filled3 := vctrs::vec_fill_missing(x), by = groups][]$filled3)
 }
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)

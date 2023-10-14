@@ -1,4 +1,4 @@
-# Set number of data.table threads to 1
+# Set number of data.table threads to 2
 data.table::setDTthreads(threads = 2L)
 # Set number of collapse threads to 1
 collapse::set_collapse(nthreads = 1L)
@@ -252,6 +252,9 @@ testthat::test_that("xts", {
 1182380400, 1182466800, 1182553200, 1182639600, 1182726000, 1182812400,
 1182898800, 1182985200, 1183071600, 1183158000), tzone = "", tclass = c("POSIXct",
 "POSIXt")), class = c("xts", "zoo"))
+  # Load methods without using library() or loadNamespace()
+  zoo::yearmon
+  # The below should work if we have zoo loaded but not xts..
   xts_tbl <- ts_as_tibble(xts)
   time <- lubridate::as_datetime(attr(xts, "index"),
                                  tz = attr(attr(xts, "index"), "tzone"))
@@ -264,23 +267,15 @@ testthat::test_that("xts", {
     )
   )
   xts_tbl2 <- ts_as_tibble.default(xts)
+  xts_tbl$time <- as.double(xts_tbl$time)
   testthat::expect_equal(
-    xts_tbl2$time, rep(seq_along(time), ncol(xts))
+    xts_tbl, xts_tbl2
   )
-  testthat::expect_equal(
-    xts_tbl2$value, xts_tbl$value
-  )
-  testthat::expect_equal(
-    xts_tbl2$group, xts_tbl$group
-  )
-  # testthat::expect_equal(
-  #   xts_tbl,
-  #   ts_as_tibble.default(xts) %>%
-  #     dplyr::mutate(time = as.POSIXct(time, origin = lubridate::origin))
-  # )
 })
 
 testthat::test_that("zoo", {
+  # Load methods without using library() or loadNamespace()
+  zoo::yearmon
   # Example 1 - Univariate (no col names)
   x.Date <- as.Date("2003-02-01") + c(1, 3, 7, 9, 14) - 1
   x <- structure(c(0.807268292139951, 0.757088653227813, 0.239998755408692,
@@ -288,8 +283,6 @@ testthat::test_that("zoo", {
                                                                              12086, 12090, 12092, 12097), class = "Date"), class = "zoo")
   zoo_tbl <- ts_as_tibble(x)
   time <- x.Date
-  # elapsed <- time_elapsed(time, time_by = 1, rolling = FALSE)
-  # index_origin <- min(time) - 1
   testthat::expect_equal(
     zoo_tbl,
     dplyr::tibble(
@@ -298,11 +291,9 @@ testthat::test_that("zoo", {
     )
   )
   zoo_tbl2 <- ts_as_tibble.default(x)
+  zoo_tbl$time <- as.double(zoo_tbl$time)
   testthat::expect_equal(
-    zoo_tbl2$time, seq(1, 5, 1)
-  )
-  testthat::expect_equal(
-    zoo_tbl$value, zoo_tbl2$value
+    zoo_tbl, zoo_tbl2
   )
   # Example 2 - Multivariate (no col names)
   x <- structure(1:12, dim = 4:3, index = structure(c(12053, 12054,
@@ -319,20 +310,10 @@ testthat::test_that("zoo", {
     )
   )
   zoo_tbl2 <- ts_as_tibble.default(x)
+  zoo_tbl$time <- as.double(zoo_tbl$time)
   testthat::expect_equal(
-    zoo_tbl2$time, rep(seq_along(time), ncol(x))
+    zoo_tbl, zoo_tbl2
   )
-  testthat::expect_equal(
-    zoo_tbl2$value, zoo_tbl$value
-  )
-  testthat::expect_equal(
-    zoo_tbl2$group, zoo_tbl$group
-  )
-  # testthat::expect_equal(
-  #   zoo_tbl,
-  #   ts_as_tibble.default(x) %>%
-  #     dplyr::mutate(time = as.Date(time, origin = index_origin))
-  # )
   # Example 3 - Empty zoo object
   x <- structure(logical(0), dim = c(4L, 0L), index = 1:4, class = "zoo")
   zoo_tbl <- ts_as_tibble(x)
@@ -346,14 +327,9 @@ testthat::test_that("zoo", {
     )
   )
   zoo_tbl2 <- ts_as_tibble.default(x)
+  zoo_tbl$time <- as.double(zoo_tbl$time)
   testthat::expect_equal(
-    zoo_tbl2$time, rep(seq_along(time), ncol(x))
-  )
-  testthat::expect_equal(
-    zoo_tbl2$value, zoo_tbl$value
-  )
-  testthat::expect_equal(
-    zoo_tbl2$group, zoo_tbl$group
+    zoo_tbl, zoo_tbl2
   )
   # Example 4 - Multivariate (with col names)
   x <- structure(c(1.07322426812411, 0.880290672187144, 1.33868814497599,
@@ -374,24 +350,10 @@ testthat::test_that("zoo", {
     )
   )
   zoo_tbl2 <- ts_as_tibble.default(x)
+  zoo_tbl$time <- as.double(zoo_tbl$time)
   testthat::expect_equal(
-    zoo_tbl2$time, rep(seq_along(time), ncol(x))
+    zoo_tbl, zoo_tbl2
   )
-  testthat::expect_equal(
-    zoo_tbl2$value, zoo_tbl$value
-  )
-  testthat::expect_equal(
-    zoo_tbl2$group, zoo_tbl$group
-  )
-  # diff_gcd <- time_diff_gcd(time)
-  # testthat::expect_equal(
-  #   zoo_tbl,
-  #   ts_as_tibble.default(x) %>%
-  #     dplyr::mutate(time = lubridate::with_tz(
-  #       as.POSIXct( (time * diff_gcd ) - diff_gcd , origin = lubridate::origin),
-  #       "UTC"
-  #     ))
-  # )
 })
 
 # testthat::test_that("timeSeries", {
