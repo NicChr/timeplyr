@@ -37,6 +37,10 @@ fast and efficient thanks to the excellent functionality within the
 You can install and load `timeplyr` using the below code.
 
 ```{r gh-installation, message = FALSE, eval = FALSE}
+# CRAN version
+install.packages("timeplyr")
+
+# Development version
 remotes::install_github("NicChr/timeplyr")
 ```
 

@@ -25,6 +25,10 @@ package.
 You can install and load `timeplyr` using the below code.
 
 ``` r
+# CRAN version
+install.packages("timeplyr")
+
+# Development version
 remotes::install_github("NicChr/timeplyr")
 ```
 
@@ -650,7 +654,7 @@ Simple function to get formatted ISO weeks.
 iso_week(today())
 #> [1] "2023-W41"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W41-5"
+#> [1] "2023-W41-7"
 iso_week(today(), year = FALSE)
 #> [1] "W41"
 ```
