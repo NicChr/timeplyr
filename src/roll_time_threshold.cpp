@@ -7,7 +7,7 @@ using namespace Rcpp;
 // This basically cumulatively sums x and once a threshold is reached
 // This is flagged a 1, the counting resets and another cumulative sum occurs
 // and so on and so on
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 IntegerVector roll_time_threshold(SEXP x, double threshold = 1,
                                   bool switch_on_boundary = true) {
   int n = Rf_length(x);

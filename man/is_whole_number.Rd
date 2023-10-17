@@ -12,8 +12,7 @@ is_whole_number(x, na.rm = TRUE, tol = sqrt(.Machine$double.eps))
 \item{na.rm}{Should \code{NA} values be removed before calculation?
 Default is \code{TRUE}.}
 
-\item{tol}{tolerance value such that a whole number satisfies the condition
-\code{abs(round(x) - x) < tol}. \cr
+\item{tol}{tolerance value. \cr
 The default is \code{sqrt(.Machine$double.eps)}.}
 }
 \value{
@@ -25,9 +24,15 @@ Are all numbers whole numbers?
 \details{
 This is a very efficient function that returns \code{FALSE} if any number
 is not a whole-number and \code{TRUE} if all of them are.
+\subsection{Method}{
+
+\code{x[i]} is a whole number if both the \code{rel_diff(x[i], round(x[i])) < tol} and
+\code{abs_diff(x[i], round(x[i])) < tol} are satisfied where \code{rel_diff} is the relative difference
+and \code{abs_diff} is the absolute difference for all \verb{i >= 1 and i <= length(x)}.
 
 Inspired by the discussion in this thread:
 \href{https://stackoverflow.com/questions/3476782/check-if-the-number-is-integer/76655734}{check-if-the-number-is-integer}
+}
 }
 \examples{
 library(timeplyr)

@@ -15,8 +15,7 @@ duplicate_rows(
   .drop_empty = FALSE,
   sort = FALSE,
   .by = NULL,
-  .cols = NULL,
-  .keep_na = TRUE
+  .cols = NULL
 )
 
 fduplicates(
@@ -28,8 +27,7 @@ fduplicates(
   .drop_empty = FALSE,
   sort = FALSE,
   .by = NULL,
-  .cols = NULL,
-  .keep_na = TRUE
+  .cols = NULL
 )
 
 fduplicates2(
@@ -39,8 +37,7 @@ fduplicates2(
   .both_ways = FALSE,
   .add_count = FALSE,
   .drop_empty = FALSE,
-  .by = NULL,
-  .keep_na = TRUE
+  .by = NULL
 )
 }
 \arguments{
@@ -74,8 +71,6 @@ Columns are specified using tidy-select.}
 \item{.cols}{(Optional) alternative to \code{...} that accepts
 a named character vector or numeric vector.
 If speed is an expensive resource, it is recommended to use this.}
-
-\item{.keep_na}{\bold{Deprecated}. Please use \code{.drop_empty} instead.}
 }
 \value{
 A \code{data.frame} of duplicate rows.

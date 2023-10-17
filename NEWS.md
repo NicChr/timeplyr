@@ -1,5 +1,20 @@
-# timeplyr
+# timeplyr (Development version)
 
-# timeplyr 0.2.0
+# timeplyr 0.2.0 (15-Oct-2023)
 
-* Initial CRAN submission.
+* CRAN submission accepted.
+
+# (In development) timeplyr 0.2.1 (16-Oct-2023)
+
+* Fixed a bug where `sequence2()` would error when `nvec` was a zero-length vector.
+
+* Fixed a bug where `time_granularity()` would error with zero-length vectors.
+
+* `is_whole_number()` is now faster and utilises relative differences. 
+Also and the underlying C++ function is safer.
+
+* The `.keep_na` argument of `duplicate_rows` is now deprecated and replaced with
+`drop_empty`.
+
+* Most Rcpp functions are now more memory efficient due to disabling the RNGscope
+where possible.

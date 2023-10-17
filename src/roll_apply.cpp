@@ -82,7 +82,7 @@ NumericVector roll_apply_max(NumericVector x,
   return out;
 }
 
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 IntegerVector before_sequence(IntegerVector size, int k) {
   int size_n = size.length();
   k = std::max(k, 0);
@@ -99,7 +99,7 @@ IntegerVector before_sequence(IntegerVector size, int k) {
   return out;
 }
 
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 IntegerVector after_sequence(IntegerVector size, int k) {
   int size_n = size.length();
   k = std::max(k, 0);
@@ -119,7 +119,7 @@ IntegerVector after_sequence(IntegerVector size, int k) {
 }
 
 
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 IntegerVector window_sequence(IntegerVector size,
                               int k,
                               bool partial = true,
@@ -177,7 +177,7 @@ IntegerVector window_sequence(IntegerVector size,
   return out;
 }
 
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 IntegerVector lag_sequence(IntegerVector size, int k) {
   int size_n = size.length();
   k = std::max(k, 0);
@@ -193,7 +193,7 @@ IntegerVector lag_sequence(IntegerVector size, int k) {
   }
   return out;
 }
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 IntegerVector lead_sequence(IntegerVector size, int k) {
   int size_n = size.length();
   k = std::max(k, 0);

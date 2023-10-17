@@ -22,7 +22,6 @@
 #' @param .cols (Optional) alternative to `...` that accepts
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
-#' @param .keep_na \bold{Deprecated}. Please use `.drop_empty` instead.
 #'
 #' @returns
 #' A `data.frame` of duplicate rows.
@@ -72,12 +71,7 @@
 duplicate_rows <- function(data, ..., .keep_all = FALSE,
                            .both_ways = FALSE, .add_count = FALSE,
                            .drop_empty = FALSE, sort = FALSE,
-                           .by = NULL, .cols = NULL,
-                           .keep_na = TRUE){
-  if (!missing(.keep_na)){
-    warning(".keep_na has been deprecated, please use .drop_empty")
-    .drop_empty <- !.keep_na
-  }
+                           .by = NULL, .cols = NULL){
   n_dots <- dots_length(...)
   group_info <- group_info(data, ..., .by = {{ .by }},
                            .cols = .cols,
@@ -130,12 +124,7 @@ fduplicates <- duplicate_rows
 #' @export
 fduplicates2 <- function(data, ..., .keep_all = FALSE,
                          .both_ways = FALSE, .add_count = FALSE,
-                         .drop_empty = FALSE, .by = NULL,
-                         .keep_na = TRUE){
-  if (!missing(.keep_na)){
-    warning(".keep_na has been deprecated, please use .drop_empty")
-    .drop_empty <- !.keep_na
-  }
+                         .drop_empty = FALSE, .by = NULL){
   n_dots <- dots_length(...)
   out <- safe_ungroup(data)
   if (n_dots > 0){

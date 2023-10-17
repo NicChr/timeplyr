@@ -263,6 +263,12 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
       out[, (time_var) := time_cast(get(time_var), expanded_df[[time_var]])]
     }
     out <- dplyr::full_join(out, expanded_df, by = names(expanded_df))
+    # out <- fselect(
+    #   collapse::join(out, expanded_df, on = names(expanded_df),
+    #                  how = "full",
+    #                  verbose = FALSE),
+    #   .cols = names(out)
+    # )
     if (sort){
       setorderv2(out, cols = c(group_vars, time_var,
                                           setdiff(names(expanded_df),

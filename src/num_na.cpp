@@ -1,7 +1,7 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 int cpp_num_na(SEXP x){
   int count = 0;
   int n = Rf_length(x);
@@ -21,7 +21,8 @@ int cpp_num_na(SEXP x){
   case REALSXP: {
     double *p_count = REAL(x);
     for (int i = 0; i < n; i++){
-      count += (p_count[i] != p_count[i]);
+      // Because NaN == NaN is false
+      count += !(p_count[i] == p_count[i]);
     }
     break;
   }

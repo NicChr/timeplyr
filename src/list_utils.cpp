@@ -1,7 +1,7 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 List list_rm_null(List l) {
   int n = l.size();
   LogicalVector keep(n);
@@ -11,7 +11,7 @@ List list_rm_null(List l) {
   return l[keep];
 }
 
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 CharacterVector numeric_class(NumericVector x){
   CharacterVector out(1);
   if (x.hasAttribute("class")){
@@ -20,7 +20,7 @@ CharacterVector numeric_class(NumericVector x){
   return out;
 }
 
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 bool list_has_interval( List l ) {
   bool out = false;
   std::string int_str = "Interval";
@@ -41,7 +41,7 @@ bool list_has_interval( List l ) {
   }
   return out;
 }
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 LogicalVector list_item_is_interval( List l ) {
   int n = l.size();
   LogicalVector out(n);
@@ -86,7 +86,7 @@ LogicalVector list_item_is_interval( List l ) {
 //   return my_rep(x, times);
 // }
 
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 List rcpp_cj( List X ) {
   int nargs = X.size();
   if (nargs <= 1){

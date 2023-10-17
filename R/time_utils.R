@@ -171,6 +171,9 @@ time_interval <- function(from, to){
 }
 time_granularity <- function(x, is_sorted = FALSE, msg = TRUE){
   gcd_diff <- time_diff_gcd(x, is_sorted = is_sorted)
+  if (length(gcd_diff) == 0){
+    gcd_diff <- 1
+  }
   if (is_date(x)){
     granularity <- "day(s)"
     scale <- 1
@@ -204,6 +207,9 @@ time_granularity <- function(x, is_sorted = FALSE, msg = TRUE){
 # A more focused version
 time_granularity2 <- function(x, is_sorted = FALSE){
   gcd_diff <- time_diff_gcd(x, is_sorted = is_sorted)
+  if (length(gcd_diff) == 0){
+    gcd_diff <- 1
+  }
   if (is_date(x)){
     unit <- "days"
     scale <- 1
@@ -367,24 +373,27 @@ guess_seq_type <- function(units){
 convert_common_dates <- function(x){
   if (is_time(x)){
     out <- x
-  } else if (is.character(x) || is.numeric(x)){
-    x2 <- as.character(x)
+  } else if (is.character(x)){
+    which_not_na <- collapse::whichNA(x, invert = TRUE)
+    x2 <- x
     out <- lubridate::ymd(x2, quiet = TRUE)
-    if (sum(is.na(out[!is.na(x2)])) > 0) out <- lubridate::dmy(x2, quiet = TRUE)
-    n_na <- sum(is.na(out[!is.na(x2)]))
-    if (n_na < length(x) && n_na > 0) out <- rep_len(lubridate::NA_Date_, length(x))
+    any_na <- anyNA(unclass(out)[which_not_na])
+    if (any_na){
+      out <- lubridate::dmy(x2, quiet = TRUE)
+    }
+    n_na <- num_na(out[which_not_na])
+    if (n_na < length(x) && n_na > 0){
+      out <- lubridate::Date(length(x))
+    }
   } else {
-    out <- rep_len(lubridate::NA_Date_, length(x))
+    out <- lubridate::Date(length(x))
   }
   out
 }
 # Calculate size of period unit to expand from and to for specified length
 period_by_calc <- function(from, to, length){
   seconds_unit <- period_unit("seconds")
-  recycled_args <- recycle_args(from, to, length)
-  from <- recycled_args[[1L]]
-  to <- recycled_args[[2L]]
-  length <- recycled_args[[3L]]
+  set_recycle_args(from, to, length)
   which_len_1 <- which(length == 1)
   sec_diff <- time_diff(from, to,
                         time_by = list("seconds" = 1),

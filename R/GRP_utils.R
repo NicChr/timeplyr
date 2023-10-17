@@ -417,11 +417,7 @@ GRP_row_id <- function(GRP, ascending = TRUE){
     } else {
      o <- NULL
     }
-    out <- collapse::fcumsum(seq_ones(size),
-                             na.rm = FALSE,
-                             check.o = FALSE,
-                             o = o,
-                             g = GRP)
+    out <- grouped_seq_len(size, check.o = FALSE, o = o, g = GRP)
   }
   out
 }
@@ -532,4 +528,12 @@ greorder2 <- function(x, g, ...){
   } else {
     collapse::greorder(x, g = g, ...)
   }
+}
+grouped_seq_len <- function(length, g = NULL, ...){
+  if (is_integerable(length)){
+    ones <- collapse::alloc(1L, length)
+  } else {
+    ones <- collapse::alloc(1, length)
+  }
+  collapse::fcumsum(ones, g = g, na.rm = FALSE, ...)
 }

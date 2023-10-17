@@ -484,12 +484,13 @@ new_var_nm <- function(data, check = ".group.id"){
 recycle_args <- function (..., length = NULL, use.names = FALSE){
   dots <- list(...)
   missing_length <- is.null(length)
+  lens <- collapse::vlengths(dots, use.names = FALSE)
   if (missing_length) {
-    lens <- lengths(dots, use.names = FALSE)
     recycle_length <- max(lens)
   } else {
     recycle_length <- length
   }
+  recycle_length <- recycle_length * (!collapse::anyv(lens, 0L))
   if (missing_length && collapse::fnunique(lens) == 1L){
     out <- dots
   }
@@ -500,6 +501,16 @@ recycle_args <- function (..., length = NULL, use.names = FALSE){
     names(out) <- dot_nms(...)
   }
   out
+}
+set_recycle_args <- function(..., length = NULL, use.names = TRUE){
+  if (identical(base::parent.frame(n = 1), base::globalenv())){
+    stop("Users cannot use set_recycle_args from the global environment")
+  }
+  recycled_list <- recycle_args(..., length = length, use.names = use.names)
+  out_nms <- names(recycled_list)
+  for (i in seq_along(recycled_list)){
+    assign(out_nms[i], recycled_list[[i]], envir = parent.frame(n = 1))
+  }
 }
 # Row products
 rowProds <- function(x, na.rm = FALSE, dims = 1L){
@@ -515,13 +526,8 @@ radix_sort <- function(x, na.last = TRUE, ...){
   x[radix_order(x, na.last = na.last, ...)]
 }
 # Creates a sequence of ones.
-# This is used primarily for sums
 seq_ones <- function(length){
-  if (is_integerable(length)){
-    collapse::alloc(1L, length)
-  } else {
-    collapse::alloc(1, length)
-  }
+  collapse::alloc(1L, length)
 }
 # Drop leading zeroes
 drop_leading_zeros <- function(x, sep = "."){
@@ -891,18 +897,46 @@ abs_diff <- function(x, y){
 
 # Convenience comparison functions for doubles
 double_equal <- function(x, y, tol = sqrt(.Machine$double.eps)){
-  abs(x - y) < tol
+  check_is_num(x)
+  check_is_num(y)
+  set_recycle_args(x = x, y = y, use.names = FALSE)
+  if (is.integer(x) && is.integer(y)){
+    x == y
+  } else {
+    cpp_double_equal_vectorised(as.double(x), as.double(y), tol = tol)
+  }
 }
+# double_equal <- function(x, y, tol = sqrt(.Machine$double.eps)){
+#   abs(x - y) < tol
+# }
 double_gt <- function(x, y, tol = sqrt(.Machine$double.eps)){
+  # Will potentially use something similar in future
+  # adiff <- (x - y)
+  # rdiff <- (adiff / x)
+  # rdiff[x == 0 & y == 0] <- 0
+  # (adiff > tol ) | ( rdiff > tol )
   (x - y) > tol
 }
 double_gte <- function(x, y, tol = sqrt(.Machine$double.eps)){
+  # Will potentially use something similar in future
+  # adiff <- (x - y)
+  # rdiff <- (adiff / x)
+  # rdiff[x == 0 & y == 0] <- 0
+  # (adiff > -tol ) | ( rdiff > -tol )
   (x - y) > -tol
 }
 double_lt <- function(x, y, tol = sqrt(.Machine$double.eps)){
+  # adiff <- (x - y)
+  # rdiff <- (adiff / x)
+  # rdiff[x == 0 & y == 0] <- 0
+  # (adiff < -tol ) | ( rdiff < -tol )
   (x - y) < -tol
 }
 double_lte <- function(x, y, tol = sqrt(.Machine$double.eps)){
+  # adiff <- (x - y)
+  # rdiff <- (adiff / x)
+  # rdiff[x == 0 & y == 0] <- 0
+  # (adiff < tol ) | ( rdiff < tol )
   (x - y) < tol
 }
 # `%~==%` <- double_equal
@@ -1012,66 +1046,71 @@ is_s3_numeric <- function(x){
 }
 
 # Much faster and more efficient cut.default
-fast_cut <- function (x, breaks, labels = NULL, include.lowest = FALSE, right = TRUE,
-                  dig.lab = 3L, ordered_result = FALSE, ...){
-  if (!is.numeric(x))
-    stop("'x' must be numeric")
-  if (length(breaks) == 1L) {
-    if (is.na(breaks) || breaks < 2L)
-      stop("invalid number of intervals")
-    nb <- as.integer(breaks + 1)
-    dx <- diff.default(rx <- range(x, na.rm = TRUE))
-    if (dx == 0) {
-      dx <- if (rx[1L] != 0)
-        abs(rx[1L])
-      else 1
-      breaks <- seq.int(rx[1L] - dx/1000, rx[2L] + dx/1000,
-                        length.out = nb)
-    }
-    else {
-      breaks <- seq.int(rx[1L], rx[2L], length.out = nb)
-      breaks[c(1L, nb)] <- c(rx[1L] - dx/1000, rx[2L] +
-                               dx/1000)
-    }
-  }
-  else nb <- length(breaks <- sort.int(as.double(breaks)))
-  if (anyDuplicated(breaks))
-    stop("'breaks' are not unique")
-  codes.only <- FALSE
-  if (is.null(labels)) {
-    for (dig in dig.lab:max(12L, dig.lab)) {
-      ch.br <- formatC(0 + breaks, digits = dig, width = 1L)
-      if (ok <- all(ch.br[-1L] != ch.br[-nb]))
-        break
-    }
-    labels <- if (ok)
-      paste0(if (right)
-        "("
-        else "[", ch.br[-nb], ",", ch.br[-1L], if (right)
-          "]"
-        else ")")
-    else paste0("Range_", seq_len(nb - 1L))
-    if (ok && include.lowest) {
-      if (right)
-        substr(labels[1L], 1L, 1L) <- "["
-      else substring(labels[nb - 1L], nchar(labels[nb -
-                                                     1L], "c")) <- "]"
-    }
-  }
-  else if (is.logical(labels) && !labels)
-    codes.only <- TRUE
-  else if (length(labels) != nb - 1L)
-    stop("number of intervals and length of 'labels' differ")
-  code <- .bincode(x, breaks, right, include.lowest)
-  if (!codes.only) {
-    levels(code) <- as.character(labels)
-    class(code) <- c(if (ordered_result) "ordered" else character(0), "factor")
-  }
-  code
-}
+# fast_cut <- function (x, breaks, labels = NULL, include.lowest = FALSE, right = TRUE,
+#                   dig.lab = 3L, ordered_result = FALSE, ...){
+#   if (!is.numeric(x))
+#     stop("'x' must be numeric")
+#   if (length(breaks) == 1L) {
+#     if (is.na(breaks) || breaks < 2L)
+#       stop("invalid number of intervals")
+#     nb <- as.integer(breaks + 1)
+#     dx <- diff.default(rx <- range(x, na.rm = TRUE))
+#     if (dx == 0) {
+#       dx <- if (rx[1L] != 0)
+#         abs(rx[1L])
+#       else 1
+#       breaks <- seq.int(rx[1L] - dx/1000, rx[2L] + dx/1000,
+#                         length.out = nb)
+#     }
+#     else {
+#       breaks <- seq.int(rx[1L], rx[2L], length.out = nb)
+#       breaks[c(1L, nb)] <- c(rx[1L] - dx/1000, rx[2L] +
+#                                dx/1000)
+#     }
+#   }
+#   else nb <- length(breaks <- sort.int(as.double(breaks)))
+#   if (anyDuplicated(breaks))
+#     stop("'breaks' are not unique")
+#   codes.only <- FALSE
+#   if (is.null(labels)) {
+#     for (dig in dig.lab:max(12L, dig.lab)) {
+#       ch.br <- formatC(0 + breaks, digits = dig, width = 1L)
+#       if (ok <- all(ch.br[-1L] != ch.br[-nb]))
+#         break
+#     }
+#     labels <- if (ok)
+#       paste0(if (right)
+#         "("
+#         else "[", ch.br[-nb], ",", ch.br[-1L], if (right)
+#           "]"
+#         else ")")
+#     else paste0("Range_", seq_len(nb - 1L))
+#     if (ok && include.lowest) {
+#       if (right)
+#         substr(labels[1L], 1L, 1L) <- "["
+#       else substring(labels[nb - 1L], nchar(labels[nb -
+#                                                      1L], "c")) <- "]"
+#     }
+#   }
+#   else if (is.logical(labels) && !labels)
+#     codes.only <- TRUE
+#   else if (length(labels) != nb - 1L)
+#     stop("number of intervals and length of 'labels' differ")
+#   code <- .bincode(x, breaks, right, include.lowest)
+#   if (!codes.only) {
+#     levels(code) <- as.character(labels)
+#     class(code) <- c(if (ordered_result) "ordered" else character(0), "factor")
+#   }
+#   code
+# }
 check_is_num <- function(x){
   if (!is.numeric(x)){
     stop(paste(deparse1(substitute(x)), "must be numeric"))
+  }
+}
+check_is_double <- function(x){
+  if (!is.double(x)){
+    stop(paste(deparse1(substitute(x)), "must be a double"))
   }
 }
 # TRUE when x is sorted and contains no NA
@@ -1169,6 +1208,38 @@ allNA2 <- function(x){
   }
   collapse::allNA(x)
 }
+# Build on top of any and all
+# Are none TRUE?
+none <- function(..., na.rm = FALSE){
+  !any(..., na.rm = na.rm)
+}
+# Are some TRUE? Must specify number or proportion
+some <- function(..., n = NULL, prop = NULL, na.rm = FALSE){
+  if ( ( !is.null(n) && !is.null(prop) ) ||
+       ( is.null(n) && is.null(prop) ) ){
+    stop("either n or prop must be supplied")
+  }
+  dots <- list(...)
+  if (length(dots) == 1L){
+    dots <- dots[[1L]]
+  } else {
+    dots <- unlist(dots)
+  }
+  stopifnot(is.logical(dots))
+  if (na.rm){
+    dots <- dots[!is.na(dots)]
+  }
+  N <- length(dots)
+  num_true <- sum(dots)
+  if (!is.null(n)){
+    out <- num_true >= n
+  }
+  if (!is.null(prop)){
+    out <- (num_true / N) >= prop
+  }
+  out
+}
+
 list_of_empty_vectors <- function(x){
   lapply(x, function(x) x[0L])
 }
@@ -1197,9 +1268,8 @@ hasTsp <- function(x){
 tsp <- function(x){
   attr(x, "tsp")
 }
-# set_collapse_threads <- function(nthreads = 1L){
-#   set_collapse <- try(get("set_collapse", asNamespace("collapse")))
-#   if (exists("setDTthreads", inherits = FALSE)){
-#     set_collapse(nthreads = nthreads)
-#   }
-# }
+rng_used <- function(expr){
+  curr_seed = .Random.seed
+  on.exit({print(paste("RNG USED:", !identical(curr_seed, .Random.seed)))})
+  eval(expr, envir = parent.frame(n = 1))
+}

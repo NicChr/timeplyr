@@ -6,7 +6,7 @@ flag2 <- function(x, n = 1L, g = NULL, ...){
   if (is.null(x)){
     return(NULL)
   }
-  n <- as.integer(sign(n) * min(length(x), abs(n)))
+  n <- as.integer(sign(n) * min(vec_length(x), abs(n)))
   sorted_group_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
   g <- sorted_group_info[["GRP"]]
   sorted_g <- sorted_group_info[["sorted_GRP"]]

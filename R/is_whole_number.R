@@ -3,8 +3,7 @@
 #' @param x A numeric vector.
 #' @param na.rm Should `NA` values be removed before calculation?
 #' Default is `TRUE`.
-#' @param tol tolerance value such that a whole number satisfies the condition
-#' `abs(round(x) - x) < tol`. \cr
+#' @param tol tolerance value. \cr
 #' The default is `sqrt(.Machine$double.eps)`.
 #'
 #' @returns
@@ -13,6 +12,12 @@
 #' @details
 #' This is a very efficient function that returns `FALSE` if any number
 #' is not a whole-number and `TRUE` if all of them are.
+#'
+#' ## Method
+#' `x[i]` is a whole number if both the `rel_diff(x[i], round(x[i])) < tol` and
+#' `abs_diff(x[i], round(x[i])) < tol` are satisfied where `rel_diff` is the relative difference
+#' and `abs_diff` is the absolute difference for all `i >= 1 and i <= length(x)`.
+#'
 #'
 #' Inspired by the discussion in this thread:
 #' \href{https://stackoverflow.com/questions/3476782/check-if-the-number-is-integer/76655734}{check-if-the-number-is-integer}
@@ -46,13 +51,8 @@ is_whole_number <- function(x, na.rm = TRUE, tol = sqrt(.Machine$double.eps)){
   if (is.integer(x)){
     return(TRUE)
   }
-  if (!is.numeric(x)){
-    return(FALSE)
+  if (!na.rm && anyNA(x)){
+    return(NA)
   }
-  if (!na.rm){
-    if (anyNA(x)){
-      return(NA)
-    }
-  }
-  .Call(`_timeplyr_is_whole_num`, x, tol)
+  is.numeric(x) && is_whole_num(x, tol = tol)
 }

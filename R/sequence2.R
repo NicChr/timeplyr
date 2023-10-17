@@ -52,7 +52,7 @@ sequence2 <- function(nvec, from = 1L, by = 1L){
       time_as_number(from) + (by * (pmax(nvec - 1, 0))),
       na.rm = TRUE
     )
-  ))
+  ), na.rm = TRUE)
   out_len <- sum(nvec)
   out_is_long <- out_len >= (2^31)
   out_is_int <- is.integer(from) &&
@@ -80,10 +80,10 @@ sequence2 <- function(nvec, from = 1L, by = 1L){
     g_add <- sequence(nvec, from = 0L, by = 1L)
   } else {
     g <- seq_id(nvec)
-    g_add <- collapse::fcumsum(seq_ones(out_len),
-                               check.o = FALSE,
-                               na.rm = FALSE,
-                               g = g) - 1
+    # g <- sorted_group_id_to_GRP(g,
+    #                             n_groups = g_len,
+    #                             group_sizes = nvec)
+    g_add <- grouped_seq_len(out_len, g = g, check.o = FALSE) - 1
   }
   from + (g_add * by)
 }

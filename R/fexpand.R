@@ -123,14 +123,14 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
       (length(group_vars) > 0L &&
        length(leftover_grp_nms) <= 1L &&
        expand_type == "crossing")){
-    out <- nested_join(summarise_vars, N = nrow2(data),
+    out <- nested_join(summarise_vars, N = df_nrow(data),
                        sort = sort,
                        log_limit = log_limit)
   } else {
     # Method for grouped data which performs a separate cross-join of
     # non-grouped variables for each group
     if (length(group_vars) > 0L && length(leftover_grp_nms) >= 2L){
-      out1 <- nested_join(summarise_vars, N = nrow2(data),
+      out1 <- nested_join(summarise_vars, N = df_nrow(data),
                           sort = FALSE,
                           log_limit = log_limit)
       # Add group ID
@@ -215,10 +215,10 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
   # Newly created variables
   other_nms <- X_nms[!X_nms %in% data_nms]
   df <- data.table::as.data.table(X[X_nms %in% data_nms])
-  n_data <- nrow2(df)
+  n_data <- df_nrow(df)
   if (n_data > 0L){
     df <- collapse::funique(df)
-    n_data <- nrow2(df)
+    n_data <- df_nrow(df)
   }
   X_other <- X[X_nms %in% other_nms]
   X_other <- lapply(X_other, function(x) collapse::funique(x, sort = FALSE))
@@ -229,13 +229,13 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
   expand_check(expanded_n, log_limit)
   # Nested cross-join
   grp_seq <- seq_len(n_data)
-  if (nrow2(df) == 0L){
+  if (df_nrow(df) == 0L){
     out <- crossed_join(X_other, unique = FALSE)
   } else {
     out <- df_row_slice(df, rep(grp_seq, each = n_other))
     # out <- df[rep(grp_seq, each = n_other), , drop = FALSE]
     if (length(X_other) > 0L){
-      rep_times <- nrow2(out) / collapse::vlengths(X_other, use.names = FALSE)
+      rep_times <- df_nrow(out) / collapse::vlengths(X_other, use.names = FALSE)
       for (i in seq_along(X_other)){
         data.table::set(out, j = other_nms[i],
                         value = rep(X_other[[i]], rep_times[i]))
@@ -264,8 +264,16 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
   out <- as_DT(data)
   fill_na <- any(!is.na(fill))
   # Full-join
-  if (nrow2(expanded_df) > 0 && ncol(expanded_df) > 0){
+  if (df_nrow(expanded_df) > 0 && df_ncol(expanded_df) > 0){
     out <- dplyr::full_join(out, expanded_df, by = names(expanded_df))
+    # out <- fselect(
+    #   collapse::join(out, expanded_df,
+    #                  on = names(expanded_df),
+    #                  how = "full",
+    #                  sort = FALSE,
+    #                  verbose = FALSE),
+    #   .cols = names(out)
+    # )
     if (sort){
       setorderv2(out, cols = names(expanded_df))
     }

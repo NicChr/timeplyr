@@ -92,11 +92,7 @@ frowid <- function(x, g, ascending = TRUE, order = TRUE){
       if (!ascending){
         o <- seq.int(from = len, to = min(1L, len), by = -1L)
       }
-      out <- fcumsum(seq_ones(len),
-                     na.rm = FALSE,
-                     check.o = FALSE,
-                     o = o,
-                     g = g)
+      out <- grouped_seq_len(len, g = g, check.o = FALSE, o = o)
     }
   }
   out
