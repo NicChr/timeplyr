@@ -4,13 +4,7 @@
 \alias{time_diff}
 \title{Calculate time difference}
 \usage{
-time_diff(
-  x,
-  y,
-  time_by = 1,
-  time_type = c("auto", "duration", "period"),
-  as_period = FALSE
-)
+time_diff(x, y, time_by = 1, time_type = c("auto", "duration", "period"))
 }
 \arguments{
 \item{x}{Start date or datetime.}
@@ -30,13 +24,9 @@ then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
 \item{time_type}{Time difference type: "auto", "duration" or "period".}
-
-\item{as_period}{Logical. Should time interval be coerced to a period
-before time difference is calculated? This is useful for calculating
-for example age in exact years or months.}
 }
 \value{
-A numeric vector recycle to the length of \code{max(length(x), length(y))}.
+A numeric vector recycled to the length of \code{max(length(x), length(y))}.
 }
 \description{
 This is a neat wrapper around lubridate's

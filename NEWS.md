@@ -13,8 +13,16 @@
 * `is_whole_number()` is now faster and utilises relative differences. 
 Also and the underlying C++ function is safer.
 
+* Period calculations are now faster and more memory efficient and thus all the 
+time functions are also faster.
+
 * The `.keep_na` argument of `duplicate_rows` is now deprecated and replaced with
 `drop_empty`.
 
 * Most Rcpp functions are now more memory efficient due to disabling the RNGscope
 where possible.
+
+* Fixed an integer overflow bug in `sequence2()`.
+
+* The `as_period` argument in `time_diff` has been deprecated and removed.
+

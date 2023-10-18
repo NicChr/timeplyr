@@ -19,13 +19,7 @@ time_seq(
   roll_dst = "pre"
 )
 
-time_seq_sizes(
-  from,
-  to,
-  time_by,
-  time_type = c("auto", "duration", "period"),
-  as_period = FALSE
-)
+time_seq_sizes(from, to, time_by, time_type = c("auto", "duration", "period"))
 
 time_seq_v(
   from,
@@ -91,10 +85,6 @@ Options are "preday", "boundary", "postday", "full" and "NA".
 See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
-
-\item{as_period}{Logical. Should time interval be coerced to a period
-before time difference is calculated? This is useful for calculating
-for example age in exact years or months.}
 
 \item{sizes}{Time sequence sizes.}
 }

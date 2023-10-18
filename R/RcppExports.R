@@ -17,10 +17,6 @@ list_rm_null <- function(l) {
     .Call(`_timeplyr_list_rm_null`, l)
 }
 
-numeric_class <- function(x) {
-    .Call(`_timeplyr_numeric_class`, x)
-}
-
 list_has_interval <- function(l) {
     .Call(`_timeplyr_list_has_interval`, l)
 }
@@ -29,20 +25,8 @@ list_item_is_interval <- function(l) {
     .Call(`_timeplyr_list_item_is_interval`, l)
 }
 
-rcpp_cj <- function(X) {
-    .Call(`_timeplyr_rcpp_cj`, X)
-}
-
 cpp_num_na <- function(x) {
     .Call(`_timeplyr_cpp_num_na`, x)
-}
-
-roll_apply_max_fast <- function(x, before, after) {
-    .Call(`_timeplyr_roll_apply_max_fast`, x, before, after)
-}
-
-roll_apply_max <- function(x, before, after, na_rm, partial) {
-    .Call(`_timeplyr_roll_apply_max`, x, before, after, na_rm, partial)
 }
 
 before_sequence <- function(size, k) {

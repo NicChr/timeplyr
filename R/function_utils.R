@@ -1268,8 +1268,8 @@ hasTsp <- function(x){
 tsp <- function(x){
   attr(x, "tsp")
 }
-rng_used <- function(expr){
-  curr_seed = .Random.seed
-  on.exit({print(paste("RNG USED:", !identical(curr_seed, .Random.seed)))})
-  eval(expr, envir = parent.frame(n = 1))
-}
+# rng_used <- function(expr){
+#   curr <- globalenv()$.Random.seed
+#   on.exit({print(paste("RNG USED:", !identical(curr, .Random.seed)))})
+#   invisible(eval(expr, envir = parent.frame(n = 1)))
+# }

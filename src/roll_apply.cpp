@@ -1,86 +1,83 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-
 // This cannot handle NAs but is fast
 
-// [[Rcpp::export]]
-NumericVector roll_apply_max_fast(NumericVector x,
-                                  int before,
-                                  int after) {
-  int n = x.length();
-  int istart;
-  int iend;
-  int j_n;
-  double imax;
-  double ix;
-  NumericVector out(n);
-  for (int i = 0; i < n; ++i) {
-    istart = std::max(i - before, 0);
-    iend = std::min(i + after, n - 1);
-    j_n = iend - istart + 1;
-    imax = x[istart];
-    for (int j = 0; j < j_n; ++j){
-      ix = x[istart + j];
-      if (ix > imax){
-        imax = ix;
-      }
-    }
-    out[i] = imax;
-  }
-  return out;
-}
+// NumericVector roll_apply_max_fast(NumericVector x,
+//                                   int before,
+//                                   int after) {
+//   int n = x.length();
+//   int istart;
+//   int iend;
+//   int j_n;
+//   double imax;
+//   double ix;
+//   NumericVector out(n);
+//   for (int i = 0; i < n; ++i) {
+//     istart = std::max(i - before, 0);
+//     iend = std::min(i + after, n - 1);
+//     j_n = iend - istart + 1;
+//     imax = x[istart];
+//     for (int j = 0; j < j_n; ++j){
+//       ix = x[istart + j];
+//       if (ix > imax){
+//         imax = ix;
+//       }
+//     }
+//     out[i] = imax;
+//   }
+//   return out;
+// }
 
 
-// [[Rcpp::export]]
-NumericVector roll_apply_max(NumericVector x,
-                             int before,
-                             int after,
-                             bool na_rm,
-                             bool partial) {
-  int n = x.length();
-  int istart;
-  int iend;
-  int j_n;
-  double imax;
-  double ix;
-  int min_size;
-  if (partial){
-    min_size = 0;
-  } else {
-    min_size = before + after;
-  }
-  Function before_sequence("before_sequence");
-  Function after_sequence("after_sequence");
-  IntegerVector befores = before_sequence(n, before);
-  IntegerVector afters = after_sequence(n, after);
-  NumericVector out(n);
-  for (int i = 0; i < n; ++i) {
-    istart = i - befores[i];
-    iend = i + afters[i];
-    j_n = iend - istart + 1;
-    imax = x[istart];
-    if ( (istart + iend) < min_size){
-      out[i] = NA_REAL;
-    } else {
-      for (int j = 0; j < j_n; ++j){
-        ix = x[istart + j];
-        if (NumericVector::is_na(ix)){
-          if (na_rm){
-            imax = x[std::min(istart + j + 1, j_n - 1)];
-          } else {
-            imax = NA_REAL;
-            break;
-          }
-        } else if (ix > imax){
-          imax = ix;
-        }
-      }
-      out[i] = imax;
-    }
-  }
-  return out;
-}
+// NumericVector roll_apply_max(NumericVector x,
+//                              int before,
+//                              int after,
+//                              bool na_rm,
+//                              bool partial) {
+//   int n = x.length();
+//   int istart;
+//   int iend;
+//   int j_n;
+//   double imax;
+//   double ix;
+//   int min_size;
+//   if (partial){
+//     min_size = 0;
+//   } else {
+//     min_size = before + after;
+//   }
+//   Function before_sequence("before_sequence");
+//   Function after_sequence("after_sequence");
+//   IntegerVector befores = before_sequence(n, before);
+//   IntegerVector afters = after_sequence(n, after);
+//   NumericVector out(n);
+//   for (int i = 0; i < n; ++i) {
+//     istart = i - befores[i];
+//     iend = i + afters[i];
+//     j_n = iend - istart + 1;
+//     imax = x[istart];
+//     if ( (istart + iend) < min_size){
+//       out[i] = NA_REAL;
+//     } else {
+//       for (int j = 0; j < j_n; ++j){
+//         ix = x[istart + j];
+//         if (NumericVector::is_na(ix)){
+//           if (na_rm){
+//             imax = x[std::min(istart + j + 1, j_n - 1)];
+//           } else {
+//             imax = NA_REAL;
+//             break;
+//           }
+//         } else if (ix > imax){
+//           imax = ix;
+//         }
+//       }
+//       out[i] = imax;
+//     }
+//   }
+//   return out;
+// }
 
 // [[Rcpp::export(rng = false)]]
 IntegerVector before_sequence(IntegerVector size, int k) {

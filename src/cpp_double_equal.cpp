@@ -10,13 +10,11 @@ bool cpp_double_equal_rel(double x, double y, double tolerance){
   bool both_zero = ( ax < tolerance ) && ( ay < tolerance );
   double adiff = std::fabs(x - y);
   double rdiff = adiff / std::max(ax, ay);
-  bool out = both_zero || (rdiff < tolerance);
-  return out;
+  return ( both_zero || (rdiff < tolerance) );
 }
 bool cpp_double_equal_abs(double x, double y, double tolerance){
   double adiff = std::fabs(x - y);
-  bool out = adiff < tolerance;
-  return out;
+  return (adiff < tolerance);
 }
 bool cpp_double_equal_strict(double x, double y, double tolerance){
   double ax = std::fabs(x);
@@ -24,10 +22,11 @@ bool cpp_double_equal_strict(double x, double y, double tolerance){
   bool both_zero = ( ax < tolerance ) && ( ay < tolerance );
   double adiff = std::fabs(x - y);
   double rdiff = adiff / std::max(ax, ay);
-  bool out = both_zero || (
-    (adiff < tolerance) && (rdiff < tolerance)
+  return (
+      both_zero || (
+          (adiff < tolerance) && (rdiff < tolerance)
+      )
   );
-  return out;
 }
 
 // [[Rcpp::export(rng = false)]]

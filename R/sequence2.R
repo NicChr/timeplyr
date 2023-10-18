@@ -76,7 +76,7 @@ sequence2 <- function(nvec, from = 1L, by = 1L){
     by <- rep.int(by, times = nvec)
   }
   # Arithmetic
-  if (!out_is_long){
+  if (!out_is_long && out_maybe_int){
     g_add <- sequence(nvec, from = 0L, by = 1L)
   } else {
     g <- seq_id(nvec)

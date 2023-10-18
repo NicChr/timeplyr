@@ -52,9 +52,6 @@
 #' Options are "preday", "boundary", "postday", "full" and "NA".
 #' See `?timechange::time_add` for more details.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
-#' @param as_period Logical. Should time interval be coerced to a period
-#' before time difference is calculated? This is useful for calculating
-#' for example age in exact years or months.
 #' @param sizes Time sequence sizes.
 #'
 #' @returns
@@ -284,12 +281,10 @@ time_seq <- function(from, to, time_by, length.out = NULL,
 #' @rdname time_seq
 #' @export
 time_seq_sizes <- function(from, to, time_by,
-                           time_type = c("auto", "duration", "period"),
-                           as_period = FALSE){
+                           time_type = c("auto", "duration", "period")){
   time_by <- time_by_list(time_by)
   tdiff <- abs(time_diff(from, to, time_by = time_by,
-                         time_type = time_type,
-                         as_period = as_period))
+                         time_type = time_type))
   # Accounting for when from - to / by = 0 / 0
   tdiff[is.nan(tdiff)] <- 0
   if (length(tdiff) == 0L ||

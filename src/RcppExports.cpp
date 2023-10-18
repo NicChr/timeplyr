@@ -54,16 +54,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// numeric_class
-CharacterVector numeric_class(NumericVector x);
-RcppExport SEXP _timeplyr_numeric_class(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(numeric_class(x));
-    return rcpp_result_gen;
-END_RCPP
-}
 // list_has_interval
 bool list_has_interval(List l);
 RcppExport SEXP _timeplyr_list_has_interval(SEXP lSEXP) {
@@ -84,16 +74,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rcpp_cj
-List rcpp_cj(List X);
-RcppExport SEXP _timeplyr_rcpp_cj(SEXP XSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< List >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(rcpp_cj(X));
-    return rcpp_result_gen;
-END_RCPP
-}
 // cpp_num_na
 int cpp_num_na(SEXP x);
 RcppExport SEXP _timeplyr_cpp_num_na(SEXP xSEXP) {
@@ -101,34 +81,6 @@ BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
     rcpp_result_gen = Rcpp::wrap(cpp_num_na(x));
-    return rcpp_result_gen;
-END_RCPP
-}
-// roll_apply_max_fast
-NumericVector roll_apply_max_fast(NumericVector x, int before, int after);
-RcppExport SEXP _timeplyr_roll_apply_max_fast(SEXP xSEXP, SEXP beforeSEXP, SEXP afterSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< int >::type before(beforeSEXP);
-    Rcpp::traits::input_parameter< int >::type after(afterSEXP);
-    rcpp_result_gen = Rcpp::wrap(roll_apply_max_fast(x, before, after));
-    return rcpp_result_gen;
-END_RCPP
-}
-// roll_apply_max
-NumericVector roll_apply_max(NumericVector x, int before, int after, bool na_rm, bool partial);
-RcppExport SEXP _timeplyr_roll_apply_max(SEXP xSEXP, SEXP beforeSEXP, SEXP afterSEXP, SEXP na_rmSEXP, SEXP partialSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< int >::type before(beforeSEXP);
-    Rcpp::traits::input_parameter< int >::type after(afterSEXP);
-    Rcpp::traits::input_parameter< bool >::type na_rm(na_rmSEXP);
-    Rcpp::traits::input_parameter< bool >::type partial(partialSEXP);
-    rcpp_result_gen = Rcpp::wrap(roll_apply_max(x, before, after, na_rm, partial));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -207,13 +159,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_df_group_indices", (DL_FUNC) &_timeplyr_cpp_df_group_indices, 2},
     {"_timeplyr_is_whole_num", (DL_FUNC) &_timeplyr_is_whole_num, 2},
     {"_timeplyr_list_rm_null", (DL_FUNC) &_timeplyr_list_rm_null, 1},
-    {"_timeplyr_numeric_class", (DL_FUNC) &_timeplyr_numeric_class, 1},
     {"_timeplyr_list_has_interval", (DL_FUNC) &_timeplyr_list_has_interval, 1},
     {"_timeplyr_list_item_is_interval", (DL_FUNC) &_timeplyr_list_item_is_interval, 1},
-    {"_timeplyr_rcpp_cj", (DL_FUNC) &_timeplyr_rcpp_cj, 1},
     {"_timeplyr_cpp_num_na", (DL_FUNC) &_timeplyr_cpp_num_na, 1},
-    {"_timeplyr_roll_apply_max_fast", (DL_FUNC) &_timeplyr_roll_apply_max_fast, 3},
-    {"_timeplyr_roll_apply_max", (DL_FUNC) &_timeplyr_roll_apply_max, 5},
     {"_timeplyr_before_sequence", (DL_FUNC) &_timeplyr_before_sequence, 2},
     {"_timeplyr_after_sequence", (DL_FUNC) &_timeplyr_after_sequence, 2},
     {"_timeplyr_window_sequence", (DL_FUNC) &_timeplyr_window_sequence, 4},

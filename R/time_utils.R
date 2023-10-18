@@ -1353,3 +1353,104 @@ match_time_type <- function(time_type){
 plural_unit_to_single <- function(x){
   substr(x, 1L, nchar(x) -1L)
 }
+
+# Multiplies a single unit period like days(7) or months(2)
+multiply_single_unit_period_by_number <- function(per, num){
+  per_list <- time_by_list(per)
+  per_list <- time_by_list_convert_weeks_to_days(per_list)
+  per_num <- time_by_num(per_list)
+  per_unit <- time_by_unit(per_list)
+  # per_unit <- plural_unit_to_single(per_unit)
+  # if (per_unit == "second"){
+  #   per_unit <- ".Data"
+  # }
+  per_num <- per_num * num
+  per_num[is.nan(per_num)] <- NA_real_
+  switch(
+    per_unit,
+    years = {
+      per@year <- per_num
+    },
+    months = {
+      per@month <- per_num
+    },
+    days = {
+      per@day <- per_num
+    },
+    hours = {
+      per@hour <- per_num
+    },
+    minutes = {
+      per@minute <- per_num
+    },
+    seconds = {
+      per@.Data <- per_num
+    }
+  )
+  # attr(per, per_unit) <- per_num
+  # slot(per, per_unit) <- per_num
+  per
+  # period_unit(per_unit)(per_num * num)
+}
+
+### Taken from lubridate ###
+
+# Accepts an estimate ala (interval / duration)
+# Start datetime, end datetime, and period object
+adj_dur_est <- function (est, start, end, per){
+  est <- ceiling(est)
+  up_date <- time_add2(start,
+                       # est * per)
+                       multiply_single_unit_period_by_number(per, est),
+                       time_type = "period")
+  while (length(which <- which(up_date < end))) {
+    est[which] <- est[which] + 1
+    up_date[which] <- time_add2(up_date[which],
+                                # est[which] * per[which])
+                                multiply_single_unit_period_by_number(per[which], est[which]),
+                                time_type = "period")
+  }
+  low_date <- up_date
+  while (length(which <- which(low_date > end))) {
+    est[which] <- est[which] - 1
+    up_date[which] <- low_date[which]
+    low_date[which] <- time_add2(start[which],
+                                 # est[which] * per[which])
+                                 multiply_single_unit_period_by_number(per[which], est[which]),
+                                 time_type = "period")
+  }
+  frac <- strip_attrs(unclass(difftime(end, low_date, units = "secs"))) /
+    strip_attrs(unclass(difftime(up_date, low_date, units = "secs")))
+  frac[low_date == up_date] <- 0
+  est + frac
+}
+# Faster method for interval(start, end) / period() when period
+# is a single unit period which is very common
+divide_interval_by_period2 <- function(start, end, per){
+  if (length(start) == 0 || length(end) == 0 || length(per) == 0) {
+    return(numeric())
+  }
+  estimate <- (time_as_number(as_datetime2(end)) -
+                 time_as_number(as_datetime2(start)) ) / unit_to_seconds(per)
+  max_len <- max(length(start), length(end), length(per))
+  timespans <- recycle_args(start, end, length = max_len)
+  # Here we make sure to use rep method for lubridate periods
+  timespans[[3]] <- rep(per, length.out = max_len)
+  if (num_na(estimate) == 0) {
+    adj_dur_est(estimate, timespans[[1]], timespans[[2]], timespans[[3]])
+  } else {
+    not_nas <- !is.na(estimate)
+    start2 <- timespans[[1]][not_nas]
+    end2 <- timespans[[2]][not_nas]
+    per2 <- timespans[[3]][not_nas]
+    estimate[not_nas] <- adj_dur_est(estimate[not_nas], start2, end2, per2)
+    estimate
+  }
+}
+time_by_list_convert_weeks_to_days <- function(time_by){
+  out <- time_by
+  if (time_by_unit(out) == "weeks"){
+    out <- list("days" = as.double(time_by_num(out) * 7))
+  }
+  out
+}

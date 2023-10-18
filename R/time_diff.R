@@ -21,11 +21,10 @@
 #' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
 #' then arithmetic is used, e.g `time_by = 1`.
 #' @param time_type Time difference type: "auto", "duration" or "period".
-#' @param as_period Logical. Should time interval be coerced to a period
-#' before time difference is calculated? This is useful for calculating
-#' for example age in exact years or months.
+#'
 #' @returns
-#' A numeric vector recycle to the length of `max(length(x), length(y))`.
+#' A numeric vector recycled to the length of `max(length(x), length(y))`.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(lubridate)
@@ -48,8 +47,7 @@
 #'}
 #' @export
 time_diff <- function(x, y, time_by = 1,
-                      time_type = c("auto", "duration", "period"),
-                      as_period = FALSE){
+                      time_type = c("auto", "duration", "period")){
   tby <- time_by_list(time_by)
   units <- time_by_unit(tby)
   num <- time_by_num(tby)
@@ -64,7 +62,7 @@ time_diff <- function(x, y, time_by = 1,
     out <- (y - x) / num
     # out <- divide(y - x, num)
   } else {
-    time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
+    time_type <- match_time_type(time_type)
     # Common but special case where from/to are whole days
     # and time_type is "auto"
     is_special_case_days <- is_special_case_days(from = x,
@@ -72,34 +70,30 @@ time_diff <- function(x, y, time_by = 1,
                                                  unit = units,
                                                  num = num,
                                                  time_type = time_type)
-    if (is_special_case_days && !as_period){
+    if (is_special_case_days){
       if (units == "weeks"){
         num <- num * 7
       }
       by <- num
       out <- (time_as_number(y) - time_as_number(x)) / by
-      # out <- divide(time_as_number(y) - time_as_number(x), by)
       return(out)
     }
     if (time_type == "auto"){
       time_type <- guess_seq_type(units)
     }
-    if (as_period || time_type == "period"){
-      int <- lubridate::interval(x, y)
-      if (as_period){
-        int <- lubridate::as.period(int, unit = units)
-      }
+    x <- as_datetime2(x)
+    y <- as_datetime2(y)
+    if (time_type == "period"){
       unit <- period_unit(units)(abs(num))
-      out <- sign(num) * (int / unit)
+      out <- sign(num) * divide_interval_by_period2(x, y, unit)
       out[num == 0 & x > y] <- -Inf
       out[num == 0 & x < y] <- Inf
     } else {
       # unit <- duration_unit(units)(num)
-      x <- time_as_number(as_datetime2(x))
-      y <- time_as_number(as_datetime2(y))
+      x <- time_as_number(x)
+      y <- time_as_number(y)
       by <- unit_to_seconds(tby)
       out <- (y - x) / by
-      # out <- divide(y - x, by)
     }
   }
   out

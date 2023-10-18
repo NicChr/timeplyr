@@ -12,7 +12,8 @@ IntegerVector roll_time_threshold(SEXP x, double threshold = 1,
                                   bool switch_on_boundary = true) {
   int n = Rf_length(x);
   IntegerVector out(n);
-  double init_threshold = threshold;
+  double init_threshold = 0;
+  init_threshold = init_threshold + threshold;
   switch( TYPEOF(x) ) {
   case REALSXP: {
     NumericVector xv = Rcpp::as<Rcpp::NumericVector>(x);
