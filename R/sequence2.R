@@ -100,10 +100,10 @@ seq_v <- function(from = 1L, to = 1L, by = 1L){
 seq_size <- function(from, to, by = 1L){
   out <- abs(( (to - from) / by ))
   out[by == 0 & from == to] <- 0
-  if (isTRUE(all(is_integerable(out + 1)))){
-    out <- as.integer(out) + 1L
+  out <- out + 1
+  if (isTRUE(all(is_integerable(out)))){
+    out <- as.integer(out)
   }
   out
-
 }
 
