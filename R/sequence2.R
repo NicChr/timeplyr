@@ -100,10 +100,10 @@ seq_v <- function(from = 1L, to = 1L, by = 1L){
 seq_size <- function(from, to, by = 1L){
   out <- abs(( (to - from) / by ))
   out[by == 0 & from == to] <- 0
-  as.integer(out) + 1L
-}
-# Low-level vectorised seq (only integers)
-seqv.int <- function(from = 1L, to = 1L, by = 1L){
-  sequence( ( (to - from) / by) + 1L, from = from, by = by)
+  if (isTRUE(all(is_integerable(out + 1)))){
+    out <- as.integer(out) + 1L
+  }
+  out
+
 }
 
