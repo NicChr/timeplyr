@@ -1364,27 +1364,75 @@ multiply_single_unit_period_by_number <- function(per, num){
   # if (per_unit == "second"){
   #   per_unit <- ".Data"
   # }
+  # recycle <- length(per_num) != length(num)
+  # TEMPORARY infinite replacement
+  num[is.infinite(num)] <- NA_real_
   per_num <- per_num * num
+  per_length <- length(per_num)
   per_num[is.nan(per_num)] <- NA_real_
+  other_fill <- numeric(per_length)
+  other_fill[is.na(per_num)] <- NA_real_
   switch(
     per_unit,
     years = {
       per@year <- per_num
+      # if (recycle){
+       per@month <- other_fill
+       per@day <- other_fill
+       per@hour <- other_fill
+       per@minute <- other_fill
+       per@.Data <- other_fill
+      # }
     },
     months = {
       per@month <- per_num
+      # if (recycle){
+        per@year <- other_fill
+        per@day <- other_fill
+        per@hour <- other_fill
+        per@minute <- other_fill
+        per@.Data <- other_fill
+      # }
     },
     days = {
       per@day <- per_num
+      # if (recycle){
+        per@year <- other_fill
+        per@month <- other_fill
+        per@hour <- other_fill
+        per@minute <- other_fill
+        per@.Data <- other_fill
+      # }
     },
     hours = {
       per@hour <- per_num
+      # if (recycle){
+        per@year <- other_fill
+        per@month <- other_fill
+        per@day <- other_fill
+        per@minute <- other_fill
+        per@.Data <- other_fill
+      # }
     },
     minutes = {
       per@minute <- per_num
+      # if (recycle){
+        per@year <- other_fill
+        per@month <- other_fill
+        per@day <- other_fill
+        per@hour <- other_fill
+        per@.Data <- other_fill
+      # }
     },
     seconds = {
       per@.Data <- per_num
+      # if (recycle){
+        per@year <- other_fill
+        per@month <- other_fill
+        per@day <- other_fill
+        per@hour <- other_fill
+        per@minute <- other_fill
+      # }
     }
   )
   # attr(per, per_unit) <- per_num
@@ -1454,3 +1502,9 @@ time_by_list_convert_weeks_to_days <- function(time_by){
   }
   out
 }
+# time_by_as_timechange_period_list <- function(time_by){
+#   time_by <- time_by_list(time_by)
+#   num <- time_by_num(time_by)
+#   unit <- plural_unit_to_single(time_by_unit(time_by))
+#   add_names(list(num), unit)
+# }
