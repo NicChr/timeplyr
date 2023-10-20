@@ -51,6 +51,32 @@ testthat::test_that("more tests", {
                  c(1, 2, NaN, 0, Inf, -Inf, Inf, -Inf, Inf, -Inf, Inf, -Inf, Inf, -Inf)),
     c(NA, NA, NA, NA, TRUE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE)
   )
+  x <- c(NaN, NA_real_, 0, 0.01, -0.001, sqrt(2)^2, -sqrt(2)^2, Inf, -Inf, 10^7, -10^7)
+  combs <- dplyr::as_tibble(dplyr::distinct(expand.grid(x1 = x, x2 = x)))
+  testthat::expect_identical(double_equal(combs$x1, combs$x2),
+                             c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+                               NA, NA, NA, NA, NA, NA, NA, NA, NA, TRUE, FALSE, FALSE, FALSE,
+                               FALSE, FALSE, FALSE, FALSE, FALSE, NA, NA, FALSE, TRUE, FALSE,
+                               FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, NA, NA, FALSE, FALSE,
+                               TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, NA, NA, FALSE,
+                               FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, NA, NA,
+                               FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE,
+                               NA, NA, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE,
+                               FALSE, NA, NA, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,
+                               FALSE, FALSE, NA, NA, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
+                               FALSE, TRUE, FALSE, NA, NA, FALSE, FALSE, FALSE, FALSE, FALSE,
+                               FALSE, FALSE, FALSE, TRUE))
+  x <- c(NaN, NA_real_, 0, 0.01, -0.001, Inf, -Inf, 10^7, -10^7)
+  combs <- dplyr::as_tibble(dplyr::distinct(expand.grid(x1 = x, x2 = x)))
+  testthat::expect_identical(double_gt(combs$x1, combs$x2),
+                             combs$x1 > combs$x2)
+  testthat::expect_identical(double_gte(combs$x1, combs$x2),
+                             combs$x1 >= combs$x2)
+  testthat::expect_identical(double_lt(combs$x1, combs$x2),
+                             combs$x1 < combs$x2)
+  testthat::expect_identical(double_lte(combs$x1, combs$x2),
+                             combs$x1 <= combs$x2)
+
   # Abs diff would work here but rel diff doesn't
   testthat::expect_true(double_equal(10^9, 10^9 + 0.002))
   testthat::expect_false(double_equal(0, -0.00001))

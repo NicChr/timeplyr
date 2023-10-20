@@ -29,3 +29,6 @@ where possible.
 * `time_num_gaps` and `time_has_gaps` now handle `NA` values more appropriately.
 
 * 'collapse' `pivot` is now used for quantile summaries in `q_summarise`.
+
+* timeplyr now utilises relative differences for all double comparisons using 
+Rcpp

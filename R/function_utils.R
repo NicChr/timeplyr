@@ -910,80 +910,54 @@ double_equal <- function(x, y, tol = sqrt(.Machine$double.eps)){
 #   abs(x - y) < tol
 # }
 double_gt <- function(x, y, tol = sqrt(.Machine$double.eps)){
-  # Will potentially use something similar in future
-  # adiff <- (x - y)
-  # rdiff <- (adiff / x)
-  # rdiff[x == 0 & y == 0] <- 0
-  # (adiff > tol ) | ( rdiff > tol )
-  (x - y) > tol
+  # (x - y) > tol # Old
+  check_is_num(x)
+  check_is_num(y)
+  set_recycle_args(x = x, y = y, use.names = FALSE)
+  if (is.integer(x) && is.integer(y)){
+    x > y
+  } else {
+    cpp_double_gt_vectorised(as.double(x), as.double(y), tolerance = tol)
+  }
 }
 double_gte <- function(x, y, tol = sqrt(.Machine$double.eps)){
-  # Will potentially use something similar in future
-  # adiff <- (x - y)
-  # rdiff <- (adiff / x)
-  # rdiff[x == 0 & y == 0] <- 0
-  # (adiff > -tol ) | ( rdiff > -tol )
-  (x - y) > -tol
+  # (x - y) > -tol # Old
+  check_is_num(x)
+  check_is_num(y)
+  set_recycle_args(x = x, y = y, use.names = FALSE)
+  if (is.integer(x) && is.integer(y)){
+    x >= y
+  } else {
+    cpp_double_gte_vectorised(as.double(x), as.double(y), tolerance = tol)
+  }
 }
 double_lt <- function(x, y, tol = sqrt(.Machine$double.eps)){
-  # adiff <- (x - y)
-  # rdiff <- (adiff / x)
-  # rdiff[x == 0 & y == 0] <- 0
-  # (adiff < -tol ) | ( rdiff < -tol )
-  (x - y) < -tol
+  # (x - y) < -tol # Old
+  check_is_num(x)
+  check_is_num(y)
+  set_recycle_args(x = x, y = y, use.names = FALSE)
+  if (is.integer(x) && is.integer(y)){
+    x < y
+  } else {
+    cpp_double_lt_vectorised(as.double(x), as.double(y), tolerance = tol)
+  }
 }
 double_lte <- function(x, y, tol = sqrt(.Machine$double.eps)){
-  # adiff <- (x - y)
-  # rdiff <- (adiff / x)
-  # rdiff[x == 0 & y == 0] <- 0
-  # (adiff < tol ) | ( rdiff < tol )
-  (x - y) < tol
+  # (x - y) < tol # Old
+  check_is_num(x)
+  check_is_num(y)
+  set_recycle_args(x = x, y = y, use.names = FALSE)
+  if (is.integer(x) && is.integer(y)){
+    x <= y
+  } else {
+    cpp_double_lte_vectorised(as.double(x), as.double(y), tolerance = tol)
+  }
 }
 # `%~==%` <- double_equal
 # `%~>=%` <- double_gte
 # `%~<=%` <- double_lte
 # `%~>%` <- double_gt
 # `%~<%` <- double_lt
-# any_lt <- function(x, value, tol = sqrt(.Machine$double.eps)){
-#   stopifnot(inherits(x, c("integer", "numeric")))
-#   if (is.integer(x)){
-#     any_int_lt(x, value)
-#   } else {
-#     any_num_lt(x, value, tol)
-#   }
-# }
-# any_lte <- function(x, value, tol = sqrt(.Machine$double.eps)){
-#   stopifnot(inherits(x, c("integer", "numeric")))
-#   if (is.integer(x)){
-#     any_int_lte(x, value)
-#   } else {
-#     any_num_lte(x, value, tol)
-#   }
-# }
-# any_gt <- function(x, value, tol = sqrt(.Machine$double.eps)){
-#   stopifnot(inherits(x, c("integer", "numeric")))
-#   if (is.integer(x)){
-#     any_int_gt(x, value)
-#   } else {
-#     any_num_gt(x, value, tol)
-#   }
-# }
-# any_gte <- function(x, value, tol = sqrt(.Machine$double.eps)){
-#   stopifnot(inherits(x, c("integer", "numeric")))
-#   if (is.integer(x)){
-#     any_int_gte(x, value)
-#   } else {
-#     any_num_gte(x, value, tol)
-#   }
-# }
-# any_equal <- function(x, value, tol = sqrt(.Machine$double.eps)){
-#   stopifnot(inherits(x, c("integer", "numeric")))
-#   if (is.integer(x)){
-#     any_int_equal(x, value)
-#   } else {
-#     any_num_equal(x, value, tol)
-#   }
-# }
 # Taken from base R to avoid needing R >= 4
 deparse1 <- function(expr, collapse = " ", width.cutoff = 500L, ...){
   paste(deparse(expr, width.cutoff, ...), collapse = collapse)

@@ -22,6 +22,54 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cpp_double_gt_vectorised
+SEXP cpp_double_gt_vectorised(SEXP x, SEXP y, double tolerance);
+RcppExport SEXP _timeplyr_cpp_double_gt_vectorised(SEXP xSEXP, SEXP ySEXP, SEXP toleranceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
+    Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_double_gt_vectorised(x, y, tolerance));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_double_gte_vectorised
+SEXP cpp_double_gte_vectorised(SEXP x, SEXP y, double tolerance);
+RcppExport SEXP _timeplyr_cpp_double_gte_vectorised(SEXP xSEXP, SEXP ySEXP, SEXP toleranceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
+    Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_double_gte_vectorised(x, y, tolerance));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_double_lt_vectorised
+SEXP cpp_double_lt_vectorised(SEXP x, SEXP y, double tolerance);
+RcppExport SEXP _timeplyr_cpp_double_lt_vectorised(SEXP xSEXP, SEXP ySEXP, SEXP toleranceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
+    Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_double_lt_vectorised(x, y, tolerance));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_double_lte_vectorised
+SEXP cpp_double_lte_vectorised(SEXP x, SEXP y, double tolerance);
+RcppExport SEXP _timeplyr_cpp_double_lte_vectorised(SEXP xSEXP, SEXP ySEXP, SEXP toleranceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
+    Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_double_lte_vectorised(x, y, tolerance));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cpp_df_group_indices
 SEXP cpp_df_group_indices(SEXP rows, int size);
 RcppExport SEXP _timeplyr_cpp_df_group_indices(SEXP rowsSEXP, SEXP sizeSEXP) {
@@ -156,6 +204,10 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_double_equal_vectorised", (DL_FUNC) &_timeplyr_cpp_double_equal_vectorised, 3},
+    {"_timeplyr_cpp_double_gt_vectorised", (DL_FUNC) &_timeplyr_cpp_double_gt_vectorised, 3},
+    {"_timeplyr_cpp_double_gte_vectorised", (DL_FUNC) &_timeplyr_cpp_double_gte_vectorised, 3},
+    {"_timeplyr_cpp_double_lt_vectorised", (DL_FUNC) &_timeplyr_cpp_double_lt_vectorised, 3},
+    {"_timeplyr_cpp_double_lte_vectorised", (DL_FUNC) &_timeplyr_cpp_double_lte_vectorised, 3},
     {"_timeplyr_cpp_df_group_indices", (DL_FUNC) &_timeplyr_cpp_df_group_indices, 2},
     {"_timeplyr_is_whole_num", (DL_FUNC) &_timeplyr_is_whole_num, 2},
     {"_timeplyr_list_rm_null", (DL_FUNC) &_timeplyr_list_rm_null, 1},

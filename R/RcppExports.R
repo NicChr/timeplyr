@@ -5,6 +5,22 @@ cpp_double_equal_vectorised <- function(x, y, tolerance) {
     .Call(`_timeplyr_cpp_double_equal_vectorised`, x, y, tolerance)
 }
 
+cpp_double_gt_vectorised <- function(x, y, tolerance) {
+    .Call(`_timeplyr_cpp_double_gt_vectorised`, x, y, tolerance)
+}
+
+cpp_double_gte_vectorised <- function(x, y, tolerance) {
+    .Call(`_timeplyr_cpp_double_gte_vectorised`, x, y, tolerance)
+}
+
+cpp_double_lt_vectorised <- function(x, y, tolerance) {
+    .Call(`_timeplyr_cpp_double_lt_vectorised`, x, y, tolerance)
+}
+
+cpp_double_lte_vectorised <- function(x, y, tolerance) {
+    .Call(`_timeplyr_cpp_double_lte_vectorised`, x, y, tolerance)
+}
+
 cpp_df_group_indices <- function(rows, size) {
     .Call(`_timeplyr_cpp_df_group_indices`, rows, size)
 }
