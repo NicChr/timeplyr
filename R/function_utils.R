@@ -1286,32 +1286,19 @@ collapse_join <- function(x, y, on, how, sort = FALSE, ...){
 #   on.exit({print(paste("RNG USED:", !identical(curr, .Random.seed)))})
 #   invisible(eval(expr, envir = parent.frame(n = 1)))
 # }
-near2 <- function(x, y, tol = sqrt(.Machine$double.eps)){
-  adiff <- abs(x - y)
-  ax <- abs(x)
-  ay <- abs(y)
-  any_close_to_zero <- (ax < tol) | (ay < tol)
-  both_same_inf <- is.infinite(x + y)
-  # both_same_inf <- (x == Inf & y == Inf) | (x == -Inf & y == -Inf)
-  different_inf <- (x == Inf & y == -Inf) | (x == -Inf & y == Inf)
-  amax <- pmax(ax, ay)
-  rdiff <- adiff / amax
-  out <- dplyr::if_else(any_close_to_zero,
-                        ( adiff < tol ),
-                        ( rdiff < tol ))
-  out[both_same_inf] <- TRUE
-  out[different_inf] <- FALSE
-  out
-}
 # near2 <- function(x, y, tol = sqrt(.Machine$double.eps)){
 #   adiff <- abs(x - y)
 #   ax <- abs(x)
 #   ay <- abs(y)
-#   any_close_to_zero <- (ax < tol) & (ay < tol)
+#   any_close_to_zero <- (ax < tol) | (ay < tol)
 #   both_same_inf <- (x == Inf & y == Inf) | (x == -Inf & y == -Inf)
+#   different_inf <- (x == Inf & y == -Inf) | (x == -Inf & y == Inf)
 #   amax <- pmax(ax, ay)
 #   rdiff <- adiff / amax
-#   dplyr::if_else(any_close_to_zero,
-#                  both_same_inf | ( adiff < tol ),
-#                  both_same_inf | ( rdiff < tol ))
+#   out <- dplyr::if_else(any_close_to_zero,
+#                         ( adiff < tol ),
+#                         ( rdiff < tol ))
+#   out[both_same_inf] <- TRUE
+#   out[different_inf] <- FALSE
+#   out
 # }
