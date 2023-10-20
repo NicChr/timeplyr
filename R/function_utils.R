@@ -911,8 +911,6 @@ double_equal <- function(x, y, tol = sqrt(.Machine$double.eps)){
 # }
 double_gt <- function(x, y, tol = sqrt(.Machine$double.eps)){
   # (x - y) > tol # Old
-  check_is_num(x)
-  check_is_num(y)
   set_recycle_args(x = x, y = y, use.names = FALSE)
   if (is.integer(x) && is.integer(y)){
     x > y
@@ -922,8 +920,6 @@ double_gt <- function(x, y, tol = sqrt(.Machine$double.eps)){
 }
 double_gte <- function(x, y, tol = sqrt(.Machine$double.eps)){
   # (x - y) > -tol # Old
-  check_is_num(x)
-  check_is_num(y)
   set_recycle_args(x = x, y = y, use.names = FALSE)
   if (is.integer(x) && is.integer(y)){
     x >= y
@@ -933,8 +929,6 @@ double_gte <- function(x, y, tol = sqrt(.Machine$double.eps)){
 }
 double_lt <- function(x, y, tol = sqrt(.Machine$double.eps)){
   # (x - y) < -tol # Old
-  check_is_num(x)
-  check_is_num(y)
   set_recycle_args(x = x, y = y, use.names = FALSE)
   if (is.integer(x) && is.integer(y)){
     x < y
@@ -944,8 +938,6 @@ double_lt <- function(x, y, tol = sqrt(.Machine$double.eps)){
 }
 double_lte <- function(x, y, tol = sqrt(.Machine$double.eps)){
   # (x - y) < tol # Old
-  check_is_num(x)
-  check_is_num(y)
   set_recycle_args(x = x, y = y, use.names = FALSE)
   if (is.integer(x) && is.integer(y)){
     x <= y
