@@ -132,17 +132,20 @@ roll_growth_rate <- function(x, window = Inf,
   if (!window_len %in% c(1L, x_len)){
     stop("window must be of length 1 or length(x)")
   }
+  adaptive <- partial
   window[window > x_len] <- x_len + 1L
-  window <- as.integer(window)
+  # window <- as.integer(window)
   window[window < 1L] <- 1L
   if (length(window) == 0L){
     window <- 1L
   }
   if (length(window) > 1L){
     x_lagged <- roll_lag(x, lag = window - 1L, check = FALSE)
+    adaptive <- TRUE
   } else {
     x_lagged <- collapse::flag(x, n = window - 1L)
     if (partial){
+      # x_lagged <- roll_lag(x, window_sequence(x_len, window, partial = partial) - 1)
       x_lagged[seq_len(min(window, x_len))] <- x[min(x_len, 1L)]
       window <- window_sequence(x_len, k = window,
                                 partial = TRUE, ascending = TRUE)
@@ -150,7 +153,7 @@ roll_growth_rate <- function(x, window = Inf,
   }
   if (na.rm){
     window <- data.table::frollsum(!is.na(x), n = window,
-                                   adaptive = partial,
+                                   adaptive = adaptive,
                                    algo = "fast",
                                    align = "right")
   }

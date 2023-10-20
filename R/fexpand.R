@@ -266,16 +266,12 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
   # Full-join
   if (df_nrow(expanded_df) > 0 && df_ncol(expanded_df) > 0){
     out <- dplyr::full_join(out, expanded_df, by = names(expanded_df))
-    # out <- fselect(
-    #   collapse::join(out, expanded_df,
-    #                  on = names(expanded_df),
-    #                  how = "full",
-    #                  sort = FALSE,
-    #                  verbose = FALSE),
-    #   .cols = names(out)
-    # )
+    # out <- collapse_join(out, expanded_df,
+    #                      on = names(expanded_df),
+    #                      how = "full",
+    #                      sort = sort)
     if (sort){
-      setorderv2(out, cols = names(expanded_df))
+      out <- farrange(out, .cols = names(expanded_df))
     }
   }
   # Replace NA with fill
@@ -291,7 +287,7 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
   out_order <- c(names(data),
                  setdiff(names(out),
                          names(data)))
-  data.table::setcolorder(out, neworder = out_order)
+  out <- fselect(out, .cols = out_order)
   if (keep_class){
     out <- df_reconstruct(out, data)
   }

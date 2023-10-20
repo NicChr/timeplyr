@@ -81,6 +81,9 @@ using namespace Rcpp;
 
 // [[Rcpp::export(rng = false)]]
 IntegerVector before_sequence(IntegerVector size, int k) {
+  if (Rcpp::min(size) < 0){
+    stop("size must be a vector of non-negative integers");
+  }
   int size_n = size.length();
   k = std::max(k, 0);
   IntegerVector out(sum(size), k);
@@ -98,6 +101,9 @@ IntegerVector before_sequence(IntegerVector size, int k) {
 
 // [[Rcpp::export(rng = false)]]
 IntegerVector after_sequence(IntegerVector size, int k) {
+  if (Rcpp::min(size) < 0){
+    stop("size must be a vector of non-negative integers");
+  }
   int size_n = size.length();
   k = std::max(k, 0);
   IntegerVector out(sum(size), k);
@@ -118,12 +124,17 @@ IntegerVector after_sequence(IntegerVector size, int k) {
 
 // [[Rcpp::export(rng = false)]]
 IntegerVector window_sequence(IntegerVector size,
-                              int k,
+                              double k,
                               bool partial = true,
                               bool ascending = true) {
   int size_n = size.length();
-  k = std::max(k, 0);
+  // double N = sum(size);
+  if (Rcpp::min(size) < 0){
+    stop("size must be a vector of non-negative integers");
+  }
+  k = std::fmax(k, 0);
   IntegerVector out(sum(size), k);
+  // k = std::fmin(k, out.length());
   int index = 0;
   if (ascending){
     // right aligned window sequences
@@ -176,6 +187,9 @@ IntegerVector window_sequence(IntegerVector size,
 
 // [[Rcpp::export(rng = false)]]
 IntegerVector lag_sequence(IntegerVector size, int k) {
+  if (Rcpp::min(size) < 0){
+    stop("size must be a vector of non-negative integers");
+  }
   int size_n = size.length();
   k = std::max(k, 0);
   IntegerVector out(sum(size), k);
@@ -192,6 +206,9 @@ IntegerVector lag_sequence(IntegerVector size, int k) {
 }
 // [[Rcpp::export(rng = false)]]
 IntegerVector lead_sequence(IntegerVector size, int k) {
+  if (Rcpp::min(size) < 0){
+    stop("size must be a vector of non-negative integers");
+  }
   int size_n = size.length();
   k = std::max(k, 0);
   IntegerVector out(sum(size), k);

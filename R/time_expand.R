@@ -198,6 +198,10 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
             if (length(setdiff(expanded_nms, group_vars)) > 0L){
               out <- dplyr::full_join(out, expanded_df, by = group_vars,
                                       relationship = "many-to-many")
+              # out <- collapse_join(out, expanded_df,
+              #                      on = group_vars,
+              #                      how = "full",
+              #                      sort = FALSE)
             }
           }
         }
@@ -245,7 +249,8 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
   expanded_df <- time_expand(out,
                              ...,
                              time = across(all_of(time_var)),
-                             time_by = time_by, from = !!enquo(from),
+                             time_by = time_by,
+                             from = !!enquo(from),
                              to = !!enquo(to),
                              time_type = time_type,
                              time_floor = time_floor,
@@ -263,16 +268,14 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
       out[, (time_var) := time_cast(get(time_var), expanded_df[[time_var]])]
     }
     out <- dplyr::full_join(out, expanded_df, by = names(expanded_df))
-    # out <- fselect(
-    #   collapse::join(out, expanded_df, on = names(expanded_df),
-    #                  how = "full",
-    #                  verbose = FALSE),
-    #   .cols = names(out)
-    # )
+    # out <- collapse_join(out, expanded_df,
+    #                      on = names(expanded_df),
+    #                      how = "full",
+    #                      sort = FALSE)
     if (sort){
-      setorderv2(out, cols = c(group_vars, time_var,
-                                          setdiff(names(expanded_df),
-                                                  c(group_vars, time_var))))
+      out <- farrange(out, .cols = c(group_vars, time_var,
+                                     setdiff(names(expanded_df),
+                                             c(group_vars, time_var))))
     }
   }
   # Replace NA with fill
@@ -286,9 +289,7 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
     }
   }
   out_vars <- c(names(data), setdiff(names(out), names(data)))
-  if (length(out_vars) > 0L){
-    data.table::setcolorder(out, neworder = out_vars)
-  }
+  out <- fselect(out, .cols = out_vars)
   if (keep_class){
     out <- df_reconstruct(out, data)
   }

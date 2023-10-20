@@ -35,7 +35,7 @@ testthat::test_that("time breaks", {
                                    dplyr::lag(res5),
                                    time_by = "weeks", time_type = "period"),
                          c(NA, rep(-10, 5)))
-  testthat::expect_error(time_breaks(x, n = Inf))
+  testthat::expect_error(supressWarnings(time_breaks(x, n = Inf)))
   testthat::expect_equal(time_breaks(x, n = 100, time_by = "month",
                                          from = start1,
                                          to = end2 + period_unit("months")(4)),

@@ -4,17 +4,20 @@ using namespace Rcpp;
 bool double_is_na(double x){
   return !(x == x);
 }
+bool double_both_inf(double x, double y){
+  return (x == R_PosInf && y == R_PosInf) || (x == R_NegInf && y == R_NegInf);
+}
 bool cpp_double_equal_rel(double x, double y, double tolerance){
   double ax = std::fabs(x);
   double ay = std::fabs(y);
   bool both_zero = ( ax < tolerance ) && ( ay < tolerance );
   double adiff = std::fabs(x - y);
   double rdiff = adiff / std::max(ax, ay);
-  return ( both_zero || (rdiff < tolerance) );
+  return double_both_inf(x, y) || both_zero || (rdiff < tolerance);
 }
 bool cpp_double_equal_abs(double x, double y, double tolerance){
   double adiff = std::fabs(x - y);
-  return (adiff < tolerance);
+  return double_both_inf(x, y) || (adiff < tolerance);
 }
 bool cpp_double_equal_strict(double x, double y, double tolerance){
   double ax = std::fabs(x);
@@ -23,7 +26,8 @@ bool cpp_double_equal_strict(double x, double y, double tolerance){
   double adiff = std::fabs(x - y);
   double rdiff = adiff / std::max(ax, ay);
   return (
-      both_zero || (
+      both_zero ||
+        double_both_inf(x, y) || (
           (adiff < tolerance) && (rdiff < tolerance)
       )
   );
@@ -36,14 +40,14 @@ LogicalVector cpp_double_equal_vectorised(SEXP x, SEXP y, Nullable<NumericVector
     tolerance = Rcpp::as<double>(tol);
   }
   int n = Rf_length(x);
-  double *p_x = REAL(x);
-  double *p_y = REAL(y);
   if (Rf_length(y) != n){
     stop("x must be the same length as y");
   }
+  double *p_x = REAL(x);
+  double *p_y = REAL(y);
   LogicalVector out(n);
   for (int i = 0; i < n; ++i) {
-    out[i] = cpp_double_equal_strict(p_x[i], p_y[i], tolerance);
+    out[i] = cpp_double_equal_rel(p_x[i], p_y[i], tolerance);
     // If either is NA, out is NA
     if ( double_is_na(p_x[i]) || double_is_na(p_y[i]) ){
       out[i] = NA_LOGICAL;

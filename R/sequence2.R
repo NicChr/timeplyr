@@ -53,13 +53,9 @@ sequence2 <- function(nvec, from = 1L, by = 1L){
       na.rm = TRUE
     )
   ), na.rm = TRUE)
-  out_len <- sum(nvec)
-  out_is_long <- out_len >= (2^31)
-  out_is_int <- is.integer(from) &&
-    is.integer(by) &&
-    out_maybe_int
-
-  if (out_is_int && !out_is_long){
+  # If from/by are integers and all sequence values < 2^31 then use sequence
+  out_is_int <- is.integer(from) && is.integer(by) && out_maybe_int
+  if (out_is_int){
     return(sequence(nvec = nvec, from = from, by = by))
   }
   g_len <- length(nvec)
@@ -76,17 +72,37 @@ sequence2 <- function(nvec, from = 1L, by = 1L){
     by <- rep.int(by, times = nvec)
   }
   # Arithmetic
-  if (!out_is_long && out_maybe_int){
+  if (out_maybe_int){
     g_add <- sequence(nvec, from = 0L, by = 1L)
   } else {
-    g <- seq_id(nvec)
-    # g <- sorted_group_id_to_GRP(g,
-    #                             n_groups = g_len,
-    #                             group_sizes = nvec)
-    g_add <- grouped_seq_len(out_len, g = g, check.o = FALSE) - 1
+    g_add <- window_sequence(nvec, k = Inf) - 1
   }
   from + (g_add * by)
 }
+# sequence2 <- function(nvec, from = 1L, by = 1L){
+#   out_len <- sum(nvec)
+#   out_is_long <- out_len >= (2^31)
+#   g_len <- length(nvec)
+#   if (length(from) > 1L){
+#     # Recycle
+#     from <- rep_len(from, g_len)
+#     # Expand
+#     from <- rep.int(from, times = nvec)
+#   }
+#   if (length(by) > 1L){
+#     # Recycle
+#     by <- rep_len(by, g_len)
+#     # Expand
+#     by <- rep.int(by, times = nvec)
+#   }
+#   # Arithmetic
+#   if (out_is_long){
+#     g_add <- grouped_seq_len(out_len, g = seq_id(nvec), check.o = FALSE) - 1
+#   } else {
+#     g_add <- window_sequence(nvec, k = Inf) - 1L
+#   }
+#   from + (g_add * by)
+# }
 #' @rdname sequence2
 #' @export
 seq_id <- function(nvec){

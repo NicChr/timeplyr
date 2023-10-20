@@ -82,10 +82,7 @@
 roll_sum <- function(x, window = Inf,
                      g = NULL, partial = TRUE,
                      weights = NULL, na.rm = TRUE, ...){
-  if (length(window) != 1L){
-    stop("window must be of length 1")
-  }
-  window <- min(window, .Machine[["integer.max"]])
+  check_length(window, 1L)
   sorted_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
   group_sizes <- fpluck(sorted_info, "group_sizes")
   group_order <- fpluck(sorted_info, "group_order")
@@ -114,10 +111,7 @@ roll_sum <- function(x, window = Inf,
 #' @export
 roll_mean <- function(x, window = Inf, g = NULL, partial = TRUE,
                       weights = NULL, na.rm = TRUE, ...){
-  if (length(window) != 1L){
-    stop("window must be of length 1")
-  }
-  window <- min(window, .Machine[["integer.max"]])
+  check_length(window, 1L)
   sorted_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
   group_sizes <- fpluck(sorted_info, "group_sizes")
   group_order <- fpluck(sorted_info, "group_order")

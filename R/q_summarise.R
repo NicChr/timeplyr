@@ -193,10 +193,13 @@ q_summarise <- function(data, ...,
     }
     # if wide is true then pivot wider
     if (wide){
-      cast_formula <- stats::as.formula(paste0(group_id_nm, " ~ .quantile"))
-      q_df <- data.table::dcast(q_df,
-                                formula = cast_formula,
-                                value.var = dot_vars)
+      q_df <- collapse::pivot(q_df, how = "wider",
+                              values = dot_vars, names = ".quantile",
+                              sort = FALSE)
+      # cast_formula <- stats::as.formula(paste0(group_id_nm, " ~ .quantile"))
+      # q_df <- data.table::dcast(q_df,
+      #                           formula = cast_formula,
+      #                           value.var = dot_vars)
       if (length(group_vars) > 0L){
         q_df[, (group_vars) := fselect(group_lookup, .cols =
                                          setdiff(names(group_lookup),

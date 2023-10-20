@@ -42,6 +42,11 @@
 #'
 #' is_whole_number(x1)
 #' is_whole_number(x2)
+#'
+#' # Somewhat more strict than all.equal
+#'
+#' all.equal(10^9 + 0.0001, round(10^9 + 0.0001))
+#' is_whole_number(10^9 + 0.0001)
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)

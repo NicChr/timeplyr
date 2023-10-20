@@ -107,12 +107,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // window_sequence
-IntegerVector window_sequence(IntegerVector size, int k, bool partial, bool ascending);
+IntegerVector window_sequence(IntegerVector size, double k, bool partial, bool ascending);
 RcppExport SEXP _timeplyr_window_sequence(SEXP sizeSEXP, SEXP kSEXP, SEXP partialSEXP, SEXP ascendingSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    Rcpp::traits::input_parameter< double >::type k(kSEXP);
     Rcpp::traits::input_parameter< bool >::type partial(partialSEXP);
     Rcpp::traits::input_parameter< bool >::type ascending(ascendingSEXP);
     rcpp_result_gen = Rcpp::wrap(window_sequence(size, k, partial, ascending));

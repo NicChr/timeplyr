@@ -284,7 +284,7 @@ testthat::test_that("Compare to tidyr", {
                                dplyr::arrange(origin, dest, time_hour))
   res3 <- flights %>% time_count(dest, origin, time = time_hour, time_by = "day",
                                  include_interval = FALSE,
-                                 complete = TRUE, expand_type = "cross")
+                                 complete = TRUE)
   testthat::expect_equal(res3,
                              res3 %>%
                                dplyr::arrange(time_hour, dest, origin))

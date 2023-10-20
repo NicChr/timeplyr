@@ -89,13 +89,6 @@ time_is_regular <- function(x, time_by = NULL,
                             allow_gaps = TRUE,
                             allow_dups = TRUE){
   check_is_time_or_num(x)
-  if (is.null(g)){
-    return(time_is_reg(x, time_by = time_by,
-                       na.rm = na.rm,
-                       time_type = time_type,
-                       allow_gaps = allow_gaps,
-                       allow_dups = allow_dups))
-  }
   if (length(x) == 0L){
     return(TRUE)
   }
@@ -105,7 +98,7 @@ time_is_regular <- function(x, time_by = NULL,
   if (!is.null(g)){
     n_groups <- GRP_n_groups(g)
   } else {
-    n_groups <- 1L
+    n_groups <- min(1L, length(x))
   }
   time_by <- time_by_get(x, time_by = time_by)
   telapsed <- time_elapsed(x, time_by = time_by, g = g,
@@ -146,51 +139,51 @@ time_is_regular <- function(x, time_by = NULL,
   out
 }
 # Ungrouped version.
-time_is_reg <- function(x, time_by = NULL,
-                        na.rm = TRUE,
-                        time_type = c("auto", "duration", "period"),
-                        allow_gaps = TRUE,
-                        allow_dups = TRUE){
-  check_is_time_or_num(x)
-  if (length(x) == 0L){
-    return(TRUE)
-  }
-  time_by <- time_by_get(x, time_by = time_by)
-  telapsed <- time_elapsed(x, time_by = time_by,
-                           time_type = time_type, rolling = FALSE,
-                           na_skip = na.rm,
-                           fill = 0)
-  if (is.null(time_by)){
-    out <- TRUE
-  } else {
-    out <- is_whole_number(telapsed, na.rm = na.rm)
-    # Check that the sequence is increasing/decreasing
-    if (na.rm){
-      is_increasing <- is_sorted(telapsed[!is.na(telapsed)])
-    } else {
-      is_increasing <- !is.unsorted(telapsed)
-    }
-    # is_increasing <- diff_is_increasing(roll_time_diff)
-    out <- out && is_increasing
-  }
-  if (!allow_gaps){
-    # roll_time_diff <- fdiff2(telapsed, fill = 0)
-    # has_gaps <- diff_has_gaps(roll_time_diff)
-    has_gaps <- time_has_gaps(x, time_by = time_by,
-                              na.rm = na.rm, time_type = time_type,
-                              check_time_regular = FALSE)
-    out <- out && !has_gaps
-  }
-  if (!allow_dups){
-    is_dup <- collapse::fduplicated(x)
-    if (na.rm){
-      is_dup <- is_dup & !is.na(x)
-    }
-    has_dups <- any(is_dup)
-    out <- out & !has_dups
-  }
-  out
-}
+# time_is_reg <- function(x, time_by = NULL,
+#                         na.rm = TRUE,
+#                         time_type = c("auto", "duration", "period"),
+#                         allow_gaps = TRUE,
+#                         allow_dups = TRUE){
+#   check_is_time_or_num(x)
+#   if (length(x) == 0L){
+#     return(TRUE)
+#   }
+#   time_by <- time_by_get(x, time_by = time_by)
+#   telapsed <- time_elapsed(x, time_by = time_by,
+#                            time_type = time_type, rolling = FALSE,
+#                            na_skip = na.rm,
+#                            fill = 0)
+#   if (is.null(time_by)){
+#     out <- TRUE
+#   } else {
+#     out <- is_whole_number(telapsed, na.rm = na.rm)
+#     # Check that the sequence is increasing/decreasing
+#     if (na.rm){
+#       is_increasing <- is_sorted(telapsed[!is.na(telapsed)])
+#     } else {
+#       is_increasing <- !is.unsorted(telapsed)
+#     }
+#     # is_increasing <- diff_is_increasing(roll_time_diff)
+#     out <- out && is_increasing
+#   }
+#   if (!allow_gaps){
+#     # roll_time_diff <- fdiff2(telapsed, fill = 0)
+#     # has_gaps <- diff_has_gaps(roll_time_diff)
+#     has_gaps <- time_has_gaps(x, time_by = time_by,
+#                               na.rm = na.rm, time_type = time_type,
+#                               check_time_regular = FALSE)
+#     out <- out && !has_gaps
+#   }
+#   if (!allow_dups){
+#     is_dup <- collapse::fduplicated(x)
+#     if (na.rm){
+#       is_dup <- is_dup & !is.na(x)
+#     }
+#     has_dups <- any(is_dup)
+#     out <- out & !has_dups
+#   }
+#   out
+# }
 # check_time_elapsed_regular <- function(x){
 #     unique_elapsed <- collapse::funique(x)
 #     is_regular <- is_whole_number(unique_elapsed, na.rm = TRUE)

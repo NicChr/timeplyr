@@ -21,7 +21,7 @@
 #' This can for example be a vector or data frame.
 #' @param use.g.names Should the result include group names?
 #' Default is `TRUE`.
-#' @param na.rm (Currently unused) Should `NA` values be removed? Default is `TRUE`.
+#' @param na.rm Should `NA` values be removed? Default is `TRUE`.
 #' @param check_time_regular Should the time vector be
 #' checked to see if it is regular (with or without gaps)?
 #' Default is `FALSE`.
@@ -132,6 +132,10 @@ time_num_gaps <- function(x, time_by = NULL,
                                   time_type = time_type,
                                   g = g, use.g.names = FALSE)
   out <- full_seq_size - n_unique
+  if (!na.rm){
+    nmiss <- fnmiss(x, g = g, use.g.names = FALSE)
+    out[nmiss > 0] <- NA
+  }
   if (use.g.names){
     names(out) <- GRP_names(g)
   }
