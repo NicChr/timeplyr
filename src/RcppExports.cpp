@@ -11,14 +11,14 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // cpp_double_equal_vectorised
-LogicalVector cpp_double_equal_vectorised(SEXP x, SEXP y, Nullable<NumericVector> tol);
-RcppExport SEXP _timeplyr_cpp_double_equal_vectorised(SEXP xSEXP, SEXP ySEXP, SEXP tolSEXP) {
+SEXP cpp_double_equal_vectorised(SEXP x, SEXP y, double tolerance);
+RcppExport SEXP _timeplyr_cpp_double_equal_vectorised(SEXP xSEXP, SEXP ySEXP, SEXP toleranceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
     Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type tol(tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_double_equal_vectorised(x, y, tol));
+    Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_double_equal_vectorised(x, y, tolerance));
     return rcpp_result_gen;
 END_RCPP
 }

@@ -37,8 +37,10 @@ testthat::test_that("Double floating point precision", {
 })
 
 testthat::test_that("more tests", {
-  testthat::expect_false(double_equal(10^-8, 2 * 10^-8))
-  testthat::expect_false(double_equal(2 * 10^-8, 10^-8))
+  testthat::expect_true(double_equal(10^-8, 2 * 10^-8))
+  testthat::expect_true(double_equal(2 * 10^-8, 10^-8))
+  testthat::expect_false(double_equal(10^-8, 2 * 10^-8, tol = sqrt(.Machine$double.eps)/100))
+  testthat::expect_false(double_equal(2 * 10^-8, 10^-8, tol = sqrt(.Machine$double.eps)/100))
   testthat::expect_true(double_equal(1.1 * 100 * 10^200, 110 * 10^200))
   testthat::expect_true(double_equal(110 * 10^200, 1.1 * 100 * 10^200))
   testthat::expect_true(double_equal(0, 0))

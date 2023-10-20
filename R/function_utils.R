@@ -903,7 +903,7 @@ double_equal <- function(x, y, tol = sqrt(.Machine$double.eps)){
   if (is.integer(x) && is.integer(y)){
     x == y
   } else {
-    cpp_double_equal_vectorised(as.double(x), as.double(y), tol = tol)
+    cpp_double_equal_vectorised(as.double(x), as.double(y), tolerance = tol)
   }
 }
 # double_equal <- function(x, y, tol = sqrt(.Machine$double.eps)){
