@@ -35,3 +35,27 @@ testthat::test_that("Double floating point precision", {
 
   testthat::expect_true(all(double_equal(diff(x) - 0.2, 0)))
 })
+
+testthat::test_that("more tests", {
+  testthat::expect_false(double_equal(10^-8, 2 * 10^-8))
+  testthat::expect_false(double_equal(2 * 10^-8, 10^-8))
+  testthat::expect_true(double_equal(1.1 * 100 * 10^200, 110 * 10^200))
+  testthat::expect_true(double_equal(110 * 10^200, 1.1 * 100 * 10^200))
+  testthat::expect_true(double_equal(0, 0))
+  testthat::expect_false(double_equal(0, sqrt(.Machine$double.eps)))
+  testthat::expect_true(double_equal(0, sqrt(.Machine$double.eps)^2))
+  testthat::expect_identical(
+    double_equal(c(NaN, NA_real_, NaN, NaN, Inf, Inf, -Inf, -Inf, 0, 0, -3, -3, 2, 2),
+                 c(1, 2, NaN, 0, Inf, -Inf, Inf, -Inf, Inf, -Inf, Inf, -Inf, Inf, -Inf)),
+    c(NA, NA, NA, NA, TRUE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE)
+  )
+  # Abs diff would work here but rel diff doesn't
+  testthat::expect_true(double_equal(10^9, 10^9 + 0.002))
+  testthat::expect_false(double_equal(0, -0.00001))
+  testthat::expect_false(double_equal(0, 0.00001))
+  testthat::expect_false(double_equal(0, 10^20))
+  testthat::expect_false(double_equal(0, -10^20))
+  testthat::expect_false(double_equal(0, -10^20))
+  testthat::expect_true(double_equal(10^-9, 2 * 10^-9)) # Default tolerance isnt low enough
+  testthat::expect_false(double_equal(10^-9, 2 * 10^-9, tol = sqrt(.Machine$double.eps)/10^4))
+})

@@ -1281,6 +1281,17 @@ collapse_join <- function(x, y, on, how, sort = FALSE, ...){
     .cols = c(names(x), setdiff(names(y), names(x)))
   )
 }
+# Use this as an automated tolerance estimate when dealing with small numbers
+# Doesn't handle small differences between large numbers though.
+# Experimental
+# get_tolerance <- function(x){
+#   min_tol <- .Machine$double.eps
+#   max_tol <- sqrt(min_tol)
+#   xmin <- collapse::fmin(abs(x[x != 0]))
+#   tol_est <- 10^(-ceiling(abs(log10(xmin))))
+#   max(tol_est, min_tol)
+#   min(max(tol_est, min_tol), max_tol)
+# }
 # rng_used <- function(expr){
 #   curr <- globalenv()$.Random.seed
 #   on.exit({print(paste("RNG USED:", !identical(curr, .Random.seed)))})

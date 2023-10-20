@@ -9,6 +9,7 @@ get_time_delay(
   origin,
   end,
   time_by = 1,
+  time_type = c("auto", "duration", "period"),
   min_delay = -Inf,
   max_delay = Inf,
   probs = c(0.25, 0.5, 0.75, 0.95),
@@ -37,6 +38,10 @@ e.g. \code{list("days" = 1:10)}.
 \item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
 then arithmetic is used, e.g \code{time_by = 1}.
 }}
+
+\item{time_type}{If "auto", \code{periods} are used for
+the time expansion when days, weeks, months or years are specified,
+and \code{durations} are used otherwise.}
 
 \item{min_delay}{The minimum acceptable delay,
 all delays less than this are removed before calculation.

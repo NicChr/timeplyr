@@ -22,6 +22,9 @@
 #' e.g. `list("days" = 1:10)`.
 #' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
 #' then arithmetic is used, e.g `time_by = 1`.
+#' @param time_type If "auto", `periods` are used for
+#' the time expansion when days, weeks, months or years are specified,
+#' and `durations` are used otherwise.
 #' @param min_delay The minimum acceptable delay,
 #' all delays less than this are removed before calculation.
 #' Default is `min_delay = -Inf`.
@@ -126,6 +129,7 @@
 #'}
 #' @export
 get_time_delay <- function(data, origin, end, time_by = 1,
+                           time_type = c("auto", "duration", "period"),
                            min_delay = -Inf, max_delay = Inf,
                            probs = c(0.25, 0.5, 0.75, 0.95),
                            .by = NULL,
@@ -153,8 +157,8 @@ get_time_delay <- function(data, origin, end, time_by = 1,
   by_n <- time_by_num(time_by)
   delay_nm <- new_var_nm(out, "delay")
   out[, (delay_nm) := time_diff(get(start_time), get(end_time),
-                                    time_by = time_by,
-                                    time_type = "duration")]
+                                time_by = time_by,
+                                time_type = time_type)]
   n_miss_delays <- num_na(out[[delay_nm]])
   if (n_miss_delays > 0){
     warning(paste(n_miss_delays, "missing observations will be
