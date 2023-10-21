@@ -36,6 +36,7 @@ Inspired by the discussion in this thread:
 }
 \examples{
 library(timeplyr)
+library(dplyr)
 \dontshow{
 .n_dt_threads <- data.table::getDTthreads()
 .n_collapse_threads <- collapse::get_collapse()$nthreads
@@ -58,7 +59,17 @@ is_whole_number(x2)
 # Somewhat more strict than all.equal
 
 all.equal(10^9 + 0.0001, round(10^9 + 0.0001))
+double_equal(10^9 + 0.0001, round(10^9 + 0.0001))
 is_whole_number(10^9 + 0.0001)
+
+# Can safely be used to select whole number variables
+starwars \%>\%
+  select(where(is_whole_number))
+
+# To reduce the size of any data frame one can use the below code
+
+df <- starwars \%>\%
+  mutate(across(where(is_whole_number), as.integer))
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

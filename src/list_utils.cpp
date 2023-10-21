@@ -45,16 +45,20 @@ LogicalVector list_item_is_interval( List l ) {
 // SEXP pmax2(SEXP x, SEXP y){
 //   int n1 = Rf_length(x);
 //   int n2 = Rf_length(y);
-//   if (n1 != n2){
-//     stop("x and y must be of equal length");
+//   int n = std::max(n1, n2);
+//   if (n1 <= 0 || n2 <= 0){
+//     n = 0;
 //   }
 //   double *p_x = REAL(x);
 //   double *p_y = REAL(y);
-//   SEXP maxes = PROTECT(Rf_allocVector(REALSXP, n1));
+//   SEXP maxes = PROTECT(Rf_allocVector(REALSXP, n));
 //   double *p_maxes = REAL(maxes);
-//   NumericVector out(n1);
+//   int xi;
+//   int yi;
 //   for (int i = 0; i < n1; ++i){
-//     p_maxes[i] = std::fmax(p_x[i], p_y[i]);
+//     xi = (i % n1);
+//     yi = (i % n2);
+//     p_maxes[i] = std::fmax(p_x[xi], p_y[yi]);
 //   }
 //   UNPROTECT(1);
 //   return maxes;
