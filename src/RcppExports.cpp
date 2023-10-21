@@ -11,61 +11,61 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // cpp_double_equal_vectorised
-SEXP cpp_double_equal_vectorised(SEXP x, SEXP y, double tolerance);
+SEXP cpp_double_equal_vectorised(SEXP x, SEXP y, SEXP tolerance);
 RcppExport SEXP _timeplyr_cpp_double_equal_vectorised(SEXP xSEXP, SEXP ySEXP, SEXP toleranceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
     Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type tolerance(toleranceSEXP);
     rcpp_result_gen = Rcpp::wrap(cpp_double_equal_vectorised(x, y, tolerance));
     return rcpp_result_gen;
 END_RCPP
 }
 // cpp_double_gt_vectorised
-SEXP cpp_double_gt_vectorised(SEXP x, SEXP y, double tolerance);
+SEXP cpp_double_gt_vectorised(SEXP x, SEXP y, SEXP tolerance);
 RcppExport SEXP _timeplyr_cpp_double_gt_vectorised(SEXP xSEXP, SEXP ySEXP, SEXP toleranceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
     Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type tolerance(toleranceSEXP);
     rcpp_result_gen = Rcpp::wrap(cpp_double_gt_vectorised(x, y, tolerance));
     return rcpp_result_gen;
 END_RCPP
 }
 // cpp_double_gte_vectorised
-SEXP cpp_double_gte_vectorised(SEXP x, SEXP y, double tolerance);
+SEXP cpp_double_gte_vectorised(SEXP x, SEXP y, SEXP tolerance);
 RcppExport SEXP _timeplyr_cpp_double_gte_vectorised(SEXP xSEXP, SEXP ySEXP, SEXP toleranceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
     Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type tolerance(toleranceSEXP);
     rcpp_result_gen = Rcpp::wrap(cpp_double_gte_vectorised(x, y, tolerance));
     return rcpp_result_gen;
 END_RCPP
 }
 // cpp_double_lt_vectorised
-SEXP cpp_double_lt_vectorised(SEXP x, SEXP y, double tolerance);
+SEXP cpp_double_lt_vectorised(SEXP x, SEXP y, SEXP tolerance);
 RcppExport SEXP _timeplyr_cpp_double_lt_vectorised(SEXP xSEXP, SEXP ySEXP, SEXP toleranceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
     Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type tolerance(toleranceSEXP);
     rcpp_result_gen = Rcpp::wrap(cpp_double_lt_vectorised(x, y, tolerance));
     return rcpp_result_gen;
 END_RCPP
 }
 // cpp_double_lte_vectorised
-SEXP cpp_double_lte_vectorised(SEXP x, SEXP y, double tolerance);
+SEXP cpp_double_lte_vectorised(SEXP x, SEXP y, SEXP tolerance);
 RcppExport SEXP _timeplyr_cpp_double_lte_vectorised(SEXP xSEXP, SEXP ySEXP, SEXP toleranceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
     Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type tolerance(toleranceSEXP);
     rcpp_result_gen = Rcpp::wrap(cpp_double_lte_vectorised(x, y, tolerance));
     return rcpp_result_gen;
 END_RCPP

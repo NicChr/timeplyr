@@ -32,3 +32,6 @@ where possible.
 
 * timeplyr now utilises relative differences for all double comparisons using 
 Rcpp
+
+* All double comparisons are now fully vectorised and recycling occurs without 
+additional memory allocation.

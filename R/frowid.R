@@ -71,7 +71,7 @@ frowid <- function(x, g, ascending = TRUE, order = TRUE){
     if (ascending){
       out <- seq_len(len)
     } else {
-      out <- sequence2(len, from = len, by = -1L)
+      out <- seq.int(length.out = len, from = len, by = -1L)
     }
   } else {
     g <- GRP2(g, sort = order, call = FALSE, return.groups = FALSE,
@@ -90,7 +90,7 @@ frowid <- function(x, g, ascending = TRUE, order = TRUE){
     } else {
       o <- NULL
       if (!ascending){
-        o <- seq.int(from = len, to = min(1L, len), by = -1L)
+        o <- seq.int(length.out = len, from = len, by = -1L)
       }
       out <- grouped_seq_len(len, g = g, check.o = FALSE, o = o)
     }

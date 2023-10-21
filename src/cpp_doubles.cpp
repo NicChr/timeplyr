@@ -8,6 +8,16 @@ using namespace Rcpp;
 // Relative differences are used except when either x or y is very close to zero
 // in which case absolute differences are used
 
+// Recycle an index using the length of the vector being indexed
+// This in theory allows flexible vector recycling within a loop without allocation
+
+// int recycle_index(int i, int n){
+//   if (n == 0){
+//     stop("Cannot recycle index i for a zero-length vector");
+//   }
+//   return (i % n);
+// }
+
 bool cpp_double_is_na(double x){
   return !(x == x);
 }
@@ -84,20 +94,32 @@ bool cpp_double_lte(double x, double y, double tolerance){
 
 
 // [[Rcpp::export(rng = false)]]
-SEXP cpp_double_equal_vectorised(SEXP x, SEXP y, double tolerance) {
+SEXP cpp_double_equal_vectorised(SEXP x, SEXP y, SEXP tolerance) {
   // double tolerance = std::sqrt(std::numeric_limits<double>::epsilon());
-  int n = Rf_length(x);
-  if (Rf_length(y) != n){
-    stop("x must be the same length as y");
+  int x_len = Rf_length(x);
+  int y_len = Rf_length(y);
+  int tol_len = Rf_length(tolerance);
+  int n = std::max(x_len, y_len);
+  n = std::max(n, tol_len);
+  if (x_len <= 0 || y_len <= 0 || tol_len <= 0){
+    // Avoid loop if any are length zero vectors
+    n = 0;
   }
   double *p_x = REAL(x);
   double *p_y = REAL(y);
+  double *p_t = REAL(tolerance);
   SEXP out = PROTECT(Rf_allocVector(LGLSXP, n));
   int *p_out = LOGICAL(out);
+  int xi;
+  int yi;
+  int ti;
   for (int i = 0; i < n; ++i) {
-    p_out[i] = cpp_double_equal(p_x[i], p_y[i], tolerance);
+    xi = i % x_len;
+    yi = i % y_len;
+    ti = i % tol_len;
+    p_out[i] = cpp_double_equal(p_x[xi], p_y[yi], p_t[ti]);
     // If either is NA, out is NA
-    if ( cpp_double_is_na(p_x[i]) || cpp_double_is_na(p_y[i]) ){
+    if ( cpp_double_is_na(p_x[xi]) || cpp_double_is_na(p_y[yi]) ){
       p_out[i] = NA_LOGICAL;
     }
   }
@@ -106,83 +128,134 @@ SEXP cpp_double_equal_vectorised(SEXP x, SEXP y, double tolerance) {
 }
 
 // [[Rcpp::export(rng = false)]]
-SEXP cpp_double_gt_vectorised(SEXP x, SEXP y, double tolerance) {
+SEXP cpp_double_gt_vectorised(SEXP x, SEXP y, SEXP tolerance) {
   // double tolerance = std::sqrt(std::numeric_limits<double>::epsilon());
-  int n = Rf_length(x);
-  if (Rf_length(y) != n){
-    stop("x must be the same length as y");
+  int x_len = Rf_length(x);
+  int y_len = Rf_length(y);
+  int tol_len = Rf_length(tolerance);
+  int n = std::max(x_len, y_len);
+  n = std::max(n, tol_len);
+  if (x_len <= 0 || y_len <= 0 || tol_len <= 0){
+    // Avoid loop if any are length zero vectors
+    n = 0;
   }
   double *p_x = REAL(x);
   double *p_y = REAL(y);
+  double *p_t = REAL(tolerance);
   SEXP out = PROTECT(Rf_allocVector(LGLSXP, n));
   int *p_out = LOGICAL(out);
+  int xi;
+  int yi;
+  int ti;
   for (int i = 0; i < n; ++i) {
-    p_out[i] = cpp_double_gt(p_x[i], p_y[i], tolerance);
+    xi = i % x_len;
+    yi = i % y_len;
+    ti = i % tol_len;
+    p_out[i] = cpp_double_gt(p_x[xi], p_y[yi], p_t[ti]);
     // If either is NA, out is NA
-    if ( cpp_double_is_na(p_x[i]) || cpp_double_is_na(p_y[i]) ){
+    if ( cpp_double_is_na(p_x[xi]) || cpp_double_is_na(p_y[yi]) ){
       p_out[i] = NA_LOGICAL;
     }
   }
   UNPROTECT(1);
   return out;
 }
+
 // [[Rcpp::export(rng = false)]]
-SEXP cpp_double_gte_vectorised(SEXP x, SEXP y, double tolerance) {
+SEXP cpp_double_gte_vectorised(SEXP x, SEXP y, SEXP tolerance) {
   // double tolerance = std::sqrt(std::numeric_limits<double>::epsilon());
-  int n = Rf_length(x);
-  if (Rf_length(y) != n){
-    stop("x must be the same length as y");
+  int x_len = Rf_length(x);
+  int y_len = Rf_length(y);
+  int tol_len = Rf_length(tolerance);
+  int n = std::max(x_len, y_len);
+  n = std::max(n, tol_len);
+  if (x_len <= 0 || y_len <= 0 || tol_len <= 0){
+    // Avoid loop if any are length zero vectors
+    n = 0;
   }
   double *p_x = REAL(x);
   double *p_y = REAL(y);
+  double *p_t = REAL(tolerance);
   SEXP out = PROTECT(Rf_allocVector(LGLSXP, n));
   int *p_out = LOGICAL(out);
+  int xi;
+  int yi;
+  int ti;
   for (int i = 0; i < n; ++i) {
-    p_out[i] = cpp_double_gte(p_x[i], p_y[i], tolerance);
+    xi = i % x_len;
+    yi = i % y_len;
+    ti = i % tol_len;
+    p_out[i] = cpp_double_gte(p_x[xi], p_y[yi], p_t[ti]);
     // If either is NA, out is NA
-    if ( cpp_double_is_na(p_x[i]) || cpp_double_is_na(p_y[i]) ){
+    if ( cpp_double_is_na(p_x[xi]) || cpp_double_is_na(p_y[yi]) ){
       p_out[i] = NA_LOGICAL;
     }
   }
   UNPROTECT(1);
   return out;
 }
+
 // [[Rcpp::export(rng = false)]]
-SEXP cpp_double_lt_vectorised(SEXP x, SEXP y, double tolerance) {
+SEXP cpp_double_lt_vectorised(SEXP x, SEXP y, SEXP tolerance) {
   // double tolerance = std::sqrt(std::numeric_limits<double>::epsilon());
-  int n = Rf_length(x);
-  if (Rf_length(y) != n){
-    stop("x must be the same length as y");
+  int x_len = Rf_length(x);
+  int y_len = Rf_length(y);
+  int tol_len = Rf_length(tolerance);
+  int n = std::max(x_len, y_len);
+  n = std::max(n, tol_len);
+  if (x_len <= 0 || y_len <= 0 || tol_len <= 0){
+    // Avoid loop if any are length zero vectors
+    n = 0;
   }
   double *p_x = REAL(x);
   double *p_y = REAL(y);
+  double *p_t = REAL(tolerance);
   SEXP out = PROTECT(Rf_allocVector(LGLSXP, n));
   int *p_out = LOGICAL(out);
+  int xi;
+  int yi;
+  int ti;
   for (int i = 0; i < n; ++i) {
-    p_out[i] = cpp_double_lt(p_x[i], p_y[i], tolerance);
+    xi = i % x_len;
+    yi = i % y_len;
+    ti = i % tol_len;
+    p_out[i] = cpp_double_lt(p_x[xi], p_y[yi], p_t[ti]);
     // If either is NA, out is NA
-    if ( cpp_double_is_na(p_x[i]) || cpp_double_is_na(p_y[i]) ){
+    if ( cpp_double_is_na(p_x[xi]) || cpp_double_is_na(p_y[yi]) ){
       p_out[i] = NA_LOGICAL;
     }
   }
   UNPROTECT(1);
   return out;
 }
+
 // [[Rcpp::export(rng = false)]]
-SEXP cpp_double_lte_vectorised(SEXP x, SEXP y, double tolerance) {
+SEXP cpp_double_lte_vectorised(SEXP x, SEXP y, SEXP tolerance) {
   // double tolerance = std::sqrt(std::numeric_limits<double>::epsilon());
-  int n = Rf_length(x);
-  if (Rf_length(y) != n){
-    stop("x must be the same length as y");
+  int x_len = Rf_length(x);
+  int y_len = Rf_length(y);
+  int tol_len = Rf_length(tolerance);
+  int n = std::max(x_len, y_len);
+  n = std::max(n, tol_len);
+  if (x_len <= 0 || y_len <= 0 || tol_len <= 0){
+    // Avoid loop if any are length zero vectors
+    n = 0;
   }
   double *p_x = REAL(x);
   double *p_y = REAL(y);
+  double *p_t = REAL(tolerance);
   SEXP out = PROTECT(Rf_allocVector(LGLSXP, n));
   int *p_out = LOGICAL(out);
+  int xi;
+  int yi;
+  int ti;
   for (int i = 0; i < n; ++i) {
-    p_out[i] = cpp_double_lte(p_x[i], p_y[i], tolerance);
+    xi = i % x_len;
+    yi = i % y_len;
+    ti = i % tol_len;
+    p_out[i] = cpp_double_lte(p_x[xi], p_y[yi], p_t[ti]);
     // If either is NA, out is NA
-    if ( cpp_double_is_na(p_x[i]) || cpp_double_is_na(p_y[i]) ){
+    if ( cpp_double_is_na(p_x[xi]) || cpp_double_is_na(p_y[yi]) ){
       p_out[i] = NA_LOGICAL;
     }
   }

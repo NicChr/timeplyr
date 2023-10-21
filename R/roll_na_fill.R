@@ -64,13 +64,13 @@
 #'}
 #' @export
 roll_na_fill <- function(x, g = NULL, fill_limit = NULL){
+  if (num_na(x) %in% c(0L, length(x))){
+    return(x)
+  }
   g <- GRP2(g)
   if (is.null(g)){
     # Ungrouped method 2 (more flexible, slower)
     which_na <- collapse::whichNA(x)
-    if (length(which_na) %in% c(0L, length(x))){
-      return(x)
-    }
     roll_lag <- integer(length(x))
     roll_lag[which_na] <- data.table::rleidv(x)[which_na]
     roll_lag[which_na] <- frowid(roll_lag[which_na], order = FALSE)
@@ -90,9 +90,6 @@ roll_na_fill <- function(x, g = NULL, fill_limit = NULL){
     sorted_x <- sorted_group_info[["x"]]
     sorted_group_id <- GRP_group_id(sorted_g)
     is_na <- is.na(sorted_x)
-    if (sum(is_na) %in% c(0L, length(sorted_x))){
-      return(x)
-    }
     which_na <- which(is_na)
     consecutive_id <- data.table::fifelse(is_na,
                                           data.table::rleidv(sorted_x),

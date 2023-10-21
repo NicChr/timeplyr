@@ -483,20 +483,30 @@ new_var_nm <- function(data, check = ".group.id"){
 # Recycle arguments
 recycle_args <- function (..., length = NULL, use.names = FALSE){
   dots <- list(...)
-  missing_length <- is.null(length)
-  lens <- collapse::vlengths(dots, use.names = FALSE)
-  if (missing_length) {
-    recycle_length <- max(lens)
+  # if (length(dots) == 0){
+  #   return(dots)
+  # }
+  out <- dots
+  lens <- collapse::vlengths(out, use.names = FALSE)
+  uniq_lens <- collapse::fnunique(lens)
+  if (is.null(length)) {
+    recycle_length <- collapse::fmax(lens)
   } else {
     recycle_length <- length
   }
   recycle_length <- recycle_length * (!collapse::anyv(lens, 0L))
-  if (missing_length && collapse::fnunique(lens) == 1L){
-    out <- dots
-  }
-  else {
-    out <- lapply(dots, function(x) rep_len(x, recycle_length))
-  }
+  # dont_recycle <- (
+  #   (
+  #     missing_length && uniq_lens == 1L # All the same length
+  #   ) || (
+  #     !missing_length  && uniq_lens == 1L && lens[1L] == recycle_length
+  #   )
+  # )
+  # if (!dont_recycle){
+    # Only recycle elements that need it
+  recycle <- lens != recycle_length
+  out[recycle] <- lapply(out[recycle], function(x) rep_len(x, recycle_length))
+  # }
   if (use.names){
     names(out) <- dot_nms(...)
   }
@@ -895,56 +905,51 @@ abs_diff <- function(x, y){
 #   rel_diff(x, y) < tol
 # }
 
-# Convenience comparison functions for doubles
-double_equal <- function(x, y, tol = sqrt(.Machine$double.eps)){
-  check_is_num(x)
-  check_is_num(y)
-  set_recycle_args(x = x, y = y, use.names = FALSE)
-  if (is.integer(x) && is.integer(y)){
-    x == y
-  } else {
-    cpp_double_equal_vectorised(as.double(x), as.double(y), tolerance = tol)
-  }
-}
+# # Convenience comparison functions for doubles
 # double_equal <- function(x, y, tol = sqrt(.Machine$double.eps)){
-#   abs(x - y) < tol
+#   # abs(x - y) < tol # Old
+#   # set_recycle_args(x = x, y = y, use.names = FALSE)
+#   if (is.integer(x) && is.integer(y)){
+#     x == y
+#   } else {
+#     cpp_double_equal_vectorised(as.double(x), as.double(y), as.double(tol))
+#   }
 # }
-double_gt <- function(x, y, tol = sqrt(.Machine$double.eps)){
-  # (x - y) > tol # Old
-  set_recycle_args(x = x, y = y, use.names = FALSE)
-  if (is.integer(x) && is.integer(y)){
-    x > y
-  } else {
-    cpp_double_gt_vectorised(as.double(x), as.double(y), tolerance = tol)
-  }
-}
-double_gte <- function(x, y, tol = sqrt(.Machine$double.eps)){
-  # (x - y) > -tol # Old
-  set_recycle_args(x = x, y = y, use.names = FALSE)
-  if (is.integer(x) && is.integer(y)){
-    x >= y
-  } else {
-    cpp_double_gte_vectorised(as.double(x), as.double(y), tolerance = tol)
-  }
-}
-double_lt <- function(x, y, tol = sqrt(.Machine$double.eps)){
-  # (x - y) < -tol # Old
-  set_recycle_args(x = x, y = y, use.names = FALSE)
-  if (is.integer(x) && is.integer(y)){
-    x < y
-  } else {
-    cpp_double_lt_vectorised(as.double(x), as.double(y), tolerance = tol)
-  }
-}
-double_lte <- function(x, y, tol = sqrt(.Machine$double.eps)){
-  # (x - y) < tol # Old
-  set_recycle_args(x = x, y = y, use.names = FALSE)
-  if (is.integer(x) && is.integer(y)){
-    x <= y
-  } else {
-    cpp_double_lte_vectorised(as.double(x), as.double(y), tolerance = tol)
-  }
-}
+# # double_equal <- function(x, y, tol = sqrt(.Machine$double.eps)){
+# #   abs(x - y) < tol
+# # }
+# double_gt <- function(x, y, tol = sqrt(.Machine$double.eps)){
+#   # (x - y) > tol # Old
+#   if (is.integer(x) && is.integer(y)){
+#     x > y
+#   } else {
+#     cpp_double_gt_vectorised(as.double(x), as.double(y), as.double(tol))
+#   }
+# }
+# double_gte <- function(x, y, tol = sqrt(.Machine$double.eps)){
+#   # (x - y) > -tol # Old
+#   if (is.integer(x) && is.integer(y)){
+#     x >= y
+#   } else {
+#     cpp_double_gte_vectorised(as.double(x), as.double(y), as.double(tol))
+#   }
+# }
+# double_lt <- function(x, y, tol = sqrt(.Machine$double.eps)){
+#   # (x - y) < -tol # Old
+#   if (is.integer(x) && is.integer(y)){
+#     x < y
+#   } else {
+#     cpp_double_lt_vectorised(as.double(x), as.double(y), as.double(tol))
+#   }
+# }
+# double_lte <- function(x, y, tol = sqrt(.Machine$double.eps)){
+#   # (x - y) < tol # Old
+#   if (is.integer(x) && is.integer(y)){
+#     x <= y
+#   } else {
+#     cpp_double_lte_vectorised(as.double(x), as.double(y), as.double(tol))
+#   }
+# }
 # `%~==%` <- double_equal
 # `%~>=%` <- double_gte
 # `%~<=%` <- double_lte

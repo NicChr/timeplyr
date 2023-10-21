@@ -26,14 +26,17 @@ seq_v(from = 1L, to = 1L, by = 1L)
 \code{seq_v} returns a vector of size \code{sum((to - from) / (by + 1))}
 }
 \description{
-Like \code{sequence()} but it accepts decimal increments.
+Like \code{\link[=sequence]{sequence()}} but it accepts decimal increments.
 }
 \details{
-\code{sequence2()} works in the same as \code{sequence()} but can accept
-non-whole number \code{by} values.
-It also doesn't recycle \code{from} and \code{to}, in the same as \code{sequence()}. \cr
-If any of the sequences contain integers > .Machine$integer.max,
+\code{sequence2()} works in the same way as \code{sequence()} but can accept
+non-integer \code{by} values.
+It also recycles \code{from} and \code{to}, in the same way as \code{sequence()}. \cr
+If any of the sequences contain values > .Machine$integer.max,
 then the result will always be a double vector.
+
+\code{from} can be also be a date, date-time, or any object that supports
+addition and multiplication.
 
 \code{seq_v()} is a vectorised version of \code{seq()} that strictly accepts
 only the arguments \code{from}, \code{to} and \code{by}. \cr

@@ -87,3 +87,42 @@ testthat::test_that("more tests", {
   testthat::expect_true(double_equal(10^-9, 2 * 10^-9)) # Default tolerance isnt low enough
   testthat::expect_false(double_equal(10^-9, 2 * 10^-9, tol = sqrt(.Machine$double.eps)/10^4))
 })
+
+testthat::test_that("vectorisation", {
+  set.seed(42)
+  x <- as.double(sample(c(Inf, -Inf, NA, -10:10), size = 111, replace = TRUE))
+  y <- as.double(sample(0:5, size = 10^4, replace = TRUE))
+  tol <- as.double(sample(c(0, 0.000001), size = 77, replace = TRUE,
+                prob = c(0.2, 0.8)))
+
+  res_eq <- double_equal(x, y, tol)
+  res_gte <- double_gte(x, y, tol)
+  res_gt <- double_gt(x, y, tol)
+  res_lte <- double_lte(x, y, tol)
+  res_lt <- double_lt(x, y, tol)
+
+
+  df <- suppressWarnings(data.table::data.table(x, y, tol))
+
+  df2 <- data.table::as.data.table(recycle_args(x, y, tol, use.names = TRUE))
+
+  testthat::expect_equal(df, df2)
+
+  df$eq <- abs(df$x - df$y) < df$tol
+  df$gt <- (df$x - df$y) > df$tol
+  df$gte <- (df$x - df$y) > -df$tol
+  df$lte <- (df$x - df$y) < df$tol
+  df$lt <- (df$x - df$y) < -df$tol
+
+  df$res_eq <- res_eq
+  df$res_gte <- res_gte
+  df$res_gt <- res_gt
+  df$res_lte <- res_lte
+  df$res_lt<- res_lt
+
+  testthat::expect_equal(df$eq, df$res_eq)
+  testthat::expect_equal(df$gte, df$res_gte)
+  testthat::expect_equal(df$gt, df$res_gt)
+  testthat::expect_equal(df$lte, df$res_lte)
+  testthat::expect_equal(df$lt, df$res_lt)
+})

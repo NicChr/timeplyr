@@ -1,7 +1,7 @@
 #' Extension to `base::sequence()`
 #'
 #' @description
-#' Like `sequence()` but it accepts decimal increments.
+#' Like [sequence()] but it accepts decimal increments.
 #'
 #' @param nvec Vector of sequence lengths.
 #' @param from Start of sequence(s).
@@ -13,11 +13,14 @@
 #' `seq_v` returns a vector of size `sum((to - from) / (by + 1))`
 #'
 #' @details
-#' `sequence2()` works in the same as `sequence()` but can accept
-#' non-whole number `by` values.
-#' It also doesn't recycle `from` and `to`, in the same as `sequence()`. \cr
-#' If any of the sequences contain integers > .Machine$integer.max,
+#' `sequence2()` works in the same way as `sequence()` but can accept
+#' non-integer `by` values.
+#' It also recycles `from` and `to`, in the same way as `sequence()`. \cr
+#' If any of the sequences contain values > .Machine$integer.max,
 #' then the result will always be a double vector.
+#'
+#' `from` can be also be a date, date-time, or any object that supports
+#' addition and multiplication.
 #'
 #' `seq_v()` is a vectorised version of `seq()` that strictly accepts
 #' only the arguments `from`, `to` and `by`. \cr
@@ -47,18 +50,23 @@
 #' @rdname sequence2
 #' @export
 sequence2 <- function(nvec, from = 1L, by = 1L){
-  out_maybe_int <- all(is_integerable(
-    collapse::frange(
-      time_as_number(from) + (by * (pmax(nvec - 1, 0))),
-      na.rm = TRUE
-    )
-  ), na.rm = TRUE)
+  # Sequence end values
+  # If these cant be integers, then we need to work with doubles
+  seq_ends <- time_as_number(from) + (by * (pmax(nvec - 1, 0)))
+  out_maybe_int <- all(
+    is_integerable(
+      collapse::frange(seq_ends, na.rm = TRUE)
+    ), na.rm = TRUE
+  )
   # If from/by are integers and all sequence values < 2^31 then use sequence
   out_is_int <- is.integer(from) && is.integer(by) && out_maybe_int
   if (out_is_int){
     return(sequence(nvec = nvec, from = from, by = by))
   }
   g_len <- length(nvec)
+  if (!out_maybe_int){
+    by <- as.double(by)
+  }
   if (length(from) > 1L){
     # Recycle
     from <- rep_len(from, g_len)
@@ -72,11 +80,7 @@ sequence2 <- function(nvec, from = 1L, by = 1L){
     by <- rep.int(by, times = nvec)
   }
   # Arithmetic
-  if (out_maybe_int){
-    g_add <- sequence(nvec, from = 0L, by = 1L)
-  } else {
-    g_add <- window_sequence(nvec, k = Inf) - 1
-  }
+  g_add <- sequence(nvec, from = 0L, by = 1L)
   from + (g_add * by)
 }
 # sequence2 <- function(nvec, from = 1L, by = 1L){

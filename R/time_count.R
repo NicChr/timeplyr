@@ -158,6 +158,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
     grp_nm <- new_var_nm(ts_data, ".group.id")
     ts_data[, (grp_nm) := group_id(data, .by = {{ .by }}, as_qg = TRUE)]
     n_groups <- attr(ts_data[[grp_nm]], "N.groups")
+    data.table::set(ts_data, j = grp_nm, value = qg_to_integer(ts_data[[grp_nm]]))
     # Determine common bounds
     from_nm <- new_var_nm(names(ts_data), ".from")
     to_nm <- new_var_nm(c(names(ts_data), from_nm), ".to")
