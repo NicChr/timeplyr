@@ -304,16 +304,6 @@ gcd <- function(x, y) {
   r <- x %% y
   ifelse(r, gcd(y, r), y)
 }
-# gcd3 <- function(x, y) {
-#   r <- x %% y
-#   out <- y
-#   while(r > 0){
-#     out <- r
-#     x <- y
-#     r <- x %% r
-#   }
-#   out
-# }
 # Original function I wrote using Matthew Lundberg's gcd function above
 # gcd2 <- function(x){
 #   if (!is.numeric(x)){
@@ -332,35 +322,6 @@ lcm <- function(x, y){
 # Exponentially weighted moving average
 # ewma <- function (x, ratio) {
 #   c(stats::filter(x * ratio, 1 - ratio, "recursive", init = x[1]))
-# }
-# Append columns from y to x using a common ID and a sql type join.
-# tbl_append <- function(x, y, id, keep_id = TRUE, y_suffix = ".x",
-#                        side = c("left", "right"), message = TRUE){
-#   side <- match.arg(side)
-#   if (missing(id)){
-#     id <- ".join.index"
-#     x[[".join.index"]] <- seq_len(nrow(x))
-#     y[[".join.index"]] <- seq_len(nrow(y))
-#   }
-#   if (n_unique(x[[id]]) != nrow(x)) stop("id must uniquely and commonly identify rows in x and y")
-#   if (n_unique(y[[id]]) != nrow(y)) stop("id must uniquely and commonly identify rows in x and y")
-#   common_cols <- setdiff(intersect(names(x), names(y)), id)
-#   # Join new variables onto original data
-#   if (side == "left"){
-#     init_names <- names(x)
-#     z <- dplyr::left_join(x, y, by = id, suffix = c("", y_suffix))
-#   } else {
-#     init_names <- names(y)
-#     z <- dplyr::right_join(x, y, by = id, suffix = c(y_suffix, ""))
-#   }
-#   if (!keep_id){
-#     z <- dplyr::select(z, -dplyr::all_of(id))
-#   }
-#   if (message){
-#     new_renamed_cols <- setdiff(names(z), init_names)
-#     message(paste0("New columns added:\n", paste(new_renamed_cols, collapse = ", ")))
-#   }
-#   z
 # }
 
 # This function is for functions like count() where extra groups need
@@ -901,54 +862,20 @@ abs_diff <- function(x, y){
 }
 
 # Convenience comparison functions for doubles
-# double_equal_rel <- function(x, y, tol = sqrt(.Machine$double.eps)){
-#   rel_diff(x, y) < tol
-# }
-
-# # Convenience comparison functions for doubles
 # double_equal <- function(x, y, tol = sqrt(.Machine$double.eps)){
-#   # abs(x - y) < tol # Old
-#   # set_recycle_args(x = x, y = y, use.names = FALSE)
-#   if (is.integer(x) && is.integer(y)){
-#     x == y
-#   } else {
-#     cpp_double_equal_vectorised(as.double(x), as.double(y), as.double(tol))
-#   }
+#   abs(x - y) < tol
 # }
-# # double_equal <- function(x, y, tol = sqrt(.Machine$double.eps)){
-# #   abs(x - y) < tol
-# # }
 # double_gt <- function(x, y, tol = sqrt(.Machine$double.eps)){
-#   # (x - y) > tol # Old
-#   if (is.integer(x) && is.integer(y)){
-#     x > y
-#   } else {
-#     cpp_double_gt_vectorised(as.double(x), as.double(y), as.double(tol))
-#   }
+#   (x - y) > tol
 # }
 # double_gte <- function(x, y, tol = sqrt(.Machine$double.eps)){
-#   # (x - y) > -tol # Old
-#   if (is.integer(x) && is.integer(y)){
-#     x >= y
-#   } else {
-#     cpp_double_gte_vectorised(as.double(x), as.double(y), as.double(tol))
-#   }
+#   (x - y) > -tol
 # }
 # double_lt <- function(x, y, tol = sqrt(.Machine$double.eps)){
-#   # (x - y) < -tol # Old
-#   if (is.integer(x) && is.integer(y)){
-#     x < y
-#   } else {
-#     cpp_double_lt_vectorised(as.double(x), as.double(y), as.double(tol))
-#   }
+#   (x - y) < -tol
 # }
 # double_lte <- function(x, y, tol = sqrt(.Machine$double.eps)){
-#   # (x - y) < tol # Old
-#   if (is.integer(x) && is.integer(y)){
-#     x <= y
-#   } else {
-#     cpp_double_lte_vectorised(as.double(x), as.double(y), as.double(tol))
-#   }
+#   (x - y) < tol
 # }
 # `%~==%` <- double_equal
 # `%~>=%` <- double_gte
@@ -1016,64 +943,6 @@ is_s3_numeric <- function(x){
   typeof(x) %in% c("integer", "double") && !isS4(x)
 }
 
-# Much faster and more efficient cut.default
-# fast_cut <- function (x, breaks, labels = NULL, include.lowest = FALSE, right = TRUE,
-#                   dig.lab = 3L, ordered_result = FALSE, ...){
-#   if (!is.numeric(x))
-#     stop("'x' must be numeric")
-#   if (length(breaks) == 1L) {
-#     if (is.na(breaks) || breaks < 2L)
-#       stop("invalid number of intervals")
-#     nb <- as.integer(breaks + 1)
-#     dx <- diff.default(rx <- range(x, na.rm = TRUE))
-#     if (dx == 0) {
-#       dx <- if (rx[1L] != 0)
-#         abs(rx[1L])
-#       else 1
-#       breaks <- seq.int(rx[1L] - dx/1000, rx[2L] + dx/1000,
-#                         length.out = nb)
-#     }
-#     else {
-#       breaks <- seq.int(rx[1L], rx[2L], length.out = nb)
-#       breaks[c(1L, nb)] <- c(rx[1L] - dx/1000, rx[2L] +
-#                                dx/1000)
-#     }
-#   }
-#   else nb <- length(breaks <- sort.int(as.double(breaks)))
-#   if (anyDuplicated(breaks))
-#     stop("'breaks' are not unique")
-#   codes.only <- FALSE
-#   if (is.null(labels)) {
-#     for (dig in dig.lab:max(12L, dig.lab)) {
-#       ch.br <- formatC(0 + breaks, digits = dig, width = 1L)
-#       if (ok <- all(ch.br[-1L] != ch.br[-nb]))
-#         break
-#     }
-#     labels <- if (ok)
-#       paste0(if (right)
-#         "("
-#         else "[", ch.br[-nb], ",", ch.br[-1L], if (right)
-#           "]"
-#         else ")")
-#     else paste0("Range_", seq_len(nb - 1L))
-#     if (ok && include.lowest) {
-#       if (right)
-#         substr(labels[1L], 1L, 1L) <- "["
-#       else substring(labels[nb - 1L], nchar(labels[nb -
-#                                                      1L], "c")) <- "]"
-#     }
-#   }
-#   else if (is.logical(labels) && !labels)
-#     codes.only <- TRUE
-#   else if (length(labels) != nb - 1L)
-#     stop("number of intervals and length of 'labels' differ")
-#   code <- .bincode(x, breaks, right, include.lowest)
-#   if (!codes.only) {
-#     levels(code) <- as.character(labels)
-#     class(code) <- c(if (ordered_result) "ordered" else character(0), "factor")
-#   }
-#   code
-# }
 check_is_num <- function(x){
   if (!is.numeric(x)){
     stop(paste(deparse1(substitute(x)), "must be numeric"))
@@ -1128,15 +997,6 @@ add_names <- function(x, value){
   names(x) <- value
   x
 }
-# flip_names_values <- function(x){
-#   x_nms <- names(x)
-#   if (is.null(x_nms)){
-#     stop("x must be a named vector")
-#   }
-#   out <- x_nms
-#   names(out) <- as.character(unname(x))
-#   out
-# }
 # Use data.table matching if both are character, otherwise base R
 fmatch <- function(x, table, nomatch = NA_integer_){
   if (is.character(x) && is.character(table)){
@@ -1267,20 +1127,4 @@ collapse_join <- function(x, y, on, how, sort = FALSE, ...){
 #   curr <- globalenv()$.Random.seed
 #   on.exit({print(paste("RNG USED:", !identical(curr, .Random.seed)))})
 #   invisible(eval(expr, envir = parent.frame(n = 1)))
-# }
-# near2 <- function(x, y, tol = sqrt(.Machine$double.eps)){
-#   adiff <- abs(x - y)
-#   ax <- abs(x)
-#   ay <- abs(y)
-#   any_close_to_zero <- (ax < tol) | (ay < tol)
-#   both_same_inf <- (x == Inf & y == Inf) | (x == -Inf & y == -Inf)
-#   different_inf <- (x == Inf & y == -Inf) | (x == -Inf & y == Inf)
-#   amax <- pmax(ax, ay)
-#   rdiff <- adiff / amax
-#   out <- dplyr::if_else(any_close_to_zero,
-#                         ( adiff < tol ),
-#                         ( rdiff < tol ))
-#   out[both_same_inf] <- TRUE
-#   out[different_inf] <- FALSE
-#   out
 # }

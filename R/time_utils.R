@@ -1441,6 +1441,67 @@ multiply_single_unit_period_by_number <- function(per, num){
   # period_unit(per_unit)(per_num * num)
 }
 
+rep_single_unit_period <- function(per, ...){
+  per_list <- time_by_list(per)
+  per_list <- time_by_list_convert_weeks_to_days(per_list)
+  per_num <- time_by_num(per_list)
+  per_unit <- time_by_unit(per_list)
+  per_num <- rep(per_num, ...)
+  other_fill <- numeric(length(per_num))
+  switch(
+    per_unit,
+    years = {
+      per@year <- per_num
+      per@month <- other_fill
+      per@day <- other_fill
+      per@hour <- other_fill
+      per@minute <- other_fill
+      per@.Data <- other_fill
+    },
+    months = {
+      per@month <- per_num
+      per@year <- other_fill
+      per@day <- other_fill
+      per@hour <- other_fill
+      per@minute <- other_fill
+      per@.Data <- other_fill
+    },
+    days = {
+      per@day <- per_num
+      per@year <- other_fill
+      per@month <- other_fill
+      per@hour <- other_fill
+      per@minute <- other_fill
+      per@.Data <- other_fill
+    },
+    hours = {
+      per@hour <- per_num
+      per@year <- other_fill
+      per@month <- other_fill
+      per@day <- other_fill
+      per@minute <- other_fill
+      per@.Data <- other_fill
+    },
+    minutes = {
+      per@minute <- per_num
+      per@year <- other_fill
+      per@month <- other_fill
+      per@day <- other_fill
+      per@hour <- other_fill
+      per@.Data <- other_fill
+    },
+    seconds = {
+      per@.Data <- per_num
+      per@year <- other_fill
+      per@month <- other_fill
+      per@day <- other_fill
+      per@hour <- other_fill
+      per@minute <- other_fill
+    }
+  )
+  per
+}
+
 ### Taken from lubridate ###
 
 # Accepts an estimate ala (interval / duration)
@@ -1483,7 +1544,7 @@ divide_interval_by_period2 <- function(start, end, per){
   max_len <- max(length(start), length(end), length(per))
   timespans <- recycle_args(start, end, length = max_len)
   # Here we make sure to use rep method for lubridate periods
-  timespans[[3]] <- rep(per, length.out = max_len)
+  timespans[[3]] <- rep_single_unit_period(per, length.out = max_len)
   if (num_na(estimate) == 0) {
     adj_dur_est(estimate, timespans[[1]], timespans[[2]], timespans[[3]])
   } else {
