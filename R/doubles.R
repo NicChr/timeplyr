@@ -13,9 +13,8 @@
 #' When either `x[i]` or `y[i]` contain a number very close to zero,
 #' absolute differences are used, otherwise relative differences are used.
 #'
-#' The output is commutative, which means the order of arguments don't matter
+#' The output of `double_equal()` is commutative, which means the order of arguments don't matter
 #' whereas this is not the case for `all.equal.numeric()`.
-#'
 #'
 #' The calculation is done in C++ and is quite efficient.
 #' Recycling follows the usual R rules and is done without allocating

@@ -59,7 +59,7 @@ SEXP cpp_num_na(SEXP x){
     Rcpp::stop("num_na cannot handle the supplied SEXP");
   }
   }
-  if (count < std::numeric_limits<int>::max()){
+  if (count <= std::numeric_limits<int>::max()){
     SEXP out = PROTECT(Rf_allocVector(INTSXP, 1));
     int *p_out = INTEGER(out);
     p_out[0] = int(count);
