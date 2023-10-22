@@ -35,3 +35,5 @@ Rcpp
 
 * All double comparisons are now fully vectorised and recycling occurs without 
 additional memory allocation.
+
+* New function `num_na` to efficiently calculate number of missing values.

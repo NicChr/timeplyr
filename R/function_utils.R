@@ -1074,14 +1074,6 @@ some <- function(..., n = NULL, prop = NULL, na.rm = FALSE){
 list_of_empty_vectors <- function(x){
   lapply(x, function(x) x[0L])
 }
-
-# Similar to collapse::fnobs
-# The same can be achieved using
-# length(x) - fnobs(x)
-# But num_na has support for complex & raw vectors
-num_na <- function(x){
-  .Call(`_timeplyr_cpp_num_na`, x)
-}
 # anyDuplicated but returns a logical(1)
 anyduplicated <- function(x){
   anyDuplicated.default(x) > 0L

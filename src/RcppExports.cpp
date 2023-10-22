@@ -123,7 +123,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_num_na
-int cpp_num_na(SEXP x);
+SEXP cpp_num_na(SEXP x);
 RcppExport SEXP _timeplyr_cpp_num_na(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

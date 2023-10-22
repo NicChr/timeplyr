@@ -135,7 +135,7 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                           log_limit = log_limit)
       # Add group ID
       grp_nm <- new_var_nm(out1, ".group.id")
-      out1[, (grp_nm) := group_id.default(.SD, order = FALSE),
+      out1[, (grp_nm) := group_id(.SD, order = FALSE, .cols = names(.SD)),
            .SDcols = group_vars]
       setorderv2(out1, cols = grp_nm)
       # Add group IDs for each non-group variable
@@ -143,7 +143,7 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
       for (i in seq_along(leftover_grp_nms)){
         assign(paste0("grp_nm_", i),
                new_var_nm(out1, ".group.id"))
-        out1[, (get(paste0("grp_nm_", i))) := group_id.default(.SD, order = FALSE),
+        out1[, (get(paste0("grp_nm_", i))) := group_id(.SD, order = FALSE, .cols = names(.SD)),
              .SDcols = leftover_grp_nms[[i]]]
       }
       group_id_nms <- unlist(mget(paste0("grp_nm_",
@@ -165,19 +165,27 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
       # out <- out2[, .Call(Ccj, unlist(.SD, recursive = FALSE, use.names = FALSE)),
       #             keyby = grp_nm,
       #             .SDcols = group_id_nms]
-        out <- out2[, CJ2(unlist(.SD, recursive = FALSE, use.names = FALSE)),
-                    keyby = grp_nm,
-                    .SDcols = group_id_nms]
+      out <- out2[, CJ2(unlist(.SD, recursive = FALSE, use.names = FALSE)),
+                  keyby = grp_nm,
+                  .SDcols = group_id_nms]
       out <- frename(out, .cols = add_names(names(out), c(grp_nm, leftover_grp_nms)))
       for (i in seq_along(group_id_nms)){
-        data.table::set(out, j = leftover_grp_nms[[i]],
-                        value = out1[[leftover_grp_nms[[i]]]][match(out[[leftover_grp_nms[[i]]]],
-                                                                    out1[[group_id_nms[[i]]]])])
+        grp_to_modify <- leftover_grp_nms[[i]]
+        grp_to_match_on <- group_id_nms[[i]]
+        data.table::set(out, j = grp_to_modify,
+                        value = out1[[grp_to_modify]][
+                          collapse::fmatch(out[[grp_to_modify]],
+                                           out1[[grp_to_match_on]],
+                                           overid = 2L)
+                        ])
       }
       for (i in seq_along(group_vars)){
         data.table::set(out, j = group_vars[[i]],
-                        value = out1[[group_vars[[i]]]][match(out[[grp_nm]],
-                                                              out1[[grp_nm]])])
+                        value = out1[[group_vars[[i]]]][
+                          collapse::fmatch(out[[grp_nm]],
+                                           out1[[grp_nm]],
+                                           overid = 2L)
+                        ])
       }
       set_rm_cols(out, grp_nm)
       if (sort){
@@ -233,7 +241,6 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
     out <- crossed_join(X_other, unique = FALSE)
   } else {
     out <- df_row_slice(df, rep(grp_seq, each = n_other))
-    # out <- df[rep(grp_seq, each = n_other), , drop = FALSE]
     if (length(X_other) > 0L){
       rep_times <- df_nrow(out) / collapse::vlengths(X_other, use.names = FALSE)
       for (i in seq_along(X_other)){
