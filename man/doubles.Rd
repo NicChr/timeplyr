@@ -36,7 +36,7 @@ using relative differences.
 When either \code{x[i]} or \code{y[i]} contain a number very close to zero,
 absolute differences are used, otherwise relative differences are used.
 
-The output is commutative, which means the order of arguments don't matter
+The output of \code{double_equal()} is commutative, which means the order of arguments don't matter
 whereas this is not the case for \code{all.equal.numeric()}.
 
 The calculation is done in C++ and is quite efficient.
