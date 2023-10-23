@@ -652,11 +652,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2023-W41"
+#> [1] "2023-W43"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W41-7"
+#> [1] "2023-W43-1"
 iso_week(today(), year = FALSE)
-#> [1] "W41"
+#> [1] "W43"
 ```
 
 ## `time_cut()`

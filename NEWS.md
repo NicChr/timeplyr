@@ -1,16 +1,16 @@
-# timeplyr (Development version)
+# timeplyr
 
 # timeplyr 0.2.0 (15-Oct-2023)
 
 * CRAN submission accepted.
 
-# (In development) timeplyr 0.2.1 (16-Oct-2023)
+# timeplyr 0.2.1
 
 * Fixed a bug where `sequence2` would error when `nvec` was a zero-length vector.
 
 * Fixed a bug where `time_granularity` would error with zero-length vectors.
 
-* `is_whole_number` is now faster and utilises relative differences. 
+* `is_whole_number` is now faster and utilises both absolute and relative differences. 
 Also and the underlying C++ function is safer.
 
 * Period calculations are now faster and more memory efficient and thus all the 
