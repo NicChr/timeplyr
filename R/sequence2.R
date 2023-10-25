@@ -80,33 +80,17 @@ sequence2 <- function(nvec, from = 1L, by = 1L){
     by <- rep.int(by, times = nvec)
   }
   # Arithmetic
-  g_add <- sequence(nvec, from = 0L, by = 1L)
+  g_add <- double_sequence(nvec, from = 0, by = 1)
   from + (g_add * by)
 }
-# sequence2 <- function(nvec, from = 1L, by = 1L){
-#   out_len <- sum(nvec)
-#   out_is_long <- out_len >= (2^31)
-#   g_len <- length(nvec)
-#   if (length(from) > 1L){
-#     # Recycle
-#     from <- rep_len(from, g_len)
-#     # Expand
-#     from <- rep.int(from, times = nvec)
-#   }
-#   if (length(by) > 1L){
-#     # Recycle
-#     by <- rep_len(by, g_len)
-#     # Expand
-#     by <- rep.int(by, times = nvec)
-#   }
-#   # Arithmetic
-#   if (out_is_long){
-#     g_add <- grouped_seq_len(out_len, g = seq_id(nvec), check.o = FALSE) - 1
-#   } else {
-#     g_add <- window_sequence(nvec, k = Inf) - 1L
-#   }
-#   from + (g_add * by)
+# Like base::sequence() but c++
+# integer_sequence <- function(size, from = 1L, by = 1L){
+#   cpp_int_sequence(as.integer(size), as.integer(from), as.integer(by))
 # }
+# Like base::sequence() but with support for double increments and long vectors
+double_sequence <- function(size, from = 1, by = 1){
+  cpp_dbl_sequence(as.integer(size), as.double(from), as.double(by))
+}
 #' @rdname sequence2
 #' @export
 seq_id <- function(nvec){

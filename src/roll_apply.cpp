@@ -79,152 +79,77 @@ using namespace Rcpp;
 //   return out;
 // }
 
-// [[Rcpp::export(rng = false)]]
-IntegerVector before_sequence(IntegerVector size, int k) {
-  if (Rcpp::min(size) < 0){
-    stop("size must be a vector of non-negative integers");
-  }
-  int size_n = size.length();
-  k = std::max(k, 0);
-  IntegerVector out(sum(size), k);
-  int index = 0;
-  for (int j = 0; j < size_n; ++j){
-    for (int i = 0; i < size[j]; ++i){
-      if (i < k){
-        out[index] = i;
-      }
-      ++index;
-    }
-  }
-  return out;
-}
-
-// [[Rcpp::export(rng = false)]]
-IntegerVector after_sequence(IntegerVector size, int k) {
-  if (Rcpp::min(size) < 0){
-    stop("size must be a vector of non-negative integers");
-  }
-  int size_n = size.length();
-  k = std::max(k, 0);
-  IntegerVector out(sum(size), k);
-  int index = 0;
-  int idiff;
-  for (int j = 0; j < size_n; ++j){
-    for (int i = 0; i < size[j]; ++i){
-      idiff = size[j] - i - 1;
-      if (idiff < k){
-        out[index] = idiff;
-      }
-      ++index;
-    }
-  }
-  return out;
-}
-
-
-// [[Rcpp::export(rng = false)]]
-IntegerVector window_sequence(IntegerVector size,
-                              double k,
-                              bool partial = true,
-                              bool ascending = true) {
-  int size_n = size.length();
-  // double N = sum(size);
-  if (Rcpp::min(size) < 0){
-    stop("size must be a vector of non-negative integers");
-  }
-  k = std::fmax(k, 0);
-  IntegerVector out(sum(size), k);
-  // k = std::fmin(k, out.length());
-  int index = 0;
-  if (ascending){
-    // right aligned window sequences
-    if (partial){
-      for (int j = 0; j < size_n; ++j){
-        for (int i = 0; i < size[j]; ++i){
-          if (i < k){
-            out[index] = i + 1;
-          }
-          ++index;
-        }
-      }
-    } else {
-      for (int j = 0; j < size_n; ++j){
-        for (int i = 0; i < size[j]; ++i){
-          if (i < (k - 1)){
-            out[index] = NA_INTEGER;
-          }
-          ++index;
-        }
-      }
-    }
-  } else {
-    // left aligned window sequences
-    int idiff;
-    if (partial){
-      for (int j = 0; j < size_n; ++j){
-        for (int i = 0; i < size[j]; ++i){
-          idiff = size[j] - i - 1;
-          if (idiff < k){
-            out[index] = idiff + 1;
-          }
-          ++index;
-        }
-      }
-    } else {
-      for (int j = 0; j < size_n; ++j){
-        for (int i = 0; i < size[j]; ++i){
-          idiff = size[j] - i - 1;
-          if (idiff < (k - 1)){
-            out[index] = NA_INTEGER;
-          }
-          ++index;
-        }
-      }
-    }
-  }
-  return out;
-}
-
-// [[Rcpp::export(rng = false)]]
-IntegerVector lag_sequence(IntegerVector size, int k) {
-  if (Rcpp::min(size) < 0){
-    stop("size must be a vector of non-negative integers");
-  }
-  int size_n = size.length();
-  k = std::max(k, 0);
-  IntegerVector out(sum(size), k);
-  int index = 0;
-  for (int j = 0; j < size_n; ++j){
-    for (int i = 0; i < size[j]; ++i){
-      if (i < k){
-        out[index] = NA_INTEGER;
-      }
-      ++index;
-    }
-  }
-  return out;
-}
-// [[Rcpp::export(rng = false)]]
-IntegerVector lead_sequence(IntegerVector size, int k) {
-  if (Rcpp::min(size) < 0){
-    stop("size must be a vector of non-negative integers");
-  }
-  int size_n = size.length();
-  k = std::max(k, 0);
-  IntegerVector out(sum(size), k);
-  int index = 0;
-  int idiff;
-  for (int j = 0; j < size_n; ++j){
-    for (int i = 0; i < size[j]; ++i){
-      idiff = size[j] - i - 1;
-      if (idiff < k){
-        out[index] = NA_INTEGER;
-      }
-      ++index;
-    }
-  }
-  return out;
-}
+// IntegerVector window_sequence(IntegerVector size,
+//                               double k,
+//                               bool partial = true,
+//                               bool ascending = true) {
+//   int size_n = size.length();
+//   if (Rcpp::min(size) < 0){
+//     Rcpp::stop("size must be a vector of non-negative integers");
+//   }
+//   k = std::fmax(k, 0);
+//   // double out_len = r_sum(size);
+//   SEXP out = PROTECT(Rf_allocVector(INTSXP, Rcpp::sum(size)));
+//   int *p_out = INTEGER(out);
+//   R_xlen_t index = 0;
+//   if (ascending){
+//     // right aligned window sequences
+//     if (partial){
+//       for (int j = 0; j < size_n; ++j){
+//         for (int i = 0; i < size[j]; ++i){
+//           if (i < k){
+//             p_out[index] = i + 1;
+//           } else {
+//             p_out[index] = k;
+//           }
+//           ++index;
+//         }
+//       }
+//     } else {
+//       for (int j = 0; j < size_n; ++j){
+//         for (int i = 0; i < size[j]; ++i){
+//           if (i < (k - 1)){
+//             p_out[index] = NA_INTEGER;
+//           } else {
+//             p_out[index] = k;
+//           }
+//           ++index;
+//         }
+//       }
+//     }
+//   } else {
+//     // left aligned window sequences
+//     int idiff;
+//     if (partial){
+//       for (int j = 0; j < size_n; ++j){
+//         for (int i = 0; i < size[j]; ++i){
+//           idiff = size[j] - i - 1;
+//           if (idiff < k){
+//             p_out[index] = idiff + 1;
+//           } else {
+//             p_out[index] = k;
+//           }
+//           ++index;
+//         }
+//       }
+//     } else {
+//       for (int j = 0; j < size_n; ++j){
+//         for (int i = 0; i < size[j]; ++i){
+//           idiff = size[j] - i - 1;
+//           if (idiff < (k - 1)){
+//             p_out[index] = NA_INTEGER;
+//           } else {
+//             p_out[index] = k;
+//           }
+//           ++index;
+//         }
+//       }
+//     }
+//   }
+//   UNPROTECT(1);
+//   return out;
+// }
+//
 
 // NumericVector roll_apply_max(NumericVector x,
 //                              IntegerVector before,
@@ -276,145 +201,6 @@ IntegerVector lead_sequence(IntegerVector size, int k) {
 //     istart = std::max(i - before, 0);
 //     iend = std::min(i + after, n - 1);
 //     out[i] = max(na_omit(x[Rcpp::Range(istart, iend)]));
-//   }
-//   return out;
-// }
-
-// I thought this should have partial implementation
-// But it makes more sense to have each roll function
-// Have a partial implementation and for
-// the before/after sequences to have no NAs
-
-// IntegerVector before_sequence(IntegerVector size,
-//                               int k,
-//                               bool partial) {
-//   int size_n = size.length();
-//   k = std::max(k, 0);
-//   IntegerVector out(sum(size));
-//   int index = 0;
-//   if (partial){
-//     for (int j = 0; j < size_n; ++j){
-//       for (int i = 0; i < size[j]; ++i){
-//         if (i < k){
-//           out[index] = i;
-//         } else {
-//           out[index] = k;
-//         }
-//         index = index + 1;
-//       }
-//     }
-//   } else {
-//     for (int j = 0; j < size_n; ++j){
-//       for (int i = 0; i < size[j]; ++i){
-//         if (i < k){
-//           out[index] = NA_INTEGER;
-//         } else {
-//           out[index] = k;
-//         }
-//         index = index + 1;
-//       }
-//     }
-//   }
-//   return out;
-// }
-
-// IntegerVector after_sequence(IntegerVector size,
-//                              int k,
-//                              bool partial) {
-//   int size_n = size.length();
-//   k = std::max(k, 0);
-//   IntegerVector out(sum(size));
-//   int index = 0;
-//   int idiff;
-//   if (partial){
-//     for (int j = 0; j < size_n; ++j){
-//       for (int i = 0; i < size[j]; ++i){
-//         idiff = size[j] - i - 1;
-//         if (idiff < k){
-//           out[index] = idiff;
-//         } else {
-//           out[index] = k;
-//         }
-//         index = index + 1;
-//       }
-//     }
-//   } else {
-//     for (int j = 0; j < size_n; ++j){
-//       for (int i = 0; i < size[j]; ++i){
-//         idiff = size[j] - i - 1;
-//         if (idiff < k){
-//           out[index] = NA_INTEGER;
-//         } else {
-//           out[index] = k;
-//         }
-//         index = index + 1;
-//       }
-//     }
-//   }
-//   return out;
-// }
-
-// IntegerVector window_sequence(IntegerVector size,
-//                               int k,
-//                               bool partial,
-//                               bool ascending) {
-//   int size_n = size.length();
-//   k = std::max(k, 0);
-//   IntegerVector out(sum(size));
-//   int index = 0;
-//   if (ascending){
-//     // right aligned window sequences
-//     if (partial){
-//       for (int j = 0; j < size_n; ++j){
-//         for (int i = 0; i < size[j]; ++i){
-//           if (i < k){
-//             out[index] = i + 1;
-//           } else {
-//             out[index] = k;
-//           }
-//           index = index + 1;
-//         }
-//       }
-//     } else {
-//       for (int j = 0; j < size_n; ++j){
-//         for (int i = 0; i < size[j]; ++i){
-//           if (i < (k - 1)){
-//             out[index] = NA_INTEGER;
-//           } else {
-//             out[index] = k;
-//           }
-//           index = index + 1;
-//         }
-//       }
-//     }
-//   } else {
-//     // left aligned window sequences
-//     int idiff;
-//     if (partial){
-//       for (int j = 0; j < size_n; ++j){
-//         for (int i = 0; i < size[j]; ++i){
-//           idiff = size[j] - i - 1;
-//           if (idiff < k){
-//             out[index] = idiff + 1;
-//           } else {
-//             out[index] = k;
-//           }
-//           index = index + 1;
-//         }
-//       }
-//     } else {
-//       for (int j = 0; j < size_n; ++j){
-//         for (int i = 0; i < size[j]; ++i){
-//           idiff = size[j] - i - 1;
-//           if (idiff < (k - 1)){
-//             out[index] = NA_INTEGER;
-//           } else {
-//             out[index] = k;
-//           }
-//           index = index + 1;
-//         }
-//       }
-//     }
 //   }
 //   return out;
 // }

@@ -26,9 +26,9 @@ bool is_whole_num(SEXP x, Nullable<NumericVector> tol) {
   case REALSXP: {
     // Re-initialise so that we can break when we find non-whole num
     out = true;
-    int n = Rf_length(x);
+    R_xlen_t n = Rf_xlength(x);
     double *p_x = REAL(x);
-    for (int i = 0; i < n; ++i) {
+    for (R_xlen_t i = 0; i < n; ++i) {
       diff_zero = std::fabs(p_x[i]);
       is_zero = diff_zero < tolerance;
       rounded = std::round(p_x[i]);

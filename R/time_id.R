@@ -28,6 +28,9 @@
 #' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations` are used otherwise.
+#' @param shift Value used to shift the time IDs. Typically this is 1 to ensure the
+#' IDs start at 1 but can be 0 or even negative if for example
+#' your time values are going backwards in time.
 #'
 #' @returns
 #' An integer vector the same length as `x`.
@@ -50,7 +53,10 @@
 #'
 #' @export
 time_id <- function(x, time_by = NULL, g = NULL, na_skip = TRUE,
-                    time_type = c("auto", "duration", "period")){
+                    time_type = c("auto", "duration", "period"),
+                    shift = 1L){
+  time_by <- time_by_get(x, time_by)
+  check_length(shift, 1)
   elapsed <- time_elapsed(x, time_by = time_by, g = g,
                           na_skip = na_skip,
                           time_type = time_type,
@@ -60,7 +66,7 @@ time_id <- function(x, time_by = NULL, g = NULL, na_skip = TRUE,
   elapsed_rounded <- round(elapsed)
   elapsed_truncated <- which(double_equal(elapsed, elapsed_rounded) & (elapsed_rounded != out))
   out[elapsed_truncated] <- elapsed_rounded[elapsed_truncated]
-  as.integer(out) + 1L
+  as.integer(out) + shift
 }
 # To more closely match collapse::timeid one can use the below 3 lines
 # time_diff_gcd <- time_diff_gcd(x)

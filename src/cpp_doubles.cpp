@@ -96,11 +96,11 @@ bool cpp_double_lte(double x, double y, double tolerance){
 // [[Rcpp::export(rng = false)]]
 SEXP cpp_double_equal_vectorised(SEXP x, SEXP y, SEXP tolerance) {
   // double tolerance = std::sqrt(std::numeric_limits<double>::epsilon());
-  int x_len = Rf_length(x);
-  int y_len = Rf_length(y);
-  int tol_len = Rf_length(tolerance);
-  int n = std::max(x_len, y_len);
-  n = std::max(n, tol_len);
+  R_xlen_t x_len = Rf_xlength(x);
+  R_xlen_t y_len = Rf_xlength(y);
+  R_xlen_t tol_len = Rf_xlength(tolerance);
+  R_xlen_t n = std::fmax(x_len, y_len);
+  n = std::fmax(n, tol_len);
   if (x_len <= 0 || y_len <= 0 || tol_len <= 0){
     // Avoid loop if any are length zero vectors
     n = 0;
@@ -110,10 +110,10 @@ SEXP cpp_double_equal_vectorised(SEXP x, SEXP y, SEXP tolerance) {
   double *p_t = REAL(tolerance);
   SEXP out = PROTECT(Rf_allocVector(LGLSXP, n));
   int *p_out = LOGICAL(out);
-  int xi;
-  int yi;
-  int ti;
-  for (int i = 0; i < n; ++i) {
+  R_xlen_t xi;
+  R_xlen_t yi;
+  R_xlen_t ti;
+  for (R_xlen_t i = 0; i < n; ++i) {
     xi = i % x_len;
     yi = i % y_len;
     ti = i % tol_len;
@@ -130,11 +130,11 @@ SEXP cpp_double_equal_vectorised(SEXP x, SEXP y, SEXP tolerance) {
 // [[Rcpp::export(rng = false)]]
 SEXP cpp_double_gt_vectorised(SEXP x, SEXP y, SEXP tolerance) {
   // double tolerance = std::sqrt(std::numeric_limits<double>::epsilon());
-  int x_len = Rf_length(x);
-  int y_len = Rf_length(y);
-  int tol_len = Rf_length(tolerance);
-  int n = std::max(x_len, y_len);
-  n = std::max(n, tol_len);
+  R_xlen_t x_len = Rf_xlength(x);
+  R_xlen_t y_len = Rf_xlength(y);
+  R_xlen_t tol_len = Rf_xlength(tolerance);
+  R_xlen_t n = std::fmax(x_len, y_len);
+  n = std::fmax(n, tol_len);
   if (x_len <= 0 || y_len <= 0 || tol_len <= 0){
     // Avoid loop if any are length zero vectors
     n = 0;
@@ -144,10 +144,10 @@ SEXP cpp_double_gt_vectorised(SEXP x, SEXP y, SEXP tolerance) {
   double *p_t = REAL(tolerance);
   SEXP out = PROTECT(Rf_allocVector(LGLSXP, n));
   int *p_out = LOGICAL(out);
-  int xi;
-  int yi;
-  int ti;
-  for (int i = 0; i < n; ++i) {
+  R_xlen_t xi;
+  R_xlen_t yi;
+  R_xlen_t ti;
+  for (R_xlen_t i = 0; i < n; ++i) {
     xi = i % x_len;
     yi = i % y_len;
     ti = i % tol_len;
@@ -164,11 +164,11 @@ SEXP cpp_double_gt_vectorised(SEXP x, SEXP y, SEXP tolerance) {
 // [[Rcpp::export(rng = false)]]
 SEXP cpp_double_gte_vectorised(SEXP x, SEXP y, SEXP tolerance) {
   // double tolerance = std::sqrt(std::numeric_limits<double>::epsilon());
-  int x_len = Rf_length(x);
-  int y_len = Rf_length(y);
-  int tol_len = Rf_length(tolerance);
-  int n = std::max(x_len, y_len);
-  n = std::max(n, tol_len);
+  R_xlen_t x_len = Rf_xlength(x);
+  R_xlen_t y_len = Rf_xlength(y);
+  R_xlen_t tol_len = Rf_xlength(tolerance);
+  R_xlen_t n = std::fmax(x_len, y_len);
+  n = std::fmax(n, tol_len);
   if (x_len <= 0 || y_len <= 0 || tol_len <= 0){
     // Avoid loop if any are length zero vectors
     n = 0;
@@ -178,10 +178,10 @@ SEXP cpp_double_gte_vectorised(SEXP x, SEXP y, SEXP tolerance) {
   double *p_t = REAL(tolerance);
   SEXP out = PROTECT(Rf_allocVector(LGLSXP, n));
   int *p_out = LOGICAL(out);
-  int xi;
-  int yi;
-  int ti;
-  for (int i = 0; i < n; ++i) {
+  R_xlen_t xi;
+  R_xlen_t yi;
+  R_xlen_t ti;
+  for (R_xlen_t i = 0; i < n; ++i) {
     xi = i % x_len;
     yi = i % y_len;
     ti = i % tol_len;
@@ -198,11 +198,11 @@ SEXP cpp_double_gte_vectorised(SEXP x, SEXP y, SEXP tolerance) {
 // [[Rcpp::export(rng = false)]]
 SEXP cpp_double_lt_vectorised(SEXP x, SEXP y, SEXP tolerance) {
   // double tolerance = std::sqrt(std::numeric_limits<double>::epsilon());
-  int x_len = Rf_length(x);
-  int y_len = Rf_length(y);
-  int tol_len = Rf_length(tolerance);
-  int n = std::max(x_len, y_len);
-  n = std::max(n, tol_len);
+  R_xlen_t x_len = Rf_xlength(x);
+  R_xlen_t y_len = Rf_xlength(y);
+  R_xlen_t tol_len = Rf_xlength(tolerance);
+  R_xlen_t n = std::fmax(x_len, y_len);
+  n = std::fmax(n, tol_len);
   if (x_len <= 0 || y_len <= 0 || tol_len <= 0){
     // Avoid loop if any are length zero vectors
     n = 0;
@@ -212,10 +212,10 @@ SEXP cpp_double_lt_vectorised(SEXP x, SEXP y, SEXP tolerance) {
   double *p_t = REAL(tolerance);
   SEXP out = PROTECT(Rf_allocVector(LGLSXP, n));
   int *p_out = LOGICAL(out);
-  int xi;
-  int yi;
-  int ti;
-  for (int i = 0; i < n; ++i) {
+  R_xlen_t xi;
+  R_xlen_t yi;
+  R_xlen_t ti;
+  for (R_xlen_t i = 0; i < n; ++i) {
     xi = i % x_len;
     yi = i % y_len;
     ti = i % tol_len;
@@ -232,11 +232,11 @@ SEXP cpp_double_lt_vectorised(SEXP x, SEXP y, SEXP tolerance) {
 // [[Rcpp::export(rng = false)]]
 SEXP cpp_double_lte_vectorised(SEXP x, SEXP y, SEXP tolerance) {
   // double tolerance = std::sqrt(std::numeric_limits<double>::epsilon());
-  int x_len = Rf_length(x);
-  int y_len = Rf_length(y);
-  int tol_len = Rf_length(tolerance);
-  int n = std::max(x_len, y_len);
-  n = std::max(n, tol_len);
+  R_xlen_t x_len = Rf_xlength(x);
+  R_xlen_t y_len = Rf_xlength(y);
+  R_xlen_t tol_len = Rf_xlength(tolerance);
+  R_xlen_t n = std::fmax(x_len, y_len);
+  n = std::fmax(n, tol_len);
   if (x_len <= 0 || y_len <= 0 || tol_len <= 0){
     // Avoid loop if any are length zero vectors
     n = 0;
@@ -246,10 +246,10 @@ SEXP cpp_double_lte_vectorised(SEXP x, SEXP y, SEXP tolerance) {
   double *p_t = REAL(tolerance);
   SEXP out = PROTECT(Rf_allocVector(LGLSXP, n));
   int *p_out = LOGICAL(out);
-  int xi;
-  int yi;
-  int ti;
-  for (int i = 0; i < n; ++i) {
+  R_xlen_t xi;
+  R_xlen_t yi;
+  R_xlen_t ti;
+  for (R_xlen_t i = 0; i < n; ++i) {
     xi = i % x_len;
     yi = i % y_len;
     ti = i % tol_len;

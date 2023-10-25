@@ -9,7 +9,8 @@ time_id(
   time_by = NULL,
   g = NULL,
   na_skip = TRUE,
-  time_type = c("auto", "duration", "period")
+  time_type = c("auto", "duration", "period"),
+  shift = 1L
 )
 }
 \arguments{
@@ -42,6 +43,10 @@ This can for example be a vector or data frame.
 \item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks, months or years are specified,
 and \code{durations} are used otherwise.}
+
+\item{shift}{Value used to shift the time IDs. Typically this is 1 to ensure the
+IDs start at 1 but can be 0 or even negative if for example
+your time values are going backwards in time.}
 }
 \value{
 An integer vector the same length as \code{x}.

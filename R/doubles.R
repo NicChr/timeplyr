@@ -7,7 +7,8 @@
 #' @param y A numeric vector.
 #' @param tol A vector of tolerances.
 #'
-#' @return A logical vector.
+#' @returns
+#' A logical vector.
 #'
 #' @details
 #' When either `x[i]` or `y[i]` contain a number very close to zero,

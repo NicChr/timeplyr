@@ -41,8 +41,16 @@ list_item_is_interval <- function(l) {
     .Call(`_timeplyr_list_item_is_interval`, l)
 }
 
+test_long_vector_support <- function() {
+    .Call(`_timeplyr_test_long_vector_support`)
+}
+
 cpp_num_na <- function(x) {
     .Call(`_timeplyr_cpp_num_na`, x)
+}
+
+roll_time_threshold <- function(x, threshold = 1, switch_on_boundary = TRUE) {
+    .Call(`_timeplyr_roll_time_threshold`, x, threshold, switch_on_boundary)
 }
 
 before_sequence <- function(size, k) {
@@ -51,6 +59,10 @@ before_sequence <- function(size, k) {
 
 after_sequence <- function(size, k) {
     .Call(`_timeplyr_after_sequence`, size, k)
+}
+
+cpp_dbl_sequence <- function(size, from, by) {
+    .Call(`_timeplyr_cpp_dbl_sequence`, size, from, by)
 }
 
 window_sequence <- function(size, k, partial = TRUE, ascending = TRUE) {
@@ -63,9 +75,5 @@ lag_sequence <- function(size, k) {
 
 lead_sequence <- function(size, k) {
     .Call(`_timeplyr_lead_sequence`, size, k)
-}
-
-roll_time_threshold <- function(x, threshold = 1, switch_on_boundary = TRUE) {
-    .Call(`_timeplyr_roll_time_threshold`, x, threshold, switch_on_boundary)
 }
 

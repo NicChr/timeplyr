@@ -122,6 +122,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// test_long_vector_support
+bool test_long_vector_support();
+RcppExport SEXP _timeplyr_test_long_vector_support() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(test_long_vector_support());
+    return rcpp_result_gen;
+END_RCPP
+}
 // cpp_num_na
 SEXP cpp_num_na(SEXP x);
 RcppExport SEXP _timeplyr_cpp_num_na(SEXP xSEXP) {
@@ -129,6 +139,18 @@ BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
     rcpp_result_gen = Rcpp::wrap(cpp_num_na(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// roll_time_threshold
+IntegerVector roll_time_threshold(SEXP x, double threshold, bool switch_on_boundary);
+RcppExport SEXP _timeplyr_roll_time_threshold(SEXP xSEXP, SEXP thresholdSEXP, SEXP switch_on_boundarySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type threshold(thresholdSEXP);
+    Rcpp::traits::input_parameter< bool >::type switch_on_boundary(switch_on_boundarySEXP);
+    rcpp_result_gen = Rcpp::wrap(roll_time_threshold(x, threshold, switch_on_boundary));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -151,6 +173,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
     Rcpp::traits::input_parameter< int >::type k(kSEXP);
     rcpp_result_gen = Rcpp::wrap(after_sequence(size, k));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_dbl_sequence
+SEXP cpp_dbl_sequence(SEXP size, SEXP from, SEXP by);
+RcppExport SEXP _timeplyr_cpp_dbl_sequence(SEXP sizeSEXP, SEXP fromSEXP, SEXP bySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< SEXP >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type from(fromSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type by(bySEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_dbl_sequence(size, from, by));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -189,18 +223,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// roll_time_threshold
-IntegerVector roll_time_threshold(SEXP x, double threshold, bool switch_on_boundary);
-RcppExport SEXP _timeplyr_roll_time_threshold(SEXP xSEXP, SEXP thresholdSEXP, SEXP switch_on_boundarySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
-    Rcpp::traits::input_parameter< double >::type threshold(thresholdSEXP);
-    Rcpp::traits::input_parameter< bool >::type switch_on_boundary(switch_on_boundarySEXP);
-    rcpp_result_gen = Rcpp::wrap(roll_time_threshold(x, threshold, switch_on_boundary));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_double_equal_vectorised", (DL_FUNC) &_timeplyr_cpp_double_equal_vectorised, 3},
@@ -213,13 +235,15 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_list_rm_null", (DL_FUNC) &_timeplyr_list_rm_null, 1},
     {"_timeplyr_list_has_interval", (DL_FUNC) &_timeplyr_list_has_interval, 1},
     {"_timeplyr_list_item_is_interval", (DL_FUNC) &_timeplyr_list_item_is_interval, 1},
+    {"_timeplyr_test_long_vector_support", (DL_FUNC) &_timeplyr_test_long_vector_support, 0},
     {"_timeplyr_cpp_num_na", (DL_FUNC) &_timeplyr_cpp_num_na, 1},
+    {"_timeplyr_roll_time_threshold", (DL_FUNC) &_timeplyr_roll_time_threshold, 3},
     {"_timeplyr_before_sequence", (DL_FUNC) &_timeplyr_before_sequence, 2},
     {"_timeplyr_after_sequence", (DL_FUNC) &_timeplyr_after_sequence, 2},
+    {"_timeplyr_cpp_dbl_sequence", (DL_FUNC) &_timeplyr_cpp_dbl_sequence, 3},
     {"_timeplyr_window_sequence", (DL_FUNC) &_timeplyr_window_sequence, 4},
     {"_timeplyr_lag_sequence", (DL_FUNC) &_timeplyr_lag_sequence, 2},
     {"_timeplyr_lead_sequence", (DL_FUNC) &_timeplyr_lead_sequence, 2},
-    {"_timeplyr_roll_time_threshold", (DL_FUNC) &_timeplyr_roll_time_threshold, 3},
     {NULL, NULL, 0}
 };
 

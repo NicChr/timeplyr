@@ -1,12 +1,14 @@
 #include <Rcpp.h>
 #include <Rinternals.h>
-// int test_long_vector_support() {
-// #ifdef RCPP_HAS_LONG_LONG_TYPES
-//   return 1;
-// #else
-//   return 0;
-// #endif
-// }
+
+// [[Rcpp::export]]
+bool test_long_vector_support() {
+#ifdef RCPP_HAS_LONG_LONG_TYPES
+  return true;
+#else
+  return false;
+#endif
+}
 
 // [[Rcpp::export(rng = false)]]
 SEXP cpp_num_na(SEXP x){

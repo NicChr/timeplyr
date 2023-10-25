@@ -400,7 +400,7 @@ period_by_calc <- function(from, to, length){
                         time_type = "period")
   out <- lubridate::seconds_to_period(sec_diff / (length - 1))
   period_info <- collapse::qDF(time_unit_info(out))
-  n_unique_slots <- ncol(period_info) - rowSums(period_info == 0)
+  n_unique_slots <- df_ncol(period_info) - rowSums(period_info == 0)
   which_multi <- which(n_unique_slots > 1)
   out[which_multi] <- seconds_unit(
     lubridate::period_to_seconds(out[which_multi])
@@ -408,7 +408,37 @@ period_by_calc <- function(from, to, length){
   out[which_len_1] <- seconds_unit(0)
   out
 }
-# Unvectorised version
+# More accurate but slower and less efficient
+period_by_calc2 <- function(from, to, length){
+  periods_to_try <- rev(.period_units)
+  n_units <- length(periods_to_try)
+  for (i in seq_len(n_units)){
+    assign(periods_to_try[i], period_unit(periods_to_try[i])(1))
+  }
+  set_recycle_args(from, to, length)
+  out <- matrix(numeric(length(from) * n_units), ncol = n_units)
+  colnames(out) <- periods_to_try
+  out2 <- out
+  for (j in seq_len(n_units)){
+    out2[, j] <- divide_interval_by_period2(from, to, get(periods_to_try[j]))
+  }
+  ok <- apply(out2, 2, function(x) x / (length - 1))
+  attributes(ok) <- attributes(out)
+  which_len_1 <- which(length == 1)
+  if (length(which_len_1) > 0){
+    ok[which_len_1, ] <- 0
+  }
+  remainder <- ok %% 1
+  ok2 <- abs(out2) >= 1 & remainder == 0
+  ok3 <- ok2 == TRUE
+  res <- max.col(ok3, ties.method = "first")
+  res[rowSums(ok3) == 0] <- n_units
+  # Special way of subsetting specific elements from matrix
+  msub <- matrix(c(seq_len(length(from)), res), ncol = 2)
+  out[msub] <- ok[msub]
+  out[, 1:(n_units - 1)][(out[, 1:(n_units - 1)] %% 1) != 0] <- 0
+  do.call(get("period", asNamespace("lubridate")), as.data.frame(out))
+}
 # period_by <- function(from, to, length){
 #   if (length == 1){
 #     lubridate::seconds(0)
@@ -603,9 +633,9 @@ set_time_cast <- function(x, y){
 }
 
 # Safe time concatenation
-time_c <- function(...){
-  vctrs::vec_c(...)
-}
+# time_c <- function(...){
+#   vctrs::vec_c(...)
+# }
 # Faster time_cast
 # numeric > yearqtr > yearmon > date > datetime
 # You can move from left to right but not right to left
@@ -615,6 +645,7 @@ time_cast <- function(x, template){
       x <- as.POSIXct(x, origin = lubridate::origin)
     }
     lubridate::with_tz(x, tzone = lubridate::tz(template))
+    # as.POSIXct(x, tz = lubridate::tz(template), origin = lubridate::origin)
   } else if (inherits(template, "Date") && !inherits(x, "POSIXt")){
     lubridate::as_date(x)
   } else if (inherits(template, "yearmon") &&
@@ -1569,3 +1600,11 @@ time_by_list_convert_weeks_to_days <- function(time_by){
 #   unit <- plural_unit_to_single(time_by_unit(time_by))
 #   add_names(list(num), unit)
 # }
+period_to_list <- function(x){
+  list(year = attr(x, "year"),
+       month = attr(x, "month"),
+       day = attr(x, "day"),
+       hour = attr(x, "hour"),
+       minute = attr(x, "minute"),
+       second = x@.Data)
+}
