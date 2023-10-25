@@ -165,8 +165,9 @@ SEXP cpp_dbl_sequence(SEXP size, SEXP from, SEXP by) {
         Rcpp::stop("by contains NA values");
       }
       for (int i = 0; i < p_size[j]; ++i){
+        start = p_from[fj] + (i * increment);
         p_out[index] = start;
-        start += increment;
+        // start += increment;
         ++index;
       }
     }

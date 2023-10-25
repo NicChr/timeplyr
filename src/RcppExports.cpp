@@ -122,6 +122,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// pmax2
+SEXP pmax2(NumericVector x, NumericVector y);
+RcppExport SEXP _timeplyr_pmax2(SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(pmax2(x, y));
+    return rcpp_result_gen;
+END_RCPP
+}
 // test_long_vector_support
 bool test_long_vector_support();
 RcppExport SEXP _timeplyr_test_long_vector_support() {
@@ -235,6 +246,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_list_rm_null", (DL_FUNC) &_timeplyr_list_rm_null, 1},
     {"_timeplyr_list_has_interval", (DL_FUNC) &_timeplyr_list_has_interval, 1},
     {"_timeplyr_list_item_is_interval", (DL_FUNC) &_timeplyr_list_item_is_interval, 1},
+    {"_timeplyr_pmax2", (DL_FUNC) &_timeplyr_pmax2, 2},
     {"_timeplyr_test_long_vector_support", (DL_FUNC) &_timeplyr_test_long_vector_support, 0},
     {"_timeplyr_cpp_num_na", (DL_FUNC) &_timeplyr_cpp_num_na, 1},
     {"_timeplyr_roll_time_threshold", (DL_FUNC) &_timeplyr_roll_time_threshold, 3},

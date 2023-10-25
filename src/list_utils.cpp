@@ -42,38 +42,23 @@ LogicalVector list_item_is_interval( List l ) {
   }
   return out;
 }
-// SEXP pmax2(SEXP x, SEXP y){
-//   int n1 = Rf_length(x);
-//   int n2 = Rf_length(y);
-//   int n = std::max(n1, n2);
-//   if (n1 <= 0 || n2 <= 0){
-//     n = 0;
-//   }
-//   double *p_x = REAL(x);
-//   double *p_y = REAL(y);
-//   SEXP maxes = PROTECT(Rf_allocVector(REALSXP, n));
-//   double *p_maxes = REAL(maxes);
-//   int xi;
-//   int yi;
-//   for (int i = 0; i < n1; ++i){
-//     xi = (i % n1);
-//     yi = (i % n2);
-//     p_maxes[i] = std::fmax(p_x[xi], p_y[yi]);
-//   }
-//   UNPROTECT(1);
-//   return maxes;
-// }
-// NumericVector pmax3(SEXP x, SEXP y){
-//   int n1 = Rf_length(x);
-//   int n2 = Rf_length(y);
-//   if (n1 != n2){
-//     stop("x and y must be of equal length");
-//   }
-//   double *p_x = REAL(x);
-//   double *p_y = REAL(y);
-//   NumericVector out(n1);
-//   for (int i = 0; i < n1; ++i){
-//     out[i] = std::fmax(p_x[i], p_y[i]);
-//   }
-//   return out;
-// }
+// [[Rcpp::export(rng = false)]]
+SEXP pmax2(NumericVector x, NumericVector y){
+  R_xlen_t n1 = Rf_xlength(x);
+  R_xlen_t n2 = Rf_xlength(y);
+  R_xlen_t n = std::max(n1, n2);
+  if (n1 <= 0 || n2 <= 0){
+    n = 0;
+  }
+  SEXP maxes = PROTECT(Rf_allocVector(REALSXP, n));
+  double *p_maxes = REAL(maxes);
+  R_xlen_t xi;
+  R_xlen_t yi;
+  for (R_xlen_t i = 0; i < n; ++i){
+    xi = (i % n1);
+    yi = (i % n2);
+    p_maxes[i] = std::fmax(x[xi], y[yi]);
+  }
+  UNPROTECT(1);
+  return maxes;
+}

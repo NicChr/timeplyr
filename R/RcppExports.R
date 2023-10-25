@@ -41,6 +41,10 @@ list_item_is_interval <- function(l) {
     .Call(`_timeplyr_list_item_is_interval`, l)
 }
 
+pmax2 <- function(x, y) {
+    .Call(`_timeplyr_pmax2`, x, y)
+}
+
 test_long_vector_support <- function() {
     .Call(`_timeplyr_test_long_vector_support`)
 }

@@ -52,7 +52,7 @@
 sequence2 <- function(nvec, from = 1L, by = 1L){
   # Sequence end values
   # If these cant be integers, then we need to work with doubles
-  seq_ends <- time_as_number(from) + (by * (pmax(nvec - 1, 0)))
+  seq_ends <- time_as_number(from) + (by * (pmax2(nvec - 1, 0)))
   out_maybe_int <- all(
     is_integerable(
       collapse::frange(seq_ends, na.rm = TRUE)
@@ -63,25 +63,26 @@ sequence2 <- function(nvec, from = 1L, by = 1L){
   if (out_is_int){
     return(sequence(nvec = nvec, from = from, by = by))
   }
-  g_len <- length(nvec)
-  if (!out_maybe_int){
-    by <- as.double(by)
+  if (is.object(from)){
+    g_len <- length(nvec)
+    if (length(from) > 1L){
+      # Recycle
+      from <- rep_len(from, g_len)
+      # Expand
+      from <- rep.int(from, times = nvec)
+    }
+    if (length(by) > 1L){
+      # Recycle
+      by <- rep_len(by, g_len)
+      # Expand
+      by <- rep.int(by, times = nvec)
+    }
+    # Arithmetic
+    g_add <- double_sequence(nvec, from = 0, by = 1)
+    from + (g_add * by)
+  } else {
+    double_sequence(nvec, from = from, by = by)
   }
-  if (length(from) > 1L){
-    # Recycle
-    from <- rep_len(from, g_len)
-    # Expand
-    from <- rep.int(from, times = nvec)
-  }
-  if (length(by) > 1L){
-    # Recycle
-    by <- rep_len(by, g_len)
-    # Expand
-    by <- rep.int(by, times = nvec)
-  }
-  # Arithmetic
-  g_add <- double_sequence(nvec, from = 0, by = 1)
-  from + (g_add * by)
 }
 # Like base::sequence() but c++
 # integer_sequence <- function(size, from = 1L, by = 1L){
