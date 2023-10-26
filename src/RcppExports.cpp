@@ -70,6 +70,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cpp_is_whole_num
+SEXP cpp_is_whole_num(SEXP x, SEXP tol, bool na_rm);
+RcppExport SEXP _timeplyr_cpp_is_whole_num(SEXP xSEXP, SEXP tolSEXP, SEXP na_rmSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< bool >::type na_rm(na_rmSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_is_whole_num(x, tol, na_rm));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cpp_df_group_indices
 SEXP cpp_df_group_indices(SEXP rows, int size);
 RcppExport SEXP _timeplyr_cpp_df_group_indices(SEXP rowsSEXP, SEXP sizeSEXP) {
@@ -78,17 +90,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type rows(rowsSEXP);
     Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
     rcpp_result_gen = Rcpp::wrap(cpp_df_group_indices(rows, size));
-    return rcpp_result_gen;
-END_RCPP
-}
-// is_whole_num
-bool is_whole_num(SEXP x, Nullable<NumericVector> tol);
-RcppExport SEXP _timeplyr_is_whole_num(SEXP xSEXP, SEXP tolSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
-    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type tol(tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(is_whole_num(x, tol));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -241,8 +242,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_double_gte_vectorised", (DL_FUNC) &_timeplyr_cpp_double_gte_vectorised, 3},
     {"_timeplyr_cpp_double_lt_vectorised", (DL_FUNC) &_timeplyr_cpp_double_lt_vectorised, 3},
     {"_timeplyr_cpp_double_lte_vectorised", (DL_FUNC) &_timeplyr_cpp_double_lte_vectorised, 3},
+    {"_timeplyr_cpp_is_whole_num", (DL_FUNC) &_timeplyr_cpp_is_whole_num, 3},
     {"_timeplyr_cpp_df_group_indices", (DL_FUNC) &_timeplyr_cpp_df_group_indices, 2},
-    {"_timeplyr_is_whole_num", (DL_FUNC) &_timeplyr_is_whole_num, 2},
     {"_timeplyr_list_rm_null", (DL_FUNC) &_timeplyr_list_rm_null, 1},
     {"_timeplyr_list_has_interval", (DL_FUNC) &_timeplyr_list_has_interval, 1},
     {"_timeplyr_list_item_is_interval", (DL_FUNC) &_timeplyr_list_item_is_interval, 1},

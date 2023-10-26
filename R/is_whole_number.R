@@ -1,10 +1,12 @@
 #' Are all numbers whole numbers?
 #'
 #' @param x A numeric vector.
+#' @param tol tolerance value. \cr
+#' The default is `sqrt(.Machine$double.eps)`. \cr
+#' Please note that this is vectorised against and so multiple tolerances
+#' can be tested simultaneously.
 #' @param na.rm Should `NA` values be removed before calculation?
 #' Default is `TRUE`.
-#' @param tol tolerance value. \cr
-#' The default is `sqrt(.Machine$double.eps)`.
 #'
 #' @returns
 #' A logical vector of length 1.
@@ -17,6 +19,15 @@
 #' `x[i]` is a whole number if both the `rel_diff(x[i], round(x[i])) < tol` and
 #' `abs_diff(x[i], round(x[i])) < tol` are satisfied where `rel_diff` is the relative difference
 #' and `abs_diff` is the absolute difference for all `i >= 1 and i <= length(x)`.
+#'
+#' ## `NA` handling
+#' `NA` values are handled in a custom way. \cr
+#' If `x` is an integer, `TRUE` is always returned even if `x` has missing values. \cr
+#' If `x` has both missing values and decimal numbers, `FALSE` is always returned. \cr
+#' If `x` has missing values, and only whole numbers and `na.rm = FALSE`, then
+#' `NA` is returned. \cr
+#' Basically `NA` is only returned if `na.rm = FALSE` and
+#' `x` is a double vector of only whole numbers and `NA` values.
 #'
 #'
 #' Inspired by the discussion in this thread:
@@ -50,6 +61,12 @@
 #' double_equal(10^9 + 0.0001, round(10^9 + 0.0001))
 #' is_whole_number(10^9 + 0.0001)
 #'
+#' # For a vectorised version, use double_equal(x, round(x))
+#'
+#' x <- sqrt(1:10)^2
+#' double_equal(x, round(x))
+#' double_equal(x, round(x), tol = c(0, 1 * 10^-(0:8)))
+#'
 #' # Can safely be used to select whole number variables
 #' starwars %>%
 #'   select(where(is_whole_number))
@@ -63,12 +80,6 @@
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #'}
 #' @export
-is_whole_number <- function(x, na.rm = TRUE, tol = sqrt(.Machine$double.eps)){
-  if (is.integer(x)){
-    return(TRUE)
-  }
-  if (!na.rm && anyNA(x)){
-    return(NA)
-  }
-  is.numeric(x) && is_whole_num(x, tol = as.double(tol))
+is_whole_number <- function(x, tol = sqrt(.Machine$double.eps), na.rm = TRUE){
+  is.numeric(x) && cpp_is_whole_num(x, tol = as.double(tol), na_rm = na.rm)
 }

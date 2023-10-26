@@ -11,8 +11,14 @@ testthat::test_that("Whole numbers", {
   a <- ceiling(x)
   b <- floor(x)
   c <- fill_with_na(y, prop = 0.2)
+  testthat::expect_equal(is_whole_number(NA_real_, na.rm = FALSE), NA)
+  testthat::expect_equal(is_whole_number(NA_real_), TRUE)
   testthat::expect_true(is_whole_number(0))
   testthat::expect_true(is_whole_number(c(NA_integer_, 1:10)))
+
+  ## Internally vectorised against tolerance
+  testthat::expect_true(is_whole_number(5))
+  testthat::expect_false(is_whole_number(5, c(0.01, -Inf)))
 
   # Even with NAs, if x is an integer we always return TRUE
   testthat::expect_true(is_whole_number(c(NA_integer_, 1:10), na.rm = FALSE))
@@ -22,7 +28,7 @@ testthat::test_that("Whole numbers", {
   testthat::expect_false(is_whole_number(letters))
   testthat::expect_false(is_whole_number(Sys.Date()))
 
-  testthat::expect_error(is_whole_number(1, tol = 1:2))
+  # testthat::expect_error(is_whole_number(1, tol = 1:2))
   testthat::expect_true(is_whole_number(numeric()))
   testthat::expect_false(is_whole_number(x))
   testthat::expect_true(is_whole_number(y))
@@ -39,6 +45,14 @@ testthat::test_that("Whole numbers", {
                     10^9 + 2)
   )
   testthat::expect_false(is_whole_number(10^9 + 0.02))
+
+  # 0 length tolerance should always return true
+  # because there's nothing to compare against, and therefore
+  # we can't determine that x is not a whole number
+  testthat::expect_false(is_whole_number(1.5))
+  testthat::expect_true(is_whole_number(1.5, tol = NULL))
+  testthat::expect_true(is_whole_number(1.5, tol = numeric()))
+  testthat::expect_true(is_whole_number(1.5, tol = integer()))
   # The above is more strict than:
   # double_equal(10^9 + 0.02, round(10^9 + 0.02))
 })

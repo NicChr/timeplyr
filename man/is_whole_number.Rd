@@ -4,16 +4,18 @@
 \alias{is_whole_number}
 \title{Are all numbers whole numbers?}
 \usage{
-is_whole_number(x, na.rm = TRUE, tol = sqrt(.Machine$double.eps))
+is_whole_number(x, tol = sqrt(.Machine$double.eps), na.rm = TRUE)
 }
 \arguments{
 \item{x}{A numeric vector.}
 
+\item{tol}{tolerance value. \cr
+The default is \code{sqrt(.Machine$double.eps)}. \cr
+Please note that this is vectorised against and so multiple tolerances
+can be tested simultaneously.}
+
 \item{na.rm}{Should \code{NA} values be removed before calculation?
 Default is \code{TRUE}.}
-
-\item{tol}{tolerance value. \cr
-The default is \code{sqrt(.Machine$double.eps)}.}
 }
 \value{
 A logical vector of length 1.
@@ -29,6 +31,17 @@ is not a whole-number and \code{TRUE} if all of them are.
 \code{x[i]} is a whole number if both the \code{rel_diff(x[i], round(x[i])) < tol} and
 \code{abs_diff(x[i], round(x[i])) < tol} are satisfied where \code{rel_diff} is the relative difference
 and \code{abs_diff} is the absolute difference for all \verb{i >= 1 and i <= length(x)}.
+}
+
+\subsection{\code{NA} handling}{
+
+\code{NA} values are handled in a custom way. \cr
+If \code{x} is an integer, \code{TRUE} is always returned even if \code{x} has missing values. \cr
+If \code{x} has both missing values and decimal numbers, \code{FALSE} is always returned. \cr
+If \code{x} has missing values, and only whole numbers and \code{na.rm = FALSE}, then
+\code{NA} is returned. \cr
+Basically \code{NA} is only returned if \code{na.rm = FALSE} and
+\code{x} is a double vector of only whole numbers and \code{NA} values.
 
 Inspired by the discussion in this thread:
 \href{https://stackoverflow.com/questions/3476782/check-if-the-number-is-integer/76655734}{check-if-the-number-is-integer}

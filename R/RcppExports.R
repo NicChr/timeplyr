@@ -21,12 +21,12 @@ cpp_double_lte_vectorised <- function(x, y, tolerance) {
     .Call(`_timeplyr_cpp_double_lte_vectorised`, x, y, tolerance)
 }
 
-cpp_df_group_indices <- function(rows, size) {
-    .Call(`_timeplyr_cpp_df_group_indices`, rows, size)
+cpp_is_whole_num <- function(x, tol, na_rm = TRUE) {
+    .Call(`_timeplyr_cpp_is_whole_num`, x, tol, na_rm)
 }
 
-is_whole_num <- function(x, tol) {
-    .Call(`_timeplyr_is_whole_num`, x, tol)
+cpp_df_group_indices <- function(rows, size) {
+    .Call(`_timeplyr_cpp_df_group_indices`, rows, size)
 }
 
 list_rm_null <- function(l) {
