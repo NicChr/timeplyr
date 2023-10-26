@@ -37,3 +37,5 @@ Rcpp
 additional memory allocation.
 
 * New function `num_na` to efficiently calculate number of missing values.
+
+* `is_whole_number` is back to using only absolute differences.

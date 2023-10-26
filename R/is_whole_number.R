@@ -3,8 +3,6 @@
 #' @param x A numeric vector.
 #' @param tol tolerance value. \cr
 #' The default is `sqrt(.Machine$double.eps)`. \cr
-#' Please note that this is vectorised against and so multiple tolerances
-#' can be tested simultaneously.
 #' @param na.rm Should `NA` values be removed before calculation?
 #' Default is `TRUE`.
 #'
@@ -16,9 +14,8 @@
 #' is not a whole-number and `TRUE` if all of them are.
 #'
 #' ## Method
-#' `x[i]` is a whole number if both the `rel_diff(x[i], round(x[i])) < tol` and
-#' `abs_diff(x[i], round(x[i])) < tol` are satisfied where `rel_diff` is the relative difference
-#' and `abs_diff` is the absolute difference for all `i >= 1 and i <= length(x)`.
+#' `x` is defined as a whole number vector
+#' if all numbers satisfy `abs(x - round(x)) < tol`.
 #'
 #' ## `NA` handling
 #' `NA` values are handled in a custom way. \cr
@@ -66,6 +63,9 @@
 #' x <- sqrt(1:10)^2
 #' double_equal(x, round(x))
 #' double_equal(x, round(x), tol = c(0, 1 * 10^-(0:8)))
+#'
+#' # strict zero tolerance
+#' is_whole_number(1.0000000001, tol = .Machine$double.eps)
 #'
 #' # Can safely be used to select whole number variables
 #' starwars %>%
