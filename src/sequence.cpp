@@ -134,9 +134,11 @@ SEXP cpp_dbl_sequence(SEXP size, SEXP from, SEXP by) {
   int size_n = Rf_length(size);
   int from_n = Rf_length(from);
   int by_n = Rf_length(by);
+  // int n = std::max(std::max(size_n, from_n), by_n);
   if (size_n > 0 && (from_n <= 0 || by_n <= 0)){
     Rcpp::stop("from and by must both have length >= 0");
   }
+  // To recycle we would need to do sum * remainder of the sum over n
   SEXP out = PROTECT(Rf_allocVector(REALSXP, r_sum(size)));
   double *p_out = REAL(out);
   R_xlen_t index = 0;
