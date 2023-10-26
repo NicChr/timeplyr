@@ -477,7 +477,7 @@ qG2 <- function(x, sort = TRUE, ordered = FALSE, na.exclude = FALSE, ...){
       out <- collapse::alloc(NA_integer_, length(x))
       qgroup <- group_id(x[which_not_na], order = sort, as_qg = TRUE)
       n_groups <- attr(qgroup, "N.groups")
-      setv(out, which_not_na, qg_to_integer(qgroup), vind1 = TRUE)
+      out[which_not_na] <- qg_to_integer(qgroup)
       if (ordered){
         collapse::setattrib(out, list("N.groups" = n_groups,
                                       "class" = c("qG", "ordered")))

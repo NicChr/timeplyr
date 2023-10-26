@@ -212,9 +212,9 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
     out <- new_tbl(x = out, interval = time_int)
     # Unique and sorting
     if (unique){
-      out <- fdistinct(out, .cols = "x", .keep_all = TRUE)
+      out <- fdistinct(out, .cols = "x", .keep_all = TRUE, sort = sort)
     }
-    if (sort){
+    if (sort && ! unique){
       out <- farrange(out, .cols = "x")
     }
     if (!is_interval(time_int)){
@@ -607,8 +607,7 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
                    return.order = FALSE)
   out <- integer(out_len + length(time_missed))
   # Replace allocated integer with counts
-  setv(out, seq_len(out_len), collapse::GRPN(cnt_grps, expand = TRUE),
-       vind1 = TRUE)
+  out[seq_len(out_len)] <- collapse::GRPN(cnt_grps, expand = TRUE)
   # if (use.names && !include_interval) out <- add_names(out, x)
   if (include_interval){
     time_seq_int <- tseq_interval(x = to, time_breaks)
