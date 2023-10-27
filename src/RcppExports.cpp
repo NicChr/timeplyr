@@ -167,25 +167,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // after_sequence
-IntegerVector after_sequence(IntegerVector size, double k);
+Rcpp::IntegerVector after_sequence(Rcpp::IntegerVector size, double k);
 RcppExport SEXP _timeplyr_after_sequence(SEXP sizeSEXP, SEXP kSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type size(sizeSEXP);
     Rcpp::traits::input_parameter< double >::type k(kSEXP);
     rcpp_result_gen = Rcpp::wrap(after_sequence(size, k));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_int_sequence
-SEXP cpp_int_sequence(SEXP size, SEXP from, SEXP by);
-RcppExport SEXP _timeplyr_cpp_int_sequence(SEXP sizeSEXP, SEXP fromSEXP, SEXP bySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< SEXP >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type from(fromSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type by(bySEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_int_sequence(size, from, by));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -253,7 +241,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_roll_time_threshold", (DL_FUNC) &_timeplyr_roll_time_threshold, 3},
     {"_timeplyr_before_sequence", (DL_FUNC) &_timeplyr_before_sequence, 2},
     {"_timeplyr_after_sequence", (DL_FUNC) &_timeplyr_after_sequence, 2},
-    {"_timeplyr_cpp_int_sequence", (DL_FUNC) &_timeplyr_cpp_int_sequence, 3},
     {"_timeplyr_cpp_dbl_sequence", (DL_FUNC) &_timeplyr_cpp_dbl_sequence, 3},
     {"_timeplyr_window_sequence", (DL_FUNC) &_timeplyr_window_sequence, 4},
     {"_timeplyr_lag_sequence", (DL_FUNC) &_timeplyr_lag_sequence, 2},

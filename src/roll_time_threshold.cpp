@@ -55,7 +55,7 @@ IntegerVector roll_time_threshold(SEXP x, double threshold = 1,
     break;
   }
   default: {
-    stop("roll_time_threshold only supports integer and numeric vectors");
+    Rcpp::stop("roll_time_threshold only supports integer and numeric vectors");
   }
   }
   return out;
