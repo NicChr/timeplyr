@@ -41,10 +41,6 @@ list_item_is_interval <- function(l) {
     .Call(`_timeplyr_list_item_is_interval`, l)
 }
 
-pmax2 <- function(x, y) {
-    .Call(`_timeplyr_pmax2`, x, y)
-}
-
 test_long_vector_support <- function() {
     .Call(`_timeplyr_test_long_vector_support`)
 }
@@ -63,6 +59,10 @@ before_sequence <- function(size, k) {
 
 after_sequence <- function(size, k) {
     .Call(`_timeplyr_after_sequence`, size, k)
+}
+
+cpp_int_sequence <- function(size, from, by) {
+    .Call(`_timeplyr_cpp_int_sequence`, size, from, by)
 }
 
 cpp_dbl_sequence <- function(size, from, by) {

@@ -2,7 +2,9 @@
 #'
 #' @param x A numeric vector.
 #' @param tol tolerance value. \cr
-#' The default is `sqrt(.Machine$double.eps)`. \cr
+#' The default is `.Machine$double.eps`, essentially the lowest possible tolerance.
+#' A more typical tolerance for double floating point comparisons in other comparisons
+#' is `sqrt(.Machine$double.eps)`.
 #' @param na.rm Should `NA` values be removed before calculation?
 #' Default is `TRUE`.
 #'
@@ -80,6 +82,6 @@
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #'}
 #' @export
-is_whole_number <- function(x, tol = sqrt(.Machine$double.eps), na.rm = TRUE){
+is_whole_number <- function(x, tol = .Machine$double.eps, na.rm = TRUE){
   is.numeric(x) && cpp_is_whole_num(x, tol = as.double(tol), na_rm = na.rm)
 }

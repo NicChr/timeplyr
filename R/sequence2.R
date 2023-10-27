@@ -52,7 +52,7 @@
 sequence2 <- function(nvec, from = 1L, by = 1L){
   # Sequence end values
   # If these cant be integers, then we need to work with doubles
-  seq_ends <- time_as_number(from) + (by * (pmax2(nvec - 1, 0)))
+  seq_ends <- time_as_number(from) + (by * (pmax.int(nvec - 1, 0)))
   out_maybe_int <- all(
     is_integerable(
       collapse::frange(seq_ends, na.rm = TRUE)
@@ -69,13 +69,13 @@ sequence2 <- function(nvec, from = 1L, by = 1L){
       # Recycle
       from <- rep_len(from, g_len)
       # Expand
-      from <- rep.int(from, times = nvec)
+      from <- rep(from, times = nvec)
     }
     if (length(by) > 1L){
       # Recycle
       by <- rep_len(by, g_len)
       # Expand
-      by <- rep.int(by, times = nvec)
+      by <- rep(by, times = nvec)
     }
     # Arithmetic
     g_add <- double_sequence(nvec, from = 0, by = 1)

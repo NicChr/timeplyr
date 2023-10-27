@@ -8,7 +8,7 @@
 #' @param data A data frame.
 #' @param time Time variable (\bold{data-masking}). \cr
 #' Can be a `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, or `yearqtr`.
-#' @param time_by Time unit. \cr
+#' @param time_by_unit Time unit. \cr
 #' Must be one of the following:
 #' * string, specifying either the unit or the number and unit, e.g
 #' `time_by = "days"` or `time_by = "2 weeks"`
@@ -93,7 +93,7 @@
 #'}
 #' @rdname time_by
 #' @export
-time_by <- function(data, time, time_by = NULL,
+time_by <- function(data, time, time_by_unit = NULL,
                     from = NULL, to = NULL,
                     .name = "{.col}",
                     .add = FALSE,
@@ -113,12 +113,13 @@ time_by <- function(data, time, time_by = NULL,
   time_var <- tidy_transform_names(data, !!enquo(time))
   from_var <- tidy_transform_names(data, !!enquo(from))
   to_var <- tidy_transform_names(data, !!enquo(to))
+  check_is_time_or_num(data[[time_var]])
   if (length(time_var) > 0L){
     if (length(time_var) > 1L){
       stop("Please choose one time variable.")
     }
-  time_by <- time_by_get(data[[time_var]], time_by = time_by,
-                         quiet = TRUE)
+    time_by <- time_by_get(data[[time_var]], time_by = time_by_unit,
+                           quiet = TRUE)
   if (time_by_length(time_by) > 1){
     stop("Please supply only one numeric value in time_by")
   }
