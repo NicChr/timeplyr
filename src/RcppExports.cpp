@@ -71,87 +71,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_is_whole_num
-SEXP cpp_is_whole_num(SEXP x, SEXP tol, bool na_rm);
+SEXP cpp_is_whole_num(SEXP x, double tol, bool na_rm);
 RcppExport SEXP _timeplyr_cpp_is_whole_num(SEXP xSEXP, SEXP tolSEXP, SEXP na_rmSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
     Rcpp::traits::input_parameter< bool >::type na_rm(na_rmSEXP);
     rcpp_result_gen = Rcpp::wrap(cpp_is_whole_num(x, tol, na_rm));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_df_group_indices
-SEXP cpp_df_group_indices(SEXP rows, int size);
-RcppExport SEXP _timeplyr_cpp_df_group_indices(SEXP rowsSEXP, SEXP sizeSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< SEXP >::type rows(rowsSEXP);
-    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_df_group_indices(rows, size));
-    return rcpp_result_gen;
-END_RCPP
-}
-// list_rm_null
-List list_rm_null(List l);
-RcppExport SEXP _timeplyr_list_rm_null(SEXP lSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< List >::type l(lSEXP);
-    rcpp_result_gen = Rcpp::wrap(list_rm_null(l));
-    return rcpp_result_gen;
-END_RCPP
-}
-// list_has_interval
-bool list_has_interval(List l);
-RcppExport SEXP _timeplyr_list_has_interval(SEXP lSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< List >::type l(lSEXP);
-    rcpp_result_gen = Rcpp::wrap(list_has_interval(l));
-    return rcpp_result_gen;
-END_RCPP
-}
-// list_item_is_interval
-SEXP list_item_is_interval(List l);
-RcppExport SEXP _timeplyr_list_item_is_interval(SEXP lSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< List >::type l(lSEXP);
-    rcpp_result_gen = Rcpp::wrap(list_item_is_interval(l));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_long_vector_support
-bool test_long_vector_support();
-RcppExport SEXP _timeplyr_test_long_vector_support() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(test_long_vector_support());
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_num_na
-SEXP cpp_num_na(SEXP x);
-RcppExport SEXP _timeplyr_cpp_num_na(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_num_na(x));
-    return rcpp_result_gen;
-END_RCPP
-}
-// roll_time_threshold
-IntegerVector roll_time_threshold(SEXP x, double threshold, bool switch_on_boundary);
-RcppExport SEXP _timeplyr_roll_time_threshold(SEXP xSEXP, SEXP thresholdSEXP, SEXP switch_on_boundarySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
-    Rcpp::traits::input_parameter< double >::type threshold(thresholdSEXP);
-    Rcpp::traits::input_parameter< bool >::type switch_on_boundary(switch_on_boundarySEXP);
-    rcpp_result_gen = Rcpp::wrap(roll_time_threshold(x, threshold, switch_on_boundary));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -167,11 +94,11 @@ BEGIN_RCPP
 END_RCPP
 }
 // after_sequence
-Rcpp::IntegerVector after_sequence(Rcpp::IntegerVector size, double k);
+IntegerVector after_sequence(IntegerVector size, double k);
 RcppExport SEXP _timeplyr_after_sequence(SEXP sizeSEXP, SEXP kSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
     Rcpp::traits::input_parameter< double >::type k(kSEXP);
     rcpp_result_gen = Rcpp::wrap(after_sequence(size, k));
     return rcpp_result_gen;
@@ -224,6 +151,89 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// test_long_vector_support
+bool test_long_vector_support();
+RcppExport SEXP _timeplyr_test_long_vector_support() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(test_long_vector_support());
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_num_na
+SEXP cpp_num_na(SEXP x);
+RcppExport SEXP _timeplyr_cpp_num_na(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_num_na(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// list_rm_null
+List list_rm_null(List l);
+RcppExport SEXP _timeplyr_list_rm_null(SEXP lSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< List >::type l(lSEXP);
+    rcpp_result_gen = Rcpp::wrap(list_rm_null(l));
+    return rcpp_result_gen;
+END_RCPP
+}
+// list_has_interval
+bool list_has_interval(List l);
+RcppExport SEXP _timeplyr_list_has_interval(SEXP lSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< List >::type l(lSEXP);
+    rcpp_result_gen = Rcpp::wrap(list_has_interval(l));
+    return rcpp_result_gen;
+END_RCPP
+}
+// list_item_is_interval
+SEXP list_item_is_interval(List l);
+RcppExport SEXP _timeplyr_list_item_is_interval(SEXP lSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< List >::type l(lSEXP);
+    rcpp_result_gen = Rcpp::wrap(list_item_is_interval(l));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_sorted_group_starts
+SEXP cpp_sorted_group_starts(SEXP group_sizes);
+RcppExport SEXP _timeplyr_cpp_sorted_group_starts(SEXP group_sizesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< SEXP >::type group_sizes(group_sizesSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_sorted_group_starts(group_sizes));
+    return rcpp_result_gen;
+END_RCPP
+}
+// roll_time_threshold
+SEXP roll_time_threshold(SEXP x, double threshold, bool switch_on_boundary);
+RcppExport SEXP _timeplyr_roll_time_threshold(SEXP xSEXP, SEXP thresholdSEXP, SEXP switch_on_boundarySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type threshold(thresholdSEXP);
+    Rcpp::traits::input_parameter< bool >::type switch_on_boundary(switch_on_boundarySEXP);
+    rcpp_result_gen = Rcpp::wrap(roll_time_threshold(x, threshold, switch_on_boundary));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_df_group_indices
+SEXP cpp_df_group_indices(SEXP rows, int size);
+RcppExport SEXP _timeplyr_cpp_df_group_indices(SEXP rowsSEXP, SEXP sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rows(rowsSEXP);
+    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_df_group_indices(rows, size));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_double_equal_vectorised", (DL_FUNC) &_timeplyr_cpp_double_equal_vectorised, 3},
@@ -232,19 +242,20 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_double_lt_vectorised", (DL_FUNC) &_timeplyr_cpp_double_lt_vectorised, 3},
     {"_timeplyr_cpp_double_lte_vectorised", (DL_FUNC) &_timeplyr_cpp_double_lte_vectorised, 3},
     {"_timeplyr_cpp_is_whole_num", (DL_FUNC) &_timeplyr_cpp_is_whole_num, 3},
-    {"_timeplyr_cpp_df_group_indices", (DL_FUNC) &_timeplyr_cpp_df_group_indices, 2},
-    {"_timeplyr_list_rm_null", (DL_FUNC) &_timeplyr_list_rm_null, 1},
-    {"_timeplyr_list_has_interval", (DL_FUNC) &_timeplyr_list_has_interval, 1},
-    {"_timeplyr_list_item_is_interval", (DL_FUNC) &_timeplyr_list_item_is_interval, 1},
-    {"_timeplyr_test_long_vector_support", (DL_FUNC) &_timeplyr_test_long_vector_support, 0},
-    {"_timeplyr_cpp_num_na", (DL_FUNC) &_timeplyr_cpp_num_na, 1},
-    {"_timeplyr_roll_time_threshold", (DL_FUNC) &_timeplyr_roll_time_threshold, 3},
     {"_timeplyr_before_sequence", (DL_FUNC) &_timeplyr_before_sequence, 2},
     {"_timeplyr_after_sequence", (DL_FUNC) &_timeplyr_after_sequence, 2},
     {"_timeplyr_cpp_dbl_sequence", (DL_FUNC) &_timeplyr_cpp_dbl_sequence, 3},
     {"_timeplyr_window_sequence", (DL_FUNC) &_timeplyr_window_sequence, 4},
     {"_timeplyr_lag_sequence", (DL_FUNC) &_timeplyr_lag_sequence, 2},
     {"_timeplyr_lead_sequence", (DL_FUNC) &_timeplyr_lead_sequence, 2},
+    {"_timeplyr_test_long_vector_support", (DL_FUNC) &_timeplyr_test_long_vector_support, 0},
+    {"_timeplyr_cpp_num_na", (DL_FUNC) &_timeplyr_cpp_num_na, 1},
+    {"_timeplyr_list_rm_null", (DL_FUNC) &_timeplyr_list_rm_null, 1},
+    {"_timeplyr_list_has_interval", (DL_FUNC) &_timeplyr_list_has_interval, 1},
+    {"_timeplyr_list_item_is_interval", (DL_FUNC) &_timeplyr_list_item_is_interval, 1},
+    {"_timeplyr_cpp_sorted_group_starts", (DL_FUNC) &_timeplyr_cpp_sorted_group_starts, 1},
+    {"_timeplyr_roll_time_threshold", (DL_FUNC) &_timeplyr_roll_time_threshold, 3},
+    {"_timeplyr_cpp_df_group_indices", (DL_FUNC) &_timeplyr_cpp_df_group_indices, 2},
     {NULL, NULL, 0}
 };
 

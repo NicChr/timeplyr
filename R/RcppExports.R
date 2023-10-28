@@ -25,34 +25,6 @@ cpp_is_whole_num <- function(x, tol, na_rm = TRUE) {
     .Call(`_timeplyr_cpp_is_whole_num`, x, tol, na_rm)
 }
 
-cpp_df_group_indices <- function(rows, size) {
-    .Call(`_timeplyr_cpp_df_group_indices`, rows, size)
-}
-
-list_rm_null <- function(l) {
-    .Call(`_timeplyr_list_rm_null`, l)
-}
-
-list_has_interval <- function(l) {
-    .Call(`_timeplyr_list_has_interval`, l)
-}
-
-list_item_is_interval <- function(l) {
-    .Call(`_timeplyr_list_item_is_interval`, l)
-}
-
-test_long_vector_support <- function() {
-    .Call(`_timeplyr_test_long_vector_support`)
-}
-
-cpp_num_na <- function(x) {
-    .Call(`_timeplyr_cpp_num_na`, x)
-}
-
-roll_time_threshold <- function(x, threshold = 1, switch_on_boundary = TRUE) {
-    .Call(`_timeplyr_roll_time_threshold`, x, threshold, switch_on_boundary)
-}
-
 before_sequence <- function(size, k) {
     .Call(`_timeplyr_before_sequence`, size, k)
 }
@@ -75,5 +47,37 @@ lag_sequence <- function(size, k) {
 
 lead_sequence <- function(size, k) {
     .Call(`_timeplyr_lead_sequence`, size, k)
+}
+
+test_long_vector_support <- function() {
+    .Call(`_timeplyr_test_long_vector_support`)
+}
+
+cpp_num_na <- function(x) {
+    .Call(`_timeplyr_cpp_num_na`, x)
+}
+
+list_rm_null <- function(l) {
+    .Call(`_timeplyr_list_rm_null`, l)
+}
+
+list_has_interval <- function(l) {
+    .Call(`_timeplyr_list_has_interval`, l)
+}
+
+list_item_is_interval <- function(l) {
+    .Call(`_timeplyr_list_item_is_interval`, l)
+}
+
+cpp_sorted_group_starts <- function(group_sizes) {
+    .Call(`_timeplyr_cpp_sorted_group_starts`, group_sizes)
+}
+
+roll_time_threshold <- function(x, threshold = 1, switch_on_boundary = TRUE) {
+    .Call(`_timeplyr_roll_time_threshold`, x, threshold, switch_on_boundary)
+}
+
+cpp_df_group_indices <- function(rows, size) {
+    .Call(`_timeplyr_cpp_df_group_indices`, rows, size)
 }
 

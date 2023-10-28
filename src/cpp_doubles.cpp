@@ -1,6 +1,4 @@
 #include <Rcpp.h>
-using namespace Rcpp;
-
 
 // Below are a complete set of C++ functions for comparing doubles
 // mimicing the ==, <=, <, > and >= operators with a tolerance
@@ -262,3 +260,94 @@ SEXP cpp_double_lte_vectorised(SEXP x, SEXP y, SEXP tolerance) {
   UNPROTECT(1);
   return out;
 }
+
+// Whole number check
+
+// [[Rcpp::export(rng = false)]]
+SEXP cpp_is_whole_num(SEXP x, double tol, bool na_rm = true) {
+  R_xlen_t n = Rf_xlength(x);
+  bool is_whole;
+  double adiff;
+  R_xlen_t n_na = 0;
+  bool is_na;
+  SEXP out = PROTECT(Rf_allocVector(LGLSXP, 1));
+  int *p_out = LOGICAL(out);
+  p_out[0] = false;
+  switch ( TYPEOF(x) ){
+  case LGLSXP:
+  case INTSXP: {
+    p_out[0] = true;
+    break;
+  }
+  case REALSXP: {
+    // Re-initialise so that we can break when we find non-whole num
+    p_out[0] = true;
+    double *p_x = REAL(x);
+    for (R_xlen_t i = 0; i < n; ++i) {
+      adiff = std::fabs(p_x[i] - std::round(p_x[i]));
+      is_whole = (adiff < tol);
+      is_na = !(p_x[i] == p_x[i]);
+      n_na += is_na;
+      if (!is_whole && !is_na){
+        p_out[0] = false;
+        break;
+      }
+    }
+    if (!na_rm && n_na > 0){
+      p_out[0] = NA_LOGICAL;
+      break;
+    }
+    break;
+  }
+  }
+  UNPROTECT(1);
+  return out;
+}
+
+// SEXP cpp_whole_num(SEXP x, SEXP tol) {
+//   R_xlen_t x_len = Rf_xlength(x);
+//   R_xlen_t tol_len = Rf_xlength(tol);
+//   R_xlen_t n = std::max(x_len, tol_len);
+//   if (x_len <= 0 || tol_len <= 0){
+//     n = 0;
+//   }
+//   double adiff;
+//   bool is_na;
+//   SEXP out = PROTECT(Rf_allocVector(LGLSXP, n));
+//   int *p_out = LOGICAL(out);
+//   switch ( TYPEOF(x) ){
+//   case LGLSXP:
+//   case INTSXP: {
+//     for (R_xlen_t i = 0; i < n; ++i){
+//     p_out[i] = true;
+//   }
+//     break;
+//   }
+//   case REALSXP: {
+//     R_xlen_t xi;
+//     R_xlen_t ti;
+//     double *p_x = REAL(x);
+//     double *p_t = REAL(PROTECT(Rf_coerceVector(tol, REALSXP)));
+//     for (R_xlen_t i = 0; i < n; ++i) {
+//       xi = i % x_len;
+//       ti = i % tol_len;
+//       adiff = std::fabs(p_x[xi] - std::round(p_x[xi]));
+//       is_na = !(p_x[xi] == p_x[xi]) || !(p_t[ti] == p_t[ti]);
+//       p_out[i] = (adiff < p_t[ti]);
+//       if (is_na){
+//         p_out[i] = NA_REAL;
+//       }
+//     }
+//     UNPROTECT(1);
+//     break;
+//   }
+//   default: {
+//     for (R_xlen_t i = 0; i < n; ++i){
+//     p_out[i] = false;
+//   }
+//     break;
+//   }
+//   }
+//   UNPROTECT(1);
+//   return out;
+// }

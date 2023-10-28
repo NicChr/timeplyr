@@ -928,16 +928,35 @@ fbincode <- function(x, breaks, right = TRUE, include.lowest = FALSE,
   }
   unlist(out, recursive = FALSE, use.names = FALSE)
   # Parallel options
-  # out <- foreach(i = seq_along(x_list)) %dopar%
-  #   .bincode(.subset2(x_list, i),
-  #            .subset2(breaks_list, i),
-  #            right = right,
-  #            include.lowest = include.lowest)
   # out <- furrr::future_map2(x_list, breaks_list,
   #                           function(x, y) .bincode(x, y,
   #                                                   right = right,
   #                                                   include.lowest = include.lowest))
 }
+# get_cores <- function(){
+#   out <- floor(parallel::detectCores() / 2)
+#   if (length(out) != 1 || !is.numeric(out) || is.na(out)){
+#     out <- 1
+#   }
+#   as.integer(out)
+# }
+# parallel_bincode <- function(x, breaks, right = TRUE, include.lowest = FALSE,
+#                              gx = NULL, gbreaks = NULL){
+#   n_cores <- get_cores()
+#   cluster <- parallel::makeCluster(n_cores)
+#   doParallel::registerDoParallel(cluster)
+#   x_list <- gsplit2(x, g = gx)
+#   breaks_list <- gsplit2(breaks, g = gbreaks)
+#   out <- foreach::`%dopar%`(foreach::foreach(i = seq_along(x_list)),
+#                             {
+#                               .bincode(.subset2(x_list, i),
+#                                        .subset2(breaks_list, i),
+#                                        right = right,
+#                                        include.lowest = include.lowest)
+#                             })
+#   parallel::stopCluster(cluster)
+#   unlist(out, recursive = FALSE, use.names = FALSE)
+# }
 # Is x numeric and not S4?
 is_s3_numeric <- function(x){
   typeof(x) %in% c("integer", "double") && !isS4(x)

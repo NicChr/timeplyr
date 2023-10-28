@@ -50,7 +50,7 @@ IntegerVector before_sequence(IntegerVector size, double k) {
   }
   int size_n = size.length();
   k = std::fmax(k, 0);
-  Rcpp::IntegerVector out(r_sum(size));
+  IntegerVector out(r_sum(size));
   R_xlen_t index = 0;
   for (int j = 0; j < size_n; ++j){
     for (int i = 0; i < size[j]; ++i){
@@ -66,13 +66,13 @@ IntegerVector before_sequence(IntegerVector size, double k) {
 }
 
 // [[Rcpp::export(rng = false)]]
-Rcpp::IntegerVector after_sequence(Rcpp::IntegerVector size, double k) {
+IntegerVector after_sequence(IntegerVector size, double k) {
   if (Rcpp::min(size) < 0){
     Rcpp::stop("size must be a vector of non-negative integers");
   }
   int size_n = size.length();
   k = std::fmax(k, 0);
-  Rcpp::IntegerVector out(r_sum(size));
+  IntegerVector out(r_sum(size));
   R_xlen_t index = 0;
   int idiff;
   for (int j = 0; j < size_n; ++j){

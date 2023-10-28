@@ -50,9 +50,9 @@ testthat::test_that("Whole numbers", {
   # because there's nothing to compare against, and therefore
   # we can't determine that x is not a whole number
   testthat::expect_false(is_whole_number(1.5))
-  testthat::expect_true(is_whole_number(1.5, tol = NULL))
-  testthat::expect_true(is_whole_number(1.5, tol = numeric()))
-  testthat::expect_true(is_whole_number(1.5, tol = integer()))
+  testthat::expect_error(is_whole_number(1.5, tol = NULL))
+  testthat::expect_error(is_whole_number(1.5, tol = numeric()))
+  testthat::expect_error(is_whole_number(1.5, tol = integer()))
   # The above is more strict than:
   # double_equal(10^9 + 0.02, round(10^9 + 0.02))
 })

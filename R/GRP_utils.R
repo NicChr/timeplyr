@@ -116,8 +116,7 @@ GRP_which_duplicated <- function(GRP, all = FALSE){
   out
 }
 calc_sorted_group_starts <- function(group_sizes){
-  n_groups <- length(group_sizes)
-  collapse::fcumsum(c(rep_len(1L, min(n_groups, 1L)), group_sizes[-n_groups]))
+  cpp_sorted_group_starts(as.integer(group_sizes))
 }
 calc_sorted_group_ends <- function(group_sizes){
   collapse::fcumsum(group_sizes)
@@ -130,9 +129,9 @@ GRP_starts <- function(GRP, use.g.names = FALSE,
     GRP_sizes <- GRP_group_sizes(GRP)
     if (GRP_is_sorted(GRP)){
       out <- calc_sorted_group_starts(GRP_sizes)
-      # For factors with 0 size, replace 0 with NA
-      setv(out, collapse::whichv(GRP_sizes, 0L),
-           0L, vind1 = TRUE)
+      # For factors with 0 size, replace calculated group starts with 0
+      collapse::setv(out, collapse::whichv(GRP_sizes, 0L),
+                     0L, vind1 = TRUE)
     } else {
       if (is.null(loc)){
         loc <- GRP_loc(GRP, use.g.names = FALSE)
@@ -141,8 +140,8 @@ GRP_starts <- function(GRP, use.g.names = FALSE,
       # Accounting for factors with no data
       if (collapse::anyv(GRP_sizes, 0L)){
         out <- integer(length(loc))
-        setv(out, which(GRP_sizes != 0L),
-             gstarts, vind1 = TRUE)
+        collapse::setv(out, which(GRP_sizes != 0L),
+                       gstarts, vind1 = TRUE)
       } else {
         out <- gstarts
       }
@@ -294,7 +293,7 @@ df_as_GRP <- function(data, return.groups = TRUE, return.order = TRUE){
   }
   gordered <- c("ordered" = TRUE,
                 "sorted" = sorted)
-  has_factor <- sum(vapply(gdata, is.factor, FALSE, USE.NAMES = FALSE)) > 0
+  has_factor <- any(vapply(gdata, is.factor, FALSE, USE.NAMES = FALSE))
   if (return.groups){
     if (has_factor){
       gstarts <- integer(n_groups)
@@ -518,6 +517,9 @@ sort_data_by_GRP <- function(x, g, sorted_group_starts = TRUE){
 }
 # greorder but x can be a data frame or list
 greorder2 <- function(x, g, ...){
+  if (is.null(g)){
+    return(x)
+  }
   if (is.list(x)){
     vec_slice3(
       x,
