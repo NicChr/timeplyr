@@ -42,6 +42,15 @@ double r_sum(SEXP x){
   }
   return out;
 }
+double r_min(SEXP x){
+  Rcpp::Function base_min = Rcpp::Environment::base_env()["min"];
+  double out = R_PosInf;
+  if (Rf_length(x) > 0){
+    NumericVector outv = Rcpp::as<Rcpp::NumericVector>(base_min(x));
+    out = outv[0];
+  }
+  return out;
+}
 
 // [[Rcpp::export(rng = false)]]
 IntegerVector before_sequence(IntegerVector size, double k) {
@@ -152,7 +161,15 @@ SEXP cpp_dbl_sequence(SEXP size, SEXP from, SEXP by) {
     Rcpp::stop("from and by must both have length >= 0");
   }
   // To recycle we would need to do sum * remainder of the sum over n
-  SEXP out = PROTECT(Rf_allocVector(REALSXP, r_sum(size)));
+  double out_size = r_sum(size);
+  double min_size = r_min(size);
+  if (!(out_size == out_size)){
+    Rcpp::stop("size must not contain NA values");
+  }
+  if (min_size < 0){
+    Rcpp::stop("size must be a vector of non-negative integers");
+  }
+  SEXP out = PROTECT(Rf_allocVector(REALSXP, out_size));
   double *p_out = REAL(out);
   R_xlen_t index = 0;
   int fj;
@@ -166,10 +183,16 @@ SEXP cpp_dbl_sequence(SEXP size, SEXP from, SEXP by) {
     double *p_by = REAL(by);
     for (int j = 0; j < size_n; ++j){
       seq_size = p_size[j];
-      if (seq_size < 0){
-        UNPROTECT(1);
-        Rcpp::stop("size must be a vector of non-negative integers");
-      }
+      // NA sizes
+      // if (seq_size == NA_INTEGER){
+      //   UNPROTECT(1);
+      //   Rcpp::stop("sequence sizes cannot be NA");
+      // }
+      // Negative sizes
+      // if (seq_size < 0){
+      //   UNPROTECT(1);
+      //   Rcpp::stop("size must be a vector of non-negative integers");
+      // }
       fj = j % from_n;
       bj = j % by_n;
       start = p_from[fj];

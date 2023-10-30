@@ -54,10 +54,10 @@ time_diff <- function(x, y, time_by = 1,
   if (time_by_is_num(tby)){
     set_time_cast(y, x)
     if (!inherits(y, c("numeric", "integer"))){
-      y <- as.double(y)
+      y <- time_as_number(y)
     }
     if (!inherits(x, c("numeric", "integer"))){
-      x <- as.double(x)
+      x <- time_as_number(x)
     }
     out <- (y - x) / num
     # out <- divide(y - x, num)

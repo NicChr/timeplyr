@@ -53,11 +53,7 @@ sequence2 <- function(nvec, from = 1L, by = 1L){
   # Sequence end values
   # If these cant be integers, then we need to work with doubles
   seq_ends <- time_as_number(from) + (by * (pmax.int(nvec - 1, 0)))
-  out_maybe_int <- all(
-    is_integerable(
-      collapse::frange(seq_ends, na.rm = TRUE)
-    ), na.rm = TRUE
-  )
+  out_maybe_int <- all_integerable(seq_ends)
   # If from/by are integers and all sequence values < 2^31 then use sequence
   out_is_int <- is.integer(from) && is.integer(by) && out_maybe_int
   if (out_is_int){
@@ -100,15 +96,23 @@ seq_id <- function(nvec){
 #' @rdname sequence2
 #' @export
 seq_v <- function(from = 1L, to = 1L, by = 1L){
-  sequence2( ( (to - from) / by) + 1L, from = from, by = by)
+  out_size <- seq_size(from = from, to = to, by = by)
+  sequence2(out_size, from = from, by = by)
 }
 seq_size <- function(from, to, by = 1L){
-  out <- abs(( (to - from) / by ))
-  out[by == 0 & from == to] <- 0
-  out <- out + 1
-  if (isTRUE(all(is_integerable(out)))){
-    out <- as.integer(out)
-  }
-  out
+  time_seq_sizes(from = from, to = to, time_by = by)
+  # out <- abs(( (to - from) / by ))
+  # out[from == to] <- 0
+  #
+  # if (isTRUE(all_integerable(out, shift = 1))){
+  #   as.integer(out + 1e-10) + 1L
+  # } else {
+  #   trunc(out + 1e-10) + 1L
+  # }
 }
-
+seq_tbl <- function(from = 1L, to = 1L, by = 1L){
+  size <- seq_size(from = from, to = to, by = by)
+  seq_out <- sequence2(size, from = from, by = by)
+  seq_id <- seq_id(size)
+  new_tbl(id = seq_id, x = seq_out)
+}

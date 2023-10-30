@@ -374,15 +374,14 @@ convert_common_dates <- function(x){
   if (is_time(x)){
     out <- x
   } else if (is.character(x)){
-    which_not_na <- collapse::whichNA(x, invert = TRUE)
-    x2 <- x
-    out <- lubridate::ymd(x2, quiet = TRUE)
-    any_na <- anyNA(unclass(out)[which_not_na])
-    if (any_na){
-      out <- lubridate::dmy(x2, quiet = TRUE)
+    which_na <- collapse::whichNA(x)
+    out <- lubridate::ymd(x, quiet = TRUE)
+    num_na <- num_na(out)
+    if (num_na > length(which_na)){
+      out <- lubridate::dmy(x, quiet = TRUE)
     }
-    n_na <- num_na(out[which_not_na])
-    if (n_na < length(x) && n_na > 0){
+    num_na <- num_na(out)
+    if (num_na > length(which_na)){
       out <- lubridate::Date(length(x))
     }
   } else {

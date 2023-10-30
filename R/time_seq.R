@@ -283,15 +283,17 @@ time_seq <- function(from, to, time_by, length.out = NULL,
 time_seq_sizes <- function(from, to, time_by,
                            time_type = c("auto", "duration", "period")){
   time_by <- time_by_list(time_by)
-  tdiff <- abs(time_diff(from, to, time_by = time_by,
-                         time_type = time_type))
-  # Accounting for when from - to / by = 0 / 0
-  tdiff[is.nan(tdiff)] <- 0
-  if (length(tdiff) == 0L ||
-      isTRUE(is_integerable(collapse::fmax(tdiff) + 1))){
-    as.integer(tdiff) + 1L
+  tdiff <- time_diff(from, to, time_by = time_by,
+                     time_type = time_type)
+  tdiff[from == to] <- 0
+  tdiff_rng <- collapse::frange(tdiff, na.rm = TRUE)
+  if (isTRUE(any(tdiff_rng < 0))){
+    stop("At least 1 sequence length is negative, please check the time_by unit increments")
+  }
+  if (length(tdiff) == 0 || all(is_integerable(abs(tdiff_rng) + 1), na.rm = TRUE)){
+    as.integer(tdiff + 1e-10) + 1L
   } else {
-    tdiff + 1
+    trunc(tdiff + 1e-10) + 1
   }
 }
 #' @rdname time_seq
@@ -323,10 +325,10 @@ time_seq_v <- function(from, to, time_by,
 #' @rdname time_seq
 #' @export
 time_seq_v2 <- function(sizes, from, time_by,
-                       time_type = c("auto", "duration", "period"),
-                       time_floor = FALSE,
-                       week_start = getOption("lubridate.week.start", 1),
-                       roll_month = "preday", roll_dst = "pre"){
+                        time_type = c("auto", "duration", "period"),
+                        time_floor = FALSE,
+                        week_start = getOption("lubridate.week.start", 1),
+                        roll_month = "preday", roll_dst = "pre"){
   time_by <- time_by_list(time_by)
   units <- time_by_unit(time_by)
   num <- time_by_num(time_by)

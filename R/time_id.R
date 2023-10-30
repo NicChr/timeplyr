@@ -68,6 +68,7 @@ time_id <- function(x, time_by = NULL, g = NULL, na_skip = TRUE,
   elapsed_truncated <- which(double_equal(elapsed, elapsed_rounded) & (elapsed_rounded != out))
   out[elapsed_truncated] <- elapsed_rounded[elapsed_truncated]
   as.integer(out) + shift
+  # as.integer(elapsed + 1e-10) + shift
 }
 # To more closely match collapse::timeid one can use the below 3 lines
 # time_diff_gcd <- time_diff_gcd(x)

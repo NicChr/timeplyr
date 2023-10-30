@@ -969,6 +969,12 @@ strip_attr <- function(x, which){
 is_integerable <- function(x){
   abs(x) <= .Machine$integer.max
 }
+all_integerable <- function(x, shift = 0){
+  all(
+    (abs(collapse::frange(x, na.rm = TRUE)) + shift ) <= .Machine$integer.max,
+    na.rm = TRUE
+  )
+}
 add_attr <- function(x, which, value){
   attr(x, which) <- value
   x
