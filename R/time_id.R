@@ -55,6 +55,7 @@
 time_id <- function(x, time_by = NULL, g = NULL, na_skip = TRUE,
                     time_type = c("auto", "duration", "period"),
                     shift = 1L){
+  check_is_time_or_num(x)
   time_by <- time_by_get(x, time_by)
   check_length(shift, 1)
   elapsed <- time_elapsed(x, time_by = time_by, g = g,

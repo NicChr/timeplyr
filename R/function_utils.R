@@ -68,7 +68,7 @@ col_select_pos <- function(data, .cols = character()){
   if (is.numeric(.cols)){
     rng_sign <- check_range_sign(.cols)
     if (rng_sign == -1){
-      .cols <- setdiff(nm_seq, abs(.cols))
+      .cols <- nm_seq[match(nm_seq, abs(.cols), 0L) == 0L]
     } else {
       .cols <- .subset(.cols, .cols != 0)
     }
@@ -207,7 +207,7 @@ mutate2 <- function(data, ..., .by = NULL,
       other_vars <- intersect(names(data), quo_text)
       other_vars <- setdiff(other_vars, group_vars)
       out_vars <- intersect(names(data), c(group_vars, other_vars))
-      collapse::fselect(data, out_vars)
+      fselect(data, .cols = out_vars)
     }
   } else {
     dplyr::mutate(data, !!!dots, .keep = .keep,
@@ -456,18 +456,8 @@ recycle_args <- function (..., length = NULL, use.names = FALSE){
     recycle_length <- length
   }
   recycle_length <- recycle_length * (!collapse::anyv(lens, 0L))
-  # dont_recycle <- (
-  #   (
-  #     missing_length && uniq_lens == 1L # All the same length
-  #   ) || (
-  #     !missing_length  && uniq_lens == 1L && lens[1L] == recycle_length
-  #   )
-  # )
-  # if (!dont_recycle){
-    # Only recycle elements that need it
   recycle <- lens != recycle_length
   out[recycle] <- lapply(out[recycle], function(x) rep_len(x, recycle_length))
-  # }
   if (use.names){
     names(out) <- dot_nms(...)
   }
@@ -832,7 +822,8 @@ pretty_floor <- function(x){
 pretty_ceiling <- function(x){
   ceiling_nearest_n(x, n = 10^(log10_divisibility(x)))
 }
-fill_with_na <- function(x, n = NULL, prop = NULL){
+
+na_fill <- function(x, n = NULL, prop = NULL){
   if (!is.null(n) && !is.null(prop)){
     stop("either n or prop must be supplied")
   }
@@ -892,32 +883,6 @@ deparse1 <- function(expr, collapse = " ", width.cutoff = 500L, ...){
 fbincode <- function(x, breaks, right = TRUE, include.lowest = FALSE,
                      gx = NULL, gbreaks = NULL){
   x_list <- gsplit2(x, g = gx)
-  # gbreaks <- GRP2(gbreaks)
-  # if (is.null(gbreaks)){
-  #   n_groups <- min(length(breaks), 1L)
-  #   group_sizes <- length(breaks)
-  #   group_ends <- length(breaks)
-  #   group_id <- NULL
-  # } else {
-  #   n_groups <- GRP_n_groups(gbreaks)
-  #   group_sizes <- GRP_group_sizes(gbreaks)
-  #   group_ends <- GRP_ends(gbreaks)
-  #   group_id <- GRP_group_id(gbreaks)
-  # }
-  # if (append_inf){
-  #   appended_indices <- group_ends + cumsum(seq_ones(n_groups))
-  #   new_breaks <- numeric(length(breaks) + n_groups)
-  #   new_breaks[-appended_indices] <- breaks
-  #   new_breaks[appended_indices] <- Inf
-  #   if (!is.null(gbreaks)){
-  #     new_group_id <- integer(length(breaks) + n_groups)
-  #     new_group_id[-appended_indices] <- group_id
-  #     new_group_id[appended_indices] <- group_id[group_ends]
-  #     gbreaks <- group_id_to_qg(new_group_id, n_groups = n_groups,
-  #                               group_sizes = group_sizes)
-  #   }
-  #   breaks <- new_breaks
-  # }
   breaks_list <- gsplit2(breaks, g = gbreaks)
   out <- vector("list", length(x_list))
   for (i in seq_along(out)){
@@ -1139,3 +1104,28 @@ collapse_join <- function(x, y, on, how, sort = FALSE, ...){
 #   on.exit({print(paste("RNG USED:", !identical(curr, .Random.seed)))})
 #   invisible(eval(expr, envir = parent.frame(n = 1)))
 # }
+
+# The idea for the future is to use this instead of tidy_transform_names()
+# Ideally safer for functions with side effects and other functions
+# That may error when presented with vectors of length 1.
+# mutate_summary <- function(.data, ..., .by = NULL,
+#                            .keep = c("all", "used", "unused", "none"),
+#                            .before = NULL,
+#                            .after = NULL){
+#   original_names <- names(.data)
+#   for (i in seq_along(.data)){
+#     attr(.data[[i]], ".old_name") <- original_names[i]
+#   }
+#   out <- mutate2(.data, ..., .by = {{ .by }},
+#                  .keep = .keep,
+#                  .before = !!rlang::enquo(.before),
+#                  .after = !!rlang::enquo(.after))
+#   has_old_name_attr <- function(x) !is.null(attr(x, ".old_name"))
+#   used <- logical(length(out))
+#   new <- logical(length(out))
+#   for (i in seq_along(out)){
+#     new[i] <- !has_old_name_attr(out[[i]])
+#     used[i] <- !new[i] && attr(.data[[i]])
+#   }
+# }
+

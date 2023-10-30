@@ -10,7 +10,7 @@ testthat::test_that("Whole numbers", {
   z <- trunc(x)
   a <- ceiling(x)
   b <- floor(x)
-  c <- fill_with_na(y, prop = 0.2)
+  c <- na_fill(y, prop = 0.2)
   testthat::expect_equal(is_whole_number(NA_real_, na.rm = FALSE), NA)
   testthat::expect_equal(is_whole_number(NA_real_), TRUE)
   testthat::expect_true(is_whole_number(0))

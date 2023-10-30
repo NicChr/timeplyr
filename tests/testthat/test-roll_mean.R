@@ -102,7 +102,7 @@ testthat::test_that("Expected outputs", {
 # # With NA -----------------------------------------------------------------
 #
 #
-# x <- fill_with_na(x, prop = 0.3)
+# x <- na_fill(x, prop = 0.3)
 # z1 <- time_roll_mean(x, time = t, days(11), close_left_boundary = TRUE)
 # z2 <- slider::slide_index_mean(x, i = t, before = days(11), na_rm = TRUE,
 #                                complete = FALSE)

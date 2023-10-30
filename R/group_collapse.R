@@ -249,7 +249,7 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
                                       # loc_order = TRUE,
                                       start = TRUE, end = TRUE,
                                       drop = TRUE){
-  N <- nrow2(data)
+  N <- df_nrow(data)
   group_info <- group_info(data, ..., .by = {{ .by }},
                            .cols = .cols,
                            ungroup = TRUE,

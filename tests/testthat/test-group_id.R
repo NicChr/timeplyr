@@ -94,9 +94,9 @@ testthat::test_that("Group IDs", {
 
   # Zero cols
   testthat::expect_equal(group_id(iris2 %>% dplyr::select()),
-                             seq_ones(nrow2(iris2)))
+                             seq_ones(df_nrow(iris2)))
   testthat::expect_equal(group_id(iris %>% dplyr::select()),
-                             seq_ones(nrow2(iris2)))
+                             seq_ones(df_nrow(iris2)))
   # With renaming
 
   testthat::expect_equal(iris %>% group_id(okay = Petal.Width),

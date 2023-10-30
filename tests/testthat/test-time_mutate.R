@@ -23,8 +23,8 @@ testthat::test_that("General tests", {
                  dplyr::all_of(c("origin", "dest", "tailnum")),
                time_type = "duration") %>%
     dplyr::filter(.data[["n"]] > 0)
-  testthat::expect_equal(nrow2(dplyr::anti_join(df1, df2)), 0)
-  testthat::expect_equal(nrow2(dplyr::anti_join(df2, df1)), 0)
+  testthat::expect_equal(df_nrow(dplyr::anti_join(df1, df2)), 0)
+  testthat::expect_equal(df_nrow(dplyr::anti_join(df2, df1)), 0)
 
   flights2 <- dplyr::select(flights, time_hour, origin, dest)
   testthat::expect_equal(

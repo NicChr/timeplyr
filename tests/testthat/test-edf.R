@@ -21,7 +21,7 @@ testthat::expect_equal(edf1, edf2)
 df1 <- dplyr::tibble(x) %>%
   dplyr::mutate(edf1 = edf(x)) %>%
   fcount(x, edf1) %>%
-  dplyr::slice_sample(n = nrow2(.)) %>%
+  dplyr::slice_sample(n = df_nrow(.)) %>%
   dplyr::mutate(edf2 = edf(x, wt = n))
 testthat::expect_equal(df1$edf1,
                        df1$edf2)
@@ -29,7 +29,7 @@ testthat::expect_equal(df1$edf1,
 df2 <- dplyr::tibble(x, g) %>%
   dplyr::mutate(edf1 = edf(x, g = g)) %>%
   fcount(x, g, edf1) %>%
-  dplyr::slice_sample(n = nrow2(.)) %>%
+  dplyr::slice_sample(n = df_nrow(.)) %>%
   dplyr::mutate(edf2 = edf(x, wt = n, g = g))
 
 testthat::expect_equal(df2$edf1,
@@ -51,7 +51,7 @@ testthat::expect_equal(edf1, edf2)
 df3 <- dplyr::tibble(x) %>%
   dplyr::mutate(edf1 = edf(x)) %>%
   fcount(x, edf1) %>%
-  dplyr::slice_sample(n = nrow2(.)) %>%
+  dplyr::slice_sample(n = df_nrow(.)) %>%
   dplyr::mutate(edf2 = edf(x, wt = n))
 testthat::expect_equal(df3$edf1,
                        df3$edf2)
@@ -59,7 +59,7 @@ testthat::expect_equal(df3$edf1,
 df4 <- dplyr::tibble(x, g) %>%
   dplyr::mutate(edf1 = edf(x, g = g)) %>%
   fcount(x, g, edf1) %>%
-  dplyr::slice_sample(n = nrow2(.)) %>%
+  dplyr::slice_sample(n = df_nrow(.)) %>%
   dplyr::mutate(edf2 = edf(x, wt = n, g = g))
 testthat::expect_equal(df4$edf1,
                        df4$edf2)

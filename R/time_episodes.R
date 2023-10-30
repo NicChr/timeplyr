@@ -261,7 +261,7 @@ calc_episodes <- function(data,
                           window, # Window col
                           roll_episode, # Should episode calc be rolling?
                           fill){ # How to fill first time elapsed for rolling calc
-  N <- nrow2(data)
+  N <- df_nrow(data)
   lag <- min(N, 1L) # Bound lag to >= 0
   time_na <- na_init(fpluck(data, time)) # time NA with correct class
   time_num <- time_by_num(time_by)

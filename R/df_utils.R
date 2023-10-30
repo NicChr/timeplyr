@@ -149,7 +149,7 @@ df_rep_each <- function(data, each){
     each <- rep_len(each, df_nrow(data))
   }
   df_rep(data, each)
-  # N <- nrow2(data)
+  # N <- df_nrow(data)
   # if (N > 0L && length(each) > N){
   #   stop("each must not be greater than nrow(data)")
   # }
@@ -187,7 +187,7 @@ is_df <- function(x){
 # or unnamed vector to 1-column data frame
 fenframe <- function(x, name = "name", value = "value"){
   if (is_df(x)){
-    x <- as.list(x)
+    x <- strip_attr(unclass(x), "row.names")
   }
   if (!vctrs::vec_is(x)){
     stop("x must be a vector")
@@ -208,7 +208,7 @@ fenframe <- function(x, name = "name", value = "value"){
 # alternative tibble::deframe
 fdeframe <- function(x){
   ncol <- df_ncol(x)
-  if (!(is_df(x) || ncol %in% (1:2))){
+  if (!(is_df(x) && ncol %in% (1:2))){
     stop("`x` must be a 1 or 2 col data frame")
   }
   out <- .subset2(x, ncol)
@@ -319,6 +319,10 @@ pluck_row <- function(x, i = 1L, j = collapse::seq_col(x),
     stop("length(j) must be >= 1")
   }
   x <- collapse::ss(x, i = i, j = j)
+  # out <- fpluck(
+  #   collapse::pivot(x, values = names(x), how = "longer"),
+  #   2L
+  # )
   out <- fpluck(
     data.table::melt(as_DT(x), measure.vars = names(x),
                      value.name = "value"),

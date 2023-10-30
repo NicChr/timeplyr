@@ -64,13 +64,13 @@ testthat::test_that("Compared to tidyr", {
   testthat::expect_equal(testdf %>%
                                fgroup_by(tailnum) %>%
                                fexpand(carrier, flight, keep_class = FALSE) %>%
-                               nrow2(),
+                               df_nrow(),
                              185292L)
   # testthat::expect_equal(testdf %>%
   #                              fexpand(carrier, flight,
   #                                      .by = c(origin, dest, tailnum),
   #                                      keep_class = FALSE) %>%
-  #                              nrow2(),
+  #                              df_nrow(),
   #                            187205L)
   testthat::expect_equal(testdf %>%
                                fgroup_by(origin, dest, tailnum) %>%

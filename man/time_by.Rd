@@ -104,34 +104,39 @@ It can be used exactly like \code{dplyr::group_by}.
 library(dplyr)
 library(timeplyr)
 library(nycflights13)
+library(lubridate)
 \dontshow{
 .n_dt_threads <- data.table::getDTthreads()
 .n_collapse_threads <- collapse::get_collapse()$nthreads
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
+
+# Basic usage
+hourly_flights <- flights \%>\%
+  time_by(time_hour) # Detects time granularity
+
+hourly_flights
+time_by_span(hourly_flights)
+
 monthly_flights <- flights \%>\%
   time_by(time_hour, "month")
-
-monthly_flights
-
-time_by_span(monthly_flights)
-
-monthly_flights <- flights \%>\%
-  time_by(time_hour, "month", time_floor = TRUE) \%>\%
-  count()
 weekly_flights <- flights \%>\%
-  time_by(time_hour, "week", time_floor = TRUE) \%>\%
+  time_by(time_hour, "week", time_floor = TRUE)
+
+monthly_flights \%>\%
   count()
 
-rolling_weekly_flights <- flights \%>\%
-  time_by(time_hour, "week") \%>\%
-  summarise(n = n(),
-            arr_delay = mean(arr_delay, na.rm = TRUE))
+weekly_flights \%>\%
+  summarise(n = n(), arr_delay = mean(arr_delay, na.rm = TRUE))
 
-monthly_flights
-weekly_flights
-rolling_weekly_flights
+# To aggregate multiple variables, use time_aggregate or time_summarisev
+
+
+flights \%>\%
+  select(time_hour) \%>\%
+  mutate(across(everything(), \(x) time_summarisev(x, time_by = dweeks(1)))) \%>\%
+  count(time_hour)
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)
