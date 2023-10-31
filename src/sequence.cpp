@@ -1,56 +1,53 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-// R sum but result is always a double
-// double r_sum(SEXP x){
-//   double out = 0;
-//   // Rcpp::Environment base("package:base");
-//   // Rcpp::Function r_sum = base["sum"];
-//   // Rcpp::Environment base(Rcpp::Environment::base_env());
-//   Rcpp::Function base_sum = Rcpp::Environment::base_env()["sum"];
-//   SEXP sum = PROTECT(base_sum(x));
-//   switch (TYPEOF(sum)){
-//   case INTSXP: {
-//     int *p_sum = INTEGER(sum);
-//     if (Rf_length(sum) > 0){
-//       out = p_sum[0];
-//     }
-//     break;
-//   }
-//   case REALSXP: {
-//     double *p_sum = REAL(sum);
-//     if (Rf_length(sum) > 0){
-//       out = p_sum[0];
-//     }
-//     break;
-//   }
-//   default: {
-//     UNPROTECT(1);
-//     Rcpp::stop("r_sum not implemented for supplied SEXP");
-//   }
-//   }
-//   UNPROTECT(1);
-//   return out;
-// }
-
 double r_sum(SEXP x){
   Rcpp::Function base_sum = Rcpp::Environment::base_env()["sum"];
   double out = 0;
-  NumericVector outv = Rcpp::as<Rcpp::NumericVector>(base_sum(x));
-  if (outv.length() > 0){
-    out = outv[0];
+  SEXP sum = PROTECT(base_sum(x));
+  SEXP sum_double = PROTECT(Rf_coerceVector(sum, REALSXP));
+  double *p_sum = REAL(sum_double);
+  if (Rf_length(sum_double) > 0){
+    out = p_sum[0];
   }
+  UNPROTECT(2);
   return out;
 }
+
 double r_min(SEXP x){
   Rcpp::Function base_min = Rcpp::Environment::base_env()["min"];
   double out = R_PosInf;
   if (Rf_length(x) > 0){
-    NumericVector outv = Rcpp::as<Rcpp::NumericVector>(base_min(x));
-    out = outv[0];
+    SEXP min = PROTECT(base_min(x));
+    SEXP min_double = PROTECT(Rf_coerceVector(min, REALSXP));
+    double *p_min = REAL(min_double);
+    out = p_min[0];
+    UNPROTECT(2);
   }
   return out;
 }
+
+// Rcpp version
+// double r_sum(SEXP x){
+//   Rcpp::Function base_sum = Rcpp::Environment::base_env()["sum"];
+//   double out = 0;
+//   NumericVector outv = Rcpp::as<Rcpp::NumericVector>(base_sum(x));
+//   if (outv.length() > 0){
+//     out = outv[0];
+//   }
+//   return out;
+// }
+
+// Rcpp version
+// double r_min(SEXP x){
+//   Rcpp::Function base_min = Rcpp::Environment::base_env()["min"];
+//   double out = R_PosInf;
+//   if (Rf_length(x) > 0){
+//     NumericVector outv = Rcpp::as<Rcpp::NumericVector>(base_min(x));
+//     out = outv[0];
+//   }
+//   return out;
+// }
 
 // [[Rcpp::export(rng = false)]]
 IntegerVector before_sequence(IntegerVector size, double k) {

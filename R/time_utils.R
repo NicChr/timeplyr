@@ -821,7 +821,7 @@ as_yearqtr <- function(x){
   }
 }
 is_interval <- function(x){
-  inherits(x, "Interval")
+  isS4(x) && inherits(x, "Interval")
 }
 # time_agg2 <- function(time_seq_data, data, time, g){
 #   by <- dplyr::join_by(!!rlang::sym(g), closest(!!rlang::sym(time) >= !!rlang::sym(time)))

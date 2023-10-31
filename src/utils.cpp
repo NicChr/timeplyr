@@ -1,6 +1,8 @@
 #include <Rcpp.h>
 #include <Rinternals.h>
 using namespace Rcpp;
+
+#define R_NO_REMAP
 #define VECTOR_PTR_RO(x) ((const SEXP*) DATAPTR_RO(x))
 
 // [[Rcpp::export]]
@@ -88,15 +90,18 @@ List list_rm_null(List l) {
   return l[keep];
 }
 // [[Rcpp::export(rng = false)]]
-bool list_has_interval( List l ) {
+bool list_has_interval( SEXP l ) {
+  SEXP L = PROTECT(Rf_coerceVector(l, VECSXP));
+  const SEXP *p_l = VECTOR_PTR_RO(L);
   bool out = false;
-  int n = l.length();
+  int n = Rf_length(l);
   for (int i = 0; i < n; ++i) {
-    if (Rf_isReal(l[i]) && Rf_inherits(l[i], "Interval")){
+    if (Rf_isS4(p_l[i]) && Rf_isReal(p_l[i]) && Rf_inherits(p_l[i], "Interval")){
       out = true;
       break;
     }
   }
+  UNPROTECT(1);
   return out;
 }
 
@@ -106,7 +111,7 @@ SEXP list_item_is_interval( List l ) {
   SEXP out = PROTECT(Rf_allocVector(LGLSXP, n));
   int *p_out = LOGICAL(out);
   for (int i = 0; i < n; ++i) {
-    p_out[i] = Rf_isReal(l[i]) && Rf_inherits(l[i], "Interval");
+    p_out[i] = Rf_isS4(l[i]) && Rf_isReal(l[i]) && Rf_inherits(l[i], "Interval");
   }
   UNPROTECT(1);
   return out;

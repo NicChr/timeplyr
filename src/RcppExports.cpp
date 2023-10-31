@@ -182,11 +182,11 @@ BEGIN_RCPP
 END_RCPP
 }
 // list_has_interval
-bool list_has_interval(List l);
+bool list_has_interval(SEXP l);
 RcppExport SEXP _timeplyr_list_has_interval(SEXP lSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< List >::type l(lSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type l(lSEXP);
     rcpp_result_gen = Rcpp::wrap(list_has_interval(l));
     return rcpp_result_gen;
 END_RCPP
