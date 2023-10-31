@@ -62,7 +62,8 @@ SEXP cpp_num_na(SEXP x){
     break;
   }
   default: {
-    Rcpp::stop("num_na cannot handle the supplied SEXP");
+    Rf_error("num_na cannot handle the supplied SEXP");
+    break;
   }
   }
   if (count <= std::numeric_limits<int>::max()){
@@ -200,7 +201,7 @@ SEXP roll_time_threshold(SEXP x, double threshold = 1, bool switch_on_boundary =
   }
   default: {
     UNPROTECT(1);
-    Rcpp::stop("roll_time_threshold only supports integer and numeric vectors");
+    Rf_error("roll_time_threshold only supports integer and numeric vectors");
   }
   }
   UNPROTECT(1);

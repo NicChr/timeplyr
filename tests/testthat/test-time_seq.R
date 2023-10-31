@@ -12,9 +12,6 @@ testthat::test_that("Dates", {
   testthat::expect_length(time_seq(start2, end2, time_by = "day"), 11)
   testthat::expect_equal(time_seq(start2, end2, length.out = 11), # Result is datetime
                           lubridate::as_datetime(seq(start2, by = "day", length.out = 11)))
-  # testthat::expect_error(time_seq(start2, end2, length.out = 22, time_type = "period"))
-  # testthat::expect_error(time_seq(start2, end2, length.out = 10,
-  #                                 time_type = "period"))
   testthat::expect_equal(time_seq(start2, end2, time_by = "day"),
                              seq(start2, end2, by = "day"))
   testthat::expect_equal(time_seq(start2, end2,
@@ -103,8 +100,20 @@ testthat::test_that("Dates", {
   # Error, cannot supply time_by = 0
   testthat::expect_error(time_seq(start2, end2, time_type = "period", time_by = list("days" = 0)))
   testthat::expect_error(time_seq(start2, end2, time_type = "duration", time_by = list("days" = 0)))
-  # testthat::expect_error(time_seq(start2, start2, time_type = "period", time_by = list("days" = 0)))
-  # testthat::expect_error(time_seq(start2, start2, time_type = "duration", time_by = list("days" = 0)))
+  testthat::expect_equal(time_seq(start2, start2, time_type = "period", time_by = list("days" = 0)),
+                         start2)
+  testthat::expect_equal(time_seq(start2, start2, time_type = "duration", time_by = list("days" = 0)),
+                         lubridate::as_datetime(start2))
+
+  ################### EXTRA CHECKS FOR UBSAN CLANG SANITIZERS
+
+  testthat::expect_error(time_seq_v(start2, end2, time_type = "period",
+                                    time_by = list("days" = 0)))
+  testthat::expect_error(suppressWarnings(
+    time_seq_v(start2, end2, time_type = "duration",
+                                    time_by = list("days" = 0))))
+  testthat::expect_error(suppressWarnings(time_seq_v(start2, end2, time_by = 0)))
+  testthat::expect_error(time_seq(start2, end2, time_by = 0))
 
   # from > to examples
 
@@ -263,10 +272,12 @@ testthat::test_that("Datetimes", {
   testthat::expect_error(time_seq(start1, length.out = 5))
   testthat::expect_error(time_seq(to = start1, length.out = 5))
   # Error, cannot supply time_by = 0
-  testthat::expect_error(time_seq(end1, start1, time_type = "period", time_by = list("days" = 0)))
-  testthat::expect_error(time_seq(end1, start1, time_type = "duration", time_by = list("days" = 0)))
-  # testthat::expect_error(time_seq(start1, start1, time_type = "period", time_by = list("days" = 0)))
-  # testthat::expect_error(time_seq(start1, start1, time_type = "duration", time_by = list("days" = 0)))
+  # testthat::expect_error(time_seq(end1, start1, time_type = "period", time_by = list("days" = 0)))
+  # testthat::expect_error(time_seq(end1, start1, time_type = "duration", time_by = list("days" = 0)))
+  testthat::expect_equal(time_seq(start1, start1, time_type = "period", time_by = list("days" = 0)),
+                         start1)
+  testthat::expect_equal(time_seq(start1, start1, time_type = "duration", time_by = list("days" = 0)),
+                         start1)
 
   # from > to examples
 
@@ -286,24 +297,15 @@ testthat::test_that("Datetimes", {
   # Testing the vectorized period and duration sequence functions
   y1 <- period_seq_v(lubridate::today(), lubridate::today() + lubridate::days(50),
                      "days", c(2, rep(1, 112), rep(2, 154), 3, 6, 9))
-  # y2 <- period_seq_v2(lubridate::today(), lubridate::today() + lubridate::days(50),
-  #                     "days", c(2, rep(1, 112), rep(2, 154), 3, 6, 9))
-  # y3 <- period_seq_v3(lubridate::today(), lubridate::today() + lubridate::days(50),
-  #                     "days", c(2, rep(1, 112), rep(2, 154), 3, 6, 9))
   y4 <- lubridate::as_date(duration_seq_v(lubridate::today(), lubridate::today() + lubridate::days(50),
                                           "days", c(2, rep(1, 112), rep(2, 154), 3, 6, 9)))
-  # testthat::expect_equal(y1, y2)
-  # testthat::expect_equal(y1, y3)
   testthat::expect_equal(y1, y4)
-  # testthat::expect_equal(y2, y4)
-  # testthat::expect_equal(y2, y3)
-  # testthat::expect_equal(y3, y4)
   testthat::expect_equal(time_seq_v(1, c(50, 100, 100), time_by = 2:4),
                          c(seq(1, 50, by = 2),
                            seq(1, 100, by = 3),
                            seq(1, 100, by = 4)))
 })
-
+#
 testthat::test_that("Time sequence lengths", {
   start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
                                tz = "Europe/London")
@@ -368,43 +370,12 @@ testthat::test_that("Vectorised time sequences", {
   testthat::expect_equal(time_seq_v(start1, end1, time_by = list("days" = seq(1, 20, 1)), time_type = "period"),
                          do.call(c, lapply(seq(1, 20, 1), foo2)))
 })
-
+#
 testthat::test_that("ftseq compared to time_seq", {
   start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
                                tz = "Europe/London")
   end1 <- start1 + lubridate::ddays(37)
   end2 <- start1 + lubridate::days(37)
-  # testthat::expect_equal(time_seq(start1, end1, time_by = "2 days", time_type = "period"),
-  #                            ftseq(start1, end1, units = "days", num = 2, time_type = "period"))
-  # testthat::expect_equal(time_seq(start1, end1, time_by = "2 days", time_type = "duration"),
-  #                            ftseq(start1, end1, units = "days", num = 2, time_type = "duration"))
-  # # Negative sign for time_seq() but not ftseq()
-  # testthat::expect_equal(time_seq(end1, start1, time_by = "2 days", time_type = "duration"),
-  #                            ftseq(end1, start1,  units = "days", num = -2, time_type = "duration"))
-  #
-  # testthat::expect_equal(time_seq(start1, end1,  time_by = "2 days"),
-  #                            ftseq(start1, end1, units = "days", num = 2))
-  # testthat::expect_equal(time_seq(start1, end1,  time_by = list("hours" = pi)),
-  #                            ftseq(start1, end1, units = "hours", num = pi))
-  # testthat::expect_equal(time_seq(start1, end1,  time_by = list("hours" = pi), tz = "America/New_York"),
-  #                            lubridate::with_tz(ftseq(start1, end1, units = "hours", num = pi),
-  #                                               "America/New_York"))
-  # testthat::expect_equal(time_seq(start1, end1,  time_by = list("hours" = pi), tz = "America/New_York",
-  #                                     time_floor = TRUE),
-  #                            lubridate::with_tz(ftseq(start1, end1, units = "hours", num = pi,
-  #                                  time_floor = TRUE), "America/New_York"))
-  # testthat::expect_equal(time_seq(13.5, 194.75,  time_by = list("numeric" = 7),
-  #                                     time_floor = FALSE),
-  #                            ftseq(13.5, 194.75, units = "numeric", num = 7,
-  #                                  time_floor = FALSE))
-  # testthat::expect_equal(time_seq(13.5, 194.75,  time_by = 7,
-  #                                     time_floor = FALSE),
-  #                            ftseq(13.5, 194.75, units = "numeric", num = 7,
-  #                                  time_floor = FALSE))
-  # testthat::expect_equal(time_seq(13.5, 194.75,  time_by = 7,
-  #                                     time_floor = TRUE),
-  #                            ftseq(13.5, 194.75, units = "numeric", num = 7,
-  #                                  time_floor = TRUE))
   testthat::expect_equal(time_seq(100, 5, time_by = 5),
                              seq(100, 5, by = -5))
   testthat::expect_equal(time_seq(100, 5, time_by = -5),
@@ -412,12 +383,8 @@ testthat::test_that("ftseq compared to time_seq", {
 
   testthat::expect_equal(time_seq(lubridate::Date(0), lubridate::Date(0), time_by = "days", time_type = "duration"),
                              lubridate::POSIXct(0))
-  # testthat::expect_equal(ftseq(lubridate::Date(0), lubridate::Date(0), units = "days", time_type = "duration"),
-  #                            lubridate::POSIXct(0))
   testthat::expect_equal(time_seq(lubridate::Date(0), lubridate::Date(0), time_by = "days", time_type = "period"),
                          lubridate::Date(0))
-  # testthat::expect_equal(ftseq(lubridate::Date(0), lubridate::Date(0), units = "days", time_type = "period"),
-  #                        lubridate::Date(0))
 })
 
 testthat::test_that("dates, datetimes and numeric increments", {

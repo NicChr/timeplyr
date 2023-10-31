@@ -52,7 +52,7 @@ double r_min(SEXP x){
 // [[Rcpp::export(rng = false)]]
 IntegerVector before_sequence(IntegerVector size, double k) {
   if (Rcpp::min(size) < 0){
-    Rcpp::stop("size must be a vector of non-negative integers");
+    Rf_error("size must be a vector of non-negative integers");
   }
   int size_n = size.length();
   k = std::fmax(k, 0);
@@ -74,7 +74,7 @@ IntegerVector before_sequence(IntegerVector size, double k) {
 // [[Rcpp::export(rng = false)]]
 IntegerVector after_sequence(IntegerVector size, double k) {
   if (Rcpp::min(size) < 0){
-    Rcpp::stop("size must be a vector of non-negative integers");
+    Rf_error("size must be a vector of non-negative integers");
   }
   int size_n = size.length();
   k = std::fmax(k, 0);
@@ -101,7 +101,7 @@ IntegerVector after_sequence(IntegerVector size, double k) {
 //   int from_n = Rf_length(from);
 //   int by_n = Rf_length(by);
 //   if (from_n <= 0 || by_n <= 0){
-//     Rcpp::stop("from and by must both have length >= 0");
+//     Rf_error("from and by must both have length >= 0");
 //   }
 //   SEXP out = PROTECT(Rf_allocVector(INTSXP, r_sum(size)));
 //   int *p_out = INTEGER(out);
@@ -120,7 +120,7 @@ IntegerVector after_sequence(IntegerVector size, double k) {
 //     for (int j = 0; j < size_n; ++j){
 //       seq_size = p_size[j];
 //       if (seq_size < 0){
-//         Rcpp::stop("size must be a vector of non-negative integers");
+//         Rf_error("size must be a vector of non-negative integers");
 //       }
 //       // sj = j % size_n;
 //       fj = j % from_n;
@@ -133,10 +133,10 @@ IntegerVector after_sequence(IntegerVector size, double k) {
 //         Rcpp::stop("Integer overflow value of %f in sequence %f", seq_end, j + 1);
 //       }
 //       if (start == NA_INTEGER){
-//         Rcpp::stop("from contains NA values");
+//         Rf_error("from contains NA values");
 //       }
 //       if (increment == NA_INTEGER){
-//         Rcpp::stop("by contains NA values");
+//         Rf_error("by contains NA values");
 //       }
 //       for (int i = 0; i < seq_size; ++i){
 //         p_out[index] = start;
@@ -155,16 +155,16 @@ SEXP cpp_dbl_sequence(SEXP size, SEXP from, SEXP by) {
   int from_n = Rf_length(from);
   int by_n = Rf_length(by);
   if (size_n > 0 && (from_n <= 0 || by_n <= 0)){
-    Rcpp::stop("from and by must both have length >= 0");
+    Rf_error("from and by must both have length >= 0");
   }
   // To recycle we would need to do sum * remainder of the sum over n
   double out_size = r_sum(size);
   double min_size = r_min(size);
   if (!(out_size == out_size)){
-    Rcpp::stop("size must not contain NA values");
+    Rf_error("size must not contain NA values");
   }
   if (min_size < 0){
-    Rcpp::stop("size must be a vector of non-negative integers");
+    Rf_error("size must be a vector of non-negative integers");
   }
   SEXP out = PROTECT(Rf_allocVector(REALSXP, out_size));
   double *p_out = REAL(out);
@@ -183,12 +183,12 @@ SEXP cpp_dbl_sequence(SEXP size, SEXP from, SEXP by) {
       // NA sizes
       // if (seq_size == NA_INTEGER){
       //   UNPROTECT(1);
-      //   Rcpp::stop("sequence sizes cannot be NA");
+      //   Rf_error("sequence sizes cannot be NA");
       // }
       // Negative sizes
       // if (seq_size < 0){
       //   UNPROTECT(1);
-      //   Rcpp::stop("size must be a vector of non-negative integers");
+      //   Rf_error("size must be a vector of non-negative integers");
       // }
       fj = j % from_n;
       bj = j % by_n;
@@ -196,11 +196,11 @@ SEXP cpp_dbl_sequence(SEXP size, SEXP from, SEXP by) {
       increment = p_by[bj];
       if (!(start == start)){
         UNPROTECT(1);
-        Rcpp::stop("from contains NA values");
+        Rf_error("from contains NA values");
       }
       if (!(increment == increment)){
         UNPROTECT(1);
-        Rcpp::stop("by contains NA values");
+        Rf_error("by contains NA values");
       }
       for (int i = 0; i < seq_size; ++i){
         p_out[index] = ( start + (i * increment) );
@@ -219,7 +219,7 @@ IntegerVector window_sequence(IntegerVector size,
                               bool ascending = true) {
   int size_n = size.length();
   if (Rcpp::min(size) < 0){
-    Rcpp::stop("size must be a vector of non-negative integers");
+    Rf_error("size must be a vector of non-negative integers");
   }
   k = std::fmax(k, 0);
   SEXP out = PROTECT(Rf_allocVector(INTSXP, r_sum(size)));
@@ -286,7 +286,7 @@ IntegerVector window_sequence(IntegerVector size,
 // [[Rcpp::export(rng = false)]]
 IntegerVector lag_sequence(IntegerVector size, double k) {
   if (Rcpp::min(size) < 0){
-    stop("size must be a vector of non-negative integers");
+    Rf_error("size must be a vector of non-negative integers");
   }
   int size_n = size.length();
   k = std::fmax(k, 0);
@@ -307,7 +307,7 @@ IntegerVector lag_sequence(IntegerVector size, double k) {
 // [[Rcpp::export(rng = false)]]
 IntegerVector lead_sequence(IntegerVector size, double k) {
   if (Rcpp::min(size) < 0){
-    stop("size must be a vector of non-negative integers");
+    Rf_error("size must be a vector of non-negative integers");
   }
   int size_n = size.length();
   k = std::fmax(k, 0);

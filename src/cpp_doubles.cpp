@@ -11,7 +11,7 @@
 
 // int recycle_index(int i, int n){
 //   if (n == 0){
-//     stop("Cannot recycle index i for a zero-length vector");
+//     Rf_error("Cannot recycle index i for a zero-length vector");
 //   }
 //   return (i % n);
 // }

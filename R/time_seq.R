@@ -374,6 +374,9 @@ duration_seq <- function(from, length, duration){
     check_is_datetime(from)
     return(from)
   }
+  if (length < 0 || length == Inf){
+    stop("length must be a non-negative integer")
+  }
   seq.POSIXt(from = from,
              length.out = length, by = unclass(duration))
 }
@@ -395,6 +398,9 @@ period_seq <- function(from, length, unit, num = 1,
                        roll_month = "preday", roll_dst = "pre"){
   if (length(from) == 0L){
     length <- 0L
+  }
+  if (length < 0 || length == Inf){
+    stop("length must be a non-negative integer")
   }
   int_seq <- seq_len(length) - 1L
   if (length == 0L){
