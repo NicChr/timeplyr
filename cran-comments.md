@@ -1,5 +1,7 @@
 Updated package to version 0.2.1.
 
+Package was archived due to CLANG UBSAN issues which have now been resolved.
+
 Have addressed the CLANG UBSAN issues using rocker/r-devel-ubsan-clang.
 Have fixed the note regarding a duplicate html entry.
 
