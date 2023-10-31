@@ -10,8 +10,7 @@
 
 * Fixed a bug where `time_granularity` would error with zero-length vectors.
 
-* `is_whole_number` is now faster and utilises both absolute and relative differences. 
-Also and the underlying C++ function is safer.
+* `is_whole_number` is now faster and the underlying C++ function is safer.
 
 * Period calculations are now faster and more memory efficient and thus all the 
 time functions are also faster.
@@ -38,4 +37,4 @@ additional memory allocation.
 
 * New function `num_na` to efficiently calculate number of missing values.
 
-* `is_whole_number` is back to using only absolute differences.
+
