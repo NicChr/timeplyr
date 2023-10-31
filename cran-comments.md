@@ -1,7 +1,7 @@
 Updated package to version 0.2.1.
 
-Tested on multiple machines, all pass except for Debian linux, which 
-might be an issue with that test environment.
+Have addressed the CLANG UBSAN issues using rocker/r-devel-ubsan-clang.
+Have fixed the note regarding a duplicate html entry.
 
 ## Test environments
 
