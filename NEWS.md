@@ -1,4 +1,4 @@
-# timeplyr
+# timeplyr (Development version)
 
 # timeplyr 0.2.0 (15-Oct-2023)
 
