@@ -2,6 +2,8 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/NicChr/timeplyr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/NicChr/timeplyr/actions/workflows/R-CMD-check.yaml)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/timeplyr)](https://CRAN.R-project.org/package=timeplyr)
 <!-- badges: end -->
 
 # timeplyr
@@ -652,11 +654,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2023-W43"
+#> [1] "2023-W44"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W43-1"
+#> [1] "2023-W44-3"
 iso_week(today(), year = FALSE)
-#> [1] "W43"
+#> [1] "W44"
 ```
 
 ## `time_cut()`
