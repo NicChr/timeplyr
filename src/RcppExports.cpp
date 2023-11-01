@@ -234,6 +234,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cpp_roll_na_fill_grouped
+SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP g, double fill_limit);
+RcppExport SEXP _timeplyr_cpp_roll_na_fill_grouped(SEXP xSEXP, SEXP gSEXP, SEXP fill_limitSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type g(gSEXP);
+    Rcpp::traits::input_parameter< double >::type fill_limit(fill_limitSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_roll_na_fill_grouped(x, g, fill_limit));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_double_equal_vectorised", (DL_FUNC) &_timeplyr_cpp_double_equal_vectorised, 3},
@@ -256,6 +268,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_sorted_group_starts", (DL_FUNC) &_timeplyr_cpp_sorted_group_starts, 1},
     {"_timeplyr_roll_time_threshold", (DL_FUNC) &_timeplyr_roll_time_threshold, 3},
     {"_timeplyr_cpp_df_group_indices", (DL_FUNC) &_timeplyr_cpp_df_group_indices, 2},
+    {"_timeplyr_cpp_roll_na_fill_grouped", (DL_FUNC) &_timeplyr_cpp_roll_na_fill_grouped, 3},
     {NULL, NULL, 0}
 };
 

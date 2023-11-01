@@ -229,6 +229,316 @@ SEXP cpp_df_group_indices(SEXP rows, int size) {
   return indices;
 }
 
+// Taken from stackoverflow.com/questions/48118248
+// NumericVector Rcpp_sort(NumericVector x, NumericVector y) {
+//   // Order the elements of x by sorting y
+//   // First create a vector of indices
+//   IntegerVector idx = seq_along(x) - 1;
+//   // Then sort that vector by the values of y
+//   std::sort(idx.begin(), idx.end(), [&](int i, int j){return y[i] < y[j];});
+//   // And return x in that order
+//   return x[idx];
+// }
+// SEXP rcpp_sort_in_place(SEXP x, NumericVector y) {
+//   // Order the elements of x by sorting y
+//   double *p_x = REAL(x);
+//   Rcpp::Function r_seq_along = Rcpp::Environment::base_env()["seq_along"];
+//   SEXP iseq = PROTECT(r_seq_along(x));
+//   // First create a vector of indices
+//   IntegerVector idx = Rcpp::as<IntegerVector>(iseq) - 1;
+//   // Then sort that vector by the values of y
+//   // std::sort(std::begin(idx), std::end(idx),
+//   //           [&](int i, int j){
+//   //             if (y[i] == NA_INTEGER){
+//   //               return false;
+//   //             } else if (y[j] == NA_INTEGER){
+//   //               return true;
+//   //             } else {
+//   //               return y[i] < y[j];
+//   //             }
+//   //             });
+//   std::sort(idx.begin(), idx.end(), [&](int i, int j){return y[i] < y[j];});
+//   for (int i = 0; i < idx.length(); ++i){
+//     p_x[i] = p_x[idx[i]];
+//   }
+//   UNPROTECT(1);
+//   return idx;
+// }
+
+bool r_is_sorted(SEXP x) {
+  Rcpp::Function r_is_unsorted = Rcpp::Environment::base_env()["is.unsorted"];
+  SEXP is_unsorted = PROTECT(r_is_unsorted(x));
+  int *p_out = LOGICAL(is_unsorted);
+  bool out = p_out[0];
+  out = (out != NA_LOGICAL) && !out;
+  UNPROTECT(1);
+  return out;
+}
+
+// [[Rcpp::export(rng = false)]]
+SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP g, double fill_limit) {
+  R_xlen_t size = Rf_xlength(x);
+  R_xlen_t g_size = Rf_xlength(g);
+  bool has_groups = g_size > 0;
+  if (has_groups && g_size != size){
+    Rf_error("x and g must both be the same length");
+  }
+  // This will always evaluate to TRUE when g contains NA
+  if (!r_is_sorted(g)){
+    Rf_error("g must be a sorted integer vector");
+  }
+  SEXP groups = PROTECT(Rf_coerceVector(g, INTSXP));
+  int *p_groups = INTEGER(groups);
+  fill_limit = std::fmax(fill_limit, 0);
+  bool first_non_na = false;
+  bool is_na;
+  bool prev_is_not_na = false;
+  // R_xlen_t prev_na_count = 0;
+  // R_xlen_t na_count = 0;
+  R_xlen_t fill_count = 0;
+
+  switch(TYPEOF(x)){
+  case LGLSXP:
+  case INTSXP: {
+    int fill;
+    SEXP out = PROTECT(Rf_duplicate(x));
+    int *p_out = INTEGER(out);
+    for (R_xlen_t i = 0; i < size; ++i) {
+      // Start of new group?
+      if (has_groups && i > 0 && p_groups[i] != p_groups[i - 1]){
+        first_non_na = false;
+        // prev_na_count = 0;
+        // na_count = 0;
+        fill_count = 0;
+      }
+      is_na = (p_out[i] == NA_INTEGER);
+      // na_count += is_na;
+      if (!is_na && !first_non_na){
+        first_non_na = true;
+      }
+      // Resetting fill value
+      // Are we in new NA run?
+      if (first_non_na && prev_is_not_na){
+        fill_count = 0;
+        fill = p_out[i - 1];
+      }
+      // Should we fill this NA value?
+      if (first_non_na && is_na && fill_count < fill_limit){
+        p_out[i] = fill;
+        fill_count += 1;
+      }
+      // prev_na_count += is_na;
+      prev_is_not_na = !is_na;
+    }
+    UNPROTECT(2);
+    return out;
+  }
+  case REALSXP: {
+    double fill;
+    SEXP out = PROTECT(Rf_duplicate(x));
+    double *p_out = REAL(out);
+    for (R_xlen_t i = 0; i < size; ++i) {
+      // Start of new group?
+      if (has_groups && i > 0 && p_groups[i] != p_groups[i - 1]){
+        first_non_na = false;
+        // prev_na_count = 0;
+        // na_count = 0;
+        fill_count = 0;
+      }
+      is_na = !(p_out[i] == p_out[i]);
+      // non_na_count += !is_na;
+      // na_count += is_na;
+      if (!is_na && !first_non_na){
+        first_non_na = true;
+      }
+      // Resetting fill value
+      // Are we in new NA run?
+      // if (first_non_na && na_count > prev_na_count && prev_is_not_na){
+      if (first_non_na && prev_is_not_na){
+        fill_count = 0;
+        fill = p_out[i - 1];
+      }
+      // Should we fill this NA value?
+      if (first_non_na && is_na && fill_count < fill_limit){
+        p_out[i] = fill;
+        fill_count += 1;
+      }
+      // prev_na_count += is_na;
+      prev_is_not_na = !is_na;
+    }
+    UNPROTECT(2);
+    return out;
+  }
+  case STRSXP: {
+    CharacterVector fill(1);
+    CharacterVector out = Rcpp::as<CharacterVector>(x);
+    out = Rcpp::clone(out);
+    for (R_xlen_t i = 0; i < size; ++i) {
+      // Start of new group?
+      if (has_groups && i > 0 && p_groups[i] != p_groups[i - 1]){
+        first_non_na = false;
+        // prev_na_count = 0;
+        // na_count = 0;
+        fill_count = 0;
+      }
+      is_na = Rcpp::CharacterVector::is_na(out[i]);
+      // non_na_count += !is_na;
+      // na_count += is_na;
+      if (!is_na && !first_non_na){
+        first_non_na = true;
+      }
+      // Resetting fill value
+      // Are we in new NA run?
+      if (first_non_na && prev_is_not_na){
+        fill_count = 0;
+        fill[0] = out[i - 1];
+      }
+      // Should we fill this NA value?
+      if (first_non_na && is_na && fill_count < fill_limit){
+        out[i] = fill[0];
+        fill_count += 1;
+      }
+      // prev_na_count += is_na;
+      prev_is_not_na = !is_na;
+    }
+    UNPROTECT(1);
+    return out;
+  }
+  default: {
+    UNPROTECT(1);
+    Rf_error("cpp_roll_na_fill_grouped cannot handle the supplied SEXP");
+    break;
+  }
+  }
+}
+
+// NumericVector cpp_roll_na_fill_grouped(NumericVector x, SEXP g, double fill_limit) {
+//   R_xlen_t size = Rf_xlength(x);
+//   R_xlen_t g_size = Rf_xlength(g);
+//   bool has_groups = g_size > 0;
+//   if (has_groups && g_size != size){
+//     Rf_error("x and g must both be the same length");
+//   }
+//   // This will always evaluate to TRUE when g contains NA
+//   if (!r_is_sorted(g)){
+//     Rf_error("g must be a sorted integer vector");
+//   }
+//   SEXP groups = PROTECT(Rf_coerceVector(g, INTSXP));
+//   int *p_groups = INTEGER(groups);
+//   fill_limit = std::fmax(fill_limit, 0);
+//   NumericVector out = Rcpp::clone(x);
+//   bool first_non_na = false;
+//   bool is_na;
+//   bool prev_is_not_na = false;
+//   double fill;
+//   // int prev_non_na_count = 0;
+//   // int non_na_count = 0;
+//   R_xlen_t prev_na_count = 0;
+//   R_xlen_t na_count = 0;
+//   R_xlen_t fill_count = 0;
+//   for (R_xlen_t i = 0; i < size; ++i) {
+//
+//     // Start of new group?
+//     if (has_groups && i > 0 && p_groups[i] != p_groups[i - 1]){
+//       first_non_na = false;
+//       prev_na_count = 0;
+//       na_count = 0;
+//       fill_count = 0;
+//     }
+//     is_na = !(x[i] == x[i]);
+//     // non_na_count += !is_na;
+//     na_count += is_na;
+//     if (!is_na && !first_non_na){
+//       first_non_na = true;
+//     }
+//     // Resetting fill value
+//     // Are we in new NA run?
+//     if (first_non_na && na_count > prev_na_count && prev_is_not_na){
+//       fill_count = 0;
+//       fill = x[i - 1];
+//     }
+//     // Should we fill this NA value?
+//     if (first_non_na && is_na && fill_count < fill_limit){
+//       out[i] = fill;
+//       fill_count += 1;
+//     }
+//     prev_na_count += is_na;
+//     prev_is_not_na = !is_na;
+//     // prev_non_na_count += !is_na;
+//   }
+//   UNPROTECT(1);
+//   return out;
+// }
+// NumericVector cpp_roll_na_fill(NumericVector x, IntegerVector g, double fill_limit) {
+//   NumericVector out = Rcpp::clone(x);
+//   int size = x.length();
+//   bool first_non_na = false;
+//   bool is_na;
+//   bool prev_is_not_na = false;
+//   double fill;
+//   // int prev_non_na_count = 0;
+//   // int non_na_count = 0;
+//   int prev_na_count = 0;
+//   int na_count = 0;
+//   for (int i = 0; i < size; ++i) {
+//     is_na = NumericVector::is_na(x[i]);
+//     // non_na_count += !is_na;
+//     na_count += is_na;
+//     if (!is_na && !first_non_na){
+//       first_non_na = true;
+//     }
+//     // Resetting fill value
+//     if (first_non_na && na_count > prev_na_count && prev_is_not_na){
+//       fill = x[i - 1];
+//     }
+//     if (first_non_na && is_na){
+//       out[i] = fill;
+//     }
+//     prev_na_count += is_na;
+//     prev_is_not_na = !is_na;
+//     // prev_non_na_count += !is_na;
+//   }
+//   return out;
+// }
+// NumericVector cpp_roll_na_fill(NumericVector x, IntegerVector g, double fill_limit) {
+//   NumericVector out = Rcpp::clone(x);
+//   int size = x.length();
+//   int j = 0;
+//   bool first_non_na = false;
+//   bool fill_flag = false;
+//   bool is_na;
+//   double fill;
+//   int prev_non_na_count = 0;
+//   int non_na_count = 0;
+//   int prev_na_count = 0;
+//   int na_count = 0;
+//   for (int i = 0; i < size; ++i) {
+//     is_na = NumericVector::is_na(x[i]);
+//     non_na_count += !is_na;
+//     na_count += is_na;
+//     // First non-NA
+//     if (!first_non_na && !is_na){
+//       first_non_na = true;
+//     }
+//     // Fill NA value
+//     if (first_non_na && is_na && !fill_flag){
+//       fill = x[i - 1];
+//       fill_flag = true;
+//     }
+//     if (first_non_na && is_na){
+//       out[i] = fill;
+//       j = j + 1;
+//     }
+//     // Resetting fill value
+//     if (na_count == prev_na_count && non_na_count > prev_non_na_count){
+//       fill = x[i];
+//     }
+//     prev_na_count += is_na;
+//     prev_non_na_count += !is_na;
+//   }
+//   return out;
+// }
+
 // SEXP pmax2(NumericVector x, NumericVector y){
 //   R_xlen_t n1 = Rf_xlength(x);
 //   R_xlen_t n2 = Rf_xlength(y);

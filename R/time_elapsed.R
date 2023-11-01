@@ -79,9 +79,7 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
   check_is_time_or_num(x)
   time_by <- time_by_get(x, time_by = time_by)
   check_time_by_length_is_one(time_by)
-  if (!is.na(fill) && length(fill) > 1){
-    stop("fill must be a single number")
-  }
+  check_length(fill, 1)
   g <- GRP2(g, sort = TRUE, return.groups = TRUE, return.order = TRUE)
   if (rolling){
     sorted_group_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = TRUE)

@@ -81,3 +81,7 @@ cpp_df_group_indices <- function(rows, size) {
     .Call(`_timeplyr_cpp_df_group_indices`, rows, size)
 }
 
+cpp_roll_na_fill_grouped <- function(x, g, fill_limit) {
+    .Call(`_timeplyr_cpp_roll_na_fill_grouped`, x, g, fill_limit)
+}
+

@@ -441,9 +441,8 @@ df_group_id <- function(x){
   }
   N <- df_nrow(x)
   groups <- attr(x, "groups")
-  n_groups <- df_nrow(groups)
   if (is.null(groups)){
-    out <- collapse::alloc(1L, N)
+    out <- seq_ones(N)
   } else {
     rows <- groups[[".rows"]]
     out <- cpp_df_group_indices(rows, N)

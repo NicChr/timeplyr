@@ -1,13 +1,13 @@
 #' Fast grouped "locf" `NA` fill
 #'
-#' @description A fast by-group method for
+#' @description A fast and efficient by-group method for
 #' "last-observation-carried-forward" `NA` filling.
 #'
 #' @param x A vector
 #' @param g An object use for grouping x
 #' This may be a vector or data frame for example.
 #' @param fill_limit (Optional) maximum number of consecutive NAs to fill
-#' per `NA` cluster.
+#' per `NA` cluster. Default is `Inf`.
 #'
 #' @returns
 #' A filled vector of `x` the same length as `x`.
@@ -63,53 +63,21 @@
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #'}
 #' @export
-roll_na_fill <- function(x, g = NULL, fill_limit = NULL){
+roll_na_fill <- function(x, g = NULL, fill_limit = Inf){
+  check_length(fill_limit, 1)
   if (num_na(x) %in% c(0L, length(x))){
     return(x)
   }
   g <- GRP2(g)
-  if (is.null(g)){
-    # Ungrouped method 2 (more flexible, slower)
-    which_na <- collapse::whichNA(x)
-    roll_lag <- integer(length(x))
-    roll_lag[which_na] <- data.table::rleidv(x)[which_na]
-    roll_lag[which_na] <- frowid(roll_lag[which_na], order = FALSE)
-    roll_lag[roll_lag >= seq_along(x)] <- 0L
-    if (!is.null(fill_limit)){
-      if (length(fill_limit) != 1L){
-        stop("fill_limit must be a single whole number")
-      }
-      roll_lag[roll_lag > fill_limit] <- 0L
-    }
-    out <- roll_lag(x, roll_lag, check = FALSE)
-  } else {
-    # Grouped method
-    sorted_group_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
-    sorted_g <- sorted_group_info[["sorted_GRP"]]
-    sorted_by_groups <- sorted_group_info[["sorted"]]
-    sorted_x <- sorted_group_info[["x"]]
-    sorted_group_id <- GRP_group_id(sorted_g)
-    is_na <- is.na(sorted_x)
-    which_na <- which(is_na)
-    consecutive_id <- data.table::fifelse(is_na,
-                                          data.table::rleidv(sorted_x),
-                                          0L)
-    roll_lag <- integer(length(sorted_x))
-    roll_lag[which_na] <- frowid(roll_lag, g = list(sorted_group_id,
-                                                    consecutive_id),
-                                    order = FALSE)[which_na]
-    row_id <- frowid(sorted_x, g = sorted_g)
-    roll_lag[roll_lag >= row_id] <- 0L
-    if (!is.null(fill_limit)){
-      if (length(fill_limit) != 1L){
-        stop("fill_limit must be a single whole number")
-      }
-      roll_lag[roll_lag > fill_limit] <- 0L
-    }
-    out <- roll_lag(sorted_x, roll_lag, check = FALSE)
-    if (!sorted_by_groups){
-      out <- collapse::greorder(out, g = g)
-    }
+  sorted_group_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
+  sorted_g <- sorted_group_info[["sorted_GRP"]]
+  sorted_x <- sorted_group_info[["x"]]
+  sorted_by_groups <- sorted_group_info[["sorted"]]
+  out <- cpp_roll_na_fill_grouped(sorted_x,
+                                  g = group_id(sorted_g),
+                                  fill_limit = fill_limit)
+  if (!sorted_by_groups){
+    out <- collapse::greorder(out, g = g)
   }
   out
 }

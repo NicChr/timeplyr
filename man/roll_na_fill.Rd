@@ -4,7 +4,7 @@
 \alias{roll_na_fill}
 \title{Fast grouped "locf" \code{NA} fill}
 \usage{
-roll_na_fill(x, g = NULL, fill_limit = NULL)
+roll_na_fill(x, g = NULL, fill_limit = Inf)
 }
 \arguments{
 \item{x}{A vector}
@@ -13,7 +13,7 @@ roll_na_fill(x, g = NULL, fill_limit = NULL)
 This may be a vector or data frame for example.}
 
 \item{fill_limit}{(Optional) maximum number of consecutive NAs to fill
-per \code{NA} cluster.}
+per \code{NA} cluster. Default is \code{Inf}.}
 }
 \value{
 A filled vector of \code{x} the same length as \code{x}.
