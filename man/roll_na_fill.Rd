@@ -19,7 +19,7 @@ per \code{NA} cluster. Default is \code{Inf}.}
 A filled vector of \code{x} the same length as \code{x}.
 }
 \description{
-A fast by-group method for
+A fast and efficient by-group method for
 "last-observation-carried-forward" \code{NA} filling.
 }
 \examples{

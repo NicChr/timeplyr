@@ -1135,3 +1135,10 @@ collapse_join <- function(x, y, on, how, sort = FALSE, ...){
 #   }
 # }
 
+# Sort x with no copy
+# If y is supplied, sort x using y
+set_order <- function(x, y = NULL){
+  df <- collapse::qDT(list3(x = x, y = y))
+  data.table::setorderv(df, cols = names(df)[df_ncol(df)])
+  invisible(x)
+}
