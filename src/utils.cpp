@@ -331,17 +331,17 @@ SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP g, double fill_limit) {
         fill_count = 0;
       }
       is_na = (p_out[i] == NA_INTEGER);
-      if (!is_na && !first_non_na){
+      if (!first_non_na && !is_na){
         first_non_na = true;
       }
       // Resetting fill value
       // Are we in new NA run?
-      if (first_non_na && prev_is_not_na){
+      if (is_na && first_non_na && prev_is_not_na){
         fill_count = 0;
         fill = p_out[i - 1];
       }
       // Should we fill this NA value?
-      if (first_non_na && is_na && fill_count < fill_limit){
+      if (is_na && first_non_na && fill_count < fill_limit){
         p_out[i] = fill;
         fill_count += 1;
       }
@@ -361,17 +361,17 @@ SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP g, double fill_limit) {
         fill_count = 0;
       }
       is_na = !(p_out[i] == p_out[i]);
-      if (!is_na && !first_non_na){
+      if (!first_non_na && !is_na){
         first_non_na = true;
       }
       // Resetting fill value
       // Are we in new NA run?
-      if (first_non_na && prev_is_not_na){
+      if (is_na && first_non_na && prev_is_not_na){
         fill_count = 0;
         fill = p_out[i - 1];
       }
       // Should we fill this NA value?
-      if (first_non_na && is_na && fill_count < fill_limit){
+      if (is_na && first_non_na && fill_count < fill_limit){
         p_out[i] = fill;
         fill_count += 1;
       }
@@ -391,17 +391,17 @@ SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP g, double fill_limit) {
         fill_count = 0;
       }
       is_na = Rcpp::CharacterVector::is_na(out[i]);
-      if (!is_na && !first_non_na){
+      if (!first_non_na && !is_na){
         first_non_na = true;
       }
       // Resetting fill value
       // Are we in new NA run?
-      if (first_non_na && prev_is_not_na){
+      if (is_na && first_non_na && prev_is_not_na){
         fill_count = 0;
         fill[0] = out[i - 1];
       }
       // Should we fill this NA value?
-      if (first_non_na && is_na && fill_count < fill_limit){
+      if (is_na && first_non_na && fill_count < fill_limit){
         out[i] = fill[0];
         fill_count += 1;
       }

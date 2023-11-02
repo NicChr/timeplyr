@@ -15,7 +15,8 @@ time_elapsed(
 )
 }
 \arguments{
-\item{x}{Date, datetime or numeric vector.}
+\item{x}{Time variable. \cr
+Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, or \code{yearqtr}.}
 
 \item{time_by}{Must be one of the three:
 \itemize{
@@ -51,7 +52,7 @@ A numeric vector the same length as \code{x}.
 }
 \description{
 Calculate how much time has passed
-on a rolling or fixed cumulative basis. \cr
+on a rolling or cumulative basis. \cr
 }
 \details{
 \code{time_elapsed()} is quite efficient when there are many groups,
@@ -66,10 +67,6 @@ When \code{na_skip} is \code{TRUE} and \code{rolling} is \code{FALSE}, time diff
 the current value and the first non-NA value of the series are calculated.
 For example,
 \code{c(NA, NA, 3, 4, 6, NA, 8)} becomes \code{c(NA, NA, 0, 1, 3, NA, 5)}.
-
-\code{roll_time_diff} is a more bare-bones ungrouped version of
-\code{time_elapsed} which operates like base R's \code{diff} function and allows
-lagged time differences.
 }
 \examples{
 library(timeplyr)

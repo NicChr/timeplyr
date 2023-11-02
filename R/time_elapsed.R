@@ -1,9 +1,10 @@
 #' Fast grouped time elapsed
 #'
 #' @description Calculate how much time has passed
-#' on a rolling or fixed cumulative basis. \cr
+#' on a rolling or cumulative basis. \cr
 #'
-#' @param x Date, datetime or numeric vector.
+#' @param x Time variable. \cr
+#' Can be a `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, or `yearqtr`.
 #' @param time_by Must be one of the three:
 #' * string, specifying either the unit or the number and unit, e.g
 #' `time_by = "days"` or `time_by = "2 weeks"`
@@ -40,11 +41,8 @@
 #' For example,
 #' `c(NA, NA, 3, 4, 6, NA, 8)` becomes `c(NA, NA, 0, 1, 3, NA, 5)`.
 #'
-#' `roll_time_diff` is a more bare-bones ungrouped version of
-#' `time_elapsed` which operates like base R's `diff` function and allows
-#' lagged time differences.
-#'
-#' @returns A numeric vector the same length as `x`.
+#' @returns
+#' A numeric vector the same length as `x`.
 #'
 #' @examples
 #' library(timeplyr)

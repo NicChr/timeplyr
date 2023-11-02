@@ -2,9 +2,12 @@
 % Please edit documentation in R/roll_na_fill.R
 \name{roll_na_fill}
 \alias{roll_na_fill}
+\alias{.roll_na_fill}
 \title{Fast grouped "locf" \code{NA} fill}
 \usage{
 roll_na_fill(x, g = NULL, fill_limit = Inf)
+
+.roll_na_fill(x, fill_limit = Inf)
 }
 \arguments{
 \item{x}{A vector}
@@ -21,6 +24,32 @@ A filled vector of \code{x} the same length as \code{x}.
 \description{
 A fast and efficient by-group method for
 "last-observation-carried-forward" \code{NA} filling.
+}
+\details{
+\subsection{Method}{
+
+When supplying groups using \code{g}, this method sorts \code{x} by \code{g} using
+\code{x[order(g)]} iff g is unsorted. \code{x} is then efficiently filled using
+one pass and re-ordered in the order it was given.
+For info, this re-sorting back to original order
+can be achieved generally using \code{order()} given that the
+following identity always holds:
+\preformatted{
+`all.equal(x, sort(x)[order(order(x))])`
+}
+
+Or alternatively:
+\preformatted{
+`all.equal(x, sort(x)[rank(x, ties.method = "first")])`
+}
+
+When \code{x} contains zero or all \code{NA} values, then \code{x} is returned with no copy
+made.
+
+\code{.roll_na_fill()} is the same as \code{roll_na_fill()} but without a g argument and
+it performs no sanity checks. It is passed straight to c++ which makes it efficient for
+loops.
+}
 }
 \examples{
 library(timeplyr)
@@ -46,27 +75,30 @@ library(zoo)
 
   # Summary
 # Latest version of vctrs with their vec_fill_missing
-# Is by far the best for repeated filling and memory efficiency
+# Is the fastest but not most memory efficient
 # For low repetitions and large vectors, data.table is best
 
 # For large numbers of repetitions (groups) and data
 # that is sorted by groups
-# timeplyr is fastest, but not memory efficient
+# timeplyr is fastest
 
 # No groups
 bench::mark(e1 = dt[, filled1 := timeplyr::roll_na_fill(x)][]$filled1,
             e2 = dt[, filled2 := data.table::nafill(x, type = "locf")][]$filled2,
             e3 = dt[, filled3 := vctrs::vec_fill_missing(x)][]$filled3,
-            e4 = dt[, filled4 := zoo::na.locf0(x)][]$filled4)
+            e4 = dt[, filled4 := zoo::na.locf0(x)][]$filled4,
+            e5 = dt[, filled5 := timeplyr::.roll_na_fill(x)][]$filled5)
 # With group
 bench::mark(e1 = dt[, filled1 := timeplyr::roll_na_fill(x, groups)][]$filled1,
             e2 = dt[, filled2 := data.table::nafill(x, type = "locf"), by = groups][]$filled2,
-            e3 = dt[, filled3 := vctrs::vec_fill_missing(x), by = groups][]$filled3)
+            e3 = dt[, filled3 := vctrs::vec_fill_missing(x), by = groups][]$filled3,
+            e4 = dt[, filled4 := timeplyr::.roll_na_fill(x), by = groups][]$filled4)
 # Data sorted by groups
 setkey(dt, groups)
 bench::mark(e1 = dt[, filled1 := timeplyr::roll_na_fill(x, groups)][]$filled1,
             e2 = dt[, filled2 := data.table::nafill(x, type = "locf"), by = groups][]$filled2,
-            e3 = dt[, filled3 := vctrs::vec_fill_missing(x), by = groups][]$filled3)
+            e3 = dt[, filled3 := vctrs::vec_fill_missing(x), by = groups][]$filled3,
+            e4 = dt[, filled4 := timeplyr::.roll_na_fill(x), by = groups][]$filled4)
 }
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
