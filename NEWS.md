@@ -4,7 +4,7 @@
 
 * CRAN submission accepted.
 
-# timeplyr 0.2.1
+# timeplyr 0.2.1 (31-Oct-2023)
 
 * Fixed a bug where `sequence2` would error when `nvec` was a zero-length vector.
 
@@ -37,4 +37,8 @@ additional memory allocation.
 
 * New function `num_na` to efficiently calculate number of missing values.
 
+* timeplyr 0.2.1 published to CRAN
 
+# timeplyr 0.2.2 (In development)
+
+* `roll_na_fill` has been mostly rewritten in C++ for speed and efficiency.
