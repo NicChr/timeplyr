@@ -115,5 +115,5 @@ roll_na_fill <- function(x, g = NULL, fill_limit = Inf){
 #' @rdname roll_na_fill
 #' @export
 .roll_na_fill <- function(x, fill_limit = Inf){
-  .Call(`_timeplyr_cpp_roll_na_fill_grouped`, x, g = NULL, fill_limit)
+  .Call(`_timeplyr_cpp_roll_na_fill_grouped`, x, NULL, fill_limit)
 }
