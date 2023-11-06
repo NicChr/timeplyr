@@ -10,7 +10,7 @@ roll_na_fill(x, g = NULL, fill_limit = Inf)
 .roll_na_fill(x, fill_limit = Inf)
 }
 \arguments{
-\item{x}{A vector}
+\item{x}{A vector.}
 
 \item{g}{An object use for grouping x
 This may be a vector or data frame for example.}

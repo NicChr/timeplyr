@@ -41,12 +41,12 @@ window_sequence <- function(size, k, partial = TRUE, ascending = TRUE) {
     .Call(`_timeplyr_window_sequence`, size, k, partial, ascending)
 }
 
-lag_sequence <- function(size, k) {
-    .Call(`_timeplyr_lag_sequence`, size, k)
+lag_sequence <- function(size, k, partial = FALSE) {
+    .Call(`_timeplyr_lag_sequence`, size, k, partial)
 }
 
-lead_sequence <- function(size, k) {
-    .Call(`_timeplyr_lead_sequence`, size, k)
+lead_sequence <- function(size, k, partial = FALSE) {
+    .Call(`_timeplyr_lead_sequence`, size, k, partial)
 }
 
 test_long_vector_support <- function() {
@@ -81,7 +81,7 @@ cpp_df_group_indices <- function(rows, size) {
     .Call(`_timeplyr_cpp_df_group_indices`, rows, size)
 }
 
-cpp_roll_na_fill_grouped <- function(x, g, fill_limit) {
-    .Call(`_timeplyr_cpp_roll_na_fill_grouped`, x, g, fill_limit)
+cpp_roll_na_fill_grouped <- function(x, g, fill_limit, check_sorted) {
+    .Call(`_timeplyr_cpp_roll_na_fill_grouped`, x, g, fill_limit, check_sorted)
 }
 

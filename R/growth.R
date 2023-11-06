@@ -111,7 +111,7 @@ rolling_growth <- function(x, n = 1, lag = n, na.rm = FALSE, partial = TRUE,
     if (length(x_na) > 0L) offset[x_na] <- NA_real_
   }
   if (partial){
-    window <- window_seq(k = n, n = length(x), partial = TRUE)
+    window <- window_sequence(length(x), n, partial = TRUE)
     # Partial window is shifted according to lag value
     window_lagged <- collapse::flag(window, n = lag)
     # Running mean with lagged partial window
@@ -158,13 +158,13 @@ rolling_growth <- function(x, n = 1, lag = n, na.rm = FALSE, partial = TRUE,
     # Growth of value compared to lagged value
     growth <- numerator / denominator
     # 0/0 = NaN and assume 0 to 0 events represents no growth, i.e GR = 1.
-    setv(growth, which(numerator == 0 & denominator == 0), 1, vind1 = TRUE)
+    collapse::setv(growth, which(numerator == 0 & denominator == 0), 1, vind1 = TRUE)
   }
   # NA/0 remains NA
   if (!is.null(inf_fill)){
     if (is.na(inf_fill)) inf_fill <- NA_real_
     # Any growth change from 0 is replaced with inf_fill
-    setv(growth, which(is.infinite(growth)), inf_fill, vind1 = TRUE)
+    collapse::setv(growth, which(is.infinite(growth)), inf_fill, vind1 = TRUE)
   }
   growth
 }

@@ -284,7 +284,7 @@ IntegerVector window_sequence(IntegerVector size,
 }
 
 // [[Rcpp::export(rng = false)]]
-IntegerVector lag_sequence(IntegerVector size, double k) {
+IntegerVector lag_sequence(IntegerVector size, double k, bool partial = false) {
   if (Rcpp::min(size) < 0){
     Rf_error("size must be a vector of non-negative integers");
   }
@@ -292,20 +292,33 @@ IntegerVector lag_sequence(IntegerVector size, double k) {
   k = std::fmax(k, 0);
   IntegerVector out(r_sum(size));
   R_xlen_t index = 0;
-  for (int j = 0; j < size_n; ++j){
-    for (int i = 0; i < size[j]; ++i){
-      if (i < k){
-        out[index] = NA_INTEGER;
-      } else {
-        out[index] = k;
+  if (partial){
+    for (int j = 0; j < size_n; ++j){
+      for (int i = 0; i < size[j]; ++i){
+        if (i < k){
+          out[index] = i;
+        } else {
+          out[index] = k;
+        }
+        ++index;
       }
-      ++index;
+    }
+  } else {
+    for (int j = 0; j < size_n; ++j){
+      for (int i = 0; i < size[j]; ++i){
+        if (i < k){
+          out[index] = NA_INTEGER;
+        } else {
+          out[index] = k;
+        }
+        ++index;
+      }
     }
   }
   return out;
 }
 // [[Rcpp::export(rng = false)]]
-IntegerVector lead_sequence(IntegerVector size, double k) {
+IntegerVector lead_sequence(IntegerVector size, double k, bool partial = false) {
   if (Rcpp::min(size) < 0){
     Rf_error("size must be a vector of non-negative integers");
   }
@@ -314,15 +327,29 @@ IntegerVector lead_sequence(IntegerVector size, double k) {
   IntegerVector out(r_sum(size));
   R_xlen_t index = 0;
   int idiff;
-  for (int j = 0; j < size_n; ++j){
-    for (int i = 0; i < size[j]; ++i){
-      idiff = size[j] - i - 1;
-      if (idiff < k){
-        out[index] = NA_INTEGER;
-      } else {
-        out[index] = k;
+  if (partial){
+    for (int j = 0; j < size_n; ++j){
+      for (int i = 0; i < size[j]; ++i){
+        idiff = size[j] - i - 1;
+        if (idiff < k){
+          out[index] = idiff;
+        } else {
+          out[index] = k;
+        }
+        ++index;
       }
-      ++index;
+    }
+  } else {
+    for (int j = 0; j < size_n; ++j){
+      for (int i = 0; i < size[j]; ++i){
+        idiff = size[j] - i - 1;
+        if (idiff < k){
+          out[index] = NA_INTEGER;
+        } else {
+          out[index] = k;
+        }
+        ++index;
+      }
     }
   }
   return out;

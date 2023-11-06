@@ -34,3 +34,5 @@ testthat::test_that("utils mutate", {
                          dplyr::mutate(iris2, ok = Species))
 
 })
+
+### Need to add tests for group_info()

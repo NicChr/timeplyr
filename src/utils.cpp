@@ -91,6 +91,10 @@ List list_rm_null(List l) {
   return l[keep];
 }
 
+bool is_interval(SEXP x){
+  return (Rf_isS4(x) && Rf_inherits(x, "Interval"));
+}
+
 // [[Rcpp::export(rng = false)]]
 bool list_has_interval( SEXP l ) {
   SEXP L = PROTECT(Rf_coerceVector(l, VECSXP));
@@ -98,8 +102,9 @@ bool list_has_interval( SEXP l ) {
   bool out = false;
   int n = Rf_length(l);
   for (int i = 0; i < n; ++i) {
-    if (Rf_isS4(p_l[i]) && Rf_isReal(p_l[i]) && Rf_inherits(p_l[i], "Interval")){
+    if (is_interval(p_l[i])){
       out = true;
+      // n = i;
       break;
     }
   }
@@ -113,7 +118,7 @@ SEXP list_item_is_interval( List l ) {
   SEXP out = PROTECT(Rf_allocVector(LGLSXP, n));
   int *p_out = LOGICAL(out);
   for (int i = 0; i < n; ++i) {
-    p_out[i] = Rf_isS4(l[i]) && Rf_isReal(l[i]) && Rf_inherits(l[i], "Interval");
+    p_out[i] = is_interval(l[i]);
   }
   UNPROTECT(1);
   return out;
@@ -299,7 +304,8 @@ bool r_is_sorted(SEXP x) {
 }
 
 // [[Rcpp::export(rng = false)]]
-SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP g, double fill_limit) {
+SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP g, double fill_limit,
+                              bool check_sorted) {
   R_xlen_t size = Rf_xlength(x);
   R_xlen_t g_size = Rf_xlength(g);
   bool has_groups = g_size > 0;
@@ -308,7 +314,8 @@ SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP g, double fill_limit) {
   }
   SEXP groups = PROTECT(Rf_coerceVector(g, INTSXP));
   // This will always evaluate to TRUE when g contains NA
-  if (!r_is_sorted(groups)){
+  if (check_sorted && !r_is_sorted(groups)){
+    UNPROTECT(1);
     Rf_error("g must be a sorted integer vector");
   }
   int *p_groups = INTEGER(groups);

@@ -51,12 +51,14 @@ testthat::test_that("Normal cases", {
   }
   testthat::expect_equal(roll_growth_rate(z),
                          gr)
-  testthat::expect_equal(roll_growth_rate(x, window = 1:length(x)),
-                         roll_growth_rate(x, window = length(x)))
-  testthat::expect_equal(roll_growth_rate(x, window = 1:length(x),
-                                             partial = FALSE),
-                         roll_growth_rate(x, window = length(x),
-                                             partial = TRUE))
+  testthat::expect_error(roll_growth_rate(x, window = 1:length(x)))
+  testthat::expect_error(roll_growth_rate(x, window = 0))
+  # testthat::expect_equal(roll_growth_rate(x, window = 1:length(x)),
+  #                        roll_growth_rate(x, window = length(x)))
+  # testthat::expect_equal(roll_growth_rate(x, window = 1:length(x),
+  #                                            partial = FALSE),
+  #                        roll_growth_rate(x, window = length(x),
+  #                                            partial = TRUE))
 
   a_gr <- roll_growth_rate(a, window = 2)
   a_gr[is.infinite(a_gr)] <- 99

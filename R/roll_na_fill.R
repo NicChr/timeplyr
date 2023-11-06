@@ -3,7 +3,7 @@
 #' @description A fast and efficient by-group method for
 #' "last-observation-carried-forward" `NA` filling.
 #'
-#' @param x A vector
+#' @param x A vector.
 #' @param g An object use for grouping x
 #' This may be a vector or data frame for example.
 #' @param fill_limit (Optional) maximum number of consecutive NAs to fill
@@ -106,14 +106,15 @@ roll_na_fill <- function(x, g = NULL, fill_limit = Inf){
   sorted_by_groups <- sorted_group_info[["sorted"]]
   out <- cpp_roll_na_fill_grouped(sorted_x,
                                   g = group_id(sorted_g),
-                                  fill_limit = fill_limit)
+                                  fill_limit = fill_limit,
+                                  check_sorted = FALSE)
   if (!sorted_by_groups){
-    out <- collapse::greorder(out, g = g)
+    out <- greorder2(out, g = g)
   }
   out
 }
 #' @rdname roll_na_fill
 #' @export
 .roll_na_fill <- function(x, fill_limit = Inf){
-  .Call(`_timeplyr_cpp_roll_na_fill_grouped`, x, NULL, fill_limit)
+  .Call(`_timeplyr_cpp_roll_na_fill_grouped`, x, NULL, fill_limit, FALSE)
 }

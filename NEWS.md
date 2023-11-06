@@ -1,8 +1,10 @@
 # timeplyr (Development version)
 
-# timeplyr 0.2.0 (15-Oct-2023)
+* `roll_na_fill` has been mostly rewritten in C++ for speed and efficiency.
 
-* CRAN submission accepted.
+* `roll_growth_rate` now accepts groups through the `g` argument.
+
+* New function `roll_across` for grouped rolling calculations.
 
 # timeplyr 0.2.1 (31-Oct-2023)
 
@@ -39,6 +41,6 @@ additional memory allocation.
 
 * timeplyr 0.2.1 published to CRAN
 
-# timeplyr 0.2.2 (In development)
+# timeplyr 0.2.0 (15-Oct-2023)
 
-* `roll_na_fill` has been mostly rewritten in C++ for speed and efficiency.
+* CRAN submission accepted.

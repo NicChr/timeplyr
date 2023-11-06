@@ -130,24 +130,26 @@ BEGIN_RCPP
 END_RCPP
 }
 // lag_sequence
-IntegerVector lag_sequence(IntegerVector size, double k);
-RcppExport SEXP _timeplyr_lag_sequence(SEXP sizeSEXP, SEXP kSEXP) {
+IntegerVector lag_sequence(IntegerVector size, double k, bool partial);
+RcppExport SEXP _timeplyr_lag_sequence(SEXP sizeSEXP, SEXP kSEXP, SEXP partialSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
     Rcpp::traits::input_parameter< double >::type k(kSEXP);
-    rcpp_result_gen = Rcpp::wrap(lag_sequence(size, k));
+    Rcpp::traits::input_parameter< bool >::type partial(partialSEXP);
+    rcpp_result_gen = Rcpp::wrap(lag_sequence(size, k, partial));
     return rcpp_result_gen;
 END_RCPP
 }
 // lead_sequence
-IntegerVector lead_sequence(IntegerVector size, double k);
-RcppExport SEXP _timeplyr_lead_sequence(SEXP sizeSEXP, SEXP kSEXP) {
+IntegerVector lead_sequence(IntegerVector size, double k, bool partial);
+RcppExport SEXP _timeplyr_lead_sequence(SEXP sizeSEXP, SEXP kSEXP, SEXP partialSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
     Rcpp::traits::input_parameter< double >::type k(kSEXP);
-    rcpp_result_gen = Rcpp::wrap(lead_sequence(size, k));
+    Rcpp::traits::input_parameter< bool >::type partial(partialSEXP);
+    rcpp_result_gen = Rcpp::wrap(lead_sequence(size, k, partial));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -235,14 +237,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_roll_na_fill_grouped
-SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP g, double fill_limit);
-RcppExport SEXP _timeplyr_cpp_roll_na_fill_grouped(SEXP xSEXP, SEXP gSEXP, SEXP fill_limitSEXP) {
+SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP g, double fill_limit, bool check_sorted);
+RcppExport SEXP _timeplyr_cpp_roll_na_fill_grouped(SEXP xSEXP, SEXP gSEXP, SEXP fill_limitSEXP, SEXP check_sortedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
     Rcpp::traits::input_parameter< SEXP >::type g(gSEXP);
     Rcpp::traits::input_parameter< double >::type fill_limit(fill_limitSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_roll_na_fill_grouped(x, g, fill_limit));
+    Rcpp::traits::input_parameter< bool >::type check_sorted(check_sortedSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_roll_na_fill_grouped(x, g, fill_limit, check_sorted));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -258,8 +261,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_after_sequence", (DL_FUNC) &_timeplyr_after_sequence, 2},
     {"_timeplyr_cpp_dbl_sequence", (DL_FUNC) &_timeplyr_cpp_dbl_sequence, 3},
     {"_timeplyr_window_sequence", (DL_FUNC) &_timeplyr_window_sequence, 4},
-    {"_timeplyr_lag_sequence", (DL_FUNC) &_timeplyr_lag_sequence, 2},
-    {"_timeplyr_lead_sequence", (DL_FUNC) &_timeplyr_lead_sequence, 2},
+    {"_timeplyr_lag_sequence", (DL_FUNC) &_timeplyr_lag_sequence, 3},
+    {"_timeplyr_lead_sequence", (DL_FUNC) &_timeplyr_lead_sequence, 3},
     {"_timeplyr_test_long_vector_support", (DL_FUNC) &_timeplyr_test_long_vector_support, 0},
     {"_timeplyr_cpp_num_na", (DL_FUNC) &_timeplyr_cpp_num_na, 1},
     {"_timeplyr_list_rm_null", (DL_FUNC) &_timeplyr_list_rm_null, 1},
@@ -268,7 +271,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_sorted_group_starts", (DL_FUNC) &_timeplyr_cpp_sorted_group_starts, 1},
     {"_timeplyr_roll_time_threshold", (DL_FUNC) &_timeplyr_roll_time_threshold, 3},
     {"_timeplyr_cpp_df_group_indices", (DL_FUNC) &_timeplyr_cpp_df_group_indices, 2},
-    {"_timeplyr_cpp_roll_na_fill_grouped", (DL_FUNC) &_timeplyr_cpp_roll_na_fill_grouped, 3},
+    {"_timeplyr_cpp_roll_na_fill_grouped", (DL_FUNC) &_timeplyr_cpp_roll_na_fill_grouped, 4},
     {NULL, NULL, 0}
 };
 

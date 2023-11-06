@@ -5,8 +5,8 @@
 \alias{roll_mean}
 \alias{roll_geometric_mean}
 \alias{roll_harmonic_mean}
-\alias{roll_apply}
-\title{Fast by-group rolling sum/mean}
+\alias{roll_growth_rate}
+\title{Fast by-group rolling functions}
 \usage{
 roll_sum(
   x,
@@ -48,7 +48,15 @@ roll_harmonic_mean(
   ...
 )
 
-roll_apply(x, fun, before = 0L, after = 0L, g = NULL, partial = TRUE)
+roll_growth_rate(
+  x,
+  window = Inf,
+  g = NULL,
+  partial = TRUE,
+  na.rm = FALSE,
+  log = FALSE,
+  inf_fill = NULL
+)
 }
 \arguments{
 \item{x}{Numeric vector, data frame, or list.}
@@ -70,30 +78,27 @@ The default is \code{TRUE}.}
 \item{...}{Additional arguments passed to \code{data.table::frollmean} and
 \code{data.table::frollsum}.}
 
-\item{fun}{A function.}
+\item{log}{For \code{roll_growth_rate}:
+If \code{TRUE} then growth rates are calculated on the log-scale.}
 
-\item{before}{A number denoting how many indices to look backward on a rolling
-basis.}
-
-\item{after}{A number denoting how many indices to look forward on a rolling
-basis.}
+\item{inf_fill}{For \code{roll_growth_rate}:
+Numeric value to replace \code{Inf} values with.
+Default behaviour is to keep \code{Inf} values.}
 }
 \value{
-Excluding \code{roll_apply}, these return a numeric vector the
-same length as \code{x} when \code{x} is a vector, and a list when \code{x} is a \code{data.frame}. \cr
-\code{roll_apply} returns a list the same length as \code{x}.
+A numeric vector the same length as \code{x} when \code{x} is a vector,
+or a list when \code{x} is a \code{data.frame}. \cr
 }
 \description{
-An efficient method for rolling sum/mean for many groups. \cr
+An efficient method for rolling sum, mean and growth rate for many groups.
 }
 \details{
 \code{roll_sum} and \code{roll_mean} support parallel computations when
 \code{x} is a data frame of multiple columns. \cr
 \code{roll_geometric_mean} and \code{roll_harmonic_mean} are convenience functions that
 utilise \code{roll_mean}. \cr
-\code{roll_apply} accepts any user function and is more flexible but much
-less efficient. It also only accepts vector input. \cr
-Please note that \code{roll_apply} and \code{time_roll_apply} are still experimental.
+\code{roll_growth_rate} calculates the rate of percentage
+change per unit time on a rolling basis.
 }
 \examples{
 library(timeplyr)
@@ -138,5 +143,5 @@ collapse::set_collapse(nthreads = .n_collapse_threads)
 }
 }
 \seealso{
-\link{time_roll_mean} \link{roll_growth_rate}
+\link{time_roll_mean}
 }

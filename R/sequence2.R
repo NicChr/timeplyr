@@ -100,15 +100,24 @@ seq_v <- function(from = 1L, to = 1L, by = 1L){
   sequence2(out_size, from = from, by = by)
 }
 seq_size <- function(from, to, by = 1L){
-  time_seq_sizes(from = from, to = to, time_by = by)
-  # out <- abs(( (to - from) / by ))
-  # out[from == to] <- 0
-  #
-  # if (isTRUE(all_integerable(out, shift = 1))){
-  #   as.integer(out + 1e-10) + 1L
-  # } else {
-  #   trunc(out + 1e-10) + 1L
-  # }
+  del <- to - from
+  if (is.integer(by) && allv2(by, 1L)){
+    size <- del
+  } else {
+    size <- del / by
+    size[collapse::whichv(del, 0)] <- 0
+  }
+  size_rng <- collapse::frange(size, na.rm = TRUE)
+  if (isTRUE(any(size_rng < 0))){
+    stop("At least 1 sequence length is negative, please check the sign of by")
+  }
+  if (is.integer(size)){
+    size + 1L
+  } else if (length(size) == 0 || all(is_integerable(abs(size_rng) + 1), na.rm = TRUE)){
+    as.integer(size + 1e-10) + 1L
+  } else {
+    trunc(size + 1e-10) + 1
+  }
 }
 seq_tbl <- function(from = 1L, to = 1L, by = 1L){
   size <- seq_size(from = from, to = to, by = by)

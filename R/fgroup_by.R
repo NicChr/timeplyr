@@ -43,8 +43,7 @@ fgroup_by <- function(data, ..., .add = FALSE,
                                  size = FALSE,
                                  start = FALSE, end = FALSE,
                                  drop = .drop)
-    group_data <- frename(group_data,
-                          .cols = c(".rows" = ".loc"))
+    group_data <- frename(group_data, .cols = c(".rows" = ".loc"))
     attr(data, "groups") <- group_data
     attr(attr(data, "groups"), ".drop") <- .drop
     attr(data, "class") <- c("grouped_df", "tbl_df", "tbl", "data.frame")

@@ -273,9 +273,12 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
     #                      how = "full",
     #                      sort = FALSE)
     if (sort){
-      out <- farrange(out, .cols = c(group_vars, time_var,
-                                     setdiff(names(expanded_df),
-                                             c(group_vars, time_var))))
+      setorderv2(out, c(group_vars, time_var,
+                        setdiff(names(expanded_df),
+                                c(group_vars, time_var))))
+      # out <- farrange(out, .cols = c(group_vars, time_var,
+      #                                setdiff(names(expanded_df),
+      #                                        c(group_vars, time_var))))
     }
   }
   # Replace NA with fill

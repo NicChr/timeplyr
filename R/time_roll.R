@@ -469,21 +469,31 @@ time_roll_growth_rate <- function(x, window = Inf,
                     use_cli_format = TRUE)
       }
     }
-    out <- roll_growth_rate(x, window = final_window, na.rm = na.rm)
-  } else {
-    time_step <- time_by_list(time_step)
     lag_window <- final_window - 1L
     x_lagged <- roll_lag(x, lag = lag_window, check = FALSE)
     if (na.rm){
-      final_window <- data.table::frollsum(!is.na(x), n = final_window,
+      lag_window <- data.table::frollsum(!is.na(x), n = lag_window,
                                            adaptive = partial,
                                            algo = "fast",
                                            align = "right")
     }
+    out <- ( (x / x_lagged) ^ (1 / (lag_window)) )
+    out[which(x == 0 & x_lagged == 0)] <- 1
+  } else {
+    time_step <- time_by_list(time_step)
+    lag_window <- final_window - 1L
+    x_lagged <- roll_lag(x, lag = lag_window, check = FALSE)
     time_lagged <- roll_lag(time, lag = lag_window, check = FALSE)
     time_differences <- time_diff(time_lagged, time,
                                   time_by = time_step,
                                   time_type = time_type)
+    if (na.rm){
+      time_differences <- time_differences -
+        data.table::frollsum(is.na(x), n = final_window,
+                             adaptive = partial,
+                             algo = "fast",
+                             align = "right")
+    }
     out <- ( (x / x_lagged) ^ (1 / (time_differences)) )
     out[which(x == 0 & x_lagged == 0)] <- 1
   }
@@ -672,112 +682,112 @@ time_roll_apply <- function(x, window = Inf, fun,
 }
 
 # Rolling join 2nd version (latest working version)
-time_roll_sum3 <- function(x, window = Inf,
-                          time = seq_along(x),
-                          weights = NULL,
-                          g = NULL,
-                          partial = TRUE,
-                          close_left_boundary = FALSE,
-                          na.rm = TRUE,
-                          time_type = c("auto", "duration", "period"),
-                          roll_month = "preday", roll_dst = "pre",
-                          ...){
-  check_is_time_or_num(time)
-  check_time_not_missing(time)
-  window <- time_by_get(time, time_by = window)
-  time_num <- time_by_num(window)
-  time_unit <- time_by_unit(window)
-  time_subtract <- add_names(list(-time_num), time_unit)
-  unit_time_by <- add_names(list(1), time_unit)
-  window_size <- time_num
-  if (length(window_size) != 1L){
-    stop("time window size must be of length 1")
-  }
-  has_groups <- !is.null(g)
-  g <- GRP2(g, return.groups = FALSE, return.order = TRUE)
-  group_id <- group_id(g)
-  if (has_groups){
-    group_sizes <- GRP_group_sizes(g)
-    n_groups <- GRP_n_groups(g)
-    g2 <- GRP2(list(group_id, time), return.groups = FALSE)
-  } else {
-    g2 <- GRP2(time, return.groups = FALSE)
-    group_sizes <- length(x)
-    n_groups <- min(1L, length(x))
-  }
-  groups_are_sorted <- GRP_is_sorted(g2)
-  group_id2 <- GRP_group_id(g2)
-  if (!groups_are_sorted){
-    group_order <- GRP_order(g2)
-    sorted_df <- new_tbl(x = x, time = time,
-                         group_id = group_id,
-                         group_id2 = group_id2,
-                         weights = weights) %>%
-      df_row_slice(group_order)
-    x <- .subset2(sorted_df, "x")
-    time <- .subset2(sorted_df, "time")
-    group_id <- .subset2(sorted_df, "group_id")
-    group_id2 <- .subset2(sorted_df, "group_id2")
-    weights <- fpluck(sorted_df, "weights")
-  }
-  sorted_g2 <- sorted_group_id_to_GRP(group_id2,
-                                      n_groups = GRP_n_groups(g2),
-                                      group_sizes = GRP_group_sizes(g2),
-                                      group.starts = FALSE)
-  if (has_groups){
-    sorted_g <- sorted_group_id_to_GRP(group_id,
-                                       n_groups = n_groups,
-                                       group_sizes = group_sizes)
-  } else {
-    sorted_g <- NULL
-  }
-  time_start <- time_add2(time, time_by = time_subtract,
-                          roll_month = roll_month,
-                          roll_dst = roll_dst)
-  naive_window <- sequence(group_sizes)
-  dt1 <- collapse::qDT(list3(group_id = group_id,
-                             time = time))
-  dt2 <- collapse::qDT(list3(group_id = group_id,
-                             time_start = time_start))
-  data.table::setattr(dt1, "sorted", names(dt1))
-  data.table::setattr(dt2, "sorted", names(dt2))
-  if (close_left_boundary){
-    if (has_groups){
-      naive_window2 <- dt1[dt2, on = list(group_id, time < time_start),
-                           which = TRUE, mult = "last"]
-    } else {
-      naive_window2 <- dt1[dt2, on = list(time < time_start),
-                           which = TRUE, mult = "last"]
-    }
-  } else {
-    if (has_groups){
-      naive_window2 <- dt1[dt2, on = list(group_id, time <= time_start),
-                           which = TRUE, mult = "last"]
-    } else {
-      naive_window2 <- dt1[dt2, on = list(time <= time_start),
-                           which = TRUE, mult = "last"]
-    }
-  }
-  naive_window2 <- seq_along(x) - naive_window2
-  final_window <- data.table::fcoalesce(naive_window2, naive_window)
-  out <- frollsum3(x, n = final_window,
-                   weights = weights,
-                   adaptive = TRUE, align = "right",
-                   na.rm = na.rm, ...)
-  if (!partial){
-    elapsed <- time_elapsed(time, time_by = unit_time_by,
-                            g = sorted_g, rolling = FALSE)
-    if (close_left_boundary){
-      is_partial <- double_lte(abs(elapsed) + 1, time_num)
-    } else {
-      is_partial <- double_lt(abs(elapsed) + 1, time_num)
-    }
-    out[is_partial] <- NA_real_
-  }
-  # For duplicate times, we take the last value of each duplicate
-  out <- glast(out, g = sorted_g2)
-  if (!groups_are_sorted){
-    out <- collapse::greorder(out, g = g2)
-  }
-  out
-}
+# time_roll_sum3 <- function(x, window = Inf,
+#                           time = seq_along(x),
+#                           weights = NULL,
+#                           g = NULL,
+#                           partial = TRUE,
+#                           close_left_boundary = FALSE,
+#                           na.rm = TRUE,
+#                           time_type = c("auto", "duration", "period"),
+#                           roll_month = "preday", roll_dst = "pre",
+#                           ...){
+#   check_is_time_or_num(time)
+#   check_time_not_missing(time)
+#   window <- time_by_get(time, time_by = window)
+#   time_num <- time_by_num(window)
+#   time_unit <- time_by_unit(window)
+#   time_subtract <- add_names(list(-time_num), time_unit)
+#   unit_time_by <- add_names(list(1), time_unit)
+#   window_size <- time_num
+#   if (length(window_size) != 1L){
+#     stop("time window size must be of length 1")
+#   }
+#   has_groups <- !is.null(g)
+#   g <- GRP2(g, return.groups = FALSE, return.order = TRUE)
+#   group_id <- group_id(g)
+#   if (has_groups){
+#     group_sizes <- GRP_group_sizes(g)
+#     n_groups <- GRP_n_groups(g)
+#     g2 <- GRP2(list(group_id, time), return.groups = FALSE)
+#   } else {
+#     g2 <- GRP2(time, return.groups = FALSE)
+#     group_sizes <- length(x)
+#     n_groups <- min(1L, length(x))
+#   }
+#   groups_are_sorted <- GRP_is_sorted(g2)
+#   group_id2 <- GRP_group_id(g2)
+#   if (!groups_are_sorted){
+#     group_order <- GRP_order(g2)
+#     sorted_df <- new_tbl(x = x, time = time,
+#                          group_id = group_id,
+#                          group_id2 = group_id2,
+#                          weights = weights) %>%
+#       df_row_slice(group_order)
+#     x <- .subset2(sorted_df, "x")
+#     time <- .subset2(sorted_df, "time")
+#     group_id <- .subset2(sorted_df, "group_id")
+#     group_id2 <- .subset2(sorted_df, "group_id2")
+#     weights <- fpluck(sorted_df, "weights")
+#   }
+#   sorted_g2 <- sorted_group_id_to_GRP(group_id2,
+#                                       n_groups = GRP_n_groups(g2),
+#                                       group_sizes = GRP_group_sizes(g2),
+#                                       group.starts = FALSE)
+#   if (has_groups){
+#     sorted_g <- sorted_group_id_to_GRP(group_id,
+#                                        n_groups = n_groups,
+#                                        group_sizes = group_sizes)
+#   } else {
+#     sorted_g <- NULL
+#   }
+#   time_start <- time_add2(time, time_by = time_subtract,
+#                           roll_month = roll_month,
+#                           roll_dst = roll_dst)
+#   naive_window <- sequence(group_sizes)
+#   dt1 <- collapse::qDT(list3(group_id = group_id,
+#                              time = time))
+#   dt2 <- collapse::qDT(list3(group_id = group_id,
+#                              time_start = time_start))
+#   data.table::setattr(dt1, "sorted", names(dt1))
+#   data.table::setattr(dt2, "sorted", names(dt2))
+#   if (close_left_boundary){
+#     if (has_groups){
+#       naive_window2 <- dt1[dt2, on = list(group_id, time < time_start),
+#                            which = TRUE, mult = "last"]
+#     } else {
+#       naive_window2 <- dt1[dt2, on = list(time < time_start),
+#                            which = TRUE, mult = "last"]
+#     }
+#   } else {
+#     if (has_groups){
+#       naive_window2 <- dt1[dt2, on = list(group_id, time <= time_start),
+#                            which = TRUE, mult = "last"]
+#     } else {
+#       naive_window2 <- dt1[dt2, on = list(time <= time_start),
+#                            which = TRUE, mult = "last"]
+#     }
+#   }
+#   naive_window2 <- seq_along(x) - naive_window2
+#   final_window <- data.table::fcoalesce(naive_window2, naive_window)
+#   out <- frollsum3(x, n = final_window,
+#                    weights = weights,
+#                    adaptive = TRUE, align = "right",
+#                    na.rm = na.rm, ...)
+#   if (!partial){
+#     elapsed <- time_elapsed(time, time_by = unit_time_by,
+#                             g = sorted_g, rolling = FALSE)
+#     if (close_left_boundary){
+#       is_partial <- double_lte(abs(elapsed) + 1, time_num)
+#     } else {
+#       is_partial <- double_lt(abs(elapsed) + 1, time_num)
+#     }
+#     out[is_partial] <- NA_real_
+#   }
+#   # For duplicate times, we take the last value of each duplicate
+#   out <- glast(out, g = sorted_g2)
+#   if (!groups_are_sorted){
+#     out <- collapse::greorder(out, g = g2)
+#   }
+#   out
+# }

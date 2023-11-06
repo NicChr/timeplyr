@@ -10,39 +10,33 @@
 #' @param log If `TRUE` then growth rates are calculated on the log-scale.
 #' @param inf_fill Numeric value to replace \code{Inf} values with.
 #' Default behaviour is to keep \code{Inf} values.
-#' @param window Size of the rolling window.
-#' This must be of length 1 or the same length as x.
-#' The default calculates a simple rolling growth rate of `x`
-#' compared to the first value.
-#' You can specify a vector of window sizes as well, allowing for
-#' a flexible calculation.
-#' @param partial Should rates be calculated outwith the window
-#' using partial windows? Default is \code{TRUE}.
 #'
 #' @returns
-#' `growth_rate` returns a `numeric(1)` and `roll_growth_rate`
-#' returns a `numeric(length(x))`.
+#' `numeric(1)`
 #'
 #' @details
 #' It is assumed that `x` is a vector of values with
-#' a corresponding time index that increases regularly with no gaps or missing values.
+#' a corresponding time index that increases regularly
+#' with no gaps or missing values.
 #'
 #' The output is to be interpreted as the average percent change per unit time.
 #'
-#' For a more generalised method that incorporates time gaps and complex time windows,
+#' For a rolling version that can calculate rates as you move through time,
+#' see `roll_growth_rate`.
+#'
+#' For a more generalised method that incorporates
+#' time gaps and complex time windows,
 #' use `time_roll_growth_rate`.
 #'
-#' This can also be calculated using the geometric mean of percent changes.
-#' `growth_rate` calculates the growth rate of a numeric vector by comparing
-#' the first and last values while `roll_growth_rate` does the same but on a
-#' rolling basis.
+#' The growth rate can also be calculated using the
+#' geometric mean of percent changes.
 #'
 #' The below identity should always hold:
 #' \preformatted{
 #' `tail(roll_growth_rate(x, window = length(x)), 1) == growth_rate(x)`
 #' }
 #'
-#' @seealso [time_roll_growth_rate]
+#' @seealso [roll_growth_rate] [time_roll_growth_rate]
 #'
 #' @examples
 #' library(timeplyr)
@@ -120,54 +114,53 @@ growth_rate <- function(x, na.rm = FALSE, log = FALSE, inf_fill = NULL){
   }
   gr
 }
-#' @rdname growth_rate
-#' @export
-roll_growth_rate <- function(x, window = Inf,
-                             partial = TRUE,
-                             na.rm = FALSE,
-                             log = FALSE,
-                             inf_fill = NULL){
-  x_len <- length(x)
-  window_len <- length(window)
-  if (!window_len %in% c(1L, x_len)){
-    stop("window must be of length 1 or length(x)")
-  }
-  adaptive <- partial
-  window[window > x_len] <- x_len + 1L
-  # window <- as.integer(window)
-  window[window < 1L] <- 1L
-  if (length(window) == 0L){
-    window <- 1L
-  }
-  if (length(window) > 1L){
-    x_lagged <- roll_lag(x, lag = window - 1L, check = FALSE)
-    adaptive <- TRUE
-  } else {
-    x_lagged <- collapse::flag(x, n = window - 1L)
-    if (partial){
-      # x_lagged <- roll_lag(x, window_sequence(x_len, window, partial = partial) - 1)
-      x_lagged[seq_len(min(window, x_len))] <- x[min(x_len, 1L)]
-      window <- window_sequence(x_len, k = window,
-                                partial = TRUE, ascending = TRUE)
-    }
-  }
-  if (na.rm){
-    window <- data.table::frollsum(!is.na(x), n = window,
-                                   adaptive = adaptive,
-                                   algo = "fast",
-                                   align = "right")
-  }
-  if (log){
-    window_denom <- (window - 1L)
-    gr <- exp(( log(x) - log(x_lagged) ) / window_denom)
-    gr[which(window_denom == 0L)] <- 1
-  } else {
-    gr <- ( (x / x_lagged) ^ (1 / (window - 1L)) )
-    gr[which(x == 0 & x_lagged == 0)] <- 1
-  }
-  if (!is.null(inf_fill)){
-    # Any growth change from 0 is replaced with inf_fill
-    gr[is.infinite(gr)] <- inf_fill
-  }
-  gr
-}
+# Ungrouped version
+# roll_growth_rate_old <- function(x, window = Inf,
+#                              partial = TRUE,
+#                              na.rm = FALSE,
+#                              log = FALSE,
+#                              inf_fill = NULL){
+#   x_len <- length(x)
+#   window_len <- length(window)
+#   if (!window_len %in% c(1L, x_len)){
+#     stop("window must be of length 1 or length(x)")
+#   }
+#   adaptive <- partial
+#   window[window > x_len] <- x_len + 1L
+#   # window <- as.integer(window)
+#   window[window < 1L] <- 1L
+#   if (length(window) == 0L){
+#     window <- 1L
+#   }
+#   if (length(window) > 1L){
+#     x_lagged <- roll_lag(x, lag = window - 1L, check = FALSE)
+#     adaptive <- TRUE
+#   } else {
+#     x_lagged <- collapse::flag(x, n = window - 1L)
+#     if (partial){
+#       # x_lagged <- roll_lag(x, window_sequence(x_len, window, partial = partial) - 1)
+#       x_lagged[seq_len(min(window, x_len))] <- x[min(x_len, 1L)]
+#       window <- window_sequence(x_len, k = window,
+#                                 partial = TRUE, ascending = TRUE)
+#     }
+#   }
+#   if (na.rm){
+#     window <- data.table::frollsum(!is.na(x), n = window,
+#                                    adaptive = adaptive,
+#                                    algo = "fast",
+#                                    align = "right")
+#   }
+#   if (log){
+#     window_denom <- (window - 1L)
+#     gr <- exp(( log(x) - log(x_lagged) ) / window_denom)
+#     gr[which(window_denom == 0L)] <- 1
+#   } else {
+#     gr <- ( (x / x_lagged) ^ (1 / (window - 1L)) )
+#     gr[which(x == 0 & x_lagged == 0)] <- 1
+#   }
+#   if (!is.null(inf_fill)){
+#     # Any growth change from 0 is replaced with inf_fill
+#     gr[is.infinite(gr)] <- inf_fill
+#   }
+#   gr
+# }

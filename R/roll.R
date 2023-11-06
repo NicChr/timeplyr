@@ -1,7 +1,7 @@
-#' Fast by-group rolling sum/mean
+#' Fast by-group rolling functions
 #'
 #' @description
-#' An efficient method for rolling sum/mean for many groups. \cr
+#' An efficient method for rolling sum, mean and growth rate for many groups.
 #'
 #' @param x Numeric vector, data frame, or list.
 #' @param window Rolling window size, default is `Inf`.
@@ -13,28 +13,27 @@
 #' This can for example be a vector or data frame.
 #' @param na.rm Should missing values be removed for the calculation?
 #' The default is `TRUE`.
-#' @param fun A function.
-#' @param before A number denoting how many indices to look backward on a rolling
-#' basis.
-#' @param after A number denoting how many indices to look forward on a rolling
-#' basis.
 #' @param ... Additional arguments passed to `data.table::frollmean` and
 #' `data.table::frollsum`.
+#' @param log For `roll_growth_rate`:
+#' If `TRUE` then growth rates are calculated on the log-scale.
+#' @param inf_fill For `roll_growth_rate`:
+#' Numeric value to replace \code{Inf} values with.
+#' Default behaviour is to keep \code{Inf} values.
 #'
-#' @details `roll_sum` and `roll_mean` support parallel computations when
+#' @details
+#' `roll_sum` and `roll_mean` support parallel computations when
 #' `x` is a data frame of multiple columns. \cr
 #' `roll_geometric_mean` and `roll_harmonic_mean` are convenience functions that
 #' utilise `roll_mean`. \cr
-#' `roll_apply` accepts any user function and is more flexible but much
-#' less efficient. It also only accepts vector input. \cr
-#' Please note that `roll_apply` and `time_roll_apply` are still experimental.
+#' `roll_growth_rate` calculates the rate of percentage
+#' change per unit time on a rolling basis.
 #'
 #' @returns
-#' Excluding `roll_apply`, these return a numeric vector the
-#' same length as `x` when `x` is a vector, and a list when `x` is a `data.frame`. \cr
-#' `roll_apply` returns a list the same length as `x`.
+#' A numeric vector the same length as `x` when `x` is a vector,
+#' or a list when `x` is a `data.frame`. \cr
 #'
-#' @seealso [time_roll_mean] [roll_growth_rate]
+#' @seealso [time_roll_mean]
 #'
 #' @examples
 #' library(timeplyr)
@@ -84,9 +83,9 @@ roll_sum <- function(x, window = Inf,
                      weights = NULL, na.rm = TRUE, ...){
   check_length(window, 1L)
   sorted_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
-  group_sizes <- fpluck(sorted_info, "group_sizes")
-  group_order <- fpluck(sorted_info, "group_order")
-  x <- fpluck(sorted_info, "x")
+  group_sizes <- sorted_info[["group_sizes"]]
+  group_order <- sorted_info[["group_order"]]
+  x <- sorted_info[["x"]]
   if (!is.null(group_order) && !is.null(weights)){
     weights <- weights[group_order]
   }
@@ -113,9 +112,9 @@ roll_mean <- function(x, window = Inf, g = NULL, partial = TRUE,
                       weights = NULL, na.rm = TRUE, ...){
   check_length(window, 1L)
   sorted_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
-  group_sizes <- fpluck(sorted_info, "group_sizes")
-  group_order <- fpluck(sorted_info, "group_order")
-  x <- fpluck(sorted_info, "x")
+  group_sizes <- sorted_info[["group_sizes"]]
+  group_order <- sorted_info[["group_order"]]
+  x <- sorted_info[["x"]]
   if (!is.null(group_order) && !is.null(weights)){
     weights <- weights[group_order]
   }
@@ -137,15 +136,82 @@ roll_mean <- function(x, window = Inf, g = NULL, partial = TRUE,
 #' @export
 roll_geometric_mean <- function(x, window = Inf, g = NULL, partial = TRUE,
                                 weights = NULL, na.rm = TRUE, ...){
-  exp(roll_mean(log(x), window = window, g = g, partial = partial,
-                weights = weights, na.rm = na.rm, ...))
+  out <- roll_mean(log(x), window = window, g = g, partial = partial,
+                   weights = weights, na.rm = na.rm, ...)
+  if (is.list(out)){
+    lapply(out, exp)
+  } else {
+    exp(out)
+  }
 }
 #' @rdname roll_sum
 #' @export
 roll_harmonic_mean <- function(x, window = Inf, g = NULL, partial = TRUE,
                                 weights = NULL, na.rm = TRUE, ...){
-  1 / roll_mean(1 / x, window = window, g = g, partial = partial,
-                weights = weights, na.rm = na.rm, ...)
+  out <- roll_mean(1 / x, window = window, g = g, partial = partial,
+                   weights = weights, na.rm = na.rm, ...)
+  if (is.list(out)){
+    lapply(out, function(x) 1 / x)
+  } else {
+    1 / out
+  }
+
+}
+#' @rdname roll_sum
+#' @export
+roll_growth_rate <- function(x, window = Inf, g = NULL,
+                             partial = TRUE,
+                             na.rm = FALSE,
+                             log = FALSE,
+                             inf_fill = NULL){
+  check_length(window, 1)
+  if (window < 1){
+    stop("window must be >= 1")
+  }
+  sorted_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
+  sorted_g <- sorted_info[["sorted_GRP"]]
+  group_sizes <- sorted_info[["group_sizes"]]
+  group_order <- sorted_info[["group_order"]]
+  is_sorted <- sorted_info[["sorted"]]
+  x <- sorted_info[["x"]]
+  roll_window <- window_sequence(group_sizes,
+                                 k = window,
+                                 partial = partial,
+                                 ascending = TRUE)
+  lag_window <- roll_window - 1L
+  x_lagged <- roll_lag(x, lag_window, check = FALSE)
+  if (na.rm){
+    if (is_df(x)){
+      lag_window <- lapply(x, function(x){
+        data.table::frollsum(!is.na(x), n = lag_window,
+                             adaptive = TRUE,
+                             algo = "fast",
+                             align = "right")
+      })
+      lag_window <- df_reconstruct(list_to_data_frame(lag_window), x)
+    } else {
+      lag_window <- data.table::frollsum(!is.na(x), n = lag_window,
+                                         adaptive = TRUE,
+                                         algo = "fast",
+                                         align = "right")
+    }
+
+  }
+  if (log){
+    gr <- exp(( log(x) - log(x_lagged) ) / lag_window)
+    gr[whichv2(lag_window, 0L)] <- 1
+  } else {
+    gr <- ( (x / x_lagged) ^ (1 / lag_window) )
+    gr[which(x == 0 & x_lagged == 0)] <- 1
+  }
+  if (!is.null(inf_fill)){
+    # Any growth change from 0 is replaced with inf_fill
+    gr[is.infinite(gr)] <- inf_fill
+  }
+  if (!fpluck(sorted_info, "sorted")){
+    gr <- greorder2(gr, g = sorted_info[["GRP"]])
+  }
+  gr
 }
 # roll_max <- function(x, before = 0L, after = 0L,
 #                      g = NULL,
@@ -187,34 +253,3 @@ roll_harmonic_mean <- function(x, window = Inf, g = NULL, partial = TRUE,
 #   }
 #   out
 # }
-#' @rdname roll_sum
-#' @export
-roll_apply <- function(x, fun, before = 0L, after = 0L,
-                       g = NULL, partial = TRUE){
-  check_is_num(before)
-  check_is_num(after)
-  check_length(before, 1L)
-  check_length(after, 1L)
-  stopifnot(is.function(fun))
-  sorted_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
-  group_sizes <- fpluck(sorted_info, "group_sizes")
-  x <- fpluck(sorted_info, "x")
-  before_seq <- before_sequence(group_sizes, k = before)
-  after_seq <- after_sequence(group_sizes, k = after)
-  x_size <- length(x)
-  out <- vector("list", x_size)
-  if (partial){
-    ind <- seq_len(x_size)
-  } else {
-    ind <- which((before_seq + after_seq) == (before + after))
-  }
-  for (i in ind){
-    start <- i - .subset(before_seq, i)
-    end <- .subset(after_seq, i) + i
-    out[[i]] <- fun(x[start:end])
-  }
-  if (!fpluck(sorted_info, "sorted")){
-    out <- out[order(sorted_info[["group_order"]])]
-  }
-  out
-}

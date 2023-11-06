@@ -7,14 +7,19 @@
 \usage{
 roll_lag(x, lag = 1L, check = TRUE)
 
-lag_seq(x, lag = 1L)
+lag_seq(size, lag = 1L, partial = FALSE)
 }
 \arguments{
 \item{x}{A vector.}
 
 \item{lag}{A vector of lags to be applied to \code{x} on a rolling basis.}
 
-\item{check}{Should safety checks be done for the specified lag  against \code{x}?
+\item{check}{Should safety checks be done for the specified lag  against \code{x}?}
+
+\item{size}{Length of sequence.}
+
+\item{partial}{If \code{TRUE}, a partial lag sequence is created. The default
+is \code{FALSE}.
 
 The default is \code{TRUE} but
 you can set this to \code{FALSE} if you need this to be speed-performant.}
@@ -46,8 +51,8 @@ roll_lag(x, 2) # Lag
 roll_lag(x, -2) # Lead
 
 
-roll_lag(x, lag_seq(x, 2), check = FALSE) # Lag
-roll_lag(x, lag_seq(x, -2), check = FALSE) # Lead
+roll_lag(x, lag_seq(length(x), 2), check = FALSE) # Lag
+roll_lag(x, lag_seq(length(x), -2), check = FALSE) # Lead
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

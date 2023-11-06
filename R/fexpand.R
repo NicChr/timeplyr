@@ -278,7 +278,8 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
     #                      how = "full",
     #                      sort = sort)
     if (sort){
-      out <- farrange(out, .cols = names(expanded_df))
+      setorderv2(out, names(expanded_df))
+      # out <- farrange(out, .cols = names(expanded_df))
     }
   }
   # Replace NA with fill

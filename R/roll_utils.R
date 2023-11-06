@@ -21,31 +21,7 @@ flag2 <- function(x, n = 1L, g = NULL, ...){
 fdiff2 <- function(x, n = 1L, g = NULL, ...){
   x - flag2(x, n = n, g = g, ...)
 }
-# Get rolling window sizes, including partial
-window_seq <- function(k, n, partial = TRUE, ascending = TRUE){
-  if (length(k) != 1L) stop("k must be of length 1.")
-  if (length(n) != 1L) stop("n must be of length 1.")
-  if (n > .Machine[["integer.max"]]){
-    stop("n must not be greater than .Machine$integer.max")
-  }
-  n <- as.integer(n)
-  k[is.infinite(k)] <- n
-  k <- as.integer(k)
-  k <- max(k, 0L) # Bound k to >= 0
-  pk <- min(max(k - 1L, 0L), n) # Partial k, bounded to >= 0
-  p_seq <- seq_len(pk) # Partial window sequence
-  out <- collapse::alloc(k, n)
-  # Replace partial part with partial sequence
-  if (partial){
-    out[p_seq] <- p_seq
-  } else {
-    out[p_seq] <- NA_integer_
-  }
-  if (!ascending){
-    out <- .subset(out, n:(min(n, 1L)))
-  }
-  out
-}
+
 # Vctrs style rolling chop
 roll_chop <- function(x, sizes = collapse::alloc(1L, vec_length(x))){
   x_size <- vec_length(x)
