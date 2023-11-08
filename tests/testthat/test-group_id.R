@@ -317,3 +317,10 @@ testthat::test_that("group order", {
   testthat::expect_equal(base2$row_id, res2$row_id)
   testthat::expect_equal(base3$row_id, res3$row_id)
 })
+
+testthat::test_that("factors", {
+  set.seed(42)
+  ind <- sample.int(150)
+  testthat::expect_equal(group_id(iris$Species[ind]),
+                         as.integer(iris$Species[ind]))
+})

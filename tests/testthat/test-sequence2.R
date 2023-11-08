@@ -28,4 +28,25 @@ testthat::test_that("sequence", {
                              integer())
   testthat::expect_identical(sequence2(integer(), from = 1L, by = 0L),
                              integer())
+
+  testthat::expect_equal(sequence2(c(2, 3, 0, 4, 0, 10),
+                                       from = Sys.Date() + c(0, 11),
+                                       by = 2),
+                             time_seq_v2(c(2, 3, 0, 4, 0, 10),
+                                         from = Sys.Date() + c(0, 11),
+                                         time_by = "2 days"))
+  testthat::expect_equal(sequence2(c(2, 3, 0, 4, 0, 10),
+                                   from = Sys.Date() + c(0, 11),
+                                   by = c(2, 7, 8)),
+                         time_seq_v2(c(2, 3, 0, 4, 0, 10),
+                                     from = Sys.Date() + c(0, 11),
+                                     time_by = c(2, 7, 8)))
+
+  testthat::expect_equal(seq_v(from = Sys.Date() + c(0, 11),
+                               to = Sys.Date() + c(0, 12, 13, 23),
+                               by = c(2, 7)),
+                         time_seq_v(from = Sys.Date() + c(0, 11),
+                                    to = Sys.Date() + c(0, 12, 13, 23),
+                                    time_by = list("days" = c(2, 7))))
 })
+

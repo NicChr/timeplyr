@@ -105,7 +105,11 @@ time_is_regular <- function(x, time_by = NULL,
                            time_type = time_type, rolling = FALSE,
                            na_skip = na.rm,
                            fill = 0)
-  roll_time_diff <- fdiff2(telapsed, fill = 0, g = g)
+  if (na.rm){
+    roll_time_diff <- fdiff2(roll_na_fill(telapsed, g = g), fill = 0, g = g)
+  } else {
+    roll_time_diff <- fdiff2(telapsed, fill = 0, g = g)
+  }
   # out <- vapply(collapse::gsplit(telapsed, g = g),
   #               function(x) is_whole_number(x, na.rm = na.rm),
   #               logical(1))
