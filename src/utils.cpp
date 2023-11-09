@@ -36,11 +36,12 @@ SEXP cpp_which(SEXP x, bool invert = false) {
       //   Rf_unprotect(1);
       //   return out;
       // }
-      SEXP out = Rf_protect(Rf_allocVector(REALSXP, n - size));
+      R_xlen_t out_size = n - size;
+      SEXP out = Rf_protect(Rf_allocVector(REALSXP, out_size));
       double *p_out = REAL(out);
       R_xlen_t whichi = 0;
       R_xlen_t i = 0;
-      while (whichi < (n - size)){
+      while (whichi < out_size){
         p_out[whichi] = i + 1;
         whichi += !(p_x[i] == TRUE);
         ++i;
@@ -53,11 +54,12 @@ SEXP cpp_which(SEXP x, bool invert = false) {
       //   Rf_unprotect(1);
       //   return out;
       // }
-      SEXP out = Rf_protect(Rf_allocVector(INTSXP, n - size));
+      int out_size = n - size;
+      SEXP out = Rf_protect(Rf_allocVector(INTSXP, out_size));
       int *p_out = INTEGER(out);
       int whichi = 0;
       int i = 0;
-      while (whichi < (n - size)){
+      while (whichi < out_size){
         p_out[whichi] = i + 1;
         whichi += !(p_x[i] == TRUE);
         ++i;
@@ -147,97 +149,6 @@ SEXP cpp_which(SEXP x, bool invert = false) {
 //   }
 //   Rf_unprotect(1);
 //   return out;
-// }
-
-// SEXP cpp_which2(SEXP x) {
-//   int n = Rf_length(x);
-//   int j = 0;
-//   int *buf = (int *) R_alloc(n, sizeof(int));
-//   SEXP out;
-//   const int *px = INTEGER(x);
-//   for(int i = 0; i != n; ++i){
-//     if(px[i] == true) buf[j++] = i+1;
-//   }
-//   PROTECT(out = Rf_allocVector(INTSXP, j));
-//   if(j) memcpy(INTEGER(out), buf, sizeof(int) * j);
-//   UNPROTECT(1);
-//   return out;
-// }
-
-// SEXP C_which(SEXP x, SEXP invert) {
-//   R_xlen_t n = Rf_xlength(x);
-//   int *p_x = LOGICAL(x);
-//   bool inverted = LOGICAL(invert)[0];
-//   bool is_long = (n > R_SHORT_LEN_MAX);
-//   if (inverted == true){
-//     if (is_long == true){
-//       double size = 0;
-//       for (R_xlen_t j = 0; j < n; ++j){
-//         size += (p_x[j] == true);
-//       }
-//       SEXP out = Rf_protect(Rf_allocVector(REALSXP, n - size));
-//       double *p_out = REAL(out);
-//       R_xlen_t whichi = 0;
-//       for (R_xlen_t i = 0; i < n; ++i) {
-//         if (!(p_x[i] == true)){
-//           p_out[whichi] = i + 1;
-//           ++whichi;
-//         }
-//       }
-//       Rf_unprotect(1);
-//       return out;
-//     } else {
-//       int size = 0;
-//       for (R_xlen_t j = 0; j < n; ++j){
-//         size += (p_x[j] == TRUE);
-//       }
-//       SEXP out = Rf_protect(Rf_allocVector(INTSXP, n - size));
-//       int *p_out = INTEGER(out);
-//       int whichi = 0;
-//       for (int i = 0; i < n; ++i) {
-//         if (!(p_x[i] == true)){
-//           p_out[whichi] = i + 1;
-//           ++whichi;
-//         }
-//       }
-//       Rf_unprotect(1);
-//       return out;
-//     }
-//   } else {
-//     if (is_long == true){
-//       double size = 0;
-//       for (R_xlen_t j = 0; j < n; ++j){
-//         size += (p_x[j] == TRUE);
-//       }
-//       SEXP out = Rf_protect(Rf_allocVector(REALSXP, size));
-//       double *p_out = REAL(out);
-//       R_xlen_t whichi = 0;
-//       for (R_xlen_t i = 0; i < n; ++i) {
-//         if (p_x[i] == true){
-//           p_out[whichi] = i + 1;
-//           ++whichi;
-//         }
-//       }
-//       Rf_unprotect(1);
-//       return out;
-//     } else {
-//       int size = 0;
-//       for (R_xlen_t j = 0; j < n; ++j){
-//         size += (p_x[j] == TRUE);
-//       }
-//       SEXP out = Rf_protect(Rf_allocVector(INTSXP, size));
-//       int *p_out = INTEGER(out);
-//       int whichi = 0;
-//       for (int i = 0; i < n; ++i) {
-//         if (p_x[i] == true){
-//           p_out[whichi] = i + 1;
-//           ++whichi;
-//         }
-//       }
-//       Rf_unprotect(1);
-//       return out;
-//     }
-//   }
 // }
 
 // [[Rcpp::export(rng = false)]]
@@ -691,23 +602,3 @@ SEXP cpp_is_whole_num(SEXP x, double tol, bool na_rm = true) {
   UNPROTECT(1);
   return out;
 }
-
-// SEXP pmax2(NumericVector x, NumericVector y){
-//   R_xlen_t n1 = Rf_xlength(x);
-//   R_xlen_t n2 = Rf_xlength(y);
-//   R_xlen_t n = std::max(n1, n2);
-//   if (n1 <= 0 || n2 <= 0){
-//     n = 0;
-//   }
-//   SEXP maxes = PROTECT(Rf_allocVector(REALSXP, n));
-//   double *p_maxes = REAL(maxes);
-//   R_xlen_t xi;
-//   R_xlen_t yi;
-//   for (R_xlen_t i = 0; i < n; ++i){
-//     xi = (i % n1);
-//     yi = (i % n2);
-//     p_maxes[i] = std::fmax(x[xi], y[yi]);
-//   }
-//   UNPROTECT(1);
-//   return maxes;
-// }
