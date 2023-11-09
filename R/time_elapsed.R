@@ -71,7 +71,7 @@
 #'}
 #' @export
 time_elapsed <- function(x, time_by = NULL, g = NULL,
-                         time_type = c("auto", "duration", "period"),
+                         time_type = getOption("timeplyr.time_type", "auto"),
                          rolling = TRUE, fill = NA,
                          na_skip = TRUE){
   check_is_time_or_num(x)

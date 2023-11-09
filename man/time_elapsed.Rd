@@ -8,7 +8,7 @@ time_elapsed(
   x,
   time_by = NULL,
   g = NULL,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   rolling = TRUE,
   fill = NA,
   na_skip = TRUE

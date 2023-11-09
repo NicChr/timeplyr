@@ -86,12 +86,21 @@ fslice <- function(data, ..., .by = NULL,
   N <- df_nrow(data)
   n <- unlist(dots, recursive = TRUE, use.names = FALSE)
   if (length(n) == 0L) n <- 0L
-  range_sign <- check_range_sign(n)
+  n_rng <- collapse::frange(n)
+  sum_n_rng <- sum(n_rng)
+  if (abs(sum_n_rng) != sum(abs(n_rng))){
+    stop("Can't mix negative and positive locations")
+  }
+  range_sign <- sign(sum_n_rng)
   n <- as.integer(n)
   # Groups
   group_vars <- get_groups(data, .by = {{ .by }})
   if (length(group_vars) == 0L){
-    i <- n[cpp_which(data.table::between(n, -N, N))]
+    if (any(abs(n_rng) > N)){
+      i <- n[cpp_which(data.table::between(n, -N, N))]
+    } else {
+      i <- n
+    }
   } else {
     group_df <- group_collapse(data, .by = {{ .by }},
                                order = sort_groups, sort = sort_groups,

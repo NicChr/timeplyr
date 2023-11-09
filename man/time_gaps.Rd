@@ -11,7 +11,7 @@ time_gaps(
   time_by = NULL,
   g = NULL,
   use.g.names = TRUE,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   check_time_regular = FALSE
 )
 
@@ -21,7 +21,7 @@ time_num_gaps(
   g = NULL,
   use.g.names = TRUE,
   na.rm = TRUE,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   check_time_regular = FALSE
 )
 
@@ -31,7 +31,7 @@ time_has_gaps(
   g = NULL,
   use.g.names = TRUE,
   na.rm = TRUE,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   check_time_regular = FALSE
 )
 }

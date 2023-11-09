@@ -15,11 +15,11 @@ time_by(
   to = NULL,
   .name = "{.col}",
   .add = FALSE,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
-  roll_month = "preday",
-  roll_dst = "pre",
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
   .time_by_group = TRUE
 )
 

@@ -53,7 +53,7 @@
 #'}
 #' @export
 time_diff_gcd <- function(x, time_by = 1,
-                          time_type = c("auto", "duration", "period"),
+                          time_type = getOption("timeplyr.time_type", "auto"),
                           is_sorted = FALSE,
                           tol = sqrt(.Machine$double.eps)){
   if (!is_sorted){

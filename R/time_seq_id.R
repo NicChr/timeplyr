@@ -83,7 +83,7 @@
 time_seq_id <- function(x, time_by = NULL, threshold = 1,
                         g = NULL, na_skip = TRUE,
                         rolling = TRUE, switch_on_boundary = FALSE,
-                        time_type = c("auto", "duration", "period")){
+                        time_type = getOption("timeplyr.time_type", "auto")){
   check_is_time_or_num(x)
   g <- GRP2(g)
   time_by <- time_by_get(x, time_by = time_by, is_sorted = FALSE)

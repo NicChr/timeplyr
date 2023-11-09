@@ -473,7 +473,7 @@ group2 <- function(X, ...){
 qG2 <- function(x, sort = TRUE, ordered = FALSE, na.exclude = FALSE, ...){
   if (is_interval(x)){
     if (na.exclude){
-      which_not_na <- collapse::whichv(int_is_na(x), FALSE)
+      which_not_na <- cpp_which(int_is_na(x), invert = TRUE)
       out <- collapse::alloc(NA_integer_, length(x))
       qgroup <- group_id(x[which_not_na], order = sort, as_qg = TRUE)
       n_groups <- attr(qgroup, "N.groups")

@@ -151,7 +151,7 @@ time_episodes <- function(data, time, time_by = NULL,
                           fill = 0,
                           .add = FALSE,
                           event = NULL,
-                          time_type = c("auto", "duration", "period"),
+                          time_type = getOption("timeplyr.time_type", "auto"),
                           .by = NULL){
   rlang::check_required(time)
   N <- df_nrow(data)
@@ -305,7 +305,7 @@ calc_episodes <- function(data,
                     j = "ep_id_new",
                     value = fpluck(data, "ep_id")[g3_starts])
     data.table::set(data,
-                    i = collapse::whichNA(fpluck(data, "ep_id")),
+                    i = cpp_which(is.na(fpluck(data, "ep_id"))),
                     j = "ep_id_new",
                     value = NA_integer_)
     # Add episode start dates

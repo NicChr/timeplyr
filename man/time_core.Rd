@@ -16,11 +16,11 @@ time_expandv(
   to = NULL,
   g = NULL,
   use.g.names = TRUE,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
-  roll_month = "preday",
-  roll_dst = "pre"
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary")
 )
 
 time_completev(
@@ -29,11 +29,11 @@ time_completev(
   from = NULL,
   to = NULL,
   sort = TRUE,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
-  roll_month = "preday",
-  roll_dst = "pre"
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary")
 )
 
 time_summarisev(
@@ -43,11 +43,11 @@ time_summarisev(
   to = NULL,
   sort = FALSE,
   unique = FALSE,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
-  roll_month = "preday",
-  roll_dst = "pre",
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
   include_interval = FALSE
 )
 
@@ -60,12 +60,12 @@ time_countv(
   unique = TRUE,
   use.names = TRUE,
   complete = TRUE,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   include_interval = FALSE,
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
-  roll_month = "preday",
-  roll_dst = "pre"
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary")
 )
 
 time_span(
@@ -75,11 +75,11 @@ time_span(
   to = NULL,
   g = NULL,
   use.g.names = TRUE,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
-  roll_month = "preday",
-  roll_dst = "pre"
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary")
 )
 
 time_span_size(
@@ -89,7 +89,7 @@ time_span_size(
   to = NULL,
   g = NULL,
   use.g.names = TRUE,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1)
 )

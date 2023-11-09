@@ -106,14 +106,7 @@ GRP_duplicated <- function(GRP, all = FALSE){
 }
 # Alternative that just returns dup indices
 GRP_which_duplicated <- function(GRP, all = FALSE){
-  sizes <- GRP_group_sizes(GRP)
-  group_id <- GRP_group_id(GRP)
-  if (all){
-    out <- collapse::whichv(sizes[group_id], 1L, invert = TRUE)
-  } else {
-    out <- collapse::whichv(frowid(group_id, g = GRP), 1L, invert = TRUE)
-  }
-  out
+  cpp_which(GRP_duplicated(GRP, all))
 }
 calc_sorted_group_starts <- function(group_sizes){
   cpp_sorted_group_starts(as.integer(group_sizes))
@@ -130,8 +123,7 @@ GRP_starts <- function(GRP, use.g.names = FALSE,
     if (GRP_is_sorted(GRP)){
       out <- calc_sorted_group_starts(GRP_sizes)
       # For factors with 0 size, replace calculated group starts with 0
-      collapse::setv(out, collapse::whichv(GRP_sizes, 0L),
-                     0L, vind1 = TRUE)
+      out[cpp_which(GRP_sizes == 0L)] <- 0L
     } else {
       if (is.null(loc)){
         loc <- GRP_loc(GRP, use.g.names = FALSE)
@@ -140,15 +132,14 @@ GRP_starts <- function(GRP, use.g.names = FALSE,
       # Accounting for factors with no data
       if (collapse::anyv(GRP_sizes, 0L)){
         out <- integer(length(loc))
-        collapse::setv(out, which(GRP_sizes != 0L),
-                       gstarts, vind1 = TRUE)
+        out[cpp_which(GRP_sizes != 0L)] <- gstarts
       } else {
         out <- gstarts
       }
     }
   }
   if (is.null(out)){
-    out <- integer(0)
+    out <- integer()
   }
   if (use.g.names){
     names(out) <- GRP_names(GRP)
@@ -162,7 +153,7 @@ GRP_ends <- function(GRP, use.g.names = FALSE,
   if (GRP_is_sorted(GRP)){
     out <- calc_sorted_group_ends(GRP_sizes)
     # For factors with 0 size, replace 0 with NA
-    collapse::setv(out, collapse::whichv(GRP_sizes, 0L), 0L, vind1 = TRUE)
+    out[cpp_which(GRP_sizes == 0L)] <- 0L
   } else {
     if (is.null(loc)){
       loc <- GRP_loc(GRP, use.g.names = FALSE)
@@ -171,13 +162,13 @@ GRP_ends <- function(GRP, use.g.names = FALSE,
     # Accounting for factors with no data
     if (collapse::anyv(GRP_sizes, 0L)){
       out <- integer(length(loc))
-      collapse::setv(out, which(GRP_sizes != 0L), gends, vind1 = TRUE)
+      out[cpp_which(GRP_sizes != 0L)] <- gends
     } else {
       out <- gends
     }
   }
   if (is.null(out)){
-    out <- integer(0)
+    out <- integer()
   }
   if (use.g.names){
     names(out) <- GRP_names(GRP)
@@ -297,7 +288,7 @@ df_as_GRP <- function(data, return.groups = TRUE, return.order = TRUE){
   if (return.groups){
     if (has_factor){
       gstarts <- integer(n_groups)
-      gstarts[collapse::whichv(gsizes, 0L, invert = TRUE)] <-
+      gstarts[cpp_which(gsizes == 0L, invert = TRUE)] <-
         GRP_loc_starts(gdata[[".rows"]])
     } else {
       gstarts <- GRP_loc_starts(gdata[[".rows"]])

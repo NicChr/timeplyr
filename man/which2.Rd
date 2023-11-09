@@ -16,5 +16,5 @@ which2(x, invert = FALSE)
 An unnamed integer vector.
 }
 \description{
-Exactly the same as \code{which()} but is more memory efficient.
+Exactly the same as \code{which()} but more memory efficient.
 }

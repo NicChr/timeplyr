@@ -374,7 +374,7 @@ convert_common_dates <- function(x){
   if (is_time(x)){
     out <- x
   } else if (is.character(x)){
-    which_na <- collapse::whichNA(x)
+    which_na <- cpp_which(is.na(x))
     out <- lubridate::ymd(x, quiet = TRUE)
     num_na <- num_na(out)
     if (num_na > length(which_na)){
@@ -942,8 +942,8 @@ get_from_to <- function(data, ..., time, from = NULL, to = NULL,
 # All credits go to the authors of timechange
 C_time_add <- getFromNamespace("C_time_add", "timechange")
 time_add2 <- function(x, time_by,
-                      time_type = c("auto", "duration", "period"),
-                      roll_month = "preday", roll_dst = "pre"){
+                      time_type = getOption("timeplyr.time_type", "auto"),
+                      roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   time_by <- time_by_list(time_by)
   time_num <- time_by_num(time_by)
   time_unit <- time_by_unit(time_by)
@@ -1065,8 +1065,8 @@ time_aggregate_left <- function(x, time_by, g = NULL,
                                 start = NULL, end = NULL,
                                 time_floor = FALSE,
                                 week_start = getOption("lubridate.week.start", 1),
-                                time_type = c("auto", "duration", "period"),
-                                roll_month = "preday", roll_dst = "pre",
+                                time_type = getOption("timeplyr.time_type", "auto"),
+                                roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                                 as_int = TRUE){
   time_by <- time_by_list(time_by)
   num <- time_by_num(time_by)
@@ -1119,8 +1119,8 @@ time_aggregate_right <- function(x, time_by, g = NULL,
                                  start = NULL, end = NULL,
                                  time_ceiling = FALSE,
                                  week_start = getOption("lubridate.week.start", 1),
-                                 time_type = c("auto", "duration", "period"),
-                                 roll_month = "preday", roll_dst = "pre",
+                                 time_type = getOption("timeplyr.time_type", "auto"),
+                                 roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                                  as_int = TRUE){
   time_by <- time_by_list(time_by)
   num <- time_by_num(time_by)
@@ -1181,8 +1181,8 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
                                   start = NULL, end = NULL,
                                   time_floor = FALSE,
                                   week_start = getOption("lubridate.week.start", 1),
-                                  time_type = c("auto", "duration", "period"),
-                                  roll_month = "preday", roll_dst = "pre",
+                                  time_type = getOption("timeplyr.time_type", "auto"),
+                                  roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                                   as_int = TRUE){
   time_by <- time_by_list(time_by)
   num <- time_by_num(time_by)
@@ -1278,7 +1278,7 @@ time_aggregate_switch <- function(x, time_by, time_type,
                                   start = NULL, end = NULL,
                                   time_floor = FALSE,
                                   week_start = getOption("lubridate.week.start", 1),
-                                  roll_month = "preday", roll_dst = "pre",
+                                  roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                                   as_int = TRUE){
   check_is_time_or_num(x)
   time_by <- time_by_list(time_by)

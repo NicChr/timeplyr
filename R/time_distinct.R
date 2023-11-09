@@ -59,12 +59,13 @@
 time_distinct <- function(data, time = NULL, ..., time_by = NULL,
                           from = NULL, to = NULL,
                           .keep_all = FALSE,
-                          time_type = c("auto", "duration", "period"),
+                          time_type = getOption("timeplyr.time_type", "auto"),
                           include_interval = FALSE,
                           .by = NULL,
                           time_floor = FALSE,
                           week_start = getOption("lubridate.week.start", 1),
-                          roll_month = "preday", roll_dst = "pre",
+                          roll_month = getOption("timeplyr.roll_month", "preday"),
+                          roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                           sort = FALSE){
   check_is_df(data)
   n_dots <- dots_length(...)

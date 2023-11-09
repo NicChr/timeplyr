@@ -19,9 +19,9 @@ time_count(
   .by = NULL,
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
-  time_type = c("auto", "duration", "period"),
-  roll_month = "preday",
-  roll_dst = "pre",
+  time_type = getOption("timeplyr.time_type", "auto"),
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
   include_interval = FALSE
 )
 }

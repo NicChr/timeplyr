@@ -9,7 +9,7 @@ time_id(
   time_by = NULL,
   g = NULL,
   na_skip = TRUE,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   shift = 1L
 )
 }

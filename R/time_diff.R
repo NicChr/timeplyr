@@ -47,7 +47,7 @@
 #'}
 #' @export
 time_diff <- function(x, y, time_by = 1,
-                      time_type = c("auto", "duration", "period")){
+                      time_type = getOption("timeplyr.time_type", "auto")){
   tby <- time_by_list(time_by)
   units <- time_by_unit(tby)
   num <- time_by_num(tby)

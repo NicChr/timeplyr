@@ -456,7 +456,7 @@ df_reorder <- function(data, g){
 # Drop rows that are all empty
 df_drop_empty <- function(data, .cols = names(data)){
   is_empty_row <- collapse::missing_cases(fselect(data, .cols = .cols), prop = 1)
-  which_not_empty <- collapse::whichv(is_empty_row, FALSE)
+  which_not_empty <- cpp_which(is_empty_row, invert = TRUE)
   df_row_slice(data, which_not_empty)
 }
 # Alternative dplyr way, just for fun

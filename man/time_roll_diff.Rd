@@ -9,7 +9,7 @@ time_roll_diff(
   time_by = 1,
   lag = 1L,
   g = NULL,
-  time_type = c("auto", "duration", "period")
+  time_type = getOption("timeplyr.time_type", "auto")
 )
 }
 \arguments{

@@ -100,10 +100,11 @@
 #' @export
 time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
                          g = NULL, use.g.names = TRUE,
-                         time_type = c("auto", "duration", "period"),
+                         time_type = getOption("timeplyr.time_type", "auto"),
                          time_floor = FALSE,
                          week_start = getOption("lubridate.week.start", 1),
-                         roll_month = "preday", roll_dst = "pre"){
+                         roll_month = getOption("timeplyr.roll_month", "preday"),
+                         roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   check_is_time_or_num(x)
   if (length(from) > 1L){
     stop("from must be of length 1")
@@ -155,10 +156,11 @@ time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
 #' @export
 time_completev <- function(x, time_by = NULL, from = NULL, to = NULL,
                            sort = TRUE,
-                           time_type = c("auto", "duration", "period"),
+                           time_type = getOption("timeplyr.time_type", "auto"),
                            time_floor = FALSE,
                            week_start = getOption("lubridate.week.start", 1),
-                           roll_month = "preday", roll_dst = "pre"){
+                           roll_month = getOption("timeplyr.roll_month", "preday"),
+                           roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   time_full <- time_expandv(x, time_by = time_by,
                             from = from, to = to,
                             time_type = time_type,
@@ -177,10 +179,11 @@ time_completev <- function(x, time_by = NULL, from = NULL, to = NULL,
 #' @export
 time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
                             sort = FALSE, unique = FALSE,
-                            time_type = c("auto", "duration", "period"),
+                            time_type = getOption("timeplyr.time_type", "auto"),
                             time_floor = FALSE,
                             week_start = getOption("lubridate.week.start", 1),
-                            roll_month = "preday", roll_dst = "pre",
+                            roll_month = getOption("timeplyr.roll_month", "preday"),
+                            roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                             include_interval = FALSE){
   check_is_time_or_num(x)
   if (is.null(from)){
@@ -233,10 +236,10 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
 }
 # Working function
 # ungrouped_time_expand <- function(x, time_by = NULL, from = NULL, to = NULL,
-#                                   time_type = c("auto", "duration", "period"),
+#                                   time_type = getOption("timeplyr.time_type", "auto"),
 #                                   time_floor = FALSE,
 #                                   week_start = getOption("lubridate.week.start", 1),
-#                                   roll_month = "preday", roll_dst = "pre"){
+#                                   roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary")){
 #   stopifnot(is_time_or_num(x))
 #   if (length(from) > 1L){
 #     stop("from must be of length 1")
@@ -277,10 +280,10 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
 # Working function
 # grouped_time_expand <- function(x, time_by = NULL, from = NULL, to = NULL,
 #                                 g, use.g.names = TRUE,
-#                                 time_type = c("auto", "duration", "period"),
+#                                 time_type = getOption("timeplyr.time_type", "auto"),
 #                                 time_floor = FALSE,
 #                                 week_start = getOption("lubridate.week.start", 1),
-#                                 roll_month = "preday", roll_dst = "pre"){
+#                                 roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary")){
 #   stopifnot(is_time_or_num(x))
 #   if (length(from) > 1L){
 #     stop("from must be of length 1")
@@ -330,10 +333,10 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
 # time_completev <- function(x, time_by = NULL, from = NULL, to = NULL,
 #                            g = NULL, use.g.names = TRUE,
 #                            sort = TRUE,
-#                            time_type = c("auto", "duration", "period"),
+#                            time_type = getOption("timeplyr.time_type", "auto"),
 #                            time_floor = FALSE,
 #                            week_start = getOption("lubridate.week.start", 1),
-#                            roll_month = "preday", roll_dst = "pre",
+#                            roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
 #                            as_tbl = FALSE){
 #   has_groups <- length(g) > 0
 #   if (!has_groups){
@@ -383,10 +386,10 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
 # time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
 #                             g = NULL, use.g.names = TRUE,
 #                             sort = FALSE, unique = FALSE,
-#                             time_type = c("auto", "duration", "period"),
+#                             time_type = getOption("timeplyr.time_type", "auto"),
 #                             time_floor = FALSE,
 #                             week_start = getOption("lubridate.week.start", 1),
-#                             roll_month = "preday", roll_dst = "pre",
+#                             roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
 #                             include_interval = FALSE){
 #   has_groups <- length(g) > 0
 #   if (!has_groups){
@@ -410,10 +413,10 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
 # Working function
 # ungrouped_time_summarise <- function(x, time_by = NULL, from = NULL, to = NULL,
 #                                      sort = FALSE, unique = FALSE,
-#                                      time_type = c("auto", "duration", "period"),
+#                                      time_type = getOption("timeplyr.time_type", "auto"),
 #                                      time_floor = FALSE,
 #                                      week_start = getOption("lubridate.week.start", 1),
-#                                      roll_month = "preday", roll_dst = "pre",
+#                                      roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
 #                                      include_interval = FALSE){
 #   if (is.null(from) || is.null(to)){
 #     x_range <- collapse::frange(x, na.rm = TRUE)
@@ -469,10 +472,10 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
 # grouped_time_summarise <- function(x, time_by = NULL, from = NULL, to = NULL,
 #                                    g, use.g.names = TRUE,
 #                                    sort = FALSE, unique = FALSE,
-#                                    time_type = c("auto", "duration", "period"),
+#                                    time_type = getOption("timeplyr.time_type", "auto"),
 #                                    time_floor = FALSE,
 #                                    week_start = getOption("lubridate.week.start", 1),
-#                                    roll_month = "preday", roll_dst = "pre",
+#                                    roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
 #                                    include_interval = FALSE){
 #   g <- GRP2(g)
 #   if (GRP_data_size(g) != length(x)){
@@ -548,11 +551,12 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
 time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
                         sort = TRUE, unique = TRUE,
                         use.names = TRUE, complete = TRUE,
-                        time_type = c("auto", "duration", "period"),
+                        time_type = getOption("timeplyr.time_type", "auto"),
                         include_interval = FALSE,
                         time_floor = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
-                        roll_month = "preday", roll_dst = "pre"){
+                        roll_month = getOption("timeplyr.roll_month", "preday"),
+                        roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   check_is_time_or_num(x)
   x_na <- collapse::whichNA(x)
   missing_from <- is.null(from)
@@ -655,7 +659,7 @@ time_span <- time_expandv
 #' @export
 time_span_size <- function(x, time_by = NULL, from = NULL, to = NULL,
                            g = NULL, use.g.names = TRUE,
-                           time_type = c("auto", "duration", "period"),
+                           time_type = getOption("timeplyr.time_type", "auto"),
                            time_floor = FALSE,
                            week_start = getOption("lubridate.week.start", 1)){
   check_is_time_or_num(x)

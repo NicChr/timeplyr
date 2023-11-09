@@ -12,22 +12,27 @@ time_seq(
   to,
   time_by,
   length.out = NULL,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   week_start = getOption("lubridate.week.start", 1),
   time_floor = FALSE,
-  roll_month = "preday",
-  roll_dst = "pre"
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary")
 )
 
-time_seq_sizes(from, to, time_by, time_type = c("auto", "duration", "period"))
+time_seq_sizes(
+  from,
+  to,
+  time_by,
+  time_type = getOption("timeplyr.time_type", "auto")
+)
 
 time_seq_v(
   from,
   to,
   time_by,
-  time_type = c("auto", "duration", "period"),
-  roll_month = "preday",
-  roll_dst = "pre",
+  time_type = getOption("timeplyr.time_type", "auto"),
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1)
 )
@@ -36,11 +41,11 @@ time_seq_v2(
   sizes,
   from,
   time_by,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
-  roll_month = "preday",
-  roll_dst = "pre"
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary")
 )
 }
 \arguments{
@@ -179,7 +184,7 @@ time_seq(leap, to = end, time_by = "year",
 time_seq(leap, to = end, time_by = "year",
          roll_month = "postday")
 time_seq(leap, to = end, time_by = "year",
-         roll_month = "preday")
+         roll_month = getOption("timeplyr.roll_month", "preday"))
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

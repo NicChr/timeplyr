@@ -53,7 +53,7 @@ top_n_tbl <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE){
   out <- GRP_group_sizes(g)
   df <- new_tbl(value = g_names, n = out)
   if (na_rm){
-    df <- df_row_slice(df, !is.na(df[["value"]]))
+    df <- df_row_slice(df, cpp_which(is.na(df[["value"]]), invert = TRUE))
   }
   # Sort by freq (descending order)
   df <- df_row_slice(df, radix_order(desc(df[["n"]])))
@@ -82,7 +82,7 @@ bottom_n_tbl <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE){
   out <- GRP_group_sizes(g)
   df <- new_tbl(value = g_names, n = out)
   if (na_rm){
-    df <- df_row_slice(df, !is.na(df[["value"]]))
+    df <- df_row_slice(df, cpp_which(is.na(df[["value"]]), invert = TRUE))
   }
   # Sort by freq (ascending order)
   df <- df_row_slice(df, radix_order(asc(df[["n"]])))

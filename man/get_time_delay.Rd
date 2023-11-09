@@ -9,7 +9,7 @@ get_time_delay(
   origin,
   end,
   time_by = 1,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   min_delay = -Inf,
   max_delay = Inf,
   probs = c(0.25, 0.5, 0.75, 0.95),

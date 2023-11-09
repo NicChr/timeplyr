@@ -45,3 +45,8 @@ on_package_load <- function(pkg, expr){
     setHook(packageEvent(pkg, "onLoad"), thunk)
   }
 }
+.onAttach <- function(...){
+  options("timeplyr.time_type" = getOption("timeplyr.time_type", "auto"),
+          "timeplyr.roll_month" = getOption("timeplyr.roll_month", "preday"),
+          "timeplyr.roll_dst" = getOption("timeplyr.roll_dst", "boundary"))
+}

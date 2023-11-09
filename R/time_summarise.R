@@ -91,12 +91,13 @@
 #' @export
 time_summarise <- function(data, time = NULL, ..., time_by = NULL,
                            from = NULL, to = NULL,
-                           time_type = c("auto", "duration", "period"),
+                           time_type = getOption("timeplyr.time_type", "auto"),
                            include_interval = FALSE,
                            .by = NULL,
                            time_floor = FALSE,
                            week_start = getOption("lubridate.week.start", 1),
-                           roll_month = "preday", roll_dst = "pre",
+                           roll_month = getOption("timeplyr.roll_month", "preday"),
+                           roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                            sort = TRUE){
   check_is_df(data)
   out <- fdistinct(time_mutate(data, ...,
@@ -134,12 +135,13 @@ time_summarise <- function(data, time = NULL, ..., time_by = NULL,
 #' @export
 time_reframe <- function(data, time = NULL, ..., time_by = NULL,
                          from = NULL, to = NULL,
-                         time_type = c("auto", "duration", "period"),
+                         time_type = getOption("timeplyr.time_type", "auto"),
                          include_interval = FALSE,
                          .by = NULL,
                          time_floor = FALSE,
                          week_start = getOption("lubridate.week.start", 1),
-                         roll_month = "preday", roll_dst = "pre",
+                         roll_month = getOption("timeplyr.roll_month", "preday"),
+                         roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                          sort = TRUE){
   check_is_df(data)
   group_vars <- get_groups(data, {{ .by }})

@@ -14,7 +14,7 @@ time_episodes(
   fill = 0,
   .add = FALSE,
   event = NULL,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   .by = NULL
 )
 }

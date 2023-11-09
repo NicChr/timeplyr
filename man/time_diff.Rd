@@ -4,7 +4,12 @@
 \alias{time_diff}
 \title{Calculate time difference}
 \usage{
-time_diff(x, y, time_by = 1, time_type = c("auto", "duration", "period"))
+time_diff(
+  x,
+  y,
+  time_by = 1,
+  time_type = getOption("timeplyr.time_type", "auto")
+)
 }
 \arguments{
 \item{x}{Start date or datetime.}

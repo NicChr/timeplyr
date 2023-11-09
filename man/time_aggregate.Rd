@@ -8,9 +8,9 @@ time_aggregate(
   x,
   time_by = NULL,
   g = NULL,
-  time_type = c("auto", "duration", "period"),
-  roll_month = "preday",
-  roll_dst = "pre",
+  time_type = getOption("timeplyr.time_type", "auto"),
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
   direction = c("l2r", "r2l")
 )
 }

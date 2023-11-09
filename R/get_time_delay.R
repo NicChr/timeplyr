@@ -129,7 +129,7 @@
 #'}
 #' @export
 get_time_delay <- function(data, origin, end, time_by = 1,
-                           time_type = c("auto", "duration", "period"),
+                           time_type = getOption("timeplyr.time_type", "auto"),
                            min_delay = -Inf, max_delay = Inf,
                            probs = c(0.25, 0.5, 0.75, 0.95),
                            .by = NULL,
@@ -166,9 +166,9 @@ get_time_delay <- function(data, origin, end, time_by = 1,
                   sep = " "))
   }
   # Remove outliers
-  out <- out[data.table::between(get(delay_nm), min_delay, max_delay,
-                                 incbounds = TRUE, NAbounds = NA), ]
-  out <- out[!is.na(get(delay_nm)), ]
+  out <- out[cpp_which(data.table::between(get(delay_nm), min_delay, max_delay,
+                                 incbounds = TRUE, NAbounds = NA)), ]
+  out <- out[cpp_which(is.na(get(delay_nm)), TRUE), ]
   # Quantile summary
   iqr_p_missed <- setdiff(c(0.25, 0.75), probs)
   if (length(iqr_p_missed) > 0L){

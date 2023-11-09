@@ -53,7 +53,7 @@
 #'
 #' @export
 time_id <- function(x, time_by = NULL, g = NULL, na_skip = TRUE,
-                    time_type = c("auto", "duration", "period"),
+                    time_type = getOption("timeplyr.time_type", "auto"),
                     shift = 1L){
   check_is_time_or_num(x)
   time_by <- time_by_get(x, time_by)

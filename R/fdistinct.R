@@ -79,7 +79,7 @@ fdistinct <- function(data, ..., .keep_all = FALSE,
     if (order_sort_alike){
       unique_locs <- GRP_starts(g)
     } else {
-      unique_locs <- collapse::whichv(frowid(out, g = g), 1L)
+      unique_locs <- cpp_which(frowid(out, g = g) == 1L)
     }
     out <- df_row_slice(out, unique_locs, reconstruct = FALSE)
   }

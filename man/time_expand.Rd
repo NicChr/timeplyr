@@ -13,14 +13,14 @@ time_expand(
   time_by = NULL,
   from = NULL,
   to = NULL,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   expand_type = c("nesting", "crossing"),
   sort = TRUE,
   keep_class = TRUE,
-  roll_month = "preday",
-  roll_dst = "pre",
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
   log_limit = 8
 )
 
@@ -32,15 +32,15 @@ time_complete(
   time_by = NULL,
   from = NULL,
   to = NULL,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   expand_type = c("nesting", "crossing"),
   sort = TRUE,
   keep_class = TRUE,
   fill = NA,
-  roll_month = "preday",
-  roll_dst = "pre",
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
   log_limit = 8
 )
 }

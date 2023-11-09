@@ -12,7 +12,7 @@ time_seq_id(
   na_skip = TRUE,
   rolling = TRUE,
   switch_on_boundary = FALSE,
-  time_type = c("auto", "duration", "period")
+  time_type = getOption("timeplyr.time_type", "auto")
 )
 }
 \arguments{

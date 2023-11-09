@@ -97,13 +97,13 @@
 #' @export
 time_expand <- function(data, time = NULL, ..., .by = NULL,
                         time_by = NULL, from = NULL, to = NULL,
-                        time_type = c("auto", "duration", "period"),
+                        time_type = getOption("timeplyr.time_type", "auto"),
                         time_floor = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
                         expand_type = c("nesting", "crossing"),
                         sort = TRUE,
                         keep_class = TRUE,
-                        roll_month = "preday", roll_dst = "pre",
+                        roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                         log_limit = 8){
   check_is_df(data)
   expand_type <- match.arg(expand_type)
@@ -230,14 +230,14 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
 #' @export
 time_complete <- function(data, time = NULL, ..., .by = NULL,
                           time_by = NULL, from = NULL, to = NULL,
-                          time_type = c("auto", "duration", "period"),
+                          time_type = getOption("timeplyr.time_type", "auto"),
                           time_floor = FALSE,
                           week_start = getOption("lubridate.week.start", 1),
                           expand_type = c("nesting", "crossing"),
                           sort = TRUE,
                           keep_class = TRUE,
                           fill = NA,
-                          roll_month = "preday", roll_dst = "pre",
+                          roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                           log_limit = 8){
   check_is_df(data)
   expand_type <- match.arg(expand_type)
@@ -286,9 +286,8 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
     fill <- fill[!is.na(fill)]
     fill_nms <- names(fill)
     for (i in seq_along(fill)){
-      out[, (fill_nms[[i]]) := data.table::fifelse(is.na(get(fill_nms[[i]])),
-                                                   fill[[i]],
-                                                   get(fill_nms[[i]]))]
+      out[cpp_which(is.na(get(fill_nms[[i]]))),
+          (fill_nms[[i]]) := fill[[i]]]
     }
   }
   out_vars <- c(names(data), setdiff(names(out), names(data)))

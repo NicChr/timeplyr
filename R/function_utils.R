@@ -597,6 +597,9 @@ vec_slice2 <- function(x, i){
   }
 }
 vec_slice3 <- function(x, i){
+  if (is.logical(i)){
+    i <- cpp_which(i)
+  }
   if (is.atomic(x)){
     x[i]
   } else if (is_df(x)){
@@ -1182,10 +1185,3 @@ set_order <- function(x, y = NULL){
   data.table::setorderv(df, cols = names(df)[df_ncol(df)])
   invisible(x)
 }
-# cpp_which <- function(x, invert = FALSE){
-#   if (!invert && length(x) < 1e05){
-#     which(x)
-#   } else {
-#     .Call(`_timeplyr_cpp_which`, x, invert)
-#   }
-# }

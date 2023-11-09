@@ -1,7 +1,7 @@
 #' Efficient alternative to `which()`
 #'
 #' @description
-#' Exactly the same as `which()` but is more memory efficient.
+#' Exactly the same as `which()` but more memory efficient.
 #'
 #' @param x A [logical] vector.
 #' @param invert If `TRUE`, indices of values that are not `TRUE` are returned

@@ -16,9 +16,9 @@ time_cut(
   week_start = getOption("lubridate.week.start", 1),
   n_at_most = TRUE,
   as_factor = TRUE,
-  time_type = c("auto", "duration", "period"),
-  roll_month = "preday",
-  roll_dst = "pre"
+  time_type = getOption("timeplyr.time_type", "auto"),
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary")
 )
 
 time_breaks(
@@ -30,9 +30,9 @@ time_breaks(
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   n_at_most = TRUE,
-  time_type = c("auto", "duration", "period"),
-  roll_month = "preday",
-  roll_dst = "pre"
+  time_type = getOption("timeplyr.time_type", "auto"),
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary")
 )
 }
 \arguments{

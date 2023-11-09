@@ -63,7 +63,7 @@
 #' @export
 time_gaps <- function(x, time_by = NULL,
                       g = NULL, use.g.names = TRUE,
-                      time_type = c("auto", "duration", "period"),
+                      time_type = getOption("timeplyr.time_type", "auto"),
                       check_time_regular = FALSE){
   g <- GRP2(g)
   check_data_GRP_size(x, g)
@@ -103,7 +103,7 @@ time_gaps <- function(x, time_by = NULL,
 time_num_gaps <- function(x, time_by = NULL,
                           g = NULL, use.g.names = TRUE,
                           na.rm = TRUE,
-                          time_type = c("auto", "duration", "period"),
+                          time_type = getOption("timeplyr.time_type", "auto"),
                           check_time_regular = FALSE){
   check_is_time_or_num(x)
   time_type <- match_time_type(time_type)
@@ -146,7 +146,7 @@ time_num_gaps <- function(x, time_by = NULL,
 time_has_gaps <- function(x, time_by = NULL,
                           g = NULL, use.g.names = TRUE,
                           na.rm = TRUE,
-                          time_type = c("auto", "duration", "period"),
+                          time_type = getOption("timeplyr.time_type", "auto"),
                           check_time_regular = FALSE){
   time_num_gaps(x, time_by = time_by,
                 g = g, use.g.names = use.g.names,

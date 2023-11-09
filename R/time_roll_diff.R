@@ -34,7 +34,7 @@
 #'
 time_roll_diff <- function(time, time_by = 1, lag = 1L,
                            g = NULL,
-                           time_type = c("auto", "duration", "period")){
+                           time_type = getOption("timeplyr.time_type", "auto")){
   check_is_time_or_num(time)
   # lagseq <- lag_seq(time, lag)
   # time_lag <- roll_lag(time, lagseq, check = FALSE)

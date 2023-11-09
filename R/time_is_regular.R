@@ -85,7 +85,7 @@
 time_is_regular <- function(x, time_by = NULL,
                             g = NULL, use.g.names = TRUE,
                             na.rm = TRUE,
-                            time_type = c("auto", "duration", "period"),
+                            time_type = getOption("timeplyr.time_type", "auto"),
                             allow_gaps = TRUE,
                             allow_dups = TRUE){
   check_is_time_or_num(x)
@@ -145,7 +145,7 @@ time_is_regular <- function(x, time_by = NULL,
 # Ungrouped version.
 # time_is_reg <- function(x, time_by = NULL,
 #                         na.rm = TRUE,
-#                         time_type = c("auto", "duration", "period"),
+#                         time_type = getOption("timeplyr.time_type", "auto"),
 #                         allow_gaps = TRUE,
 #                         allow_dups = TRUE){
 #   check_is_time_or_num(x)

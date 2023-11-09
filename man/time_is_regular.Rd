@@ -10,7 +10,7 @@ time_is_regular(
   g = NULL,
   use.g.names = TRUE,
   na.rm = TRUE,
-  time_type = c("auto", "duration", "period"),
+  time_type = getOption("timeplyr.time_type", "auto"),
   allow_gaps = TRUE,
   allow_dups = TRUE
 )

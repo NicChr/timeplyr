@@ -18,9 +18,9 @@ time_roll_sum(
   partial = TRUE,
   close_left_boundary = FALSE,
   na.rm = TRUE,
-  time_type = c("auto", "duration", "period"),
-  roll_month = "preday",
-  roll_dst = "pre",
+  time_type = getOption("timeplyr.time_type", "auto"),
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
   ...
 )
 
@@ -33,9 +33,9 @@ time_roll_mean(
   partial = TRUE,
   close_left_boundary = FALSE,
   na.rm = TRUE,
-  time_type = c("auto", "duration", "period"),
-  roll_month = "preday",
-  roll_dst = "pre",
+  time_type = getOption("timeplyr.time_type", "auto"),
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
   ...
 )
 
@@ -48,9 +48,9 @@ time_roll_growth_rate(
   partial = TRUE,
   close_left_boundary = FALSE,
   na.rm = TRUE,
-  time_type = c("auto", "duration", "period"),
-  roll_month = "preday",
-  roll_dst = "pre"
+  time_type = getOption("timeplyr.time_type", "auto"),
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary")
 )
 
 time_roll_window_size(
@@ -59,9 +59,9 @@ time_roll_window_size(
   g = NULL,
   partial = TRUE,
   close_left_boundary = FALSE,
-  time_type = c("auto", "duration", "period"),
-  roll_month = "preday",
-  roll_dst = "pre"
+  time_type = getOption("timeplyr.time_type", "auto"),
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary")
 )
 
 time_roll_window(
@@ -71,9 +71,9 @@ time_roll_window(
   g = NULL,
   partial = TRUE,
   close_left_boundary = FALSE,
-  time_type = c("auto", "duration", "period"),
-  roll_month = "preday",
-  roll_dst = "pre"
+  time_type = getOption("timeplyr.time_type", "auto"),
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary")
 )
 
 time_roll_apply(
@@ -85,9 +85,9 @@ time_roll_apply(
   partial = TRUE,
   unlist = FALSE,
   close_left_boundary = FALSE,
-  time_type = c("auto", "duration", "period"),
-  roll_month = "preday",
-  roll_dst = "pre"
+  time_type = getOption("timeplyr.time_type", "auto"),
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary")
 )
 }
 \arguments{
