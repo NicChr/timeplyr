@@ -10,6 +10,10 @@
 #' @returns
 #' An unnamed integer vector.
 #'
+#' @details
+#' This implementation is somtimes faster, sometimes slower but usually
+#' a similar speed to `which()`. It is almost always more memory efficient.
+#'
 #' @export
 which2 <- function(x, invert = FALSE){
   .Call(`_timeplyr_cpp_which`, x, invert)

@@ -18,3 +18,7 @@ An unnamed integer vector.
 \description{
 Exactly the same as \code{which()} but more memory efficient.
 }
+\details{
+This implementation is somtimes faster, sometimes slower but usually
+a similar speed to \code{which()}. It is almost always more memory efficient.
+}
