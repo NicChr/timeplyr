@@ -160,16 +160,16 @@ testthat::test_that("Expected outputs", {
 # all.equal(z1, z2)
 
 testthat::test_that("simple tests", {
-  testthat::expect_true(all(double_equal(
+  testthat::expect_equal(
     time_roll_mean(c(10, 20, 30), time = lubridate::today() + lubridate::days(0:2),
                    window = lubridate::days(1),
                    close_left_boundary = FALSE),
-    c(10, 20, 30))))
-  testthat::expect_true(all(double_equal(
+    c(10, 20, 30))
+  testthat::expect_equal(
     time_roll_mean(c(10, 20, 30), time = lubridate::today() + lubridate::days(0:2),
                    window = lubridate::days(1),
                    close_left_boundary = TRUE),
-    c(10, 15, 25))))
+    c(10, 15, 25))
 
 
   # x <- rnorm(10^6)

@@ -1,16 +1,17 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-double r_sum(SEXP x){
+double r_sum(SEXP x, bool na_rm = false){
   Rcpp::Function base_sum = Rcpp::Environment::base_env()["sum"];
-  double out = 0;
-  SEXP sum = PROTECT(base_sum(x));
-  SEXP sum_double = PROTECT(Rf_coerceVector(sum, REALSXP));
-  double *p_sum = REAL(sum_double);
-  if (Rf_length(sum_double) > 0){
-    out = p_sum[0];
-  }
-  UNPROTECT(2);
+  double out = Rf_asReal(base_sum(x, Rcpp::Named("na.rm") = na_rm));
+  // double out = 0;
+  // SEXP sum = PROTECT(base_sum(x, Rcpp::Named("na.rm") = na_rm));
+  // SEXP sum_double = PROTECT(Rf_coerceVector(sum, REALSXP));
+  // double *p_sum = REAL(sum_double);
+  // if (Rf_length(sum_double) > 0){
+  //   out = p_sum[0];
+  // }
+  // UNPROTECT(2);
   return out;
 }
 
@@ -18,11 +19,12 @@ double r_min(SEXP x){
   Rcpp::Function base_min = Rcpp::Environment::base_env()["min"];
   double out = R_PosInf;
   if (Rf_length(x) > 0){
-    SEXP min = PROTECT(base_min(x));
-    SEXP min_double = PROTECT(Rf_coerceVector(min, REALSXP));
-    double *p_min = REAL(min_double);
-    out = p_min[0];
-    UNPROTECT(2);
+    out = Rf_asReal(base_min(x));
+    // SEXP min = PROTECT(base_min(x));
+    // SEXP min_double = PROTECT(Rf_coerceVector(min, REALSXP));
+    // double *p_min = REAL(min_double);
+    // out = p_min[0];
+    // UNPROTECT(2);
   }
   return out;
 }

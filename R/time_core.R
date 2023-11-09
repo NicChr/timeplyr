@@ -167,7 +167,7 @@ time_completev <- function(x, time_by = NULL, from = NULL, to = NULL,
                             roll_month = roll_month,
                             roll_dst = roll_dst)
   x <- time_cast(x, time_full)
-  out <- c(x, time_full[!time_full %in% x])
+  out <- c(x, time_full[cpp_which(time_full %in% x, invert = TRUE)])
   if (sort){
     out <- conditional_sort(out)
   }

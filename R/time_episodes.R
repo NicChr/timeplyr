@@ -322,8 +322,8 @@ calc_episodes <- function(data,
     time_lag_nm2 <- new_var_nm(c(names(data), time_lag_nm), "date_lag2")
     # group_row_id_nm <- character(0)
     is_event <- fpluck(data, event) == 1L # Logical
-    which_is_event <- which(is_event)
-    which_not_event <- which(!is_event)
+    which_is_event <- cpp_which(is_event)
+    which_not_event <- cpp_which(!is_event)
     event_data <- df_row_slice(data, which_is_event)
     event_groups <- collapse::GRP(GRP_group_id(g)[which_is_event])
     which_time_na <- collapse::whichNA(fpluck(data, time)) # Which time are NA
@@ -348,8 +348,8 @@ calc_episodes <- function(data,
                                      na.rm = TRUE))
     }
     # Replace the first NA values (for event rows) with time
-    which_replace_na <- which(is_event & !is.na(fpluck(data, time)) &
-                                is.na(fpluck(data, time_lag_nm)))
+    which_replace_na <- cpp_which(is_event & !is.na(fpluck(data, time)) &
+                                    is.na(fpluck(data, time_lag_nm)))
     data.table::set(data,
                     i = which_replace_na,
                     j = time_lag_nm,

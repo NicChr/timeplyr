@@ -133,13 +133,11 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, order = TRUE,
                            na.rm = TRUE,
                            use.g.names = FALSE,
                            fill = FALSE)
-    if (length(nobs) == 0L || isTRUE(
-      is_integerable(collapse::fmax(nobs, na.rm = TRUE))
-    )){
+    if (isTRUE(all_integerable(nobs))){
       nobs <- as.integer(nobs)
     }
     # Replace NA with 0
-    nobs[is.na(nobs)] <- 0L
+    nobs[cpp_which(is.na(nobs))] <- 0L
   }
   out[[name]] <- nobs
   if (sort){
@@ -192,10 +190,8 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE, order = TRUE,
                    g = g,
                    na.rm = TRUE)
     # Replace NA with 0
-    nobs[is.na(nobs)] <- 0
-    if (isTRUE(
-      is_integerable(collapse::fmax(nobs, na.rm = TRUE))
-    )){
+    nobs[cpp_which(is.na(nobs))] <- 0
+    if (isTRUE(all_integerable(nobs))){
       nobs <- as.integer(nobs)
     }
   } else {

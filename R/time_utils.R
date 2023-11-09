@@ -393,14 +393,14 @@ convert_common_dates <- function(x){
 period_by_calc <- function(from, to, length){
   seconds_unit <- period_unit("seconds")
   set_recycle_args(from, to, length)
-  which_len_1 <- which(length == 1)
+  which_len_1 <- cpp_which(length == 1)
   sec_diff <- time_diff(from, to,
                         time_by = list("seconds" = 1),
                         time_type = "period")
   out <- lubridate::seconds_to_period(sec_diff / (length - 1))
   period_info <- collapse::qDF(time_unit_info(out))
   n_unique_slots <- df_ncol(period_info) - rowSums(period_info == 0)
-  which_multi <- which(n_unique_slots > 1)
+  which_multi <- cpp_which(n_unique_slots > 1)
   out[which_multi] <- seconds_unit(
     lubridate::period_to_seconds(out[which_multi])
   )
@@ -408,36 +408,36 @@ period_by_calc <- function(from, to, length){
   out
 }
 # More accurate but slower and less efficient
-period_by_calc2 <- function(from, to, length){
-  periods_to_try <- rev(.period_units)
-  n_units <- length(periods_to_try)
-  for (i in seq_len(n_units)){
-    assign(periods_to_try[i], period_unit(periods_to_try[i])(1))
-  }
-  set_recycle_args(from, to, length)
-  out <- matrix(numeric(length(from) * n_units), ncol = n_units)
-  colnames(out) <- periods_to_try
-  out2 <- out
-  for (j in seq_len(n_units)){
-    out2[, j] <- divide_interval_by_period2(from, to, get(periods_to_try[j]))
-  }
-  ok <- apply(out2, 2, function(x) x / (length - 1))
-  attributes(ok) <- attributes(out)
-  which_len_1 <- which(length == 1)
-  if (length(which_len_1) > 0){
-    ok[which_len_1, ] <- 0
-  }
-  remainder <- ok %% 1
-  ok2 <- abs(out2) >= 1 & remainder == 0
-  ok3 <- ok2 == TRUE
-  res <- max.col(ok3, ties.method = "first")
-  res[rowSums(ok3) == 0] <- n_units
-  # Special way of subsetting specific elements from matrix
-  msub <- matrix(c(seq_len(length(from)), res), ncol = 2)
-  out[msub] <- ok[msub]
-  out[, 1:(n_units - 1)][(out[, 1:(n_units - 1)] %% 1) != 0] <- 0
-  do.call(get("period", asNamespace("lubridate")), as.data.frame(out))
-}
+# period_by_calc2 <- function(from, to, length){
+#   periods_to_try <- rev(.period_units)
+#   n_units <- length(periods_to_try)
+#   for (i in seq_len(n_units)){
+#     assign(periods_to_try[i], period_unit(periods_to_try[i])(1))
+#   }
+#   set_recycle_args(from, to, length)
+#   out <- matrix(numeric(length(from) * n_units), ncol = n_units)
+#   colnames(out) <- periods_to_try
+#   out2 <- out
+#   for (j in seq_len(n_units)){
+#     out2[, j] <- divide_interval_by_period2(from, to, get(periods_to_try[j]))
+#   }
+#   ok <- apply(out2, 2, function(x) x / (length - 1))
+#   attributes(ok) <- attributes(out)
+#   which_len_1 <- which(length == 1)
+#   if (length(which_len_1) > 0){
+#     ok[which_len_1, ] <- 0
+#   }
+#   remainder <- ok %% 1
+#   ok2 <- abs(out2) >= 1 & remainder == 0
+#   ok3 <- ok2 == TRUE
+#   res <- max.col(ok3, ties.method = "first")
+#   res[rowSums(ok3) == 0] <- n_units
+#   # Special way of subsetting specific elements from matrix
+#   msub <- matrix(c(seq_len(length(from)), res), ncol = 2)
+#   out[msub] <- ok[msub]
+#   out[, 1:(n_units - 1)][(out[, 1:(n_units - 1)] %% 1) != 0] <- 0
+#   do.call(get("period", asNamespace("lubridate")), as.data.frame(out))
+# }
 # period_by <- function(from, to, length){
 #   if (length == 1){
 #     lubridate::seconds(0)
@@ -467,13 +467,13 @@ duration_by_calc <- function(from, to, length){
                         time_type = "duration")
   out <- seconds_unit(sec_diff / (length - 1))
   length <- rep_len(length, length(out))
-  out[length == 1] <- seconds_unit(0) # Special case
+  out[cpp_which(length == 1)] <- seconds_unit(0) # Special case
   out
 }
 num_by_calc <- function(from, to, length){
   out <- (to - from) / (length - 1)
   length <- rep_len(length, length(out))
-  out[length == 1] <- 0
+  out[cpp_which(length == 1)] <- 0
   out
 }
 # Vectorized except for periods
@@ -864,7 +864,7 @@ is_interval <- function(x){
 tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
   out <- time_interval(seq, flag2(seq, n = -1, g = gseq))
   to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
-  end_points <- which(is.na(out) & !is.na(seq))
+  end_points <- cpp_which(is.na(out) & !is.na(seq))
   out[end_points] <- time_interval(seq[end_points], to)
   out
 }
@@ -906,7 +906,7 @@ tseq_levels <- function(x, seq, gx = NULL, gseq = NULL, fmt = NULL){
                               g = gseq, n = max(-1L, -n)),
                         ")")
   to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
-  end_points <- which(is.na(out) & !is.na(seq))
+  end_points <- cpp_which(is.na(out) & !is.na(seq))
   out[end_points] <- stringr::str_c("[",
                                     time_breaks_fmt[end_points],
                                     ", ",
@@ -1078,7 +1078,7 @@ time_aggregate_left <- function(x, time_by, g = NULL,
       stop("start must be the same length as x")
     }
     start <- time_cast(start, x)
-    x[x < start] <- time_na
+    x[cpp_which(x < start)] <- time_na
   } else {
     start <- gmin(x, g = g, na.rm = TRUE)
   }
@@ -1087,7 +1087,7 @@ time_aggregate_left <- function(x, time_by, g = NULL,
       stop("end must be the same length as x")
     }
     end <- time_cast(end, x)
-    x[x > end] <- time_na
+    x[cpp_which(x > end)] <- time_na
   } else {
     end <- gmax(x, g = g, na.rm = TRUE)
   }
@@ -1104,8 +1104,8 @@ time_aggregate_left <- function(x, time_by, g = NULL,
                          roll_month = roll_month, roll_dst = roll_dst)
     set_time_cast(out, int_end)
     end <- time_cast(end, out)
-    which_out_of_bounds <- which(double_gt(time_as_number(int_end),
-                                           time_as_number(end)))
+    which_out_of_bounds <- cpp_which(double_gt(time_as_number(int_end),
+                                               time_as_number(end)))
     int_end[which_out_of_bounds] <- end[which_out_of_bounds]
     out <- structure(out,
                      end = int_end,
@@ -1132,7 +1132,7 @@ time_aggregate_right <- function(x, time_by, g = NULL,
       stop("start must be the same length as x")
     }
     start <- time_cast(start, x)
-    x[x < start] <- time_na
+    x[cpp_which(x < start)] <- time_na
   } else {
     start <- gmin(x, g = g, na.rm = TRUE)
   }
@@ -1141,7 +1141,7 @@ time_aggregate_right <- function(x, time_by, g = NULL,
       stop("end must be the same length as x")
     }
     end <- time_cast(end, x)
-    x[x > end] <- time_na
+    x[cpp_which(x > end)] <- time_na
   } else {
     end <- gmax(x, g = g, na.rm = TRUE)
   }
@@ -1158,8 +1158,8 @@ time_aggregate_right <- function(x, time_by, g = NULL,
                          roll_month = roll_month, roll_dst = roll_dst)
     set_time_cast(out, int_end)
     start <- time_cast(start, out)
-    which_out_of_bounds <- which(double_lt(time_as_number(int_end),
-                                           time_as_number(start)))
+    which_out_of_bounds <- cpp_which(double_lt(time_as_number(int_end),
+                                               time_as_number(start)))
     int_end[which_out_of_bounds] <- start[which_out_of_bounds]
     out <- structure(out,
                      end = int_end,
@@ -1206,7 +1206,7 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
       stop("start must be the same length as x")
     }
     start <- time_cast(start, x)
-    x[x < start] <- time_na
+    x[cpp_which(x < start)] <- time_na
   }
   if (is.null(end)){
     end <- gmax(x, g = g, na.rm = TRUE)
@@ -1215,7 +1215,7 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
       stop("end must be the same length as x")
     }
     end <- time_cast(end, x)
-    x[x > end] <- time_na
+    x[cpp_which(x > end)] <- time_na
   }
   .start <- start[group_starts]
   .end <- end[group_starts]
@@ -1258,8 +1258,8 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
                          roll_month = roll_month, roll_dst = roll_dst)
     set_time_cast(out, int_end)
     end <- time_cast(end, out)
-    which_out_of_bounds <- which(double_gt(time_as_number(int_end),
-                                           time_as_number(end)))
+    which_out_of_bounds <- cpp_which(double_gt(time_as_number(int_end),
+                                               time_as_number(end)))
     int_end[which_out_of_bounds] <- end[which_out_of_bounds]
     out <- structure(out,
                      end = int_end,
@@ -1399,9 +1399,9 @@ multiply_single_unit_period_by_number <- function(per, num){
   num[is.infinite(num)] <- NA_real_
   per_num <- per_num * num
   per_length <- length(per_num)
-  per_num[is.nan(per_num)] <- NA_real_
+  per_num[cpp_which(is.nan(per_num))] <- NA_real_
   other_fill <- numeric(per_length)
-  other_fill[is.na(per_num)] <- NA_real_
+  other_fill[cpp_which(is.na(per_num))] <- NA_real_
   switch(
     per_unit,
     years = {
@@ -1542,7 +1542,7 @@ adj_dur_est <- function (est, start, end, per){
                        # est * per)
                        multiply_single_unit_period_by_number(per, est),
                        time_type = "period")
-  while (length(which <- which(up_date < end))) {
+  while (length(which <- cpp_which(up_date < end))) {
     est[which] <- est[which] + 1
     up_date[which] <- time_add2(up_date[which],
                                 # est[which] * per[which])
@@ -1550,7 +1550,7 @@ adj_dur_est <- function (est, start, end, per){
                                 time_type = "period")
   }
   low_date <- up_date
-  while (length(which <- which(low_date > end))) {
+  while (length(which <- cpp_which(low_date > end))) {
     est[which] <- est[which] - 1
     up_date[which] <- low_date[which]
     low_date[which] <- time_add2(start[which],
@@ -1560,7 +1560,7 @@ adj_dur_est <- function (est, start, end, per){
   }
   frac <- strip_attrs(unclass(difftime(end, low_date, units = "secs"))) /
     strip_attrs(unclass(difftime(up_date, low_date, units = "secs")))
-  frac[low_date == up_date] <- 0
+  frac[cpp_which(low_date == up_date)] <- 0
   est + frac
 }
 # Faster method for interval(start, end) / period() when period
@@ -1578,7 +1578,7 @@ divide_interval_by_period2 <- function(start, end, per){
   if (num_na(estimate) == 0) {
     adj_dur_est(estimate, timespans[[1]], timespans[[2]], timespans[[3]])
   } else {
-    not_nas <- !is.na(estimate)
+    not_nas <- cpp_which(is.na(estimate), invert = TRUE)
     start2 <- timespans[[1]][not_nas]
     end2 <- timespans[[2]][not_nas]
     per2 <- timespans[[3]][not_nas]

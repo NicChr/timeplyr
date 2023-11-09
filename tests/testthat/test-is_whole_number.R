@@ -53,6 +53,4 @@ testthat::test_that("Whole numbers", {
   testthat::expect_error(is_whole_number(1.5, tol = NULL))
   testthat::expect_error(is_whole_number(1.5, tol = numeric()))
   testthat::expect_error(is_whole_number(1.5, tol = integer()))
-  # The above is more strict than:
-  # double_equal(10^9 + 0.02, round(10^9 + 0.02))
 })

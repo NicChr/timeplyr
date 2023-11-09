@@ -10,78 +10,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// cpp_double_equal_vectorised
-SEXP cpp_double_equal_vectorised(SEXP x, SEXP y, SEXP tolerance);
-RcppExport SEXP _timeplyr_cpp_double_equal_vectorised(SEXP xSEXP, SEXP ySEXP, SEXP toleranceSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< SEXP >::type tolerance(toleranceSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_double_equal_vectorised(x, y, tolerance));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_double_gt_vectorised
-SEXP cpp_double_gt_vectorised(SEXP x, SEXP y, SEXP tolerance);
-RcppExport SEXP _timeplyr_cpp_double_gt_vectorised(SEXP xSEXP, SEXP ySEXP, SEXP toleranceSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< SEXP >::type tolerance(toleranceSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_double_gt_vectorised(x, y, tolerance));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_double_gte_vectorised
-SEXP cpp_double_gte_vectorised(SEXP x, SEXP y, SEXP tolerance);
-RcppExport SEXP _timeplyr_cpp_double_gte_vectorised(SEXP xSEXP, SEXP ySEXP, SEXP toleranceSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< SEXP >::type tolerance(toleranceSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_double_gte_vectorised(x, y, tolerance));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_double_lt_vectorised
-SEXP cpp_double_lt_vectorised(SEXP x, SEXP y, SEXP tolerance);
-RcppExport SEXP _timeplyr_cpp_double_lt_vectorised(SEXP xSEXP, SEXP ySEXP, SEXP toleranceSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< SEXP >::type tolerance(toleranceSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_double_lt_vectorised(x, y, tolerance));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_double_lte_vectorised
-SEXP cpp_double_lte_vectorised(SEXP x, SEXP y, SEXP tolerance);
-RcppExport SEXP _timeplyr_cpp_double_lte_vectorised(SEXP xSEXP, SEXP ySEXP, SEXP toleranceSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< SEXP >::type tolerance(toleranceSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_double_lte_vectorised(x, y, tolerance));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_is_whole_num
-SEXP cpp_is_whole_num(SEXP x, double tol, bool na_rm);
-RcppExport SEXP _timeplyr_cpp_is_whole_num(SEXP xSEXP, SEXP tolSEXP, SEXP na_rmSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
-    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
-    Rcpp::traits::input_parameter< bool >::type na_rm(na_rmSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_is_whole_num(x, tol, na_rm));
-    return rcpp_result_gen;
-END_RCPP
-}
 // before_sequence
 IntegerVector before_sequence(IntegerVector size, double k);
 RcppExport SEXP _timeplyr_before_sequence(SEXP sizeSEXP, SEXP kSEXP) {
@@ -160,6 +88,17 @@ BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     rcpp_result_gen = Rcpp::wrap(test_long_vector_support());
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_which
+SEXP cpp_which(SEXP x, bool invert);
+RcppExport SEXP _timeplyr_cpp_which(SEXP xSEXP, SEXP invertSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< bool >::type invert(invertSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_which(x, invert));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -249,14 +188,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cpp_is_whole_num
+SEXP cpp_is_whole_num(SEXP x, double tol, bool na_rm);
+RcppExport SEXP _timeplyr_cpp_is_whole_num(SEXP xSEXP, SEXP tolSEXP, SEXP na_rmSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< bool >::type na_rm(na_rmSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_is_whole_num(x, tol, na_rm));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_timeplyr_cpp_double_equal_vectorised", (DL_FUNC) &_timeplyr_cpp_double_equal_vectorised, 3},
-    {"_timeplyr_cpp_double_gt_vectorised", (DL_FUNC) &_timeplyr_cpp_double_gt_vectorised, 3},
-    {"_timeplyr_cpp_double_gte_vectorised", (DL_FUNC) &_timeplyr_cpp_double_gte_vectorised, 3},
-    {"_timeplyr_cpp_double_lt_vectorised", (DL_FUNC) &_timeplyr_cpp_double_lt_vectorised, 3},
-    {"_timeplyr_cpp_double_lte_vectorised", (DL_FUNC) &_timeplyr_cpp_double_lte_vectorised, 3},
-    {"_timeplyr_cpp_is_whole_num", (DL_FUNC) &_timeplyr_cpp_is_whole_num, 3},
     {"_timeplyr_before_sequence", (DL_FUNC) &_timeplyr_before_sequence, 2},
     {"_timeplyr_after_sequence", (DL_FUNC) &_timeplyr_after_sequence, 2},
     {"_timeplyr_cpp_dbl_sequence", (DL_FUNC) &_timeplyr_cpp_dbl_sequence, 3},
@@ -264,6 +209,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_lag_sequence", (DL_FUNC) &_timeplyr_lag_sequence, 3},
     {"_timeplyr_lead_sequence", (DL_FUNC) &_timeplyr_lead_sequence, 3},
     {"_timeplyr_test_long_vector_support", (DL_FUNC) &_timeplyr_test_long_vector_support, 0},
+    {"_timeplyr_cpp_which", (DL_FUNC) &_timeplyr_cpp_which, 2},
     {"_timeplyr_cpp_num_na", (DL_FUNC) &_timeplyr_cpp_num_na, 1},
     {"_timeplyr_list_rm_null", (DL_FUNC) &_timeplyr_list_rm_null, 1},
     {"_timeplyr_list_has_interval", (DL_FUNC) &_timeplyr_list_has_interval, 1},
@@ -272,6 +218,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_roll_time_threshold", (DL_FUNC) &_timeplyr_roll_time_threshold, 3},
     {"_timeplyr_cpp_df_group_indices", (DL_FUNC) &_timeplyr_cpp_df_group_indices, 2},
     {"_timeplyr_cpp_roll_na_fill_grouped", (DL_FUNC) &_timeplyr_cpp_roll_na_fill_grouped, 4},
+    {"_timeplyr_cpp_is_whole_num", (DL_FUNC) &_timeplyr_cpp_is_whole_num, 3},
     {NULL, NULL, 0}
 };
 

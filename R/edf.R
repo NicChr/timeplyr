@@ -63,8 +63,7 @@
 #'}
 #' @export
 edf <- function(x, g = NULL, wt = NULL){
-  is_na <-  is.na(x)
-  n_na <- sum(is_na)
+  n_na <- num_na(x)
   nx <- length(x)
   if (is.null(g)){
     x_order <- radix_order(x)
@@ -110,7 +109,8 @@ edf <- function(x, g = NULL, wt = NULL){
     # Original order
     df[, ("id") := seq_len(.N)]
     # Order if NAs are shifted to the end
-    which_na <- which(is_na)
+    is_na <- is.na(x)
+    which_na <- cpp_which(is_na)
     df[, ("id") := data.table::fifelse(is_na, NA_integer_, get("id"))]
     # Sort data in ascending order
     data.table::setorderv(df, cols = "g3")

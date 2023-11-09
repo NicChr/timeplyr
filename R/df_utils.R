@@ -103,10 +103,10 @@ df_reconstruct <- function(data, template){
 }
 # Row slice
 df_row_slice <- function(data, i, reconstruct = TRUE){
-  if (collapse::fncol(data) == 0L || list_has_interval(data)){
-    if (is.logical(i)){
-      i <- which(i)
-    }
+  if (is.logical(i)){
+    i <- cpp_which(i)
+  }
+  if (df_ncol(data) == 0L || list_has_interval(data)){
     .slice <- vctrs::vec_slice
   } else {
     .slice <- collapse::ss

@@ -86,8 +86,8 @@ time_diff <- function(x, y, time_by = 1,
     if (time_type == "period"){
       unit <- period_unit(units)(abs(num))
       out <- sign(num) * divide_interval_by_period2(x, y, unit)
-      out[num == 0 & x > y] <- -Inf
-      out[num == 0 & x < y] <- Inf
+      out[cpp_which(num == 0 & x > y)] <- -Inf
+      out[cpp_which(num == 0 & x < y)] <- Inf
     } else {
       # unit <- duration_unit(units)(num)
       x <- time_as_number(x)

@@ -57,17 +57,7 @@
 #' # Somewhat more strict than all.equal
 #'
 #' all.equal(10^9 + 0.0001, round(10^9 + 0.0001))
-#' double_equal(10^9 + 0.0001, round(10^9 + 0.0001))
 #' is_whole_number(10^9 + 0.0001)
-#'
-#' # For a vectorised version, use double_equal(x, round(x))
-#'
-#' x <- sqrt(1:10)^2
-#' double_equal(x, round(x))
-#' double_equal(x, round(x), tol = c(0, 1 * 10^-(0:8)))
-#'
-#' # strict zero tolerance
-#' is_whole_number(1.0000000001, tol = .Machine$double.eps)
 #'
 #' # Can safely be used to select whole number variables
 #' starwars %>%

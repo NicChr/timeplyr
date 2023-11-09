@@ -546,6 +546,11 @@ sample2 <- function(x, size = length(x), replace = FALSE, prob = NULL){
   x[sample.int(length(x), size = size, replace = replace, prob = prob)]
 }
 
+double_equal <- cppdoubles::double_equal
+double_gte <- cppdoubles::double_gte
+double_lte <- cppdoubles::double_lte
+double_gt <- cppdoubles::double_gt
+double_lt <- cppdoubles::double_lt
 setv <- getFromNamespace("setv", "collapse")
 fcumsum <- getFromNamespace("fcumsum", "collapse")
 # set <- getFromNamespace("set", "data.table")
@@ -899,35 +904,7 @@ na_fill <- function(x, n = NULL, prop = NULL){
 sqrt_double_eps <- function(){
   sqrt(.Machine$double.eps)
 }
-# Relative difference
-rel_diff <- function(x, y){
-  abs(x - y) / pmax(abs(x), abs(y))
-}
-abs_diff <- function(x, y){
-  abs(x - y)
-}
 
-# Convenience comparison functions for doubles
-# double_equal <- function(x, y, tol = sqrt(.Machine$double.eps)){
-#   abs(x - y) < tol
-# }
-# double_gt <- function(x, y, tol = sqrt(.Machine$double.eps)){
-#   (x - y) > tol
-# }
-# double_gte <- function(x, y, tol = sqrt(.Machine$double.eps)){
-#   (x - y) > -tol
-# }
-# double_lt <- function(x, y, tol = sqrt(.Machine$double.eps)){
-#   (x - y) < -tol
-# }
-# double_lte <- function(x, y, tol = sqrt(.Machine$double.eps)){
-#   (x - y) < tol
-# }
-# `%~==%` <- double_equal
-# `%~>=%` <- double_gte
-# `%~<=%` <- double_lte
-# `%~>%` <- double_gt
-# `%~<%` <- double_lt
 # Taken from base R to avoid needing R >= 4
 deparse1 <- function(expr, collapse = " ", width.cutoff = 500L, ...){
   paste(deparse(expr, width.cutoff, ...), collapse = collapse)
@@ -1205,3 +1182,10 @@ set_order <- function(x, y = NULL){
   data.table::setorderv(df, cols = names(df)[df_ncol(df)])
   invisible(x)
 }
+# cpp_which <- function(x, invert = FALSE){
+#   if (!invert && length(x) < 1e05){
+#     which(x)
+#   } else {
+#     .Call(`_timeplyr_cpp_which`, x, invert)
+#   }
+# }

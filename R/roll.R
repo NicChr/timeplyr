@@ -202,11 +202,11 @@ roll_growth_rate <- function(x, window = Inf, g = NULL,
     gr[whichv2(lag_window, 0L)] <- 1
   } else {
     gr <- ( (x / x_lagged) ^ (1 / lag_window) )
-    gr[which(x == 0 & x_lagged == 0)] <- 1
+    gr[cpp_which(x == 0 & x_lagged == 0)] <- 1
   }
   if (!is.null(inf_fill)){
     # Any growth change from 0 is replaced with inf_fill
-    gr[is.infinite(gr)] <- inf_fill
+    gr[cpp_which(is.infinite(gr))] <- inf_fill
   }
   if (!fpluck(sorted_info, "sorted")){
     gr <- greorder2(gr, g = sorted_info[["GRP"]])

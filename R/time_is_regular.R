@@ -116,7 +116,7 @@ time_is_regular <- function(x, time_by = NULL,
   # double_equal(telapsed, round(telapsed))
   is_whole_num <- are_whole_numbers(telapsed)
   if (na.rm){
-    is_whole_num[is.na(is_whole_num)] <- TRUE
+    is_whole_num[collapse::whichNA(is_whole_num)] <- TRUE
   }
   n_whole_num <- collapse::fsum(is_whole_num, g = g, use.g.names = FALSE,
                                 na.rm = na.rm, fill = FALSE)

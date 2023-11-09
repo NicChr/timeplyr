@@ -61,7 +61,7 @@ roll_lag.default <- function(x, lag = 1L, check = TRUE){
   }
   lagged_indices <- seq_along(x) - lag
   if (check){
-    lagged_indices[lagged_indices < 1L] <- NA_integer_
+    lagged_indices[cpp_which(lagged_indices < 1L)] <- NA_integer_
   }
   x[lagged_indices]
 }
@@ -79,7 +79,7 @@ roll_lag.data.frame <- function(x, lag = 1L, check = TRUE){
   }
   lagged_indices <- df_seq_along(x) - lag
   if (check){
-    lagged_indices[lagged_indices < 1L] <- NA_integer_
+    lagged_indices[cpp_which(lagged_indices < 1L)] <- NA_integer_
   }
   df_row_slice(x, lagged_indices)
 }

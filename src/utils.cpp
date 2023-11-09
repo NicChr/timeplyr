@@ -14,6 +14,232 @@ bool test_long_vector_support() {
 #endif
 }
 
+// A simple and more efficient which()
+
+// [[Rcpp::export(rng = false)]]
+SEXP cpp_which(SEXP x, bool invert = false) {
+  R_xlen_t n = Rf_xlength(x);
+  int *p_x = LOGICAL(x);
+  // Rcpp::Function collapse_sum = Rcpp::Environment::namespace_env("collapse")["fsum.default"];
+  // double size = Rf_asReal(collapse_sum(x, Rcpp::Named("na.rm") = true));
+  Rcpp::Function base_sum = Rcpp::Environment::base_env()["sum"];
+  double size = Rf_asReal(base_sum(x, Rcpp::Named("na.rm") = true));
+  // SEXP size_sexp = Rf_protect(Rf_coerceVector(base_sum(x, Rcpp::Named("na.rm") = true),
+  //                                             REALSXP));
+  // // REAL() does not need protect
+  // double size = REAL(size_sexp)[0];
+  bool is_long = n > std::numeric_limits<int>::max();
+  if (invert){
+    if (is_long){
+      // if (size == n){
+      //   SEXP out = Rf_protect(Rf_allocVector(REALSXP, 0));
+      //   Rf_unprotect(1);
+      //   return out;
+      // }
+      SEXP out = Rf_protect(Rf_allocVector(REALSXP, n - size));
+      double *p_out = REAL(out);
+      R_xlen_t whichi = 0;
+      R_xlen_t i = 0;
+      while (whichi < (n - size)){
+        p_out[whichi] = i + 1;
+        whichi += !(p_x[i] == TRUE);
+        ++i;
+      }
+      Rf_unprotect(1);
+      return out;
+    } else {
+      // if (size == n){
+      //   SEXP out = Rf_protect(Rf_allocVector(INTSXP, 0));
+      //   Rf_unprotect(1);
+      //   return out;
+      // }
+      SEXP out = Rf_protect(Rf_allocVector(INTSXP, n - size));
+      int *p_out = INTEGER(out);
+      int whichi = 0;
+      int i = 0;
+      while (whichi < (n - size)){
+        p_out[whichi] = i + 1;
+        whichi += !(p_x[i] == TRUE);
+        ++i;
+      }
+      // for (int i = 0; i < n; ++i) {
+      //   p_out[whichi] = i + 1;
+      //   whichi += !(p_x[i] == TRUE);
+      // }
+      Rf_unprotect(1);
+      return out;
+    }
+  } else {
+    if (is_long){
+      // if (size == 0){
+      //   SEXP out = Rf_protect(Rf_allocVector(REALSXP, 0));
+      //   Rf_unprotect(1);
+      //   return out;
+      // }
+      SEXP out = Rf_protect(Rf_allocVector(REALSXP, size));
+      double *p_out = REAL(out);
+      R_xlen_t whichi = 0;
+      R_xlen_t i = 0;
+      while (whichi < size){
+        p_out[whichi] = i + 1;
+        whichi += (p_x[i] == TRUE);
+        ++i;
+      }
+      // for (R_xlen_t i = 0; i < n; ++i) {
+      //   p_out[whichi] = i + 1;
+      //   whichi += (p_x[i] == TRUE);
+      // }
+      Rf_unprotect(1);
+      return out;
+    } else {
+      // if (size == 0){
+      //   SEXP out = Rf_protect(Rf_allocVector(INTSXP, 0));
+      //   Rf_unprotect(1);
+      //   return out;
+      // }
+      SEXP out = Rf_protect(Rf_allocVector(INTSXP, size));
+      int *p_out = INTEGER(out);
+      int whichi = 0;
+      int i = 0;
+      while (whichi < size){
+        p_out[whichi] = i + 1;
+        whichi += (p_x[i] == TRUE);
+        ++i;
+      }
+      // for (int i = 0; i < n; ++i) {
+      //   p_out[whichi] = i + 1;
+      //   whichi += (p_x[i] == TRUE);
+      // }
+      Rf_unprotect(1);
+      return out;
+    }
+  }
+}
+
+// if (p_x[i] == TRUE){
+//   p_out[whichi] = i + 1;
+//   ++whichi;
+// }
+
+// double collapse_sum(const int *restrict px, int l) {
+//   long long sum;
+//   int j = l-1;
+//   while(px[j] == NA_INTEGER && j!=0) --j;
+//   sum = (long long)px[j];
+//   if(j == 0 && px[j] == NA_INTEGER) return 0;
+//   for(int i = j; i--; ) if(px[i] != NA_INTEGER) sum += (long long)px[i];
+//   return (double)sum;
+// }
+//
+// SEXP C_which(SEXP x) {
+//   int n = Rf_length(x);
+//   int l = Rf_length(x);
+//   double size = collapse_sum(INTEGER(x), l);
+//   int *p_x = LOGICAL(x);
+//   SEXP out = Rf_protect(Rf_allocVector(INTSXP, size));
+//   int *p_out = INTEGER(out);
+//   int whichi = 0;
+//   for (int i = 0; i < n; ++i) {
+//     if (p_x[i] == TRUE){
+//       p_out[whichi] = i + 1;
+//       ++whichi;
+//     }
+//   }
+//   Rf_unprotect(1);
+//   return out;
+// }
+
+// SEXP cpp_which2(SEXP x) {
+//   int n = Rf_length(x);
+//   int j = 0;
+//   int *buf = (int *) R_alloc(n, sizeof(int));
+//   SEXP out;
+//   const int *px = INTEGER(x);
+//   for(int i = 0; i != n; ++i){
+//     if(px[i] == true) buf[j++] = i+1;
+//   }
+//   PROTECT(out = Rf_allocVector(INTSXP, j));
+//   if(j) memcpy(INTEGER(out), buf, sizeof(int) * j);
+//   UNPROTECT(1);
+//   return out;
+// }
+
+// SEXP C_which(SEXP x, SEXP invert) {
+//   R_xlen_t n = Rf_xlength(x);
+//   int *p_x = LOGICAL(x);
+//   bool inverted = LOGICAL(invert)[0];
+//   bool is_long = (n > R_SHORT_LEN_MAX);
+//   if (inverted == true){
+//     if (is_long == true){
+//       double size = 0;
+//       for (R_xlen_t j = 0; j < n; ++j){
+//         size += (p_x[j] == true);
+//       }
+//       SEXP out = Rf_protect(Rf_allocVector(REALSXP, n - size));
+//       double *p_out = REAL(out);
+//       R_xlen_t whichi = 0;
+//       for (R_xlen_t i = 0; i < n; ++i) {
+//         if (!(p_x[i] == true)){
+//           p_out[whichi] = i + 1;
+//           ++whichi;
+//         }
+//       }
+//       Rf_unprotect(1);
+//       return out;
+//     } else {
+//       int size = 0;
+//       for (R_xlen_t j = 0; j < n; ++j){
+//         size += (p_x[j] == TRUE);
+//       }
+//       SEXP out = Rf_protect(Rf_allocVector(INTSXP, n - size));
+//       int *p_out = INTEGER(out);
+//       int whichi = 0;
+//       for (int i = 0; i < n; ++i) {
+//         if (!(p_x[i] == true)){
+//           p_out[whichi] = i + 1;
+//           ++whichi;
+//         }
+//       }
+//       Rf_unprotect(1);
+//       return out;
+//     }
+//   } else {
+//     if (is_long == true){
+//       double size = 0;
+//       for (R_xlen_t j = 0; j < n; ++j){
+//         size += (p_x[j] == TRUE);
+//       }
+//       SEXP out = Rf_protect(Rf_allocVector(REALSXP, size));
+//       double *p_out = REAL(out);
+//       R_xlen_t whichi = 0;
+//       for (R_xlen_t i = 0; i < n; ++i) {
+//         if (p_x[i] == true){
+//           p_out[whichi] = i + 1;
+//           ++whichi;
+//         }
+//       }
+//       Rf_unprotect(1);
+//       return out;
+//     } else {
+//       int size = 0;
+//       for (R_xlen_t j = 0; j < n; ++j){
+//         size += (p_x[j] == TRUE);
+//       }
+//       SEXP out = Rf_protect(Rf_allocVector(INTSXP, size));
+//       int *p_out = INTEGER(out);
+//       int whichi = 0;
+//       for (int i = 0; i < n; ++i) {
+//         if (p_x[i] == true){
+//           p_out[whichi] = i + 1;
+//           ++whichi;
+//         }
+//       }
+//       Rf_unprotect(1);
+//       return out;
+//     }
+//   }
+// }
+
 // [[Rcpp::export(rng = false)]]
 SEXP cpp_num_na(SEXP x){
   R_xlen_t n = Rf_xlength(x);
@@ -423,6 +649,47 @@ SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP g, double fill_limit,
     break;
   }
   }
+}
+
+// [[Rcpp::export(rng = false)]]
+SEXP cpp_is_whole_num(SEXP x, double tol, bool na_rm = true) {
+  R_xlen_t n = Rf_xlength(x);
+  bool is_whole;
+  double adiff;
+  R_xlen_t n_na = 0;
+  bool is_na;
+  SEXP out = PROTECT(Rf_allocVector(LGLSXP, 1));
+  int *p_out = LOGICAL(out);
+  p_out[0] = false;
+  switch ( TYPEOF(x) ){
+  case LGLSXP:
+  case INTSXP: {
+    p_out[0] = true;
+    break;
+  }
+  case REALSXP: {
+    // Re-initialise so that we can break when we find non-whole num
+    p_out[0] = true;
+    double *p_x = REAL(x);
+    for (R_xlen_t i = 0; i < n; ++i) {
+      adiff = std::fabs(p_x[i] - std::round(p_x[i]));
+      is_whole = (adiff < tol);
+      is_na = !(p_x[i] == p_x[i]);
+      n_na += is_na;
+      if (!is_whole && !is_na){
+        p_out[0] = false;
+        break;
+      }
+    }
+    if (!na_rm && n_na > 0){
+      p_out[0] = NA_LOGICAL;
+      break;
+    }
+    break;
+  }
+  }
+  UNPROTECT(1);
+  return out;
 }
 
 // SEXP pmax2(NumericVector x, NumericVector y){

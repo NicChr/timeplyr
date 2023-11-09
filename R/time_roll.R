@@ -245,7 +245,7 @@ time_roll_sum <- function(x, window = Inf,
     } else {
       is_partial <- double_lt(abs(elapsed) + 1, time_num)
     }
-    out[is_partial] <- NA_real_
+    out[cpp_which(is_partial)] <- NA_real_
   }
   # For duplicate times, we take the last value of each duplicate
   out <- glast(out, g = sorted_g2)
@@ -347,7 +347,7 @@ time_roll_mean <- function(x, window = Inf,
     } else {
       is_partial <- double_lt(abs(elapsed) + 1, time_num)
     }
-    out[is_partial] <- NA_real_
+    out[cpp_which(is_partial)] <- NA_real_
   }
   # For duplicate times, we take the last mean value of each duplicate
   out <- glast(out, g = sorted_g2)
@@ -505,7 +505,7 @@ time_roll_growth_rate <- function(x, window = Inf,
     } else {
       is_partial <- double_lt(abs(elapsed) + 1, time_num)
     }
-    out[is_partial] <- NA_real_
+    out[cpp_which(is_partial)] <- NA_real_
   }
   out <- glast(out, g = sorted_g2)
   if (!groups_are_sorted){
@@ -626,7 +626,7 @@ time_roll_apply <- function(x, window = Inf, fun,
                                  time_type = time_type,
                                  roll_month = roll_month,
                                  roll_dst = roll_dst)
-  sizes[is.na(sizes)] <- 0L
+  sizes[cpp_which(is.na(sizes))] <- 0L
   x_size <- length(x)
   out <- vector("list", x_size)
   for (i in seq_len(x_size)){
@@ -782,7 +782,7 @@ time_roll_apply <- function(x, window = Inf, fun,
 #     } else {
 #       is_partial <- double_lt(abs(elapsed) + 1, time_num)
 #     }
-#     out[is_partial] <- NA_real_
+#     out[cpp_which(is_partial)] <- NA_real_
 #   }
 #   # For duplicate times, we take the last value of each duplicate
 #   out <- glast(out, g = sorted_g2)
