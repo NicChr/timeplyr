@@ -59,7 +59,7 @@ SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP g, double fill_limit, bool check_sort
             // Should we fill this NA value?
             if (is_na && first_non_na && fill_count < fill_limit){
                 p_out[i] = fill;
-                fill_count += 1;
+                ++fill_count;
             }
             prev_is_not_na = !is_na;
         }
@@ -89,7 +89,7 @@ SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP g, double fill_limit, bool check_sort
             // Should we fill this NA value?
             if (is_na && first_non_na && fill_count < fill_limit){
                 p_out[i] = fill;
-                fill_count += 1;
+                ++fill_count;
             }
             prev_is_not_na = !is_na;
         }
@@ -113,13 +113,15 @@ SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP g, double fill_limit, bool check_sort
             // Resetting fill value
             // Are we in new NA run?
             if (is_na && first_non_na && prev_is_not_na){
+                // SET_STRING_ELT(fill, 0, Rf_mkChar(CHAR(STRING_ELT(out, i - 1))));
                 fill_count = 0;
-                SET_STRING_ELT(fill, 0, Rf_mkChar(CHAR(STRING_ELT(out, i - 1))));
+                SET_STRING_ELT(fill, 0, STRING_ELT(out, i - 1));
             }
             // Should we fill this NA value?
             if (is_na && first_non_na && fill_count < fill_limit){
-                SET_STRING_ELT(out, i, Rf_mkChar(CHAR(STRING_ELT(fill, 0))));
-                fill_count += 1;
+                // SET_STRING_ELT(out, i, Rf_mkChar(CHAR(STRING_ELT(fill, 0))));
+                SET_STRING_ELT(out, i, STRING_ELT(fill, 0));
+                ++fill_count;
             }
             prev_is_not_na = !is_na;
         }
