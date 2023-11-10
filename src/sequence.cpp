@@ -1,10 +1,11 @@
-#include <Rcpp.h>
+#include <cpp11.hpp>
+#include <Rinternals.h>
 
 double r_sum(SEXP x, bool na_rm = false){
-  Rcpp::Function base_sum = Rcpp::Environment::base_env()["sum"];
-  double out = Rf_asReal(base_sum(x, Rcpp::Named("na.rm") = na_rm));
-  // cpp11::function base_sum = cpp11::package("base")["sum"];
-  // double out = Rf_asReal(base_sum(x, cpp11::named_arg("na.rm") = na_rm));
+  // Rcpp::Function base_sum = Rcpp::Environment::base_env()["sum"];
+  // double out = Rf_asReal(base_sum(x, Rcpp::Named("na.rm") = na_rm));
+  cpp11::function base_sum = cpp11::package("base")["sum"];
+  double out = Rf_asReal(base_sum(x, cpp11::named_arg("na.rm") = na_rm));
   // double out = 0;
   // SEXP sum = PROTECT(base_sum(x, Rcpp::Named("na.rm") = na_rm));
   // SEXP sum_double = PROTECT(Rf_coerceVector(sum, REALSXP));
@@ -17,8 +18,8 @@ double r_sum(SEXP x, bool na_rm = false){
 }
 
 double r_min(SEXP x){
-  Rcpp::Function base_min = Rcpp::Environment::base_env()["min"];
-  // cpp11::function base_min = cpp11::package("base")["min"];
+  // Rcpp::Function base_min = Rcpp::Environment::base_env()["min"];
+  cpp11::function base_min = cpp11::package("base")["min"];
   double out = R_PosInf;
   if (Rf_length(x) > 0){
     out = Rf_asReal(base_min(x));
@@ -53,7 +54,7 @@ double r_min(SEXP x){
 //   return out;
 // }
 
-// [[Rcpp::export(rng = false)]]
+[[cpp11::register]]
 SEXP before_sequence(SEXP size, double k) {
   SEXP size_sexp = Rf_protect(Rf_coerceVector(size, INTSXP));
   if (r_min(size_sexp) < 0){
@@ -80,7 +81,7 @@ SEXP before_sequence(SEXP size, double k) {
   return out;
 }
 
-// [[Rcpp::export(rng = false)]]
+[[cpp11::register]]
 SEXP after_sequence(SEXP size, double k) {
   SEXP size_sexp = Rf_protect(Rf_coerceVector(size, INTSXP));
   if (r_min(size_sexp) < 0){
@@ -111,7 +112,7 @@ SEXP after_sequence(SEXP size, double k) {
 
 // My version of base::sequence()
 
-// [[Rcpp::export(rng = false)]]
+[[cpp11::register]]
 SEXP cpp_int_sequence(SEXP size, SEXP from, SEXP by) {
   int size_n = Rf_length(size);
   int from_n = Rf_length(from);
@@ -172,7 +173,7 @@ SEXP cpp_int_sequence(SEXP size, SEXP from, SEXP by) {
   return out;
 }
 
-// [[Rcpp::export(rng = false)]]
+[[cpp11::register]]
 SEXP cpp_dbl_sequence(SEXP size, SEXP from, SEXP by) {
   int size_n = Rf_length(size);
   int from_n = Rf_length(from);
@@ -235,11 +236,11 @@ SEXP cpp_dbl_sequence(SEXP size, SEXP from, SEXP by) {
   return out;
 }
 
-// [[Rcpp::export(rng = false)]]
-SEXP window_sequence(SEXP size,
-                     double k,
-                     bool partial = true,
-                     bool ascending = true) {
+[[cpp11::register]]
+SEXP cpp_window_sequence(SEXP size,
+                         double k,
+                         bool partial = true,
+                         bool ascending = true) {
   int size_n = Rf_length(size);
   SEXP size_sexp = Rf_protect(Rf_coerceVector(size, INTSXP));
   if (r_min(size_sexp) < 0){
@@ -309,8 +310,8 @@ SEXP window_sequence(SEXP size,
   return out;
 }
 
-// [[Rcpp::export(rng = false)]]
-SEXP lag_sequence(SEXP size, double k, bool partial = false) {
+[[cpp11::register]]
+SEXP cpp_lag_sequence(SEXP size, double k, bool partial = false) {
   int *p_size = INTEGER(size);
   if (r_min(size) < 0){
     Rf_error("size must be a vector of non-negative integers");
@@ -346,8 +347,8 @@ SEXP lag_sequence(SEXP size, double k, bool partial = false) {
   Rf_unprotect(1);
   return out;
 }
-// [[Rcpp::export(rng = false)]]
-SEXP lead_sequence(SEXP size, double k, bool partial = false) {
+[[cpp11::register]]
+SEXP cpp_lead_sequence(SEXP size, double k, bool partial = false) {
   int *p_size = INTEGER(size);
   if (r_min(size) < 0){
     Rf_error("size must be a vector of non-negative integers");

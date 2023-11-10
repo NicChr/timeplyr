@@ -1185,3 +1185,7 @@ set_order <- function(x, y = NULL){
   data.table::setorderv(df, cols = names(df)[df_ncol(df)])
   invisible(x)
 }
+# Remove NULL list elements
+list_rm_null <- function(x){
+  .subset(x, cpp_list_which_not_null(x))
+}

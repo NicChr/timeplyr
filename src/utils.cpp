@@ -1,11 +1,10 @@
-#include <Rcpp.h>
+#include <cpp11.hpp>
 #include <Rinternals.h>
-using namespace Rcpp;
 
 #define R_NO_REMAP
 #define VECTOR_PTR_RO(x) ((const SEXP*) DATAPTR_RO(x))
 
-// [[Rcpp::export]]
+[[cpp11::register]]
 bool test_long_vector_support() {
 #ifdef RCPP_HAS_LONG_LONG_TYPES
   return true;
@@ -14,77 +13,6 @@ bool test_long_vector_support() {
 #endif
 }
 
-// A simple and more efficient which()
-
-// [[Rcpp::export(rng = false)]]
-SEXP cpp_which(SEXP x, bool invert = false) {
-  R_xlen_t n = Rf_xlength(x);
-  int *p_x = LOGICAL(x);
-  bool is_long = n > R_SHORT_LEN_MAX;
-  if (invert){
-    if (is_long){
-      R_xlen_t size = 0;
-      for (R_xlen_t j = 0; j < n; ++j) size += (p_x[j] == TRUE);
-      R_xlen_t out_size = n - size;
-      SEXP out = Rf_protect(Rf_allocVector(REALSXP, out_size));
-      double *p_out = REAL(out);
-      R_xlen_t whichi = 0;
-      R_xlen_t i = 0;
-      while (whichi < out_size){
-        p_out[whichi] = i + 1;
-        whichi += !(p_x[i] == TRUE);
-        ++i;
-      }
-      Rf_unprotect(1);
-      return out;
-    } else {
-      int size = 0;
-      for (int j = 0; j < n; ++j) size += (p_x[j] == TRUE);
-      int out_size = n - size;
-      SEXP out = Rf_protect(Rf_allocVector(INTSXP, out_size));
-      int *p_out = INTEGER(out);
-      int whichi = 0;
-      int i = 0;
-      while (whichi < out_size){
-        p_out[whichi] = i + 1;
-        whichi += !(p_x[i] == TRUE);
-        ++i;
-      }
-      Rf_unprotect(1);
-      return out;
-    }
-  } else {
-    if (is_long){
-      R_xlen_t size = 0;
-      for (R_xlen_t j = 0; j < n; ++j) size += (p_x[j] == TRUE);
-      SEXP out = Rf_protect(Rf_allocVector(REALSXP, size));
-      double *p_out = REAL(out);
-      R_xlen_t whichi = 0;
-      R_xlen_t i = 0;
-      while (whichi < size){
-        p_out[whichi] = i + 1;
-        whichi += (p_x[i] == TRUE);
-        ++i;
-      }
-      Rf_unprotect(1);
-      return out;
-    } else {
-      int size = 0;
-      for (int j = 0; j < n; ++j) size += (p_x[j] == TRUE);
-      SEXP out = Rf_protect(Rf_allocVector(INTSXP, size));
-      int *p_out = INTEGER(out);
-      int whichi = 0;
-      int i = 0;
-      while (whichi < size){
-        p_out[whichi] = i + 1;
-        whichi += (p_x[i] == TRUE);
-        ++i;
-      }
-      Rf_unprotect(1);
-      return out;
-    }
-  }
-}
 // SEXP cpp_which(SEXP x, bool invert = false) {
 //   R_xlen_t n = Rf_xlength(x);
 //   int *p_x = LOGICAL(x);
@@ -187,91 +115,45 @@ SEXP cpp_which(SEXP x, bool invert = false) {
 // }
 
 
-// [[Rcpp::export(rng = false)]]
-SEXP cpp_num_na(SEXP x){
-  R_xlen_t n = Rf_xlength(x);
-  R_xlen_t count = 0;
-  // This nicely handles NULL and avoids loop too
-  if (n == 0){
-    SEXP out = PROTECT(Rf_allocVector(INTSXP, 1));
-    int *p_out = INTEGER(out);
-    int n_na = 0;
-    p_out[0] = n_na;
-    UNPROTECT(1);
-    return out;
-  }
-  switch ( TYPEOF(x) ){
-  case LGLSXP:
-  case INTSXP: {
-    int *p_x = INTEGER(x);
-    for (R_xlen_t i = 0; i < n; i++){
-      count += (p_x[i] == NA_INTEGER);
-    }
-    break;
-  }
-  case REALSXP: {
-    double *p_x = REAL(x);
-    for (R_xlen_t i = 0; i < n; i++){
-      // Because NaN == NaN is false
-      count += !(p_x[i] == p_x[i]);
-    }
-    break;
-  }
-  case STRSXP: {
-    SEXP *p_x = STRING_PTR(x);
-    for (R_xlen_t i = 0; i < n; i++){
-      count += (p_x[i] == NA_STRING);
-    }
-    break;
-  }
-  case RAWSXP: {
-    break;
-  }
-  case CPLXSXP: {
-    Rcpp::ComplexVector xv = Rcpp::as<Rcpp::ComplexVector>(x);
-    for (R_xlen_t i = 0; i < n; i++){
-      count += Rcpp::ComplexVector::is_na(xv[i]);
-    }
-    break;
-  }
-  default: {
-    Rf_error("num_na cannot handle the supplied SEXP");
-    break;
-  }
-  }
-  if (count <= std::numeric_limits<int>::max()){
-    SEXP out = PROTECT(Rf_allocVector(INTSXP, 1));
-    int *p_out = INTEGER(out);
-    p_out[0] = int(count);
-    UNPROTECT(1);
-    return out;
-  } else {
-    SEXP out = PROTECT(Rf_allocVector(REALSXP, 1));
-    double *p_out = REAL(out);
-    p_out[0] = double(count);
-    UNPROTECT(1);
-    return out;
-  }
-}
-
-// [[Rcpp::export(rng = false)]]
-List list_rm_null(List l) {
-  int n = l.size();
-  LogicalVector keep(n);
+[[cpp11::register]]
+SEXP cpp_list_which_not_null(SEXP l) {
+  // Coerce l to list
+  Rf_protect(l = Rf_coerceVector(l, VECSXP));
+  const SEXP *p_l = VECTOR_PTR_RO(l);
+  int n = Rf_length(l);
+  // Create logical vector
+  SEXP keep = Rf_protect(Rf_allocVector(LGLSXP, n));
+  int *p_keep = LOGICAL(keep);
+  int size = 0;
+  bool not_null;
   for (int i = 0; i < n; ++i) {
-    keep[i] = !Rf_isNull(l[i]);
+    not_null = !Rf_isNull(p_l[i]);
+    p_keep[i] = not_null;
+    // Keeping track of number of true values
+    size += not_null;
   }
-  return l[keep];
+  int whichi = 0;
+  int i = 0;
+  // The below is essentially which(keep)
+  SEXP out = Rf_protect(Rf_allocVector(INTSXP, size));
+  int *p_out = INTEGER(out);
+  while (whichi < size){
+    p_out[whichi] = i + 1;
+    whichi += (p_keep[i] == TRUE);
+    ++i;
+  }
+  Rf_unprotect(3);
+  return out;
 }
 
 bool is_interval(SEXP x){
   return (Rf_isS4(x) && Rf_inherits(x, "Interval"));
 }
 
-// [[Rcpp::export(rng = false)]]
+[[cpp11::register]]
 bool list_has_interval( SEXP l ) {
-  SEXP L = PROTECT(Rf_coerceVector(l, VECSXP));
-  const SEXP *p_l = VECTOR_PTR_RO(L);
+  Rf_protect(l = Rf_coerceVector(l, VECSXP));
+  const SEXP *p_l = VECTOR_PTR_RO(l);
   bool out = false;
   int n = Rf_length(l);
   for (int i = 0; i < n; ++i) {
@@ -281,38 +163,41 @@ bool list_has_interval( SEXP l ) {
       break;
     }
   }
-  UNPROTECT(1);
+  Rf_unprotect(1);
   return out;
 }
 
-// [[Rcpp::export(rng = false)]]
-SEXP list_item_is_interval( List l ) {
-  int n = l.size();
-  SEXP out = PROTECT(Rf_allocVector(LGLSXP, n));
+[[cpp11::register]]
+SEXP list_item_is_interval( SEXP l ) {
+  Rf_protect(l = Rf_coerceVector(l, VECSXP));
+  const SEXP *p_l = VECTOR_PTR_RO(l);
+  int n = Rf_length(l);
+  SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n));
   int *p_out = LOGICAL(out);
   for (int i = 0; i < n; ++i) {
-    p_out[i] = is_interval(l[i]);
+    p_out[i] = is_interval(p_l[i]);
   }
-  UNPROTECT(1);
+  Rf_unprotect(2);
   return out;
 }
 
 // Take a vector of group sizes (sorted by group)
 // And this will return a vector of the start indices of each group (in sorted order)
 
-// [[Rcpp::export(rng = false)]]
+[[cpp11::register]]
 SEXP cpp_sorted_group_starts(SEXP group_sizes){
   int *p_gsizes = INTEGER(group_sizes);
   int n = Rf_length(group_sizes);
-  SEXP out = PROTECT(Rf_allocVector(INTSXP, n));
+  SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
   int *p_out = INTEGER(out);
   int init = 1;
   p_out[0] = 1;
+  // cumsum over group_sizes[-length(group_sizes)]
   for (int i = 0; i < (n - 1); i++){
     init += p_gsizes[i];
     p_out[i + 1] = init;
   }
-  UNPROTECT(1);
+  Rf_unprotect(1);
   return out;
 }
 
@@ -325,10 +210,10 @@ SEXP cpp_sorted_group_starts(SEXP group_sizes){
 // a new flag will occur once this new threshold is reached, and so on.
 // Again, x must be a cumulatively increasing vector.
 
-// [[Rcpp::export(rng = false)]]
-SEXP roll_time_threshold(SEXP x, double threshold = 1, bool switch_on_boundary = true) {
+[[cpp11::register]]
+SEXP roll_time_threshold(SEXP x, double threshold, bool switch_on_boundary) {
   int n = Rf_length(x);
-  SEXP out = PROTECT(Rf_allocVector(INTSXP, n));
+  SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
   int *p_out = INTEGER(out);
   double init_threshold = 0;
   init_threshold = init_threshold + threshold;
@@ -379,19 +264,20 @@ SEXP roll_time_threshold(SEXP x, double threshold = 1, bool switch_on_boundary =
     break;
   }
   default: {
-    UNPROTECT(1);
+    Rf_unprotect(1);
     Rf_error("roll_time_threshold only supports integer and numeric vectors");
   }
   }
-  UNPROTECT(1);
+  Rf_unprotect(1);
   return out;
 }
 
 // Taken from dplyr::group_indices,
 // All credits go to dplyr
-// [[Rcpp::export(rng = false)]]
+
+[[cpp11::register]]
 SEXP cpp_df_group_indices(SEXP rows, int size) {
-  SEXP indices = PROTECT(Rf_allocVector(INTSXP, size));
+  SEXP indices = Rf_protect(Rf_allocVector(INTSXP, size));
   int *p_indices = INTEGER(indices);
   R_xlen_t ng = XLENGTH(rows);
   const SEXP* p_rows = VECTOR_PTR_RO(rows);
@@ -404,7 +290,7 @@ SEXP cpp_df_group_indices(SEXP rows, int size) {
       p_indices[*p_rows_i - 1] = i + 1;
     }
   }
-  UNPROTECT(1);
+  Rf_unprotect(1);
   return indices;
 }
 
@@ -419,222 +305,49 @@ SEXP cpp_df_group_indices(SEXP rows, int size) {
 //   return x[idx];
 // }
 
-SEXP rcpp_sort_in_place(SEXP x) {
-  // Order the elements of x by sorting y
-  // Then sort that vector by the values of y
-  // std::sort(std::begin(idx), std::end(idx),
-  //           [&](int i, int j){
-  //             if (y[i] == NA_INTEGER){
-  //               return false;
-  //             } else if (y[j] == NA_INTEGER){
-  //               return true;
-  //             } else {
-  //               return y[i] < y[j];
-  //             }
-  //             });
-  // std::sort(std::begin(y), std::end(y),
-  //           [](double i, double j){
-  //             if (!(i == i)){
-  //               return false;
-  //             }
-  //             if (!(j == j)){
-  //               return true;
-  //             }
-  //             return i < j;
-  //           });
-  switch(TYPEOF(x)){
-  case LGLSXP: {
-    Rcpp::as<LogicalVector>(x).sort();
-    break;
-  }
-  case INTSXP: {
-    Rcpp::as<IntegerVector>(x).sort();
-   break;
-  }
-  case REALSXP: {
-    Rcpp::as<NumericVector>(x).sort();
-   break;
-  }
-  case STRSXP: {
-    Rcpp::as<CharacterVector>(x).sort();
-   break;
-  }
-  default: {
-    Rf_error("Cannot sort the supplied SEXP");
-  }
-  }
-  return x;
-}
-
-bool r_is_sorted(SEXP x) {
-  Rcpp::Function r_is_unsorted = Rcpp::Environment::base_env()["is.unsorted"];
-  SEXP is_unsorted = PROTECT(r_is_unsorted(x));
-  int *p_out = LOGICAL(is_unsorted);
-  bool out = p_out[0];
-  out = (out != NA_LOGICAL) && !out;
-  UNPROTECT(1);
-  return out;
-}
-
-// [[Rcpp::export(rng = false)]]
-SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP g, double fill_limit,
-                              bool check_sorted) {
-  R_xlen_t size = Rf_xlength(x);
-  R_xlen_t g_size = Rf_xlength(g);
-  bool has_groups = g_size > 0;
-  if (has_groups && g_size != size){
-    Rf_error("x and g must both be the same length");
-  }
-  SEXP groups = PROTECT(Rf_coerceVector(g, INTSXP));
-  // This will always evaluate to TRUE when g contains NA
-  if (check_sorted && !r_is_sorted(groups)){
-    UNPROTECT(1);
-    Rf_error("g must be a sorted integer vector");
-  }
-  int *p_groups = INTEGER(groups);
-  fill_limit = std::fmax(fill_limit, 0);
-  bool first_non_na = false;
-  bool is_na;
-  bool prev_is_not_na = false;
-  R_xlen_t fill_count = 0;
-
-  switch(TYPEOF(x)){
-  case LGLSXP:
-  case INTSXP: {
-    int fill;
-    SEXP out = PROTECT(Rf_duplicate(x));
-    int *p_out = INTEGER(out);
-    for (R_xlen_t i = 0; i < size; ++i) {
-      // Start of new group?
-      if (has_groups && i > 0 && p_groups[i] != p_groups[i - 1]){
-        first_non_na = false;
-        fill_count = 0;
-      }
-      is_na = (p_out[i] == NA_INTEGER);
-      if (!first_non_na && !is_na){
-        first_non_na = true;
-      }
-      // Resetting fill value
-      // Are we in new NA run?
-      if (is_na && first_non_na && prev_is_not_na){
-        fill_count = 0;
-        fill = p_out[i - 1];
-      }
-      // Should we fill this NA value?
-      if (is_na && first_non_na && fill_count < fill_limit){
-        p_out[i] = fill;
-        fill_count += 1;
-      }
-      prev_is_not_na = !is_na;
-    }
-    UNPROTECT(2);
-    return out;
-  }
-  case REALSXP: {
-    double fill;
-    SEXP out = PROTECT(Rf_duplicate(x));
-    double *p_out = REAL(out);
-    for (R_xlen_t i = 0; i < size; ++i) {
-      // Start of new group?
-      if (has_groups && i > 0 && p_groups[i] != p_groups[i - 1]){
-        first_non_na = false;
-        fill_count = 0;
-      }
-      is_na = !(p_out[i] == p_out[i]);
-      if (!first_non_na && !is_na){
-        first_non_na = true;
-      }
-      // Resetting fill value
-      // Are we in new NA run?
-      if (is_na && first_non_na && prev_is_not_na){
-        fill_count = 0;
-        fill = p_out[i - 1];
-      }
-      // Should we fill this NA value?
-      if (is_na && first_non_na && fill_count < fill_limit){
-        p_out[i] = fill;
-        fill_count += 1;
-      }
-      prev_is_not_na = !is_na;
-    }
-    UNPROTECT(2);
-    return out;
-  }
-  case STRSXP: {
-    CharacterVector fill(1);
-    CharacterVector out = Rcpp::as<CharacterVector>(x);
-    out = Rcpp::clone(out);
-    for (R_xlen_t i = 0; i < size; ++i) {
-      // Start of new group?
-      if (has_groups && i > 0 && p_groups[i] != p_groups[i - 1]){
-        first_non_na = false;
-        fill_count = 0;
-      }
-      is_na = Rcpp::CharacterVector::is_na(out[i]);
-      if (!first_non_na && !is_na){
-        first_non_na = true;
-      }
-      // Resetting fill value
-      // Are we in new NA run?
-      if (is_na && first_non_na && prev_is_not_na){
-        fill_count = 0;
-        fill[0] = out[i - 1];
-      }
-      // Should we fill this NA value?
-      if (is_na && first_non_na && fill_count < fill_limit){
-        out[i] = fill[0];
-        fill_count += 1;
-      }
-      prev_is_not_na = !is_na;
-    }
-    UNPROTECT(1);
-    return out;
-  }
-  default: {
-    UNPROTECT(1);
-    Rf_error("cpp_roll_na_fill_grouped cannot handle the supplied SEXP");
-    break;
-  }
-  }
-}
-
-// [[Rcpp::export(rng = false)]]
-SEXP cpp_is_whole_num(SEXP x, double tol, bool na_rm = true) {
-  R_xlen_t n = Rf_xlength(x);
-  bool is_whole;
-  double adiff;
-  R_xlen_t n_na = 0;
-  bool is_na;
-  SEXP out = PROTECT(Rf_allocVector(LGLSXP, 1));
-  int *p_out = LOGICAL(out);
-  p_out[0] = false;
-  switch ( TYPEOF(x) ){
-  case LGLSXP:
-  case INTSXP: {
-    p_out[0] = true;
-    break;
-  }
-  case REALSXP: {
-    // Re-initialise so that we can break when we find non-whole num
-    p_out[0] = true;
-    double *p_x = REAL(x);
-    for (R_xlen_t i = 0; i < n; ++i) {
-      adiff = std::fabs(p_x[i] - std::round(p_x[i]));
-      is_whole = (adiff < tol);
-      is_na = !(p_x[i] == p_x[i]);
-      n_na += is_na;
-      if (!is_whole && !is_na){
-        p_out[0] = false;
-        break;
-      }
-    }
-    if (!na_rm && n_na > 0){
-      p_out[0] = NA_LOGICAL;
-      break;
-    }
-    break;
-  }
-  }
-  UNPROTECT(1);
-  return out;
-}
+// SEXP rcpp_sort_in_place(SEXP x) {
+//   // Order the elements of x by sorting y
+//   // Then sort that vector by the values of y
+//   // std::sort(std::begin(idx), std::end(idx),
+//   //           [&](int i, int j){
+//   //             if (y[i] == NA_INTEGER){
+//   //               return false;
+//   //             } else if (y[j] == NA_INTEGER){
+//   //               return true;
+//   //             } else {
+//   //               return y[i] < y[j];
+//   //             }
+//   //             });
+//   // std::sort(std::begin(y), std::end(y),
+//   //           [](double i, double j){
+//   //             if (!(i == i)){
+//   //               return false;
+//   //             }
+//   //             if (!(j == j)){
+//   //               return true;
+//   //             }
+//   //             return i < j;
+//   //           });
+//   switch(TYPEOF(x)){
+//   case LGLSXP: {
+//     Rcpp::as<LogicalVector>(x).sort();
+//     break;
+//   }
+//   case INTSXP: {
+//     Rcpp::as<IntegerVector>(x).sort();
+//    break;
+//   }
+//   case REALSXP: {
+//     Rcpp::as<NumericVector>(x).sort();
+//    break;
+//   }
+//   case STRSXP: {
+//     Rcpp::as<CharacterVector>(x).sort();
+//    break;
+//   }
+//   default: {
+//     Rf_error("Cannot sort the supplied SEXP");
+//   }
+//   }
+//   return x;
+// }

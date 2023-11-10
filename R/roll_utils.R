@@ -22,6 +22,16 @@ fdiff2 <- function(x, n = 1L, g = NULL, ...){
   x - flag2(x, n = n, g = g, ...)
 }
 
+window_sequence <- function(size, k, partial = TRUE, ascending = TRUE) {
+  .Call(`_timeplyr_cpp_window_sequence`, size, k, partial, ascending)
+}
+lag_sequence <- function(size, k, partial = TRUE) {
+  .Call(`_timeplyr_cpp_lag_sequence`, size, k, partial)
+}
+lead_sequence <- function(size, k, partial = TRUE) {
+  .Call(`_timeplyr_cpp_lead_sequence`, size, k, partial)
+}
+
 # Vctrs style rolling chop
 roll_chop <- function(x, sizes = collapse::alloc(1L, vec_length(x))){
   x_size <- vec_length(x)

@@ -1,5 +1,12 @@
 # timeplyr (Development version)
 
+* All 'C++' functions are now registered using the cpp11 package.
+
+* `cpp_which` is now available as a more efficient and sometimes faster alternative
+to `which`.
+
+* The double comparison functions have been migrated to the package 'cppdoubles'.
+
 * `roll_na_fill` has been mostly rewritten in C++ for speed and efficiency.
 
 * `roll_growth_rate` now accepts groups through the `g` argument.
