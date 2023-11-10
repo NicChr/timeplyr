@@ -11,24 +11,36 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // before_sequence
-IntegerVector before_sequence(IntegerVector size, double k);
+SEXP before_sequence(SEXP size, double k);
 RcppExport SEXP _timeplyr_before_sequence(SEXP sizeSEXP, SEXP kSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type size(sizeSEXP);
     Rcpp::traits::input_parameter< double >::type k(kSEXP);
     rcpp_result_gen = Rcpp::wrap(before_sequence(size, k));
     return rcpp_result_gen;
 END_RCPP
 }
 // after_sequence
-IntegerVector after_sequence(IntegerVector size, double k);
+SEXP after_sequence(SEXP size, double k);
 RcppExport SEXP _timeplyr_after_sequence(SEXP sizeSEXP, SEXP kSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type size(sizeSEXP);
     Rcpp::traits::input_parameter< double >::type k(kSEXP);
     rcpp_result_gen = Rcpp::wrap(after_sequence(size, k));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_int_sequence
+SEXP cpp_int_sequence(SEXP size, SEXP from, SEXP by);
+RcppExport SEXP _timeplyr_cpp_int_sequence(SEXP sizeSEXP, SEXP fromSEXP, SEXP bySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< SEXP >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type from(fromSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type by(bySEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_int_sequence(size, from, by));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -45,11 +57,11 @@ BEGIN_RCPP
 END_RCPP
 }
 // window_sequence
-IntegerVector window_sequence(IntegerVector size, double k, bool partial, bool ascending);
+SEXP window_sequence(SEXP size, double k, bool partial, bool ascending);
 RcppExport SEXP _timeplyr_window_sequence(SEXP sizeSEXP, SEXP kSEXP, SEXP partialSEXP, SEXP ascendingSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type size(sizeSEXP);
     Rcpp::traits::input_parameter< double >::type k(kSEXP);
     Rcpp::traits::input_parameter< bool >::type partial(partialSEXP);
     Rcpp::traits::input_parameter< bool >::type ascending(ascendingSEXP);
@@ -58,11 +70,11 @@ BEGIN_RCPP
 END_RCPP
 }
 // lag_sequence
-IntegerVector lag_sequence(IntegerVector size, double k, bool partial);
+SEXP lag_sequence(SEXP size, double k, bool partial);
 RcppExport SEXP _timeplyr_lag_sequence(SEXP sizeSEXP, SEXP kSEXP, SEXP partialSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type size(sizeSEXP);
     Rcpp::traits::input_parameter< double >::type k(kSEXP);
     Rcpp::traits::input_parameter< bool >::type partial(partialSEXP);
     rcpp_result_gen = Rcpp::wrap(lag_sequence(size, k, partial));
@@ -70,11 +82,11 @@ BEGIN_RCPP
 END_RCPP
 }
 // lead_sequence
-IntegerVector lead_sequence(IntegerVector size, double k, bool partial);
+SEXP lead_sequence(SEXP size, double k, bool partial);
 RcppExport SEXP _timeplyr_lead_sequence(SEXP sizeSEXP, SEXP kSEXP, SEXP partialSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type size(sizeSEXP);
     Rcpp::traits::input_parameter< double >::type k(kSEXP);
     Rcpp::traits::input_parameter< bool >::type partial(partialSEXP);
     rcpp_result_gen = Rcpp::wrap(lead_sequence(size, k, partial));
@@ -204,6 +216,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_before_sequence", (DL_FUNC) &_timeplyr_before_sequence, 2},
     {"_timeplyr_after_sequence", (DL_FUNC) &_timeplyr_after_sequence, 2},
+    {"_timeplyr_cpp_int_sequence", (DL_FUNC) &_timeplyr_cpp_int_sequence, 3},
     {"_timeplyr_cpp_dbl_sequence", (DL_FUNC) &_timeplyr_cpp_dbl_sequence, 3},
     {"_timeplyr_window_sequence", (DL_FUNC) &_timeplyr_window_sequence, 4},
     {"_timeplyr_lag_sequence", (DL_FUNC) &_timeplyr_lag_sequence, 3},

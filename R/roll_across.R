@@ -128,7 +128,7 @@ roll_across <- function(.data, .cols, fun, ..., .names = "{.col}",
                       j = out_nms[i],
                       value =
                         do.call(roll_apply, list(temp_out[[out_nms[i]]],
-                                                 fun = \(x) fun(x, ...))))
+                                                 fun = function(x) fun(x, ...))))
 
     }
   }

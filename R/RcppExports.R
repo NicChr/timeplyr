@@ -9,6 +9,10 @@ after_sequence <- function(size, k) {
     .Call(`_timeplyr_after_sequence`, size, k)
 }
 
+cpp_int_sequence <- function(size, from, by) {
+    .Call(`_timeplyr_cpp_int_sequence`, size, from, by)
+}
+
 cpp_dbl_sequence <- function(size, from, by) {
     .Call(`_timeplyr_cpp_dbl_sequence`, size, from, by)
 }
