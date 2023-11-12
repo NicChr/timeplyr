@@ -2,9 +2,12 @@
 % Please edit documentation in R/age_years.R
 \name{age_years}
 \alias{age_years}
+\alias{age_months}
 \title{Accurate and efficient age calculation}
 \usage{
 age_years(start, end = if (is_date(start)) Sys.Date() else Sys.time())
+
+age_months(start, end = if (is_date(start)) Sys.Date() else Sys.time())
 }
 \arguments{
 \item{start}{Start date/datetime, typically date of birth.}
@@ -12,7 +15,7 @@ age_years(start, end = if (is_date(start)) Sys.Date() else Sys.time())
 \item{end}{End date/datetime. Default is current date/datetime.}
 }
 \value{
-Integer vector of age in years.
+Integer vector of age in years or months.
 }
 \description{
 Correct calculation of ages in years using lubridate periods.

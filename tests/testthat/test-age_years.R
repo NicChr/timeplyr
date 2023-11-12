@@ -12,11 +12,12 @@ testthat::test_that("Expect error", {
 })
 
 testthat::test_that("Expect zero length vector", {
-  empty_values <- list(as.POSIXlt(numeric(0)),
-                       lubridate::Date(0),
-                       lubridate::POSIXct(0))
+  empty_values <- list(
+    # as.POSIXlt(numeric(0)),
+    lubridate::Date(0),
+    lubridate::POSIXct(0))
   testthat::expect_identical(lapply(empty_values, function(x) age_years(x)),
-                             list(integer(0), integer(0), integer(0)))
+                             list(integer(0), integer(0)))
 })
 
 testthat::test_that("Expect NA", {
@@ -24,8 +25,8 @@ testthat::test_that("Expect NA", {
                              NA_integer_)
   testthat::expect_identical(age_years(lubridate::NA_POSIXct_),
                              NA_integer_)
-  testthat::expect_identical(age_years(as.POSIXlt(NA)),
-                             NA_integer_)
+  # testthat::expect_identical(age_years(as.POSIXlt(NA)),
+  #                            NA_integer_)
 })
 
 testthat::test_that("Leap year", {

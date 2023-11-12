@@ -1,5 +1,9 @@
 # timeplyr (Development version)
 
+* The `roll_na_fill` algorithm has been improved significantly.
+
+* Calculation of row numbers are faster and more efficient.
+
 * All 'C++' functions are now registered using the cpp11 package.
 
 * `cpp_which` is now available as a more efficient and sometimes faster alternative

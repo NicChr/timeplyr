@@ -1607,3 +1607,61 @@ period_to_list <- function(x){
        minute = attr(x, "minute"),
        second = x@.Data)
 }
+
+days_in_month <- function (m, y) {
+  N_DAYS_IN_MONTHS <- c(Jan = 31L, Feb = 28L, Mar = 31L, Apr = 30L, May = 31L, Jun = 30L,
+                        Jul = 31L, Aug = 31L, Sep = 30L, Oct = 31L, Nov = 30L, Dec = 31L
+  )
+  n_days <- N_DAYS_IN_MONTHS[m]
+  n_days[cpp_which(m == 2L & lubridate::leap_year(y))] <- 29L
+  n_days
+}
+int_to_per <- function (start, end){
+  start <- as_datetime2(start)
+  end <- as_datetime2(end)
+  duration <- strip_attrs(unclass(difftime(end, start, units = "secs")))
+  start <- unclass(as.POSIXlt(start))
+  end <- unclass(as.POSIXlt(end))
+  negs <- duration < 0 & !is.na(duration)
+  wnegs <- cpp_which(negs)
+  wnnegs <- cpp_which(negs, invert = TRUE)
+  per <- list()
+  for (nm in c("mday", "mon", "year")) {
+    per[[nm]] <- integer(length(negs))
+    per[[nm]][wnegs] <- (start[[nm]] - end[[nm]])[wnegs]
+    per[[nm]][wnnegs] <- (end[[nm]] - start[[nm]])[wnnegs]
+    # per[[nm]] <- data.table::fifelse(negs,
+    #                                  start[[nm]] - end[[nm]],
+    #                                  end[[nm]] - start[[nm]])
+  }
+  names(per) <- c("day", "month", "year")
+  ndays <- !negs & per$day < 0 & !is.na(per$day)
+  wndays <- cpp_which(ndays)
+  if (length(wndays > 0)) {
+    add_months <- rep.int(-1L, sum(ndays))
+    pmonth <- end$mon[wndays]
+    pmonth[cpp_which(pmonth == 0L)] <- 1L
+    prev_month_days <- days_in_month(pmonth, end$year[wndays])
+    per$day[wndays] <- pmax(prev_month_days - start$mday[wndays],
+                            0L) + end$mday[wndays]
+    per$month[wndays] <- per$month[wndays] + add_months
+  }
+  ndays <- negs & per$day < 0L & !is.na(per$day)
+  wndays <- cpp_which(ndays)
+  if (length(wndays > 0)) {
+    add_months <- rep.int(1L, sum(ndays))
+    this_month_days <- days_in_month(end$mon[wndays] + 1L,
+                                     end$year[wndays])
+    per$day[wndays] <- pmax(this_month_days - end$mday[wndays],
+                            0L) + start$mday[wndays]
+    per$month[wndays] <- per$month[wndays] - add_months
+  }
+  per$day[wnegs] <- -per$day[wnegs]
+  nmons <- per$month < 0L & !is.na(per$month)
+  wnmons <- cpp_which(nmons)
+  per$month[wnmons] <- 12L + per$month[wnmons]
+  per$year[wnmons] <- per$year[wnmons] - 1L
+  per$month[wnegs] <- -per$month[wnegs]
+  per$year[wnegs] <- -per$year[wnegs]
+  per
+}
