@@ -522,6 +522,7 @@ greorder2 <- function(x, g, ...){
     collapse::greorder(x, g = g, ...)
   }
 }
+
 grouped_seq_len <- function(length, g = NULL, ...){
   if (is_integerable(length)){
     ones <- collapse::alloc(1L, length)
@@ -530,21 +531,54 @@ grouped_seq_len <- function(length, g = NULL, ...){
   }
   collapse::fcumsum(ones, g = g, na.rm = FALSE, ...)
 }
-# GRP_row_id <- function(g, ascending = TRUE){
-#   g <- GRP2(g, ascending = ascending)
-#   o <- GRP_order(g)
-#   sizes <- GRP_group_sizes(g)
-#   cpp_row_id(o, sizes)
-# }
-# grouped_row_id <- function(g, ascending = TRUE){
-#   o <- radixorderv2(g, starts = TRUE, sort = FALSE,
-#                     decreasing = !ascending)
-#   starts <- attr(o, "starts")
-#   o <- strip_attrs(o)
-#   cpp_row_id(o, starts)
-# }
+
+# Fast grouped row IDs when you already have  GRP object
+GRP_row_id <- function(g, ascending = TRUE){
+  g <- GRP2(g)
+  size <- GRP_data_size(g)
+  # If groups are sorted we can use sequence()
+  if (GRP_is_sorted(g)){
+    group_sizes <- GRP_group_sizes(g)
+    if (ascending){
+      start <- 1L
+      every <- 1L
+    } else {
+      start <- group_sizes
+      every <- -1L
+    }
+    out <- sequence2(group_sizes, from = start, by = every)
+  } else {
+    if (!ascending){
+      o <- seq.int(length.out = size, from = size, by = -1L)
+      out <- collapse::fcumsum(seq_ones(size), g = g, na.rm = FALSE,
+                               o = o, check.o = FALSE)
+    } else {
+      out <- collapse::fcumsum(seq_ones(size), g = g, na.rm = FALSE)
+    }
+  }
+  out
+}
+
+radixorderv2 <- function(x, starts = FALSE, sort = TRUE, group.sizes = FALSE,
+                         ...){
+  if (is.null(x)){
+    return(NULL)
+  }
+  if (is_GRP(x)){
+    return(GRP_order(x))
+    # return(GRP_order(x, group.sizes = group.sizes))
+  }
+  if (is_interval(x)){
+    x <- interval_separate(x)
+  }
+  if (is.list(x) && list_has_interval(x)){
+    x <- mutate_intervals_to_ids(x)
+  }
+  collapse::radixorderv(x, starts = starts, sort = sort, group.sizes = group.sizes,
+                        ...)
+}
 grouped_row_id <- function(x, ascending = TRUE){
-  o <- radixorderv2(x, starts = TRUE, sort = FALSE, group.sizes = TRUE)
+  o <- radixorderv2(x, starts = FALSE, sort = FALSE, group.sizes = TRUE)
   if (is.null(o)){
     return(seq_len(vec_length(x)))
   }
@@ -570,22 +604,4 @@ grouped_row_id <- function(x, ascending = TRUE){
     out <- cpp_row_id(o, group_sizes, ascending)
   }
   out
-}
-radixorderv2 <- function(x, starts = FALSE, sort = TRUE, group.sizes = FALSE,
-                         ...){
-  if (is.null(x)){
-    return(NULL)
-  }
-  if (is_GRP(x)){
-    return(GRP_order(x))
-    # return(GRP_order(x, group.sizes = group.sizes))
-  }
-  if (is_interval(x)){
-    x <- interval_separate(x)
-  }
-  if (is.list(x) && list_has_interval(x)){
-    x <- mutate_intervals_to_ids(x)
-  }
-  collapse::radixorderv(x, starts = starts, sort = sort, group.sizes = group.sizes,
-                        ...)
 }

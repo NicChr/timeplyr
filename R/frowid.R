@@ -1,14 +1,18 @@
 #' Fast grouped row numbers
 #'
 #' @description
-#' `frowid()` is like `data.table::rowid()` but uses
-#' an alternative method for calculating row numbers and when
-#' `x` is a collapse `GRP` object, it is considerably faster.
+#' Very fast row numbers by group.
 #'
 #' @param x A vector, data frame or `GRP` object.
 #' @param ascending When `ascending = TRUE` the row IDs are in
 #' increasing order. When `ascending = FALSE` the row IDs are in
 #' decreasing order.
+#'
+#' @details
+#' `frowid()` is like `data.table::rowid()` but uses
+#' an alternative method for calculating row numbers.
+#' When `x` is a collapse `GRP` object, it is considerably faster.
+#' It is also faster for character vectors.
 #'
 #' @returns
 #' An integer vector of row IDs.
@@ -46,30 +50,11 @@
 #' @rdname frowid
 #' @export
 frowid <- function(x, ascending = TRUE){
-  if (!is_GRP(x)){
-    return(grouped_row_id(x, ascending = ascending))
-  }
-  size <- GRP_data_size(x)
-  # If groups are sorted we can use sequence()
-  if (GRP_is_sorted(x)){
-    group_sizes <- GRP_group_sizes(x)
-    if (ascending){
-      start <- 1L
-      every <- 1L
-    } else {
-      start <- group_sizes
-      every <- -1L
-    }
-    out <- sequence2(group_sizes, from = start, by = every)
+  if (is_GRP(x)){
+    GRP_row_id(x, ascending = ascending)
   } else {
-    if (!ascending){
-      o <- seq.int(length.out = size, from = size, by = -1L)
-      out <- grouped_seq_len(size, g = x, check.o = FALSE, o = o)
-    } else {
-      out <- grouped_seq_len(size, g = x)
-    }
+    grouped_row_id(x, ascending = ascending)
   }
-  out
 }
 rowid <- function(x, g, ascending = TRUE, order = TRUE){
   if (missing(g)){

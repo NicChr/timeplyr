@@ -17,9 +17,13 @@ decreasing order.}
 An integer vector of row IDs.
 }
 \description{
+Very fast row numbers by group.
+}
+\details{
 \code{frowid()} is like \code{data.table::rowid()} but uses
-an alternative method for calculating row numbers and when
-\code{x} is a collapse \code{GRP} object, it is considerably faster.
+an alternative method for calculating row numbers.
+When \code{x} is a collapse \code{GRP} object, it is considerably faster.
+It is also faster for character vectors.
 }
 \examples{
 library(timeplyr)

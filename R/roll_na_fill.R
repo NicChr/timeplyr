@@ -87,7 +87,7 @@ roll_na_fill <- function(x, g = NULL, fill_limit = Inf){
   if (num_na(x) %in% c(0L, length(x))){
     return(x)
   }
-  o <- radixorderv2(g, starts = TRUE, sort = FALSE, group.sizes = TRUE)
+  o <- radixorderv2(g, starts = FALSE, sort = FALSE, group.sizes = TRUE)
   if (is_GRP(g)){
     sizes <- GRP_group_sizes(g)
   } else {
