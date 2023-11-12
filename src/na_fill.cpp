@@ -25,7 +25,7 @@ SEXP cpp_roll_na_fill(SEXP x, double fill_limit) {
     switch(TYPEOF(x)){
     case LGLSXP:
     case INTSXP: {
-        int fill;
+        int fill = 0;
         SEXP out = Rf_protect(Rf_duplicate(x));
         int *p_out = INTEGER(out);
         for (R_xlen_t i = 0; i < size; ++i) {
@@ -50,7 +50,7 @@ SEXP cpp_roll_na_fill(SEXP x, double fill_limit) {
         return out;
     }
     case REALSXP: {
-        double fill;
+        double fill = 0;
         SEXP out = Rf_protect(Rf_duplicate(x));
         double *p_out = REAL(out);
         for (R_xlen_t i = 0; i < size; ++i) {
@@ -129,7 +129,7 @@ SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP o, SEXP sizes, double fill_limit) {
     switch(TYPEOF(x)){
     case LGLSXP:
     case INTSXP: {
-        int fill;
+        int fill = 0;
         SEXP out = Rf_protect(Rf_duplicate(x));
         int *p_out = INTEGER(out);
         for (int i = 0; i < size; ++i) {
@@ -162,7 +162,7 @@ SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP o, SEXP sizes, double fill_limit) {
         return out;
     }
     case REALSXP: {
-        double fill;
+        double fill = 0;
         SEXP out = Rf_protect(Rf_duplicate(x));
         double *p_out = REAL(out);
         for (int i = 0; i < size; ++i) {
