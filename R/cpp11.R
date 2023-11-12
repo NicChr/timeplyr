@@ -4,12 +4,20 @@ cpp_is_whole_num <- function(x, tol, na_rm) {
   .Call(`_timeplyr_cpp_is_whole_num`, x, tol, na_rm)
 }
 
-cpp_roll_na_fill_grouped <- function(x, g, fill_limit, check_sorted) {
-  .Call(`_timeplyr_cpp_roll_na_fill_grouped`, x, g, fill_limit, check_sorted)
+cpp_roll_na_fill <- function(x, fill_limit) {
+  .Call(`_timeplyr_cpp_roll_na_fill`, x, fill_limit)
+}
+
+cpp_roll_na_fill_grouped <- function(x, o, sizes, fill_limit) {
+  .Call(`_timeplyr_cpp_roll_na_fill_grouped`, x, o, sizes, fill_limit)
 }
 
 cpp_num_na <- function(x) {
   .Call(`_timeplyr_cpp_num_na`, x)
+}
+
+cpp_row_id <- function(order, group_sizes, ascending) {
+  .Call(`_timeplyr_cpp_row_id`, order, group_sizes, ascending)
 }
 
 before_sequence <- function(size, k) {

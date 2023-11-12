@@ -437,7 +437,7 @@ time_roll_growth_rate <- function(x, window = Inf,
                               use.g.names = TRUE)
     if (sum(has_gaps) > 0){
       if (has_groups){
-        group_ids <- which(has_gaps)
+        group_ids <- cpp_which(has_gaps)
         if (is.null(names(has_gaps))){
           groups_with_gaps <- group_ids
           group_sub_msg <- "in group ID:"
@@ -478,7 +478,7 @@ time_roll_growth_rate <- function(x, window = Inf,
                                            align = "right")
     }
     out <- ( (x / x_lagged) ^ (1 / (lag_window)) )
-    out[which(x == 0 & x_lagged == 0)] <- 1
+    out[cpp_which(x == 0 & x_lagged == 0)] <- 1
   } else {
     time_step <- time_by_list(time_step)
     lag_window <- final_window - 1L
@@ -495,7 +495,7 @@ time_roll_growth_rate <- function(x, window = Inf,
                              align = "right")
     }
     out <- ( (x / x_lagged) ^ (1 / (time_differences)) )
-    out[which(x == 0 & x_lagged == 0)] <- 1
+    out[cpp_which(x == 0 & x_lagged == 0)] <- 1
   }
   if (!partial){
     elapsed <- time_elapsed(time, time_by = unit_time_by,
@@ -557,7 +557,7 @@ time_roll_window_size <- function(time, window = Inf,
   }
   if (isTRUE(time_num == 0)){
     if (close_left_boundary){
-      out <- frowid(time, g = as_DT(list(group_id = group_id(g), time = time)))
+      out <- frowid(as_DT(list(group_id = group_id(g), time = time)))
     } else {
       out <- integer(length(time))
     }
@@ -584,7 +584,7 @@ time_roll_window_size <- function(time, window = Inf,
     } else {
       is_partial <- double_lt(abs(elapsed) + 1, time_num)
     }
-    out[is_partial] <- NA_integer_
+    out[cpp_which(is_partial)] <- NA_integer_
   }
   out
 }
@@ -603,7 +603,7 @@ time_roll_window <- function(x, window = Inf, time = seq_along(x),
                                          time_type = time_type,
                                          roll_month = roll_month,
                                          roll_dst = roll_dst)
-  window_widths[is.na(window_widths)] <- 0L
+  window_widths[cpp_which(is.na(window_widths))] <- 0L
   out <- roll_chop(x, sizes = window_widths)
   vctrs::new_list_of(out, ptype = x[0L])
 }

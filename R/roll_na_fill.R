@@ -17,20 +17,8 @@
 #'
 #' ## Method
 #'
-#' When supplying groups using `g`, this method sorts `x` by `g` using
-#' `x[order(g)]` iff g is unsorted. `x` is then efficiently filled using
-#' one pass and re-ordered in the order it was given.
-#' For info, this re-sorting back to original order
-#' can be achieved generally using `order()` given that the
-#' following identity always holds:
-#' \preformatted{
-#' `all.equal(x, sort(x)[order(order(x))])`
-#' }
-#'
-#' Or alternatively:
-#' \preformatted{
-#' `all.equal(x, sort(x)[rank(x, ties.method = "first")])`
-#' }
+#' When supplying groups using `g`, this method uses `radixorder(g)` to
+#' specify how to loop through `x`, making this extremely efficient.
 #'
 #' When `x` contains zero or all `NA` values, then `x` is returned with no copy
 #' made.
@@ -99,22 +87,47 @@ roll_na_fill <- function(x, g = NULL, fill_limit = Inf){
   if (num_na(x) %in% c(0L, length(x))){
     return(x)
   }
-  g <- GRP2(g, sort = TRUE)
-  sorted_group_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
-  sorted_g <- sorted_group_info[["sorted_GRP"]]
-  sorted_x <- sorted_group_info[["x"]]
-  sorted_by_groups <- sorted_group_info[["sorted"]]
-  out <- cpp_roll_na_fill_grouped(sorted_x,
-                                  g = group_id(sorted_g),
-                                  fill_limit = fill_limit,
-                                  check_sorted = FALSE)
-  if (!sorted_by_groups){
-    out <- greorder2(out, g = g)
+  o <- radixorderv2(g, starts = TRUE, sort = FALSE, group.sizes = TRUE)
+  if (is_GRP(g)){
+    sizes <- GRP_group_sizes(g)
+  } else {
+    sizes <- attr(o, "group.sizes")
+  }
+  if (is.null(o)){
+    out <- .roll_na_fill(x, fill_limit = fill_limit)
+  } else {
+    starts <- attr(o, "starts")
+    out <- cpp_roll_na_fill_grouped(x,
+                                     o = o,
+                                     sizes = sizes,
+                                     fill_limit = fill_limit)
   }
   out
 }
+
 #' @rdname roll_na_fill
 #' @export
 .roll_na_fill <- function(x, fill_limit = Inf){
-  .Call(`_timeplyr_cpp_roll_na_fill_grouped`, x, NULL, fill_limit, FALSE)
+  .Call(`_timeplyr_cpp_roll_na_fill`, x, fill_limit)
 }
+
+# Old version that sorts
+# roll_na_fill <- function(x, g = NULL, fill_limit = Inf){
+#   check_length(fill_limit, 1)
+#   if (num_na(x) %in% c(0L, length(x))){
+#     return(x)
+#   }
+#   g <- GRP2(g, sort = TRUE)
+#   sorted_group_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
+#   sorted_g <- sorted_group_info[["sorted_GRP"]]
+#   sorted_x <- sorted_group_info[["x"]]
+#   sorted_by_groups <- sorted_group_info[["sorted"]]
+#   out <- cpp_roll_na_fill_grouped(sorted_x,
+#                                   g = group_id(sorted_g),
+#                                   fill_limit = fill_limit,
+#                                   check_sorted = FALSE)
+#   if (!sorted_by_groups){
+#     out <- greorder2(out, g = g)
+#   }
+#   out
+# }

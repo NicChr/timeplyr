@@ -13,10 +13,17 @@ extern "C" SEXP _timeplyr_cpp_is_whole_num(SEXP x, SEXP tol, SEXP na_rm) {
   END_CPP11
 }
 // na_fill.cpp
-SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP g, double fill_limit, bool check_sorted);
-extern "C" SEXP _timeplyr_cpp_roll_na_fill_grouped(SEXP x, SEXP g, SEXP fill_limit, SEXP check_sorted) {
+SEXP cpp_roll_na_fill(SEXP x, double fill_limit);
+extern "C" SEXP _timeplyr_cpp_roll_na_fill(SEXP x, SEXP fill_limit) {
   BEGIN_CPP11
-    return cpp11::as_sexp(cpp_roll_na_fill_grouped(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(g), cpp11::as_cpp<cpp11::decay_t<double>>(fill_limit), cpp11::as_cpp<cpp11::decay_t<bool>>(check_sorted)));
+    return cpp11::as_sexp(cpp_roll_na_fill(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(fill_limit)));
+  END_CPP11
+}
+// na_fill.cpp
+SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP o, SEXP sizes, double fill_limit);
+extern "C" SEXP _timeplyr_cpp_roll_na_fill_grouped(SEXP x, SEXP o, SEXP sizes, SEXP fill_limit) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_roll_na_fill_grouped(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(o), cpp11::as_cpp<cpp11::decay_t<SEXP>>(sizes), cpp11::as_cpp<cpp11::decay_t<double>>(fill_limit)));
   END_CPP11
 }
 // num_na.cpp
@@ -24,6 +31,13 @@ SEXP cpp_num_na(SEXP x);
 extern "C" SEXP _timeplyr_cpp_num_na(SEXP x) {
   BEGIN_CPP11
     return cpp11::as_sexp(cpp_num_na(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x)));
+  END_CPP11
+}
+// row_id.cpp
+SEXP cpp_row_id(SEXP order, SEXP group_sizes, bool ascending);
+extern "C" SEXP _timeplyr_cpp_row_id(SEXP order, SEXP group_sizes, SEXP ascending) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_row_id(cpp11::as_cpp<cpp11::decay_t<SEXP>>(order), cpp11::as_cpp<cpp11::decay_t<SEXP>>(group_sizes), cpp11::as_cpp<cpp11::decay_t<bool>>(ascending)));
   END_CPP11
 }
 // sequence.cpp
@@ -144,7 +158,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_lead_sequence",        (DL_FUNC) &_timeplyr_cpp_lead_sequence,        3},
     {"_timeplyr_cpp_list_which_not_null",  (DL_FUNC) &_timeplyr_cpp_list_which_not_null,  1},
     {"_timeplyr_cpp_num_na",               (DL_FUNC) &_timeplyr_cpp_num_na,               1},
+    {"_timeplyr_cpp_roll_na_fill",         (DL_FUNC) &_timeplyr_cpp_roll_na_fill,         2},
     {"_timeplyr_cpp_roll_na_fill_grouped", (DL_FUNC) &_timeplyr_cpp_roll_na_fill_grouped, 4},
+    {"_timeplyr_cpp_row_id",               (DL_FUNC) &_timeplyr_cpp_row_id,               3},
     {"_timeplyr_cpp_sorted_group_starts",  (DL_FUNC) &_timeplyr_cpp_sorted_group_starts,  1},
     {"_timeplyr_cpp_which_",               (DL_FUNC) &_timeplyr_cpp_which_,               2},
     {"_timeplyr_cpp_window_sequence",      (DL_FUNC) &_timeplyr_cpp_window_sequence,      4},

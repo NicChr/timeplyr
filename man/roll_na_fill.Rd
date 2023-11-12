@@ -28,20 +28,8 @@ A fast and efficient by-group method for
 \details{
 \subsection{Method}{
 
-When supplying groups using \code{g}, this method sorts \code{x} by \code{g} using
-\code{x[order(g)]} iff g is unsorted. \code{x} is then efficiently filled using
-one pass and re-ordered in the order it was given.
-For info, this re-sorting back to original order
-can be achieved generally using \code{order()} given that the
-following identity always holds:
-\preformatted{
-`all.equal(x, sort(x)[order(order(x))])`
-}
-
-Or alternatively:
-\preformatted{
-`all.equal(x, sort(x)[rank(x, ties.method = "first")])`
-}
+When supplying groups using \code{g}, this method uses \code{radixorder(g)} to
+specify how to loop through \code{x}, making this extremely efficient.
 
 When \code{x} contains zero or all \code{NA} values, then \code{x} is returned with no copy
 made.

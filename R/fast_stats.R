@@ -62,7 +62,7 @@ fn <- function(x, g = NULL, sort = TRUE,
 fcummean <- function(x, g = NULL, na.rm = FALSE, ...){
   x <- safe_ungroup(x)
   g <- GRP2(g, sort = FALSE, return.groups = FALSE)
-  sizes <- frowid(x, g = g)
+  sizes <- frowid(g)
   if (na.rm){
     sizes <- sizes - collapse::fcumsum(is.na(x), g = g, na.rm = FALSE)
   }

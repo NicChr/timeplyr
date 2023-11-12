@@ -38,7 +38,7 @@ testthat::test_that("NA fill", {
       filled
     )
   )
-  testthat::expect_equal(
+  testthat::expect_identical(
     roll_na_fill(y, g = groups),
     dplyr::pull(
       dplyr::mutate(df, filled =
@@ -47,7 +47,7 @@ testthat::test_that("NA fill", {
       filled
     )
   )
-  testthat::expect_equal(
+  testthat::expect_identical(
     roll_na_fill(z, g = groups),
     dplyr::pull(
       dplyr::mutate(df, filled =
@@ -65,7 +65,7 @@ testthat::test_that("NA fill", {
       filled
     )
   )
-  testthat::expect_equal(
+  testthat::expect_identical(
     roll_na_fill(sorted_df$y, g = sorted_df$groups),
     dplyr::pull(
       dplyr::mutate(sorted_df, filled =
@@ -85,7 +85,7 @@ testthat::test_that("NA fill", {
   )
 
   ### Fill limit
-  testthat::expect_equal(
+  testthat::expect_identical(
     roll_na_fill(sorted_df$y, g = sorted_df$groups, fill_limit = 1),
     dplyr::pull(
       dplyr::mutate(sorted_df, filled =
@@ -94,7 +94,7 @@ testthat::test_that("NA fill", {
       filled
     )
   )
-  testthat::expect_equal(
+  testthat::expect_identical(
     roll_na_fill(sorted_df$y, g = sorted_df$groups, fill_limit = 2),
     dplyr::pull(
       dplyr::mutate(sorted_df, filled =
@@ -104,3 +104,21 @@ testthat::test_that("NA fill", {
     )
   )
 })
+
+testthat::test_that("extra tests", {
+  set.seed(43)
+  x <- sample.int(10, 10^3, T)
+  g <- sample.int(3, 10^3, T)
+  x <- na_fill(x, prop = 1/3)
+
+  res1 <- roll_na_fill(x, g = g)
+  res2 <- dplyr::pull(
+    dplyr::mutate(
+      dplyr::tibble(
+        x = x, g = g
+      ), filled = vctrs::vec_fill_missing(x, direction = "down"), .by = g),
+    filled
+  )
+  testthat::expect_identical(res1, res2)
+})
+

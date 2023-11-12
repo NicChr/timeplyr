@@ -32,18 +32,14 @@ testthat::test_that("Testing frowid", {
     dplyr::ungroup()
   testthat::expect_equal(res,
                          flights %>%
-                           dplyr::mutate(id = frowid(., g = NULL),
+                           dplyr::mutate(id = row_id(.),
                                          .keep = "none"))
-  testthat::expect_identical(frowid(as.list(iris), g = NULL),
-                             seq_len(150))
-  testthat::expect_identical(frowid(iris$Sepal.Length, g = NULL),
-                             seq_len(150))
   # Grouped
   # testthat::expect_identical(frowid(flights), frowid2(flights, flights))
   testthat::expect_equal(
     dplyr::tibble(id1 = gres1$id,
                   # id2 = frowid(flights),
-                  id3 = frowid(flights, g = g1)) %>%
+                  id3 = frowid(g1)) %>%
       dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
                     max = do.call(pmax, dplyr::pick(id1, id3))) %>%
       dplyr::filter(min != max) %>%
@@ -51,40 +47,7 @@ testthat::test_that("Testing frowid", {
     0)
   testthat::expect_equal(
     dplyr::tibble(id1 = gres1$id,
-                  id3 = frowid(flights, g = g2)) %>%
-      dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
-                    max = do.call(pmax, dplyr::pick(id1, id3))) %>%
-      dplyr::filter(min != max) %>%
-      nrow(),
-    0)
-  testthat::expect_equal(
-    dplyr::tibble(id1 = gres1$id,
-                  # id2 = frowid(flights),
-                  id3 = frowid(flights, g = g3)) %>%
-      dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
-                    max = do.call(pmax, dplyr::pick(id1, id3))) %>%
-      dplyr::filter(min != max) %>%
-      nrow(),
-    0)
-  testthat::expect_equal(
-    dplyr::tibble(id1 = gres1$id,
-                  id3 = frowid(flights, g = g4)) %>%
-      dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
-                    max = do.call(pmax, dplyr::pick(id1, id3))) %>%
-      dplyr::filter(min != max) %>%
-      nrow(),
-    0)
-  testthat::expect_equal(
-    dplyr::tibble(id1 = gres1$id,
-                  id3 = frowid(flights, g = g5)) %>%
-      dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
-                    max = do.call(pmax, dplyr::pick(id1, id3))) %>%
-      dplyr::filter(min != max) %>%
-      nrow(),
-    0)
-  testthat::expect_equal(
-    dplyr::tibble(id1 = gres1$id,
-                  id3 = frowid(flights, g = g6)) %>%
+                  id3 = frowid(g2)) %>%
       dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
                     max = do.call(pmax, dplyr::pick(id1, id3))) %>%
       dplyr::filter(min != max) %>%
@@ -93,7 +56,31 @@ testthat::test_that("Testing frowid", {
   testthat::expect_equal(
     dplyr::tibble(id1 = gres1$id,
                   # id2 = frowid(flights),
-                  id3 = frowid(flights, g = g7)) %>%
+                  id3 = frowid(g3)) %>%
+      dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
+                    max = do.call(pmax, dplyr::pick(id1, id3))) %>%
+      dplyr::filter(min != max) %>%
+      nrow(),
+    0)
+  testthat::expect_equal(
+    dplyr::tibble(id1 = gres1$id,
+                  id3 = frowid(g4)) %>%
+      dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
+                    max = do.call(pmax, dplyr::pick(id1, id3))) %>%
+      dplyr::filter(min != max) %>%
+      nrow(),
+    0)
+  testthat::expect_equal(
+    dplyr::tibble(id1 = gres1$id,
+                  id3 = frowid(g5)) %>%
+      dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
+                    max = do.call(pmax, dplyr::pick(id1, id3))) %>%
+      dplyr::filter(min != max) %>%
+      nrow(),
+    0)
+  testthat::expect_equal(
+    dplyr::tibble(id1 = gres1$id,
+                  id3 = frowid(g6)) %>%
       dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
                     max = do.call(pmax, dplyr::pick(id1, id3))) %>%
       dplyr::filter(min != max) %>%
@@ -102,7 +89,7 @@ testthat::test_that("Testing frowid", {
   testthat::expect_equal(
     dplyr::tibble(id1 = gres1$id,
                   # id2 = frowid(flights),
-                  id3 = frowid(flights, g = g8)) %>%
+                  id3 = frowid(g7)) %>%
       dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
                     max = do.call(pmax, dplyr::pick(id1, id3))) %>%
       dplyr::filter(min != max) %>%
@@ -111,7 +98,7 @@ testthat::test_that("Testing frowid", {
   testthat::expect_equal(
     dplyr::tibble(id1 = gres1$id,
                   # id2 = frowid(flights),
-                  id3 = frowid(flights, g = g9)) %>%
+                  id3 = frowid(g8)) %>%
       dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
                     max = do.call(pmax, dplyr::pick(id1, id3))) %>%
       dplyr::filter(min != max) %>%
@@ -120,7 +107,7 @@ testthat::test_that("Testing frowid", {
   testthat::expect_equal(
     dplyr::tibble(id1 = gres1$id,
                   # id2 = frowid(flights),
-                  id3 = frowid(flights, g = g10)) %>%
+                  id3 = frowid(g9)) %>%
       dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
                     max = do.call(pmax, dplyr::pick(id1, id3))) %>%
       dplyr::filter(min != max) %>%
@@ -129,7 +116,7 @@ testthat::test_that("Testing frowid", {
   testthat::expect_equal(
     dplyr::tibble(id1 = gres1$id,
                   # id2 = frowid(flights),
-                  id3 = frowid(flights, g = g11)) %>%
+                  id3 = frowid(g10)) %>%
       dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
                     max = do.call(pmax, dplyr::pick(id1, id3))) %>%
       dplyr::filter(min != max) %>%
@@ -138,7 +125,7 @@ testthat::test_that("Testing frowid", {
   testthat::expect_equal(
     dplyr::tibble(id1 = gres1$id,
                   # id2 = frowid(flights),
-                  id3 = frowid(flights, g = g12)) %>%
+                  id3 = frowid(g11)) %>%
       dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
                     max = do.call(pmax, dplyr::pick(id1, id3))) %>%
       dplyr::filter(min != max) %>%
@@ -147,7 +134,7 @@ testthat::test_that("Testing frowid", {
   testthat::expect_equal(
     dplyr::tibble(id1 = gres1$id,
                   # id2 = frowid(flights),
-                  id3 = frowid(flights, g = g13)) %>%
+                  id3 = frowid(g12)) %>%
       dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
                     max = do.call(pmax, dplyr::pick(id1, id3))) %>%
       dplyr::filter(min != max) %>%
@@ -156,7 +143,7 @@ testthat::test_that("Testing frowid", {
   testthat::expect_equal(
     dplyr::tibble(id1 = gres1$id,
                   # id2 = frowid(flights),
-                  id3 = frowid(flights, g = g14)) %>%
+                  id3 = frowid(g13)) %>%
       dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
                     max = do.call(pmax, dplyr::pick(id1, id3))) %>%
       dplyr::filter(min != max) %>%
@@ -165,7 +152,7 @@ testthat::test_that("Testing frowid", {
   testthat::expect_equal(
     dplyr::tibble(id1 = gres1$id,
                   # id2 = frowid(flights),
-                  id3 = frowid(flights, g = g15)) %>%
+                  id3 = frowid(g14)) %>%
       dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
                     max = do.call(pmax, dplyr::pick(id1, id3))) %>%
       dplyr::filter(min != max) %>%
@@ -174,7 +161,16 @@ testthat::test_that("Testing frowid", {
   testthat::expect_equal(
     dplyr::tibble(id1 = gres1$id,
                   # id2 = frowid(flights),
-                  id3 = frowid(flights, g = g16)) %>%
+                  id3 = frowid(g15)) %>%
+      dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
+                    max = do.call(pmax, dplyr::pick(id1, id3))) %>%
+      dplyr::filter(min != max) %>%
+      nrow(),
+    0)
+  testthat::expect_equal(
+    dplyr::tibble(id1 = gres1$id,
+                  # id2 = frowid(flights),
+                  id3 = frowid(g16)) %>%
       dplyr::mutate(min = do.call(pmin, dplyr::pick(id1, id3)),
                     max = do.call(pmax, dplyr::pick(id1, id3))) %>%
       dplyr::filter(min != max) %>%

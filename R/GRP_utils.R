@@ -100,7 +100,7 @@ GRP_duplicated <- function(GRP, all = FALSE){
   if (all){
     out <- (sizes > 1L)[group_id]
   } else {
-    out <- frowid(group_id, g = GRP) > 1L
+    out <- frowid(GRP) > 1L
   }
   out
 }
@@ -177,18 +177,45 @@ GRP_ends <- function(GRP, use.g.names = FALSE,
 }
 # Extract group order from GRP object safely
 GRP_order <- function(GRP){
+                      ### Only use the below arguments
+                      ### If GRP_order is called from radixorderv2
+                      ### Otherwise leave as is
+                      # starts = TRUE, group.sizes = FALSE, sort = TRUE){
   out <- GRP[["order"]]
   if (is.null(out)){
     group_id <- GRP_group_id(GRP)
     if (GRP_is_sorted(GRP) || is_sorted(group_id)){
       out <- seq_along(group_id)
-      attributes(out) <- list(starts = GRP_starts(GRP),
-                              maxgrpn = collapse::fmax(GRP_group_sizes(GRP)),
-                              sorted = TRUE)
+      # This should not be used unless through radixorderv
+      # if (group.sizes){
+      #   attributes(out) <- list("starts" = GRP_starts(GRP),
+      #                           "group.sizes" = GRP_group_sizes(GRP),
+      #                           "maxgrpn" = collapse::fmax(GRP_group_sizes(GRP)),
+      #                           "sorted" = TRUE)
+      # } else {
+        attributes(out) <- list(starts = GRP_starts(GRP),
+                                maxgrpn = collapse::fmax(GRP_group_sizes(GRP)),
+                                sorted = TRUE)
+      # }
     } else {
-      out <- collapse::radixorderv(group_id, starts = TRUE)
+      out <- collapse::radixorderv(group_id,
+                                   starts = TRUE,
+                                   group.sizes = FALSE,
+                                   sort = TRUE)
     }
   }
+  # else if (group.sizes){
+  #   ### Again, if we need group.sizes from radixorderv2
+  #   ### We simply add group.sizes and reorder the attributes correctly
+  #   starts <- attr(out, "starts")
+  #   maxgrpn <- attr(out, "maxgrpn")
+  #   sorted <- attr(out, "sorted")
+  #   out <- strip_attrs(out)
+  #   attributes(out) <- list("starts" = starts,
+  #                           "group.sizes" = GRP_group_sizes(GRP),
+  #                           "maxgrpn" = maxgrpn,
+  #                           "sorted" = sorted)
+  # }
   out
 }
 # Making this because of a bug when gsplit(NULL, GRP(x, sort = FALSE))
@@ -384,33 +411,6 @@ GRP.Interval <- function(X, ...){
 GRP.NULL <- function(X, ...){
   NULL
 }
-GRP_row_id <- function(GRP, ascending = TRUE){
-  size <- GRP_data_size(GRP)
-  has_order <- !is.null(GRP[["order"]])
-  is_sorted <- GRP_is_sorted(GRP)
-  if (has_order || is_sorted){
-    seq_sizes <- GRP_group_sizes(GRP)
-    if (ascending){
-      start <- 1L
-      every <- 1L
-    } else {
-      start <- seq_sizes
-      every <- -1L
-    }
-    out <- sequence2(seq_sizes, from = start, by = every)
-    if (!is_sorted){
-      out <- collapse::greorder(out, g = GRP)
-    }
-  } else {
-    if (!ascending){
-      o <- seq.int(from = size, to = min(1L, size), by = -1L)
-    } else {
-     o <- NULL
-    }
-    out <- grouped_seq_len(size, check.o = FALSE, o = o, g = GRP)
-  }
-  out
-}
 # Use this to turn a sorted group ID into a GRP when you have basic group information
 sorted_group_id_to_GRP <- function(x,
                                    n_groups,
@@ -529,4 +529,63 @@ grouped_seq_len <- function(length, g = NULL, ...){
     ones <- collapse::alloc(1, length)
   }
   collapse::fcumsum(ones, g = g, na.rm = FALSE, ...)
+}
+# GRP_row_id <- function(g, ascending = TRUE){
+#   g <- GRP2(g, ascending = ascending)
+#   o <- GRP_order(g)
+#   sizes <- GRP_group_sizes(g)
+#   cpp_row_id(o, sizes)
+# }
+# grouped_row_id <- function(g, ascending = TRUE){
+#   o <- radixorderv2(g, starts = TRUE, sort = FALSE,
+#                     decreasing = !ascending)
+#   starts <- attr(o, "starts")
+#   o <- strip_attrs(o)
+#   cpp_row_id(o, starts)
+# }
+grouped_row_id <- function(x, ascending = TRUE){
+  o <- radixorderv2(x, starts = TRUE, sort = FALSE, group.sizes = TRUE)
+  if (is.null(o)){
+    return(seq_len(vec_length(x)))
+  }
+  # Basically the order item of a GRP object
+  # Doesn't naturally come with group sizes
+  if (is_GRP(x)){
+    group_sizes <- GRP_group_sizes(x)
+  } else {
+    group_sizes <- attr(o, "group.sizes")
+  }
+  starts <- attr(o, "starts")
+  is_sorted <- isTRUE(attr(o, "sorted"))
+  if (is_sorted){
+    if (ascending){
+      start <- 1L
+      every <- 1L
+    } else {
+      start <- group_sizes
+      every <- -1L
+    }
+    out <- sequence2(group_sizes, from = start, by = every)
+  } else {
+    out <- cpp_row_id(o, group_sizes, ascending)
+  }
+  out
+}
+radixorderv2 <- function(x, starts = FALSE, sort = TRUE, group.sizes = FALSE,
+                         ...){
+  if (is.null(x)){
+    return(NULL)
+  }
+  if (is_GRP(x)){
+    return(GRP_order(x))
+    # return(GRP_order(x, group.sizes = group.sizes))
+  }
+  if (is_interval(x)){
+    x <- interval_separate(x)
+  }
+  if (is.list(x) && list_has_interval(x)){
+    x <- mutate_intervals_to_ids(x)
+  }
+  collapse::radixorderv(x, starts = starts, sort = sort, group.sizes = group.sizes,
+                        ...)
 }

@@ -66,7 +66,7 @@ testthat::test_that("Expected outputs", {
 #     by = "g"]
 #  testthat::expect_equal(dt$mu1, dt$mu2)
 #  dt[, mu1 := time_roll_mean(x, g = g, window = 5,
-#                             time = frowid(x, g = g),
+#                             time = frowid(g),
 #                             close_left_boundary = TRUE,
 #                             partial = FALSE,
 #                             na.rm = TRUE)]

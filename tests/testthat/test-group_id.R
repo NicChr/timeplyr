@@ -193,7 +193,7 @@ testthat::test_that("Group locs", {
   base3 <- flights %>%
     dplyr::group_by(origin, dest) %>%
     dplyr::group_data() %>%
-    dplyr::mutate(.group = frowid(., NULL))
+    dplyr::mutate(.group = row_id(.))
   base4 <- base2 %>%
     dplyr::mutate(.group = seq_len(nrow(base2)))
   base5 <- base4

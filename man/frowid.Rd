@@ -4,37 +4,22 @@
 \alias{frowid}
 \title{Fast grouped row numbers}
 \usage{
-frowid(x, g, ascending = TRUE, order = TRUE)
+frowid(x, ascending = TRUE)
 }
 \arguments{
-\item{x}{A vector or data frame.}
-
-\item{g}{(Optional) Group IDs passed directly to \code{collapse::GRP()}.
-This can be a vector, list or data frame. \cr
-To specify no groups, set \code{g = NULL}. \cr
-If g is not supplied, the unique groups of x are used (the default).}
+\item{x}{A vector, data frame or \code{GRP} object.}
 
 \item{ascending}{When \code{ascending = TRUE} the row IDs are in
 increasing order. When \code{ascending = FALSE} the row IDs are in
 decreasing order.}
-
-\item{order}{Should the groups treated as ordered groups?
-This makes no difference on the result but can sometimes be faster for
-unsorted vectors.}
 }
 \value{
-An integer vector of row IDs
-or double if \code{length > .Machine$integer.max}
-If \code{x} is a vector, a vector \code{length(x)} will be returned.\cr
-If \code{x} is a data frame, a vector \code{nrow(x)} will be returned.\cr
-If \code{x} is a list, a vector \code{unique(lengths(x))} will be returned as
-long as the number of unique lengths is \verb{<= 1}.
+An integer vector of row IDs.
 }
 \description{
 \code{frowid()} is like \code{data.table::rowid()} but uses
-collapse for the grouping.
-
-For general use it is recommended to use \code{row_id()}.
+an alternative method for calculating row numbers and when
+\code{x} is a collapse \code{GRP} object, it is considerably faster.
 }
 \examples{
 library(timeplyr)
@@ -48,21 +33,18 @@ data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
 # Simple row numbers
-frowid(flights, g = NULL)
+row_id(flights)
 # Row numbers by origin
-frowid(flights, g = flights$origin)
+frowid(flights$origin)
+row_id(flights, origin)
 
 # Fast duplicate rows
 frowid(flights) > 1
 
-# On vectors, this is like base::seq_len()
-frowid(flights$year, g = NULL)
-
 # With data frames, better to use row_id()
 flights \%>\%
-  add_row_id() \%>\%
-  add_row_id(origin, dest,
-             .name = "grouped_row_id") # Row IDs by group
+  add_row_id() \%>\% # Plain row ids
+  add_row_id(origin, dest, .name = "grouped_row_id") # Row IDs by group
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)
