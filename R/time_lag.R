@@ -69,7 +69,7 @@ time_lag <- function(x, k = 1L,
   time_lag <- sizes - (as.integer(1L * k_sign))
   # time_lag <- sizes - 1L
   out <- roll_lag(x, time_lag)
-  which_rolled <- which(time_diff(roll_lag(time, time_lag), time, time_by = k) != 1)
+  which_rolled <- cpp_which(time_diff(roll_lag(time, time_lag), time, time_by = k) != 1)
   out[which_rolled] <- na_init(out)
   out
 }

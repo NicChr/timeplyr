@@ -4,6 +4,22 @@ cpp_is_whole_num <- function(x, tol, na_rm) {
   .Call(`_timeplyr_cpp_is_whole_num`, x, tol, na_rm)
 }
 
+cpp_roll_lag <- function(x, k, fill) {
+  .Call(`_timeplyr_cpp_roll_lag`, x, k, fill)
+}
+
+cpp_roll_lead <- function(x, k, fill) {
+  .Call(`_timeplyr_cpp_roll_lead`, x, k, fill)
+}
+
+cpp_roll_lag_grouped <- function(x, k, o, sizes, fill) {
+  .Call(`_timeplyr_cpp_roll_lag_grouped`, x, k, o, sizes, fill)
+}
+
+cpp_roll_lead_grouped <- function(x, k, o, sizes, fill) {
+  .Call(`_timeplyr_cpp_roll_lead_grouped`, x, k, o, sizes, fill)
+}
+
 cpp_roll_na_fill <- function(x, fill_limit) {
   .Call(`_timeplyr_cpp_roll_na_fill`, x, fill_limit)
 }

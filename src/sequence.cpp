@@ -2,32 +2,16 @@
 #include <Rinternals.h>
 
 double r_sum(SEXP x, bool na_rm = false){
-  // Rcpp::Function base_sum = Rcpp::Environment::base_env()["sum"];
-  // double out = Rf_asReal(base_sum(x, Rcpp::Named("na.rm") = na_rm));
   cpp11::function base_sum = cpp11::package("base")["sum"];
   double out = Rf_asReal(base_sum(x, cpp11::named_arg("na.rm") = na_rm));
-  // double out = 0;
-  // SEXP sum = PROTECT(base_sum(x, Rcpp::Named("na.rm") = na_rm));
-  // SEXP sum_double = PROTECT(Rf_coerceVector(sum, REALSXP));
-  // double *p_sum = REAL(sum_double);
-  // if (Rf_length(sum_double) > 0){
-  //   out = p_sum[0];
-  // }
-  // UNPROTECT(2);
   return out;
 }
 
 double r_min(SEXP x){
-  // Rcpp::Function base_min = Rcpp::Environment::base_env()["min"];
   cpp11::function base_min = cpp11::package("base")["min"];
   double out = R_PosInf;
   if (Rf_length(x) > 0){
     out = Rf_asReal(base_min(x));
-    // SEXP min = PROTECT(base_min(x));
-    // SEXP min_double = PROTECT(Rf_coerceVector(min, REALSXP));
-    // double *p_min = REAL(min_double);
-    // out = p_min[0];
-    // UNPROTECT(2);
   }
   return out;
 }
@@ -204,16 +188,6 @@ SEXP cpp_dbl_sequence(SEXP size, SEXP from, SEXP by) {
     double *p_by = REAL(by);
     for (int j = 0; j < size_n; ++j){
       seq_size = p_size[j];
-      // NA sizes
-      // if (seq_size == NA_INTEGER){
-      //   UNPROTECT(1);
-      //   Rf_error("sequence sizes cannot be NA");
-      // }
-      // Negative sizes
-      // if (seq_size < 0){
-      //   Rf_unprotect(1);
-      //   Rf_error("size must be a vector of non-negative integers");
-      // }
       fj = j % from_n;
       bj = j % by_n;
       start = p_from[fj];
