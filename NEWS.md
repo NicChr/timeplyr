@@ -1,4 +1,7 @@
-# timeplyr (Development version)
+# timeplyr 0.3.0
+
+* This version brings major performance improvements, including
+new algorithms for subsetting and rolling calculations.
 
 * The `roll_na_fill` algorithm has been improved significantly.
 
