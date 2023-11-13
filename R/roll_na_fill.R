@@ -90,6 +90,10 @@ roll_na_fill <- function(x, g = NULL, fill_limit = Inf){
   o <- radixorderv2(g, starts = FALSE, sort = FALSE, group.sizes = TRUE)
   if (is_GRP(g)){
     sizes <- GRP_group_sizes(g)
+    # Accounting for factors
+    if (collapse::anyv(sizes, 0L)){
+      sizes <- sizes[cpp_which(sizes > 0L)]
+    }
   } else {
     sizes <- attr(o, "group.sizes")
   }

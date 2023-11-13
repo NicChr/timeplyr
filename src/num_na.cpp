@@ -46,7 +46,9 @@ SEXP cpp_num_na(SEXP x){
   case CPLXSXP: {
     Rcomplex *p_x = COMPLEX(x);
     for (R_xlen_t i = 0; i < n; i++){
-      count += !((p_x[i]).r == (p_x[i]).r);
+      count +=
+        ( !((p_x[i]).r == (p_x[i]).r) ) ||
+        ( !((p_x[i]).i == (p_x[i]).i) );
   }
     break;
   }
