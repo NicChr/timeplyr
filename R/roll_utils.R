@@ -74,6 +74,7 @@ flag2 <- function(x, n = 1L, g = NULL, fill = NULL){
   }
   # }
 }
+
 fdiff2 <- function(x, n = 1L, g = NULL, ...){
   x - flag2(x, n = n, g = g, ...)
 }

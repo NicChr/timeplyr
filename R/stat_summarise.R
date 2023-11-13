@@ -165,9 +165,11 @@ stat_summarise <- function(data, ...,
     }
     add_cols <- setdiff(names(q_summary),
                         group_vars)
-    data.table::set(out,
-                    j = add_cols,
-                    value = fselect(q_summary, .cols = add_cols))
+    if (length(add_cols) > 0){
+      data.table::set(out,
+                      j = add_cols,
+                      value = fselect(q_summary, .cols = add_cols))
+    }
   }
   if (as_tbl){
     out <- df_as_tibble(out)

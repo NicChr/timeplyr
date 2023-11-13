@@ -37,13 +37,13 @@ data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
 # Simple row numbers
-row_id(flights)
+head(row_id(flights))
 # Row numbers by origin
-frowid(flights$origin)
-row_id(flights, origin)
+head(frowid(flights$origin))
+head(row_id(flights, origin))
 
 # Fast duplicate rows
-frowid(flights) > 1
+head(frowid(flights) > 1)
 
 # With data frames, better to use row_id()
 flights \%>\%

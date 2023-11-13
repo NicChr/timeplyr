@@ -119,8 +119,10 @@ q_summarise <- function(data, ...,
                   value = rep(quantile_out_nms,
                               each = df_nrow(q_df) / length(probs)))
   # Coerce variables to numeric for safety
-  q_df[, (non_group_dot_vars) := lapply(.SD, as.double),
-       .SDcols = non_group_dot_vars]
+  if (length(non_group_dot_vars) > 0){
+    q_df[, (non_group_dot_vars) := lapply(.SD, as.double),
+         .SDcols = non_group_dot_vars]
+  }
   for (.col in non_group_dot_vars){
     k <- 0L
     probi <- 0L
