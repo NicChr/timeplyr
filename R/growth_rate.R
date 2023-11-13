@@ -110,7 +110,7 @@ growth_rate <- function(x, na.rm = FALSE, log = FALSE, inf_fill = NULL){
     gr <- ( (x_n / x_1) ^ (1 / (n - 1)) )
   }
   if (!is.null(inf_fill)){
-    gr[is.infinite(gr)] <- inf_fill
+    gr[cpp_which(is.infinite(gr))] <- inf_fill
   }
   gr
 }

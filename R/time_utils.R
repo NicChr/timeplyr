@@ -1609,59 +1609,146 @@ period_to_list <- function(x){
 }
 
 days_in_month <- function (m, y) {
-  N_DAYS_IN_MONTHS <- c(Jan = 31L, Feb = 28L, Mar = 31L, Apr = 30L, May = 31L, Jun = 30L,
-                        Jul = 31L, Aug = 31L, Sep = 30L, Oct = 31L, Nov = 30L, Dec = 31L
+  N_DAYS_IN_MONTHS <- c(Jan = 31L,
+                        Feb = 28L,
+                        Mar = 31L,
+                        Apr = 30L,
+                        May = 31L,
+                        Jun = 30L,
+                        Jul = 31L,
+                        Aug = 31L,
+                        Sep = 30L,
+                        Oct = 31L,
+                        Nov = 30L,
+                        Dec = 31L
   )
   n_days <- N_DAYS_IN_MONTHS[m]
   n_days[cpp_which(m == 2L & lubridate::leap_year(y))] <- 29L
   n_days
 }
 int_to_per <- function (start, end){
+  set_recycle_args(start, end)
   start <- as_datetime2(start)
-  end <- as_datetime2(end)
-  duration <- strip_attrs(unclass(difftime(end, start, units = "secs")))
+  end <- time_cast(end, start)
+  duration <- time_as_number(end) - time_as_number(start)
   start <- unclass(as.POSIXlt(start))
   end <- unclass(as.POSIXlt(end))
-  negs <- duration < 0 & !is.na(duration)
+  negs <- duration < 0
   wnegs <- cpp_which(negs)
   wnnegs <- cpp_which(negs, invert = TRUE)
   per <- list()
-  for (nm in c("mday", "mon", "year")) {
+  for (nm in c("sec", "min", "hour", "mday", "mon", "year")) {
     per[[nm]] <- integer(length(negs))
     per[[nm]][wnegs] <- (start[[nm]] - end[[nm]])[wnegs]
     per[[nm]][wnnegs] <- (end[[nm]] - start[[nm]])[wnnegs]
-    # per[[nm]] <- data.table::fifelse(negs,
-    #                                  start[[nm]] - end[[nm]],
-    #                                  end[[nm]] - start[[nm]])
   }
-  names(per) <- c("day", "month", "year")
-  ndays <- !negs & per$day < 0 & !is.na(per$day)
+  names(per) <- c("second", "minute", "hour", "day", "month",
+                  "year")
+  nsecs <- per$second < 0
+  wnsecs <- cpp_which(nsecs)
+  per$second[wnsecs] <- 60 + per$second[wnsecs]
+  per$minute[wnsecs] <- per$minute[wnsecs] - 1
+  per$second[wnegs] <- -per$second[wnegs]
+  nmins <- per$minute < 0
+  wnmins <- cpp_which(nmins)
+  per$minute[wnmins] <- 60 + per$minute[wnmins]
+  per$hour[wnmins] <- per$hour[wnmins] - 1
+  per$minute[wnegs] <- -per$minute[wnegs]
+  nhous <- per$hour < 0
+  wnhous <- cpp_which(nhous)
+  per$hour[wnhous] <- 24 + per$hour[wnhous]
+  per$hour[wnegs] <- -per$hour[wnegs]
+  ndays <- !negs & per$day < 0
   wndays <- cpp_which(ndays)
-  if (length(wndays > 0)) {
-    add_months <- rep.int(-1L, sum(ndays))
+  if (length(wndays) > 0) {
+    add_months <- rep.int(-1, sum(ndays, na.rm = TRUE))
     pmonth <- end$mon[wndays]
-    pmonth[cpp_which(pmonth == 0L)] <- 1L
+    pmonth[cpp_which(pmonth == 0)] <- 1
     prev_month_days <- days_in_month(pmonth, end$year[wndays])
     per$day[wndays] <- pmax(prev_month_days - start$mday[wndays],
-                            0L) + end$mday[wndays]
+                            0) + end$mday[wndays]
     per$month[wndays] <- per$month[wndays] + add_months
   }
-  ndays <- negs & per$day < 0L & !is.na(per$day)
+  ndays <- negs & per$day < 0
   wndays <- cpp_which(ndays)
-  if (length(wndays > 0)) {
-    add_months <- rep.int(1L, sum(ndays))
-    this_month_days <- days_in_month(end$mon[wndays] + 1L,
+  if (length(wndays) > 0) {
+    add_months <- rep.int(1L, sum(ndays, na.rm = TRUE))
+    this_month_days <- days_in_month(end$mon[wndays] + 1,
                                      end$year[wndays])
     per$day[wndays] <- pmax(this_month_days - end$mday[wndays],
-                            0L) + start$mday[wndays]
+                            0) + start$mday[wndays]
     per$month[wndays] <- per$month[wndays] - add_months
   }
+  per$day[wnhous] <- per$day[wnhous] - 1
   per$day[wnegs] <- -per$day[wnegs]
-  nmons <- per$month < 0L & !is.na(per$month)
+  nmons <- per$month < 0
   wnmons <- cpp_which(nmons)
-  per$month[wnmons] <- 12L + per$month[wnmons]
-  per$year[wnmons] <- per$year[wnmons] - 1L
+  per$month[wnmons] <- 12 + per$month[wnmons]
+  per$year[wnmons] <- per$year[wnmons] - 1
   per$month[wnegs] <- -per$month[wnegs]
   per$year[wnegs] <- -per$year[wnegs]
   per
 }
+# int_to_per <- function (start, end){
+#   set_recycle_args(start, end)
+#   start <- as_datetime2(start)
+#   end <- time_cast(end, start)
+#   duration <- unclass(difftime(end, start, units = "secs"))
+#   start <- unclass(as.POSIXlt(start))
+#   end <- unclass(as.POSIXlt(end))
+#   negs <- duration < 0 & !is.na(duration)
+#   wnegs <- cpp_which(negs)
+#   wnnegs <- cpp_which(negs, invert = TRUE)
+#   per <- list()
+#   for (nm in c("sec", "min", "hour", "mday", "mon", "year")) {
+#     per[[nm]] <- integer(length(negs))
+#     per[[nm]][wnegs] <- (start[[nm]] - end[[nm]])[wnegs]
+#     per[[nm]][wnnegs] <- (end[[nm]] - start[[nm]])[wnnegs]
+#   }
+#   names(per) <- c("second", "minute", "hour", "day", "month",
+#                   "year")
+#   nsecs <- per$second < 0 & !is.na(per$second)
+#   wnsecs <- cpp_which(nsecs)
+#   per$second[wnsecs] <- 60 + per$second[wnsecs]
+#   per$minute[wnsecs] <- per$minute[wnsecs] - 1
+#   per$second[wnegs] <- -per$second[wnegs]
+#   nmins <- per$minute < 0 & !is.na(per$minute)
+#   wnmins <- cpp_which(nmins)
+#   per$minute[wnmins] <- 60 + per$minute[wnmins]
+#   per$hour[wnmins] <- per$hour[wnmins] - 1
+#   per$minute[wnegs] <- -per$minute[wnegs]
+#   nhous <- per$hour < 0 & !is.na(per$hour)
+#   wnhous <- cpp_which(nhous)
+#   per$hour[wnhous] <- 24 + per$hour[wnhous]
+#   per$hour[wnegs] <- -per$hour[wnegs]
+#   ndays <- !negs & per$day < 0 & !is.na(per$day)
+#   wndays <- cpp_which(ndays)
+#   if (length(wndays) > 0) {
+#     add_months <- rep.int(-1, sum(ndays))
+#     pmonth <- end$mon[wndays]
+#     pmonth[cpp_which(pmonth == 0)] <- 1
+#     prev_month_days <- days_in_month(pmonth, end$year[wndays])
+#     per$day[wndays] <- pmax(prev_month_days - start$mday[wndays],
+#                             0) + end$mday[wndays]
+#     per$month[wndays] <- per$month[wndays] + add_months
+#   }
+#   ndays <- negs & per$day < 0 & !is.na(per$day)
+#   wndays <- cpp_which(ndays)
+#   if (length(wndays) > 0) {
+#     add_months <- rep.int(1L, sum(ndays))
+#     this_month_days <- days_in_month(end$mon[wndays] + 1,
+#                                      end$year[wndays])
+#     per$day[wndays] <- pmax(this_month_days - end$mday[wndays],
+#                             0) + start$mday[wndays]
+#     per$month[wndays] <- per$month[wndays] - add_months
+#   }
+#   per$day[wnhous] <- per$day[wnhous] - 1
+#   per$day[wnegs] <- -per$day[wnegs]
+#   nmons <- per$month < 0 & !is.na(per$month)
+#   wnmons <- cpp_which(nmons)
+#   per$month[wnmons] <- 12 + per$month[wnmons]
+#   per$year[wnmons] <- per$year[wnmons] - 1
+#   per$month[wnegs] <- -per$month[wnegs]
+#   per$year[wnegs] <- -per$year[wnegs]
+#   per
+# }

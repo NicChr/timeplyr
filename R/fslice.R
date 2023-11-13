@@ -91,6 +91,7 @@ fslice <- function(data, ..., .by = NULL,
   if (abs(sum_n_rng) != sum(abs(n_rng))){
     stop("Can't mix negative and positive locations")
   }
+  # range_sign <- sign(sum(sign(1/n_rng))) # This can deal with -0
   range_sign <- sign(sum_n_rng)
   n <- as.integer(n)
   # Groups
@@ -123,10 +124,12 @@ fslice <- function(data, ..., .by = NULL,
       row_lens <- row_lens[keep]
       size <- size[keep]
     }
-    i <- unlist(lapply(rows, function(x) .subset(x, n)),
-                use.names = FALSE,
-                recursive = FALSE)
-    i <- collapse::na_rm(i)
+    i <- vector("list", length(rows))
+    for (j in seq_along(i)){
+      i[[j]] <- .subset(.subset2(rows, j),
+                        .subset(n, cpp_which(n <= .subset2(row_lens, j))))
+    }
+    i <- unlist(i, use.names = FALSE, recursive = FALSE)
     if (is.null(i)){
       i <- integer(0)
     }

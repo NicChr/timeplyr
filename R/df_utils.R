@@ -104,6 +104,7 @@ df_reconstruct <- function(data, template){
 # Row slice
 df_row_slice <- function(data, i, reconstruct = TRUE){
   if (is.logical(i)){
+    check_length(i, df_nrow(data))
     i <- cpp_which(i)
   }
   if (df_ncol(data) == 0L || list_has_interval(data)){

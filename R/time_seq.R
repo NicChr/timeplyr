@@ -507,7 +507,7 @@ period_seq_v2 <- function(sizes, from, units, num = 1,
   by <- collapse::gsplit(num, g = g, use.g.names = FALSE)
   # Repeat these by the group counts
   group_counts <- period_df[["n"]]
-  which_n_gt_1 <- which(group_counts > 1)
+  which_n_gt_1 <- cpp_which(group_counts > 1)
   for (ind in which_n_gt_1){
     by[ind][[1L]] <- rep.int(.subset2(by, ind),
                              .subset2(group_counts, ind))

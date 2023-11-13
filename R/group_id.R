@@ -173,8 +173,12 @@ group_id.default <- function(data, ..., order = TRUE,
 group_id.factor <- function(data, ..., order = TRUE,
                              ascending = TRUE,
                              as_qg = FALSE){
-  group_id(strip_attrs(unclass(data)),
-           order = order, ascending = ascending, as_qg = as_qg)
+  if (order && ascending && !as_qg){
+    strip_attrs(unclass(data))
+  } else {
+    group_id(unclass(data),
+             order = order, ascending = ascending, as_qg = as_qg)
+  }
 }
 # No need to have this anymore as there is a collapse::GRP.interval method..
 #' @export
