@@ -1,4 +1,9 @@
-# timeplyr 0.3.0
+# timeplyr (Development version)
+
+* Fixed a rare build issue using `R_SHORT_LEN_MAX` on certain systems. 
+Thanks @barracuda156.
+
+# timeplyr 0.3.0 (13-Nov-2023)
 
 * This version brings major performance improvements, including
 new algorithms for subsetting and rolling calculations.
