@@ -51,7 +51,7 @@ SEXP cpp_row_id(SEXP order, SEXP group_sizes, bool ascending){
 //     R_xlen_t n = Rf_xlength(order);
 //     R_xlen_t starts_size = Rf_xlength(sorted_group_starts);
 //     bool is_long;
-//     is_long = n > R_SHORT_LEN_MAX;
+//     is_long = (n > std::numeric_limits<int>::max());
 //     if (is_long){
 //         R_xlen_t oi;
 //         SEXP out = Rf_protect(Rf_allocVector(REALSXP, n));

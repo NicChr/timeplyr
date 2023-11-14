@@ -9,7 +9,7 @@
 SEXP cpp_which_(SEXP x, bool invert) {
   R_xlen_t n = Rf_xlength(x);
   int *p_x = LOGICAL(x);
-  bool is_long = n > R_SHORT_LEN_MAX;
+  bool is_long = (n > std::numeric_limits<int>::max());
   if (invert){
     if (is_long){
       R_xlen_t size = 0;
