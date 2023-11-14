@@ -90,24 +90,3 @@ SEXP cpp_row_id(SEXP order, SEXP group_sizes, bool ascending){
 //         return out;
 //     }
 // }
-// SEXP cpp_row_id(SEXP order, SEXP group_sizes){
-//     int n = Rf_length(order);
-//     SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
-//     int *p_out = INTEGER(out);
-//     int *p_o = INTEGER(order);
-//     int *p_group_sizes = INTEGER(group_sizes);
-//     int init = 0;
-//     int j = 0;
-//     int running_group_size = p_group_sizes[0];
-//     for (int i = 0; i < n; i++){
-//         ++init;
-//         p_out[p_o[i] - 1] = init;
-//         if (i >= (running_group_size - 1)){
-//             ++j;
-//             init = 0;
-//             running_group_size += p_group_sizes[j];
-//         }
-//     }
-//     Rf_unprotect(1);
-//     return out;
-// }

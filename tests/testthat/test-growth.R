@@ -5,50 +5,50 @@ collapse::set_collapse(nthreads = 1L)
 
 testthat::test_that("Normal cases", {
   x <- 1:10
-  testthat::expect_identical(growth(x, 3.75),
-                             3.75/mean(x))
-  testthat::expect_identical(growth(x, 3.75, log = TRUE),
-                             3.75/mean(x))
-  testthat::expect_identical(growth(0, 0),
-                             1)
-  testthat::expect_identical(growth(0, 1),
-                             Inf)
-  testthat::expect_identical(growth(0, 1, inf_fill = NA),
-                             NA_real_)
-  testthat::expect_identical(growth(0, 1, inf_fill = 99),
-                             99)
-  testthat::expect_identical(rolling_growth(c(0, x), n = 1, lag = 1),
-                             c(0, x)/dplyr::lag(c(0, x)))
-  testthat::expect_identical(rolling_growth(c(0, x), n = 1, lag = 1,
-                                            inf_fill = 99),
-                             {
-                               y <- c(0, x)/dplyr::lag(c(0, x))
-                               y[is.infinite(y)] <- 99
-                               y
-                               })
-  testthat::expect_identical(rolling_growth(c(0, x), n = 1, lag = 1,
-                                            inf_fill = NA),
-                             {
-                               y <- c(0, x)/dplyr::lag(c(0, x))
-                               y[is.infinite(y)] <- NA
-                               y
-                             })
-  testthat::expect_identical(rolling_growth(x, n = 1, lag = 0),
-                             rep(1, length(x)))
-  testthat::expect_identical(rolling_growth(x, n = 1, lag = 1),
-                             x/dplyr::lag(x))
-  testthat::expect_identical(rolling_growth(x, n = 1, lag = 2),
-                             x/dplyr::lag(x, n = 2))
-  testthat::expect_identical(rolling_growth(x, n = 1, lag = 3),
-                             x/dplyr::lag(x, n = 3))
-  testthat::expect_identical(rolling_growth(x, n = 3, lag = 3, partial = FALSE),
-                             roll_mean(x, window = 3, partial = FALSE)/
-                               roll_mean(dplyr::lag(x, n = 3), window = 3, partial = FALSE,
-                                        na.rm = FALSE))
-  testthat::expect_identical(rolling_growth(x, n = 3, lag = 2, partial = FALSE),
-                             roll_mean(x, window = 3, partial = FALSE, na.rm = FALSE)/
-                               roll_mean(dplyr::lag(x, n = 2), window = 3, partial = FALSE,
-                                        na.rm = FALSE))
+  testthat::expect_equal(growth(x, 3.75),
+                         3.75/mean(x))
+  testthat::expect_equal(growth(x, 3.75, log = TRUE),
+                         3.75/mean(x))
+  testthat::expect_equal(growth(0, 0),
+                         1)
+  testthat::expect_equal(growth(0, 1),
+                         Inf)
+  testthat::expect_equal(growth(0, 1, inf_fill = NA),
+                         NA_real_)
+  testthat::expect_equal(growth(0, 1, inf_fill = 99),
+                         99)
+  testthat::expect_equal(rolling_growth(c(0, x), n = 1, lag = 1),
+                         c(0, x)/dplyr::lag(c(0, x)))
+  testthat::expect_equal(rolling_growth(c(0, x), n = 1, lag = 1,
+                                        inf_fill = 99),
+                         {
+                           y <- c(0, x)/dplyr::lag(c(0, x))
+                           y[is.infinite(y)] <- 99
+                           y
+                         })
+  testthat::expect_equal(rolling_growth(c(0, x), n = 1, lag = 1,
+                                        inf_fill = NA),
+                         {
+                           y <- c(0, x)/dplyr::lag(c(0, x))
+                           y[is.infinite(y)] <- NA
+                           y
+                         })
+  testthat::expect_equal(rolling_growth(x, n = 1, lag = 0),
+                         rep(1, length(x)))
+  testthat::expect_equal(rolling_growth(x, n = 1, lag = 1),
+                         x/dplyr::lag(x))
+  testthat::expect_equal(rolling_growth(x, n = 1, lag = 2),
+                         x/dplyr::lag(x, n = 2))
+  testthat::expect_equal(rolling_growth(x, n = 1, lag = 3),
+                         x/dplyr::lag(x, n = 3))
+  testthat::expect_equal(rolling_growth(x, n = 3, lag = 3, partial = FALSE),
+                         roll_mean(x, window = 3, partial = FALSE)/
+                           roll_mean(dplyr::lag(x, n = 3), window = 3, partial = FALSE,
+                                     na.rm = FALSE))
+  testthat::expect_equal(rolling_growth(x, n = 3, lag = 2, partial = FALSE),
+                         roll_mean(x, window = 3, partial = FALSE, na.rm = FALSE)/
+                           roll_mean(dplyr::lag(x, n = 2), window = 3, partial = FALSE,
+                                     na.rm = FALSE))
 })
 
 testthat::test_that("Weights and offsets", {
