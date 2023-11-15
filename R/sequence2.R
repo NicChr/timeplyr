@@ -24,6 +24,7 @@
 #'
 #' `seq_v()` is a vectorised version of `seq()` that strictly accepts
 #' only the arguments `from`, `to` and `by`. \cr
+#' `seq_size()` returns the sequence sizes.
 #' `seq_id()` is a helper function to efficiently return unique IDs for
 #' each sequence.
 #'
@@ -43,6 +44,17 @@
 #'
 #' sequence(c(3, 2), by = c(-0.1, 0.1))
 #' sequence2(c(3, 2), by = c(-0.1, 0.1))
+#'
+#' seq_v(1, 10, by = c(1, 0.5))
+#' # Same as below
+#' c(seq(1, 10, 1), seq(1, 10, 0.5))
+#'
+#' # Programmers may use seq_size() to determine final sequence lengths
+#'
+#' sizes <- seq_size(1, 10, by = c(1, 0.5))
+#' print(paste(c("sequence sizes: (", sizes, ") total size:", sum(sizes)),
+#'             collapse = " "))
+#'
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
@@ -99,6 +111,8 @@ seq_v <- function(from = 1L, to = 1L, by = 1L){
   out_size <- seq_size(from = from, to = to, by = by)
   sequence2(out_size, from = from, by = by)
 }
+#' @rdname sequence2
+#' @export
 seq_size <- function(from, to, by = 1L){
   del <- to - from
   if (is.integer(by) && allv2(by, 1L)){

@@ -467,6 +467,9 @@ add_group_order <- function(data, ..., ascending = TRUE,
 #   }
 # }
 group2 <- function(X, ...){
+  if (is.null(X)){
+    return(NULL)
+  }
   if (is_interval(X)){
     X <- interval_separate(X)
   }

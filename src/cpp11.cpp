@@ -40,6 +40,20 @@ extern "C" SEXP _timeplyr_cpp_roll_lead_grouped(SEXP x, SEXP k, SEXP o, SEXP siz
     return cpp11::as_sexp(cpp_roll_lead_grouped(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<int>>(k), cpp11::as_cpp<cpp11::decay_t<SEXP>>(o), cpp11::as_cpp<cpp11::decay_t<SEXP>>(sizes), cpp11::as_cpp<cpp11::decay_t<SEXP>>(fill)));
   END_CPP11
 }
+// lag.cpp
+SEXP cpp_roll_diff(SEXP x, int k, SEXP fill);
+extern "C" SEXP _timeplyr_cpp_roll_diff(SEXP x, SEXP k, SEXP fill) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_roll_diff(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<int>>(k), cpp11::as_cpp<cpp11::decay_t<SEXP>>(fill)));
+  END_CPP11
+}
+// lag.cpp
+SEXP cpp_roll_diff_grouped(SEXP x, int k, SEXP o, SEXP sizes, SEXP fill);
+extern "C" SEXP _timeplyr_cpp_roll_diff_grouped(SEXP x, SEXP k, SEXP o, SEXP sizes, SEXP fill) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_roll_diff_grouped(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<int>>(k), cpp11::as_cpp<cpp11::decay_t<SEXP>>(o), cpp11::as_cpp<cpp11::decay_t<SEXP>>(sizes), cpp11::as_cpp<cpp11::decay_t<SEXP>>(fill)));
+  END_CPP11
+}
 // na_fill.cpp
 SEXP cpp_roll_na_fill(SEXP x, double fill_limit);
 extern "C" SEXP _timeplyr_cpp_roll_na_fill(SEXP x, SEXP fill_limit) {
@@ -118,13 +132,6 @@ extern "C" SEXP _timeplyr_cpp_lead_sequence(SEXP size, SEXP k, SEXP partial) {
   END_CPP11
 }
 // utils.cpp
-bool test_long_vector_support();
-extern "C" SEXP _timeplyr_test_long_vector_support() {
-  BEGIN_CPP11
-    return cpp11::as_sexp(test_long_vector_support());
-  END_CPP11
-}
-// utils.cpp
 SEXP cpp_list_which_not_null(SEXP l);
 extern "C" SEXP _timeplyr_cpp_list_which_not_null(SEXP l) {
   BEGIN_CPP11
@@ -186,6 +193,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_lead_sequence",        (DL_FUNC) &_timeplyr_cpp_lead_sequence,        3},
     {"_timeplyr_cpp_list_which_not_null",  (DL_FUNC) &_timeplyr_cpp_list_which_not_null,  1},
     {"_timeplyr_cpp_num_na",               (DL_FUNC) &_timeplyr_cpp_num_na,               1},
+    {"_timeplyr_cpp_roll_diff",            (DL_FUNC) &_timeplyr_cpp_roll_diff,            3},
+    {"_timeplyr_cpp_roll_diff_grouped",    (DL_FUNC) &_timeplyr_cpp_roll_diff_grouped,    5},
     {"_timeplyr_cpp_roll_lag",             (DL_FUNC) &_timeplyr_cpp_roll_lag,             3},
     {"_timeplyr_cpp_roll_lag_grouped",     (DL_FUNC) &_timeplyr_cpp_roll_lag_grouped,     5},
     {"_timeplyr_cpp_roll_lead",            (DL_FUNC) &_timeplyr_cpp_roll_lead,            3},
@@ -199,7 +208,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_list_has_interval",        (DL_FUNC) &_timeplyr_list_has_interval,        1},
     {"_timeplyr_list_item_is_interval",    (DL_FUNC) &_timeplyr_list_item_is_interval,    1},
     {"_timeplyr_roll_time_threshold",      (DL_FUNC) &_timeplyr_roll_time_threshold,      3},
-    {"_timeplyr_test_long_vector_support", (DL_FUNC) &_timeplyr_test_long_vector_support, 0},
     {NULL, NULL, 0}
 };
 }

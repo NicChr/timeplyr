@@ -4,14 +4,13 @@
 #define R_NO_REMAP
 #define VECTOR_PTR_RO(x) ((const SEXP*) DATAPTR_RO(x))
 
-[[cpp11::register]]
-bool test_long_vector_support() {
-#ifdef RCPP_HAS_LONG_LONG_TYPES
-  return true;
-#else
-  return false;
-#endif
-}
+// bool test_long_vector_support() {
+// #ifdef LONG_VECTOR_SUPPORT
+//   return true;
+// #else
+//   return false;
+// #endif
+// }
 
 
 [[cpp11::register]]
@@ -68,9 +67,9 @@ bool list_has_interval( SEXP l ) {
 
 [[cpp11::register]]
 SEXP list_item_is_interval( SEXP l ) {
-  Rf_protect(l = Rf_coerceVector(l, VECSXP));
-  const SEXP *p_l = VECTOR_PTR_RO(l);
-  int n = Rf_length(l);
+  SEXP list_sexp = Rf_protect(Rf_coerceVector(l, VECSXP));
+  const SEXP *p_l = VECTOR_PTR_RO(list_sexp);
+  int n = Rf_length(list_sexp);
   SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n));
   int *p_out = LOGICAL(out);
   for (int i = 0; i < n; ++i) {

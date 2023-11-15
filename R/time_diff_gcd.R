@@ -56,10 +56,10 @@ time_diff_gcd <- function(x, time_by = 1,
                           time_type = getOption("timeplyr.time_type", "auto"),
                           is_sorted = FALSE,
                           tol = sqrt(.Machine$double.eps)){
-  if (!is_sorted){
-    is_sorted <- is_sorted(x)
+  x <- collapse::funique(x, sort = FALSE)
+  if (!is_sorted && !is_sorted(x)){
+    x <- sort(x, na.last = TRUE)
   }
-  x <- collapse::funique(x, sort = !is_sorted)
   if (length(x) == 1L && is.na(x)){
     return(NA_real_)
   }
@@ -75,7 +75,7 @@ time_diff_gcd <- function(x, time_by = 1,
                         time_type = time_type,
                         g = NULL,
                         na_skip = FALSE)
-  tdiff <- collapse::fdiff.default(tdiff, fill = Inf, n = 1)
+  tdiff <- cpp_roll_diff(tdiff, k = 1L, fill = Inf)
   log10_tol <- ceiling(abs(log10(tol)))
   tdiff <- collapse::funique.default(
     round(

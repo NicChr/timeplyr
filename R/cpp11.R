@@ -20,6 +20,14 @@ cpp_roll_lead_grouped <- function(x, k, o, sizes, fill) {
   .Call(`_timeplyr_cpp_roll_lead_grouped`, x, k, o, sizes, fill)
 }
 
+cpp_roll_diff <- function(x, k, fill) {
+  .Call(`_timeplyr_cpp_roll_diff`, x, k, fill)
+}
+
+cpp_roll_diff_grouped <- function(x, k, o, sizes, fill) {
+  .Call(`_timeplyr_cpp_roll_diff_grouped`, x, k, o, sizes, fill)
+}
+
 cpp_roll_na_fill <- function(x, fill_limit) {
   .Call(`_timeplyr_cpp_roll_na_fill`, x, fill_limit)
 }
@@ -62,10 +70,6 @@ cpp_lag_sequence <- function(size, k, partial) {
 
 cpp_lead_sequence <- function(size, k, partial) {
   .Call(`_timeplyr_cpp_lead_sequence`, size, k, partial)
-}
-
-test_long_vector_support <- function() {
-  .Call(`_timeplyr_test_long_vector_support`)
 }
 
 cpp_list_which_not_null <- function(l) {

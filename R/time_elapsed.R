@@ -78,76 +78,42 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
   time_by <- time_by_get(x, time_by = time_by)
   check_time_by_length_is_one(time_by)
   check_length(fill, 1)
-  g <- GRP2(g, sort = TRUE, return.groups = TRUE, return.order = TRUE)
+  needs_fill <- !is.na(fill)
+  has_groups <- !is.null(g)
   if (rolling){
-    sorted_group_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = TRUE)
-    sorted_g <- sorted_group_info[["sorted_GRP"]]
-    x <- sorted_group_info[["x"]]
-    if (sorted_group_info[["has_groups"]]){
-      group_starts <- GRP_starts(sorted_g)
+    g <- GRP2(g, sort = TRUE, return.groups = FALSE, return.order = TRUE)
+    o <- GRP_order(g)
+    if (has_groups){
+      is_sorted <- GRP_is_sorted(g)
+      sorted_group_starts <- attr(o, "starts")
     } else {
-      group_starts <- min(length(x), 1L)
+      is_sorted = TRUE
+      sorted_group_starts <- min(length(x), 1L)
     }
     if (na_skip){
-      x_filled <- roll_na_fill(x, g = sorted_g)
-      x_lag <- flag2(x_filled, g = sorted_g)
-      group_starts <- group_starts +
-        fnmiss(x_lag, g = sorted_g, use.g.names = FALSE) - 1L
+      x_filled <- roll_na_fill(x, g = g)
+      x_lag <- flag2(x_filled, g = g)
+      if (needs_fill){
+        sorted_group_starts <- sorted_group_starts +
+          fnmiss(x_lag, g = g, use.g.names = FALSE) - 1L
+      }
     } else {
-      x_lag <- flag2(x, g = sorted_g)
+      x_lag <- flag2(x, g = g)
     }
     out <- time_diff(x_lag, x, time_by = time_by, time_type = time_type)
-    if (!is.na(fill)){
-      out[group_starts] <- fill
-    }
-    if (!sorted_group_info[["sorted"]]){
-      out <- collapse::greorder(out, g = g)
+    if (needs_fill){
+      if (has_groups){
+        out[o[sorted_group_starts]] <- fill
+      } else {
+        out[sorted_group_starts] <- fill
+      }
     }
   } else {
+    g <- GRP2(g, sort = FALSE, return.groups = FALSE, return.order = FALSE)
     # Index time
     first_time <- gfirst(x, g = g, na.rm = na_skip)
     out <- time_diff(first_time, x, time_by = time_by, time_type = time_type)
   }
   out
 }
-# time_elapsed2 <- function(x, time_by = NULL, g = NULL,
-#                          time_type = getOption("timeplyr.time_type", "auto"),
-#                          rolling = TRUE, fill = NA,
-#                          na_skip = TRUE){
-#   check_is_time_or_num(x)
-#   time_by <- time_by_get(x, time_by = time_by)
-#   check_time_by_length_is_one(time_by)
-#   check_length(fill, 1)
-#   needs_fill <- !is.na(fill)
-#   g <- GRP2(g, return.groups = TRUE, return.order = TRUE)
-#   if (rolling){
-#     if (!is.null(g)){
-#       is_sorted <- GRP_is_sorted(g)
-#       group_starts <- GRP_starts(g)
-#       # o <- GRP_order(g)
-#     } else {
-#       is_sorted = TRUE
-#       # o <- seq_along(x)
-#       group_starts <- min(length(x), 1L)
-#     }
-#     if (na_skip){
-#       x_filled <- roll_na_fill(x, g = g)
-#       x_lag <- flag2(x_filled, g = g)
-#       # if (needs_fill){
-#       #   group_starts <- group_starts +
-#       #     fnmiss(x_lag, g = g, use.g.names = FALSE) - 1L
-#       # }
-#     } else {
-#       x_lag <- flag2(x, g = g)
-#     }
-#     out <- time_diff(x_lag, x, time_by = time_by, time_type = time_type)
-#     # if (needs_fill){
-#     #   out[o[group_starts]] <- fill
-#     # }
-#   } else {
-#     # Index time
-#     first_time <- gfirst(x, g = g, na.rm = na_skip)
-#     out <- time_diff(first_time, x, time_by = time_by, time_type = time_type)
-#   }
-#   out
-# }
+

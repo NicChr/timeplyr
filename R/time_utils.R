@@ -107,7 +107,8 @@ time_by_unit <- function(time_by){
   names(time_by)
 }
 time_by_is_num <- function(time_by){
-  isTRUE(class(time_by) %in% c("integer", "numeric")) ||
+  is.numeric(time_by) ||
+  # isTRUE(class(time_by) %in% c("integer", "numeric")) ||
     (is.list(time_by) &&
        length(time_by_unit(time_by)) == 1L &&
        time_by_unit(time_by) == "numeric")

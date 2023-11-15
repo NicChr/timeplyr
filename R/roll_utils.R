@@ -23,60 +23,44 @@ flag2 <- function(x, n = 1L, g = NULL, fill = NULL){
   if (is.null(x)){
     return(NULL)
   }
-  N <- vec_length(x)
-  n <- as.integer(sign(n) * min(vec_length(x), abs(n)))
+  check_length(n, 1)
+  n <- as.integer(n)
+  # N <- vec_length(x)
+  # n <- as.integer(sign(n) * min(N, abs(n)))
   if (is.null(g)){
     if (n < 0){
-      if (is_df(x)){
-        return(df_row_slice(x, cpp_roll_lead(df_seq_along(x), abs(n), fill)))
-      } else {
-        return(cpp_roll_lead(x, abs(n), fill))
-      }
+      return(cpp_roll_lead(x, abs(n), fill))
     } else {
-      if (is_df(x)){
-        return(df_row_slice(x, cpp_roll_lag(df_seq_along(x), n, fill)))
-      } else {
-        return(cpp_roll_lag(x, n, fill))
-      }
+      return(cpp_roll_lag(x, n, fill))
     }
   }
   o <- radixorderv2(g, starts = FALSE, sort = FALSE, group.sizes = TRUE)
   if (is_GRP(g)){
     sizes <- GRP_group_sizes(g)
-    is_sorted <- GRP_is_sorted(g)
   } else {
     sizes <- attr(o, "group.sizes")
-    is_sorted <- is.null(g) || isTRUE(attr(o, "sorted"))
   }
-  # if (is.null(o)){
-  #   o <- seq_len(N)
-  # }
-  # if (is.null(sizes)){
-  #   sizes <- N
-  # }
-  # if (is_sorted){
-  #   collapse::flag(x,  n = n, fill = fill)
-  # } else {
   if (n >= 0){
-    if (is_df(x)){
-      df_row_slice(x, cpp_roll_lag_grouped(o, n, o, sizes, fill))
-    } else {
-      cpp_roll_lag_grouped(x, n, o, sizes, fill)
-    }
-
+    cpp_roll_lag_grouped(x, n, o, sizes, fill)
   } else {
-    if (is_df(x)){
-      df_row_slice(x, cpp_roll_lead_grouped(o, abs(n), o, sizes, fill))
-    } else {
-      cpp_roll_lead_grouped(x, abs(n), o, sizes, fill)
-    }
-
+    cpp_roll_lead_grouped(x, abs(n), o, sizes, fill)
   }
-  # }
 }
 
-fdiff2 <- function(x, n = 1L, g = NULL, ...){
-  x - flag2(x, n = n, g = g, ...)
+fdiff2 <- function(x, n = 1L, g = NULL, fill = NULL){
+  check_length(n, 1)
+  n <- as.integer(n)
+  o <- radixorderv2(g, starts = FALSE, sort = FALSE, group.sizes = TRUE)
+  if (is_GRP(g)){
+    sizes <- GRP_group_sizes(g)
+  } else {
+    sizes <- attr(o, "group.sizes")
+  }
+  if (is.null(g)){
+    cpp_roll_diff(x, k = n, fill = fill)
+  } else {
+    cpp_roll_diff_grouped(x, k = n, fill = fill, o = o, sizes = sizes)
+  }
 }
 
 window_sequence <- function(size, k, partial = TRUE, ascending = TRUE) {

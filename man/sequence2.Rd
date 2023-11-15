@@ -4,6 +4,7 @@
 \alias{sequence2}
 \alias{seq_id}
 \alias{seq_v}
+\alias{seq_size}
 \title{Extension to \code{base::sequence()}}
 \usage{
 sequence2(nvec, from = 1L, by = 1L)
@@ -11,6 +12,8 @@ sequence2(nvec, from = 1L, by = 1L)
 seq_id(nvec)
 
 seq_v(from = 1L, to = 1L, by = 1L)
+
+seq_size(from, to, by = 1L)
 }
 \arguments{
 \item{nvec}{Vector of sequence lengths.}
@@ -40,6 +43,7 @@ addition and multiplication.
 
 \code{seq_v()} is a vectorised version of \code{seq()} that strictly accepts
 only the arguments \code{from}, \code{to} and \code{by}. \cr
+\code{seq_size()} returns the sequence sizes.
 \code{seq_id()} is a helper function to efficiently return unique IDs for
 each sequence.
 }
@@ -59,6 +63,17 @@ sequence2(1:3, by = 0.1)
 
 sequence(c(3, 2), by = c(-0.1, 0.1))
 sequence2(c(3, 2), by = c(-0.1, 0.1))
+
+seq_v(1, 10, by = c(1, 0.5))
+# Same as below
+c(seq(1, 10, 1), seq(1, 10, 0.5))
+
+# Programmers may use seq_size() to determine final sequence lengths
+
+sizes <- seq_size(1, 10, by = c(1, 0.5))
+print(paste(c("sequence sizes: (", sizes, ") total size:", sum(sizes)),
+            collapse = " "))
+
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

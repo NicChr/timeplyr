@@ -181,6 +181,9 @@ GRP_order <- function(GRP){
                       ### If GRP_order is called from radixorderv2
                       ### Otherwise leave as is
                       # starts = TRUE, group.sizes = FALSE, sort = TRUE){
+  if (is.null(GRP)){
+    return(NULL)
+  }
   out <- GRP[["order"]]
   if (is.null(out)){
     group_id <- GRP_group_id(GRP)
@@ -564,9 +567,11 @@ radixorderv2 <- function(x, starts = FALSE, sort = TRUE, group.sizes = FALSE,
   if (is.null(x)){
     return(NULL)
   }
+  # if (is.integer(x) && "sorted" %in% attr(attributes(x), "names")){
+  #   return(x)
+  # }
   if (is_GRP(x)){
     return(GRP_order(x))
-    # return(GRP_order(x, group.sizes = group.sizes))
   }
   if (is_interval(x)){
     x <- interval_separate(x)
