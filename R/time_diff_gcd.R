@@ -28,6 +28,7 @@
 #' @examples
 #' library(timeplyr)
 #' library(lubridate)
+#' library(cppdoubles)
 #' \dontshow{
 #' .n_dt_threads <- data.table::getDTthreads()
 #' .n_collapse_threads <- collapse::get_collapse()$nthreads
@@ -46,7 +47,7 @@
 #' time_diff_gcd(quarter_seq, time_by = "months", time_type = "duration")
 #'
 #' # Detects monthly granularity
-#' dplyr::near(time_diff_gcd(as.vector(time(AirPassengers))), 1/12, tol = 1e-06)
+#' double_equal(time_diff_gcd(as.vector(time(AirPassengers))), 1/12)
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
@@ -75,16 +76,54 @@ time_diff_gcd <- function(x, time_by = 1,
                         time_type = time_type,
                         g = NULL,
                         na_skip = FALSE)
-  tdiff <- cpp_roll_diff(tdiff, k = 1L, fill = Inf)
+  tdiff <- cpp_roll_diff(tdiff, k = 1L, fill = 0)
   log10_tol <- ceiling(abs(log10(tol)))
   tdiff <- collapse::funique.default(
     round(
-      abs(tdiff), digits = log10_tol
+      abs(tdiff), digits = log10_tol + 1
     )
   )
+  tdiff <- collapse::funique.default(abs(tdiff))
   tdiff <- tdiff[cpp_which(double_gt(tdiff, 0, tol = tol))]
-  if (length(tdiff) == 1 && tdiff == Inf){
-    return(10^(-log10_tol))
-  }
-  collapse::vgcd(tdiff)
+  cpp_gcd(as.double(tdiff), tol = tol, start = 1L)
+  # round(cpp_gcd(as.double(tdiff), tol = tol, start = 1L),
+  #       digits = log10_tol + 1)
 }
+
+# Previous method
+# time_diff_gcd2 <- function(x, time_by = 1,
+#                           time_type = getOption("timeplyr.time_type", "auto"),
+#                           is_sorted = FALSE,
+#                           tol = sqrt(.Machine$double.eps)){
+#   x <- collapse::funique(x, sort = FALSE)
+#   if (!is_sorted && !is_sorted(x)){
+#     x <- sort(x, na.last = TRUE)
+#   }
+#   if (length(x) == 1L && is.na(x)){
+#     return(NA_real_)
+#   }
+#   x <- collapse::na_rm(x)
+#   if (length(x) == 0L){
+#     return(numeric())
+#   }
+#   if (length(x) == 1L){
+#     return(1)
+#   }
+#   tdiff <- time_elapsed(x, rolling = FALSE,
+#                         time_by = time_by,
+#                         time_type = time_type,
+#                         g = NULL,
+#                         na_skip = FALSE)
+#   tdiff <- cpp_roll_diff(tdiff, k = 1L, fill = Inf)
+#   log10_tol <- ceiling(abs(log10(tol)))
+#   tdiff <- collapse::funique.default(
+#     round(
+#       abs(tdiff), digits = log10_tol
+#     )
+#   )
+#   tdiff <- tdiff[cpp_which(double_gt(tdiff, 0, tol = tol))]
+#   if (length(tdiff) == 1 && tdiff == Inf){
+#     return(10^(-log10_tol))
+#   }
+#   collapse::vgcd(tdiff)
+# }

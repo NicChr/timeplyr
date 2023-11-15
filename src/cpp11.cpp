@@ -5,6 +5,13 @@
 #include "cpp11/declarations.hpp"
 #include <R_ext/Visibility.h>
 
+// gcd.cpp
+double cpp_gcd(SEXP x, double tol, int start);
+extern "C" SEXP _timeplyr_cpp_gcd(SEXP x, SEXP tol, SEXP start) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_gcd(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(tol), cpp11::as_cpp<cpp11::decay_t<int>>(start)));
+  END_CPP11
+}
 // is_whole_num.cpp
 SEXP cpp_is_whole_num(SEXP x, double tol, bool na_rm);
 extern "C" SEXP _timeplyr_cpp_is_whole_num(SEXP x, SEXP tol, SEXP na_rm) {
@@ -187,6 +194,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_before_sequence",          (DL_FUNC) &_timeplyr_before_sequence,          2},
     {"_timeplyr_cpp_dbl_sequence",         (DL_FUNC) &_timeplyr_cpp_dbl_sequence,         3},
     {"_timeplyr_cpp_df_group_indices",     (DL_FUNC) &_timeplyr_cpp_df_group_indices,     2},
+    {"_timeplyr_cpp_gcd",                  (DL_FUNC) &_timeplyr_cpp_gcd,                  3},
     {"_timeplyr_cpp_int_sequence",         (DL_FUNC) &_timeplyr_cpp_int_sequence,         3},
     {"_timeplyr_cpp_is_whole_num",         (DL_FUNC) &_timeplyr_cpp_is_whole_num,         3},
     {"_timeplyr_cpp_lag_sequence",         (DL_FUNC) &_timeplyr_cpp_lag_sequence,         3},

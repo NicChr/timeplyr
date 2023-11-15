@@ -50,6 +50,7 @@ Fast greatest common divisor of time differences
 \examples{
 library(timeplyr)
 library(lubridate)
+library(cppdoubles)
 \dontshow{
 .n_dt_threads <- data.table::getDTthreads()
 .n_collapse_threads <- collapse::get_collapse()$nthreads
@@ -68,7 +69,7 @@ time_diff_gcd(quarter_seq, time_by = months(1))
 time_diff_gcd(quarter_seq, time_by = "months", time_type = "duration")
 
 # Detects monthly granularity
-dplyr::near(time_diff_gcd(as.vector(time(AirPassengers))), 1/12, tol = 1e-06)
+double_equal(time_diff_gcd(as.vector(time(AirPassengers))), 1/12)
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

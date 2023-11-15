@@ -304,6 +304,34 @@ gcd <- function(x, y) {
   r <- x %% y
   ifelse(r, gcd(y, r), y)
 }
+# gcd3 <- function(x, y) {
+#   r <- x %% y
+#   while(r > 0){
+#     x <- r
+#     r <- x %% r
+#   }
+#   x
+# }
+gcd2 <- function(x, y, tol = 0) {
+  while(isTRUE(abs(y) > tol)){
+    r <- x %% y
+    x <- y
+    y <- r
+  }
+  x
+}
+# gcd2 <- function(x, y, tol = 0) {
+#     r <- x %% y
+#     while(isTRUE(r > tol)){
+#       r <- x %% y
+#       x <- y
+#       y <- r
+#       # y <- r
+#       # r <- x %% y
+#       # x <- y
+#     }
+#     x
+# }
 # Original function I wrote using Matthew Lundberg's gcd function above
 # gcd2 <- function(x){
 #   if (!is.numeric(x)){
