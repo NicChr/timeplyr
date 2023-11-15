@@ -25,31 +25,6 @@ double cpp_gcd2(double x, double y, double tol = 0){
     return x;
 }
 
-// double cpp_gcd2(double x, double y, double tol = 0){
-//     if (y == 0){
-//         return 0.0;
-//     }
-//     if (x == R_PosInf){
-//         return y;
-//     }
-//     if (y == R_PosInf){
-//         return x;
-//     }
-//     double r;
-//     // double r = std::fmod(x, y);
-//     // while(r > tol){
-//     //     y = r;
-//     //     r = std::fmod(x, y);
-//     //     x = y;
-//     // }
-//     while(y > tol){
-//         r = std::fmod(x, y);
-//         x = y;
-//         y = r;
-//     }
-//     return x;
-// }
-
 // greatest common divisor with tolerance
 // This is nice but uses memory
 
@@ -74,37 +49,24 @@ double cpp_gcd2(double x, double y, double tol = 0){
 //                            }
 //                            return x1;
 //                        });
-//     // double init = x[0];
-//     // return std::reduce(x.begin(), x.end(), init,
-//     //                          [](double x1, double x2){
-//     //                              if (x2 == 0){
-//     //                                  return 0.0;
-//     //                              }
-//     //                              int i = 0;
-//     //                              double r = std::fmod(x1, x2);
-//     //                              while(r > 0){
-//     //                                  x2 = r;
-//     //                                  r = std::fmod(x1, x2);
-//     //                                  x1 = x2;
-//     //                                  if (i >= 100){
-//     //                                      break;
-//     //                                  }
-//     //                                  ++i;
-//     //                              }
-//     //                              return x1;
-//     //                          });
 // }
 
 [[cpp11::register]]
-double cpp_gcd(SEXP x, double tol, int start){
+SEXP cpp_gcd(SEXP x, double tol, int start, bool break_early){
     int n = Rf_length(x);
     double *p_x = REAL(x);
-    double out = p_x[start - 1];
+    SEXP out = Rf_protect(Rf_allocVector(REALSXP, std::min(n, 1)));
+    double *p_out = REAL(out);
+    double gcd = p_x[start - 1];
     for (int i = start; i < n; ++i) {
-        out = cpp_gcd2(out, p_x[i], tol);
-        if (out <= tol){
+        gcd = cpp_gcd2(gcd, p_x[i], tol);
+        // If we break early and x contains consecutive zeros,
+        // The result isn't correct
+        if (break_early && gcd <= tol){
             break;
         }
     }
+    p_out[0] = gcd;
+    Rf_unprotect(1);
     return out;
 }
