@@ -113,8 +113,7 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
       time_by <- time_by_list(time_by)
     } else {
       # Function to determine implicit time units
-      granularity <- time_granularity(data[[time_var]], is_sorted = FALSE,
-                                      msg = FALSE)
+      granularity <- time_granularity(data[[time_var]], msg = FALSE)
       message(paste("Assuming a time granularity of",
                     granularity[["num"]] / granularity[["scale"]],
                     granularity[["granularity"]], sep = " "))

@@ -8,7 +8,6 @@ time_diff_gcd(
   x,
   time_by = 1,
   time_type = getOption("timeplyr.time_type", "auto"),
-  is_sorted = FALSE,
   tol = sqrt(.Machine$double.eps)
 )
 }
@@ -32,10 +31,6 @@ then arithmetic is used, e.g \code{time_by = 1}.
 \item{time_type}{If "auto", \code{periods} are used if \code{x} is a Date and
 durations are used if \code{x} is a datetime.
 Otherwise numeric differences are calculated.}
-
-\item{is_sorted}{Is \code{x} sorted? If \code{FALSE}, the default,
-\code{sort(unique(x))} is calculated, otherwise \code{unique(x)} is used.
-The order of successive time differences may impact the result.}
 
 \item{tol}{Tolerance of comparison. The time differences are rounded
 using \code{digits = ceiling(abs(log10(tol)))} to try and avoid

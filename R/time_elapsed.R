@@ -84,10 +84,8 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
     g <- GRP2(g, sort = TRUE, return.groups = FALSE, return.order = TRUE)
     o <- GRP_order(g)
     if (has_groups){
-      is_sorted <- GRP_is_sorted(g)
       sorted_group_starts <- attr(o, "starts")
     } else {
-      is_sorted = TRUE
       sorted_group_starts <- min(length(x), 1L)
     }
     if (na_skip){

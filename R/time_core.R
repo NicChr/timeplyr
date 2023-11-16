@@ -112,8 +112,7 @@ time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
   if (length(to) > 1L){
     stop("to must be of length 1")
   }
-  time_by <- time_by_get(x, time_by = time_by,
-                         is_sorted = FALSE)
+  time_by <- time_by_get(x, time_by = time_by)
   if (time_by_length(time_by) > 1L){
     stop("time_by must be a time unit containing a single numeric increment")
   }
@@ -561,7 +560,7 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
   x_na <- collapse::whichNA(x)
   missing_from <- is.null(from)
   missing_to <- is.null(to)
-  time_by <- time_by_get(x, time_by = time_by, is_sorted = FALSE)
+  time_by <- time_by_get(x, time_by = time_by)
   if (missing_from){
     from <- collapse::fmin(x, na.rm = TRUE, use.g.names = FALSE)
   } else {
@@ -669,8 +668,7 @@ time_span_size <- function(x, time_by = NULL, from = NULL, to = NULL,
   if (length(to) > 1L){
     stop("to must be of length 1")
   }
-  time_by <- time_by_get(x, time_by = time_by,
-                         is_sorted = FALSE)
+  time_by <- time_by_get(x, time_by = time_by)
   if (time_by_length(time_by) > 1L){
     stop("time_by must be a time unit containing a single numeric increment")
   }

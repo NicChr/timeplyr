@@ -182,7 +182,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
       time_by <- time_by_list(time_by)
     } else {
       # Function to determine implicit time units
-      granularity <- time_granularity(ts_data[[time_var]], is_sorted = FALSE, msg = TRUE)
+      granularity <- time_granularity(ts_data[[time_var]], msg = TRUE)
       time_by <- add_names(list(granularity[["num"]]), granularity[["unit"]])
     }
     # Frequency table

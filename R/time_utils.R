@@ -84,11 +84,9 @@ time_by_list <- function(time_by){
 }
 # Returns list with numeric vector element, where the name of the list
 # is the time unit name
-time_by_get <- function(x, time_by = NULL, is_sorted = FALSE,
-                        quiet = FALSE){
+time_by_get <- function(x, time_by = NULL, quiet = FALSE){
   if (is.null(time_by)){
-    unit_info <- time_granularity(x, is_sorted = is_sorted,
-                                  msg = !quiet)
+    unit_info <- time_granularity(x, msg = !quiet)
     by_n <- unit_info[["num"]]
     by_unit <- unit_info[["unit"]]
     out <- add_names(list(by_n), by_unit)
@@ -170,8 +168,8 @@ time_interval <- function(from, to){
   }
   out
 }
-time_granularity <- function(x, is_sorted = FALSE, msg = TRUE){
-  gcd_diff <- time_diff_gcd(x, is_sorted = is_sorted)
+time_granularity <- function(x, msg = TRUE){
+  gcd_diff <- time_diff_gcd(x)
   if (length(gcd_diff) == 0){
     gcd_diff <- 1
   }
@@ -206,8 +204,8 @@ time_granularity <- function(x, is_sorted = FALSE, msg = TRUE){
        "scale" = scale)
 }
 # A more focused version
-time_granularity2 <- function(x, is_sorted = FALSE){
-  gcd_diff <- time_diff_gcd(x, is_sorted = is_sorted)
+time_granularity2 <- function(x){
+  gcd_diff <- time_diff_gcd(x)
   if (length(gcd_diff) == 0){
     gcd_diff <- 1
   }

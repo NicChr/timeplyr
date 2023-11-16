@@ -86,7 +86,7 @@ time_seq_id <- function(x, time_by = NULL, threshold = 1,
                         time_type = getOption("timeplyr.time_type", "auto")){
   check_is_time_or_num(x)
   g <- GRP2(g)
-  time_by <- time_by_get(x, time_by = time_by, is_sorted = FALSE)
+  time_by <- time_by_get(x, time_by = time_by)
   time_num <- time_by_num(time_by)
   # Elapsed time
   telapsed <- time_elapsed(x, time_by = time_by, g = g,

@@ -34,7 +34,7 @@
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
-#'}
+#' }
 #'
 #' @export
 cpp_which <- function(x, invert = FALSE){
