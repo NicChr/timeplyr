@@ -1,4 +1,4 @@
-# timeplyr (Development version)
+# timeplyr
 
 * New function `gcd` for fast calculation of greatest common divisor with 
 tolerance. Time granularity calculations have also been sped up.

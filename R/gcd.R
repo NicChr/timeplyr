@@ -3,8 +3,11 @@
 #' @description
 #' Fast greatest common divisor using the Euclidean algorithm.
 #'
+#' `gcd()` returns the greatest common divison. \cr
+#' `gcd_diff()` returns the greatest common divisor of numeric differences.
+#'
 #' @param x A [numeric] vector.
-#' @param tol Tolerance. Be careful as this must
+#' @param tol Tolerance. This must
 #' be a single positive number strictly less than 1.
 #' @param na_rm If `TRUE` the default, `NA` values are ignored.
 #' @param round If `TRUE` the gcd output is rounded as
@@ -13,14 +16,16 @@
 #' This can potentially reduce floating point errors on
 #' further calculations. \cr
 #' The default is `FALSE`.
+#' @param lag Lag of differences.
+#' @param fill Value to initialise the algorithm for `gcd_diff()`.
 #'
 #' @returns
 #' A number representing the GCD.
 #'
 #' @details
 #' The GCD is calculated using a binary function that takes input
-#' `GCD(gcd, x[i + 1])` where the output of this function which is passed
-#' back into the same function  iteratively along the vector `x`.
+#' `GCD(gcd, x[i + 1])` where the output of this function is passed as input
+#' back into the same function iteratively along the length of `x`.
 #' The first gcd value is `x[1]`.
 #'
 #' Zeroes are handled in the following way: \cr
@@ -49,10 +54,24 @@
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #' }
+#' @rdname gcd
 #' @export
 gcd <- function(x, tol = sqrt(.Machine$double.eps),
                 na_rm = TRUE, round = FALSE) {
   .Call(`_timeplyr_cpp_gcd`, x,
+        as.double(tol),
+        na_rm,
+        start = 1L,
+        break_early = FALSE,
+        round = round)
+}
+#' @rdname gcd
+#' @export
+gcd_diff <- function(x, lag = 1L, fill = NA,
+                     tol = sqrt(.Machine$double.eps),
+                     na_rm = TRUE, round = FALSE){
+  .Call(`_timeplyr_cpp_gcd`,
+        cpp_roll_diff(x, k = lag, fill = fill),
         as.double(tol),
         na_rm,
         start = 1L,

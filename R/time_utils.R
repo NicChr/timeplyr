@@ -169,9 +169,11 @@ time_interval <- function(from, to){
   out
 }
 time_granularity <- function(x, msg = TRUE){
-  gcd_diff <- time_diff_gcd(x)
-  if (length(gcd_diff) == 0){
+  x <- collapse::funique(x)
+  if (length(x) <= 1){
     gcd_diff <- 1
+  } else {
+    gcd_diff <- abs(gcd_diff(x, round = TRUE))
   }
   if (is_date(x)){
     granularity <- "day(s)"
@@ -205,9 +207,11 @@ time_granularity <- function(x, msg = TRUE){
 }
 # A more focused version
 time_granularity2 <- function(x){
-  gcd_diff <- time_diff_gcd(x)
-  if (length(gcd_diff) == 0){
+  x <- collapse::funique(x)
+  if (length(x) <= 1){
     gcd_diff <- 1
+  } else {
+    gcd_diff <- abs(gcd_diff(x, round = TRUE))
   }
   if (is_date(x)){
     unit <- "days"

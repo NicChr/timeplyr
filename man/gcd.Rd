@@ -2,14 +2,24 @@
 % Please edit documentation in R/gcd.R
 \name{gcd}
 \alias{gcd}
+\alias{gcd_diff}
 \title{Greatest common divisor}
 \usage{
 gcd(x, tol = sqrt(.Machine$double.eps), na_rm = TRUE, round = FALSE)
+
+gcd_diff(
+  x,
+  lag = 1L,
+  fill = NA,
+  tol = sqrt(.Machine$double.eps),
+  na_rm = TRUE,
+  round = FALSE
+)
 }
 \arguments{
 \item{x}{A \link{numeric} vector.}
 
-\item{tol}{Tolerance. Be careful as this must
+\item{tol}{Tolerance. This must
 be a single positive number strictly less than 1.}
 
 \item{na_rm}{If \code{TRUE} the default, \code{NA} values are ignored.}
@@ -20,17 +30,24 @@ be a single positive number strictly less than 1.}
 This can potentially reduce floating point errors on
 further calculations. \cr
 The default is \code{FALSE}.}
+
+\item{lag}{Lag of differences.}
+
+\item{fill}{Value to initialise the algorithm for \code{gcd_diff()}.}
 }
 \value{
 A number representing the GCD.
 }
 \description{
 Fast greatest common divisor using the Euclidean algorithm.
+
+\code{gcd()} returns the greatest common divison. \cr
+\code{gcd_diff()} returns the greatest common divisor of numeric differences.
 }
 \details{
 The GCD is calculated using a binary function that takes input
-\code{GCD(gcd, x[i + 1])} where the output of this function which is passed
-back into the same function  iteratively along the vector \code{x}.
+\code{GCD(gcd, x[i + 1])} where the output of this function is passed as input
+back into the same function iteratively along the length of \code{x}.
 The first gcd value is \code{x[1]}.
 
 Zeroes are handled in the following way: \cr

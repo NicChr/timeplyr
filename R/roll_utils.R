@@ -48,6 +48,9 @@ flag2 <- function(x, n = 1L, g = NULL, fill = NULL){
 }
 
 fdiff2 <- function(x, n = 1L, g = NULL, fill = NULL){
+  if (is.null(x)){
+    return(NULL)
+  }
   check_length(n, 1)
   n <- as.integer(n)
   o <- radixorderv2(g, starts = FALSE, sort = FALSE, group.sizes = TRUE)
