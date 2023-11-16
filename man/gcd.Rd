@@ -12,7 +12,12 @@ gcd(x, tol = sqrt(.Machine$double.eps), na_rm = TRUE)
 \item{tol}{Tolerance. Be careful as this must
 be a single positive number strictly less than 1.}
 
-\item{na_rm}{If \code{TRUE} the default, \code{NA} values are ignored.
+\item{na_rm}{If \code{TRUE} the default, \code{NA} values are ignored.}
+}
+\description{
+Fast greatest common divisor using the Euclidean algorithm.
+}
+\examples{
 library(timeplyr)
 library(bench)
 \dontshow{
@@ -29,8 +34,5 @@ mark(gcd(x, tol = 1e-10))
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)
-}}
 }
-\description{
-Fast greatest common divisor using the Euclidean algorithm.
 }
