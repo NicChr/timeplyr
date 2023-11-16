@@ -8,6 +8,9 @@
 #' be a single positive number strictly less than 1.
 #' @param na_rm If `TRUE` the default, `NA` values are ignored.
 #'
+#' @returns
+#' A number representing the GCD.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(bench)

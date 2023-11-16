@@ -14,6 +14,9 @@ be a single positive number strictly less than 1.}
 
 \item{na_rm}{If \code{TRUE} the default, \code{NA} values are ignored.}
 }
+\value{
+A number representing the GCD.
+}
 \description{
 Fast greatest common divisor using the Euclidean algorithm.
 }
