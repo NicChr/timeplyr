@@ -94,9 +94,9 @@ time_seq_id <- function(x, time_by = NULL, threshold = 1,
                            na_skip = na_skip, fill = -Inf)
   if (rolling){
     if (switch_on_boundary){
-      over_threshold <- double_gte(telapsed, threshold)
+      over_threshold <- cppdoubles::double_gte(telapsed, threshold)
     } else {
-      over_threshold <- double_gt(telapsed, threshold)
+      over_threshold <- cppdoubles::double_gt(telapsed, threshold)
     }
   } else {
     dt <- data.table::data.table(x = telapsed, group_id = GRP_group_id(g))

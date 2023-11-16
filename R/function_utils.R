@@ -551,11 +551,11 @@ sample2 <- function(x, size = length(x), replace = FALSE, prob = NULL){
   x[sample.int(length(x), size = size, replace = replace, prob = prob)]
 }
 
-double_equal <- cppdoubles::double_equal
-double_gte <- cppdoubles::double_gte
-double_lte <- cppdoubles::double_lte
-double_gt <- cppdoubles::double_gt
-double_lt <- cppdoubles::double_lt
+# double_equal <- cppdoubles::double_equal
+# double_gte <- cppdoubles::double_gte
+# double_lte <- cppdoubles::double_lte
+# double_gt <- cppdoubles::double_gt
+# double_lt <- cppdoubles::double_lt
 setv <- getFromNamespace("setv", "collapse")
 fcumsum <- getFromNamespace("fcumsum", "collapse")
 # set <- getFromNamespace("set", "data.table")
@@ -582,7 +582,7 @@ are_whole_numbers <- function(x){
   if (is.integer(x)){
     return(rep_len(TRUE, length(x)))
   }
-  double_equal(x, round(x))
+  abs(x - round(x)) < sqrt(.Machine$double.eps)
 }
 # Unique number from positive numbers
 pair_unique <- function(x, y){

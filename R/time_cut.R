@@ -163,7 +163,7 @@ time_breaks <- function(x, n = 5, time_by = NULL,
       # Calculate range of data
       time_rng <- collapse::frange(x, na.rm = TRUE)
       time_rng_diff <- diff(time_rng)
-      if (length(time_rng) == 0L || isTRUE(double_equal(time_rng_diff, 0))){
+      if (length(time_rng) == 0L || isTRUE(cppdoubles::double_equal(time_rng_diff, 0))){
         unit_nums <- 1
       } else {
         # Multiply gcd by 10 until range of data

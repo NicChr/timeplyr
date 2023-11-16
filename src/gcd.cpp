@@ -6,25 +6,53 @@
 #define R_NO_REMAP
 
 double cpp_gcd2(double x, double y, double tol = 0, bool na_rm = true){
+    double zero = 0.0;
     if (!na_rm && ( !(x == x) || !(y == y) )){
         return NA_REAL;
     }
     // GCD(0,0)=0
-    if (x == 0 && y == 0){
-        return 0.0;
+    if (x == zero && y == zero){
+        return zero;
     }
     // GCD(a,0)=a
-    if (x == 0){
+    if (x == zero){
         return y;
     }
     // GCD(a,0)=a
-    if (y == 0){
+    if (y == zero){
         return x;
     }
     double r;
     // Taken from number theory lecture notes
     while(std::fabs(y) > tol){
         r = std::fmod(x, y);
+        x = y;
+        y = r;
+    }
+    return x;
+}
+
+int cpp_gcd2_int(int x, int y, bool na_rm = true){
+    int zero = 0;
+    if (!na_rm && ( x == NA_INTEGER || y == NA_INTEGER )){
+        return NA_INTEGER;
+    }
+    // GCD(0,0)=0
+    if (x == zero && y == zero){
+        return zero;
+    }
+    // GCD(a,0)=a
+    if (x == zero){
+        return y;
+    }
+    // GCD(a,0)=a
+    if (y == zero){
+        return x;
+    }
+    int r;
+    // Taken from number theory lecture notes
+    while(y > zero){
+        r = x % y;
         x = y;
         y = r;
     }
@@ -58,25 +86,50 @@ double cpp_gcd2(double x, double y, double tol = 0, bool na_rm = true){
 // }
 
 [[cpp11::register]]
-SEXP cpp_gcd(SEXP x, double tol, bool na_rm, int start, bool break_early){
+SEXP cpp_gcd(SEXP x, double tol, bool na_rm, int start, bool break_early, bool round){
+    if (tol < 0 || tol >= 1){
+        Rf_error("tol must be >= 0 and < 1");
+    }
     int n = Rf_length(x);
-    double *p_x = REAL(x);
-    SEXP out = Rf_protect(Rf_allocVector(REALSXP, std::min(n, 1)));
-    double *p_out = REAL(out);
-    double gcd = p_x[start - 1];
-    for (int i = start; i < n; ++i) {
-        gcd = cpp_gcd2(gcd, p_x[i], tol, na_rm);
-        // If we break early and x contains consecutive zeros,
-        // The result isn't correct
-        if (break_early && gcd <= tol){
-            break;
+    switch(TYPEOF(x)){
+    case LGLSXP:
+    case INTSXP: {
+        int *p_x = INTEGER(x);
+        SEXP out = Rf_protect(Rf_allocVector(INTSXP, std::min(n, 1)));
+        int *p_out = INTEGER(out);
+        int gcd = p_x[start - 1];
+        for (int i = start; i < n; ++i) {
+            gcd = cpp_gcd2_int(gcd, p_x[i], na_rm);
+            // If we break early and x contains consecutive zeros,
+            // The result isn't correct
+            if (break_early && gcd <= 0){
+                break;
+            }
         }
+        p_out[0] = gcd;
+        Rf_unprotect(1);
+        return out;
     }
-    if (tol > 0){
-        double factor = std::pow(10, std::ceil(std::fabs(std::log10(tol))) + 1);
-        gcd = std::round(gcd * factor) / factor;
+    default: {
+        double *p_x = REAL(x);
+        SEXP out = Rf_protect(Rf_allocVector(REALSXP, std::min(n, 1)));
+        double *p_out = REAL(out);
+        double gcd = p_x[start - 1];
+        for (int i = start; i < n; ++i) {
+            gcd = cpp_gcd2(gcd, p_x[i], tol, na_rm);
+            // If we break early and x contains consecutive zeros,
+            // The result isn't correct
+            if (break_early && gcd <= tol){
+                break;
+            }
+        }
+        if (round && tol > 0){
+            double factor = std::pow(10, std::ceil(std::fabs(std::log10(tol))) + 1);
+            gcd = std::round(gcd * factor) / factor;
+        }
+        p_out[0] = gcd;
+        Rf_unprotect(1);
+        return out;
     }
-    p_out[0] = gcd;
-    Rf_unprotect(1);
-    return out;
+    }
 }

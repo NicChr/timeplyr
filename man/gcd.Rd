@@ -4,7 +4,7 @@
 \alias{gcd}
 \title{Greatest common divisor}
 \usage{
-gcd(x, tol = sqrt(.Machine$double.eps), na_rm = TRUE)
+gcd(x, tol = sqrt(.Machine$double.eps), na_rm = TRUE, round = FALSE)
 }
 \arguments{
 \item{x}{A \link{numeric} vector.}
@@ -13,12 +13,31 @@ gcd(x, tol = sqrt(.Machine$double.eps), na_rm = TRUE)
 be a single positive number strictly less than 1.}
 
 \item{na_rm}{If \code{TRUE} the default, \code{NA} values are ignored.}
+
+\item{round}{If \code{TRUE} the gcd output is rounded as
+\code{round(gcd, digits)} where digits is
+\code{ceiling(abs(log10(tol))) + 1}. \cr
+This can potentially reduce floating point errors on
+further calculations. \cr
+The default is \code{FALSE}.}
 }
 \value{
 A number representing the GCD.
 }
 \description{
 Fast greatest common divisor using the Euclidean algorithm.
+}
+\details{
+The GCD is calculated using a binary function that takes input
+\code{GCD(gcd, x[i + 1])} where the output of this function which is passed
+back into the same function  iteratively along the vector \code{x}.
+The first gcd value is \code{x[1]}.
+
+Zeroes are handled in the following way: \cr
+\code{GCD(0, 0) = 0} \cr
+\code{GCD(a, 0) = a} \cr
+
+This has the nice property that zeroes are essentially ignored.
 }
 \examples{
 library(timeplyr)
@@ -29,11 +48,13 @@ library(bench)
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
-gcd(c(5, 25))
-mark(gcd(c(5, 25)))
+gcd(c(0, 5, 25))
+mark(gcd(c(0, 5, 25)))
 
 x <- rnorm(10^6)
-mark(gcd(x, tol = 1e-10))
+gcd(x)
+gcd(x, round = TRUE)
+mark(gcd(x))
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

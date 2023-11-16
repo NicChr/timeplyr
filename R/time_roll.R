@@ -241,9 +241,9 @@ time_roll_sum <- function(x, window = Inf,
     elapsed <- time_elapsed(time, time_by = unit_time_by,
                             g = sorted_g, rolling = FALSE)
     if (close_left_boundary){
-      is_partial <- double_lte(abs(elapsed) + 1, time_num)
+      is_partial <- cppdoubles::double_lte(abs(elapsed) + 1, time_num)
     } else {
-      is_partial <- double_lt(abs(elapsed) + 1, time_num)
+      is_partial <- cppdoubles::double_lt(abs(elapsed) + 1, time_num)
     }
     out[cpp_which(is_partial)] <- NA_real_
   }
@@ -343,9 +343,9 @@ time_roll_mean <- function(x, window = Inf,
     elapsed <- time_elapsed(time, time_by = unit_time_by,
                             g = sorted_g, rolling = FALSE)
     if (close_left_boundary){
-      is_partial <- double_lte(abs(elapsed) + 1, time_num)
+      is_partial <- cppdoubles::double_lte(abs(elapsed) + 1, time_num)
     } else {
-      is_partial <- double_lt(abs(elapsed) + 1, time_num)
+      is_partial <- cppdoubles::double_lt(abs(elapsed) + 1, time_num)
     }
     out[cpp_which(is_partial)] <- NA_real_
   }
@@ -501,9 +501,9 @@ time_roll_growth_rate <- function(x, window = Inf,
     elapsed <- time_elapsed(time, time_by = unit_time_by,
                             g = sorted_g, rolling = FALSE)
     if (close_left_boundary){
-      is_partial <- double_lte(abs(elapsed) + 1, time_num)
+      is_partial <- cppdoubles::double_lte(abs(elapsed) + 1, time_num)
     } else {
-      is_partial <- double_lt(abs(elapsed) + 1, time_num)
+      is_partial <- cppdoubles::double_lt(abs(elapsed) + 1, time_num)
     }
     out[cpp_which(is_partial)] <- NA_real_
   }
@@ -580,9 +580,9 @@ time_roll_window_size <- function(time, window = Inf,
     elapsed <- time_elapsed(time, time_by = unit_time_by,
                             g = g, rolling = FALSE)
     if (close_left_boundary){
-      is_partial <- double_lte(abs(elapsed) + 1, time_num)
+      is_partial <- cppdoubles::double_lte(abs(elapsed) + 1, time_num)
     } else {
-      is_partial <- double_lt(abs(elapsed) + 1, time_num)
+      is_partial <- cppdoubles::double_lt(abs(elapsed) + 1, time_num)
     }
     out[cpp_which(is_partial)] <- NA_integer_
   }
@@ -778,9 +778,9 @@ time_roll_apply <- function(x, window = Inf, fun,
 #     elapsed <- time_elapsed(time, time_by = unit_time_by,
 #                             g = sorted_g, rolling = FALSE)
 #     if (close_left_boundary){
-#       is_partial <- double_lte(abs(elapsed) + 1, time_num)
+#       is_partial <- cppdoubles::double_lte(abs(elapsed) + 1, time_num)
 #     } else {
-#       is_partial <- double_lt(abs(elapsed) + 1, time_num)
+#       is_partial <- cppdoubles::double_lt(abs(elapsed) + 1, time_num)
 #     }
 #     out[cpp_which(is_partial)] <- NA_real_
 #   }

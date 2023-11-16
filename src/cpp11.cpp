@@ -6,10 +6,10 @@
 #include <R_ext/Visibility.h>
 
 // gcd.cpp
-SEXP cpp_gcd(SEXP x, double tol, bool na_rm, int start, bool break_early);
-extern "C" SEXP _timeplyr_cpp_gcd(SEXP x, SEXP tol, SEXP na_rm, SEXP start, SEXP break_early) {
+SEXP cpp_gcd(SEXP x, double tol, bool na_rm, int start, bool break_early, bool round);
+extern "C" SEXP _timeplyr_cpp_gcd(SEXP x, SEXP tol, SEXP na_rm, SEXP start, SEXP break_early, SEXP round) {
   BEGIN_CPP11
-    return cpp11::as_sexp(cpp_gcd(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(tol), cpp11::as_cpp<cpp11::decay_t<bool>>(na_rm), cpp11::as_cpp<cpp11::decay_t<int>>(start), cpp11::as_cpp<cpp11::decay_t<bool>>(break_early)));
+    return cpp11::as_sexp(cpp_gcd(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(tol), cpp11::as_cpp<cpp11::decay_t<bool>>(na_rm), cpp11::as_cpp<cpp11::decay_t<int>>(start), cpp11::as_cpp<cpp11::decay_t<bool>>(break_early), cpp11::as_cpp<cpp11::decay_t<bool>>(round)));
   END_CPP11
 }
 // is_whole_num.cpp
@@ -194,7 +194,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_before_sequence",          (DL_FUNC) &_timeplyr_before_sequence,          2},
     {"_timeplyr_cpp_dbl_sequence",         (DL_FUNC) &_timeplyr_cpp_dbl_sequence,         3},
     {"_timeplyr_cpp_df_group_indices",     (DL_FUNC) &_timeplyr_cpp_df_group_indices,     2},
-    {"_timeplyr_cpp_gcd",                  (DL_FUNC) &_timeplyr_cpp_gcd,                  5},
+    {"_timeplyr_cpp_gcd",                  (DL_FUNC) &_timeplyr_cpp_gcd,                  6},
     {"_timeplyr_cpp_int_sequence",         (DL_FUNC) &_timeplyr_cpp_int_sequence,         3},
     {"_timeplyr_cpp_is_whole_num",         (DL_FUNC) &_timeplyr_cpp_is_whole_num,         3},
     {"_timeplyr_cpp_lag_sequence",         (DL_FUNC) &_timeplyr_cpp_lag_sequence,         3},

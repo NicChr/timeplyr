@@ -121,12 +121,14 @@ time_is_regular <- function(x, time_by = NULL,
   n_whole_num <- collapse::fsum(is_whole_num, g = g, use.g.names = FALSE,
                                 na.rm = na.rm, fill = FALSE)
   out <- n_whole_num == fn(telapsed, g = g, use.g.names = FALSE)
-  is_increasing <- double_gte(collapse::fmin(roll_time_diff, g = g, na.rm = na.rm,
-                                             use.g.names = FALSE), 0)
+  is_increasing <- cppdoubles::double_gte(
+    collapse::fmin(roll_time_diff, g = g, na.rm = na.rm, use.g.names = FALSE), 0
+  )
   out <- out & is_increasing
   if (!allow_gaps){
-    has_gaps <- double_gt(collapse::fmax(roll_time_diff, g = g, na.rm = na.rm,
-                                         use.g.names = FALSE), 1)
+    has_gaps <- cppdoubles::double_gt(
+      collapse::fmax(roll_time_diff, g = g, na.rm = na.rm, use.g.names = FALSE), 1
+    )
     out <- out & !has_gaps
   }
   if (!allow_dups){

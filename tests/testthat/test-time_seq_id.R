@@ -85,3 +85,13 @@ testthat::test_that("Time sequence IDs", {
   testthat::expect_equal(df$id1, df$id3)
   testthat::expect_equal(df$id2, df$id4)
 })
+
+# Set number of data.table threads to 2
+data.table::setDTthreads(threads = 2L)
+# Set number of collapse threads to 1
+collapse::set_collapse(nthreads = 1L)
+
+testthat::test_that("Floating point errors", {
+  testthat::expect_identical(suppressMessages(time_id(seq(0, 20, 0.01))), 1:2001)
+  testthat::expect_identical(time_id(seq(0, 20, 0.01), time_by = 0.01), 1:2001)
+})

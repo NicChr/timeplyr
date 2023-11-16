@@ -62,14 +62,15 @@ time_id <- function(x, time_by = NULL, g = NULL, na_skip = TRUE,
                           na_skip = na_skip,
                           time_type = time_type,
                           rolling = FALSE)
+  as.integer(round(elapsed, digits = 9)) + shift
   # Make sure we don't lose precision when converting to integer
-  out <- trunc(elapsed)
-  elapsed_rounded <- round(elapsed)
-  elapsed_truncated <- cpp_which(cppdoubles::double_equal(elapsed, elapsed_rounded) &
-                                   (elapsed_rounded != out))
-  out[elapsed_truncated] <- elapsed_rounded[elapsed_truncated]
-  as.integer(out) + shift
-  # as.integer(elapsed + 1e-10) + shift
+  # out <- trunc(elapsed)
+  # elapsed_rounded <- round(elapsed)
+  # elapsed_truncated <- cpp_which(cppdoubles::double_equal(elapsed, elapsed_rounded) &
+  #                                  (elapsed_rounded != out))
+  # out[elapsed_truncated] <- elapsed_rounded[elapsed_truncated]
+  # as.integer(out) + shift
+  # # as.integer(elapsed + 1e-10) + shift
 }
 # To more closely match collapse::timeid one can use the below 3 lines
 # time_diff_gcd <- time_diff_gcd(x)
