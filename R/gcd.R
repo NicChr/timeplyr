@@ -1,11 +1,11 @@
-#' Greatest common divisor and lowest common multiple
+#' Greatest common divisor and smallest common multiple
 #'
 #' @description
-#' Fast greatest common divisor and lowest common multiple
+#' Fast greatest common divisor and smallest common multiple
 #' using the Euclidean algorithm.
 #'
 #' `gcd()` returns the greatest common divisor. \cr
-#' `lcm()` returns the lowest common multiple. \cr
+#' `scm()` returns the smallest common multiple. \cr
 #' `gcd_diff()` returns the greatest common divisor of numeric differences.
 #'
 #' @param x A [numeric] vector.
@@ -22,7 +22,7 @@
 #' @param fill Value to initialise the algorithm for `gcd_diff()`.
 #'
 #' @returns
-#' A number representing the GCD or LCM.
+#' A number representing the GCD or SCM.
 #'
 #' @details
 #'
@@ -40,10 +40,10 @@
 #'
 #' This has the nice property that zeroes are essentially ignored.
 #'
-#' ### LCM
+#' ### SCM
 #'
 #' This is calculated using the GCD and the formula is: \cr
-#' `LCM(x, y) = (abs(x) / GCD(x, y) ) * abs(y)`
+#' `SCM(x, y) = (abs(x) / GCD(x, y) ) * abs(y)`
 #'
 #'
 #' If you want to calculate the gcd & lcm for 2 values
@@ -84,7 +84,7 @@ gcd <- function(x, tol = sqrt(.Machine$double.eps),
 }
 #' @rdname gcd
 #' @export
-lcm <- function(x, tol = sqrt(.Machine$double.eps),
+scm <- function(x, tol = sqrt(.Machine$double.eps),
                 na_rm = TRUE, round = FALSE) {
   .Call(`_timeplyr_cpp_lcm`, x,
         as.double(tol),

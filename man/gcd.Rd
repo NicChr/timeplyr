@@ -2,13 +2,13 @@
 % Please edit documentation in R/gcd.R
 \name{gcd}
 \alias{gcd}
-\alias{lcm}
+\alias{scm}
 \alias{gcd_diff}
-\title{Greatest common divisor and lowest common multiple}
+\title{Greatest common divisor and smallest common multiple}
 \usage{
 gcd(x, tol = sqrt(.Machine$double.eps), na_rm = TRUE, round = FALSE)
 
-lcm(x, tol = sqrt(.Machine$double.eps), na_rm = TRUE, round = FALSE)
+scm(x, tol = sqrt(.Machine$double.eps), na_rm = TRUE, round = FALSE)
 
 gcd_diff(
   x,
@@ -39,14 +39,14 @@ The default is \code{FALSE}.}
 \item{fill}{Value to initialise the algorithm for \code{gcd_diff()}.}
 }
 \value{
-A number representing the GCD or LCM.
+A number representing the GCD or SCM.
 }
 \description{
-Fast greatest common divisor and lowest common multiple
+Fast greatest common divisor and smallest common multiple
 using the Euclidean algorithm.
 
 \code{gcd()} returns the greatest common divisor. \cr
-\code{lcm()} returns the lowest common multiple. \cr
+\code{scm()} returns the smallest common multiple. \cr
 \code{gcd_diff()} returns the greatest common divisor of numeric differences.
 }
 \details{
@@ -65,10 +65,10 @@ Zeroes are handled in the following way: \cr
 This has the nice property that zeroes are essentially ignored.
 }
 
-\subsection{LCM}{
+\subsection{SCM}{
 
 This is calculated using the GCD and the formula is: \cr
-\code{LCM(x, y) = (abs(x) / GCD(x, y) ) * abs(y)}
+\code{SCM(x, y) = (abs(x) / GCD(x, y) ) * abs(y)}
 
 If you want to calculate the gcd & lcm for 2 values
 instead of a vector of values,
