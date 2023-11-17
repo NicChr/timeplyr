@@ -6,7 +6,7 @@
 #define R_NO_REMAP
 
 [[cpp11::register]]
-double cpp_gcd2(double x, double y, double tol = 0, bool na_rm = true){
+double cpp_gcd2(double x, double y, double tol, bool na_rm){
     double zero = 0.0;
     if (!na_rm && ( !(x == x) || !(y == y) )){
         return NA_REAL;
@@ -33,7 +33,7 @@ double cpp_gcd2(double x, double y, double tol = 0, bool na_rm = true){
     return x;
 }
 
-int cpp_gcd2_int(int x, int y, bool na_rm = true){
+int cpp_gcd2_int(int x, int y, bool na_rm){
     int zero = 0;
     if (!na_rm && ( x == NA_INTEGER || y == NA_INTEGER )){
         return NA_INTEGER;
@@ -52,7 +52,7 @@ int cpp_gcd2_int(int x, int y, bool na_rm = true){
     }
     int r;
     // Taken from number theory lecture notes
-    while(std::abs(y) > zero){
+    while(y != zero){
         r = x % y;
         x = y;
         y = r;
@@ -61,7 +61,7 @@ int cpp_gcd2_int(int x, int y, bool na_rm = true){
 }
 
 [[cpp11::register]]
-double cpp_lcm2(double x, double y, double tol = 0, bool na_rm = true){
+double cpp_lcm2(double x, double y, double tol, bool na_rm){
     return ( std::fabs(x) / cpp_gcd2(x, y, tol, na_rm) ) * std::fabs(y);
 }
 
@@ -107,7 +107,7 @@ SEXP cpp_gcd(SEXP x, double tol, bool na_rm, int start, bool break_early, bool r
         for (int i = start; i < n; ++i) {
             gcd = cpp_gcd2_int(gcd, p_x[i], na_rm);
             // If we break early and x contains consecutive zeros,
-            // The result isn't correct
+            // The result is not correct
             if (break_early && gcd <= 0){
                 break;
             }
@@ -124,7 +124,7 @@ SEXP cpp_gcd(SEXP x, double tol, bool na_rm, int start, bool break_early, bool r
         for (int i = start; i < n; ++i) {
             gcd = cpp_gcd2(gcd, p_x[i], tol, na_rm);
             // If we break early and x contains consecutive zeros,
-            // The result isn't correct
+            // The result is not correct
             if (break_early && gcd <= tol){
                 break;
             }

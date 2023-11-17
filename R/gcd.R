@@ -78,9 +78,9 @@ gcd <- function(x, tol = sqrt(.Machine$double.eps),
   .Call(`_timeplyr_cpp_gcd`, x,
         as.double(tol),
         na_rm,
-        start = 1L,
-        break_early = FALSE,
-        round = round)
+        1L,
+        FALSE,
+        round)
 }
 #' @rdname gcd
 #' @export
@@ -89,7 +89,7 @@ scm <- function(x, tol = sqrt(.Machine$double.eps),
   .Call(`_timeplyr_cpp_lcm`, x,
         as.double(tol),
         na_rm,
-        round = round)
+        round)
 }
 #' @rdname gcd
 #' @export
@@ -100,7 +100,7 @@ gcd_diff <- function(x, lag = 1L, fill = NA,
         cpp_roll_diff(x, k = lag, fill = fill),
         as.double(tol),
         na_rm,
-        start = 1L,
-        break_early = FALSE,
-        round = round)
+        1L,
+        FALSE,
+        round)
 }
