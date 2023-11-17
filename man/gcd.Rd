@@ -2,10 +2,13 @@
 % Please edit documentation in R/gcd.R
 \name{gcd}
 \alias{gcd}
+\alias{lcm}
 \alias{gcd_diff}
-\title{Greatest common divisor}
+\title{Greatest common divisor and lowest common multiple}
 \usage{
 gcd(x, tol = sqrt(.Machine$double.eps), na_rm = TRUE, round = FALSE)
+
+lcm(x, tol = sqrt(.Machine$double.eps), na_rm = TRUE, round = FALSE)
 
 gcd_diff(
   x,
@@ -24,7 +27,7 @@ be a single positive number strictly less than 1.}
 
 \item{na_rm}{If \code{TRUE} the default, \code{NA} values are ignored.}
 
-\item{round}{If \code{TRUE} the gcd output is rounded as
+\item{round}{If \code{TRUE} the output is rounded as
 \code{round(gcd, digits)} where digits is
 \code{ceiling(abs(log10(tol))) + 1}. \cr
 This can potentially reduce floating point errors on
@@ -36,15 +39,20 @@ The default is \code{FALSE}.}
 \item{fill}{Value to initialise the algorithm for \code{gcd_diff()}.}
 }
 \value{
-A number representing the GCD.
+A number representing the GCD or LCM.
 }
 \description{
-Fast greatest common divisor using the Euclidean algorithm.
+Fast greatest common divisor and lowest common multiple
+using the Euclidean algorithm.
 
-\code{gcd()} returns the greatest common divison. \cr
+\code{gcd()} returns the greatest common divisor. \cr
+\code{lcm()} returns the lowest common multiple. \cr
 \code{gcd_diff()} returns the greatest common divisor of numeric differences.
 }
 \details{
+\subsection{Method}{
+\subsection{GCD}{
+
 The GCD is calculated using a binary function that takes input
 \code{GCD(gcd, x[i + 1])} where the output of this function is passed as input
 back into the same function iteratively along the length of \code{x}.
@@ -55,6 +63,20 @@ Zeroes are handled in the following way: \cr
 \code{GCD(a, 0) = a} \cr
 
 This has the nice property that zeroes are essentially ignored.
+}
+
+\subsection{LCM}{
+
+This is calculated using the GCD and the formula is: \cr
+\code{LCM(x, y) = (abs(x) / GCD(x, y) ) * abs(y)}
+
+If you want to calculate the gcd & lcm for 2 values
+instead of a vector of values,
+use the internal functions \code{cpp_gcd2} and \code{cpp_lcm2}.
+You can then easily write a vectorised method using these.
+}
+
+}
 }
 \examples{
 library(timeplyr)

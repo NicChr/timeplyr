@@ -319,10 +319,6 @@ dots_length <- function(...){
 #   }
 #   Reduce(gcd, x)
 # }
-# Least common multiple (using Euclidean algorithm)
-lcm <- function(x, y){
-  ( abs(x) / gcd(x, y) ) * abs(y)
-}
 
 # Exponentially weighted moving average
 # ewma <- function (x, ratio) {

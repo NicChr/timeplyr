@@ -6,10 +6,31 @@
 #include <R_ext/Visibility.h>
 
 // gcd.cpp
+double cpp_gcd2(double x, double y, double tol, bool na_rm);
+extern "C" SEXP _timeplyr_cpp_gcd2(SEXP x, SEXP y, SEXP tol, SEXP na_rm) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_gcd2(cpp11::as_cpp<cpp11::decay_t<double>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(y), cpp11::as_cpp<cpp11::decay_t<double>>(tol), cpp11::as_cpp<cpp11::decay_t<bool>>(na_rm)));
+  END_CPP11
+}
+// gcd.cpp
+double cpp_lcm2(double x, double y, double tol, bool na_rm);
+extern "C" SEXP _timeplyr_cpp_lcm2(SEXP x, SEXP y, SEXP tol, SEXP na_rm) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_lcm2(cpp11::as_cpp<cpp11::decay_t<double>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(y), cpp11::as_cpp<cpp11::decay_t<double>>(tol), cpp11::as_cpp<cpp11::decay_t<bool>>(na_rm)));
+  END_CPP11
+}
+// gcd.cpp
 SEXP cpp_gcd(SEXP x, double tol, bool na_rm, int start, bool break_early, bool round);
 extern "C" SEXP _timeplyr_cpp_gcd(SEXP x, SEXP tol, SEXP na_rm, SEXP start, SEXP break_early, SEXP round) {
   BEGIN_CPP11
     return cpp11::as_sexp(cpp_gcd(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(tol), cpp11::as_cpp<cpp11::decay_t<bool>>(na_rm), cpp11::as_cpp<cpp11::decay_t<int>>(start), cpp11::as_cpp<cpp11::decay_t<bool>>(break_early), cpp11::as_cpp<cpp11::decay_t<bool>>(round)));
+  END_CPP11
+}
+// gcd.cpp
+SEXP cpp_lcm(SEXP x, double tol, bool na_rm, bool round);
+extern "C" SEXP _timeplyr_cpp_lcm(SEXP x, SEXP tol, SEXP na_rm, SEXP round) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_lcm(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(tol), cpp11::as_cpp<cpp11::decay_t<bool>>(na_rm), cpp11::as_cpp<cpp11::decay_t<bool>>(round)));
   END_CPP11
 }
 // is_whole_num.cpp
@@ -195,9 +216,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_dbl_sequence",         (DL_FUNC) &_timeplyr_cpp_dbl_sequence,         3},
     {"_timeplyr_cpp_df_group_indices",     (DL_FUNC) &_timeplyr_cpp_df_group_indices,     2},
     {"_timeplyr_cpp_gcd",                  (DL_FUNC) &_timeplyr_cpp_gcd,                  6},
+    {"_timeplyr_cpp_gcd2",                 (DL_FUNC) &_timeplyr_cpp_gcd2,                 4},
     {"_timeplyr_cpp_int_sequence",         (DL_FUNC) &_timeplyr_cpp_int_sequence,         3},
     {"_timeplyr_cpp_is_whole_num",         (DL_FUNC) &_timeplyr_cpp_is_whole_num,         3},
     {"_timeplyr_cpp_lag_sequence",         (DL_FUNC) &_timeplyr_cpp_lag_sequence,         3},
+    {"_timeplyr_cpp_lcm",                  (DL_FUNC) &_timeplyr_cpp_lcm,                  4},
+    {"_timeplyr_cpp_lcm2",                 (DL_FUNC) &_timeplyr_cpp_lcm2,                 4},
     {"_timeplyr_cpp_lead_sequence",        (DL_FUNC) &_timeplyr_cpp_lead_sequence,        3},
     {"_timeplyr_cpp_list_which_not_null",  (DL_FUNC) &_timeplyr_cpp_list_which_not_null,  1},
     {"_timeplyr_cpp_num_na",               (DL_FUNC) &_timeplyr_cpp_num_na,               1},
