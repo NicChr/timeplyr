@@ -269,6 +269,26 @@ time_num_gaps(flights$time_hour, time_by = "hours") # Missing hours
 #> [1] 1819
 ```
 
+To check for regularity use `time_is_regular`
+
+``` r
+hours <- sort(flights$time_hour)
+time_is_regular(hours, time_by = "hours")
+#> [1] TRUE
+time_is_regular(hours, time_by = "hours", allow_gaps = FALSE)
+#> [1] FALSE
+time_is_regular(hours, time_by = "hours", allow_dups = FALSE)
+#> [1] FALSE
+
+# By-group
+time_num_gaps(flights$time_hour, g = flights$origin, time_by = "hours")
+#>  EWR  JFK  LGA 
+#> 2489 1820 2468
+time_is_regular(flights$time_hour, g = flights$origin, time_by = "hours")
+#>   EWR   JFK   LGA 
+#> FALSE FALSE FALSE
+```
+
 ## `time_expand()`
 
 Here we create monthly sequences for each destination that accounts for
@@ -352,46 +372,48 @@ flights %>%
 
 # Grouped rolling time functions
 
-## By-group rolling mean and sum
+## By-group rolling mean over the last 3 calendar months
 
 ``` r
-set.seed(4321)
-t <- today() + days(seq(0, 120, 3))
-t <- sample(t, size = 10^3, replace = TRUE)
-x <- rnorm(length(t))
-g <- sample(letters[1:3], size = 10^3, replace = TRUE)
+eu_stock <- eu_stock %>%
+  mutate(date = date_decimal(time))
 
-irregular_df <- tibble(g, t, x) %>%
-  arrange(g, t)
-
-irregular_df %>%
-  mutate(month_mean = time_roll_mean(x, months(1), time = t, g = g)) %>%
-  time_ggplot(t, month_mean, g)
-```
-
-![](man/figures/README-unnamed-chunk-15-1.png)<!-- -->
-
-## Cut the data into windows and apply any function
-
-Let’s visualise the rolling range of values over a monthly window
-
-``` r
-irregular_df <- arrange(irregular_df, t)
-# For now this is ungrouped
-month_windows <- time_roll_window(irregular_df$x, 
-                                  time = irregular_df$t,
-                                  window = months(1))
-rolling_min <- map_dbl(month_windows, min)
-rolling_max <- map_dbl(month_windows, max)
-
-irregular_df %>%
-  mutate(rolling_min, rolling_max) %>%
-  ggplot(aes(x = t)) + 
-  geom_linerange(aes(ymin = rolling_min, ymax = rolling_max)) +
-  labs(title = "Rolling monthly range of normally distributed data")
+eu_stock %>%
+    mutate(month_mean = time_roll_mean(value, window = months(3), 
+                                       time = date, 
+                                       g = group)) %>%
+    time_ggplot(date, month_mean, group)
 ```
 
 ![](man/figures/README-unnamed-chunk-16-1.png)<!-- -->
+
+## By-group rolling (locf) NA fill
+
+``` r
+# Prerequisite: Create Time series with missing values
+x <- ts(c(NA, 3, 4, NA, 6, NA, NA, 8))
+g <- seq_id(c(3, 5)) # Two groups of size 3 + 5
+
+.roll_na_fill(x) # Simple locf fill
+#> Time Series:
+#> Start = 1 
+#> End = 8 
+#> Frequency = 1 
+#> [1] NA  3  4  4  6  6  6  8
+roll_na_fill(x, fill_limit = 1) # Fill up to 1 NA
+#> Time Series:
+#> Start = 1 
+#> End = 8 
+#> Frequency = 1 
+#> [1] NA  3  4  4  6  6 NA  8
+
+roll_na_fill(x, g = g) # Very efficient on large data too
+#> Time Series:
+#> Start = 1 
+#> End = 8 
+#> Frequency = 1 
+#> [1] NA  3  4 NA  6  6  6  8
+```
 
 ## `time_elapsed()`
 
@@ -405,10 +427,15 @@ flight_201 <- flights %>%
   filter(flight %in% sample(flight, size = 1)) %>%
   arrange(time_hour)
 
-table(time_elapsed(flight_201$time_hour, "hours"))
-#> 
-#>    6   18   23   24   25   47   48   54 1235 
-#>   33   34    2  218    3    1    4    1    1
+top_n_tbl(time_elapsed(flight_201$time_hour, "hours"))
+#> # A tibble: 5 × 2
+#>   value     n
+#>   <dbl> <int>
+#> 1    24   218
+#> 2    18    34
+#> 3     6    33
+#> 4    48     4
+#> 5    25     3
 ```
 
 Flight 201 seems to depart mostly consistently every 24 hours
@@ -654,11 +681,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2023-W45"
+#> [1] "2023-W46"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W45-5"
+#> [1] "2023-W46-5"
 iso_week(today(), year = FALSE)
-#> [1] "W45"
+#> [1] "W46"
 ```
 
 ## `time_cut()`
@@ -689,7 +716,7 @@ weekly_data %>%
   scale_x_date(breaks = date_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-30-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-31-1.png)<!-- -->
 
 ``` r
 
@@ -699,7 +726,7 @@ flights %>%
   scale_x_datetime(breaks = time_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-30-2.png)<!-- -->
+![](man/figures/README-unnamed-chunk-31-2.png)<!-- -->
 
 ## Efficient grouped functions
 

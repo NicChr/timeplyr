@@ -18,6 +18,13 @@
 #' This can potentially reduce floating point errors on
 #' further calculations. \cr
 #' The default is `FALSE`.
+#' @param break_early This is experimental and
+#' applies only to floating-point numbers.
+#' When `TRUE` the algorithm will end once `gcd > 0 && gcd < 2 * tol`.
+#' This can offer a tremendous speed improvement.
+#' If `FALSE` the algorithm finishes once it has gone through all elements of `x`.
+#' The default is `TRUE`. \cr
+#' For integers, the algorithm always breaks early once `gcd > 0 && gcd <= 1`.
 #' @param lag Lag of differences.
 #' @param fill Value to initialise the algorithm for `gcd_diff()`.
 #'
@@ -74,12 +81,13 @@
 #' @rdname gcd
 #' @export
 gcd <- function(x, tol = sqrt(.Machine$double.eps),
-                na_rm = TRUE, round = FALSE) {
+                na_rm = TRUE, round = FALSE,
+                break_early = TRUE) {
   .Call(`_timeplyr_cpp_gcd`, x,
         as.double(tol),
         na_rm,
         1L,
-        FALSE,
+        break_early,
         round)
 }
 #' @rdname gcd
@@ -95,12 +103,13 @@ scm <- function(x, tol = sqrt(.Machine$double.eps),
 #' @export
 gcd_diff <- function(x, lag = 1L, fill = NA,
                      tol = sqrt(.Machine$double.eps),
-                     na_rm = TRUE, round = FALSE){
+                     na_rm = TRUE, round = FALSE,
+                     break_early = TRUE){
   .Call(`_timeplyr_cpp_gcd`,
         cpp_roll_diff(x, k = lag, fill = fill),
         as.double(tol),
         na_rm,
         1L,
-        FALSE,
+        break_early,
         round)
 }

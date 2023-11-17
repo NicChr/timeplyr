@@ -426,7 +426,7 @@ time_roll_growth_rate <- function(x, window = Inf,
                          gx = sorted_g,
                          gbreaks = sorted_g,
                          right = close_left_boundary)
-  adj_window[is.na(adj_window)] <- 0L
+  adj_window[collapse::whichNA(adj_window)] <- 0L
   final_window <- naive_window - adj_window
   if (is.null(time_step)){
     # Check first for gaps in time
@@ -490,7 +490,7 @@ time_roll_growth_rate <- function(x, window = Inf,
     if (na.rm){
       time_differences <- time_differences -
         data.table::frollsum(is.na(x), n = final_window,
-                             adaptive = partial,
+                             adaptive = TRUE,
                              algo = "fast",
                              align = "right")
     }

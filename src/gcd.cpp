@@ -104,13 +104,19 @@ SEXP cpp_gcd(SEXP x, double tol, bool na_rm, int start, bool break_early, bool r
         SEXP out = Rf_protect(Rf_allocVector(INTSXP, std::min(n, 1)));
         int *p_out = INTEGER(out);
         int gcd = p_x[start - 1];
+        int agcd;
         for (int i = start; i < n; ++i) {
-            gcd = cpp_gcd2_int(gcd, p_x[i], na_rm);
-            // If we break early and x contains consecutive zeros,
-            // The result is not correct
-            if (break_early && gcd <= 0){
+            gcd = cpp_gcd2_int(gcd, p_x[i], true);
+            agcd = std::abs(gcd);
+            // Break early if NA and na_rm = FALSE
+            if ( (!na_rm && (p_x[i] == NA_INTEGER)) ||
+                 // break early for small gcd
+                 (agcd > 0 && agcd <= 1)){
                 break;
             }
+            // if (agcd > 0 && agcd <= 1){
+            //     break;
+            // }
         }
         p_out[0] = gcd;
         Rf_unprotect(1);
@@ -121,11 +127,14 @@ SEXP cpp_gcd(SEXP x, double tol, bool na_rm, int start, bool break_early, bool r
         SEXP out = Rf_protect(Rf_allocVector(REALSXP, std::min(n, 1)));
         double *p_out = REAL(out);
         double gcd = p_x[start - 1];
+        double agcd;
         for (int i = start; i < n; ++i) {
-            gcd = cpp_gcd2(gcd, p_x[i], tol, na_rm);
-            // If we break early and x contains consecutive zeros,
-            // The result is not correct
-            if (break_early && gcd <= tol){
+            gcd = cpp_gcd2(gcd, p_x[i], tol, true);
+            agcd = std::fabs(gcd);
+            // Break early if NA and na_rm = FALSE
+            if ( (!na_rm && !(p_x[i] == p_x[i])) ||
+                 // break early for small gcd
+                 (break_early && agcd > 0.0 && agcd < (tol + tol))){
                 break;
             }
         }
@@ -176,6 +185,7 @@ SEXP cpp_lcm(SEXP x, double tol, bool na_rm, bool round){
             lcm = 1.0;
         }
         for (int i = 1; i < n; ++i) {
+            if (lcm == R_PosInf || lcm == R_NegInf) break;
             if (na_rm && !(p_x[i] == p_x[i])) continue;
             lcm = cpp_lcm2(lcm, p_x[i], tol, true);
         }
