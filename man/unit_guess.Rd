@@ -10,7 +10,7 @@ unit_guess(x)
 \item{x}{This can be 1 of 4 options:
 \itemize{
 \item A string, e.g. "7 days"
-\item Lubridate duration or period object, e.g. \code{days(1)} or \code{ddays(1)}.
+\item lubridate duration or period object, e.g. \code{days(1)} or \code{ddays(1)}.
 \item A list, e.g. list("days" = 7)
 \item A number, e.g. 5
 }}

@@ -7,7 +7,7 @@
 #'
 #' @param x This can be 1 of 4 options:
 #' * A string, e.g. "7 days"
-#' * Lubridate duration or period object, e.g. `days(1)` or `ddays(1)`.
+#' * lubridate duration or period object, e.g. `days(1)` or `ddays(1)`.
 #' * A list, e.g. list("days" = 7)
 #' * A number, e.g. 5
 #'

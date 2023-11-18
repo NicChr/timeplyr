@@ -40,7 +40,7 @@ Must be one of the following:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
 \code{time_by = "days"} or \code{time_by = "2 weeks"}
-\item Lubridate duration or period object, e.g. \code{days(1)} or \code{ddays(1)}.
+\item lubridate duration or period object, e.g. \code{days(1)} or \code{ddays(1)}.
 \item named list of length one, the unit being the name, and
 the number the value of the list, e.g. \code{list("days" = 7)}.
 For the vectorized time functions, you can supply multiple values,
