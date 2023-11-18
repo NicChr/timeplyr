@@ -6,7 +6,13 @@
 \alias{gcd_diff}
 \title{Greatest common divisor and smallest common multiple}
 \usage{
-gcd(x, tol = sqrt(.Machine$double.eps), na_rm = TRUE, round = FALSE)
+gcd(
+  x,
+  tol = sqrt(.Machine$double.eps),
+  na_rm = TRUE,
+  round = FALSE,
+  break_early = TRUE
+)
 
 scm(x, tol = sqrt(.Machine$double.eps), na_rm = TRUE, round = FALSE)
 
@@ -16,7 +22,8 @@ gcd_diff(
   fill = NA,
   tol = sqrt(.Machine$double.eps),
   na_rm = TRUE,
-  round = FALSE
+  round = FALSE,
+  break_early = TRUE
 )
 }
 \arguments{
@@ -33,6 +40,14 @@ be a single positive number strictly less than 1.}
 This can potentially reduce floating point errors on
 further calculations. \cr
 The default is \code{FALSE}.}
+
+\item{break_early}{This is experimental and
+applies only to floating-point numbers.
+When \code{TRUE} the algorithm will end once \code{gcd > 0 && gcd < 2 * tol}.
+This can offer a tremendous speed improvement.
+If \code{FALSE} the algorithm finishes once it has gone through all elements of \code{x}.
+The default is \code{TRUE}. \cr
+For integers, the algorithm always breaks early once \code{gcd > 0 && gcd <= 1}.}
 
 \item{lag}{Lag of differences.}
 
