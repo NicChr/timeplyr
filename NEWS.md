@@ -1,4 +1,13 @@
-# timeplyr
+# timeplyr (Development version)
+
+* New classes `ym` and `yq` for representing `year-months` and `year-quarters`
+respectively. Inspired by 'zoo' and 'tsibble', these operate similarly, but
+the underlying data is an integer count of months for `ym`, and quarters for `yq`, 
+which makes creating sequences very fast.
+
+* `cpp_roll_diff` and `scm` now appropriately handle `NA` values.
+
+# timeplyr 0.4.0 (19-Nov-2023)
 
 * New function `gcd` for fast calculation of greatest common divisor with 
 tolerance. Time granularity calculations have also been sped up.

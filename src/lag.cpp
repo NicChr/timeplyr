@@ -377,9 +377,6 @@ SEXP cpp_roll_lead_grouped(SEXP x, int k, SEXP o, SEXP sizes, SEXP fill) {
     }
 }
 
-// TO-DO: maybe used long long integers for when x is an integer
-// To deal with overflow
-
 [[cpp11::register]]
 SEXP cpp_roll_diff(SEXP x, int k, SEXP fill) {
     R_xlen_t size = Rf_xlength(x);
@@ -388,39 +385,82 @@ SEXP cpp_roll_diff(SEXP x, int k, SEXP fill) {
         Rf_error("fill size must be NULL or length 1");
     }
     switch(TYPEOF(x)){
-    case LGLSXP:
+    case LGLSXP: {
+      int fill_value = NA_INTEGER;
+      if (fill_size >= 1){
+        fill_value = Rf_asInteger(fill);
+      }
+      SEXP out = Rf_protect(Rf_allocVector(INTSXP, size));
+      int *p_x = INTEGER(x);
+      int *p_out = INTEGER(out);
+      if (k >= 0){
+        for (R_xlen_t i = 0; i < size; ++i) {
+          if (i < k){
+            p_out[i] = fill_value;
+          } else if ((p_x[i] == NA_INTEGER) || (p_x[i - k] == NA_INTEGER)) {
+            p_out[i] = NA_INTEGER;
+          } else {
+            p_out[i] = p_x[i] - p_x[i - k];
+          }
+        }
+      } else {
+        for (R_xlen_t i = (size - 1); i >= 0; --i) {
+          if (i >= (size + k)){
+            p_out[i] = fill_value;
+          } else if ((p_x[i] == NA_INTEGER) || (p_x[i - k] == NA_INTEGER)) {
+            p_out[i] = NA_INTEGER;
+          }
+          else {
+            p_out[i] = p_x[i] - p_x[i - k];
+          }
+        }
+      }
+      Rf_unprotect(1);
+      return out;
+    }
     case INTSXP: {
-        int fill_value = NA_INTEGER;
-        if (fill_size >= 1){
-            fill_value = Rf_asInteger(fill);
-        }
-        SEXP out = Rf_protect(Rf_allocVector(INTSXP, size));
-        int *p_x = INTEGER(x);
-        int *p_out = INTEGER(out);
-        if (k >= 0){
-            for (R_xlen_t i = 0; i < size; ++i) {
-                if (i < k){
-                    p_out[i] = fill_value;
-                } else if ((p_x[i] == NA_INTEGER) || (p_x[i - k] == NA_INTEGER)) {
-                  p_out[i] = NA_INTEGER;
-                } else {
-                  p_out[i] = p_x[i] - p_x[i - k];
-                }
+      long long diff;
+      long long value;
+      long long lag_value;
+      long long int_max = (long long)std::numeric_limits<int>::max();
+      int fill_value = NA_INTEGER;
+      if (fill_size >= 1){
+        fill_value = Rf_asInteger(fill);
+      }
+      SEXP out = Rf_protect(Rf_allocVector(INTSXP, size));
+      int *p_x = INTEGER(x);
+      int *p_out = INTEGER(out);
+      if (k >= 0){
+        for (R_xlen_t i = 0; i < size; ++i) {
+          if (i < k){
+            p_out[i] = fill_value;
+          } else if ((p_x[i] == NA_INTEGER) || (p_x[i - k] == NA_INTEGER)) {
+            p_out[i] = NA_INTEGER;
+          } else {
+            value = (long long)p_x[i];
+            lag_value = (long long)p_x[i - k];
+            diff = value - lag_value;
+            if (std::llabs(diff) > int_max){
+              p_out[i] = NA_INTEGER;
+            } else {
+              p_out[i] = p_x[i] - p_x[i - k];
             }
-        } else {
-            for (R_xlen_t i = (size - 1); i >= 0; --i) {
-                if (i >= (size + k)){
-                    p_out[i] = fill_value;
-                } else if ((p_x[i] == NA_INTEGER) || (p_x[i - k] == NA_INTEGER)) {
-                  p_out[i] = NA_INTEGER;
-                }
-                else {
-                    p_out[i] = p_x[i] - p_x[i - k];
-                }
-            }
+          }
         }
-        Rf_unprotect(1);
-        return out;
+      } else {
+        for (R_xlen_t i = (size - 1); i >= 0; --i) {
+          if (i >= (size + k)){
+            p_out[i] = fill_value;
+          } else if ((p_x[i] == NA_INTEGER) || (p_x[i - k] == NA_INTEGER)) {
+            p_out[i] = NA_INTEGER;
+          }
+          else {
+            p_out[i] = p_x[i] - p_x[i - k];
+          }
+        }
+      }
+      Rf_unprotect(1);
+      return out;
     }
     case REALSXP: {
         double fill_value = NA_REAL;
