@@ -179,11 +179,11 @@ SEXP cpp_gcd(SEXP x, double tol, bool na_rm, bool break_early, bool round){
         SEXP out = Rf_protect(Rf_allocVector(INTSXP, std::min(n, 1)));
         int *p_out = INTEGER(out);
         int gcd = p_x[0];
-        int agcd;
+        double agcd; // A double because you cant do abs(NA_integer_)
         for (int i = 1; i < n; ++i) {
             gcd = cpp_gcd2_int(gcd, p_x[i], na_rm);
-            agcd = std::abs(gcd);
-            if ((agcd > 0 && agcd <= 1) || (!na_rm && (gcd == NA_INTEGER))){
+            agcd = std::fabs(gcd);
+            if ((agcd > 0.0 && agcd <= 1.0) || (!na_rm && (gcd == NA_INTEGER))){
                 break;
             }
         }

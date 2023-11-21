@@ -5,4 +5,4 @@ Sys.unsetenv("R_TESTS")
 # data.table::setDTthreads(threads = 1L)
 # collapse::set_collapse(nthreads = 1L)
 
-test_check("timeplyr")
+test_check("timeplyr", reporter = c("check", "location"))
