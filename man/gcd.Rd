@@ -14,7 +14,7 @@ gcd(
   break_early = TRUE
 )
 
-scm(x, tol = sqrt(.Machine$double.eps), na_rm = TRUE, round = FALSE)
+scm(x, tol = sqrt(.Machine$double.eps), na_rm = TRUE)
 
 gcd_diff(
   x,

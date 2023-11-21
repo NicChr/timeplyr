@@ -8,12 +8,12 @@ cpp_lcm2 <- function(x, y, tol, na_rm) {
   .Call(`_timeplyr_cpp_lcm2`, x, y, tol, na_rm)
 }
 
-cpp_gcd <- function(x, tol, na_rm, start, break_early, round) {
-  .Call(`_timeplyr_cpp_gcd`, x, tol, na_rm, start, break_early, round)
+cpp_gcd <- function(x, tol, na_rm, break_early, round) {
+  .Call(`_timeplyr_cpp_gcd`, x, tol, na_rm, break_early, round)
 }
 
-cpp_lcm <- function(x, tol, na_rm, round) {
-  .Call(`_timeplyr_cpp_lcm`, x, tol, na_rm, round)
+cpp_lcm <- function(x, tol, na_rm) {
+  .Call(`_timeplyr_cpp_lcm`, x, tol, na_rm)
 }
 
 cpp_is_whole_num <- function(x, tol, na_rm) {

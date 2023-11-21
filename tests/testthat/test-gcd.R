@@ -39,6 +39,16 @@ testthat::test_that("Small vectors (integers)", {
   testthat::expect_identical(gcd(y, tol = 0, na_rm = TRUE), 3L)
   testthat::expect_identical(gcd(y, tol = 0, na_rm = FALSE), NA_integer_)
   testthat::expect_identical(gcd(y, tol = 0, na_rm = TRUE, round = TRUE), 3L)
+
+  testthat::expect_identical(scm(as.integer(c(NA, 2, 3)), na_rm = TRUE), 6L)
+  testthat::expect_identical(scm(as.integer(c(2, NA, 3)), na_rm = TRUE), 6L)
+  testthat::expect_identical(scm(as.integer(c(2, 3, NA)), na_rm = TRUE), 6L)
+  testthat::expect_identical(scm(as.integer(c(NA, 2, 3)), na_rm = FALSE), NA_integer_)
+  testthat::expect_identical(scm(as.integer(c(2, NA, 3)), na_rm = FALSE), NA_integer_)
+  testthat::expect_identical(scm(as.integer(c(2, 3, NA)), na_rm = FALSE), NA_integer_)
+
+  testthat::expect_identical(scm(as.integer(c(NA, NA, 2, NA, 3, NA, NA)), na_rm = TRUE), 6L)
+  testthat::expect_identical(scm(as.integer(c(NA, NA, 2, NA, 3, NA, NA)), na_rm = FALSE), NA_integer_)
 })
 
 testthat::test_that("Small vectors (doubles)", {
@@ -55,6 +65,16 @@ testthat::test_that("Small vectors (doubles)", {
   testthat::expect_identical(gcd(y, tol = 0, na_rm = TRUE), 3)
   testthat::expect_identical(gcd(y, tol = 0, na_rm = FALSE), NA_real_)
   testthat::expect_identical(gcd(y, tol = 0, na_rm = TRUE, round = TRUE), 3)
+
+  testthat::expect_identical(scm(as.double(c(NA, 2, 3)), na_rm = TRUE), 6)
+  testthat::expect_identical(scm(as.double(c(2, NA, 3)), na_rm = TRUE), 6)
+  testthat::expect_identical(scm(as.double(c(2, 3, NA)), na_rm = TRUE), 6)
+  testthat::expect_identical(scm(as.double(c(NA, 2, 3)), na_rm = FALSE), NA_real_)
+  testthat::expect_identical(scm(as.double(c(2, NA, 3)), na_rm = FALSE), NA_real_)
+  testthat::expect_identical(scm(as.double(c(2, 3, NA)), na_rm = FALSE), NA_real_)
+
+  testthat::expect_identical(scm(as.double(c(NA, NA, 2, NA, 3, NA, NA)), na_rm = TRUE), 6)
+  testthat::expect_identical(scm(as.double(c(NA, NA, 2, NA, 3, NA, NA)), na_rm = FALSE), NA_real_)
 })
 
 testthat::test_that("Small vectors (doubles)", {

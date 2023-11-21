@@ -228,8 +228,8 @@ tbl_sum.time_tbl_df <- function(x, ...){
   time_by <- time_by_pretty(attr(x, "time_by"))
   time <- group_data(x)[[time_var]]
   time_span <- time_by_span(x)
-  time_range <- c(min(time_span[["start"]], na.rm = TRUE),
-                  max(time_span[["end"]], na.rm = TRUE))
+  time_range <- c(collapse::fmin(time_span[["start"]], na.rm = TRUE),
+                  collapse::fmax(time_span[["end"]], na.rm = TRUE))
   if (length(non_time_group_vars) > 0L){
     n_non_time_groups <- df_n_distinct(
       fselect(group_data(x),

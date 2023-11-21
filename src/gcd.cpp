@@ -103,8 +103,71 @@ double cpp_lcm2_int(int x, int y, bool na_rm){
 //                        });
 // }
 
+
+// Alternate method that uses round(x * 10^digits)
+// to ensure it's a whole number
+// and dividing the final gcd by 10^digits
+
+// SEXP cpp_gcd(SEXP x, int digits, double tol, bool na_rm){
+//   if (tol < 0 || tol >= 1){
+//     Rf_error("tol must be >= 0 and < 1");
+//   }
+//   int n = Rf_length(x);
+//   switch(TYPEOF(x)){
+//   case LGLSXP:
+//   case INTSXP: {
+//     int *p_x = INTEGER(x);
+//     SEXP out = Rf_protect(Rf_allocVector(INTSXP, std::min(n, 1)));
+//     int *p_out = INTEGER(out);
+//     int gcd = p_x[0];
+//     int agcd;
+//     for (int i = 1; i < n; ++i) {
+//       gcd = cpp_gcd2_int(gcd, p_x[i], na_rm);
+//       agcd = std::abs(gcd);
+//       if ((agcd > 0 && agcd <= 1) || (!na_rm && (gcd == NA_INTEGER))){
+//         break;
+//       }
+//     }
+//     p_out[0] = gcd;
+//     Rf_unprotect(1);
+//     return out;
+//   }
+//   default: {
+//     double *p_x = REAL(x);
+//     SEXP out = Rf_protect(Rf_allocVector(REALSXP, std::min(n, 1)));
+//     double *p_out = REAL(out);
+//     double gcd = p_x[0];
+//     // bool is_na = !(gcd == gcd);
+//     double factor = std::pow(10, digits);
+//     gcd = std::round(gcd * factor);
+//     bool is_na;
+//     double agcd;
+//     for (int i = 1; i < n; ++i) {
+//       is_na = !(gcd == gcd);
+//       if (!na_rm && is_na){
+//         break;
+//       }
+//       if (na_rm && is_na){
+//         gcd = std::round(p_x[i] * factor);
+//         continue;
+//       }
+//       gcd = cpp_gcd2(gcd, std::round(p_x[i] * factor), tol, na_rm);
+//       // gcd = cpp_gcd_alt(gcd, std::round(p_x[i] * factor), na_rm);
+//       agcd = std::fabs(gcd);
+//       if (agcd > 0.0 && agcd <= factor){
+//         break;
+//       }
+//     }
+//     gcd = gcd / factor;
+//     p_out[0] = gcd;
+//     Rf_unprotect(1);
+//     return out;
+//   }
+//   }
+// }
+
 [[cpp11::register]]
-SEXP cpp_gcd(SEXP x, double tol, bool na_rm, int start, bool break_early, bool round){
+SEXP cpp_gcd(SEXP x, double tol, bool na_rm, bool break_early, bool round){
     if (tol < 0 || tol >= 1){
         Rf_error("tol must be >= 0 and < 1");
     }
@@ -115,17 +178,12 @@ SEXP cpp_gcd(SEXP x, double tol, bool na_rm, int start, bool break_early, bool r
         int *p_x = INTEGER(x);
         SEXP out = Rf_protect(Rf_allocVector(INTSXP, std::min(n, 1)));
         int *p_out = INTEGER(out);
-        int gcd = p_x[start - 1];
+        int gcd = p_x[0];
         int agcd;
-        for (int i = start; i < n; ++i) {
+        for (int i = 1; i < n; ++i) {
             gcd = cpp_gcd2_int(gcd, p_x[i], na_rm);
             agcd = std::abs(gcd);
-            if ( // break early for small gcd
-                    (agcd > 0 && agcd <= 1) ||
-                        // Break early if NA and na_rm = FALSE
-                        (!na_rm && (gcd == NA_INTEGER))
-                        // (!na_rm && (p_x[i] == NA_INTEGER))
-            ){
+            if ((agcd > 0 && agcd <= 1) || (!na_rm && (gcd == NA_INTEGER))){
                 break;
             }
         }
@@ -137,27 +195,18 @@ SEXP cpp_gcd(SEXP x, double tol, bool na_rm, int start, bool break_early, bool r
         double *p_x = REAL(x);
         SEXP out = Rf_protect(Rf_allocVector(REALSXP, std::min(n, 1)));
         double *p_out = REAL(out);
-        double gcd = p_x[start - 1];
+        double gcd = p_x[0];
         double agcd;
-        for (int i = start; i < n; ++i) {
+        for (int i = 1; i < n; ++i) {
             gcd = cpp_gcd2(gcd, p_x[i], tol, na_rm);
             agcd = std::fabs(gcd);
             if ((!na_rm && !(gcd == gcd))){
                 break;
             }
             if (break_early && agcd > 0.0 && agcd < (tol + tol)){
-                // tol * sign(gcd)
-                gcd = tol * ( (gcd > 0) - (gcd < 0));
+                gcd = tol * ( (gcd > 0) - (gcd < 0)); // tol * sign(gcd)
                 break;
             }
-            // if (  // break early for small gcd
-            //         (break_early && agcd > 0.0 && agcd < (tol + tol)) ||
-            //             // Break early if NA and na_rm = FALSE
-            //             (!na_rm && !(gcd == gcd))
-            //             // (!na_rm && !(p_x[i] == p_x[i]))
-            // ){
-            //     break;
-            // }
         }
         if (round && tol > 0){
             double factor = std::pow(10, std::ceil(std::fabs(std::log10(tol))) + 1);
@@ -173,7 +222,7 @@ SEXP cpp_gcd(SEXP x, double tol, bool na_rm, int start, bool break_early, bool r
 // Lowest common multiple using GCD Euclidean algorithm
 
 [[cpp11::register]]
-SEXP cpp_lcm(SEXP x, double tol, bool na_rm, bool round){
+SEXP cpp_lcm(SEXP x, double tol, bool na_rm){
     if (tol < 0 || tol >= 1){
         Rf_error("tol must be >= 0 and < 1");
     }
@@ -182,34 +231,32 @@ SEXP cpp_lcm(SEXP x, double tol, bool na_rm, bool round){
     case LGLSXP:
     case INTSXP: {
         int *p_x = INTEGER(x);
-        SEXP out = Rf_protect(Rf_allocVector(INTSXP, std::min(n, 1)));
-        int *p_out = INTEGER(out);
-        double lcm = double(p_x[0]);
+        SEXP out = Rf_protect(Rf_allocVector(REALSXP, std::min(n, 1)));
+        double *p_out = REAL(out);
+        double lcm = p_x[0];
+        if (p_x[0] == NA_INTEGER){
+          lcm = NA_REAL;
+        }
         if (na_rm && n > 1 && !(lcm == lcm)){
             lcm = 1.0;
         }
         double int_max = double(std::numeric_limits<int>::max());
-        // int lcm = p_x[0];
-        // if (na_rm && n > 1 && lcm == NA_INTEGER){
-        //     lcm = 1;
-        // }
         for (int i = 1; i < n; ++i) {
-            if (na_rm && p_x[i] == NA_INTEGER) continue;
-            lcm = cpp_lcm2_int(lcm, p_x[i], true);
-            if (std::fabs(lcm) > int_max){
-                Rf_warning("Integer overflow, returning NA");
-                lcm = NA_REAL;
-                break;
-            }
-            // lcm = cpp_lcm2_int(lcm, p_x[i], 0, true);
-            // if (p_x[i] != NA_INTEGER && lcm == NA_INTEGER){
-            //     break;
-            // }
-            // lcm = cpp_lcm2_int(lcm, p_x[i], true);
+          if (!na_rm && ( !(lcm == lcm) || p_x[i] == NA_INTEGER)){
+            lcm = NA_REAL;
+            break;
+          }
+          if (na_rm && p_x[i] == NA_INTEGER) continue;
+          lcm = cpp_lcm2_int(lcm, p_x[i], true);
+          if (std::fabs(lcm) > int_max){
+            Rf_warning("Integer overflow, returning NA");
+            lcm = NA_REAL;
+            break;
+          }
         }
-        // p_out[0] = lcm;
-        p_out[0] = int(lcm);
-        Rf_unprotect(1);
+        p_out[0] = lcm;
+        Rf_protect(out = Rf_coerceVector(out, INTSXP));
+        Rf_unprotect(2);
         return out;
     }
     default: {
@@ -224,10 +271,6 @@ SEXP cpp_lcm(SEXP x, double tol, bool na_rm, bool round){
             if (lcm == R_PosInf || lcm == R_NegInf) break;
             if (na_rm && !(p_x[i] == p_x[i])) continue;
             lcm = cpp_lcm2(lcm, p_x[i], tol, true);
-        }
-        if (round && tol > 0){
-            double factor = std::pow(10, std::ceil(std::fabs(std::log10(tol))) + 1);
-            lcm = std::round(lcm * factor) / factor;
         }
         p_out[0] = lcm;
         Rf_unprotect(1);

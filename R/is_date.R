@@ -24,6 +24,10 @@ is_time <- function(x){
 #' @rdname is_date
 #' @export
 is_time_or_num <- function(x){
-  inherits(x, c("integer", "numeric",
-                "Date", "POSIXt", "yearmon", "yearqtr"))
+  inherits(x, time_classes)
 }
+
+time_classes <- c("integer", "numeric",
+                  "Date", "POSIXt", "yearmon", "yearqtr",
+                  "ym", "yq")
+
