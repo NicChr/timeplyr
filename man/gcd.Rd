@@ -10,7 +10,7 @@ gcd(
   x,
   tol = sqrt(.Machine$double.eps),
   na_rm = TRUE,
-  round = FALSE,
+  round = TRUE,
   break_early = TRUE
 )
 
@@ -22,7 +22,7 @@ gcd_diff(
   fill = NA,
   tol = sqrt(.Machine$double.eps),
   na_rm = TRUE,
-  round = FALSE,
+  round = TRUE,
   break_early = TRUE
 )
 }
@@ -39,7 +39,7 @@ be a single positive number strictly less than 1.}
 \code{ceiling(abs(log10(tol))) + 1}. \cr
 This can potentially reduce floating point errors on
 further calculations. \cr
-The default is \code{FALSE}.}
+The default is \code{TRUE}.}
 
 \item{break_early}{This is experimental and
 applies only to floating-point numbers.

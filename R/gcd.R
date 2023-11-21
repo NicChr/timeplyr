@@ -17,7 +17,7 @@
 #' `ceiling(abs(log10(tol))) + 1`. \cr
 #' This can potentially reduce floating point errors on
 #' further calculations. \cr
-#' The default is `FALSE`.
+#' The default is `TRUE`.
 #' @param break_early This is experimental and
 #' applies only to floating-point numbers.
 #' When `TRUE` the algorithm will end once `gcd > 0 && gcd < 2 * tol`.
@@ -81,7 +81,7 @@
 #' @rdname gcd
 #' @export
 gcd <- function(x, tol = sqrt(.Machine$double.eps),
-                na_rm = TRUE, round = FALSE,
+                na_rm = TRUE, round = TRUE,
                 break_early = TRUE) {
   .Call(`_timeplyr_cpp_gcd`, x,
         as.double(tol),
@@ -91,15 +91,14 @@ gcd <- function(x, tol = sqrt(.Machine$double.eps),
 }
 #' @rdname gcd
 #' @export
-scm <- function(x, tol = sqrt(.Machine$double.eps),
-                na_rm = TRUE) {
+scm <- function(x, tol = sqrt(.Machine$double.eps), na_rm = TRUE) {
   .Call(`_timeplyr_cpp_lcm`, x, as.double(tol), na_rm)
 }
 #' @rdname gcd
 #' @export
 gcd_diff <- function(x, lag = 1L, fill = NA,
                      tol = sqrt(.Machine$double.eps),
-                     na_rm = TRUE, round = FALSE,
+                     na_rm = TRUE, round = TRUE,
                      break_early = TRUE){
   .Call(`_timeplyr_cpp_gcd`,
         cpp_roll_diff(x, k = lag, fill = fill),
