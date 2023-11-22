@@ -13,7 +13,7 @@ missing_dates <- function(x){
 #' @export
 missing_dates.default <- function(x){
   check_is_time(x)
-  d <- lubridate::floor_date(x, unit = "days")
+  d <- lubridate::floor_date(collapse::funique(x), unit = "days")
   d_seq <- time_expandv(d, time_by = list("days" = 1))
   lubridate::as_date(d_seq[cpp_which(!d_seq %in% d)])
 }
@@ -31,8 +31,11 @@ n_missing_dates <- function(x){
 #' @export
 n_missing_dates.default <- function(x){
   check_is_time(x)
-  time_num_gaps(lubridate::floor_date(x, unit = "days"),
-                time_by = list("days" = 1))
+  time_num_gaps(
+    lubridate::floor_date(
+      collapse::funique(x), unit = "days"
+    ), time_by = list("days" = 1)
+  )
 }
 #' @export
 n_missing_dates.data.frame <- function(x){

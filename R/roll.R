@@ -181,21 +181,10 @@ roll_growth_rate <- function(x, window = Inf, g = NULL,
   lag_window <- roll_window - 1L
   x_lagged <- roll_lag(x, lag_window, check = FALSE)
   if (na.rm){
-    if (is_df(x)){
-      lag_window <- lapply(x, function(x){
-        data.table::frollsum(!is.na(x), n = lag_window,
-                             adaptive = TRUE,
-                             algo = "fast",
-                             align = "right")
-      })
-      lag_window <- df_reconstruct(list_to_data_frame(lag_window), x)
-    } else {
-      lag_window <- data.table::frollsum(!is.na(x), n = lag_window,
-                                         adaptive = TRUE,
-                                         algo = "fast",
-                                         align = "right")
-    }
-
+    lag_window <- data.table::frollsum(!is.na(x), n = lag_window,
+                                       adaptive = TRUE,
+                                       algo = "fast",
+                                       align = "right")
   }
   if (log){
     gr <- exp(( log(x) - log(x_lagged) ) / lag_window)
