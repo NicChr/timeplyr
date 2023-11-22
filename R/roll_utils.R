@@ -25,8 +25,6 @@ flag2 <- function(x, n = 1L, g = NULL, fill = NULL){
   }
   check_length(n, 1)
   n <- as.integer(n)
-  # N <- vec_length(x)
-  # n <- as.integer(sign(n) * min(N, abs(n)))
   if (is.null(g)){
     if (n < 0){
       return(cpp_roll_lead(x, abs(n), fill))

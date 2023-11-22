@@ -634,10 +634,6 @@ set_time_cast <- function(x, y){
   }
 }
 
-# Safe time concatenation
-# time_c <- function(...){
-#   vctrs::vec_c(...)
-# }
 # Faster time_cast
 # numeric > yearqtr > yearmon > date > datetime
 # You can move from left to right but not right to left
@@ -1281,7 +1277,8 @@ time_aggregate_switch <- function(x, time_by, time_type,
                                   start = NULL, end = NULL,
                                   time_floor = FALSE,
                                   week_start = getOption("lubridate.week.start", 1),
-                                  roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                                  roll_month = getOption("timeplyr.roll_month", "preday"),
+                                  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                                   as_int = TRUE){
   check_is_time_or_num(x)
   time_by <- time_by_list(time_by)
@@ -1692,66 +1689,4 @@ int_to_per <- function (start, end){
   per$year[wnegs] <- -per$year[wnegs]
   per
 }
-# int_to_per <- function (start, end){
-#   set_recycle_args(start, end)
-#   start <- as_datetime2(start)
-#   end <- time_cast(end, start)
-#   duration <- unclass(difftime(end, start, units = "secs"))
-#   start <- unclass(as.POSIXlt(start))
-#   end <- unclass(as.POSIXlt(end))
-#   negs <- duration < 0 & !is.na(duration)
-#   wnegs <- cpp_which(negs)
-#   wnnegs <- cpp_which(negs, invert = TRUE)
-#   per <- list()
-#   for (nm in c("sec", "min", "hour", "mday", "mon", "year")) {
-#     per[[nm]] <- integer(length(negs))
-#     per[[nm]][wnegs] <- (start[[nm]] - end[[nm]])[wnegs]
-#     per[[nm]][wnnegs] <- (end[[nm]] - start[[nm]])[wnnegs]
-#   }
-#   names(per) <- c("second", "minute", "hour", "day", "month",
-#                   "year")
-#   nsecs <- per$second < 0 & !is.na(per$second)
-#   wnsecs <- cpp_which(nsecs)
-#   per$second[wnsecs] <- 60 + per$second[wnsecs]
-#   per$minute[wnsecs] <- per$minute[wnsecs] - 1
-#   per$second[wnegs] <- -per$second[wnegs]
-#   nmins <- per$minute < 0 & !is.na(per$minute)
-#   wnmins <- cpp_which(nmins)
-#   per$minute[wnmins] <- 60 + per$minute[wnmins]
-#   per$hour[wnmins] <- per$hour[wnmins] - 1
-#   per$minute[wnegs] <- -per$minute[wnegs]
-#   nhous <- per$hour < 0 & !is.na(per$hour)
-#   wnhous <- cpp_which(nhous)
-#   per$hour[wnhous] <- 24 + per$hour[wnhous]
-#   per$hour[wnegs] <- -per$hour[wnegs]
-#   ndays <- !negs & per$day < 0 & !is.na(per$day)
-#   wndays <- cpp_which(ndays)
-#   if (length(wndays) > 0) {
-#     add_months <- rep.int(-1, sum(ndays))
-#     pmonth <- end$mon[wndays]
-#     pmonth[cpp_which(pmonth == 0)] <- 1
-#     prev_month_days <- days_in_month(pmonth, end$year[wndays])
-#     per$day[wndays] <- pmax(prev_month_days - start$mday[wndays],
-#                             0) + end$mday[wndays]
-#     per$month[wndays] <- per$month[wndays] + add_months
-#   }
-#   ndays <- negs & per$day < 0 & !is.na(per$day)
-#   wndays <- cpp_which(ndays)
-#   if (length(wndays) > 0) {
-#     add_months <- rep.int(1L, sum(ndays))
-#     this_month_days <- days_in_month(end$mon[wndays] + 1,
-#                                      end$year[wndays])
-#     per$day[wndays] <- pmax(this_month_days - end$mday[wndays],
-#                             0) + start$mday[wndays]
-#     per$month[wndays] <- per$month[wndays] - add_months
-#   }
-#   per$day[wnhous] <- per$day[wnhous] - 1
-#   per$day[wnegs] <- -per$day[wnegs]
-#   nmons <- per$month < 0 & !is.na(per$month)
-#   wnmons <- cpp_which(nmons)
-#   per$month[wnmons] <- 12 + per$month[wnmons]
-#   per$year[wnmons] <- per$year[wnmons] - 1
-#   per$month[wnegs] <- -per$month[wnegs]
-#   per$year[wnegs] <- -per$year[wnegs]
-#   per
-# }
+

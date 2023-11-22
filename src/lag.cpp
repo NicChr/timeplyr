@@ -508,6 +508,7 @@ SEXP cpp_roll_diff_grouped(SEXP x, int k, SEXP o, SEXP sizes, SEXP fill) {
     int size = Rf_length(x);
     int o_size = Rf_length(o);
     int fill_size = Rf_length(fill);
+    int n_groups = Rf_length(sizes);
     if (o_size != size){
         Rf_error("x and o must both be the same length");
     }
@@ -548,22 +549,25 @@ SEXP cpp_roll_diff_grouped(SEXP x, int k, SEXP o, SEXP sizes, SEXP fill) {
                 ++group_count;
             }
         } else {
+          j = n_groups - 1;
+          running_group_size = p_sizes[j];
+          group_count = running_group_size - 1;
             for (int i = (size - 1); i >= 0; --i) {
                 oi = p_o[i] - 1;
                 // Start of new group?
                 if ( (size - i) > running_group_size){
-                  ++j;
+                  --j;
                   running_group_size += p_sizes[j];
-                  group_count = 0;
+                  group_count = p_sizes[j] - 1;
                 }
-                if (-group_count > k){
+                if (group_count >= (p_sizes[j] + k)){
                     p_out[oi] = fill_value;
                 } else if ((p_x[oi] == NA_INTEGER) || (p_x[p_o[i - k] - 1] == NA_INTEGER)) {
                   p_out[oi] = NA_INTEGER;
                 } else {
                     p_out[oi] = p_x[oi] - p_x[p_o[i - k] - 1];
                 }
-                ++group_count;
+                --group_count;
             }
         }
         Rf_unprotect(1);
@@ -607,15 +611,18 @@ SEXP cpp_roll_diff_grouped(SEXP x, int k, SEXP o, SEXP sizes, SEXP fill) {
           ++group_count;
         }
       } else {
+        j = n_groups - 1;
+        running_group_size = p_sizes[j];
+        group_count = running_group_size - 1;
         for (int i = (size - 1); i >= 0; --i) {
           oi = p_o[i] - 1;
           // Start of new group?
           if ( (size - i) > running_group_size){
-            ++j;
+            --j;
             running_group_size += p_sizes[j];
-            group_count = 0;
+            group_count = p_sizes[j] - 1;
           }
-          if (-group_count > k){
+          if (group_count >= (p_sizes[j] + k)){
             p_out[oi] = fill_value;
           } else if ((p_x[oi] == NA_INTEGER) || (p_x[p_o[i - k] - 1] == NA_INTEGER)) {
             p_out[oi] = NA_INTEGER;
@@ -629,7 +636,7 @@ SEXP cpp_roll_diff_grouped(SEXP x, int k, SEXP o, SEXP sizes, SEXP fill) {
               p_out[oi] = p_x[oi] - p_x[p_o[i - k] - 1];
             }
           }
-          ++group_count;
+          --group_count;
         }
       }
       Rf_unprotect(1);
@@ -637,7 +644,6 @@ SEXP cpp_roll_diff_grouped(SEXP x, int k, SEXP o, SEXP sizes, SEXP fill) {
     }
     case REALSXP: {
         double fill_value = NA_REAL;
-        // k = std::min(k, p_sizes[j]);
         if (fill_size >= 1){
             fill_value = Rf_asReal(fill);
         }
@@ -661,20 +667,23 @@ SEXP cpp_roll_diff_grouped(SEXP x, int k, SEXP o, SEXP sizes, SEXP fill) {
             ++group_count;
           }
         } else {
+          j = n_groups - 1;
+          running_group_size = p_sizes[j];
+          group_count = running_group_size - 1;
           for (int i = (size - 1); i >= 0; --i) {
             oi = p_o[i] - 1;
             // Start of new group?
             if ( (size - i) > running_group_size){
-              ++j;
+              --j;
               running_group_size += p_sizes[j];
-              group_count = 0;
+              group_count = p_sizes[j] - 1;
             }
-            if (-group_count > k){
+            if (group_count >= (p_sizes[j] + k)){
               p_out[oi] = fill_value;
             } else {
               p_out[oi] = p_x[oi] - p_x[p_o[i - k] - 1];
             }
-            ++group_count;
+            --group_count;
           }
         }
         Rf_unprotect(1);
