@@ -1,4 +1,4 @@
-# timeplyr (Development version)
+# timeplyr 0.4.1
 
 * New classes `ym` and `yq` for representing `year-months` and `year-quarters`
 respectively. Inspired by 'zoo' and 'tsibble', these operate similarly, but
