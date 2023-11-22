@@ -101,19 +101,14 @@ library(nycflights13)
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
-# Works the same way as mutate()
-identical(flights \%>\%
-            mutate(across(where(is.numeric), mean)),
-          flights \%>\%
-            time_mutate(time = NULL,
-                        across(where(is.numeric), mean)))
 # Like the other time_ functions, it allows for an additional time variable to
 # aggregate by
 flights \%>\%
+  fdistinct(time_hour) \%>\%
   time_mutate(time = across(time_hour, as_date),
               time_by = "month", .keep = "none",
               include_interval = TRUE) \%>\%
-  distinct()
+  fdistinct()
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

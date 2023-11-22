@@ -23,8 +23,8 @@
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
-#' x <- sample(c(TRUE, FALSE), 1e06, TRUE)
-#' x[sample.int(1e06, round(1e06/3))] <- NA
+#' x <- sample(c(TRUE, FALSE), 1e05, TRUE)
+#' x[sample.int(1e05, round(1e05/3))] <- NA
 #'
 #' mark(cpp_which(TRUE), which(TRUE))
 #' mark(cpp_which(FALSE), which(FALSE))

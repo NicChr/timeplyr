@@ -54,17 +54,13 @@
 #' library(timeplyr)
 #' library(outbreaks)
 #' library(dplyr)
-#' library(lubridate)
 #' \dontshow{
 #' .n_dt_threads <- data.table::getDTthreads()
 #' .n_collapse_threads <- collapse::get_collapse()$nthreads
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
-#' base_pluck <- function(x, i){
-#'   x[[i]]
-#' }
-#' ebola_linelist <- outbreaks::ebola_sim_clean$linelist
+#' ebola_linelist <- ebola_sim_clean$linelist
 #'
 #' # Incubation period distribution
 #'
@@ -73,56 +69,28 @@
 #'   get_time_delay(date_of_infection,
 #'                  date_of_onset,
 #'                  time_by = "days")
-#' head(inc_distr_days$data) # Data with calculated delay
-#' inc_distr_days$unit # # Specified time unit
-#' inc_distr_days$num # # Specified time unit size
-#' inc_distr_days$summary # Summary statistics
+#' head(inc_distr_days$data)
+#' inc_distr_days$unit
+#' inc_distr_days$num
+#' inc_distr_days$summary
 #' head(inc_distr_days$delay) # ECDF and freq by delay
-#' inc_distr_days$plot # Plot of distribution
+#' inc_distr_days$plot
 #'
 #' # Can change bandwidth selector
-#' ebola_linelist %>%
+#' inc_distr_days <- ebola_linelist %>%
 #'   get_time_delay(date_of_infection,
 #'                  date_of_onset,
 #'                  time_by = "day",
-#'                  bw = "nrd") %>% # Scott's rule-of-thumb, normality assumption
-#'   base_pluck("plot")
+#'                  bw = "nrd")
+#' inc_distr_days$plot
 #'
 #' # Can choose any time units
 #' inc_distr_weeks <- ebola_linelist %>%
 #'   get_time_delay(date_of_infection,
 #'                  date_of_onset,
-#'                  time_by = "weeks")
+#'                  time_by = "weeks",
+#'                  bw = "nrd")
 #' inc_distr_weeks$plot
-#'
-#' # Similar distribution by gender
-#' ebola_linelist %>%
-#'   group_by(gender) %>%
-#'   get_time_delay(date_of_infection,
-#'                  date_of_onset,
-#'                  time_by = "day",
-#'                  include_plot = FALSE) %>%
-#'   base_pluck("summary")
-#'
-#' # Time from symptom onset to hospitalisation stratified by clinical outcome
-#' ebola_linelist %>%
-#'   group_by(outcome) %>%
-#'   get_time_delay(date_of_onset,
-#'                  date_of_hospitalisation,
-#'                  time_by = "days",
-#'                  include_plot = FALSE) %>%
-#'   base_pluck("summary")
-#'
-#' # Those who died may have presented to hospital faster than those that recovered
-#'
-#' mers_cases <- outbreaks::mers_korea_2015$linelist
-#'
-#' # Reporting delay
-#' mers_cases %>%
-#'   get_time_delay(dt_onset, dt_report,
-#'                  time_by = "days",
-#'                  include_plot = FALSE) %>%
-#'   base_pluck("summary")  # Mean of ~ 6 days
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
