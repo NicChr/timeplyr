@@ -45,11 +45,11 @@ library(timeplyr)
 ``` r
 library(tidyverse)
 #> ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-#> ✔ dplyr     1.1.2     ✔ readr     2.1.4
-#> ✔ forcats   1.0.0     ✔ stringr   1.5.0
-#> ✔ ggplot2   3.4.3     ✔ tibble    3.2.1
-#> ✔ lubridate 1.9.2     ✔ tidyr     1.3.0
-#> ✔ purrr     1.0.1     
+#> ✔ dplyr     1.1.4     ✔ readr     2.1.4
+#> ✔ forcats   1.0.0     ✔ stringr   1.5.1
+#> ✔ ggplot2   3.4.4     ✔ tibble    3.2.1
+#> ✔ lubridate 1.9.3     ✔ tidyr     1.3.0
+#> ✔ purrr     1.0.2     
 #> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 #> ✖ dplyr::desc()   masks timeplyr::desc()
 #> ✖ dplyr::filter() masks stats::filter()
@@ -415,6 +415,38 @@ roll_na_fill(x, g = g) # Very efficient on large data too
 #> [1] NA  3  4 NA  6  6  6  8
 ```
 
+## `year_month` and `year_quarter`
+
+timeplyr has its own lightweight ‘yearmonth’ and \`yearquarter’ classes
+inspired by the excellent ‘zoo’ and ‘tsibble’ packages.
+
+``` r
+today <- today()
+year_month(today)
+#> [1] "2023 Nov"
+```
+
+The underlying data for a `year_month` is the number of months since 1
+January 1970 (epoch).
+
+``` r
+unclass(year_month("1970-01-01"))
+#> [1] 0
+unclass(year_month("1971-01-01"))
+#> [1] 12
+```
+
+To create a sequence of ‘year_months’, one can use base arithmetic
+
+``` r
+year_month(today) + 0:12
+#>  [1] "2023 Nov" "2023 Dec" "2024 Jan" "2024 Feb" "2024 Mar" "2024 Apr"
+#>  [7] "2024 May" "2024 Jun" "2024 Jul" "2024 Aug" "2024 Sep" "2024 Oct"
+#> [13] "2024 Nov"
+year_quarter(today) + 0:4
+#> [1] "2023 Q4" "2024 Q1" "2024 Q2" "2024 Q3" "2024 Q4"
+```
+
 ## `time_elapsed()`
 
 Let’s look at the time between consecutive flights for a specific flight
@@ -681,11 +713,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2023-W46"
+#> [1] "2023-W47"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W46-5"
+#> [1] "2023-W47-3"
 iso_week(today(), year = FALSE)
-#> [1] "W46"
+#> [1] "W47"
 ```
 
 ## `time_cut()`
@@ -716,7 +748,7 @@ weekly_data %>%
   scale_x_date(breaks = date_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-31-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-34-1.png)<!-- -->
 
 ``` r
 
@@ -726,7 +758,7 @@ flights %>%
   scale_x_datetime(breaks = time_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-31-2.png)<!-- -->
+![](man/figures/README-unnamed-chunk-34-2.png)<!-- -->
 
 ## Efficient grouped functions
 

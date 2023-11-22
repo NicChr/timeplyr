@@ -1,9 +1,11 @@
 # timeplyr 0.4.1
 
-* New classes `ym` and `yq` for representing `year-months` and `year-quarters`
-respectively. Inspired by 'zoo' and 'tsibble', these operate similarly, but
-the underlying data is an integer count of months for `ym`, and quarters for `yq`, 
-which makes creating sequences very fast.
+* New classes `year_month` and `year_quarter`. 
+Inspired by 'zoo' and 'tsibble', these operate similarly but
+the underlying data is an integer count of months for `year_month`, 
+and quarters for `year_quarter`. 
+This means that creating sequences is very fast and arithmetic is simpler and
+more intuitive on the 'year-month' level.
 
 * `cpp_roll_diff` and `scm` now appropriately handle `NA` values.
 

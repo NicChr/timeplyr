@@ -231,6 +231,32 @@ roll_na_fill(x, fill_limit = 1) # Fill up to 1 NA
 roll_na_fill(x, g = g) # Very efficient on large data too
 ```
 
+## `year_month` and `year_quarter`
+
+timeplyr has its own lightweight 'yearmonth' and `yearquarter' classes
+inspired by the excellent 'zoo' and 'tsibble' packages.
+
+
+```{r}
+today <- today()
+year_month(today)
+```
+
+The underlying data for a `year_month` is the number of months
+since 1 January 1970 (epoch).
+
+```{r}
+unclass(year_month("1970-01-01"))
+unclass(year_month("1971-01-01"))
+```
+
+To create a sequence of 'year_months', one can use base arithmetic
+
+```{r}
+year_month(today) + 0:12
+year_quarter(today) + 0:4
+```
+
 ## `time_elapsed()`
 
 Let's look at the time between consecutive flights for a specific flight number
