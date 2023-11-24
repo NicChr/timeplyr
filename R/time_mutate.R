@@ -88,41 +88,55 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
                         roll_month = getOption("timeplyr.roll_month", "preday"),
                         roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   check_is_df(data)
+  has_groups <- length(group_vars(data)) > 0
   group_vars <- get_groups(data, {{ .by }})
-  data <- mutate2(data,
-                  !!enquo(time),
-                  !!enquo(from),
-                  !!enquo(to),
-                  .by = {{ .by }})
-  reconstruct <- TRUE
-  time_var <- tidy_transform_names(data, !!enquo(time))
-  from_var <- tidy_transform_names(data, !!enquo(from))
-  to_var <- tidy_transform_names(data, !!enquo(to))
+  out <- data
+  if (!has_groups){
+    out <- fgroup_by(out, .by = {{ .by }}, order = FALSE)
+  }
+  group_ids <- df_group_id(out)
+  time_info <- mutate_summary_grouped(out, !!enquo(time))
+  from_info <- mutate_summary_grouped(out, !!enquo(from), .keep = "none")
+  to_info <- mutate_summary_grouped(out, !!enquo(to), .keep = "none")
+  time_var <- time_info[["cols"]]
+  from_var <- from_info[["cols"]]
+  to_var <- to_info[["cols"]]
+  check_length_lte(time_var, 1)
+  check_length_lte(from_var, 1)
+  check_length_lte(to_var, 1)
+
+  # Remove duplicate cols
+  time_data <- safe_ungroup(time_info[["data"]])
+  from_data <- safe_ungroup(from_info[["data"]])
+  to_data <- safe_ungroup(to_info[["data"]])
+  from_data <- fselect(from_data,
+                       .cols = cpp_which(match(names(from_data), names(time_data), 0L) == 0L))
+  to_data <- fselect(to_data,
+                     .cols = cpp_which(match(names(to_data), names(time_data), 0L) == 0L))
+  out <- vctrs::vec_cbind(time_data, from_data, to_data)
   # Add variable to keep track of group IDs
-  grp_nm <- new_var_nm(data, ".group.id")
-  data <- add_group_id(data, .by = {{ .by }}, .name = grp_nm)
-  int_nm <- character(0)
+  grp_nm <- new_var_nm(out, ".group.id")
+  out <- dplyr::dplyr_col_modify(out,
+                                 cols = add_names(list(group_ids), grp_nm))
+  int_nm <- character()
   if (length(time_var) > 0L){
     # User supplied unit
     if (!is.null(time_by)){
       time_by <- time_by_list(time_by)
     } else {
       # Function to determine implicit time units
-      granularity <- time_granularity(data[[time_var]], msg = FALSE)
+      granularity <- time_granularity(out[[time_var]], msg = FALSE)
       message(paste("Assuming a time granularity of",
                     granularity[["num"]] / granularity[["scale"]],
                     granularity[["granularity"]], sep = " "))
-      # rlang::inform(c("i" = paste("Assuming a time granularity of",
-      #                             granularity[["num"]] / granularity[["scale"]],
-      #                             granularity[["granularity"]], sep = " ")))
       time_by <- add_names(list(granularity[["num"]]), granularity[["unit"]])
     }
     # Aggregate time data
-    time_agg <- time_aggregate_switch(data[[time_var]],
+    time_agg <- time_aggregate_switch(out[[time_var]],
                                       time_by = time_by,
-                                      g = data[[grp_nm]],
-                                      start = fpluck(data, from_var),
-                                      end = fpluck(data, to_var),
+                                      g = out[[grp_nm]],
+                                      start = fpluck(out, from_var),
+                                      end = fpluck(out, to_var),
                                       time_type = time_type,
                                       roll_month = roll_month,
                                       roll_dst = roll_dst,
@@ -131,34 +145,33 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
                                       as_int = include_interval)
     time_int_end <- time_int_end(time_agg)
     time_agg <- time_int_rm_attrs(time_agg)
-    data <- dplyr::dplyr_col_modify(data,
-                                    add_names(
-                                      list(time_agg), time_var
-                                    )
+    out <- dplyr::dplyr_col_modify(out,
+                                   add_names(
+                                     list(time_agg), time_var
+                                   )
     )
-      if (include_interval){
-        if (inherits(data, "data.table")){
-          data <- df_as_tibble(data)
-          reconstruct <- FALSE
-          message("data.table converted to tibble as data.table cannot include interval class")
-        }
-        int_nm <- new_var_nm(names(data), "interval")
-        data <- dplyr::dplyr_col_modify(data,
-                                        add_names(
-                                          list(
-                                            time_interval(time_agg, time_int_end)
-                                          ), int_nm
-                                        )
-        )
-      }
+    if (include_interval){
+      int_nm <- new_var_nm(names(out), "interval")
+      out <- dplyr::dplyr_col_modify(out,
+                                     add_names(
+                                       list(
+                                         time_interval(time_agg, time_int_end)
+                                       ), int_nm
+                                     )
+      )
+    }
   }
-  data <- df_rm_cols(data, grp_nm)
-  out <- mutate2(safe_ungroup(data),
-                ...,
-                .by = all_of(c(group_vars, time_var, int_nm)),
-                .keep = .keep)
-  if (reconstruct){
-    out <- df_reconstruct(out, data)
-  }
-  out
+  out <- df_rm_cols(out, grp_nm)
+  out <- mutate2(safe_ungroup(out),
+                 ...,
+                 .by = all_of(c(group_vars, time_var, int_nm)),
+                 .keep = .keep)
+  # if (has_groups && groups_equal(time_info[["data"]], data)){
+  #  attr(out, "groups") <- attr(data, "groups")
+  #  class(out) <- c("grouped_df", "tbl_df", "tbl", "data.frame")
+  #  out
+  # } else {
+  #   df_reconstruct(out, data)
+  # }
+  df_reconstruct(out, data)
 }

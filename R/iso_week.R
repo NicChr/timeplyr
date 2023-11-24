@@ -40,9 +40,9 @@ iso_week <- function(x, year = TRUE, day = FALSE){
     d <- isoday(x)
   }
   if (year && day){
-    out <- sprintf("%s-W%02d-%d", y, w, d)
+    out <- sprintf("%.4d-W%02d-%d", y, w, d)
   } else if (year && !day){
-    out <- sprintf("%s-W%02d", y, w)
+    out <- sprintf("%.4d-W%02d", y, w)
   } else if (!year && day){
     out <- sprintf("W%02d-%d", w, d)
   } else {
@@ -58,3 +58,16 @@ isoday <- function(x){
   out[collapse::whichv(out, 0L)] <- 7L
   out
 }
+# Integer isoweek
+# isoweek <- function(x){
+#   x <- as.POSIXlt(x)
+#   y <- x$year + 1900L
+#   m <- x$mon + 1L
+#   d <- x$mday
+#   wday <- x$wday
+#   wday[cpp_which(wday == 0L)] <- 7L
+#   date <- as_int_date(lubridate::make_date(y, m, d))
+#   date <- date + (4L - wday)
+#   jan1 <- as.integer(lubridate::make_date(as.POSIXlt(date)$year + 1900L, 1L, 1L))
+#   1L + (as.integer(date) - jan1) %/% 7L
+# }

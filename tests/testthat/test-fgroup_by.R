@@ -4,10 +4,12 @@ data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 
 testthat::test_that("groups", {
-  testthat::expect_equal(iris %>%
-                            dplyr::group_by(Species) %>%
-                            dplyr::group_by(max(Sepal.Length), .add = TRUE),
-                          iris %>%
-                            fgroup_by(Species) %>%
-                            fgroup_by(max(Sepal.Length), .add = TRUE))
+  target <- iris %>%
+    dplyr::group_by(Species) %>%
+    dplyr::group_by(max(Sepal.Length), .add = TRUE)
+  result <- iris %>%
+    fgroup_by(Species) %>%
+    fgroup_by(max(Sepal.Length), .add = TRUE)
+  attr(attr(result, "groups"), "sorted") <- NULL
+  testthat::expect_equal(result, target)
 })

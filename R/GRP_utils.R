@@ -604,7 +604,7 @@ grouped_row_id <- function(x, ascending = TRUE){
       start <- group_sizes
       every <- -1L
     }
-    out <- sequence2(group_sizes, from = start, by = every)
+    out <- sequence(group_sizes, from = start, by = every)
   } else {
     out <- cpp_row_id(o, group_sizes, ascending)
   }

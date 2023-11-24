@@ -2,7 +2,7 @@
 % Please edit documentation in R/fgroup_by.R
 \name{fgroup_by}
 \alias{fgroup_by}
-\title{\code{collapse} version of \code{dplyr::group_by()}}
+\title{'collapse' version of \code{dplyr::group_by()}}
 \usage{
 fgroup_by(
   data,
@@ -40,4 +40,9 @@ A \code{grouped_df}.
 \description{
 This works the exact same as \code{dplyr::group_by()} and typically
 performs around the same speed but uses slightly less memory.
+}
+\details{
+\code{fgroup_by()} works almost exactly like the 'dplyr' equivalent.
+An attribute "sorted" (\code{TRUE} or \code{FALSE}) is added to the group data to
+signify if the groups are sorted or not.
 }

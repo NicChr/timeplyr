@@ -1367,7 +1367,7 @@ check_is_time_or_num <- function(x){
 # Turn date storage into integer
 as_int_date <- function(x){
   check_is_date(x)
-  out <- as.integer(unclass(x))
+  out <- as.integer(x)
   class(out) <- "Date"
   out
 }

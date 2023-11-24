@@ -112,6 +112,14 @@ cpp_df_group_indices <- function(rows, size) {
   .Call(`_timeplyr_cpp_df_group_indices`, rows, size)
 }
 
+cpp_group_data_rows_equal <- function(rows1, rows2) {
+  .Call(`_timeplyr_cpp_group_data_rows_equal`, rows1, rows2)
+}
+
+cpp_all_equal2 <- function(x, y) {
+  .Call(`_timeplyr_cpp_all_equal2`, x, y)
+}
+
 cpp_which_ <- function(x, invert) {
   .Call(`_timeplyr_cpp_which_`, x, invert)
 }

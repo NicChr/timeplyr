@@ -106,18 +106,33 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
                         roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                         log_limit = 8){
   check_is_df(data)
-  expand_type <- match.arg(expand_type)
+  expand_type <- rlang::arg_match(expand_type)
   group_vars <- get_groups(data, {{ .by }})
-  out <- mutate2(data,
-                 !!enquo(time),
-                 !!enquo(from),
-                 !!enquo(to),
-                 .by = {{ .by }},
-                 .keep = "none")
-  time_var <- tidy_transform_names(data, !!enquo(time))
-  from_var <- tidy_transform_names(data, !!enquo(from))
-  to_var <- tidy_transform_names(data, !!enquo(to))
-  out <- as_DT(out)
+  temp_data <- data
+  if (length(group_vars(data)) == 0){
+    temp_data <- fgroup_by(temp_data, .by = {{ .by }}, order = FALSE)
+  }
+  group_ids <- df_group_id(temp_data)
+  time_info <- mutate_summary_grouped(temp_data, !!enquo(time), .keep = "none")
+  from_info <- mutate_summary_grouped(temp_data, !!enquo(from), .keep = "none")
+  to_info <- mutate_summary_grouped(temp_data, !!enquo(to), .keep = "none")
+  time_var <- time_info[["cols"]]
+  from_var <- from_info[["cols"]]
+  to_var <- to_info[["cols"]]
+  check_length_lte(time_var, 1)
+  check_length_lte(from_var, 1)
+  check_length_lte(to_var, 1)
+
+  # Remove duplicate cols
+  time_data <- safe_ungroup(time_info[["data"]])
+  from_data <- safe_ungroup(from_info[["data"]])
+  to_data <- safe_ungroup(to_info[["data"]])
+  from_data <- fselect(from_data,
+                       .cols = cpp_which(match(names(from_data), names(time_data), 0L) == 0L))
+  to_data <- fselect(to_data,
+                     .cols = cpp_which(match(names(to_data), names(time_data), 0L) == 0L))
+  out <- vctrs::vec_cbind(time_data, from_data, to_data)
+  out <- data.table::copy(collapse::qDT(out))
   if (length(time_var) > 0){
     time_type <- match_time_type(time_type)
     time_by <- time_by_get(out[[time_var]], time_by = time_by)
@@ -126,7 +141,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
     input_time_type <- time_type # Save original
     # Ordered group ID
     grp_nm <- new_var_nm(out, ".group.id")
-    out[, (grp_nm) := group_id(data, .by = {{ .by }})]
+    data.table::set(out, j = grp_nm, value = group_ids)
     from_nm <- new_var_nm(names(out), ".from")
     to_nm <- new_var_nm(c(names(out), from_nm), ".to")
     out[, c(from_nm, to_nm) := get_from_to(out, time = time_var,
@@ -237,15 +252,18 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
                           sort = TRUE,
                           keep_class = TRUE,
                           fill = NA,
-                          roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                          roll_month = getOption("timeplyr.roll_month", "preday"),
+                          roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                           log_limit = 8){
   check_is_df(data)
-  expand_type <- match.arg(expand_type)
+  expand_type <- rlang::arg_match(expand_type)
   time_type <- match_time_type(time_type)
   group_vars <- get_groups(data, {{ .by }})
-  out <- mutate2(data, !!enquo(time))
-  time_var <- tidy_transform_names(data, !!enquo(time))
-  out <- as_DT(out)
+  out <- data
+  out_info <- mutate_summary_grouped(out, !!enquo(time), .by = {{ .by }})
+  time_var <- out_info[["cols"]]
+  check_length_lte(time_var, 1)
+  out <- as_DT(out_info[["data"]])
   expanded_df <- time_expand(out,
                              ...,
                              time = across(all_of(time_var)),

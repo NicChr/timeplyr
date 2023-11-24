@@ -1,4 +1,4 @@
-#' A time based extension to `dplyr::summarise()`/`dplyr::reframe()`
+#' A time based extension to `dplyr::summarise()`
 #'
 #' @description
 #' This works much the same as `dplyr::summarise()`, except that
@@ -100,75 +100,95 @@ time_summarise <- function(data, time = NULL, ..., time_by = NULL,
                            roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                            sort = TRUE){
   check_is_df(data)
-  out <- fdistinct(time_mutate(data, ...,
-                               time = !!enquo(time),
-                               time_by = time_by,
-                               from = !!enquo(from),
-                               to = !!enquo(to),
-                               time_type = time_type,
-                               include_interval = include_interval,
-                               .by = {{ .by }},
-                               .keep = "none",
-                               time_floor = time_floor,
-                               week_start = week_start,
-                               roll_month = roll_month, roll_dst = roll_dst))
-  time_var <- tidy_transform_names(data, !!enquo(time))
-  group_info <- get_group_info(data, ...,
-                               type = "data-mask",
-                               .by = {{ .by }})
-  group_vars <-  group_info[["dplyr_groups"]]
-  extra_group_vars <- group_info[["extra_groups"]]
-  int_nm <- character()
-  if (include_interval){
-    int_nm <- new_var_nm(c(group_vars, time_var, extra_group_vars), "interval")
-  }
-  out <- fselect(out, .cols = c(group_vars, time_var, int_nm, extra_group_vars))
-  if (sort){
-    out <- farrange(out, .cols = c(group_vars, time_var))
-  }
-  if (include_interval && !is_interval(out[[int_nm]])){
-    attr(out[[int_nm]], "start") <- out[[time_var]]
-  }
-  out
-}
-#' @rdname time_summarise
-#' @export
-time_reframe <- function(data, time = NULL, ..., time_by = NULL,
-                         from = NULL, to = NULL,
-                         time_type = getOption("timeplyr.time_type", "auto"),
-                         include_interval = FALSE,
-                         .by = NULL,
-                         time_floor = FALSE,
-                         week_start = getOption("lubridate.week.start", 1),
-                         roll_month = getOption("timeplyr.roll_month", "preday"),
-                         roll_dst = getOption("timeplyr.roll_dst", "boundary"),
-                         sort = TRUE){
-  check_is_df(data)
   group_vars <- get_groups(data, {{ .by }})
-  out <- time_mutate(data, time = !!enquo(time),
-                     time_by = time_by,
-                     from = !!enquo(from),
-                     to = !!enquo(to),
-                     time_type = time_type,
-                     include_interval = include_interval,
-                     .by = {{ .by }},
-                     .keep = "all",
-                     time_floor = time_floor,
-                     week_start = week_start,
-                     roll_month = roll_month, roll_dst = roll_dst)
-  time_var <- tidy_transform_names(data, !!enquo(time))
-  if (include_interval){
-    int_nm <- new_var_nm(c(time_var, names(data)), "interval")
-  } else {
-    int_nm <- character(0)
+  temp_data <- data
+  if (length(group_vars(data)) == 0){
+    temp_data <- fgroup_by(temp_data, .by = {{ .by }}, order = FALSE)
   }
-  out <- dplyr_summarise(safe_ungroup(out), ...,
-                         .by = dplyr::any_of(c(group_vars, time_var, int_nm)))
+  group_ids <- df_group_id(temp_data)
+  time_info <- mutate_summary_grouped(temp_data, !!enquo(time))
+  from_info <- mutate_summary_grouped(temp_data, !!enquo(from), .keep = "none")
+  to_info <- mutate_summary_grouped(temp_data, !!enquo(to), .keep = "none")
+  time_var <- time_info[["cols"]]
+  from_var <- from_info[["cols"]]
+  to_var <- to_info[["cols"]]
+  check_length_lte(time_var, 1)
+  check_length_lte(from_var, 1)
+  check_length_lte(to_var, 1)
+
+  # Remove duplicate cols
+  time_data <- safe_ungroup(time_info[["data"]])
+  from_data <- safe_ungroup(from_info[["data"]])
+  to_data <- safe_ungroup(to_info[["data"]])
+  from_data <- fselect(from_data,
+                       .cols = cpp_which(match(names(from_data), names(time_data), 0L) == 0L))
+  to_data <- fselect(to_data,
+                     .cols = cpp_which(match(names(to_data), names(time_data), 0L) == 0L))
+  temp_data <- vctrs::vec_cbind(time_data, from_data, to_data)
+  # Add variable to keep track of group IDs
+  grp_nm <- new_var_nm(temp_data, ".group.id")
+  temp_data <- dplyr::dplyr_col_modify(temp_data,
+                                       cols = add_names(list(group_ids), grp_nm))
+  int_nm <- character()
+  if (length(time_var) > 0L){
+    # User supplied unit
+    if (!is.null(time_by)){
+      time_by <- time_by_list(time_by)
+    } else {
+      # Function to determine implicit time units
+      granularity <- time_granularity(temp_data[[time_var]], msg = FALSE)
+      message(paste("Assuming a time granularity of",
+                    granularity[["num"]] / granularity[["scale"]],
+                    granularity[["granularity"]], sep = " "))
+      time_by <- add_names(list(granularity[["num"]]), granularity[["unit"]])
+    }
+    # Aggregate time data
+    time_agg <- time_aggregate_switch(temp_data[[time_var]],
+                                      time_by = time_by,
+                                      g = temp_data[[grp_nm]],
+                                      start = fpluck(temp_data, from_var),
+                                      end = fpluck(temp_data, to_var),
+                                      time_type = time_type,
+                                      roll_month = roll_month,
+                                      roll_dst = roll_dst,
+                                      time_floor = time_floor,
+                                      week_start = week_start,
+                                      as_int = include_interval)
+    time_int_end <- time_int_end(time_agg)
+    time_agg <- time_int_rm_attrs(time_agg)
+    temp_data <- dplyr::dplyr_col_modify(temp_data,
+                                         add_names(
+                                           list(time_agg), time_var
+                                         )
+    )
+    if (include_interval){
+      int_nm <- new_var_nm(names(temp_data), "interval")
+      temp_data <- dplyr::dplyr_col_modify(temp_data,
+                                           add_names(
+                                             list(
+                                               time_interval(time_agg, time_int_end)
+                                             ), int_nm
+                                           )
+      )
+    }
+  }
+  temp_data <- df_rm_cols(temp_data, grp_nm)
+  # out_info <- mutate_summary_grouped(safe_ungroup(temp_data),
+  #                                    ...,
+  #                                    .by = all_of(c(group_vars, time_var, int_nm)),
+  #                                    .keep = "none")
+  # out <- out_info[["data"]]
+  # extra_group_vars <- out_info[["cols"]]
+  # out <- fdistinct(out)
+  # out <- fselect(out, .cols = c(group_vars, time_var, int_nm, extra_group_vars))
+  out <- dplyr::summarise(safe_ungroup(temp_data),
+                               ...,
+                               .by = all_of(c(group_vars, time_var, int_nm)))
   if (sort){
     out <- farrange(out, .cols = c(group_vars, time_var))
   }
   if (include_interval && !is_interval(out[[int_nm]])){
     attr(out[[int_nm]], "start") <- out[[time_var]]
   }
-  out
+  df_reconstruct(out, data)
 }

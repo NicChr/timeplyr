@@ -18,30 +18,6 @@ n_unique <- function(x, na.rm = FALSE){
   out - na_offset
 }
 
-# Weighted mean
-# weighted_mean <- function (x, w = NULL, na.rm = FALSE) {
-#   if (is.null(w)) {
-#     N <- length(x)
-#     if (na.rm){
-#       N <- N - num_na(x)
-#     }
-#     out <- sum(x, na.rm = na.rm) / N
-#   }
-#   else {
-#     if (length(w) != length(x)){
-#       stop("'x' and 'w' must have the same length")
-#     }
-#     denom <- x * w
-#     if (na.rm){
-#       complete <- !is.na(denom)
-#       x <- x[complete]
-#       w <- w[complete]
-#     }
-#     out <- sum(denom, na.rm = na.rm) / sum(w)
-#   }
-#   out
-# }
-
 # Transform variables using tidy data masking
 tidy_transform_names <- function(data, ...){
   names(
@@ -80,7 +56,7 @@ col_select_pos <- function(data, .cols = character()){
   }
   is_na <- is.na(out)
   if (any(is_na)){
-    first_na_col <- .subset(.cols, .subset(which(is_na), 1L))
+    first_na_col <- .subset(.cols, .subset(cpp_which(is_na), 1L))
     if (is.numeric(first_na_col)){
       stop(paste("Location", first_na_col, "doesn't exist",
                  sep = " "))
@@ -174,13 +150,110 @@ tidy_select_info <- function(data, ..., .cols = NULL){
        "in_nms" = in_nms,
        "renamed" = renamed)
 }
+
+mutate_cols <- getFromNamespace("mutate_cols", "dplyr")
+dplyr_quosures <- getFromNamespace("dplyr_quosures", "dplyr")
+compute_by <- getFromNamespace("compute_by", "dplyr")
+
+# mutate_summary <- function(.data, ..., .by = NULL){
+#   original_cols <- names(.data)
+#   has_groups <- inherits(.data, ".grouped_df")
+#   group_data <- group_data(.data)
+#   group_vars <- get_groups(.data, .by = {{ .by }})
+#   out_data <- .data
+#   if (!has_groups && length(group_vars) > 0){
+#     out_data <- fgroup_by(safe_ungroup(out_data), .cols = group_vars,
+#                           order = FALSE) # This should mimic .by
+#   }
+#   col_names <- names(cols)
+#   out_data <- safe_ungroup(dplyr::transmute(out_data, ...))
+#   # out_data <- safe_ungroup(mutate2(out_data, ..., .keep = "none"))
+#   final_cols <- names(out_data)
+#
+#   # if (.keep == "none"){
+#   #   out <- list(data = out_data, cols = final_cols)
+#   # }
+#   # if (.keep == "all"){
+#   out_data <- dplyr::bind_cols(fselect(.data, .cols =
+#                                          setdiff(seq_along(original_cols),
+#                                                  match(final_cols, original_cols))),
+#                                fselect(out_data, .cols = final_cols))
+#   out <- list(data = out_data, cols = final_cols)
+#   # }
+#   if (has_groups){
+#     attr(out[["data"]], "groups") <- group_data
+#   }
+#   out
+# }
+
+mutate_summary_ungrouped <- function(.data, ...,
+                                     .keep = c("all", "used", "unused", "none"),
+                                     error_call = rlang::caller_env()){
+  .keep <- rlang::arg_match(.keep)
+  original_cols <- names(.data)
+  bare_data <- safe_ungroup(.data)
+  group_data <- new_tbl(".rows" = add_attr(list(seq_len(df_nrow(bare_data))),
+                                           "class",
+                                           c("vctrs_list_of", "vctrs_vctr", "list")))
+  by <- add_attr(
+    list(
+      type = "ungrouped",
+      names = character(),
+      data = group_data
+    ),
+    "class",
+    "dplyr_by"
+  )
+  cols <- mutate_cols(bare_data, dplyr_quosures(!!!enquos(...)),
+                      by = by, error_call = error_call)
+  out_data <- dplyr::dplyr_col_modify(bare_data, cols)
+  final_cols <- names(cols)
+  used <- attr(cols, "used")
+  keep_cols <- switch(.keep,
+                      all = names(used),
+                      none = final_cols,
+                      used = names(used)[cpp_which(used)],
+                      unused = names(used)[cpp_which(used, invert = TRUE)])
+  out_data <- fselect(out_data, .cols = keep_cols)
+  out <- list(data = out_data, cols = final_cols)
+  out
+}
+
+mutate_summary_grouped <- function(.data, ...,
+                                   .keep = c("all", "used", "unused", "none"),
+                                   .by = NULL,
+                                   error_call = rlang::caller_env()){
+  .keep <- rlang::arg_match(.keep)
+  original_cols <- names(.data)
+  by <- compute_by(by = {{ .by }}, data = .data,
+                   by_arg = ".by", data_arg = ".data")
+  group_vars <- get_groups(.data, .by = {{ .by }})
+  cols <- mutate_cols(.data, dplyr_quosures(!!!enquos(...)),
+                      by = by, error_call = error_call)
+  out_data <- dplyr::dplyr_col_modify(.data, cols)
+  final_cols <- names(cols)
+  used <- attr(cols, "used")
+  keep_cols <- switch(.keep,
+                      all = names(used),
+                      none = final_cols,
+                      used = names(used)[cpp_which(used)],
+                      unused = names(used)[cpp_which(used, invert = TRUE)])
+  # Add missed group vars
+  keep_cols <- c(group_vars, keep_cols[match(keep_cols, group_vars, 0L) == 0L])
+  # Match the original ordering of columns
+  keep_cols <- keep_cols[radix_order(match(keep_cols, original_cols))]
+  out_data <- fselect(out_data, .cols = keep_cols)
+  out <- list(data = out_data, cols = final_cols)
+  out
+}
+
 # Updated version of transmute using mutate
 transmute2 <- function(data, ..., .by = NULL){
   group_vars <- get_groups(data, .by = {{ .by }})
-  out <- mutate2(data, ..., .by = {{ .by }}, .keep = "none")
-  out_nms <- tidy_transform_names(data, ...)
-  fselect(out, .cols = c(group_vars, out_nms))
+  out <- mutate_summary_grouped(data, ..., .by = {{ .by }}, .keep = "none")
+  fselect(out[["data"]], .cols = c(group_vars, out[["cols"]]))
 }
+
 # mutate with a special case when all expressions are just selected columns.
 mutate2 <- function(data, ..., .by = NULL,
                     .keep = c("all", "used", "unused", "none"),
@@ -444,6 +517,60 @@ group_info <- function(data, ..., .by = NULL, .cols = NULL,
   }
 }
 
+tidy_group_info_datamask <- function(data, ..., .by = NULL,
+                                     ungroup = TRUE,
+                                     unique_groups = TRUE){
+  n_dots <- dots_length(...)
+  group_vars <- get_groups(data, {{ .by }})
+  group_pos <- match(group_vars, names(data))
+  extra_groups <- character()
+  if (ungroup){
+    out <- safe_ungroup(data)
+  } else {
+    out <- data
+  }
+  # Data-masking for dots expressions
+  if (n_dots > 0){
+    if (ungroup){
+      out_info <- mutate_summary_ungrouped(out, ...)
+    } else {
+      out_info <- mutate_summary_grouped(out, ..., .by = {{ .by }})
+    }
+    out <- out_info[["data"]]
+    extra_groups <- out_info[["cols"]]
+  }
+  if (unique_groups){
+    extra_groups <- extra_groups[match(extra_groups, group_vars, 0L) == 0L]
+    all_groups <- c(group_vars, extra_groups)
+  } else {
+    all_groups <- c(group_vars, extra_groups[match(extra_groups, group_vars, 0L) == 0L])
+  }
+  list("data" = out,
+       "dplyr_groups" = group_vars,
+       "extra_groups" = extra_groups,
+       "all_groups" = all_groups)
+}
+
+tidy_group_info_tidyselect <- group_info_tidyselect
+
+tidy_group_info <- function(data, ..., .by = NULL, .cols = NULL,
+                            ungroup = TRUE, rename = TRUE,
+                            dots_type = "data-mask",
+                            unique_groups = TRUE){
+  check_cols(n_dots = dots_length(...), .cols = .cols)
+  if (is.null(.cols) && dots_type == "data-mask"){
+    tidy_group_info_datamask(data, ..., .by = {{ .by }},
+                             ungroup = ungroup,
+                             unique_groups = unique_groups)
+
+  } else {
+    tidy_group_info_tidyselect(data, ..., .by = {{ .by }},
+                               .cols = .cols,
+                               ungroup = ungroup,
+                               rename = rename,
+                               unique_groups = unique_groups)
+  }
+}
 
 # Faster dot nms
 dot_nms <- function(..., use.names = FALSE){
@@ -1052,6 +1179,11 @@ check_length <- function(x, size){
     stop(paste(deparse1(substitute(x)), "must be of length", size))
   }
 }
+check_length_lte <- function(x, size){
+  if (!(length(x) <= size)){
+    stop(paste(deparse1(substitute(x)), "must be <= length", size))
+  }
+}
 # collapse allv and allna with extra length check
 allv2 <- function(x, value){
   if (!length(x)){
@@ -1172,21 +1304,135 @@ collapse_join <- function(x, y, on, how, sort = FALSE, ...){
 #                  .after = !!rlang::enquo(.after))
 #   has_old_name_attr <- function(x) !is.null(attr(x, ".old_name"))
 #   used <- logical(length(out))
+#   used2 <- logical(length(out))
 #   new <- logical(length(out))
 #   for (i in seq_along(out)){
 #     new[i] <- !has_old_name_attr(out[[i]])
-#     used[i] <- !new[i] && attr(.data[[i]])
+#     used[i] <- !new[i] && has_old_name_attr(out[[i]])
+#     used2[i] <- (!has_old_name_attr(out[[i]]) && names(out)[i] %in% original_names)
 #   }
+#   c(names(out)[cpp_which(new)],
+#     names(out)[cpp_which(used)])
+#   # cat(add_names(new, names(out)))
+#   # cat(used)
+# }
+
+# mutate_summary <- function(.data, ..., .by = NULL){
+#   original_cols <- names(.data)
+#   out <- mutate2(.data, ..., .keep = "none",
+#                  .by = {{ .by }})
+#
+#   out_cols <- names(out)
+#   new_cols <- setdiff(out_cols, original_cols)
+#
+#   used_cols <- intersect(out_cols, original_cols)
+#
+#   out <- dplyr::bind_cols(fselect(.data, .cols = -match(used_cols, original_cols)),
+#                           fselect(out, .cols = c(used_cols, new_cols)))
+#   out_cols <- c(original_cols, new_cols)
+#   list(data = fselect(out, .cols = out_cols),
+#        cols = c(used_cols, new_cols))
+#   ## TO-do Add options for .keep
+#   ## To-do
+# }
+
+# mutate_summary <- function(.data, ...,
+#                            .keep = c("all",
+#                                      # "used", "unused",
+#                                      "none"),
+#                            .by = NULL){
+#   original_cols <- names(.data)
+#   addresses <- vapply(.data, data.table::address, "", USE.NAMES = TRUE)
+#
+#   # has_groups <- inherits(.data, ".grouped_df")
+#   # group_data <- group_data(.data)
+#   # # out_data <- safe_ungroup(.data)
+#   # group_vars <- get_groups(.data, .by = {{ .by }})
+#   # out_data <- .data
+#   # if (!has_groups && length(group_vars) > 0){
+#   #   out_data <- fgroup_by(safe_ungroup(out_data), .cols = group_vars,
+#   #                         order = FALSE) # This should mimic .by
+#   # }
+#
+#   # out_data <- safe_ungroup(dplyr::transmute(out_data, ...))
+#   out_data <- mutate(.data, ..., .keep = "used", .by = {{ .by }})
+#   out_addresses <- vapply(out_data, data.table::address, "", USE.NAMES = TRUE)
+#   .keep <- rlang::arg_match(.keep)
+#   out_cols <- names(out_data)
+#   used <- logical(length(names(out_data)))
+#
+#   # Selected is simply selected variables
+#   # Theyre used but not transformed in any way
+#   selected <- logical(length(names(out_data)))
+#   # Grab used cols by checking if their address hasn't changed and name matches up
+#   for (i in seq_along(used)){
+#     used[i] <- out_cols[i] %in% original_cols &&
+#       data.table::address(out_data[[i]]) == unname(addresses[match(out_cols[i], original_cols)])
+#
+#     ## This part is a bit broken, FIX
+#     address_match <- match(out_addresses[i], addresses)
+#     selected[i] <- !is.na(address_match) &&
+#       out_cols[i] == names(addresses)[address_match]
+#   }
+#
+#   selected_cols <- out_cols[cpp_which(selected)] # SUBSET OF USED
+#   used_cols <- out_cols[cpp_which(used)]
+#   new_cols <- out_cols[cpp_which(used, invert = TRUE)]
+#
+#   final_cols <- c(selected_cols, new_cols)
+#
+#   if (.keep == "none"){
+#     out <- list(data = fselect(out_data, .cols = new_cols),
+#                 cols = new_cols)
+#   }
+#   if (.keep == "all"){
+#     out_data <- dplyr::bind_cols(fselect(.data, .cols = setdiff(seq_along(original_cols),
+#                                                                 match(new_cols, original_cols))),
+#                                  fselect(out_data, .cols = new_cols))
+#     out <- list(data = out_data,
+#                 cols = new_cols)
+#   }
+#   # if (.keep == "used"){
+#   #   out <- list(data = out_data, cols = new_cols)
+#   # }
+#   # This is okay because mutate() doesn't rename or remove group variables
+#   # It also doesn't reorder the rows
+#   # if (has_groups){
+#   #   attr(out[["data"]], "groups") <- group_data
+#   # }
+#   out
 # }
 
 # Sort x with no copy
 # If y is supplied, sort x using y
-set_order <- function(x, y = NULL){
-  df <- collapse::qDT(list3(x = x, y = y))
-  data.table::setorderv(df, cols = names(df)[df_ncol(df)])
-  invisible(x)
-}
+# set_order <- function(x, y = NULL){
+#   df <- collapse::qDT(list3(x = x, y = y))
+#   data.table::setorderv(df, cols = names(df)[df_ncol(df)])
+#   invisible(x)
+# }
 # Remove NULL list elements
 list_rm_null <- function(x){
   .subset(x, cpp_list_which_not_null(x))
+}
+
+# nth element
+# returns empty vector if n > length(x)
+nth <- function(x, n){
+  N <- length(x)
+  if (n > N){
+    x[0L]
+  } else {
+    x[n]
+  }
+}
+
+# setdiff where x and y are unique vectors
+setdiff2 <- function(x, y){
+  x[match(x, y, 0L) == 0L]
+}
+intersect2 <- function(x, y){
+  if (is.null(x) || is.null(y)){
+    return(NULL)
+  }
+  c(x[match(x, y, 0L) > 0L], y[numeric()])
 }

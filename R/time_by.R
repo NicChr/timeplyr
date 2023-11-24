@@ -110,67 +110,79 @@ time_by <- function(data, time, time_by_unit = NULL,
   check_is_df(data)
   data_nms <- names(data)
   group_vars <- group_vars(data)
+  data <- safe_ungroup(data)
+  time_info <- mutate_summary_ungrouped(data, !!enquo(time))
+  from_info <- mutate_summary_ungrouped(data, !!enquo(from), .keep = "none")
+  to_info <- mutate_summary_ungrouped(data, !!enquo(to), .keep = "none")
+  time_var <- time_info[["cols"]]
+  from_var <- from_info[["cols"]]
+  to_var <- to_info[["cols"]]
+  check_length_lte(time_var, 1)
+  check_length_lte(from_var, 1)
+  check_length_lte(to_var, 1)
+
+  # Remove duplicate cols..
+  time_data <- time_info[["data"]]
+  col_seq <- seq_along(names(time_data))
+  from_data <- from_info[["data"]]
+  to_data <- to_info[["data"]]
+  from_data <- fselect(from_data, .cols = cpp_which(names(from_data) %in% names(time_data), invert = TRUE))
+  to_data <- fselect(to_data, .cols = cpp_which(names(to_data) %in% names(time_data), invert = TRUE))
+  # to_data <- fselect(to_data,
+  #                    setdiff2(match(to_var, names(time_data), 0L), col_seq))
+
   rlang::check_required(time)
-  data <- mutate2(safe_ungroup(data),
-                  !!enquo(time),
-                  !!enquo(from),
-                  !!enquo(to))
-  time_var <- tidy_transform_names(data, !!enquo(time))
-  from_var <- tidy_transform_names(data, !!enquo(from))
-  to_var <- tidy_transform_names(data, !!enquo(to))
+  data <- vctrs::vec_cbind(time_data, from_data, to_data)
   check_is_time_or_num(data[[time_var]])
   if (length(time_var) > 0L){
-    if (length(time_var) > 1L){
-      stop("Please choose one time variable.")
-    }
     time_by <- time_by_get(data[[time_var]], time_by = time_by_unit,
                            quiet = TRUE)
-  if (time_by_length(time_by) > 1){
-    stop("Please supply only one numeric value in time_by")
-  }
-  if (!.add || !.time_by_group || length(group_vars) == 0L){
-    g <- NULL
-    time_span_groups <- character(0)
-  } else {
-    g <- fselect(data, .cols = group_vars)
-    time_span_groups <- group_vars
-  }
-  time_span_GRP <- df_to_GRP(data, .cols = time_span_groups,
-                             return.groups = TRUE)
-  from_to_list <- get_from_to(data, time = time_var,
-                              from = from_var, to = to_var,
-                              .by = all_of(time_span_groups))
-  # Aggregate time data
-  time_agg <- time_aggregate_switch(data[[time_var]],
-                                    time_by = time_by,
-                                    start = fpluck(from_to_list, 1L),
-                                    end = fpluck(from_to_list, 2L),
-                                    g = time_span_GRP,
-                                    time_type = time_type,
-                                    roll_month = roll_month,
-                                    roll_dst = roll_dst,
-                                    time_floor = time_floor,
-                                    week_start = week_start,
-                                    as_int = TRUE)
-  time_span_start <- collapse::fmin(time_agg, g = time_span_GRP,
+    if (time_by_length(time_by) > 1){
+      stop("Please supply only one numeric value in time_by")
+    }
+    if (!.add || !.time_by_group || length(group_vars) == 0L){
+      g <- NULL
+      time_span_groups <- character(0)
+    } else {
+      g <- fselect(data, .cols = group_vars)
+      time_span_groups <- group_vars
+    }
+    time_span_GRP <- df_to_GRP(data, .cols = time_span_groups,
+                               return.groups = TRUE)
+    from_to_list <- get_from_to(data, time = time_var,
+                                from = from_var, to = to_var,
+                                .by = all_of(time_span_groups))
+    # Aggregate time data
+    time_agg <- time_aggregate_switch(data[[time_var]],
+                                      time_by = time_by,
+                                      start = fpluck(from_to_list, 1L),
+                                      end = fpluck(from_to_list, 2L),
+                                      g = time_span_GRP,
+                                      time_type = time_type,
+                                      roll_month = roll_month,
+                                      roll_dst = roll_dst,
+                                      time_floor = time_floor,
+                                      week_start = week_start,
+                                      as_int = TRUE)
+    time_span_start <- collapse::fmin(time_agg, g = time_span_GRP,
+                                      use.g.names = FALSE)
+    time_span_end <- collapse::fmax(time_int_end(time_agg), g = time_span_GRP,
                                     use.g.names = FALSE)
-  time_span_end <- collapse::fmax(time_int_end(time_agg), g = time_span_GRP,
-                                    use.g.names = FALSE)
-  time_agg <- time_int_rm_attrs(time_agg)
-  time_var <- across_col_names(time_var, .fns = "", .names = .name)
-  data <- dplyr::mutate(data, "{time_var}" := time_agg)
-  time_span <- GRP_group_data(time_span_GRP)
-  if (df_nrow(time_span) == 0L){
-    time_span <- df_init(time_span, 1L)
-  }
-  time_span$start <- time_span_start
-  time_span$end <- time_span_end
-  num_gaps <- time_num_gaps(data[[time_var]],
-                            time_by = time_by,
-                            time_type = time_type,
-                            g = g, use.g.names = FALSE,
-                            check_time_regular = FALSE)
-  time_span[["num_gaps"]] <- num_gaps
+    time_agg <- time_int_rm_attrs(time_agg)
+    time_var <- across_col_names(time_var, .fns = "", .names = .name)
+    data <- dplyr::mutate(data, "{time_var}" := time_agg)
+    time_span <- GRP_group_data(time_span_GRP)
+    if (df_nrow(time_span) == 0L){
+      time_span <- df_init(time_span, 1L)
+    }
+    time_span$start <- time_span_start
+    time_span$end <- time_span_end
+    num_gaps <- time_num_gaps(data[[time_var]],
+                              time_by = time_by,
+                              time_type = time_type,
+                              g = g, use.g.names = FALSE,
+                              check_time_regular = FALSE)
+    time_span[["num_gaps"]] <- num_gaps
   }
   groups <- time_var
   if (.add){

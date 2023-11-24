@@ -80,17 +80,18 @@
 fcount <- function(data, ..., wt = NULL, sort = FALSE, order = TRUE,
                    name = NULL, .by = NULL, .cols = NULL){
   group_vars <- group_vars(data)
-  group_info <- group_info(data, ..., .by = {{ .by }},
-                           .cols = .cols,
-                           ungroup = TRUE,
-                           rename = TRUE)
+  group_info <- tidy_group_info(data, ..., .by = {{ .by }},
+                                .cols = .cols,
+                                ungroup = TRUE,
+                                rename = TRUE)
   out <- group_info[["data"]]
   all_vars <- group_info[["all_groups"]]
   N <- df_nrow(out)
   # Weights
   if (!rlang::quo_is_null(enquo(wt))){
-    out <- mutate2(out, !!enquo(wt))
-    wt_var <- tidy_transform_names(data, !!enquo(wt))
+    out_info <- mutate_summary_grouped(out, !!enquo(wt))
+    wt_var <- out_info[["cols"]]
+    out <- out_info[["data"]]
   } else {
     wt_var <- character()
   }

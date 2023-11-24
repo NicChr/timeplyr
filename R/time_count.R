@@ -125,7 +125,8 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                        time_floor = FALSE,
                        week_start = getOption("lubridate.week.start", 1),
                        time_type = getOption("timeplyr.time_type", "auto"),
-                       roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                       roll_month = getOption("timeplyr.roll_month", "preday"),
+                       roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                        include_interval = FALSE){
   check_is_df(data)
   time_type <- match_time_type(time_type)

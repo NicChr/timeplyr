@@ -46,10 +46,10 @@ fdistinct <- function(data, ..., .keep_all = FALSE,
                       sort = FALSE, order = sort,
                       .by = NULL, .cols = NULL){
   n_dots <- dots_length(...)
-  group_info <- group_info(data, ..., .by = {{ .by }},
-                           .cols = .cols,
-                           ungroup = TRUE,
-                           rename = TRUE)
+  group_info <- tidy_group_info(data, ..., .by = {{ .by }},
+                                .cols = .cols,
+                                ungroup = TRUE,
+                                rename = TRUE)
   all_groups <- group_info[["all_groups"]]
   out <- group_info[["data"]]
   if (n_dots == 0 && is.null(.cols)){

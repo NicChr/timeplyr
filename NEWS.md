@@ -1,3 +1,7 @@
+# timeplyr (Development version)
+
+* Improved print method speed for `year_month` and `year_quarter`
+
 # timeplyr 0.4.1
 
 * New classes `year_month` and `year_quarter`. 

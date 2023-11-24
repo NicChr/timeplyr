@@ -89,11 +89,11 @@ stat_summarise <- function(data, ...,
     # get(paste0("f", stat),
     #     asNamespace("collapse"))
   }
-  group_info <- group_info(data, ..., .by = {{ .by }},
-                           .cols = .cols,
-                           ungroup = TRUE,
-                           rename = TRUE,
-                           unique_groups = FALSE)
+  group_info <- tidy_group_info(data, ..., .by = {{ .by }},
+                                .cols = .cols,
+                                ungroup = TRUE,
+                                rename = TRUE,
+                                unique_groups = FALSE)
   group_vars <- group_info[["dplyr_groups"]]
   dot_vars <- group_info[["extra_groups"]]
   non_group_dot_vars <- setdiff(dot_vars, group_vars)

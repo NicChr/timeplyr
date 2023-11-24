@@ -35,7 +35,7 @@
 #' @export
 farrange <- function(data, ..., .by = NULL, .by_group = FALSE,
                      .cols = NULL){
-  group_info <- group_info(if (.by_group){
+  group_info <- tidy_group_info(if (.by_group){
     data
   } else {
     safe_ungroup(data)

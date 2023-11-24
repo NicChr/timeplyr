@@ -23,18 +23,6 @@ testthat::test_that("General tests", {
                             ~ mean(.x, na.rm = TRUE)),
                        .groups = "keep")
   )
-  testthat::expect_equal(
-    flights %>%
-      dplyr::group_by(origin, dest) %>%
-      time_reframe(time = NULL,
-                   across(dplyr::where(is.numeric),
-                            ~ mean(.x, na.rm = TRUE))),
-    flights %>%
-      dplyr::group_by(origin, dest) %>%
-      dplyr_summarise(across(dplyr::where(is.numeric),
-                              ~ mean(.x, na.rm = TRUE))) %>%
-      safe_ungroup()
-  )
   res1 <- flights %>%
     dplyr::group_by(origin, dest) %>%
     time_summarise(across(dplyr::where(is.numeric),

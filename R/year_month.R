@@ -107,16 +107,27 @@ new_year_month <- function(x){
 `c.year_month` <- function(...){
   new_year_month(do.call(c, lapply(list(...), unclass)))
 }
-print.year_month <- function(x, ...){
+print.year_month <- function(x, max = NULL, ...){
   z <- unclass(x)
   if (length(z) == 0){
     print("YM(0)", ...)
   } else {
+    if (is.null(max)){
+      max <- getOption("max.print", 9999L)
+    }
+    max <- min(max, length(z))
+    if (max < length(z)){
+      z <- z[seq_len(max)]
+      additional_msg <- paste(" [ reached 'max' / getOption(\"max.print\") -- omitted",
+                               length(x) - max, "entries ]\n")
+    } else {
+      additional_msg <- character()
+    }
     y <- 1970L + (z %/% 12L)
     m <- (z %% 12L) + 1L
     mf <- .months[m]
-    print(stringr::str_c(y, mf, sep = " "), ...)
-    # print(sprintf("%.4d %02d", y, m))
+    print(stringr::str_c(y, mf, sep = " "), max = max + 1, ...)
+    cat(additional_msg)
   }
   invisible(x)
 }
@@ -203,15 +214,27 @@ YQ <- function(length = 0L){
 `c.year_quarter` <- function(...){
   new_year_quarter(do.call(c, lapply(list(...), unclass)))
 }
-print.year_quarter <- function(x, ...){
+print.year_quarter <- function(x, max = NULL, ...){
   z <- unclass(x)
   if (length(z) == 0){
-    print("YQ(0)")
+    print("YQ(0)", ...)
   } else {
+    if (is.null(max)){
+      max <- getOption("max.print", 9999L)
+    }
+    max <- min(max, length(z))
+    if (max < length(z)){
+      z <- z[seq_len(max)]
+      additional_msg <- paste(" [ reached 'max' / getOption(\"max.print\") -- omitted",
+                              length(x) - max, "entries ]\n")
+    } else {
+      additional_msg <- character()
+    }
     y <- 1970L + (z %/% 4L)
     q <- (z %% 4L) + 1L
     qf <- c("Q1", "Q2", "Q3", "Q4")[q]
-    print(stringr::str_c(y, qf, sep = " "), ...)
+    print(stringr::str_c(y, qf, sep = " "), max = max + 1, ...)
+    cat(additional_msg)
   }
   invisible(x)
 }

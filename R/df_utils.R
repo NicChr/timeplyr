@@ -16,9 +16,9 @@ df_ncol <- function(x){
 group_vars <- function(x){
   if (is_df(x)){
     if (inherits(x, "grouped_df")){
-      out <- setdiff(names(attr(x, "groups")), ".rows")
+      out <- setdiff2(names(attr(x, "groups")), ".rows")
     } else {
-      out <- character(0)
+      out <- character()
     }
   } else {
     out <- dplyr::group_vars(x)
@@ -71,26 +71,30 @@ df_reconstruct <- function(data, template){
     invisible(data.table::setalloccol(out))
     return(out)
   }
-  if (inherits(template, "grouped_df")){
-    template_groups <- setdiff(names(template_attrs[["groups"]]), ".rows")
-    data_groups <- setdiff(names(attr(data, "groups")), ".rows")
-    out_groups <- intersect(template_groups, names(data))
+  if (inherits(template, "grouped_df") && !groups_equal(data, template)){
+    template_groups <- setdiff2(names(template_attrs[["groups"]]), ".rows")
+    data_groups <- setdiff2(names(attr(data, "groups")), ".rows")
+    out_groups <- intersect2(template_groups, names(data))
     if (length(out_groups) == 0L){
-      template_attrs[["class"]] <- setdiff(template_attrs[["class"]], "grouped_df")
+      template_attrs[["class"]] <- setdiff2(template_attrs[["class"]], "grouped_df")
       template_attrs[["groups"]] <- NULL
     } else {
+      sorted <- attr(template_attrs[["groups"]], "sorted")
       groups <- group_collapse(safe_ungroup(data),
-                               .cols = out_groups, sort = TRUE,
+                               .cols = out_groups,
+                               sort = TRUE,
+                               order = if (is.null(sorted)) TRUE else sorted,
                                id = FALSE, start = FALSE,
                                end = FALSE, size = FALSE,
                                loc = TRUE,
                                drop = dplyr::group_by_drop_default(template))
       groups <- frename(groups, .cols = c(".rows" = ".loc"))
       attributes(groups[[".rows"]]) <- attributes(template_attrs[["groups"]][[".rows"]])
-      for (a in setdiff(names(attributes(groups)),
+      for (a in setdiff2(names(attributes(groups)),
                         c("row.names", "class", "names"))){
         attr(groups, a) <- NULL
       }
+      attr(groups, "sorted") <- sorted
       class(groups) <- c("tbl_df", "tbl", "data.frame")
       template_attrs[["groups"]] <- groups
       attr(template_attrs[["groups"]], ".drop") <- dplyr::group_by_drop_default(template)
@@ -301,10 +305,13 @@ new_tbl <- function(..., ..N = NULL){
 }
 # This makes a copy
 # Also data.tables currently can't have (n > 0) x 0 structure
-new_dt <- function(...){
+new_dt <- function(..., .copy = TRUE){
   out <- new_df(...)
-  out <- data.table::copy(out)
-  data.table::setDT(out)
+  out <- collapse::qDT(out)
+  # data.table::setDT(out)
+  if (.copy){
+    out <- data.table::copy(out)
+  }
   out
 }
 # Pluck data frame row (works for matrices and df-like lists too)
@@ -371,43 +378,53 @@ df_paste_names <- function(data,  sep = "_", .cols = names(data)){
 # Efficient way to compare the group information
 # of 2 grouped_df objects
 # Much better than simply using setequal
-group_data_equal <- function(x, y){
-  groups1 <- group_data(x)
-  groups2 <- group_data(y)
-  group_vars1 <- group_vars(x)
-  group_vars2 <- group_vars(y)
-  out <- df_nrow(x) == df_nrow(y)
-  if (out){
-    out <- isTRUE(all.equal(names(groups1), names(groups2)))
-  }
-  if (out){
-    out <- df_nrow(groups1) == df_nrow(groups2)
-  }
-  if (out){
-    out <- df_nrow(
-      vctrs::vec_set_difference(
-        fselect(groups1, .cols = group_vars1),
-        fselect(groups2, .cols = group_vars2)
-      )
-    ) == 0L
-  }
-  if (out){
-   loc1 <- unlist(fpluck(groups1, ".rows"), use.names = FALSE)
-   loc2 <- unlist(fpluck(groups2, ".rows"), use.names = FALSE)
-   diff_range <- collapse::frange(loc1 - loc2)
-   out <- sum(abs(diff_range), na.rm = TRUE) == 0
-   # collapse::setop(loc1, op = "-", loc2)
-   # out <- sum(abs(collapse::frange(loc1)),
-   #            na.rm = TRUE) == 0
-   # One method
-   # first_diff <- vec_head(loc1) - vec_head(loc2)
-   # first_diff_is_zero <- length(first_diff) == 0L || first_diff == 0L
-   # first_diff_is_zero && collapse::fnunique(loc1 - loc2) <= 1L
-   # Another method
-   # out <- isTRUE(all.equal(loc1, loc2))
-  }
-  out
-}
+# group_data_equal <- function(x, y){
+#   # groups1 <- group_data(x)
+#   # groups2 <- group_data(y)
+#   groups1 <- attr(x, "groups")
+#   groups2 <- attr(y, "groups")
+#   group_vars1 <- group_vars(x)
+#   group_vars2 <- group_vars(y)
+#   out <- df_nrow(x) == df_nrow(y)
+#   if (out){
+#     out <- isTRUE(all.equal(names(groups1), names(groups2)))
+#   }
+#   if (out){
+#     out <- df_nrow(groups1) == df_nrow(groups2)
+#   }
+#   if (out){
+#     out <- cpp_group_data_rows_equal(groups1[[".rows"]], groups2[[".rows"]])
+#   }
+#   if (out){
+#     out <- is.null(groups1) && is.null(groups2) || (
+#       df_nrow(
+#         vctrs::vec_set_difference(
+#           fselect(groups1, .cols = group_vars1),
+#           fselect(groups2, .cols = group_vars2)
+#         )
+#       ) == 0L
+#     )
+#   }
+#   # if (out){
+#   #  # loc1 <- unlist(fpluck(groups1, ".rows"), use.names = FALSE)
+#   #  # loc2 <- unlist(fpluck(groups2, ".rows"), use.names = FALSE)
+#   #  # abs_diff <- collapse::fmax(abs(loc1 - loc2))
+#   #  # out <- length(abs_diff) == 0 || abs_diff == 0
+#   #  # diff_range <- collapse::frange(loc1 - loc2)
+#   #  # # out <- sum(abs(diff_range), na.rm = TRUE) == 0
+#   #
+#   #  # collapse::setop(loc1, op = "-", loc2)
+#   #  # out <- sum(abs(collapse::frange(loc1)),
+#   #  #            na.rm = TRUE) == 0
+#   #  # One method
+#   #  # first_diff <- vec_head(loc1) - vec_head(loc2)
+#   #  # first_diff_is_zero <- length(first_diff) == 0L || first_diff == 0L
+#   #  # first_diff_is_zero && collapse::fnunique(loc1 - loc2) <= 1L
+#   #  # Another method
+#   #  # out <- isTRUE(all.equal(loc1, loc2))
+#   # }
+#   out
+# }
 empty_tbl <- function(){
   `attributes<-`(
     list(),

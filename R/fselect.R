@@ -55,11 +55,10 @@ fselect.grouped_df <- function(data, ..., .cols = NULL){
   data_nms <- names(data)
   group_vars <- group_vars(data)
   pos <- tidy_select_pos(data, ..., .cols = .cols)
-  group_pos <- add_names(match(group_vars, data_nms),
-                        group_vars)
+  group_pos <- add_names(match(group_vars, data_nms), group_vars)
   pos_nms <- names(pos)
   # Add group vars missed
-  groups_missed <- setdiff(group_pos, pos)
+  groups_missed <- group_pos[match(group_pos, pos, 0L) == 0L]
   if (length(groups_missed) > 0L){
     text1 <- "Adding missing grouping variables: "
     message(
@@ -104,9 +103,9 @@ frename.grouped_df <- function(data, ..., .cols = NULL){
   # Rename data columns
   out <- col_rename(safe_ungroup(data), .cols = pos)
   # Rename group data columns
-  group_pos <- which(group_vars %in% names(data)[pos])
-  names(group_pos) <- names(out)[which(names(out) %in% names(pos) &
-                                         names(data) %in% group_vars)]
+  group_pos <- cpp_which(group_vars %in% names(data)[pos])
+  names(group_pos) <- names(out)[cpp_which(names(out) %in% names(pos) &
+                                             names(data) %in% group_vars)]
   groups <- col_rename(groups, .cols = group_pos)
   attr(out, "groups") <- groups
   class(out) <- c("grouped_df", "tbl_df", "tbl", "data.frame")

@@ -192,6 +192,87 @@ SEXP cpp_df_group_indices(SEXP rows, int size) {
   return indices;
 }
 
+// Checks that all row indices of 2 grouped data frames are the same
+
+[[cpp11::register]]
+bool cpp_group_data_rows_equal(SEXP rows1, SEXP rows2) {
+  bool out = true;
+  int ng1 = Rf_length(rows1);
+  int ng2 = Rf_length(rows2);
+  if (ng1 != ng2){
+    return false;
+  }
+  const SEXP *p_rows1 = VECTOR_PTR_RO(rows1);
+  const SEXP *p_rows2 = VECTOR_PTR_RO(rows2);
+  for (int i = 0; i < ng1; ++i){
+    SEXP rows1_i = p_rows1[i];
+    SEXP rows2_i = p_rows2[i];
+    int n1 = Rf_length(rows1_i);
+    int n2 = Rf_length(rows2_i);
+    if (n1 != n2){
+      out = false;
+    }
+    if (out == false){
+      break;
+    }
+    int *p_rows1_i = INTEGER(rows1_i);
+    int *p_rows2_i = INTEGER(rows2_i);
+    for (int j = 0; j < n1; ++j){
+      if (p_rows1_i[j] != p_rows2_i[j]){
+        out = false;
+        break;
+      }
+    }
+  }
+  return out;
+}
+
+[[cpp11::register]]
+bool cpp_all_equal2(SEXP x, SEXP y) {
+  bool out = true;
+  R_xlen_t n = Rf_xlength(x);
+  if (n != Rf_xlength(y)){
+    return false;
+  }
+  bool x_na;
+  bool y_na;
+  bool both_na;
+  switch(TYPEOF(x)){
+  case LGLSXP:
+  case INTSXP: {
+    int *p_x = INTEGER(x);
+    int *p_y = INTEGER(y);
+    for (R_xlen_t i = 0; i < n; ++i){
+      if (p_x[i] != p_y[i]){
+        out = false;
+        break;
+      }
+    }
+    break;
+  }
+  case REALSXP: {
+    double *p_x = REAL(x);
+    double *p_y = REAL(y);
+    for (R_xlen_t i = 0; i < n; ++i){
+      x_na = !(p_x[i] == p_x[i]);
+      y_na = !(p_y[i] == p_y[i]);
+      both_na = x_na && y_na;
+      if ( (x_na && !y_na) ||
+           (y_na && !x_na) ||
+          (!both_na && p_x[i] != p_y[i])){
+        out = false;
+        break;
+      }
+    }
+    break;
+  }
+  default: {
+    Rf_error("cpp_all_equal2 cannot handle the supplied SEXP");
+  }
+  }
+  return out;
+}
+
 // Taken from stackoverflow.com/questions/48118248
 // NumericVector Rcpp_sort(NumericVector x, NumericVector y) {
 //   // Order the elements of x by sorting y

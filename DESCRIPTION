@@ -1,6 +1,6 @@
 Package: timeplyr
 Title: Fast Tidy Tools for Date and Date-Time Manipulation
-Version: 0.4.1
+Version: 0.4.1.9000
 Authors@R: 
     person("Nick", "Christofides", , "nick.christofides.r@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-9743-7342"))

@@ -1,4 +1,4 @@
-#' `collapse` version of `dplyr::group_by()`
+#' 'collapse' version of `dplyr::group_by()`
 #'
 #' @description
 #' This works the exact same as `dplyr::group_by()` and typically
@@ -17,6 +17,11 @@
 #' If speed is an expensive resource, it is recommended to use this.
 #' @param .drop Should unused factor levels be dropped? Default is `TRUE`.
 #'
+#' @details
+#' `fgroup_by()` works almost exactly like the 'dplyr' equivalent.
+#' An attribute "sorted" (`TRUE` or `FALSE`) is added to the group data to
+#' signify if the groups are sorted or not.
+#'
 #' @returns
 #' A `grouped_df`.
 #'
@@ -26,10 +31,10 @@ fgroup_by <- function(data, ..., .add = FALSE,
                       .by = NULL, .cols = NULL,
                       .drop = TRUE){
   init_group_vars <- group_vars(data)
-  group_info <- group_info(safe_ungroup(data), ..., .by = {{ .by }},
-                           .cols = .cols,
-                           ungroup = TRUE,
-                           rename = TRUE)
+  group_info <- tidy_group_info(safe_ungroup(data), ..., .by = {{ .by }},
+                                .cols = .cols,
+                                ungroup = TRUE,
+                                rename = TRUE)
   data <- group_info[["data"]]
   groups <- group_info[["all_groups"]]
   if (.add){
@@ -44,8 +49,9 @@ fgroup_by <- function(data, ..., .add = FALSE,
                                  start = FALSE, end = FALSE,
                                  drop = .drop)
     group_data <- frename(group_data, .cols = c(".rows" = ".loc"))
+    attr(group_data, ".drop") <- .drop
+    attr(group_data, "sorted") <- order
     attr(data, "groups") <- group_data
-    attr(attr(data, "groups"), ".drop") <- .drop
     attr(data, "class") <- c("grouped_df", "tbl_df", "tbl", "data.frame")
   }
   data

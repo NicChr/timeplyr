@@ -249,10 +249,10 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
                                       start = TRUE, end = TRUE,
                                       drop = TRUE){
   N <- df_nrow(data)
-  group_info <- group_info(data, ..., .by = {{ .by }},
-                           .cols = .cols,
-                           ungroup = TRUE,
-                           rename = TRUE)
+  group_info <- tidy_group_info(data, ..., .by = {{ .by }},
+                                .cols = .cols,
+                                ungroup = TRUE,
+                                rename = TRUE)
   data <- group_info[["data"]]
   vars <- group_info[["all_groups"]]
   if (length(vars) == 0L){
@@ -343,10 +343,10 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
     #                                        .ptype = integer(0))
     # }
   } else {
-    group_info <- group_info(data, ..., .by = {{ .by }},
-                             .cols = .cols,
-                             ungroup = TRUE,
-                             rename = TRUE)
+    group_info <- tidy_group_info(data, ..., .by = {{ .by }},
+                                  .cols = .cols,
+                                  ungroup = TRUE,
+                                  rename = TRUE)
     all_groups <- group_info[["all_groups"]]
     out <- group_collapse.default(fselect(group_info[["data"]], .cols = all_groups),
                                   order = order, sort = sort,
