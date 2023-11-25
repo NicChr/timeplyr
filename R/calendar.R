@@ -91,7 +91,7 @@ add_calendar <- function(data, time = NULL, label = TRUE,
                          week_start = getOption("lubridate.week.start", 1),
                          fiscal_start = getOption("lubridate.fiscal.start", 1)){
   if (rlang::quo_is_null(enquo(time))){
-    time_vars <- tidy_select_names(data, dplyr::where(is_time))
+    time_vars <- names(data)[cpp_which(vapply(data, is_time, FALSE))]
     if (length(time_vars) == 0) {
       stop("Please specify a time variable")
     } else {
@@ -99,8 +99,7 @@ add_calendar <- function(data, time = NULL, label = TRUE,
       message(paste0("Using ", time_var))
     }
   } else {
-    data <- mutate2(data, !!enquo(time))
-    time_var <- tidy_transform_names(data, !!enquo(time))
+    time_var <- tidy_select_names(data, !!enquo(time))
   }
   calendar <- fselect(calendar(data[[time_var]], label = label, week_start = week_start,
                        fiscal_start = fiscal_start), .cols = -1L)

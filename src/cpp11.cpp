@@ -201,20 +201,6 @@ extern "C" SEXP _timeplyr_cpp_df_group_indices(SEXP rows, SEXP size) {
     return cpp11::as_sexp(cpp_df_group_indices(cpp11::as_cpp<cpp11::decay_t<SEXP>>(rows), cpp11::as_cpp<cpp11::decay_t<int>>(size)));
   END_CPP11
 }
-// utils.cpp
-bool cpp_group_data_rows_equal(SEXP rows1, SEXP rows2);
-extern "C" SEXP _timeplyr_cpp_group_data_rows_equal(SEXP rows1, SEXP rows2) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(cpp_group_data_rows_equal(cpp11::as_cpp<cpp11::decay_t<SEXP>>(rows1), cpp11::as_cpp<cpp11::decay_t<SEXP>>(rows2)));
-  END_CPP11
-}
-// utils.cpp
-bool cpp_all_equal2(SEXP x, SEXP y);
-extern "C" SEXP _timeplyr_cpp_all_equal2(SEXP x, SEXP y) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(cpp_all_equal2(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(y)));
-  END_CPP11
-}
 // which.cpp
 SEXP cpp_which_(SEXP x, bool invert);
 extern "C" SEXP _timeplyr_cpp_which_(SEXP x, SEXP invert) {
@@ -225,37 +211,35 @@ extern "C" SEXP _timeplyr_cpp_which_(SEXP x, SEXP invert) {
 
 extern "C" {
 static const R_CallMethodDef CallEntries[] = {
-    {"_timeplyr_after_sequence",            (DL_FUNC) &_timeplyr_after_sequence,            2},
-    {"_timeplyr_before_sequence",           (DL_FUNC) &_timeplyr_before_sequence,           2},
-    {"_timeplyr_cpp_all_equal2",            (DL_FUNC) &_timeplyr_cpp_all_equal2,            2},
-    {"_timeplyr_cpp_dbl_sequence",          (DL_FUNC) &_timeplyr_cpp_dbl_sequence,          3},
-    {"_timeplyr_cpp_df_group_indices",      (DL_FUNC) &_timeplyr_cpp_df_group_indices,      2},
-    {"_timeplyr_cpp_gcd",                   (DL_FUNC) &_timeplyr_cpp_gcd,                   5},
-    {"_timeplyr_cpp_gcd2",                  (DL_FUNC) &_timeplyr_cpp_gcd2,                  4},
-    {"_timeplyr_cpp_group_data_rows_equal", (DL_FUNC) &_timeplyr_cpp_group_data_rows_equal, 2},
-    {"_timeplyr_cpp_int_sequence",          (DL_FUNC) &_timeplyr_cpp_int_sequence,          3},
-    {"_timeplyr_cpp_is_whole_num",          (DL_FUNC) &_timeplyr_cpp_is_whole_num,          3},
-    {"_timeplyr_cpp_lag_sequence",          (DL_FUNC) &_timeplyr_cpp_lag_sequence,          3},
-    {"_timeplyr_cpp_lcm",                   (DL_FUNC) &_timeplyr_cpp_lcm,                   3},
-    {"_timeplyr_cpp_lcm2",                  (DL_FUNC) &_timeplyr_cpp_lcm2,                  4},
-    {"_timeplyr_cpp_lead_sequence",         (DL_FUNC) &_timeplyr_cpp_lead_sequence,         3},
-    {"_timeplyr_cpp_list_which_not_null",   (DL_FUNC) &_timeplyr_cpp_list_which_not_null,   1},
-    {"_timeplyr_cpp_num_na",                (DL_FUNC) &_timeplyr_cpp_num_na,                1},
-    {"_timeplyr_cpp_roll_diff",             (DL_FUNC) &_timeplyr_cpp_roll_diff,             3},
-    {"_timeplyr_cpp_roll_diff_grouped",     (DL_FUNC) &_timeplyr_cpp_roll_diff_grouped,     5},
-    {"_timeplyr_cpp_roll_lag",              (DL_FUNC) &_timeplyr_cpp_roll_lag,              3},
-    {"_timeplyr_cpp_roll_lag_grouped",      (DL_FUNC) &_timeplyr_cpp_roll_lag_grouped,      5},
-    {"_timeplyr_cpp_roll_lead",             (DL_FUNC) &_timeplyr_cpp_roll_lead,             3},
-    {"_timeplyr_cpp_roll_lead_grouped",     (DL_FUNC) &_timeplyr_cpp_roll_lead_grouped,     5},
-    {"_timeplyr_cpp_roll_na_fill",          (DL_FUNC) &_timeplyr_cpp_roll_na_fill,          2},
-    {"_timeplyr_cpp_roll_na_fill_grouped",  (DL_FUNC) &_timeplyr_cpp_roll_na_fill_grouped,  4},
-    {"_timeplyr_cpp_row_id",                (DL_FUNC) &_timeplyr_cpp_row_id,                3},
-    {"_timeplyr_cpp_sorted_group_starts",   (DL_FUNC) &_timeplyr_cpp_sorted_group_starts,   1},
-    {"_timeplyr_cpp_which_",                (DL_FUNC) &_timeplyr_cpp_which_,                2},
-    {"_timeplyr_cpp_window_sequence",       (DL_FUNC) &_timeplyr_cpp_window_sequence,       4},
-    {"_timeplyr_list_has_interval",         (DL_FUNC) &_timeplyr_list_has_interval,         1},
-    {"_timeplyr_list_item_is_interval",     (DL_FUNC) &_timeplyr_list_item_is_interval,     1},
-    {"_timeplyr_roll_time_threshold",       (DL_FUNC) &_timeplyr_roll_time_threshold,       3},
+    {"_timeplyr_after_sequence",           (DL_FUNC) &_timeplyr_after_sequence,           2},
+    {"_timeplyr_before_sequence",          (DL_FUNC) &_timeplyr_before_sequence,          2},
+    {"_timeplyr_cpp_dbl_sequence",         (DL_FUNC) &_timeplyr_cpp_dbl_sequence,         3},
+    {"_timeplyr_cpp_df_group_indices",     (DL_FUNC) &_timeplyr_cpp_df_group_indices,     2},
+    {"_timeplyr_cpp_gcd",                  (DL_FUNC) &_timeplyr_cpp_gcd,                  5},
+    {"_timeplyr_cpp_gcd2",                 (DL_FUNC) &_timeplyr_cpp_gcd2,                 4},
+    {"_timeplyr_cpp_int_sequence",         (DL_FUNC) &_timeplyr_cpp_int_sequence,         3},
+    {"_timeplyr_cpp_is_whole_num",         (DL_FUNC) &_timeplyr_cpp_is_whole_num,         3},
+    {"_timeplyr_cpp_lag_sequence",         (DL_FUNC) &_timeplyr_cpp_lag_sequence,         3},
+    {"_timeplyr_cpp_lcm",                  (DL_FUNC) &_timeplyr_cpp_lcm,                  3},
+    {"_timeplyr_cpp_lcm2",                 (DL_FUNC) &_timeplyr_cpp_lcm2,                 4},
+    {"_timeplyr_cpp_lead_sequence",        (DL_FUNC) &_timeplyr_cpp_lead_sequence,        3},
+    {"_timeplyr_cpp_list_which_not_null",  (DL_FUNC) &_timeplyr_cpp_list_which_not_null,  1},
+    {"_timeplyr_cpp_num_na",               (DL_FUNC) &_timeplyr_cpp_num_na,               1},
+    {"_timeplyr_cpp_roll_diff",            (DL_FUNC) &_timeplyr_cpp_roll_diff,            3},
+    {"_timeplyr_cpp_roll_diff_grouped",    (DL_FUNC) &_timeplyr_cpp_roll_diff_grouped,    5},
+    {"_timeplyr_cpp_roll_lag",             (DL_FUNC) &_timeplyr_cpp_roll_lag,             3},
+    {"_timeplyr_cpp_roll_lag_grouped",     (DL_FUNC) &_timeplyr_cpp_roll_lag_grouped,     5},
+    {"_timeplyr_cpp_roll_lead",            (DL_FUNC) &_timeplyr_cpp_roll_lead,            3},
+    {"_timeplyr_cpp_roll_lead_grouped",    (DL_FUNC) &_timeplyr_cpp_roll_lead_grouped,    5},
+    {"_timeplyr_cpp_roll_na_fill",         (DL_FUNC) &_timeplyr_cpp_roll_na_fill,         2},
+    {"_timeplyr_cpp_roll_na_fill_grouped", (DL_FUNC) &_timeplyr_cpp_roll_na_fill_grouped, 4},
+    {"_timeplyr_cpp_row_id",               (DL_FUNC) &_timeplyr_cpp_row_id,               3},
+    {"_timeplyr_cpp_sorted_group_starts",  (DL_FUNC) &_timeplyr_cpp_sorted_group_starts,  1},
+    {"_timeplyr_cpp_which_",               (DL_FUNC) &_timeplyr_cpp_which_,               2},
+    {"_timeplyr_cpp_window_sequence",      (DL_FUNC) &_timeplyr_cpp_window_sequence,      4},
+    {"_timeplyr_list_has_interval",        (DL_FUNC) &_timeplyr_list_has_interval,        1},
+    {"_timeplyr_list_item_is_interval",    (DL_FUNC) &_timeplyr_list_item_is_interval,    1},
+    {"_timeplyr_roll_time_threshold",      (DL_FUNC) &_timeplyr_roll_time_threshold,      3},
     {NULL, NULL, 0}
 };
 }

@@ -166,12 +166,5 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
                  ...,
                  .by = all_of(c(group_vars, time_var, int_nm)),
                  .keep = .keep)
-  # if (has_groups && groups_equal(time_info[["data"]], data)){
-  #  attr(out, "groups") <- attr(data, "groups")
-  #  class(out) <- c("grouped_df", "tbl_df", "tbl", "data.frame")
-  #  out
-  # } else {
-  #   df_reconstruct(out, data)
-  # }
   df_reconstruct(out, data)
 }

@@ -78,6 +78,7 @@ SEXP cpp_roll_na_fill(SEXP x, double fill_limit) {
         SEXP fill = Rf_protect(Rf_allocVector(STRSXP, 1));
         SEXP out = Rf_protect(Rf_duplicate(x));
         SEXP *p_out = STRING_PTR(out);
+        SEXP *p_fill = STRING_PTR(fill);
         for (R_xlen_t i = 0; i < size; ++i) {
             is_na = (p_out[i] == NA_STRING);
             if (!first_non_na && !is_na){
@@ -87,11 +88,11 @@ SEXP cpp_roll_na_fill(SEXP x, double fill_limit) {
             // Are we in new NA run?
             if (is_na && first_non_na && prev_is_not_na){
                 fill_count = 0;
-                SET_STRING_ELT(fill, 0, STRING_ELT(out, i - 1));
+                SET_STRING_ELT(fill, 0, p_out[i - 1]);
             }
             // Should we fill this NA value?
             if (is_na && first_non_na && fill_count < fill_limit){
-                SET_STRING_ELT(out, i, STRING_ELT(fill, 0));
+                SET_STRING_ELT(out, i, p_fill[0]);
                 ++fill_count;
             }
             prev_is_not_na = !is_na;

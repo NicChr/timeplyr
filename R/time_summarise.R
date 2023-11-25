@@ -173,14 +173,6 @@ time_summarise <- function(data, time = NULL, ..., time_by = NULL,
     }
   }
   temp_data <- df_rm_cols(temp_data, grp_nm)
-  # out_info <- mutate_summary_grouped(safe_ungroup(temp_data),
-  #                                    ...,
-  #                                    .by = all_of(c(group_vars, time_var, int_nm)),
-  #                                    .keep = "none")
-  # out <- out_info[["data"]]
-  # extra_group_vars <- out_info[["cols"]]
-  # out <- fdistinct(out)
-  # out <- fselect(out, .cols = c(group_vars, time_var, int_nm, extra_group_vars))
   out <- dplyr::summarise(safe_ungroup(temp_data),
                                ...,
                                .by = all_of(c(group_vars, time_var, int_nm)))

@@ -401,10 +401,10 @@ group_order.Interval <- function(data, ..., ascending = TRUE){
 group_order.data.frame <- function(data, ..., ascending = TRUE,
                                    .by = NULL, .cols = NULL){
   N <- df_nrow(data)
-  group_info <- group_info(data, ..., .by = {{ .by }},
-                           .cols = .cols,
-                           ungroup = TRUE,
-                           rename = FALSE)
+  group_info <- tidy_group_info(data, ..., .by = {{ .by }},
+                                .cols = .cols,
+                                ungroup = TRUE,
+                                rename = FALSE)
   all_groups <- group_info[["all_groups"]]
   if (length(all_groups) == 0L){
     if (ascending){
@@ -415,8 +415,7 @@ group_order.data.frame <- function(data, ..., ascending = TRUE,
                      by = -1L)
     }
   } else {
-    out <- radixorderv2(collapse::fselect(group_info[["data"]],
-                                                     all_groups),
+    out <- radixorderv2(fselect(group_info[["data"]], .cols = all_groups),
                                    decreasing = !ascending,
                                    na.last = TRUE, starts = FALSE,
                                    group.sizes = FALSE, sort = TRUE)
