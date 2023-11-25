@@ -74,6 +74,7 @@ time_gaps <- function(x, time_by = NULL,
   time_seq <- time_expandv(x, time_by = time_by,
                            g = g, use.g.names = TRUE,
                            time_type = time_type)
+  x <- time_cast(x, time_seq)
   if (check_time_regular){
     is_regular <- time_is_regular(x, time_by = time_by,
                                   g = g, use.g.names = FALSE,
@@ -90,9 +91,9 @@ time_gaps <- function(x, time_by = NULL,
   time_full_tbl <- fenframe(time_seq,
                             name = "group",
                             value = "time")
-  out_tbl <- dplyr::anti_join(time_full_tbl,
-                              time_tbl,
-                              by = names(time_tbl))
+  out_tbl <- collapse_join(time_full_tbl, time_tbl,
+                           on = names(time_tbl),
+                           how = "anti")
   if (!use.g.names){
     out_tbl <- fselect(out_tbl, .cols = "time")
   }

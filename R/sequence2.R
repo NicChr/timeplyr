@@ -67,7 +67,7 @@ sequence2 <- function(nvec, from = 1L, by = 1L){
   seq_ends <- unclass(from) + (by * (pmax.int(nvec - 1, 0)))
   out_maybe_int <- all_integerable(seq_ends)
   # If from/by are integers and all sequence values < 2^31 then use sequence
-  out_is_int <- is.integer(from) && is.integer(by) && out_maybe_int
+  out_is_int <- is.integer(from) && !is.object(from) && is.integer(by) && out_maybe_int
   if (out_is_int){
     return(sequence(nvec = nvec, from = from, by = by))
   }

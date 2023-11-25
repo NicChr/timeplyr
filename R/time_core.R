@@ -41,7 +41,6 @@
 #' Options are "preday", "boundary", "postday", "full" and "NA".
 #' See `?timechange::time_add` for more details.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
-#' @param use.names Should a named vector be returned for `time_countv()`?
 #' @param complete Logical. If `TRUE` implicit gaps in time are filled
 #' before counting and after time aggregation (controlled using `time_by`).
 #' The default is `TRUE`.
@@ -53,6 +52,7 @@
 #' @returns
 #' Vectors (typically the same class as `x`) of varying lengths depending
 #' on the arguments supplied.
+#' `time_countv()` returns a `tibble`.
 #'
 #' @examples
 #' library(timeplyr)
@@ -65,7 +65,7 @@
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
-#' x <- flights$time_hour
+#' x <- unique(flights$time_hour)
 #'
 #' # Number of missing hours
 #' time_num_gaps(x)
@@ -75,7 +75,6 @@
 #'
 #' # Time sequence that spans the data
 #' time_span(x) # Automatically detects hour granularity
-#' time_span(x, time_by = "hour")
 #' time_span(x, time_by = "month")
 #' time_span(x, time_by = list("quarters" = 1),
 #'              to = today(),
@@ -83,15 +82,17 @@
 #'              time_floor = TRUE)
 #'
 #' # Complete missing gaps in time using time_completev
-#' ux <- unique(x)
-#' y <- time_completev(ux, time_by = "hour")
-#' all.equal(y[!y %in% ux], time_gaps(ux))
+#' y <- time_completev(x, time_by = "hour")
+#' identical(y[!y %in% x], time_gaps(x))
 #'
 #' # Summarise time using time_summarisev
 #' time_summarisev(y, time_by = "quarter")
 #' time_summarisev(y, time_by = "quarter", unique = TRUE)
 #' flights %>%
 #'   fcount(quarter_start = time_summarisev(time_hour, "quarter"))
+#' # Alternatively
+#' time_countv(x, time_by = "quarter")
+#' # If you want the above as an atomic vector just use tibble::deframe
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
@@ -106,12 +107,8 @@ time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
                          roll_month = getOption("timeplyr.roll_month", "preday"),
                          roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   check_is_time_or_num(x)
-  if (length(from) > 1L){
-    stop("from must be of length 1")
-  }
-  if (length(to) > 1L){
-    stop("to must be of length 1")
-  }
+  check_length_lte(from, 1)
+  check_length_lte(to, 1)
   time_by <- time_by_get(x, time_by = time_by)
   if (time_by_length(time_by) > 1L){
     stop("time_by must be a time unit containing a single numeric increment")
@@ -153,6 +150,9 @@ time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
 }
 #' @rdname time_core
 #' @export
+time_span <- time_expandv
+#' @rdname time_core
+#' @export
 time_completev <- function(x, time_by = NULL, from = NULL, to = NULL,
                            sort = TRUE,
                            time_type = getOption("timeplyr.time_type", "auto"),
@@ -168,7 +168,8 @@ time_completev <- function(x, time_by = NULL, from = NULL, to = NULL,
                             roll_month = roll_month,
                             roll_dst = roll_dst)
   x <- time_cast(x, time_full)
-  out <- c(x, time_full[cpp_which(time_full %in% x, invert = TRUE)])
+  # out <- c(x, time_full[cpp_which(time_full %in% x, invert = TRUE)])
+  out <- c(x, time_full[collapse::whichNA(collapse::fmatch(time_full, x, overid = 2L))])
   if (sort){
     out <- conditional_sort(out)
   }
@@ -216,7 +217,7 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
     if (unique){
       out <- fdistinct(out, .cols = "x", .keep_all = TRUE, sort = sort)
     }
-    if (sort && ! unique){
+    if (sort && !unique){
       out <- farrange(out, .cols = "x")
     }
     if (!is_interval(time_int)){
@@ -549,7 +550,7 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
 #' @export
 time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
                         sort = TRUE, unique = TRUE,
-                        use.names = TRUE, complete = TRUE,
+                        complete = TRUE,
                         time_type = getOption("timeplyr.time_type", "auto"),
                         include_interval = FALSE,
                         time_floor = FALSE,
@@ -577,7 +578,8 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
                             time_type = time_type,
                             time_floor = time_floor,
                             week_start = week_start,
-                            roll_month = roll_month, roll_dst = roll_dst)
+                            roll_month = roll_month,
+                            roll_dst = roll_dst)
   x <- time_cast(x, time_breaks)
   from <- time_cast(from, x)
   to <- time_cast(to, x)
@@ -589,14 +591,13 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
   time_bins <- c(time_as_number(time_breaks),
                  time_as_number(to))
   time_break_ind <- cut_time(x, breaks = time_bins, codes = TRUE)
-  # time_break_ind <- cut_time_intervals(x, time_breaks, end = to, codes = TRUE)
   # Time breaks subset on cut indices
   x <- time_breaks[time_break_ind]
 
   # (Optionally) complete time data
   time_missed <- x[0L]
   if (complete){
-    time_missed <- time_breaks[!time_breaks %in% x]
+    time_missed <- time_breaks[collapse::whichNA(collapse::fmatch(time_breaks, x, overid = 2L))]
     if (length(time_missed) > 0L){
       x <- c(x, time_missed) # Complete time sequence
     }
@@ -611,7 +612,6 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
   out <- integer(out_len + length(time_missed))
   # Replace allocated integer with counts
   out[seq_len(out_len)] <- collapse::GRPN(cnt_grps, expand = TRUE)
-  # if (use.names && !include_interval) out <- add_names(out, x)
   if (include_interval){
     time_seq_int <- tseq_interval(x = to, time_breaks)
     time_int <- time_seq_int[time_break_ind]
@@ -621,39 +621,31 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
     }
     out <- new_tbl(x = x, interval = time_int, n = out)
     if (unique){
-      out <- fdistinct(out, .cols = "x", .keep_all = TRUE)
+      out <- fdistinct(out, .cols = "x", .keep_all = TRUE, sort = sort)
     }
-    if (sort){
-      if (sort){
-        out <- farrange(out, .cols = "x")
-      }
+    if (sort && !unique){
+      out <- farrange(out, .cols = "x")
     }
     if (!is_interval(out[["interval"]])){
       attr(out[["interval"]], "start") <- out[["x"]]
     }
   } else {
     if (unique || sort){
-      dt <- data.table::data.table(x, out)
+      dt <- new_dt(x = x, n = out, .copy = TRUE)
       if (unique){
-        dt <- collapse::funique(dt, cols = "x", sort = sort)
-      } else if (!unique && sort){
-        data.table::setorderv(dt, cols = "x", na.last = TRUE)
+        dt <- collapse::funique(dt, cols = "x", sort = FALSE)
       }
-      out <- dt[["out"]]
-      if (use.names){
-        out <- add_names(out, dt[["x"]])
+      if (sort){
+        setorderv2(dt, cols = "x")
       }
-    } else {
-      if (use.names){
-        out <- add_names(out, x)
-      }
+      out <- df_as_tibble(dt)
     }
+  }
+  if (!is_df(out)){
+    out <- new_tbl(x = x, n = out)
   }
   out
 }
-#' @rdname time_core
-#' @export
-time_span <- time_expandv
 #' @rdname time_core
 #' @export
 time_span_size <- function(x, time_by = NULL, from = NULL, to = NULL,
@@ -662,12 +654,8 @@ time_span_size <- function(x, time_by = NULL, from = NULL, to = NULL,
                            time_floor = FALSE,
                            week_start = getOption("lubridate.week.start", 1)){
   check_is_time_or_num(x)
-  if (length(from) > 1L){
-    stop("from must be of length 1")
-  }
-  if (length(to) > 1L){
-    stop("to must be of length 1")
-  }
+  check_length_lte(from, 1)
+  check_length_lte(to, 1)
   time_by <- time_by_get(x, time_by = time_by)
   if (time_by_length(time_by) > 1L){
     stop("time_by must be a time unit containing a single numeric increment")

@@ -78,7 +78,7 @@ unit_guess <- function(x){
     if (is.na(unit)){
       out <- unit_parse(x)
     } else {
-      num <- 1
+      num <- 1L
       scale <- 1L
       # If the unit is something exotic,
       # The num needs to be scaled correctly

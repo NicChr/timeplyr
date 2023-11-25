@@ -1079,7 +1079,7 @@ check_sorted <- function(x){
 }
 # Retains integer class of a if b is 1 and a is integer
 divide <- function(a, b){
-  if (allv2(b, 1)){
+  if (is.integer(a) && allv2(b, 1)){
     a
   } else {
     a / b
@@ -1137,11 +1137,6 @@ check_is_list <- function(x){
     stop(paste(deparse1(substitute(x)), "must be a list"))
   }
 }
-check_length_one <- function(x){
-  if (length(x) != 1L){
-    stop(paste(deparse1(substitute(x)), "must be of length 1"))
-  }
-}
 check_length <- function(x, size){
   if (length(x) != size){
     stop(paste(deparse1(substitute(x)), "must be of length", size))
@@ -1149,7 +1144,7 @@ check_length <- function(x, size){
 }
 check_length_lte <- function(x, size){
   if (!(length(x) <= size)){
-    stop(paste(deparse1(substitute(x)), "must be <= length", size))
+    stop(paste(deparse1(substitute(x)), "must have length <=", size))
   }
 }
 # collapse allv and allna with extra length check
@@ -1287,4 +1282,7 @@ intersect2 <- function(x, y){
     return(NULL)
   }
   c(x[match(x, y, 0L) > 0L], y[numeric()])
+}
+last_class <- function(x){
+  .subset2(class(x), length(class(x)))
 }

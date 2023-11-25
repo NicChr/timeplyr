@@ -75,7 +75,7 @@ testthat::test_that("Compared to tidyr", {
   testthat::expect_equal(testdf %>%
                                dplyr::group_by(origin, dest, tailnum) %>%
                                fexpand(carrier, flight,
-                                       expand_type = "nest",
+                                       expand_type = "nesting",
                                        sort = FALSE),
                              testdf %>%
                                dplyr::distinct(origin, dest, tailnum, carrier, flight) %>%
@@ -89,11 +89,11 @@ testthat::test_that("Compared to tidyr", {
                                    log_limit = 6))
   testthat::expect_error(testdf %>%
                            fexpand(origin, 1:11, 1:12, 1:13, 1:10^5,
-                                   expand_type = "nest",
+                                   expand_type = "nesting",
                                    log_limit = 5))
   testthat::expect_equal(testdf %>%
                                  fexpand(1:10, yes = 1:10,
-                                         expand_type = "nest",
+                                         expand_type = "nesting",
                                          sort = TRUE),
                              tidyr::expand_grid(1:10, 1:10) %>%
                                add_names(c("1:10", "yes")))

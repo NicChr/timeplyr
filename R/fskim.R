@@ -487,7 +487,7 @@ finline_hist <- function(x, n_bins = 5L){
   if (collapse::allNA(x)) {
     return(" ")
   }
-  if (collapse::allv(collapse::na_rm(x), 0)){
+  if (allv2(collapse::na_rm(x), 0)){
     x <- x + 1
   }
   hist_dt <- tabulate(cut(x, n_bins, labels = FALSE),

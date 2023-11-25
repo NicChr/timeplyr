@@ -2,14 +2,28 @@
 % Please edit documentation in R/time_core.R
 \name{time_expandv}
 \alias{time_expandv}
+\alias{time_span}
 \alias{time_completev}
 \alias{time_summarisev}
 \alias{time_countv}
-\alias{time_span}
 \alias{time_span_size}
 \title{Vector date and datetime functions}
 \usage{
 time_expandv(
+  x,
+  time_by = NULL,
+  from = NULL,
+  to = NULL,
+  g = NULL,
+  use.g.names = TRUE,
+  time_type = getOption("timeplyr.time_type", "auto"),
+  time_floor = FALSE,
+  week_start = getOption("lubridate.week.start", 1),
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "boundary")
+)
+
+time_span(
   x,
   time_by = NULL,
   from = NULL,
@@ -58,24 +72,9 @@ time_countv(
   to = NULL,
   sort = TRUE,
   unique = TRUE,
-  use.names = TRUE,
   complete = TRUE,
   time_type = getOption("timeplyr.time_type", "auto"),
   include_interval = FALSE,
-  time_floor = FALSE,
-  week_start = getOption("lubridate.week.start", 1),
-  roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary")
-)
-
-time_span(
-  x,
-  time_by = NULL,
-  from = NULL,
-  to = NULL,
-  g = NULL,
-  use.g.names = TRUE,
-  time_type = getOption("timeplyr.time_type", "auto"),
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = getOption("timeplyr.roll_month", "preday"),
@@ -151,8 +150,6 @@ with a column "interval" of the form \verb{time_min <= x < time_max}
 showing the time interval in which the aggregated time points belong to.
 The rightmost interval will always be closed.}
 
-\item{use.names}{Should a named vector be returned for \code{time_countv()}?}
-
 \item{complete}{Logical. If \code{TRUE} implicit gaps in time are filled
 before counting and after time aggregation (controlled using \code{time_by}).
 The default is \code{TRUE}.}
@@ -160,6 +157,7 @@ The default is \code{TRUE}.}
 \value{
 Vectors (typically the same class as \code{x}) of varying lengths depending
 on the arguments supplied.
+\code{time_countv()} returns a \code{tibble}.
 }
 \description{
 These are atomic vector-based functions
@@ -178,7 +176,7 @@ library(nycflights13)
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
-x <- flights$time_hour
+x <- unique(flights$time_hour)
 
 # Number of missing hours
 time_num_gaps(x)
@@ -188,7 +186,6 @@ time_span_size(x) - length(unique(x))
 
 # Time sequence that spans the data
 time_span(x) # Automatically detects hour granularity
-time_span(x, time_by = "hour")
 time_span(x, time_by = "month")
 time_span(x, time_by = list("quarters" = 1),
              to = today(),
@@ -196,15 +193,17 @@ time_span(x, time_by = list("quarters" = 1),
              time_floor = TRUE)
 
 # Complete missing gaps in time using time_completev
-ux <- unique(x)
-y <- time_completev(ux, time_by = "hour")
-all.equal(y[!y \%in\% ux], time_gaps(ux))
+y <- time_completev(x, time_by = "hour")
+identical(y[!y \%in\% x], time_gaps(x))
 
 # Summarise time using time_summarisev
 time_summarisev(y, time_by = "quarter")
 time_summarisev(y, time_by = "quarter", unique = TRUE)
 flights \%>\%
   fcount(quarter_start = time_summarisev(time_hour, "quarter"))
+# Alternatively
+time_countv(x, time_by = "quarter")
+# If you want the above as an atomic vector just use tibble::deframe
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

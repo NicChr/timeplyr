@@ -46,7 +46,7 @@
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #'}
 #' @export
-time_diff <- function(x, y, time_by = 1,
+time_diff <- function(x, y, time_by = 1L,
                       time_type = getOption("timeplyr.time_type", "auto")){
   tby <- time_by_list(time_by)
   units <- time_by_unit(tby)
@@ -59,8 +59,8 @@ time_diff <- function(x, y, time_by = 1,
     if (!is.numeric(x)){
       x <- time_as_number(x)
     }
-    out <- (y - x) / num
-    # out <- divide(y - x, num)
+    # out <- (y - x) / num
+    out <- divide(y - x, num)
   } else {
     time_type <- match_time_type(time_type)
     # Common but special case where from/to are whole days
@@ -72,10 +72,11 @@ time_diff <- function(x, y, time_by = 1,
                                                  time_type = time_type)
     if (is_special_case_days){
       if (units == "weeks"){
-        num <- num * 7
+        num <- num * 7L
       }
       by <- num
-      out <- (time_as_number(y) - time_as_number(x)) / by
+      out <- divide(time_as_number(y) - time_as_number(x), by)
+      # out <- (time_as_number(y) - time_as_number(x)) / by
       return(out)
     }
     if (time_type == "auto"){

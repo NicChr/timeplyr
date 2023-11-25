@@ -34,7 +34,7 @@
 #' # Manual ECDF plot using only aggregate data
 #' y <- rnorm(100, 10)
 #' grid <- time_span(y, time_by = 0.1, time_floor = TRUE)
-#' counts <- time_countv(y, time_by = 0.1, time_floor = TRUE)
+#' counts <- time_countv(y, time_by = 0.1, time_floor = TRUE)$n
 #' edf <- edf(grid, wt = counts)
 #' # Trivial here as this is the same
 #' all.equal(unname(cumsum(counts)/sum(counts)), edf)
@@ -99,7 +99,11 @@ edf <- function(x, g = NULL, wt = NULL){
     out <- out[radix_order(x_order)]
   } else {
     # Create group IDs
-    df <- data.table::data.table(x, g, wt)
+    df <- data.table::copy(
+      collapse::qDT(
+        do.call(recycle_args, list3(x = x, g = g, wt = wt))
+      )
+    )
     df[, ("g") := group_id(.SD, order = FALSE, .cols = names(.SD)),
        .SDcols = "g"]
     df[, ("g1") := group_id(.SD, order = TRUE, .cols = names(.SD)),

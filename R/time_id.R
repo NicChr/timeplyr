@@ -58,11 +58,14 @@ time_id <- function(x, time_by = NULL, g = NULL, na_skip = TRUE,
   check_is_time_or_num(x)
   time_by <- time_by_get(x, time_by)
   check_length(shift, 1)
-  elapsed <- time_elapsed(x, time_by = time_by, g = g,
+  out <- time_elapsed(x, time_by = time_by, g = g,
                           na_skip = na_skip,
                           time_type = time_type,
                           rolling = FALSE)
-  as.integer(round(elapsed, digits = 9)) + shift
+  if (!is.integer(out)){
+    out <- as.integer(round(out, digits = 9))
+  }
+  out + shift
   # Make sure we don't lose precision when converting to integer
   # out <- trunc(elapsed)
   # elapsed_rounded <- round(elapsed)

@@ -108,7 +108,8 @@ time_cut <- function(x, n = 5, time_by = NULL,
                      week_start = getOption("lubridate.week.start", 1),
                      n_at_most = TRUE, as_factor = TRUE,
                      time_type = getOption("timeplyr.time_type", "auto"),
-                     roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                     roll_month = getOption("timeplyr.roll_month", "preday"),
+                     roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   time_breaks <- time_breaks(x = x, n = n, time_by = time_by,
                              from = from, to = to,
                              time_floor = time_floor,

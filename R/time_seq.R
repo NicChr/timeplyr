@@ -134,7 +134,8 @@ time_seq <- function(from, to, time_by, length.out = NULL,
                      time_type = getOption("timeplyr.time_type", "auto"),
                      week_start = getOption("lubridate.week.start", 1),
                      time_floor = FALSE,
-                     roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                     roll_month = getOption("timeplyr.roll_month", "preday"),
+                     roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   missing_from <- missing(from)
   missing_to <- missing(to)
   missing_by <- missing(time_by)
@@ -257,7 +258,7 @@ time_seq <- function(from, to, time_by, length.out = NULL,
     }
     if (is_special_case_days){
       if (by_unit == "weeks"){
-        by_n <- by_n * 7
+        by_n <- by_n * 7L
       }
       out <- seq.int(from = from,
                      length.out = length.out,
@@ -301,7 +302,8 @@ time_seq_sizes <- function(from, to, time_by,
 #' @export
 time_seq_v <- function(from, to, time_by,
                        time_type = getOption("timeplyr.time_type", "auto"),
-                       roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                       roll_month = getOption("timeplyr.roll_month", "preday"),
+                       roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                        time_floor = FALSE,
                        week_start = getOption("lubridate.week.start", 1)){
   time_by <- time_by_list(time_by)
@@ -329,7 +331,8 @@ time_seq_v2 <- function(sizes, from, time_by,
                         time_type = getOption("timeplyr.time_type", "auto"),
                         time_floor = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
-                        roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                        roll_month = getOption("timeplyr.roll_month", "preday"),
+                        roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   time_by <- time_by_list(time_by)
   units <- time_by_unit(time_by)
   num <- time_by_num(time_by)
@@ -359,13 +362,13 @@ time_seq_v2 <- function(sizes, from, time_by,
 }
 # faster seq.Date() and handles zero length from differently
 # by must be numeric
-date_seq <- function(from, to, by = 1){
+date_seq <- function(from, to, by = 1L){
   if (length(from) == 0L) return(from)
   check_is_date(from)
   check_is_date(to)
-  out <- seq.int(from = from,
-                 to = to,
-                 by = as.double(by))
+  out <- seq.int(from = unclass(from),
+                 to = unclass(to),
+                 by = by)
   class(out) <- "Date"
   out
 }
@@ -396,7 +399,8 @@ duration_seq2 <- function(from, to, duration){
 # This will always calculate an increasing or decreasing sequence
 # of a specified length and unit increment
 period_seq <- function(from, length, unit, num = 1,
-                       roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                       roll_month = getOption("timeplyr.roll_month", "preday"),
+                       roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   if (length(from) == 0L){
     length <- 0L
   }
@@ -432,7 +436,7 @@ duration_seq_v2 <- function(sizes, from, units, num = 1){
   # time_cast(time_seq, from)
 }
 # Date sequence vectorised over from, to and num
-date_seq_v <- function(from, to, units = c("days", "weeks"), num = 1){
+date_seq_v <- function(from, to, units = c("days", "weeks"), num = 1L){
   check_is_date(to)
   seq_sizes <- time_seq_sizes(from, to, time_by = add_names(list(num), units))
   date_seq_v2(seq_sizes,
@@ -440,14 +444,14 @@ date_seq_v <- function(from, to, units = c("days", "weeks"), num = 1){
 }
 # Alternate version of date_seq_v with sizes arg instead of to
 # If you have the sequence sizes pre-calculated, you can use this
-date_seq_v2 <- function(sizes, from, units = c("days", "weeks"), num = 1){
+date_seq_v2 <- function(sizes, from, units = c("days", "weeks"), num = 1L){
   units <- rlang::arg_match0(units, c("days", "weeks"))
   check_is_date(from)
   if (units == "weeks"){
     units <- "days"
-    num <- num * 7
+    num <- num * 7L
   }
-  out <- double_sequence(sizes, from = unclass(from), by = num)
+  out <- sequence2(sizes, from = unclass(from), by = num)
   class(out) <- "Date"
   out
 }
@@ -455,7 +459,8 @@ date_seq_v2 <- function(sizes, from, units = c("days", "weeks"), num = 1){
 # Duplicate from/to/by values are grouped together and
 # their sequences are repeated at the end.
 period_seq_v <- function(from, to, units, num = 1,
-                         roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                         roll_month = getOption("timeplyr.roll_month", "preday"),
+                         roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   units <- rlang::arg_match0(units, .period_units)
   if (length(to) == 0L){
     return(vec_head(from, n = 0L))
@@ -470,8 +475,9 @@ period_seq_v <- function(from, to, units, num = 1,
 }
 # Alternate version of period_seq_v with sizes arg instead of to
 # If you have the sequence sizes pre-calculated, you can use this
-period_seq_v2 <- function(sizes, from, units, num = 1,
-                          roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+period_seq_v2 <- function(sizes, from, units, num = 1L,
+                          roll_month = getOption("timeplyr.roll_month", "preday"),
+                          roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   units <- rlang::arg_match0(units, .period_units)
   out_len <- sum(sizes)
   unit <- plural_unit_to_single(units)
@@ -502,12 +508,12 @@ period_seq_v2 <- function(sizes, from, units, num = 1,
   period_df <- collapse::funique(period_df, cols = "g")
   # Setting up vector arithmetic
   g <- rep.int(period_df[["g"]], times = period_df[["sizes"]])
-  num <- sequence2(period_df[["sizes"]], from = 1, by = period_df[["num"]]) - 1
+  num <- sequence2(period_df[["sizes"]], from = 1L, by = period_df[["num"]]) - 1L
   # Split these by group
   by <- collapse::gsplit(num, g = g, use.g.names = FALSE)
   # Repeat these by the group counts
   group_counts <- period_df[["n"]]
-  which_n_gt_1 <- cpp_which(group_counts > 1)
+  which_n_gt_1 <- cpp_which(group_counts > 1L)
   for (ind in which_n_gt_1){
     by[ind][[1L]] <- rep.int(.subset2(by, ind),
                              .subset2(group_counts, ind))
@@ -517,9 +523,6 @@ period_seq_v2 <- function(sizes, from, units, num = 1,
   init <- 0L
   from <- period_df[["from"]]
   from <- as_datetime2(from)
-  # # Initialise output
-  out <- rep_len(from[0L],
-                 sum(out_sizes))
   # Setnames on the list for timechange::time_add
   by <- add_names(by, rep_len(unit, length(by)))
   out <- vector("list", df_nrow(period_df))

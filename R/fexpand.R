@@ -93,7 +93,7 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                     .by = NULL,
                     keep_class = TRUE,
                     log_limit = 8){
-  expand_type <- match.arg(expand_type)
+  expand_type <- rlang::arg_match(expand_type)
   group_vars <- get_groups(data, {{ .by }})
   summarise_vars <- summarise_list(data, ...)
   grps_missed <- setdiff(group_vars, names(summarise_vars))
@@ -260,7 +260,7 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
                       sort = FALSE, .by = NULL,
                       keep_class = TRUE, fill = NA,
                       log_limit = 8){
-  expand_type <- match.arg(expand_type)
+  expand_type <- rlang::arg_match(expand_type)
   group_vars <- get_groups(data, {{ .by }})
   expanded_df <- fexpand(data,
                          ...,

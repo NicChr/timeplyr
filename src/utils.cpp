@@ -118,7 +118,7 @@ SEXP roll_time_threshold(SEXP x, double threshold, bool switch_on_boundary) {
   switch( TYPEOF(x) ) {
   case REALSXP: {
     double *p_x = REAL(x);
-    double tol = sqrt(std::numeric_limits<double>::epsilon());
+    double tol = std::sqrt(std::numeric_limits<double>::epsilon());
     if (switch_on_boundary){
       tol = -tol;
     }

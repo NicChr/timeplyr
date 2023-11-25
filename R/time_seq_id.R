@@ -88,10 +88,14 @@ time_seq_id <- function(x, time_by = NULL, threshold = 1,
   g <- GRP2(g)
   time_by <- time_by_get(x, time_by = time_by)
   time_num <- time_by_num(time_by)
+  if (is_whole_number(threshold)){
+    threshold <- as.integer(threshold)
+  }
+  fill <- -abs(min(threshold)) - 1L
   # Elapsed time
   telapsed <- time_elapsed(x, time_by = time_by, g = g,
                            time_type = time_type, rolling = rolling,
-                           na_skip = na_skip, fill = -Inf)
+                           na_skip = na_skip, fill = fill)
   if (rolling){
     if (switch_on_boundary){
       over_threshold <- cppdoubles::double_gte(telapsed, threshold)
@@ -99,13 +103,16 @@ time_seq_id <- function(x, time_by = NULL, threshold = 1,
       over_threshold <- cppdoubles::double_gt(telapsed, threshold)
     }
   } else {
-    dt <- data.table::data.table(x = telapsed, group_id = GRP_group_id(g))
+    dt <- new_dt(x = telapsed, group_id = group_id(g), .copy = FALSE)
     group_id_col <- names(dt)[names(dt) == "group_id"]
-    over_threshold <- dt[, ("over") :=
-                           roll_time_threshold(get("x"),
-                                               threshold = threshold,
-                                               switch_on_boundary = switch_on_boundary),
-                         by = group_id_col][["over"]]
+    dt[, ("over") :=
+         lapply(
+           .SD, function(x)
+             roll_time_threshold(x, threshold = threshold, switch_on_boundary = switch_on_boundary)
+         ),
+       by = group_id_col,
+       .SDcols = "x"]
+    over_threshold <- dt[["over"]]
   }
   collapse::fcumsum(over_threshold, g = g, na.rm = na_skip) + 1L
 }
