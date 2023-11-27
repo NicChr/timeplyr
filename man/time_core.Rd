@@ -72,7 +72,7 @@ time_countv(
   to = NULL,
   sort = TRUE,
   unique = TRUE,
-  complete = TRUE,
+  complete = FALSE,
   time_type = getOption("timeplyr.time_type", "auto"),
   include_interval = FALSE,
   time_floor = FALSE,
@@ -152,7 +152,7 @@ The rightmost interval will always be closed.}
 
 \item{complete}{Logical. If \code{TRUE} implicit gaps in time are filled
 before counting and after time aggregation (controlled using \code{time_by}).
-The default is \code{TRUE}.}
+The default is \code{FALSE}.}
 }
 \value{
 Vectors (typically the same class as \code{x}) of varying lengths depending

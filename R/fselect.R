@@ -46,7 +46,8 @@ fselect <- function(data, ..., .cols = NULL){
 #' @export
 fselect.data.frame <- function(data, ..., .cols = NULL){
   pos <- tidy_select_pos(data, ..., .cols = .cols)
-  out <- collapse::ss(data, j = unname(pos), check = FALSE)
+  # out <- collapse::ss(data, j = unname(pos), check = FALSE)
+  out <- df_select(data, unname(pos))
   names(out) <- names(pos)
   out
 }
@@ -79,10 +80,20 @@ fselect.grouped_df <- function(data, ..., .cols = NULL){
             names(attr(data, "groups")))] <- names(renamed_groups)
   }
   groups <- group_data(data)
-  out <- collapse::ss(safe_ungroup(data), j = unname(pos))
+  out <- df_select(safe_ungroup(data), unname(pos))
   names(out) <- names(pos)
   attr(out, "groups") <- groups
   class(out) <- c("grouped_df", "tbl_df", "tbl", "data.frame")
+  out
+}
+#' @export
+fselect.data.table <- function(data, ..., .cols = NULL){
+  pos <- tidy_select_pos(data, ..., .cols = .cols)
+  out <- df_select(data, unname(pos))
+  names(out) <- names(pos)
+  invisible(
+    data.table::setalloccol(out, n = getOption("datatable.alloccol", 1000L))
+  )
   out
 }
 #' @rdname fselect

@@ -98,8 +98,10 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, order = TRUE,
   if (length(wt_var) > 0L){
     wtv <- out[[wt_var]]
   }
-  use_only_grouped_df_groups <- length(all_vars) == 0L ||
-    (order && length(group_vars) > 0L && length(group_vars) == length(all_vars))
+  use_only_grouped_df_groups <- !group_info[["groups_changed"]] && (
+    length(all_vars) == 0L ||
+      (order && length(group_vars) > 0L && length(group_vars) == length(all_vars))
+  )
   if (use_only_grouped_df_groups){
     g <- df_to_GRP(data, return.order = FALSE, order = order)
   } else {
@@ -174,8 +176,10 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE, order = TRUE,
       }
     }
   }
-  use_only_grouped_df_groups <- length(all_vars) == 0L ||
-    (order && length(group_vars) > 0L && length(group_vars) == length(all_vars))
+  use_only_grouped_df_groups <- !group_info[["groups_changed"]] && (
+    length(all_vars) == 0L ||
+      (order && length(group_vars) > 0L && length(group_vars) == length(all_vars))
+  )
   if (use_only_grouped_df_groups){
     g <- df_to_GRP(data, return.order = FALSE, order = order)
   } else {

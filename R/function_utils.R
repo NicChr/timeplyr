@@ -173,7 +173,7 @@ mutate_summary_ungrouped <- function(.data, ...,
     "class",
     "dplyr_by"
   )
-  cols <- mutate_cols(bare_data, dplyr_quosures(!!!enquos(...)),
+  cols <- mutate_cols(bare_data, dplyr_quosures(...),
                       by = by, error_call = error_call)
   out_data <- dplyr::dplyr_col_modify(bare_data, cols)
   final_cols <- names(cols)
@@ -197,7 +197,7 @@ mutate_summary_grouped <- function(.data, ...,
   by <- compute_by(by = {{ .by }}, data = .data,
                    by_arg = ".by", data_arg = ".data")
   group_vars <- get_groups(.data, .by = {{ .by }})
-  cols <- mutate_cols(.data, dplyr_quosures(!!!enquos(...)),
+  cols <- mutate_cols(.data, dplyr_quosures(...),
                       by = by, error_call = error_call)
   out_data <- dplyr::dplyr_col_modify(.data, cols)
   final_cols <- names(cols)
@@ -423,6 +423,24 @@ get_group_info <- function(data, ..., type = c("select", "data-mask"),
 #        "all_groups" = all_groups)
 # }
 #
+# group_info <- function(data, ..., .by = NULL, .cols = NULL,
+#                        ungroup = TRUE, rename = TRUE,
+#                        dots_type = "data-mask",
+#                        unique_groups = TRUE){
+#   check_cols(n_dots = dots_length(...), .cols = .cols)
+#   if (is.null(.cols) && dots_type == "data-mask"){
+#     group_info_datamask(data, ..., .by = {{ .by }},
+#                         ungroup = ungroup,
+#                         unique_groups = unique_groups)
+#
+#   } else {
+#     tidy_group_info_tidyselect(data, ..., .by = {{ .by }},
+#                                .cols = .cols,
+#                                ungroup = ungroup,
+#                                rename = rename,
+#                                unique_groups = unique_groups)
+#   }
+# }
 
 tidy_group_info_tidyselect <- function(data, ..., .by = NULL, .cols = NULL,
                                   ungroup = TRUE, rename = TRUE,
@@ -461,31 +479,14 @@ tidy_group_info_tidyselect <- function(data, ..., .by = NULL, .cols = NULL,
   } else {
     all_groups <- c(group_vars, setdiff2(extra_groups, group_vars))
   }
-  # all_groups <- c(group_vars, extra_groups[match(extra_groups, group_vars, 0L) == 0L])
+  any_groups_changed <- cpp_any_address_changed(df_select(safe_ungroup(data), group_vars),
+                                                df_select(safe_ungroup(out), group_vars))
   list("data" = out,
        "dplyr_groups" = group_vars,
        "extra_groups" = extra_groups,
-       "all_groups" = all_groups)
+       "all_groups" = all_groups,
+       "groups_changed" = any_groups_changed)
 }
-#
-# group_info <- function(data, ..., .by = NULL, .cols = NULL,
-#                        ungroup = TRUE, rename = TRUE,
-#                        dots_type = "data-mask",
-#                        unique_groups = TRUE){
-#   check_cols(n_dots = dots_length(...), .cols = .cols)
-#   if (is.null(.cols) && dots_type == "data-mask"){
-#     group_info_datamask(data, ..., .by = {{ .by }},
-#                         ungroup = ungroup,
-#                         unique_groups = unique_groups)
-#
-#   } else {
-#     group_info_tidyselect(data, ..., .by = {{ .by }},
-#                           .cols = .cols,
-#                           ungroup = ungroup,
-#                           rename = rename,
-#                           unique_groups = unique_groups)
-#   }
-# }
 
 tidy_group_info_datamask <- function(data, ..., .by = NULL,
                                      ungroup = TRUE,
@@ -515,10 +516,13 @@ tidy_group_info_datamask <- function(data, ..., .by = NULL,
   } else {
     all_groups <- c(group_vars, setdiff2(extra_groups, group_vars))
   }
+  any_groups_changed <- cpp_any_address_changed(df_select(safe_ungroup(data), group_vars),
+                                                df_select(safe_ungroup(out), group_vars))
   list("data" = out,
        "dplyr_groups" = group_vars,
        "extra_groups" = extra_groups,
-       "all_groups" = all_groups)
+       "all_groups" = all_groups,
+       "groups_changed" = any_groups_changed)
 }
 
 tidy_group_info <- function(data, ..., .by = NULL, .cols = NULL,
@@ -1275,6 +1279,7 @@ nth <- function(x, n){
 
 # setdiff where x and y are unique vectors
 setdiff2 <- function(x, y){
+  # x[collapse::whichNA(collapse::fmatch(x, y, overid = 2L))]
   x[match(x, y, 0L) == 0L]
 }
 intersect2 <- function(x, y){

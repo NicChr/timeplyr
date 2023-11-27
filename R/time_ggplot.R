@@ -10,7 +10,8 @@
 #' @param facet When groups are supplied, should multi-series be
 #' plotted separately or on the same plot?
 #' Default is `FALSE`, or together.
-#' @param ... Further arguments passed to `geom_line()`.
+#' @param geom `ggplot2` 'geom' type. Default is `geom_line()`.
+#' @param ... Further arguments passed to the chosen 'geom'.
 #'
 #' @returns
 #' A `ggplot`.
@@ -56,8 +57,7 @@
 #'}
 #' @export
 time_ggplot <- function(data, time, value, group = NULL,
-                        facet = FALSE,
-                        ...){
+                        facet = FALSE, geom = ggplot2::geom_line, ...){
   # Tidyselect variables
   time <- tidy_select_pos(data, !!enquo(time))
   value <- tidy_select_pos(data, !!enquo(value))
@@ -105,16 +105,15 @@ time_ggplot <- function(data, time, value, group = NULL,
       # Add a new col every 6 rows
       facet_ncol <- (n_unique(fpluck(data, group_nm)) %/% 6) + 1
       out <- out +
-        ggplot2::geom_line(...) +
+        do.call(geom, list(...)) +
         ggplot2::facet_wrap(group, ncol = facet_ncol,
                             scales = "free_y")
     } else {
       out <- out +
-        ggplot2::geom_line(ggplot2::aes(col = .data[[group_nm]]), ...)
+        do.call(geom, c(list(ggplot2::aes(col = .data[[group_nm]])), list(...)))
     }
   } else {
-    out <- out +
-      ggplot2::geom_line(...)
+    out <- out + do.call(geom, list(...))
   }
   out
 }

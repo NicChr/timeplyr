@@ -153,17 +153,17 @@ time_by <- function(data, time, time_by_unit = NULL,
                                 from = from_var, to = to_var,
                                 .by = all_of(time_span_groups))
     # Aggregate time data
-    time_agg <- time_aggregate_switch(data[[time_var]],
-                                      time_by = time_by,
-                                      start = fpluck(from_to_list, 1L),
-                                      end = fpluck(from_to_list, 2L),
-                                      g = time_span_GRP,
-                                      time_type = time_type,
-                                      roll_month = roll_month,
-                                      roll_dst = roll_dst,
-                                      time_floor = time_floor,
-                                      week_start = week_start,
-                                      as_int = TRUE)
+    time_agg <- time_aggregate_left(data[[time_var]],
+                                    time_by = time_by,
+                                    start = fpluck(from_to_list, 1L),
+                                    end = fpluck(from_to_list, 2L),
+                                    g = time_span_GRP,
+                                    time_type = time_type,
+                                    roll_month = roll_month,
+                                    roll_dst = roll_dst,
+                                    time_floor = time_floor,
+                                    week_start = week_start,
+                                    as_int = TRUE)
     time_span_start <- collapse::fmin(time_agg, g = time_span_GRP,
                                       use.g.names = FALSE)
     time_span_end <- collapse::fmax(time_int_end(time_agg), g = time_span_GRP,

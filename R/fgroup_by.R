@@ -38,7 +38,7 @@ fgroup_by <- function(data, ..., .add = FALSE,
   data <- group_info[["data"]]
   groups <- group_info[["all_groups"]]
   if (.add){
-    groups <- c(init_group_vars, groups)
+    groups <- unique(c(init_group_vars, groups))
   }
   if (length(groups) > 0L){
     group_data <- group_collapse(data, .cols = groups,

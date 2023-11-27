@@ -116,8 +116,7 @@ stat_summarise <- function(data, ...,
   n_nm <- character()
   if ("n" %in% stat){
     n_nm <- new_n_var_nm(names(out))
-    data.table::set(out, j = n_nm,
-                    value = fn(data, g = g))
+    set_add_cols(out, add_names(list(fn(data, g = g)), n_nm))
     stat <- setdiff(stat, "n")
     data.table::setcolorder(out, c(group_vars, n_nm, non_group_dot_vars))
   }
@@ -166,9 +165,7 @@ stat_summarise <- function(data, ...,
     add_cols <- setdiff(names(q_summary),
                         group_vars)
     if (length(add_cols) > 0){
-      data.table::set(out,
-                      j = add_cols,
-                      value = fselect(q_summary, .cols = add_cols))
+      set_add_cols(out, fselect(q_summary, .cols = add_cols))
     }
   }
   if (as_tbl){
@@ -176,107 +173,7 @@ stat_summarise <- function(data, ...,
   }
   out
 }
-# stat_summarise2 <- function(data, ...,
-#                            stat = .stat_fns[1:5],
-#                            q_probs = NULL,
-#                            na.rm = TRUE, sort = TRUE,
-#                            .names = NULL, .by = NULL, .cols = NULL,
-#                            as_tbl = FALSE){
-#   inform_available_stats()
-#   funs <- .stat_fns
-#   if (!is.character(stat)){
-#     stop("stat must be a character vector")
-#   }
-#   if (length(setdiff(stat, funs)) > 0L){
-#     stop(paste0("stat must be one or more of the following:\n",
-#                 paste(funs, collapse = ", ")))
-#   }
-#   stat_to_collapse_fun <- function(stat){
-#     get(paste0("f", stat))
-#     # get(paste0("f", stat),
-#     #     asNamespace("collapse"))
-#   }
-#   group_info <- group_info2(data, ..., .by = {{ .by }},
-#                            .cols = .cols,
-#                            ungroup = TRUE,
-#                            rename = TRUE,
-#                            unique_groups = FALSE)
-#   group_vars <- group_info[["dplyr_groups"]]
-#   dot_vars <- group_info[["extra_groups"]]
-#   non_group_dot_vars <- setdiff(dot_vars, group_vars)
-#   data <- group_info[["data"]]
-#   g <- df_to_GRP(data, .cols = group_vars, order = sort)
-#   gstarts <- GRP_starts(g)
-#   # Distinct groups
-#   out <- df_row_slice(
-#     fselect(
-#       data, .cols = c(group_vars, non_group_dot_vars)
-#     ), gstarts
-#   )
-#   if (length(group_vars) == 0){
-#     g <- NULL
-#   }
-#   if (df_nrow(out) == 0L && length(group_vars) == 0L){
-#     out <- df_init(out, 1L)
-#   }
-#   out <- as_DT(out)
-#   if ("n" %in% stat){
-#     n_nm <- new_n_var_nm(names(out))
-#     data.table::set(out, j = n_nm,
-#                     value = fn(data, g = g))
-#     stat <- setdiff(stat, "n")
-#     data.table::setcolorder(out, c(group_vars, n_nm, non_group_dot_vars))
-#   }
-#   # New names
-#   var_nms <- across_col_names(.cols = dot_vars,
-#                               .fns = stat,
-#                               .names = NULL)
-#   # Output names
-#   out_nms <- across_col_names(.cols = dot_vars,
-#                               .fns = stat,
-#                               .names = .names)
-#
-#   data.table::setalloccol(out,
-#                           n = getOption("datatable.alloccol", default = 1000L) +
-#                             (length(dot_vars) * length(stat)) +
-#                             (length(dot_vars) * length(q_probs)))
-#   k <- 0L
-#   for (.col in dot_vars){
-#     for (s in stat){
-#       k <- k + 1L
-#       data.table::set(out, j = var_nms[k],
-#                       value = stat_to_collapse_fun(s)(fpluck(data, .col),
-#                                                       g = g,
-#                                                       na.rm = na.rm,
-#                                                       use.g.names = FALSE))
-#     }
-#   }
-#   set_rm_cols(out, setdiff(non_group_dot_vars, var_nms))
-#   data.table::setnames(out,
-#                        old = var_nms,
-#                        new = out_nms)
-#   # Add quantiles if requested
-#   if (!is.null(q_probs)){
-#     q_summary <- q_summarise(data, across(all_of(dot_vars)),
-#                              probs = q_probs,
-#                              pivot = "wide",
-#                              sort = sort,
-#                              .by = all_of(group_vars),
-#                              na.rm = na.rm)
-#     if (df_nrow(q_summary) == 0 && df_nrow(out) > 0){
-#       q_summary <- df_init(q_summary, 1L)
-#     }
-#     add_cols <- setdiff(names(q_summary),
-#                         group_vars)
-#     data.table::set(out,
-#                     j = add_cols,
-#                     value = fselect(q_summary, .cols = add_cols))
-#   }
-#   if (as_tbl){
-#     out <- df_as_tibble(out)
-#   }
-#   out
-# }
+
 # Recreate column names from the .names arg of dplyr::across()
 across_col_names <- function(.cols = NULL, .fns = NULL,
                              .names = NULL){

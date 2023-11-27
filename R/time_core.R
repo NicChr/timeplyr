@@ -43,7 +43,7 @@
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
 #' @param complete Logical. If `TRUE` implicit gaps in time are filled
 #' before counting and after time aggregation (controlled using `time_by`).
-#' The default is `TRUE`.
+#' The default is `FALSE`.
 #' @param g Grouping object passed directly to `collapse::GRP()`.
 #' This can for example be a vector or data frame.
 #' @param use.g.names Should the result include group names?
@@ -129,9 +129,9 @@ time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
     from <- time_floor2(from, time_by, week_start = week_start)
   }
   seq_sizes <- time_seq_sizes(from, to, time_by, time_type = time_type)
-  if (isTRUE(log10(sum(seq_sizes)) >= 8)){
-    message("The final size exceeds 100m rows, this may take a while")
-  }
+  # if (collapse::allNA(seq_sizes)){
+  #   return(rep_len(na_init(x), length(from)))
+  # }
   out <- time_seq_v2(seq_sizes,
                      from = from,
                      time_by = time_by,
@@ -192,6 +192,12 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
   if (is.null(to)){
     to <- collapse::fmax(x, na.rm = TRUE)
   }
+  # set_time_cast(from, to)
+  from <- time_cast(from, x)
+  to <- time_cast(to, x)
+  if (isTRUE(from > to)){
+    stop("from must be <= to")
+  }
   # Time sequence
   time_breaks <- time_expandv(x, time_by = time_by,
                               from = from, to = to,
@@ -201,11 +207,9 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
                               roll_month = roll_month,
                               roll_dst = roll_dst)
   x <- time_cast(x, time_breaks)
-  from <- time_cast(from, x)
   to <- time_cast(to, x)
   # Cut time
-  time_bins <- c(time_as_number(time_breaks),
-                 time_as_number(to))
+  time_bins <- c(unclass(time_breaks), unclass(to))
   time_break_ind <- cut_time(x, breaks = time_bins, codes = TRUE)
   # Time breaks subset on cut indices
   out <- time_breaks[time_break_ind]
@@ -550,7 +554,7 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
 #' @export
 time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
                         sort = TRUE, unique = TRUE,
-                        complete = TRUE,
+                        complete = FALSE,
                         time_type = getOption("timeplyr.time_type", "auto"),
                         include_interval = FALSE,
                         time_floor = FALSE,
@@ -588,8 +592,7 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
   }
   out_len <- length(x)
   # Aggregate time/cut time
-  time_bins <- c(time_as_number(time_breaks),
-                 time_as_number(to))
+  time_bins <- c(unclass(time_breaks), unclass(to))
   time_break_ind <- cut_time(x, breaks = time_bins, codes = TRUE)
   # Time breaks subset on cut indices
   x <- time_breaks[time_break_ind]

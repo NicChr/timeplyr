@@ -192,6 +192,41 @@ SEXP cpp_df_group_indices(SEXP rows, int size) {
   return indices;
 }
 
+
+// Address of R object
+
+const char* obj_address_formatter = "%p";
+
+SEXP r_obj_address(SEXP x) {
+  static char buf[1000];
+  snprintf(buf, 1000, obj_address_formatter, (void*) x);
+  SEXP out = Rf_protect(Rf_allocVector(STRSXP, 1));
+  SET_STRING_ELT(out, 0, Rf_mkChar(buf));
+  Rf_unprotect(1);
+  return out;
+}
+
+// Quick check to see that addresses between 2 equal length lists are the same
+
+[[cpp11::register]]
+bool cpp_any_address_changed(SEXP x, SEXP y) {
+  const SEXP* p_x = VECTOR_PTR_RO(x);
+  const SEXP* p_y = VECTOR_PTR_RO(y);
+  bool out = false;
+  int n1 = Rf_length(x);
+  int n2 = Rf_length(y);
+  if (n1 != n2){
+    Rf_error("x and y must be of the same length");
+  }
+  for (int i = 0; i < n1; ++i) {
+    if (STRING_ELT(r_obj_address(p_x[i]), 0) != STRING_ELT(r_obj_address(p_y[i]), 0)){
+      out = true;
+      break;
+    }
+  }
+  return out;
+}
+
 // Checks that all row indices of 2 grouped data frames are the same
 
 // bool cpp_group_data_rows_equal(SEXP rows1, SEXP rows2) {

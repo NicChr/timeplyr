@@ -8,7 +8,7 @@ get_time_delay(
   data,
   origin,
   end,
-  time_by = 1,
+  time_by = 1L,
   time_type = getOption("timeplyr.time_type", "auto"),
   min_delay = -Inf,
   max_delay = Inf,

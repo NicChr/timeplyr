@@ -96,7 +96,7 @@
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #'}
 #' @export
-get_time_delay <- function(data, origin, end, time_by = 1,
+get_time_delay <- function(data, origin, end, time_by = 1L,
                            time_type = getOption("timeplyr.time_type", "auto"),
                            min_delay = -Inf, max_delay = Inf,
                            probs = c(0.25, 0.5, 0.75, 0.95),
@@ -123,7 +123,7 @@ get_time_delay <- function(data, origin, end, time_by = 1,
   end_df <- fselect(safe_ungroup(end_info[["data"]]), .cols = end)
   out <- data.table::copy(collapse::qDT(dplyr::bind_cols(origin_df, end_df)))
   grp_nm <- new_var_nm(out, ".group.id")
-  out[, (grp_nm) := group_id(data, .by = {{ .by }})]
+  set_add_cols(out, add_names(list(group_id(data, .by = {{ .by }})), grp_nm))
   set_rm_cols(out, setdiff(names(out),
                            c(grp_nm, group_vars, start_time, end_time)))
   grp_df <- fdistinct(fselect(out, .cols = c(grp_nm, group_vars)),

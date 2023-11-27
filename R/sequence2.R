@@ -86,16 +86,20 @@ sequence2 <- function(nvec, from = 1L, by = 1L){
       by <- rep(by, times = nvec)
     }
     # Arithmetic
-    g_add <- double_sequence(nvec, from = 0, by = 1)
+    if (is.integer(by)){
+      g_add <- integer_sequence(nvec, from = 0L, by = 1L)
+    } else {
+      g_add <- double_sequence(nvec, from = 0, by = 1)
+    }
     from + (g_add * by)
   } else {
     double_sequence(nvec, from = from, by = by)
   }
 }
 # Like base::sequence() but c++
-# integer_sequence <- function(size, from = 1L, by = 1L){
-#   cpp_int_sequence(as.integer(size), as.integer(from), as.integer(by))
-# }
+integer_sequence <- function(size, from = 1L, by = 1L){
+  cpp_int_sequence(as.integer(size), as.integer(from), as.integer(by))
+}
 # Like base::sequence() but with support for double increments and long vectors
 double_sequence <- function(size, from = 1, by = 1){
   cpp_dbl_sequence(as.integer(size), as.double(from), as.double(by))

@@ -663,30 +663,39 @@ as_datetime2 <- function(x){
   }
 }
 # This bounds start point based on x vector
-bound_from <- function(from, x){
-  x_min <- collapse::fmin(x, na.rm = TRUE, use.g.names = FALSE)
-  if (is.null(from)){
-    from <- x_min
-  } else {
-    from <- time_cast(from, x) # Cast to as datetime if x is
-    # Bound from by the minimum of x
-    from <- max(x_min, from)
-  }
-  from
+# bound_from <- function(from, x, g = NULL){
+#   x_min <- collapse::fmin(x, na.rm = TRUE, use.g.names = FALSE, g = g)
+#   if (is.null(from)){
+#     from <- x_min
+#   } else {
+#     from <- time_cast(from, x) # Cast to as datetime if x is
+#     # Bound from by the minimum of x
+#     from <- pmax(x_min, from, na.rm = TRUE)
+#   }
+#   from
+# }
+# # This bounds end point based on x vector
+# bound_to <- function(to, x, g = NULL){
+#   x_max <- collapse::fmax(x, na.rm = TRUE, g = g, use.g.names = FALSE)
+#   if (is.null(to)){
+#     to <- x_max
+#   } else {
+#     to <- time_cast(to, x) # Cast to as datetime if x is
+#     # Bound to by the maximum of x
+#     to <- pmin(x_max, to, na.rm = TRUE)
+#   }
+#   to
+# }
+
+# This makes sure start is always <= upper bound
+bound_start <- function(x, bound){
+  pmin(time_cast(x, bound), bound, na.rm = TRUE)
 }
-# This bounds end point based on x vector
-bound_to <- function(to, x){
-  x_max <- collapse::fmax(x, na.rm = TRUE,
-                          use.g.names = FALSE)
-  if (is.null(to)){
-    to <- x_max
-  } else {
-    to <- time_cast(to, x) # Cast to as datetime if x is
-    # Bound to by the maximum of x
-    to <- min(x_max, to)
-  }
-  to
+# This makes sure end is always >= lower bound
+bound_end <- function(x, bound){
+  pmax(time_cast(x, bound), bound, na.rm = TRUE)
 }
+
 
 fcut_ind <- function(x, breaks, rightmost.closed = FALSE,
                      left.open = FALSE, all.inside = FALSE){
@@ -1271,78 +1280,81 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
 # * Expansion size is less than 10 million
 # * Number of groups are less than 1m
 # And using time differencing otherwise
-time_aggregate_switch <- function(x, time_by, time_type,
-                                  g = NULL,
-                                  start = NULL, end = NULL,
-                                  time_floor = FALSE,
-                                  week_start = getOption("lubridate.week.start", 1),
-                                  roll_month = getOption("timeplyr.roll_month", "preday"),
-                                  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
-                                  as_int = TRUE){
-  check_is_time_or_num(x)
-  time_by <- time_by_list(time_by)
-  num <- time_by_num(time_by)
-  units <- time_by_unit(time_by)
-  check_time_by_length_is_one(time_by)
-  time_type <- match_time_type(time_type)
-  g <- GRP2(g, return.groups = FALSE)
-  if (is.null(g)){
-    n_groups <- min(1L, length(x))
-  } else {
-    n_groups <- GRP_n_groups(g)
-  }
-  ###
-  if (is.null(start)){
-    from <- collapse::fmin(x, g = g, use.g.names = FALSE, na.rm = TRUE)
-  } else {
-    from <- collapse::ffirst(start, g = g, use.g.names = FALSE)
-  }
-  if (is.null(end)){
-    to <- collapse::fmax(x, g = g, use.g.names = FALSE, na.rm = TRUE)
-  } else {
-    to <- collapse::ffirst(end, g = g, use.g.names = FALSE)
-  }
-  # Make sure from/to are datetimes if x is datetime
-  from <- time_cast(from, x)
-  to <- time_cast(to, x)
-  time_span_sizes <- time_seq_sizes(from = from, to = to,
-                                    time_by = time_by,
-                                    time_type = time_type)
-  expanded_size <- sum(time_span_sizes)
-  # if (time_type == "auto"){
-  #   time_type <- guess_seq_type(units)
-  # }
-  if (
-    (time_type == "auto" && guess_seq_type(units) == "period" &&
-     n_groups < 1e06 &&
-     expanded_size < 1e07 &&
-     length(x) > 1e05)  ||
-    (
-      n_groups < 1e04 &&
-      expanded_size < 1e06
-    )
-  ){
-    time_aggregate_expand(x, g = g, time_by = time_by,
-                          start = start,
-                          end = end,
-                          time_type = time_type,
-                          roll_month = roll_month,
-                          roll_dst = roll_dst,
-                          time_floor = time_floor,
-                          week_start = week_start,
-                          as_int = as_int)
-  } else {
-    time_aggregate_left(x, g = g, time_by = time_by,
-                        start = start,
-                        end = end,
-                        time_type = time_type,
-                        roll_month = roll_month,
-                        roll_dst = roll_dst,
-                        time_floor = time_floor,
-                        week_start = week_start,
-                        as_int = as_int)
-  }
-}
+# time_aggregate_switch <- function(x, time_by, time_type,
+#                                   g = NULL,
+#                                   start = NULL, end = NULL,
+#                                   time_floor = FALSE,
+#                                   week_start = getOption("lubridate.week.start", 1),
+#                                   roll_month = getOption("timeplyr.roll_month", "preday"),
+#                                   roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+#                                   as_int = TRUE){
+#   check_is_time_or_num(x)
+#   time_by <- time_by_list(time_by)
+#   num <- time_by_num(time_by)
+#   units <- time_by_unit(time_by)
+#   check_time_by_length_is_one(time_by)
+#   time_type <- match_time_type(time_type)
+#   g <- GRP2(g, return.groups = FALSE)
+#   if (is.null(g)){
+#     n_groups <- min(1L, length(x))
+#   } else {
+#     n_groups <- GRP_n_groups(g)
+#   }
+#   if (is.null(start)){
+#     from <- collapse::fmin(x, g = g, use.g.names = FALSE, na.rm = TRUE)
+#   } else {
+#     from <- collapse::ffirst(start, g = g, use.g.names = FALSE)
+#   }
+#   if (is.null(end)){
+#     to <- collapse::fmax(x, g = g, use.g.names = FALSE, na.rm = TRUE)
+#   } else {
+#     to <- collapse::ffirst(end, g = g, use.g.names = FALSE)
+#   }
+#   # Make sure from/to are datetimes if x is datetime
+#   from <- time_cast(from, x)
+#   to <- time_cast(to, x)
+#   time_span_sizes <- time_seq_sizes(from = from, to = to,
+#                                     time_by = time_by,
+#                                     time_type = time_type)
+#   expanded_size <- sum(time_span_sizes)
+#   # if (time_type == "auto"){
+#   #   time_type <- guess_seq_type(units)
+#   # }
+#   if (
+#       (
+#         # Convoluted because I don't want to overwrite time_type
+#         # If it is set to auto
+#         (identical(time_type, "period") ||
+#          (time_type == "auto" && guess_seq_type(units) == "period") ) &&
+#      n_groups < 1e06 &&
+#      expanded_size < 1e07 &&
+#      length(x) > 1e05)  ||
+#     (
+#       n_groups < 1e04 &&
+#       expanded_size < 1e06
+#     )
+#   ){
+#     time_aggregate_expand(x, g = g, time_by = time_by,
+#                           start = start,
+#                           end = end,
+#                           time_type = time_type,
+#                           roll_month = roll_month,
+#                           roll_dst = roll_dst,
+#                           time_floor = time_floor,
+#                           week_start = week_start,
+#                           as_int = as_int)
+#   } else {
+#     time_aggregate_left(x, g = g, time_by = time_by,
+#                         start = start,
+#                         end = end,
+#                         time_type = time_type,
+#                         roll_month = roll_month,
+#                         roll_dst = roll_dst,
+#                         time_floor = time_floor,
+#                         week_start = week_start,
+#                         as_int = as_int)
+#   }
+# }
 check_is_date <- function(x){
   if (!is_date(x)){
     stop(paste(deparse1(substitute(x)),

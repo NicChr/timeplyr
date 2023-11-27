@@ -164,6 +164,13 @@ testthat::test_that("Compare to dplyr", {
                              res1 %>%
                                fcount(origin, dest, wt = n))
 
+  # Overwriting existing groups
+  testthat::expect_equal(iris %>%
+                           dplyr::group_by(Species) %>%
+                           dplyr::count(Species = Sepal.Length),
+                         iris %>%
+                           dplyr::group_by(Species) %>%
+                           fcount(Species = Sepal.Length))
 })
 
 testthat::test_that("Compare to dplyr, add_count", {
@@ -300,6 +307,12 @@ testthat::test_that("Compare to dplyr, add_count", {
                                dplyr::add_count(origin, dest, wt = n),
                              res1 %>%
                                fadd_count(origin, dest, wt = n))
-
+  # Overwriting existing groups
+  testthat::expect_equal(iris %>%
+                           dplyr::group_by(Species) %>%
+                           dplyr::add_count(Species = Sepal.Length),
+                         iris %>%
+                           dplyr::group_by(Species) %>%
+                           fadd_count(Species = Sepal.Length))
 })
 

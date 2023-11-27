@@ -132,17 +132,17 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
       time_by <- add_names(list(granularity[["num"]]), granularity[["unit"]])
     }
     # Aggregate time data
-    time_agg <- time_aggregate_switch(out[[time_var]],
-                                      time_by = time_by,
-                                      g = out[[grp_nm]],
-                                      start = fpluck(out, from_var),
-                                      end = fpluck(out, to_var),
-                                      time_type = time_type,
-                                      roll_month = roll_month,
-                                      roll_dst = roll_dst,
-                                      time_floor = time_floor,
-                                      week_start = week_start,
-                                      as_int = include_interval)
+    time_agg <- time_aggregate_left(out[[time_var]],
+                                    time_by = time_by,
+                                    g = out[[grp_nm]],
+                                    start = fpluck(out, from_var),
+                                    end = fpluck(out, to_var),
+                                    time_type = time_type,
+                                    roll_month = roll_month,
+                                    roll_dst = roll_dst,
+                                    time_floor = time_floor,
+                                    week_start = week_start,
+                                    as_int = include_interval)
     time_int_end <- time_int_end(time_agg)
     time_agg <- time_int_rm_attrs(time_agg)
     out <- dplyr::dplyr_col_modify(out,

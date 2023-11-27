@@ -4,7 +4,15 @@
 \alias{time_ggplot}
 \title{Quick time-series ggplot}
 \usage{
-time_ggplot(data, time, value, group = NULL, facet = FALSE, ...)
+time_ggplot(
+  data,
+  time,
+  value,
+  group = NULL,
+  facet = FALSE,
+  geom = ggplot2::geom_line,
+  ...
+)
 }
 \arguments{
 \item{data}{A data frame}
@@ -19,7 +27,9 @@ time_ggplot(data, time, value, group = NULL, facet = FALSE, ...)
 plotted separately or on the same plot?
 Default is \code{FALSE}, or together.}
 
-\item{...}{Further arguments passed to \code{geom_line()}.}
+\item{geom}{\code{ggplot2} 'geom' type. Default is \code{geom_line()}.}
+
+\item{...}{Further arguments passed to the chosen 'geom'.}
 }
 \value{
 A \code{ggplot}.

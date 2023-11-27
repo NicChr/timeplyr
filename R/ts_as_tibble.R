@@ -74,9 +74,10 @@ ts_as_tibble.default <- function(x, name = "time", value = "value", group = "gro
     }
     time <- rep(time, times = ncol)
   }
-  dplyr::tibble(!!group := groups,
-                !!name := time,
-                !!value := as.vector(x))
+  out <- list(groups, time, as.vector(x))
+  not_null <- cpp_list_which_not_null(out)
+  out_nms <- c(group, name, value)[not_null]
+  list_to_tibble(add_names(.subset(out, not_null), out_nms))
 }
 #' @rdname ts_as_tibble
 #' @export
@@ -90,9 +91,10 @@ ts_as_tibble.mts <- function(x, name = "time", value = "value", group = "group")
     }
     time <- rep(time, times = ncol)
   }
-  dplyr::tibble(!!group := groups,
-                !!name := time,
-                !!value := as.vector(x))
+  out <- list(groups, time, as.vector(x))
+  not_null <- cpp_list_which_not_null(out)
+  out_nms <- c(group, name, value)[not_null]
+  list_to_tibble(add_names(.subset(out, not_null), out_nms))
 }
 #' @rdname ts_as_tibble
 #' @export
@@ -122,9 +124,10 @@ ts_as_tibble.xts <- function(x, name = "time", value = "value", group = "group")
     groups <- rep(seq_len(ncol), each = length(time))
   }
   time <- rep(time, times = ncol)
-  dplyr::tibble(!!group := groups,
-                !!name := time,
-                !!value := as.vector(x))
+  out <- list(groups, time, as.vector(x))
+  not_null <- cpp_list_which_not_null(out)
+  out_nms <- c(group, name, value)[not_null]
+  list_to_tibble(add_names(.subset(out, not_null), out_nms))
 }
 #' @rdname ts_as_tibble
 #' @export
@@ -138,9 +141,10 @@ ts_as_tibble.zoo <- function(x, name = "time", value = "value", group = "group")
     }
     time <- rep(time, times = ncol)
   }
-  dplyr::tibble(!!group := groups,
-                !!name := time,
-                !!value := as.vector(x))
+  out <- list(groups, time, as.vector(x))
+  not_null <- cpp_list_which_not_null(out)
+  out_nms <- c(group, name, value)[not_null]
+  list_to_tibble(add_names(.subset(out, not_null), out_nms))
 }
 #' @rdname ts_as_tibble
 #' @export
@@ -153,7 +157,8 @@ ts_as_tibble.timeSeries <- function(x, name = "time", value = "value", group = "
     groups <- rep(seq_len(ncol), each = length(time))
   }
   time <- rep(time, times = ncol)
-  dplyr::tibble(!!group := groups,
-                !!name := time,
-                !!value := as.vector(x))
+  out <- list(groups, time, as.vector(x))
+  not_null <- cpp_list_which_not_null(out)
+  out_nms <- c(group, name, value)[not_null]
+  list_to_tibble(add_names(.subset(out, not_null), out_nms))
 }

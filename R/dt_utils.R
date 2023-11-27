@@ -53,15 +53,19 @@ setkeyv2 <- function(x, cols, verbose = getOption("datatable.verbose"),
 # Slightly safer way of removing DT cols
 set_rm_cols <- function(DT, cols = NULL){
   if (is.character(cols)){
-    length_check <- length(intersect(cols, names(DT))) > 0L
+    length_check <- length(intersect2(cols, names(DT))) > 0L
   } else {
     cols <- as.integer(cols)
-    length_check <- length(intersect(cols, seq_along(DT))) > 0L
+    length_check <- length(intersect2(cols, seq_along(DT))) > 0L
   }
   if (length_check){
     data.table::set(DT, j = cols, value = NULL)
   }
 }
+set_add_cols <- function(DT, cols = NULL){
+  data.table::set(DT, j = names(cols), value = cols)
+}
+
 # Data.table version of bind_cols, needs more work
 # set_bind_cols <- function(x, y,
 #                           suffix = ".y"){

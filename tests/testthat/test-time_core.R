@@ -3,8 +3,8 @@ data.table::setDTthreads(threads = 2L)
 # Set number of collapse threads to 1
 collapse::set_collapse(nthreads = 1L)
 
-time_countv2 <- function(..., include_interval = FALSE, use.names = TRUE){
-  out <- time_countv(..., include_interval = include_interval)
+time_countv2 <- function(..., include_interval = FALSE, use.names = TRUE, complete = TRUE){
+  out <- time_countv(..., include_interval = include_interval, complete = complete)
   if (!include_interval){
    out <- fdeframe(out)
    if (!use.names){
@@ -22,8 +22,8 @@ testthat::test_that("Tests for time_countv2", {
   from <- lubridate::as_datetime(lubridate::dmy(02042013)) +
     lubridate::minutes(35)
   to <- lubridate::dmy(08092013)
-  from2 <- bound_from(from, flights2$time_hour)
-  to2 <- bound_to(to, flights2$time_hour)
+  from2 <- time_cast(from, flights2$time_hour)
+  to2 <- time_cast(to, flights2$time_hour)
   nrow_flights2 <- flights2 %>%
     dplyr::filter(dplyr::between(time_hour, from2, to2)) %>%
     nrow()

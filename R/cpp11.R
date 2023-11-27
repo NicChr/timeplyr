@@ -112,6 +112,10 @@ cpp_df_group_indices <- function(rows, size) {
   .Call(`_timeplyr_cpp_df_group_indices`, rows, size)
 }
 
+cpp_any_address_changed <- function(x, y) {
+  .Call(`_timeplyr_cpp_any_address_changed`, x, y)
+}
+
 cpp_which_ <- function(x, invert) {
   .Call(`_timeplyr_cpp_which_`, x, invert)
 }

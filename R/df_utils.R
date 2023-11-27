@@ -485,3 +485,21 @@ dplyr_drop_empty <- function(data, .cols = dplyr::everything()){
 df_lag <- function(x, n = 1L, g = NULL){
   df_row_slice(x, flag2(df_seq_along(x), n = n, g = g))
 }
+
+# A fast base R df select (to be used in fselect and friends)
+df_select <- function(x, .cols){
+  out <- .subset(x, .cols)
+  # out <- list_rm_null(.subset(x, .cols))
+  class(out) <- attr(x, "class")
+  attr(out, "row.names") <- .set_row_names(df_nrow(x))
+  out
+}
+
+df_add_cols <- function(data, cols){
+  dplyr::dplyr_col_modify(data, cols)
+}
+
+# out <- .subset(x, .cols)
+# attr(out, "class") <- attr(x, "class")
+# attr(out, "row.names") <- attr(x, "row.names")
+# out

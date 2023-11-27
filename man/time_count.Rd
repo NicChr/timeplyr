@@ -12,7 +12,7 @@ time_count(
   time_by = NULL,
   from = NULL,
   to = NULL,
-  complete = TRUE,
+  complete = FALSE,
   wt = NULL,
   name = NULL,
   sort = FALSE,
@@ -49,9 +49,9 @@ then arithmetic is used, e.g \code{time_by = 1}.
 
 \item{to}{Time series end date. If \code{NULL} then max time is used.}
 
-\item{complete}{Logical. If \code{TRUE} implicit gaps in time are filled
-after counting and time aggregation (through \code{time_by}).
-The default is \code{TRUE}.}
+\item{complete}{\bold{Deprecated}.
+Use \code{time_complete()} after \code{time_count()} to
+complete missing gaps in time (as well as optionally expand groups).}
 
 \item{wt}{Frequency weights.
 \code{dplyr} "data-masking" is used for variable selection.
@@ -122,13 +122,6 @@ the expansion of each group.
 Depending on the analysis, this may or may not be what you want
 and can sometimes result in huge expansions if dealing with time variables
 with large span sizes.
-
-If \code{complete = TRUE} then the gaps in the time are expanded.
-
-To avoid filling in missing gaps in time, as well as possible expansion,
-simply set \code{complete = FALSE}
-which will simply perform a count
-across your aggregated time variable and specified groups.
 }
 \examples{
 library(timeplyr)

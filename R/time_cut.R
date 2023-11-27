@@ -118,10 +118,12 @@ time_cut <- function(x, n = 5, time_by = NULL,
                              time_type = time_type,
                              roll_month = roll_month,
                              roll_dst = roll_dst)
-  to <- bound_to(to, x)
+  if (is.null(to)){
+    to <- collapse::fmax(x, na.rm = TRUE)
+  }
+  to <- time_cast(to, x)
   out <- cut_time(x,
-                  breaks = c(time_as_number(time_breaks),
-                             time_as_number(to)),
+                  breaks = c(unclass(time_breaks), unclass(to)),
                   codes = TRUE)
   if (as_factor){
     time_labels <- tseq_levels(x = to, time_breaks, fmt = fmt)
@@ -145,8 +147,19 @@ time_breaks <- function(x, n = 5, time_by = NULL,
   stopifnot(n >= 1)
   check_length(n, 1L)
   time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
-  from <- bound_from(from, x)
-  to <- bound_to(to, x)
+  xmin <- collapse::fmin(x, na.rm = TRUE)
+  xmax <- collapse::fmax(x, na.rm = TRUE)
+  if (is.null(from)){
+    from <- collapse::fmin(x, na.rm = TRUE)
+  }
+  if (is.null(to)){
+    to <- collapse::fmax(x, na.rm = TRUE)
+  }
+  from <- time_cast(from, x)
+  to <- time_cast(to, x)
+  if (isTRUE(from > to)){
+    stop("from must be <= to")
+  }
   n_unique <- n_unique(x, na.rm = TRUE)
   if (is.null(time_by)){
     if (is_time(x)){

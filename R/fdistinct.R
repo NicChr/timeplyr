@@ -63,7 +63,7 @@ fdistinct <- function(data, ..., .keep_all = FALSE,
       out_vars <- dup_vars
     }
   }
-  if (length(group_info[["extra_groups"]]) == 0L){
+  if (length(group_info[["extra_groups"]]) == 0L && !group_info[["groups_changed"]]){
    out <- data
   }
   out <- fselect(out, .cols = out_vars)

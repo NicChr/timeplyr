@@ -67,8 +67,10 @@ time_diff_gcd <- function(x, time_by = 1,
                         na_skip = FALSE)
   tdiff <- cpp_roll_diff(tdiff, k = 1L, fill = 0)
   log10_tol <- ceiling(abs(log10(tol)))
-  tdiff <- round(abs(tdiff), digits = log10_tol + 1)
-  tdiff <- collapse::funique.default(tdiff)
+  if (is.double(tdiff)){
+    tdiff <- round(abs(tdiff), digits = log10_tol + 1)
+    tdiff <- collapse::funique.default(tdiff)
+  }
   gcd(tdiff, tol = tol, na_rm = TRUE, round = FALSE)
   # cpp_gcd(as.double(tdiff), tol = as.double(tol),
   #         start = 1L,

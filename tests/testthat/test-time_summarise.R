@@ -121,4 +121,13 @@ testthat::test_that("Test intervals", {
   int3 <- time_interval(time_int_rm_attrs(int3), time_int_end(int3))
   testthat::expect_equal(int1, int2)
   testthat::expect_equal(int1, int3)
+
+  flights %>%
+    fgroup_by(origin, dest) %>%
+    time_summarise(n = n(), time_hour, time_by = "months",
+                   from = min(time_hour) + dweeks(1), time_type = "duration")
+  flights %>%
+    fgroup_by(origin, dest) %>%
+    time_summarise(n = n(), time_hour, time_by = "months",
+                   from = min(time_hour) + dweeks(1), time_type = "period")
 })
