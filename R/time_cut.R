@@ -157,9 +157,6 @@ time_breaks <- function(x, n = 5, time_by = NULL,
   }
   from <- time_cast(from, x)
   to <- time_cast(to, x)
-  if (isTRUE(from > to)){
-    stop("from must be <= to")
-  }
   n_unique <- n_unique(x, na.rm = TRUE)
   if (is.null(time_by)){
     if (is_time(x)){

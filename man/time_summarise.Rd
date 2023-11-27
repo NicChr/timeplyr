@@ -86,11 +86,6 @@ A summarised \code{data.frame}.
 This works much the same as \code{dplyr::summarise()}, except that
 you can supply an additional \code{time} argument to allow for
 aggregating time to a higher unit.
-
-Currently, this does \bold{not} support
-filling in missing gaps in time. \cr
-Use \code{time_count()} or \code{time_complete()}
-before using this if you believe there may be gaps in time.
 }
 \examples{
 library(timeplyr)

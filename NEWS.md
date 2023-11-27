@@ -1,5 +1,19 @@
 # timeplyr (Development version)
 
+* Period-arithmetic is now much faster and more efficient due a new method 
+for time differencing where distinct start-end values are used.
+
+* `time_count` no longer completes implicit missing gaps in time. 
+Use `time_complete` instead. 
+When using `from` and `to`, `time_count` no longer removes out-of-bounds
+time values and instead simply converted to `NA`. 
+
+* tidyverse-style functions now use a new method for data-masking variables 
+which aligns more closely with the tidyverse equivalents. 
+The previous method evaluated the expressions supplied through `...` twice, 
+once to generate the variables, and twice to extract the resulting variable
+names. These are now evaluated once.
+
 * Improved print method speed for `year_month` and `year_quarter`
 
 # timeplyr 0.4.1

@@ -5,11 +5,6 @@
 #' you can supply an additional `time` argument to allow for
 #' aggregating time to a higher unit.
 #'
-#' Currently, this does \bold{not} support
-#' filling in missing gaps in time. \cr
-#' Use `time_count()` or `time_complete()`
-#' before using this if you believe there may be gaps in time.
-#'
 #' @param data A data frame.
 #' @param time Time variable.
 #' @param ... Additional variables to include.
@@ -111,17 +106,17 @@ time_distinct <- function(data, time = NULL, ..., time_by = NULL,
       time_by <- add_names(list(granularity[["num"]]), granularity[["unit"]])
     }
     # Aggregate time data
-    time_agg <- time_aggregate_switch(temp_data[[time_var]],
-                                      time_by = time_by,
-                                      g = temp_data[[grp_nm]],
-                                      start = fpluck(temp_data, from_var),
-                                      end = fpluck(temp_data, to_var),
-                                      time_type = time_type,
-                                      roll_month = roll_month,
-                                      roll_dst = roll_dst,
-                                      time_floor = time_floor,
-                                      week_start = week_start,
-                                      as_int = include_interval)
+    time_agg <- time_aggregate_left(temp_data[[time_var]],
+                                    time_by = time_by,
+                                    g = temp_data[[grp_nm]],
+                                    start = fpluck(temp_data, from_var),
+                                    end = fpluck(temp_data, to_var),
+                                    time_type = time_type,
+                                    roll_month = roll_month,
+                                    roll_dst = roll_dst,
+                                    time_floor = time_floor,
+                                    week_start = week_start,
+                                    as_int = include_interval)
     time_int_end <- time_int_end(time_agg)
     time_agg <- time_int_rm_attrs(time_agg)
     temp_data <- dplyr::dplyr_col_modify(temp_data,

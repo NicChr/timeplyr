@@ -530,18 +530,7 @@ duration_unit <- function(units = "seconds"){
          months = lubridate::dmonths,
          years = lubridate::dyears)
 }
-# Functional that returns lubridate period function
-period_unit <- function(units = "seconds"){
-  if (!units %in% .period_units) unit_match_stop(.period_units)
-  switch(units,
-         seconds = lubridate::seconds,
-         minutes = lubridate::minutes,
-         hours = lubridate::hours,
-         days = lubridate::days,
-         weeks = lubridate::weeks,
-         months = months,
-         years = lubridate::years)
-}
+
 numeric_unit <- function(units){
   identity
 }
@@ -1109,8 +1098,8 @@ time_aggregate_left <- function(x, time_by, g = NULL,
                          roll_month = roll_month, roll_dst = roll_dst)
     set_time_cast(out, int_end)
     end <- time_cast(end, out)
-    which_out_of_bounds <- cpp_which(cppdoubles::double_gt(time_as_number(int_end),
-                                                           time_as_number(end)))
+    which_out_of_bounds <- cpp_which(cppdoubles::double_gt(unclass(int_end),
+                                                           unclass(end)))
     int_end[which_out_of_bounds] <- end[which_out_of_bounds]
     out <- structure(out,
                      end = int_end,
@@ -1164,8 +1153,8 @@ time_aggregate_right <- function(x, time_by, g = NULL,
                          roll_month = roll_month, roll_dst = roll_dst)
     set_time_cast(out, int_end)
     start <- time_cast(start, out)
-    which_out_of_bounds <- cpp_which(cppdoubles::double_lt(time_as_number(int_end),
-                                                           time_as_number(start)))
+    which_out_of_bounds <- cpp_which(cppdoubles::double_lt(unclass(int_end),
+                                                           unclass(start)))
     int_end[which_out_of_bounds] <- start[which_out_of_bounds]
     out <- structure(out,
                      end = int_end,
@@ -1182,6 +1171,10 @@ time_int_rm_attrs <- function(x){
   attr(x, "direction") <- NULL
   x
 }
+
+# This is great but can't handle when start > end and the direction of
+# the time_by argument is positive
+
 # Time aggregation using expanded sequences from data directly
 time_aggregate_expand <- function(x, time_by, g = NULL,
                                   start = NULL, end = NULL,
@@ -1706,4 +1699,5 @@ int_to_per <- function (start, end){
   per$year[wnegs] <- -per$year[wnegs]
   per
 }
+
 

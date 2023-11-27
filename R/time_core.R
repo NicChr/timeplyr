@@ -186,6 +186,8 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
                             roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                             include_interval = FALSE){
   check_is_time_or_num(x)
+  check_length_lte(from, 1)
+  check_length_lte(to, 1)
   if (is.null(from)){
     from <- collapse::fmin(x, na.rm = TRUE)
   }

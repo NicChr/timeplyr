@@ -1,5 +1,4 @@
-#' Fast count, fill implicit missing gaps, and (time)
-#' aggregate a time series based data frame.
+#' Fast count time at higher time units.
 #'
 #' @description This function operates like `dplyr::count()`
 #' but with emphasis on
@@ -58,8 +57,7 @@
 #' The rightmost interval will always be closed.
 #' @returns
 #' An object of class `data.frame`
-#' containing the input time variable
-#' which is expanded for each supplied group.
+#' containing the aggregate time variable and corresponding counts.
 #'
 #' @details
 #' `time_count` Creates an
@@ -68,15 +66,10 @@
 #' both lower and higher time units.
 #'
 #' An important note is that when the data are grouped, time ranges are expanded
-#' on a group-by-group basis. This works like dplyr where you can supply either a
-#' grouped_df or specify the groupings through `.by`.
+#' on a group-by-group basis. \cr
 #' When groups are supplied through
-#' `...`, the time range of the entire data is used for
-#' the expansion of each group.
-#' Depending on the analysis, this may or may not be what you want
-#' and can sometimes result in huge expansions if dealing with time variables
-#' with large span sizes.
-#'
+#' `...`, the time range of the entire data is used
+#' to aggregate the time variable.
 #'
 #' @examples
 #' library(timeplyr)
@@ -90,9 +83,8 @@
 #' collapse::set_collapse(nthreads = 1L)
 #' }
 #' df <- flights %>%
-#'   mutate(date = as_date(time_hour),
-#'          date_num = as.integer(date)) %>%
-#'   select(year, month, day, origin, dest, date, time_hour, date_num)
+#'   mutate(date = as_date(time_hour)) %>%
+#'   select(year, month, day, origin, dest, date, time_hour)
 #'
 #' # By default time_count() guesses the time granularity
 #' df %>%
