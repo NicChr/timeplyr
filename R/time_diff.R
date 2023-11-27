@@ -41,6 +41,14 @@
 #' time_diff(today(), today() + days(100),
 #'           time_by = list("days" = 1:100))
 #' time_diff(1, 1 + 0:100, time_by = 3)
+#' \donttest{
+#' library(nycflights13)
+#' library(bench)
+#'
+#' # Period differences are much faster
+#' mark(timeplyr = time_diff(flights$time_hour, today(), "weeks", time_type = "period"),
+#'      lubridate = interval(flights$time_hour, today()) / weeks(1))
+#' }
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
