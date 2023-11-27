@@ -165,7 +165,7 @@ time_interval <- function(from, to){
     if (length(from) < length(out)){
       from <- rep_len(from, length(out))
     }
-    attr(out, "start") <- from
+    # attr(out, "start") <- from
   }
   out
 }
@@ -1090,7 +1090,7 @@ time_aggregate_left <- function(x, time_by, g = NULL,
                          week_start = week_start)
   }
   tdiff <- time_diff(start, x, time_by = time_by, time_type = time_type)
-  time_to_add <- add_names(list(trunc(tdiff) * num), units)
+  time_to_add <- add_names(list(trunc2(tdiff) * num), units)
   out <- time_add2(start, time_by = time_to_add, time_type = time_type,
                    roll_month = roll_month, roll_dst = roll_dst)
   if (as_int){
@@ -1145,7 +1145,7 @@ time_aggregate_right <- function(x, time_by, g = NULL,
                            week_start = week_start)
   }
   tdiff <- time_diff(end, x, time_by = time_by, time_type = time_type)
-  time_to_add <- add_names(list(trunc(tdiff) * num), units)
+  time_to_add <- add_names(list(trunc2(tdiff) * num), units)
   out <- time_add2(end, time_by = time_to_add, time_type = time_type,
                    roll_month = roll_month, roll_dst = roll_dst)
   if (as_int){
@@ -1410,7 +1410,7 @@ multiply_single_unit_period_by_number <- function(per, num){
   per_num <- per_num * num
   per_length <- length(per_num)
   per_num[cpp_which(is.nan(per_num))] <- NA_real_
-  other_fill <- numeric(per_length)
+  other_fill <- integer(per_length)
   other_fill[cpp_which(is.na(per_num))] <- NA_real_
   switch(
     per_unit,
@@ -1487,7 +1487,7 @@ rep_single_unit_period <- function(per, ...){
   per_num <- time_by_num(per_list)
   per_unit <- time_by_unit(per_list)
   per_num <- rep(per_num, ...)
-  other_fill <- numeric(length(per_num))
+  other_fill <- integer(length(per_num))
   switch(
     per_unit,
     years = {

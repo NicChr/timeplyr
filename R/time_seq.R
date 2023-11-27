@@ -287,13 +287,17 @@ time_seq_sizes <- function(from, to, time_by,
   set_time_cast(from, to)
   tdiff <- time_diff(from, to, time_by = time_by,
                      time_type = time_type)
-  tdiff[cpp_which(from == to)] <- 0
+  tdiff[cpp_which(from == to)] <- 0L
   tdiff_rng <- collapse::frange(tdiff, na.rm = TRUE)
   if (isTRUE(any(tdiff_rng < 0))){
     stop("At least 1 sequence length is negative, please check the time_by unit increments")
   }
   if (length(tdiff) == 0 || all(is_integerable(abs(tdiff_rng) + 1), na.rm = TRUE)){
-    as.integer(tdiff + 1e-10) + 1L
+    if (is.integer(tdiff)){
+      tdiff + 1L
+    } else {
+      as.integer(tdiff + 1e-10) + 1L
+    }
   } else {
     trunc(tdiff + 1e-10) + 1
   }

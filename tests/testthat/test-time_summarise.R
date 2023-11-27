@@ -92,6 +92,15 @@ testthat::test_that("General tests", {
     dplyr::tibble(n_hrs = c(3.11, 3.5),
                   n = c(1L, 14L))
   )
+
+  testthat::expect_snapshot(
+    flights %>%
+      fgroup_by(carrier, order = FALSE) %>%
+      time_summarise(n = dplyr::n(), time = time_hour, time_by = "3 months",
+                     from = min(time_hour) + weeks(1),
+                     include_interval = TRUE) %>%
+      print(n = 10^3, width = Inf)
+  )
 })
 
 testthat::test_that("Test intervals", {
@@ -99,17 +108,8 @@ testthat::test_that("Test intervals", {
     new_tbl(x = 1:10) %>%
       time_summarise(x, time_by = 3, include_interval = TRUE),
     new_tbl(x = c(1, 4, 7, 10),
-            interval = add_attr(c(3, 3, 3, 0),
-                                "start", c(1, 4, 7, 10)))
+            interval = c(3, 3, 3, 0))
   )
-  set.seed(42)
-  df <- new_tbl(x = sample(1:100, replace = T, 10^3)) %>%
-    time_summarise(x, time_by = 13, include_interval = TRUE, sort = TRUE)
-
-  df$start <- attr(df$interval, "start")
-
-  testthat::expect_equal(df$x, df$start)
-
   x <- time_cast(seq(1, 10, 1), Sys.Date())
   int1 <- time_summarisev(x, time_by = "37 seconds",
                           include_interval = TRUE)$interval
@@ -121,13 +121,4 @@ testthat::test_that("Test intervals", {
   int3 <- time_interval(time_int_rm_attrs(int3), time_int_end(int3))
   testthat::expect_equal(int1, int2)
   testthat::expect_equal(int1, int3)
-
-  flights %>%
-    fgroup_by(origin, dest) %>%
-    time_summarise(n = n(), time_hour, time_by = "months",
-                   from = min(time_hour) + dweeks(1), time_type = "duration")
-  flights %>%
-    fgroup_by(origin, dest) %>%
-    time_summarise(n = n(), time_hour, time_by = "months",
-                   from = min(time_hour) + dweeks(1), time_type = "period")
 })

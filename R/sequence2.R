@@ -129,10 +129,12 @@ seq_size <- function(from, to, by = 1L){
   if (isTRUE(any(size_rng < 0))){
     stop("At least 1 sequence length is negative, please check the sign of by")
   }
-  if (is.integer(size)){
-    size + 1L
-  } else if (length(size) == 0 || all(is_integerable(abs(size_rng) + 1), na.rm = TRUE)){
-    as.integer(size + 1e-10) + 1L
+  if (length(size) == 0 || all(is_integerable(abs(size_rng) + 1), na.rm = TRUE)){
+    if (is.integer(size)){
+      size + 1L
+    } else {
+      as.integer(size + 1e-10) + 1L
+    }
   } else {
     trunc(size + 1e-10) + 1
   }

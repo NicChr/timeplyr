@@ -105,7 +105,8 @@ time_by <- function(data, time, time_by_unit = NULL,
                     time_type = getOption("timeplyr.time_type", "auto"),
                     time_floor = FALSE,
                     week_start = getOption("lubridate.week.start", 1),
-                    roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                    roll_month = getOption("timeplyr.roll_month", "preday"),
+                    roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                     .time_by_group = TRUE){
   check_is_df(data)
   data_nms <- names(data)

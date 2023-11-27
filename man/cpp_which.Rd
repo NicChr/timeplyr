@@ -38,7 +38,10 @@ mark(cpp_which(TRUE), which(TRUE))
 mark(cpp_which(FALSE), which(FALSE))
 mark(cpp_which(logical()), which(logical()))
 mark(cpp_which(x), which(x), iterations = 20)
-mark(cpp_which(x, invert = TRUE), which(!x \%in\% TRUE), iterations = 20)
+mark(base = which(is.na(match(x, TRUE))),
+     collapse = collapse::whichNA(collapse::fmatch(x, TRUE, overid = 2L)),
+     timeplyr = cpp_which(x, invert = TRUE),
+     iterations = 20)
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

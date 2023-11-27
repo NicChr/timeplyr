@@ -1291,3 +1291,15 @@ intersect2 <- function(x, y){
 last_class <- function(x){
   .subset2(class(x), length(class(x)))
 }
+trunc2 <- function(x){
+  if (is.integer(x)) x else trunc(x)
+}
+round2 <- function(x, digits = 0){
+  if (is.integer(x)) x else round(x, digits)
+}
+floor2 <- function(x){
+  if (is.integer(x)) x else floor(x)
+}
+ceiling2 <- function(x){
+  if (is.integer(x)) x else ceiling(x)
+}

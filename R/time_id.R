@@ -62,9 +62,7 @@ time_id <- function(x, time_by = NULL, g = NULL, na_skip = TRUE,
                           na_skip = na_skip,
                           time_type = time_type,
                           rolling = FALSE)
-  if (!is.integer(out)){
-    out <- as.integer(round(out, digits = 9))
-  }
+  out <- as.integer(round2(out, digits = 9))
   out + shift
   # Make sure we don't lose precision when converting to integer
   # out <- trunc(elapsed)

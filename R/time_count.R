@@ -130,15 +130,14 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
   out <- fgroup_by(data, ..., order = FALSE, .add = TRUE,
                    .by = {{ .by }})
   group_vars <- group_vars(out)
+  extra_groups <- setdiff(group_vars, original_groups)
   # # #
   from_nm <- character()
   if (length(from_var) > 0){
-    # from_nm <- new_var_nm(out, ".from")
     out <- df_add_cols(out, add_names(list(from_data[[from_var]]), from_var))
   }
   to_nm <- character()
   if (length(to_var) > 0){
-    # to_nm <- new_var_nm(out, ".to")
     out <- df_add_cols(out, add_names(list(to_data[[to_var]]), to_var))
   }
   # Ungroup and use the .by to avoid reconstruction..
@@ -196,7 +195,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
     time_agg <- time_int_rm_attrs(time_agg)
     int_end_nm <- new_var_nm(names(out), "int_end")
     out <- df_add_cols(out, add_names(list(time_agg, time_int_end), c(time_var, int_end_nm)))
-    groups2 <- df_to_GRP(safe_ungroup(out), .cols = c(time_var, group_vars))
+    groups2 <- df_to_GRP(safe_ungroup(out), .cols = c(original_groups, time_var, extra_groups))
     # groups2 <- GRP2(list(out[[time_var]], group_id(groups)), sort = TRUE)
     counts <- collapse::fsum(out[[n_nm]], g = groups2, use.g.names = FALSE, na.rm = FALSE)
     group_start_locs <- GRP_starts(groups2)
@@ -214,7 +213,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
       ))
     }
   }
-  out <- fselect(out, .cols = c(group_vars, time_var, int_nm, n_nm))
+  out <- fselect(out, .cols = c(original_groups, time_var, int_nm, extra_groups, n_nm))
   if (sort){
     out <- df_row_slice(out, radix_order(desc(out[[n_nm]])), reconstruct = FALSE)
   }

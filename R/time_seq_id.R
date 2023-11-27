@@ -91,7 +91,12 @@ time_seq_id <- function(x, time_by = NULL, threshold = 1,
   if (is_whole_number(threshold)){
     threshold <- as.integer(threshold)
   }
-  fill <- -abs(min(threshold)) - 1L
+  min_threshold <- min(threshold)
+  if (is_integerable(min_threshold - 1)){
+    fill <- -abs(min_threshold) - 1L
+  } else {
+    fill <- -Inf
+  }
   # Elapsed time
   telapsed <- time_elapsed(x, time_by = time_by, g = g,
                            time_type = time_type, rolling = rolling,

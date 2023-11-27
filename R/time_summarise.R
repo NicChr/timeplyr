@@ -174,8 +174,8 @@ time_summarise <- function(data, time = NULL, ..., time_by = NULL,
   if (sort){
     out <- farrange(out, .cols = c(group_vars, time_var))
   }
-  if (include_interval && !is_interval(out[[int_nm]])){
-    attr(out[[int_nm]], "start") <- out[[time_var]]
-  }
+  # if (include_interval && !is_interval(out[[int_nm]])){
+  #   attr(out[[int_nm]], "start") <- out[[time_var]]
+  # }
   df_reconstruct(out, data)
 }
