@@ -9,12 +9,9 @@
 #'
 #' By default `time_cut()` will try to find
 #'  the prettiest way of cutting the interval by
-#' trying to cut the date/datetimes into
+#' trying to cut the date/date-times into
 #' groups of the highest possible time units,
 #' starting at years and ending at milliseconds.
-#' If `n_at_most = TRUE` then `<= n` groups are calculated,
-#' otherwise `>= n` groups
-#' are calculated.
 #'
 #' @param x Time variable. \cr
 #' Can be a `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, or `yearqtr`.
@@ -35,8 +32,7 @@
 #' If supplied, this is passed to `format()`.
 #' @param time_floor Logical. Should the initial date/datetime be
 #' floored before building the sequence?
-#' @param n_at_most Logical. If `TRUE` then n breaks at most are returned,
-#' otherwise at least n breaks are returned.
+#' @param n_at_most \bold{Deprecated}. No longer used.
 #' @param week_start day on which week starts following ISO conventions - 1
 #' means Monday (default), 7 means Sunday.
 #' This is only used when `time_floor = TRUE`.
@@ -114,7 +110,6 @@ time_cut <- function(x, n = 5, time_by = NULL,
                              from = from, to = to,
                              time_floor = time_floor,
                              week_start = week_start,
-                             n_at_most = n_at_most,
                              time_type = time_type,
                              roll_month = roll_month,
                              roll_dst = roll_dst)
@@ -138,17 +133,20 @@ time_cut <- function(x, n = 5, time_by = NULL,
 #' @export
 time_breaks <- function(x, n = 5, time_by = NULL,
                         from = NULL, to = NULL,
-                        time_floor = FALSE, week_start = getOption("lubridate.week.start", 1),
+                        time_floor = FALSE,
+                        week_start = getOption("lubridate.week.start", 1),
                         n_at_most = TRUE,
                         time_type = getOption("timeplyr.time_type", "auto"),
-                        roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                        roll_month = getOption("timeplyr.roll_month", "preday"),
+                        roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   check_is_time_or_num(x)
   check_is_num(n)
   stopifnot(n >= 1)
   check_length(n, 1L)
+  if (n == Inf){
+    n <- .Machine$integer.max
+  }
   time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
-  xmin <- collapse::fmin(x, na.rm = TRUE)
-  xmax <- collapse::fmax(x, na.rm = TRUE)
   if (is.null(from)){
     from <- collapse::fmin(x, na.rm = TRUE)
   }
@@ -239,11 +237,7 @@ time_breaks <- function(x, n = 5, time_by = NULL,
   }
   if (n_breaks > n){
     unit_multiplier <- (n_breaks / n)
-    if (n_at_most){
-      unit_multiplier <- ceiling(unit_multiplier)
-    } else {
-      unit_multiplier <- floor(unit_multiplier)
-    }
+    unit_multiplier <- ceiling(unit_multiplier)
   }
   time_seq_v(from, to,
                 time_by = add_names(list(num * scale * unit_multiplier), unit),

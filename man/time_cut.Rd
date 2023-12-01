@@ -68,8 +68,7 @@ floored before building the sequence?}
 means Monday (default), 7 means Sunday.
 This is only used when \code{time_floor = TRUE}.}
 
-\item{n_at_most}{Logical. If \code{TRUE} then n breaks at most are returned,
-otherwise at least n breaks are returned.}
+\item{n_at_most}{\bold{Deprecated}. No longer used.}
 
 \item{as_factor}{Logical. If \code{TRUE} the output is an ordered factor.
 Setting this to \code{FALSE} is sometimes much faster.}
@@ -100,12 +99,9 @@ returns only the time breaks.
 
 By default \code{time_cut()} will try to find
 the prettiest way of cutting the interval by
-trying to cut the date/datetimes into
+trying to cut the date/date-times into
 groups of the highest possible time units,
 starting at years and ending at milliseconds.
-If \code{n_at_most = TRUE} then \verb{<= n} groups are calculated,
-otherwise \verb{>= n} groups
-are calculated.
 }
 \examples{
 library(timeplyr)
