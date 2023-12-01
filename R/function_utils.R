@@ -343,6 +343,11 @@ dots_length <- function(...){
 # Function contributed by 'Matthew Lundberg' at:
 # https://stackoverflow.com/questions/21502181/finding-the-gcd-without-looping-r
 
+# gcd <- function(x,y) {
+#   r <- x%%y;
+#   return(ifelse(r, gcd(y, r), y))
+# }
+
 # gcd2 <- function(x, y, tol = 0) {
 #   while(isTRUE(abs(y) > tol)){
 #     r <- x %% y
@@ -389,58 +394,6 @@ get_group_info <- function(data, ..., type = c("select", "data-mask"),
        "extra_groups" = extra_groups,
        "all_groups" = all_groups)
 }
-
-# group_info_datamask <- function(data, ..., .by = NULL,
-#                                 ungroup = TRUE,
-#                                 unique_groups = TRUE){
-#   n_dots <- dots_length(...)
-#   group_vars <- get_groups(data, {{ .by }})
-#   group_pos <- match(group_vars, names(data))
-#   extra_groups <- character()
-#   if (ungroup){
-#     out <- safe_ungroup(data)
-#   } else {
-#     out <- data
-#   }
-#   # Data-masking for dots expressions
-#   if (n_dots > 0){
-#     if (ungroup){
-#       out <- mutate2(out, ...)
-#     } else {
-#       out <- mutate2(out, ..., .by = {{ .by }})
-#     }
-#     extra_groups <- tidy_transform_names(data, ...)
-#   }
-#   if (unique_groups){
-#     extra_groups <- extra_groups[match(extra_groups, group_vars, 0L) == 0L]
-#     all_groups <- c(group_vars, extra_groups)
-#   } else {
-#     all_groups <- c(group_vars, extra_groups[match(extra_groups, group_vars, 0L) == 0L])
-#   }
-#   list("data" = out,
-#        "dplyr_groups" = group_vars,
-#        "extra_groups" = extra_groups,
-#        "all_groups" = all_groups)
-# }
-#
-# group_info <- function(data, ..., .by = NULL, .cols = NULL,
-#                        ungroup = TRUE, rename = TRUE,
-#                        dots_type = "data-mask",
-#                        unique_groups = TRUE){
-#   check_cols(n_dots = dots_length(...), .cols = .cols)
-#   if (is.null(.cols) && dots_type == "data-mask"){
-#     group_info_datamask(data, ..., .by = {{ .by }},
-#                         ungroup = ungroup,
-#                         unique_groups = unique_groups)
-#
-#   } else {
-#     tidy_group_info_tidyselect(data, ..., .by = {{ .by }},
-#                                .cols = .cols,
-#                                ungroup = ungroup,
-#                                rename = rename,
-#                                unique_groups = unique_groups)
-#   }
-# }
 
 tidy_group_info_tidyselect <- function(data, ..., .by = NULL, .cols = NULL,
                                   ungroup = TRUE, rename = TRUE,
@@ -660,14 +613,6 @@ fvar <- getFromNamespace("fvar", "collapse")
 fmedian <- getFromNamespace("fmedian", "collapse")
 ffirst <- getFromNamespace("ffirst", "collapse")
 flast <- getFromNamespace("flast", "collapse")
-# Some future utils for counts and weights..
-# wt_fun <- function(wt){
-#   rlang::expr(sum(!!enquo(wt), na.rm = TRUE))
-# }
-# data %>% summarise(!!wt_fun(!!enquo(wt)))
-# quo_name(enquo(wt))
-# quo_is_null()
-
 
 are_whole_numbers <- function(x){
   if (is.integer(x)){
@@ -841,11 +786,7 @@ expr_nms <- function(exprs){
 quo_exprs <- function(quos){
   lapply(quos, rlang::quo_get_expr)
 }
-# expr_identity <- function(exprs, data){
-#   data_nms <- names(data)
-#   quo_nms <- expr_nms(quos)
-#   quo_nms %in% names(data)
-# }
+
 quo_identity <- function(quos, data){
   data_nms <- names(data)
   quo_nms <- quo_nms(quos)
@@ -996,10 +937,6 @@ na_fill <- function(x, n = NULL, prop = NULL){
   }
   x
 }
-# double_precision <- function(x){
-#   y <- log2(pmax(.Machine$double.xmin, abs(x)))
-#   ifelse(x < 0 & floor(y) == y, 2^(y-1), 2^floor(y)) * .Machine$double.eps
-# }
 sqrt_double_eps <- function(){
   sqrt(.Machine$double.eps)
 }
@@ -1011,24 +948,24 @@ deparse1 <- function(expr, collapse = " ", width.cutoff = 500L, ...){
 # Bin x by breaks for each group in g
 # Function that takes x (sorted by g) and
 # breaks (sorted by g and itself)
-fbincode <- function(x, breaks, right = TRUE, include.lowest = FALSE,
-                     gx = NULL, gbreaks = NULL){
-  x_list <- gsplit2(x, g = gx)
-  breaks_list <- gsplit2(breaks, g = gbreaks)
-  out <- vector("list", length(x_list))
-  for (i in seq_along(out)){
-    out[[i]] <- .bincode(.subset2(x_list, i),
-                         .subset2(breaks_list, i),
-                         right = right,
-                         include.lowest = include.lowest)
-  }
-  unlist(out, recursive = FALSE, use.names = FALSE)
-  # Parallel options
-  # out <- furrr::future_map2(x_list, breaks_list,
-  #                           function(x, y) .bincode(x, y,
-  #                                                   right = right,
-  #                                                   include.lowest = include.lowest))
-}
+# fbincode <- function(x, breaks, right = TRUE, include.lowest = FALSE,
+#                      gx = NULL, gbreaks = NULL){
+#   x_list <- gsplit2(x, g = gx)
+#   breaks_list <- gsplit2(breaks, g = gbreaks)
+#   out <- vector("list", length(x_list))
+#   for (i in seq_along(out)){
+#     out[[i]] <- .bincode(.subset2(x_list, i),
+#                          .subset2(breaks_list, i),
+#                          right = right,
+#                          include.lowest = include.lowest)
+#   }
+#   unlist(out, recursive = FALSE, use.names = FALSE)
+#   # Parallel options
+#   # out <- furrr::future_map2(x_list, breaks_list,
+#   #                           function(x, y) .bincode(x, y,
+#   #                                                   right = right,
+#   #                                                   include.lowest = include.lowest))
+# }
 bin_grouped <- function(x, breaks, gx = NULL, gbreaks = NULL, codes = TRUE,
                         right = TRUE,
                         include_lowest = FALSE,
@@ -1322,6 +1259,14 @@ cast2 <- function(x, template){
     coerce(x)
   }
 }
+# Exactly the same as .bincode except that
+# breaks can be returned as well as codes
+# One-sided out-of-bounds values can be included
+# Just like in findInterval()
+
+# BREAKS MUST BE SORTED OR THIS WILL CRASH.
+# Use with caution
+
 bin <- function(x, breaks,
                 right = TRUE,
                 include_lowest = FALSE,

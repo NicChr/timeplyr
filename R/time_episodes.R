@@ -209,10 +209,7 @@ time_episodes <- function(data, time, time_by = NULL,
                as_qg = FALSE, order = TRUE)
     ), grp_nm
   ))
-  data.table::set(out,
-                  j = grp_nm,
-                  value = group_id(data, .by = {{ .by }},
-                                   as_qg = FALSE, order = TRUE))
+  set_add_cols(out, add_names(list(group_id(data, .by = {{ .by }})), grp_nm))
   # Group by group vars + time
   g2 <- collapse::GRP(fselect(out, .cols = c(grp_nm, time_col)),
                       sort = TRUE)

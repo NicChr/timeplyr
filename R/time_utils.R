@@ -661,7 +661,6 @@ bound_end <- function(x, bound){
   pmax(time_cast(x, bound), bound, na.rm = TRUE)
 }
 
-
 fcut_ind <- function(x, breaks, rightmost.closed = FALSE,
                      left.open = FALSE, all.inside = FALSE){
   breaksi <- findInterval(x,
@@ -741,14 +740,6 @@ as_yearqtr <- function(x){
 is_interval <- function(x){
   isS4(x) && inherits(x, "Interval")
 }
-# time_agg2 <- function(time_seq_data, data, time, g){
-#   by <- dplyr::join_by(!!rlang::sym(g), closest(!!rlang::sym(time) >= !!rlang::sym(time)))
-#   data %>%
-#     dplyr::left_join(time_seq_data, by = by,
-#                      suffix = c(".raw", "")) %>%
-#     dplyr::pull(all_of(stringr::str_c(time, ".raw")))
-#     # dplyr::select(-all_of(stringr::str_c(time, ".raw")))
-# }
 
 # Grouped functions that utilise
 # x - time variable (ascending order)
@@ -786,28 +777,6 @@ tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
   out[end_points] <- time_interval(seq[end_points], to)
   out
 }
-# Interval from x, aggregate x, and seq
-# tagg_interval <- function(xagg, x, seq, gagg = NULL, gx = NULL, gseq = NULL){
-#   int <- tseq_interval(x = x, seq = seq, gx = gx, gseq = gseq)
-#   agg_df <- dplyr::tibble(t = xagg,
-#                           g = gagg)
-#   int_df <- dplyr::tibble(t = seq,
-#                           g = gseq,
-#                           interval = int)
-#   agg_df %>%
-#     dplyr::left_join(int_df, by = c("g", "t"),
-#                      multiple = "any") %>%
-#     fpluck("interval")
-# }
-# Convert time sequence to min max list
-# tseq_min_max <- function(x, seq, gx = NULL, gseq = NULL){
-#   n <- length(x)
-#   end <- flag2(seq, n = max(-1L, -n), g = gseq)
-#   to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
-#   end_points <- which(is.na(end) & !is.na(seq))
-#   setv(end, end_points, to, vind1 = TRUE)
-#   list(min = seq, max = end)
-# }
 # Time cut levels from ascending time sequence
 tseq_levels <- function(x, seq, gx = NULL, gseq = NULL, fmt = NULL){
   if (is.null(fmt)){
@@ -1085,7 +1054,6 @@ time_aggregate_right <- function(x, time_by, g = NULL,
                      direction = "right-to-left")
   }
   out
-  # class = c("time_int", class(out)))
 }
 time_int_end <- function(x){
   attr(x, "end")
@@ -1279,8 +1247,6 @@ check_is_datetime <- function(x){
 }
 check_is_time <- function(x){
   if (!is_time(x)){
-    # Alternative and better way for future errors.
-    # cli::cli_abort("{.x {x}} must be a date or datetime")
     stop(paste(deparse1(substitute(x)),
                 "must be a date or datetime"))
   }
@@ -1333,69 +1299,54 @@ multiply_single_unit_period_by_number <- function(per, num){
     per_unit,
     years = {
       per@year <- per_num
-      # if (recycle){
        per@month <- other_fill
        per@day <- other_fill
        per@hour <- other_fill
        per@minute <- other_fill
        per@.Data <- other_fill
-      # }
     },
     months = {
       per@month <- per_num
-      # if (recycle){
         per@year <- other_fill
         per@day <- other_fill
         per@hour <- other_fill
         per@minute <- other_fill
         per@.Data <- other_fill
-      # }
     },
     days = {
       per@day <- per_num
-      # if (recycle){
         per@year <- other_fill
         per@month <- other_fill
         per@hour <- other_fill
         per@minute <- other_fill
         per@.Data <- other_fill
-      # }
     },
     hours = {
       per@hour <- per_num
-      # if (recycle){
         per@year <- other_fill
         per@month <- other_fill
         per@day <- other_fill
         per@minute <- other_fill
         per@.Data <- other_fill
-      # }
     },
     minutes = {
       per@minute <- per_num
-      # if (recycle){
         per@year <- other_fill
         per@month <- other_fill
         per@day <- other_fill
         per@hour <- other_fill
         per@.Data <- other_fill
-      # }
     },
     seconds = {
       per@.Data <- per_num
-      # if (recycle){
         per@year <- other_fill
         per@month <- other_fill
         per@day <- other_fill
         per@hour <- other_fill
         per@minute <- other_fill
-      # }
     }
   )
-  # attr(per, per_unit) <- per_num
-  # slot(per, per_unit) <- per_num
   per
-  # period_unit(per_unit)(per_num * num)
 }
 
 rep_single_unit_period <- function(per, ...){
