@@ -141,14 +141,7 @@ GRP_starts <- function(GRP, use.g.names = FALSE,
       if (is.null(loc)){
         loc <- GRP_loc(GRP, use.g.names = FALSE)
       }
-      gstarts <- GRP_loc_starts(loc)
-      # Accounting for factors with no data
-      if (collapse::anyv(GRP_sizes, 0L)){
-        out <- integer(length(loc))
-        out[cpp_which(GRP_sizes != 0L)] <- gstarts
-      } else {
-        out <- gstarts
-      }
+      out <- list_subset(loc, seq_ones(GRP_n_groups(GRP)), default = 0L)
     }
   }
   if (is.null(out)){
@@ -171,14 +164,7 @@ GRP_ends <- function(GRP, use.g.names = FALSE,
     if (is.null(loc)){
       loc <- GRP_loc(GRP, use.g.names = FALSE)
     }
-    gends <- GRP_loc_ends(loc)
-    # Accounting for factors with no data
-    if (collapse::anyv(GRP_sizes, 0L)){
-      out <- integer(length(loc))
-      out[cpp_which(GRP_sizes != 0L)] <- gends
-    } else {
-      out <- gends
-    }
+    out <- list_subset(loc, GRP_sizes, default = 0L)
   }
   if (is.null(out)){
     out <- integer()
@@ -258,7 +244,6 @@ GRP_loc_starts <- function(loc){
     )
     , use.names = FALSE, recursive = FALSE
   )
-
 }
 GRP_loc_ends <- function(loc){
   unlist(

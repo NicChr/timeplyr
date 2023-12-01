@@ -229,6 +229,13 @@ extern "C" SEXP _timeplyr_cpp_bin_grouped(SEXP x, SEXP y, SEXP codes, SEXP right
     return cpp11::as_sexp(cpp_bin_grouped(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(y), cpp11::as_cpp<cpp11::decay_t<bool>>(codes), cpp11::as_cpp<cpp11::decay_t<bool>>(right), cpp11::as_cpp<cpp11::decay_t<bool>>(include_lowest), cpp11::as_cpp<cpp11::decay_t<bool>>(include_oob)));
   END_CPP11
 }
+// utils.cpp
+SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP replace);
+extern "C" SEXP _timeplyr_cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP replace) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_list_subset(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptype), cpp11::as_cpp<cpp11::decay_t<SEXP>>(i), cpp11::as_cpp<cpp11::decay_t<SEXP>>(replace)));
+  END_CPP11
+}
 // which.cpp
 SEXP cpp_which_(SEXP x, bool invert);
 extern "C" SEXP _timeplyr_cpp_which_(SEXP x, SEXP invert) {
@@ -255,6 +262,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_lcm2",                 (DL_FUNC) &_timeplyr_cpp_lcm2,                 4},
     {"_timeplyr_cpp_lead_sequence",        (DL_FUNC) &_timeplyr_cpp_lead_sequence,        3},
     {"_timeplyr_cpp_lengths",              (DL_FUNC) &_timeplyr_cpp_lengths,              1},
+    {"_timeplyr_cpp_list_subset",          (DL_FUNC) &_timeplyr_cpp_list_subset,          4},
     {"_timeplyr_cpp_list_which_not_null",  (DL_FUNC) &_timeplyr_cpp_list_which_not_null,  1},
     {"_timeplyr_cpp_num_na",               (DL_FUNC) &_timeplyr_cpp_num_na,               1},
     {"_timeplyr_cpp_roll_diff",            (DL_FUNC) &_timeplyr_cpp_roll_diff,            3},

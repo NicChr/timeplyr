@@ -1329,3 +1329,26 @@ bin <- function(x, breaks,
                 codes = TRUE) {
   .Call(`_timeplyr_cpp_bin`, x, breaks, codes, right, include_lowest, include_oob)
 }
+# Subset 1 element from each list element
+# list items with zero-length vectors are replaced
+# with the default value
+# out-of-bounds subsets are also replaced with the default
+list_subset <- function(x, i, default = NA, copy_attributes = FALSE){
+  check_length(default, 1)
+  if (length(x) == 0){
+    first_element <- NULL
+    ptype <- NULL
+  } else {
+    first_element <- x[[1]]
+    ptype <- first_element[0]
+  }
+  i <- as.integer(i)
+  if (length(i) == 1 && length(i) != length(x)){
+    i <- rep_len(i, length(x))
+  }
+  out <- cpp_list_subset(x, ptype, i, default)
+  if (copy_attributes){
+    attributes(out) <- attributes(first_element)
+  }
+  out
+}

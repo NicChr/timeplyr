@@ -128,6 +128,10 @@ cpp_bin_grouped <- function(x, y, codes, right, include_lowest, include_oob) {
   .Call(`_timeplyr_cpp_bin_grouped`, x, y, codes, right, include_lowest, include_oob)
 }
 
+cpp_list_subset <- function(x, ptype, i, replace) {
+  .Call(`_timeplyr_cpp_list_subset`, x, ptype, i, replace)
+}
+
 cpp_which_ <- function(x, invert) {
   .Call(`_timeplyr_cpp_which_`, x, invert)
 }

@@ -430,6 +430,87 @@ SEXP cpp_bin_grouped(SEXP x, SEXP y, bool codes, bool right, bool include_lowest
   return out;
 }
 
+// Subset one element from each list element
+// List must contain elements of one type, e.g integer
+
+[[cpp11::register]]
+SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP replace) {
+  Rf_protect(x = Rf_coerceVector(x, VECSXP));
+  Rf_protect(i = Rf_coerceVector(i, INTSXP));
+  const SEXP *p_x = VECTOR_PTR_RO(x);
+  int n = Rf_length(x);
+  if (n == 0){
+    Rf_unprotect(2);
+    return ptype;
+  }
+  if (Rf_length(ptype) > 0){
+    Rf_unprotect(2);
+    Rf_error("ptype must be a zero-length vector");
+  }
+  if (Rf_length(i) != n){
+    Rf_unprotect(2);
+    Rf_error("i must be an integer vector the same length as x");
+  }
+  int *p_i = INTEGER(i);
+  switch (TYPEOF(ptype)){
+  case LGLSXP: {
+    bool default_value = Rf_asLogical(replace);
+    SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n));
+    int *p_out = LOGICAL(out);
+    for (int j = 0; j < n; ++j) {
+      p_out[j] = default_value;
+      if (p_i[j] <= Rf_length(p_x[j]) && p_i[j] > 0){
+        p_out[j] = LOGICAL(p_x[j])[p_i[j] - 1];
+      }
+    }
+    Rf_unprotect(3);
+    return out;
+  }
+  case INTSXP: {
+    int default_value = Rf_asInteger(replace);
+    SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
+    int *p_out = INTEGER(out);
+    for (int j = 0; j < n; ++j) {
+      p_out[j] = default_value;
+      if (p_i[j] <= Rf_length(p_x[j]) && p_i[j] > 0){
+        p_out[j] = INTEGER(p_x[j])[p_i[j] - 1];
+      }
+    }
+    Rf_unprotect(3);
+    return out;
+  }
+  case REALSXP: {
+    double default_value = Rf_asReal(replace);
+    SEXP out = Rf_protect(Rf_allocVector(REALSXP, n));
+    double *p_out = REAL(out);
+    for (int j = 0; j < n; ++j) {
+      p_out[j] = default_value;
+      if (p_i[j] <= Rf_length(p_x[j]) && p_i[j] > 0){
+        p_out[j] = REAL(p_x[j])[p_i[j] - 1];
+      }
+    }
+    Rf_unprotect(3);
+    return out;
+  }
+  case STRSXP: {
+    SEXP default_value = Rf_asChar(replace);
+    SEXP out = Rf_protect(Rf_allocVector(STRSXP, n));
+    for (int j = 0; j < n; ++j) {
+      SET_STRING_ELT(out, j, default_value);
+      if (p_i[j] <= Rf_length(p_x[j]) && p_i[j] > 0){
+        SET_STRING_ELT(out, j, STRING_ELT(p_x[j], p_i[j] - 1));
+      }
+    }
+    Rf_unprotect(3);
+    return out;
+  }
+  default: {
+    Rf_unprotect(2);
+    Rf_error("cpp_list_subset cannot handle supplied SEXP");
+  }
+  }
+}
+
 // Checks that all row indices of 2 grouped data frames are the same
 
 // bool cpp_group_data_rows_equal(SEXP rows1, SEXP rows2) {
