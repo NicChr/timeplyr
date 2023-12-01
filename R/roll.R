@@ -179,7 +179,7 @@ roll_growth_rate <- function(x, window = Inf, g = NULL,
                                  partial = partial,
                                  ascending = TRUE)
   lag_window <- roll_window - 1L
-  x_lagged <- roll_lag(x, lag_window, check = FALSE)
+  x_lagged <- roll_lag(x, lag_window)
   if (na.rm){
     lag_window <- data.table::frollsum(!is.na(x), n = lag_window,
                                        adaptive = TRUE,

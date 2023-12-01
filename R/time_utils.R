@@ -651,30 +651,6 @@ as_datetime2 <- function(x){
     lubridate::as_datetime(x)
   }
 }
-# This bounds start point based on x vector
-# bound_from <- function(from, x, g = NULL){
-#   x_min <- collapse::fmin(x, na.rm = TRUE, use.g.names = FALSE, g = g)
-#   if (is.null(from)){
-#     from <- x_min
-#   } else {
-#     from <- time_cast(from, x) # Cast to as datetime if x is
-#     # Bound from by the minimum of x
-#     from <- pmax(x_min, from, na.rm = TRUE)
-#   }
-#   from
-# }
-# # This bounds end point based on x vector
-# bound_to <- function(to, x, g = NULL){
-#   x_max <- collapse::fmax(x, na.rm = TRUE, g = g, use.g.names = FALSE)
-#   if (is.null(to)){
-#     to <- x_max
-#   } else {
-#     to <- time_cast(to, x) # Cast to as datetime if x is
-#     # Bound to by the maximum of x
-#     to <- pmin(x_max, to, na.rm = TRUE)
-#   }
-#   to
-# }
 
 # This makes sure start is always <= upper bound
 bound_start <- function(x, bound){
@@ -707,53 +683,10 @@ cut_time2 <- function(x, breaks, rightmost.closed = FALSE, left.open = FALSE){
              all.inside = FALSE)
   ]
 }
-# Newer version of cut_time2
-# min(breaks) is expected to be <= min(x)
-# Interval is closed on the left
-# out-of-bounds times can be included in the last interval
-# This can return either break codes or the cut vector
-# cut_time <- function(x, breaks, include_oob = FALSE, codes = FALSE,
-#                      end = NULL){
-#   x <- `attributes<-`(unclass(x), NULL)
-#   breaks_num <- `attributes<-`(unclass(breaks), NULL)
-#   end <- `attributes<-`(unclass(end), NULL) + 1
-#   inf_val <- Inf * (numeric(as.integer(include_oob)) + 1)
-#   breaks_num <- c(breaks_num, end, inf_val)
-#   out <- .bincode(x, breaks = breaks_num, right = FALSE, include.lowest = FALSE)
-#   if (codes){
-#     out
-#   } else {
-#     breaks[out]
-#   }
-# }
+
 cut_time <- function(x, breaks, include_oob = FALSE, codes = FALSE){
-  breaks_num <- unclass(breaks)
-  # Cheeky way of converting FALSE to numeric() and TRUE to Inf without if statement
-  inf_val <- Inf * (numeric(as.integer(include_oob)) + 1)
-  breaks_num <- c(breaks_num, inf_val)
-  out <- .bincode(unclass(x), breaks = breaks_num, right = FALSE, include.lowest = TRUE)
-  if (codes){
-    out
-  } else {
-    breaks[out]
-  }
-}
-# cut_time_intervals <- function(x, breaks, codes = FALSE, end = NULL){
-#   x <- unclass(x)
-#   breaks_num <- unclass(breaks)
-#   end <- unclass(end) + 0
-#   breaks_num <- c(breaks_num, end)
-#   out <- findInterval(x, breaks_num, rightmost.closed = TRUE)
-#   # n_breaks <- length(breaks_num)
-#   # collapse::setv(out, n_breaks, NA_integer_, vind1 = FALSE)
-#   if (codes){
-#     out
-#   } else {
-#     breaks[out]
-#   }
-# }
-is_date_or_utc <- function(x){
-  is_date(x) || lubridate::tz(x) == "UTC"
+  cpp_bin(x, breaks, codes = codes, right = FALSE,
+          include_lowest = TRUE, include_oob = include_oob)
 }
 # Check for date sequences that should not be coerced to datetimes
 is_special_case_days <- function(from, to, unit, num, time_type){
@@ -761,15 +694,6 @@ is_special_case_days <- function(from, to, unit, num, time_type){
     unit %in% c("days", "weeks") &&
     is_date(from) &&
     is_date(to) &&
-    is_whole_number(num)
-}
-is_special_case_utc <- function(from, to, unit, num, time_type){
-  time_type == "auto" &&
-    unit %in% c("days", "weeks") &&
-    is_datetime(from) &&
-    is_datetime(to) &&
-    lubridate::tz(from) == "UTC" &&
-    lubridate::tz(to) == "UTC" &&
     is_whole_number(num)
 }
 # Repeat methods for zoo yearmon and yearqtr class
@@ -1236,20 +1160,13 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
                                n_groups = n_groups,
                                group_sizes = seq_sizes)
   x <- time_cast(x, time_full)
-  # group_ends <- cumsum(collapse::GRPN(group_id, expand = FALSE))
   if (no_groups){
     out <- cut_time(x, time_full, include_oob = TRUE)
   } else {
-    time_list <- collapse::gsplit(time_as_number(x), g = g)
-    time_full_list <- collapse::gsplit(time_as_number(time_full), g = g2)
-    out <- vector("list", n_groups)
-    for (i in seq_len(n_groups)){
-      ti <- .bincode(.subset2(time_list, i),
-                     breaks = c(.subset2(time_full_list, i), Inf),
-                     include.lowest = FALSE, right = FALSE)
-      out[[i]] <- .subset(.subset2(time_full_list, i), ti)
-    }
-    out <- unlist(out, recursive = FALSE, use.names = FALSE)
+    out <- bin_grouped(x, gx = g,
+                       breaks = time_full, gbreaks = g2,
+                       right = FALSE, include_lowest = FALSE,
+                       codes = FALSE, include_oob = TRUE)
     out <- collapse::greorder(out, g = g)
   }
   out <- time_cast(out, time_full)
@@ -1411,7 +1328,7 @@ multiply_single_unit_period_by_number <- function(per, num){
   per_length <- length(per_num)
   per_num[cpp_which(is.nan(per_num))] <- NA_real_
   other_fill <- integer(per_length)
-  other_fill[cpp_which(is.na(per_num))] <- NA_real_
+  other_fill[cpp_which(is.na(per_num))] <- NA_integer_
   switch(
     per_unit,
     years = {

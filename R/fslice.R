@@ -281,10 +281,10 @@ fslice_max <- function(data, order_by, ..., n, prop, .by = NULL,
 }
 #' @rdname fslice
 #' @export
-fslice_sample <- function(data, ..., n, prop,
+fslice_sample <- function(data, n, replace = FALSE, prop,
                           .by = NULL,
                           keep_order = FALSE, sort_groups = TRUE,
-                          replace = FALSE, weights = NULL, seed = NULL){
+                          weights = NULL, seed = NULL){
   # Check if a seed already exists in global environment
   seed_exists <- exists(".Random.seed")
   # Save it in the first instance
@@ -293,7 +293,6 @@ fslice_sample <- function(data, ..., n, prop,
   }
   # Does user want to use local seed?
   seed_is_null <- is.null(seed)
-  rlang::check_dots_empty0(...)
   has_weights <- !rlang::quo_is_null(enquo(weights))
   if (has_weights){
     data <- mutate2(data, !!enquo(weights))

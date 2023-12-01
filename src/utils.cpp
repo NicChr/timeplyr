@@ -227,6 +227,209 @@ bool cpp_any_address_changed(SEXP x, SEXP y) {
   return out;
 }
 
+[[cpp11::register]]
+SEXP cpp_lengths(SEXP x) {
+  Rf_protect(x = Rf_coerceVector(x, VECSXP));
+  int n = Rf_length(x);
+  const SEXP* p_x = VECTOR_PTR_RO(x);
+  SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
+  int *p_out = INTEGER(out);
+  for (int i = 0; i < n; ++i) {
+    p_out[i] = Rf_length(p_x[i]);
+  }
+  Rf_unprotect(2);
+  return out;
+}
+
+
+// Credits to R authors
+// Re-purposed .bincode
+// The main difference is that codes or breaks can be returned efficiently
+// Values outside the (right or left) intervals can be included too
+
+[[cpp11::register]]
+SEXP cpp_bin(SEXP x, SEXP breaks, bool codes, bool right, bool include_lowest,
+             bool include_oob){
+  int n = Rf_length(x);
+  int lo;
+  int hi;
+  int nb = Rf_length(breaks);
+  int nb1 = nb - 1;
+  int cutpoint;
+  bool left = !right;
+  bool include_border = include_lowest;
+  switch(TYPEOF(x)){
+  case INTSXP: {
+    if (codes){
+    SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
+    Rf_protect(breaks = Rf_coerceVector(breaks, REALSXP));
+    int *p_x = INTEGER(x);
+    double *p_b = REAL(breaks);
+    int *p_out = INTEGER(out);
+    for (R_xlen_t i = 0; i < n; i++) {
+      p_out[i] = NA_INTEGER;
+      // If not NA
+      if (p_x[i] != NA_INTEGER) {
+        lo = 0;
+        hi = nb1;
+        if ( (include_oob && !include_border && (left ? p_x[i] == p_b[hi] : p_x[i] == p_b[lo])) ||
+             ((include_oob && (left ? p_x[i] > p_b[hi] : p_x[i] < p_b[lo])))){
+          p_out[i] = (left ? hi : lo) + 1;
+        }
+        // else if ((include_oob && (left ? p_x[i] > p_b[hi] : p_x[i] < p_b[lo]))){
+        //   p_out[i] = (left ? hi : lo) + 1;
+        // }
+        else if (!(p_x[i] < p_b[lo] || p_x[i] > p_b[hi] ||
+            (p_x[i] == p_b[left ? hi : lo] && !include_border))){
+          while (hi - lo >= 2) {
+            cutpoint = (hi + lo)/2;
+            if (p_x[i] > p_b[cutpoint] || (left && p_x[i] == p_b[cutpoint]))
+              lo = cutpoint;
+            else
+              hi = cutpoint;
+          }
+          p_out[i] = lo + 1;
+        }
+      }
+    }
+    Rf_unprotect(2);
+    return out;
+  } else {
+    SEXP out = Rf_protect(Rf_duplicate(x));
+    Rf_protect(breaks = Rf_coerceVector(breaks, REALSXP));
+    int *p_x = INTEGER(x);
+    double *p_b = REAL(breaks);
+    int *p_out = INTEGER(out);
+    for (R_xlen_t i = 0; i < n; i++) {
+      p_out[i] = NA_INTEGER;
+      // If not NA
+      if (p_x[i] != NA_INTEGER) {
+        lo = 0;
+        hi = nb1;
+        if ( (include_oob && !include_border && (left ? p_x[i] == p_b[hi] : p_x[i] == p_b[lo])) ||
+             ((include_oob && (left ? p_x[i] > p_b[hi] : p_x[i] < p_b[lo])))){
+          p_out[i] = p_b[(left ? hi : lo)];
+        }
+        // else if ((include_oob && (left ? p_x[i] > p_b[hi] : p_x[i] < p_b[lo]))){
+        //   p_out[i] = (left ? hi : lo) + 1;
+        // }
+        else if (!(p_x[i] < p_b[lo] || p_x[i] > p_b[hi] ||
+          (p_x[i] == p_b[left ? hi : lo] && !include_border))){
+          while (hi - lo >= 2) {
+            cutpoint = (hi + lo)/2;
+            if (p_x[i] > p_b[cutpoint] || (left && p_x[i] == p_b[cutpoint]))
+              lo = cutpoint;
+            else
+              hi = cutpoint;
+          }
+          p_out[i] = p_b[lo];
+        }
+      }
+    }
+    Rf_unprotect(2);
+    return out;
+  }
+  }
+  default: {
+    if (codes){
+    SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
+    Rf_protect(breaks = Rf_coerceVector(breaks, REALSXP));
+    double *p_x = REAL(x);
+    double *p_b = REAL(breaks);
+    int *p_out = INTEGER(out);
+    for (R_xlen_t i = 0; i < n; i++) {
+      p_out[i] = NA_REAL;
+      // If not NA
+      if (p_x[i] == p_x[i]) {
+        lo = 0;
+        hi = nb1;
+        if ( (include_oob && !include_border && (left ? p_x[i] == p_b[hi] : p_x[i] == p_b[lo])) ||
+             ((include_oob && (left ? p_x[i] > p_b[hi] : p_x[i] < p_b[lo])))){
+          p_out[i] = (left ? hi : lo) + 1;
+        }
+        // else if ((include_oob && (left ? p_x[i] > p_b[hi] : p_x[i] < p_b[lo]))){
+        //   p_out[i] = (left ? hi : lo) + 1;
+        // }
+        else if (!(p_x[i] < p_b[lo] || p_x[i] > p_b[hi] ||
+          (p_x[i] == p_b[left ? hi : lo] && !include_border))){
+          while (hi - lo >= 2) {
+            cutpoint = (hi + lo)/2;
+            if (p_x[i] > p_b[cutpoint] || (left && p_x[i] == p_b[cutpoint]))
+              lo = cutpoint;
+            else
+              hi = cutpoint;
+          }
+          p_out[i] = lo + 1;
+        }
+      }
+    }
+    Rf_unprotect(2);
+    return out;
+  } else {
+    SEXP out = Rf_protect(Rf_duplicate(x));
+    Rf_protect(breaks = Rf_coerceVector(breaks, REALSXP));
+    double *p_x = REAL(x);
+    double *p_b = REAL(breaks);
+    double *p_out = REAL(out);
+    for (R_xlen_t i = 0; i < n; i++) {
+      p_out[i] = NA_REAL;
+      // If not NA
+      if (p_x[i] == p_x[i]) {
+        lo = 0;
+        hi = nb1;
+        if ( (include_oob && !include_border && (left ? p_x[i] == p_b[hi] : p_x[i] == p_b[lo])) ||
+             ((include_oob && (left ? p_x[i] > p_b[hi] : p_x[i] < p_b[lo])))){
+          p_out[i] = p_b[(left ? hi : lo)];
+        }
+        // else if ((include_oob && (left ? p_x[i] > p_b[hi] : p_x[i] < p_b[lo]))){
+        //   p_out[i] = (left ? hi : lo) + 1;
+        // }
+        else if (!(p_x[i] < p_b[lo] || p_x[i] > p_b[hi] ||
+          (p_x[i] == p_b[left ? hi : lo] && !include_border))){
+          while (hi - lo >= 2) {
+            cutpoint = (hi + lo)/2;
+            if (p_x[i] > p_b[cutpoint] || (left && p_x[i] == p_b[cutpoint]))
+              lo = cutpoint;
+            else
+              hi = cutpoint;
+          }
+          p_out[i] = p_b[lo];
+        }
+      }
+    }
+    Rf_unprotect(2);
+    return out;
+  }
+  }
+  }
+}
+
+// This takes 2 lists, x containing a numeric vector
+// And y containing the sorted breaks
+
+[[cpp11::register]]
+SEXP cpp_bin_grouped(SEXP x, SEXP y, bool codes, bool right, bool include_lowest,
+                     bool include_oob) {
+  Rf_protect(x = Rf_coerceVector(x, VECSXP));
+  Rf_protect(y = Rf_coerceVector(y, VECSXP));
+  const SEXP* p_x = VECTOR_PTR_RO(x);
+  const SEXP* p_y = VECTOR_PTR_RO(y);
+  int n1 = Rf_length(x);
+  int n2 = Rf_length(y);
+  if (n1 != n2){
+    Rf_unprotect(2);
+    Rf_error("x and y must be of the same length");
+  }
+  SEXP out = Rf_protect(Rf_allocVector(VECSXP, n1));
+  for (int i = 0; i < n1; ++i) {
+    SET_VECTOR_ELT(out, i, cpp_bin(p_x[i], p_y[i], codes, right,
+                                   include_lowest,
+                                   include_oob));
+  }
+  Rf_unprotect(3);
+  return out;
+}
+
 // Checks that all row indices of 2 grouped data frames are the same
 
 // bool cpp_group_data_rows_equal(SEXP rows1, SEXP rows2) {

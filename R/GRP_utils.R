@@ -22,6 +22,19 @@ GRP2 <- function(X, ...){
   }
   out
 }
+group2 <- function(X, starts = FALSE, group.sizes = FALSE){
+  if (is.null(X)){
+    return(NULL)
+  }
+  if (is_interval(X)){
+    X <- interval_separate(X)
+  }
+  if (is.list(X) && list_has_interval(X)){
+    X <- mutate_intervals_to_ids(X, order = FALSE)
+  }
+  collapse::group(X, starts = starts, group.sizes = group.sizes)
+}
+
 # Not efficient at all but
 # is an interesting alternative because
 # as long as group_id and subset method

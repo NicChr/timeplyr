@@ -221,8 +221,6 @@ testthat::test_that("fslice_sample", {
                               size = 10^4), ]
   flights2[["id"]] <- seq_len(nrow(flights2))
 
-  testthat::expect_error(flights2 %>%
-                           fslice_sample(1, -1))
   set.seed(42)
   testthat::expect_equal(flights2 %>%
                            dplyr::slice_sample(n = 1),

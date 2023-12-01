@@ -59,13 +59,12 @@ fslice_max(
 
 fslice_sample(
   data,
-  ...,
   n,
+  replace = FALSE,
   prop,
   .by = NULL,
   keep_order = FALSE,
   sort_groups = TRUE,
-  replace = FALSE,
   weights = NULL,
   seed = NULL
 )

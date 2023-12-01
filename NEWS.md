@@ -1,5 +1,13 @@
 # timeplyr (Development version)
 
+* New functions `roll_lag` and `roll_diff` for rolling lags and differences.
+
+* The `time_roll_` functions are now faster due to having amended the 
+time window size calculation.
+
+* `age_years` is now much faster when there are relatively few distinct pairs
+of start and end dates compared to the full data.
+
 * Period-arithmetic is now much faster and more efficient due a new method 
 for time differencing where distinct start-end values are used.
 

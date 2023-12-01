@@ -115,7 +115,6 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                        roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                        include_interval = FALSE){
   int_nm <- character()
-  int <- NULL
   original_groups <- get_groups(data, {{ .by }})
   by_groups <- tidy_select_pos(data, {{ .by }})
   # Determine common bounds
@@ -142,7 +141,6 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
   }
   # Ungroup and use the .by to avoid reconstruction..
   out <- fcount(safe_ungroup(out), !!enquo(time), wt = !!enquo(wt),
-                ##
                 across(all_of(c(from_var, to_var))),
                 order = FALSE,
                 name = name,
@@ -201,9 +199,6 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
     group_start_locs <- GRP_starts(groups2)
     out <- df_row_slice(out, group_start_locs)
     out <- df_add_cols(out, add_names(list(counts), n_nm))
-    if (!is.null(int)){
-      out <- df_add_cols(out, add_names(list(int[group_start_locs]), int_nm))
-    }
     if (include_interval){
       int_nm <- new_var_nm(out, "interval")
       out <- df_add_cols(out, add_names(

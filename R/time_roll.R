@@ -220,12 +220,11 @@ time_roll_sum <- function(x, window = Inf,
                           roll_month = roll_month,
                           roll_dst = roll_dst)
   naive_window <- sequence(group_sizes)
-
-  adj_window <- fbincode(time_as_number(time_start),
-                         breaks = time_as_number(time),
-                         gx = sorted_g,
-                         gbreaks = sorted_g,
-                         right = close_left_boundary)
+  adj_window <- bin_grouped(time_start, breaks = time,
+                                 gx = sorted_g,
+                                 gbreaks = sorted_g,
+                                 right = close_left_boundary,
+                                 codes = TRUE)
   adj_window[collapse::whichNA(adj_window)] <- 0L
   final_window <- naive_window - adj_window
   # if (lag != 0){
@@ -323,11 +322,12 @@ time_roll_mean <- function(x, window = Inf,
   } else {
     sorted_g <- NULL
   }
-  adj_window <- fbincode(time_as_number(time_start),
-                         breaks = time_as_number(time),
-                         gx = sorted_g,
-                         gbreaks = sorted_g,
-                         right = close_left_boundary)
+  adj_window <- bin_grouped(time_start,
+                                 breaks = time,
+                                 gx = sorted_g,
+                                 gbreaks = sorted_g,
+                                 right = close_left_boundary,
+                                 codes = TRUE)
   adj_window[collapse::whichNA(adj_window)] <- 0L
   final_window <- naive_window - adj_window
   # if (lag != 0){
@@ -421,11 +421,12 @@ time_roll_growth_rate <- function(x, window = Inf,
                           roll_dst = roll_dst)
   naive_window <- sequence(group_sizes)
 
-  adj_window <- fbincode(time_as_number(time_start),
-                         breaks = time_as_number(time),
-                         gx = sorted_g,
-                         gbreaks = sorted_g,
-                         right = close_left_boundary)
+  adj_window <- bin_grouped(time_start,
+                                 breaks = time,
+                                 gx = sorted_g,
+                                 gbreaks = sorted_g,
+                                 right = close_left_boundary,
+                                 codes = TRUE)
   adj_window[collapse::whichNA(adj_window)] <- 0L
   final_window <- naive_window - adj_window
   if (is.null(time_step)){
@@ -470,7 +471,7 @@ time_roll_growth_rate <- function(x, window = Inf,
       }
     }
     lag_window <- final_window - 1L
-    x_lagged <- roll_lag(x, lag = lag_window, check = FALSE)
+    x_lagged <- roll_lag(x, lag_window)
     if (na.rm){
       lag_window <- data.table::frollsum(!is.na(x), n = lag_window,
                                            adaptive = partial,
@@ -482,8 +483,8 @@ time_roll_growth_rate <- function(x, window = Inf,
   } else {
     time_step <- time_by_list(time_step)
     lag_window <- final_window - 1L
-    x_lagged <- roll_lag(x, lag = lag_window, check = FALSE)
-    time_lagged <- roll_lag(time, lag = lag_window, check = FALSE)
+    x_lagged <- roll_lag(x, lag_window)
+    time_lagged <- roll_lag(time, lag_window)
     time_differences <- time_diff(time_lagged, time,
                                   time_by = time_step,
                                   time_type = time_type)
@@ -562,11 +563,12 @@ time_roll_window_size <- function(time, window = Inf,
       out <- integer(length(time))
     }
   } else {
-    adj_window <- fbincode(time_as_number(start),
-                           breaks = time_as_number(time),
-                           gx = g,
-                           gbreaks = g,
-                           right = close_left_boundary)
+    adj_window <- bin_grouped(start,
+                              breaks = time,
+                              gx = g,
+                              gbreaks = g,
+                              right = close_left_boundary,
+                              codes = TRUE)
     which_na <- collapse::whichNA(adj_window)
     adj_window[which_na] <- 0L
     out <- naive_window - adj_window

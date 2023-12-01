@@ -2,40 +2,61 @@
 % Please edit documentation in R/roll_lag.R
 \name{roll_lag}
 \alias{roll_lag}
+\alias{roll_diff}
 \alias{lag_seq}
-\title{Fast rolling lag}
+\alias{lag_}
+\alias{lead_}
+\alias{diff_}
+\title{Fast rolling grouped lags and differences}
 \usage{
-roll_lag(x, lag = 1L, check = TRUE)
+roll_lag(x, n = 1L, g = NULL, fill = NULL)
 
-lag_seq(size, lag = 1L, partial = FALSE)
+roll_diff(x, n = 1L, g = NULL, fill = NULL)
+
+lag_seq(size, n = 1L, partial = FALSE)
+
+lag_(x, n = 1L, fill = NA)
+
+lead_(x, n = 1L, fill = NA)
+
+diff_(x, n = 1L, fill = NA)
 }
 \arguments{
 \item{x}{A vector.}
 
-\item{lag}{A vector of lags to be applied to \code{x} on a rolling basis.}
+\item{n}{Lag. Either length 1 or the same length as \code{x.}
+This can also be negative.}
 
-\item{check}{Should safety checks be done for the specified lag  against \code{x}?}
+\item{g}{Grouping vector. This can be a vector, data frame or \code{GRP} object.}
 
-\item{size}{Length of sequence.}
+\item{fill}{Value to fill the first \code{n} elements.}
 
-\item{partial}{If \code{TRUE}, a partial lag sequence is created. The default
-is \code{FALSE}.
+\item{size}{Size of lag sequence.}
 
-The default is \code{TRUE} but
-you can set this to \code{FALSE} if you need this to be speed-performant.}
+\item{partial}{If \code{TRUE}, the sequence will increment from 0 up to the
+lag value. When calculating differences this can be useful,
+as passing this lag sequence to
+\code{roll_diff} will produce differences compared to the first value of \code{x}
+for the first \code{n} differences.}
 }
 \value{
-A lagged vector of \code{x} the same length as \code{x}.
+A vector the same length as \code{x}.
 }
 \description{
-An efficient rolling lag.
-
-\code{lag_seq()} is a helper that creates a safe vector of lags.
+Inspired by 'collapse', \code{roll_lag} and \code{roll_diff} operate similarly to
+\code{flag} and \code{fdiff}.
 }
 \details{
-This function is simple and fast. It should generally be equivalent to
-\code{diag(matrix(unlist(data.table::shift(x, lag)), ncol = length(x)))}. \cr
-where \code{length(lag) = length(x)}.
+While these may not be as fast the 'collapse' equivalents,
+they are adequately fast and efficient. \cr
+A key difference between \code{roll_lag} and \code{flag} is that \code{g} does not need
+to be sorted for the result to be correct. \cr
+Furthermore, a vector of lags can be supplied for a custom rolling lag.
+In this case, groups are ignored. \cr
+For time-based lags, see \link{time_lag}.
+
+\code{lag_}, \code{lead_} and \code{diff_} are wrappers around the 'c++' functions that offer
+very low overhead of ~1 microsecond and thus are primarily for programmers.
 }
 \examples{
 library(timeplyr)
@@ -47,12 +68,23 @@ collapse::set_collapse(nthreads = 1L)
 }
 x <- 1:10
 
-roll_lag(x, 2) # Lag
-roll_lag(x, -2) # Lead
+roll_lag(x) # Lag
+roll_lag(x, -1) # Lead
+roll_diff(x) # Lag diff
+roll_diff(x, -1) # Lead diff
 
+# Using lag_seq()
+roll_lag(x, lag_seq(length(x), 2))
+roll_diff(x, lag_seq(length(x), 5, partial = TRUE))
 
-roll_lag(x, lag_seq(length(x), 2), check = FALSE) # Lag
-roll_lag(x, lag_seq(length(x), -2), check = FALSE) # Lead
+# Like diff() but x/y instead of x-y
+quotient <- function(x, n = 1L){
+  x / roll_lag(x, n)
+}
+# People often call this a growth rate
+# but it's just a percentage difference
+# See ?roll_growth_rate for growth rate calculations
+quotient(1:10)
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

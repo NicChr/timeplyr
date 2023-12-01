@@ -438,18 +438,6 @@ add_group_order <- function(data, ..., ascending = TRUE,
                                          .name))
 }
 
-group2 <- function(X, ...){
-  if (is.null(X)){
-    return(NULL)
-  }
-  if (is_interval(X)){
-    X <- interval_separate(X)
-  }
-  if (is.list(X) && list_has_interval(X)){
-    X <- mutate_intervals_to_ids(X)
-  }
-  collapse::group(X, ...)
-}
 qG2 <- function(x, sort = TRUE, ordered = FALSE, na.exclude = FALSE, ...){
   if (is_interval(x)){
     if (na.exclude){
@@ -482,10 +470,10 @@ qG2 <- function(x, sort = TRUE, ordered = FALSE, na.exclude = FALSE, ...){
   out
 }
 # Mutate interval columns to group IDs
-mutate_intervals_to_ids <- function(data){
+mutate_intervals_to_ids <- function(data, order = TRUE){
   which_int <- which(list_item_is_interval(data))
   for (i in seq_along(which_int)){
-    data[[.subset2(which_int, i)]] <- group_id.Interval(.subset2(data, .subset2(which_int, i)))
+    data[[.subset2(which_int, i)]] <- group_id.Interval(.subset2(data, .subset2(which_int, i)), order = order)
   }
   data
 }

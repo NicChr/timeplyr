@@ -85,7 +85,7 @@ bottom_n_tbl <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE){
     df <- df_row_slice(df, cpp_which(is.na(df[["value"]]), invert = TRUE))
   }
   # Sort by freq (ascending order)
-  df <- df_row_slice(df, radix_order(asc(df[["n"]])))
+  df <- df_row_slice(df, radix_order(df[["n"]]))
   first_n_seq <- seq_len(min(min(n, N), length(out)))
   if (with_ties){
     keep <- df[["n"]] %in% df[["n"]][first_n_seq]
@@ -107,7 +107,8 @@ lump_top_n <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE,
                        as_factor = TRUE,
                        other_category = "Other"){
   top_n_vals <- top_n(x, n = n, na_rm = na_rm, with_ties = with_ties)
-  out <- fmatch(x, top_n_vals, nomatch = length(top_n_vals) + 1L)
+  out <- collapse::fmatch(x, top_n_vals, nomatch = length(top_n_vals) + 1L,
+                          overid = 2L)
   factor_levels <- as.character(top_n_vals)
   if (length(top_n_vals) < n_unique(x, na.rm = na_rm)){
     factor_levels <- c(factor_levels, other_category)
@@ -115,7 +116,6 @@ lump_top_n <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE,
   if (as_factor){
     attr(out, "levels") <- factor_levels
     class(out) <- "factor"
-    # levels(out) <- factor_levels
   } else {
     out <- factor_levels[out]
   }
@@ -127,7 +127,8 @@ lump_bottom_n <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE,
                           as_factor = TRUE,
                           other_category = "Other"){
   bottom_n_vals <- bottom_n(x, n = n, na_rm = na_rm, with_ties = with_ties)
-  out <- fmatch(x, bottom_n_vals, nomatch = length(bottom_n_vals) + 1L)
+  out <- collapse::fmatch(x, bottom_n_vals, nomatch = length(bottom_n_vals) + 1L,
+                          overid = 2L)
   factor_levels <- as.character(bottom_n_vals)
   if (length(bottom_n_vals) < n_unique(x, na.rm = na_rm)){
     factor_levels <- c(factor_levels, other_category)
@@ -135,7 +136,6 @@ lump_bottom_n <- function(x, n = 5, na_rm = FALSE, with_ties = FALSE,
   if (as_factor){
     attr(out, "levels") <- factor_levels
     class(out) <- "factor"
-    # levels(out) <- factor_levels
   } else {
     out <- factor_levels[out]
   }

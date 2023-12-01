@@ -587,12 +587,8 @@ new_var_nm <- function(data, check = ".group.id"){
 }
 # Recycle arguments
 recycle_args <- function (..., length = NULL, use.names = FALSE){
-  dots <- list(...)
-  # if (length(dots) == 0){
-  #   return(dots)
-  # }
-  out <- dots
-  lens <- collapse::vlengths(out, use.names = FALSE)
+  out <- list(...)
+  lens <- cpp_lengths(out)
   uniq_lens <- collapse::fnunique(lens)
   if (is.null(length)) {
     recycle_length <- collapse::fmax(lens)
@@ -600,7 +596,7 @@ recycle_args <- function (..., length = NULL, use.names = FALSE){
     recycle_length <- length
   }
   recycle_length <- recycle_length * (!collapse::anyv(lens, 0L))
-  recycle <- lens != recycle_length
+  recycle <- cpp_which(lens != recycle_length)
   out[recycle] <- lapply(out[recycle], function(x) rep_len(x, recycle_length))
   if (use.names){
     names(out) <- dot_nms(...)
@@ -735,7 +731,7 @@ vec_length <- function(x){
     if (inherits(x, "data.frame")){
       out <- df_nrow(x)
     } else {
-      out <- collapse::vlengths(x, use.names = FALSE)
+      out <- cpp_lengths(x)
       nunique <- collapse::fnunique(out)
       if (nunique > 1L){
         stop("x must be a vector, matrix, data frame or list with equal lengths")
@@ -759,7 +755,7 @@ vec_width <- function(x){
     if (is_df(x)){
       out <- df_ncol(x)
     } else {
-      lens <- collapse::vlengths(x, use.names = FALSE)
+      lens <- cpp_lengths(x)
       if (collapse::fnunique(lens) > 1L){
         stop("x must be a vector, matrix, data frame or list with equal lengths")
       }
@@ -812,7 +808,7 @@ CJ2 <- function(X){
     return(X)
   }
   out <- vector("list", nargs)
-  d <- lengths(X, use.names = FALSE)
+  d <- cpp_lengths(X)
   orep <- prod(d)
   if (orep == 0L){
     for (i in seq_len(nargs)){
@@ -1032,6 +1028,19 @@ fbincode <- function(x, breaks, right = TRUE, include.lowest = FALSE,
   #                           function(x, y) .bincode(x, y,
   #                                                   right = right,
   #                                                   include.lowest = include.lowest))
+}
+bin_grouped <- function(x, breaks, gx = NULL, gbreaks = NULL, codes = TRUE,
+                        right = TRUE,
+                        include_lowest = FALSE,
+                        include_oob = FALSE){
+  x_list <- gsplit2(x, g = gx)
+  breaks_list <- gsplit2(breaks, g = gbreaks)
+  out <- cpp_bin_grouped(x_list, breaks_list, codes = codes,
+                         include_lowest = include_lowest,
+                         right = right,
+                         include_oob = include_oob)
+  ptype <- if (codes) integer() else x[0L]
+  vctrs::list_unchop(out, ptype = ptype)
 }
 # get_cores <- function(){
 #   out <- floor(parallel::detectCores() / 2)
@@ -1302,4 +1311,21 @@ floor2 <- function(x){
 }
 ceiling2 <- function(x){
   if (is.integer(x)) x else ceiling(x)
+}
+# Convert typeof x to typeof template
+cast2 <- function(x, template){
+  type <- typeof(template)
+  if (identical(typeof(x), type)){
+    x
+  } else {
+    coerce <- get(tolower(paste0("as.", type)))
+    coerce(x)
+  }
+}
+bin <- function(x, breaks,
+                right = TRUE,
+                include_lowest = FALSE,
+                include_oob = FALSE,
+                codes = TRUE) {
+  .Call(`_timeplyr_cpp_bin`, x, breaks, codes, right, include_lowest, include_oob)
 }

@@ -72,7 +72,8 @@ fskim <- function(data, hist = FALSE){
                    paste(other_vars, collapse = "\n")),
             "\n\nFalling back to character")
     data[, (other_vars) := lapply(.SD, function(x) collapse::qF(as.character(x),
-                                                                ordered = TRUE, sort = TRUE)),
+                                                                ordered = TRUE,
+                                                                sort = TRUE)),
          .SDcols = other_vars]
     cat_vars <- c(cat_vars, other_vars)
     # Sort cat + other vars in order of first appearance
@@ -86,24 +87,11 @@ fskim <- function(data, hist = FALSE){
   which_lgl <- which(out[["col"]] %in% lgl_vars)
   lgl_out <- out[which_lgl]
   # Pre-allocate columns
-  data.table::set(lgl_out,
-                  j = c("n_missing"),
-                  value = NA_integer_)
-  data.table::set(lgl_out,
-                  j = "p_complete",
-                  value = NA_real_)
-  data.table::set(lgl_out,
-                  j = c("n_true", "n_false"),
-                  value = NA_integer_)
-  data.table::set(lgl_out,
-                  j = "p_true",
-                  value = NA_real_)
-  # data.table::set(lgl_out,
-  #                 j = c("first", "last"),
-  #                 value = NA)
-  data.table::set(lgl_out,
-                  j = c("head", "tail"),
-                  value = NA_character_)
+  set_add_cols(lgl_out, list(n_missing = NA_integer_))
+  set_add_cols(lgl_out, list(p_complete = NA_real_))
+  set_add_cols(lgl_out, list(n_true = NA_integer_, n_false = NA_integer_))
+  set_add_cols(lgl_out, list(p_true = NA_real_))
+  set_add_cols(lgl_out, list(head = NA_character_, tail = NA_character_))
   if (N > 0L && length(which_lgl) > 0){
     data.table::set(lgl_out, j = "n_missing",
                     value = pluck_row(lgl_data[, lapply(.SD, num_na)]))
@@ -139,29 +127,15 @@ fskim <- function(data, hist = FALSE){
   which_num <- which(out[["col"]] %in% num_vars)
   num_out <- out[which_num]
   # Pre-allocate columns
-  data.table::set(num_out,
-                  j = c("n_missing"),
-                  value = NA_integer_)
-  data.table::set(num_out,
-                  j = "p_complete",
-                  value = NA_real_)
-  data.table::set(num_out,
-                  j = "n_unique",
-                  value = NA_integer_)
-  data.table::set(num_out,
-                  j = c("mean", "p0", "p25", "p50", "p75", "p100",
-                        "iqr"),
-                  value = NA_real_)
-  data.table::set(num_out,
-                  j = "sd",
-                  value = NA_real_)
-  data.table::set(num_out,
-                  j = c("head", "tail"),
-                  value = NA_character_)
+  set_add_cols(num_out, list(n_missing = NA_integer_))
+  set_add_cols(num_out, list(p_complete = NA_real_))
+  set_add_cols(num_out, list(n_unique = NA_integer_))
+  set_add_cols(num_out,
+               add_names(as.list(rep_len(NA_real_, 8)),
+                         c("mean", "p0", "p25", "p50", "p75", "p100", "iqr", "sd")))
+  set_add_cols(num_out, list(head = NA_character_, tail = NA_character_))
   if (hist){
-    data.table::set(num_out,
-                    j = "hist",
-                    value = NA_character_)
+    set_add_cols(num_out, list(hist = NA_character_))
   }
   if (N > 0L && length(which_num) > 0){
     data.table::set(num_out, j = "n_missing",
@@ -299,21 +273,11 @@ fskim <- function(data, hist = FALSE){
   which_date <- which(out[["col"]] %in% date_vars)
   date_out <- out[which_date]
   # Pre-allocate columns
-  data.table::set(date_out,
-                  j = c("n_missing"),
-                  value = NA_integer_)
-  data.table::set(date_out,
-                  j = "p_complete",
-                  value = NA_real_)
-  data.table::set(date_out,
-                  j = "n_unique",
-                  value = NA_integer_)
-  data.table::set(date_out,
-                  j = c("min", "max"),
-                  value = lubridate::NA_Date_)
-  data.table::set(date_out,
-                  j = c("head", "tail"),
-                  value = NA_character_)
+  set_add_cols(date_out, list(n_missing = NA_integer_))
+  set_add_cols(date_out, list(p_complete = NA_real_))
+  set_add_cols(date_out, list(n_unique = NA_integer_))
+  set_add_cols(date_out, list(min = lubridate::NA_Date_, max = lubridate::NA_Date_))
+  set_add_cols(date_out, list(head = NA_character_, tail = NA_character_))
   if (N > 0L && length(which_date) > 0){
     data.table::set(date_out, j = "n_missing",
                     value = pluck_row(date_data[, lapply(.SD, num_na)]))
@@ -355,21 +319,12 @@ fskim <- function(data, hist = FALSE){
   which_datetime <- which(out[["col"]] %in% datetime_vars)
   datetime_out <- out[which_datetime]
   # Pre-allocate columns
-  data.table::set(datetime_out,
-                  j = c("n_missing"),
-                  value = NA_integer_)
-  data.table::set(datetime_out,
-                  j = "p_complete",
-                  value = NA_real_)
-  data.table::set(datetime_out,
-                  j = "n_unique",
-                  value = NA_integer_)
-  data.table::set(datetime_out,
-                  j = c("min", "max"),
-                  value = lubridate::NA_POSIXct_)
-  data.table::set(datetime_out,
-                  j = c("head", "tail"),
-                  value = NA_character_)
+  set_add_cols(datetime_out, list(n_missing = NA_integer_))
+  set_add_cols(datetime_out, list(p_complete = NA_real_))
+  set_add_cols(datetime_out, list(n_unique = NA_integer_))
+  set_add_cols(datetime_out, list(min = lubridate::NA_POSIXct_,
+                                  max = lubridate::NA_POSIXct_))
+  set_add_cols(datetime_out, list(head = NA_character_, tail = NA_character_))
   if (N > 0L && length(which_datetime) > 0){
     data.table::set(datetime_out, j = "n_missing",
                     value = pluck_row(datetime_data[, lapply(.SD, num_na)]))
@@ -411,18 +366,11 @@ fskim <- function(data, hist = FALSE){
   which_cat <- which(out[["col"]] %in% cat_vars)
   cat_out <- out[which_cat]
   # Pre-allocate columns
-  data.table::set(cat_out,
-                  j = c("n_missing"),
-                  value = NA_integer_)
-  data.table::set(cat_out,
-                  j = "p_complete",
-                  value = NA_real_)
-  data.table::set(cat_out,
-                  j = "n_unique",
-                  value = NA_integer_)
-  data.table::set(cat_out,
-                  j = c("min", "max", "head", "tail"),
-                  value = NA_character_)
+  set_add_cols(cat_out, list(n_missing = NA_integer_))
+  set_add_cols(cat_out, list(p_complete = NA_real_))
+  set_add_cols(cat_out, list(n_unique = NA_integer_))
+  set_add_cols(cat_out, add_names(as.list(rep_len(NA_character_, 4)),
+                                          c("min", "max", "head", "tail")))
   if (N > 0L && length(which_cat) > 0){
     data.table::set(cat_out, j = "n_missing",
                     value = pluck_row(cat_data[, lapply(.SD, num_na)]))
