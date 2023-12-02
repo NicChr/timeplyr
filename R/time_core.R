@@ -167,9 +167,12 @@ time_completev <- function(x, time_by = NULL, from = NULL, to = NULL,
                             week_start = week_start,
                             roll_month = roll_month,
                             roll_dst = roll_dst)
-  x <- time_cast(x, time_full)
+  out <- time_cast(x, time_full)
   # out <- c(x, time_full[cpp_which(time_full %in% x, invert = TRUE)])
-  out <- c(x, time_full[collapse::whichNA(collapse::fmatch(time_full, x, overid = 2L))])
+  gaps <- time_full[collapse::whichNA(collapse::fmatch(time_full, out, overid = 2L))]
+  if (length(gaps) > 0){
+    out <- c(out, gaps)
+  }
   if (sort){
     out <- conditional_sort(out)
   }
@@ -564,20 +567,15 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
                         roll_month = getOption("timeplyr.roll_month", "preday"),
                         roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   check_is_time_or_num(x)
-  x_na <- collapse::whichNA(x)
-  missing_from <- is.null(from)
-  missing_to <- is.null(to)
   time_by <- time_by_get(x, time_by = time_by)
-  if (missing_from){
+  if (is.null(from)){
     from <- collapse::fmin(x, na.rm = TRUE, use.g.names = FALSE)
-  } else {
-    from <- time_cast(from, x)
   }
-  if (missing_to){
+  if (is.null(to)){
     to <- collapse::fmax(x, na.rm = TRUE, use.g.names = FALSE)
-  } else {
-    to <- time_cast(to, x)
   }
+  from <- time_cast(from, x)
+  to <- time_cast(to, x)
   # Time sequence
   time_breaks <- time_seq_v(from = from, to = to,
                             time_by = time_by,
@@ -589,40 +587,29 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
   x <- time_cast(x, time_breaks)
   from <- time_cast(from, x)
   to <- time_cast(to, x)
-  if (!missing_from || !missing_to){
-    x <- x[data.table::between(x, from, to, incbounds = TRUE, NAbounds = NA)]
-  }
   out_len <- length(x)
   # Aggregate time/cut time
-  time_bins <- c(unclass(time_breaks), unclass(to))
-  time_break_ind <- cut_time(x, breaks = time_bins, codes = TRUE)
+  time_break_ind <- cut_time(x, breaks = c(time_breaks, to), codes = TRUE)
   # Time breaks subset on cut indices
   x <- time_breaks[time_break_ind]
-
+  # Count time
+  # Don't count completed sequence items, only original..
+  cnt_grps <- group2(x, group.sizes = TRUE)
+  out <- attr(cnt_grps, "group.sizes")[cnt_grps]
   # (Optionally) complete time data
-  time_missed <- x[0L]
   if (complete){
     time_missed <- time_breaks[collapse::whichNA(collapse::fmatch(time_breaks, x, overid = 2L))]
     if (length(time_missed) > 0L){
       x <- c(x, time_missed) # Complete time sequence
     }
+    out <- c(out, integer(length(time_missed)))
   }
-  # Count time
-  # Don't count completed sequence items, only original..
-  cnt_grps <- GRP2(if (complete) x[seq_len(out_len)] else x,
-                   sort = FALSE,
-                   call = FALSE, return.groups = FALSE,
-                   na.last = TRUE, decreasing = FALSE,
-                   return.order = FALSE)
-  out <- integer(out_len + length(time_missed))
-  # Replace allocated integer with counts
-  out[seq_len(out_len)] <- collapse::GRPN(cnt_grps, expand = TRUE)
   if (include_interval){
     time_seq_int <- tseq_interval(x = to, time_breaks)
     time_int <- time_seq_int[time_break_ind]
     if (complete && length(time_missed) > 0L){
-      time_int <- c(time_int, time_seq_int[which(attr(time_seq_int, "start") %in%
-                                                   time_cast(time_missed, attr(time_seq_int, "start")))])
+      time_int <- c(time_int, time_seq_int[cpp_which(attr(time_seq_int, "start") %in%
+                                                       time_cast(time_missed, attr(time_seq_int, "start")))])
     }
     out <- new_tbl(x = x, interval = time_int, n = out)
     if (unique){

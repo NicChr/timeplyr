@@ -4,7 +4,8 @@ data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 
 time_countv2 <- function(..., include_interval = FALSE, use.names = TRUE, complete = TRUE){
-  out <- time_countv(..., include_interval = include_interval, complete = complete)
+  out <- time_countv(..., include_interval = include_interval, complete = complete) %>%
+    dplyr::filter(!is.na(x))
   if (!include_interval){
    out <- fdeframe(out)
    if (!use.names){
