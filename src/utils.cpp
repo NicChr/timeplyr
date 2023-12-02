@@ -338,7 +338,7 @@ SEXP cpp_bin(SEXP x, SEXP breaks, bool codes, bool right, bool include_lowest,
     double *p_b = REAL(breaks);
     int *p_out = INTEGER(out);
     for (R_xlen_t i = 0; i < n; i++) {
-      p_out[i] = NA_REAL;
+      p_out[i] = NA_INTEGER;
       // If not NA
       if (p_x[i] == p_x[i]) {
         lo = 0;
