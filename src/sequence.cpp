@@ -3,8 +3,7 @@
 
 double r_sum(SEXP x, bool na_rm = false){
   cpp11::function base_sum = cpp11::package("base")["sum"];
-  double out = Rf_asReal(base_sum(x, cpp11::named_arg("na.rm") = na_rm));
-  return out;
+  return Rf_asReal(base_sum(x, cpp11::named_arg("na.rm") = na_rm));
 }
 
 double r_min(SEXP x){

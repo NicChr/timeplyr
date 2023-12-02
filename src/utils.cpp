@@ -276,9 +276,6 @@ SEXP cpp_bin(SEXP x, SEXP breaks, bool codes, bool right, bool include_lowest,
              ((include_oob && (left ? p_x[i] > p_b[hi] : p_x[i] < p_b[lo])))){
           p_out[i] = (left ? hi : lo) + 1;
         }
-        // else if ((include_oob && (left ? p_x[i] > p_b[hi] : p_x[i] < p_b[lo]))){
-        //   p_out[i] = (left ? hi : lo) + 1;
-        // }
         else if (!(p_x[i] < p_b[lo] || p_x[i] > p_b[hi] ||
             (p_x[i] == p_b[left ? hi : lo] && !include_border))){
           while (hi - lo >= 2) {
@@ -310,9 +307,6 @@ SEXP cpp_bin(SEXP x, SEXP breaks, bool codes, bool right, bool include_lowest,
              ((include_oob && (left ? p_x[i] > p_b[hi] : p_x[i] < p_b[lo])))){
           p_out[i] = p_b[(left ? hi : lo)];
         }
-        // else if ((include_oob && (left ? p_x[i] > p_b[hi] : p_x[i] < p_b[lo]))){
-        //   p_out[i] = (left ? hi : lo) + 1;
-        // }
         else if (!(p_x[i] < p_b[lo] || p_x[i] > p_b[hi] ||
           (p_x[i] == p_b[left ? hi : lo] && !include_border))){
           while (hi - lo >= 2) {
@@ -347,9 +341,6 @@ SEXP cpp_bin(SEXP x, SEXP breaks, bool codes, bool right, bool include_lowest,
              ((include_oob && (left ? p_x[i] > p_b[hi] : p_x[i] < p_b[lo])))){
           p_out[i] = (left ? hi : lo) + 1;
         }
-        // else if ((include_oob && (left ? p_x[i] > p_b[hi] : p_x[i] < p_b[lo]))){
-        //   p_out[i] = (left ? hi : lo) + 1;
-        // }
         else if (!(p_x[i] < p_b[lo] || p_x[i] > p_b[hi] ||
           (p_x[i] == p_b[left ? hi : lo] && !include_border))){
           while (hi - lo >= 2) {
@@ -381,9 +372,6 @@ SEXP cpp_bin(SEXP x, SEXP breaks, bool codes, bool right, bool include_lowest,
              ((include_oob && (left ? p_x[i] > p_b[hi] : p_x[i] < p_b[lo])))){
           p_out[i] = p_b[(left ? hi : lo)];
         }
-        // else if ((include_oob && (left ? p_x[i] > p_b[hi] : p_x[i] < p_b[lo]))){
-        //   p_out[i] = (left ? hi : lo) + 1;
-        // }
         else if (!(p_x[i] < p_b[lo] || p_x[i] > p_b[hi] ||
           (p_x[i] == p_b[left ? hi : lo] && !include_border))){
           while (hi - lo >= 2) {
@@ -543,63 +531,4 @@ SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP replace) {
 //     }
 //   }
 //   return out;
-// }
-
-
-// Taken from stackoverflow.com/questions/48118248
-// NumericVector Rcpp_sort(NumericVector x, NumericVector y) {
-//   // Order the elements of x by sorting y
-//   // First create a vector of indices
-//   IntegerVector idx = seq_along(x) - 1;
-//   // Then sort that vector by the values of y
-//   std::sort(idx.begin(), idx.end(), [&](int i, int j){return y[i] < y[j];});
-//   // And return x in that order
-//   return x[idx];
-// }
-
-// SEXP rcpp_sort_in_place(SEXP x) {
-//   // Order the elements of x by sorting y
-//   // Then sort that vector by the values of y
-//   // std::sort(std::begin(idx), std::end(idx),
-//   //           [&](int i, int j){
-//   //             if (y[i] == NA_INTEGER){
-//   //               return false;
-//   //             } else if (y[j] == NA_INTEGER){
-//   //               return true;
-//   //             } else {
-//   //               return y[i] < y[j];
-//   //             }
-//   //             });
-//   // std::sort(std::begin(y), std::end(y),
-//   //           [](double i, double j){
-//   //             if (!(i == i)){
-//   //               return false;
-//   //             }
-//   //             if (!(j == j)){
-//   //               return true;
-//   //             }
-//   //             return i < j;
-//   //           });
-//   switch(TYPEOF(x)){
-//   case LGLSXP: {
-//     Rcpp::as<LogicalVector>(x).sort();
-//     break;
-//   }
-//   case INTSXP: {
-//     Rcpp::as<IntegerVector>(x).sort();
-//    break;
-//   }
-//   case REALSXP: {
-//     Rcpp::as<NumericVector>(x).sort();
-//    break;
-//   }
-//   case STRSXP: {
-//     Rcpp::as<CharacterVector>(x).sort();
-//    break;
-//   }
-//   default: {
-//     Rf_error("Cannot sort the supplied SEXP");
-//   }
-//   }
-//   return x;
 // }

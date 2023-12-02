@@ -199,6 +199,7 @@ SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP o, SEXP sizes, double fill_limit) {
         SEXP fill = Rf_protect(Rf_allocVector(STRSXP, 1));
         SEXP out = Rf_protect(Rf_duplicate(x));
         SEXP *p_out = STRING_PTR(out);
+        SEXP *p_fill = STRING_PTR(fill);
         for (int i = 0; i < size; ++i) {
             oi = p_o[i] - 1;
             // Start of new group?
@@ -216,11 +217,11 @@ SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP o, SEXP sizes, double fill_limit) {
             // Are we in new NA run?
             if (is_na && first_non_na && prev_is_not_na){
                 fill_count = 0;
-                SET_STRING_ELT(fill, 0, STRING_ELT(out, p_o[i - 1] - 1));
+                SET_STRING_ELT(fill, 0, p_out[p_o[i - 1] - 1]);
             }
             // Should we fill this NA value?
             if (is_na && first_non_na && fill_count < fill_limit){
-                SET_STRING_ELT(out, oi, STRING_ELT(fill, 0));
+                SET_STRING_ELT(out, oi, p_fill[0]);
                 ++fill_count;
             }
             prev_is_not_na = !is_na;
@@ -234,132 +235,6 @@ SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP o, SEXP sizes, double fill_limit) {
     }
     }
 }
-
-// Alternative implementation that doesn't require groups to be sorted
-// Accepts an order vector o which is the order of the sorted groups
-
-// SEXP cpp_roll_na_fill_grouped2(SEXP x, SEXP o, SEXP starts, double fill_limit) {
-//     int size = Rf_length(x);
-//     int o_size = Rf_length(o);
-//     int starts_size = Rf_length(starts);
-//     if (o_size != size){
-//         Rf_error("x and o must both be the same length");
-//     }
-//     int *p_starts = INTEGER(starts);
-//     int *p_o = INTEGER(o);
-//     fill_limit = std::fmax(fill_limit, 0);
-//     bool first_non_na = false;
-//     bool is_na;
-//     bool prev_is_not_na = false;
-//     int fill_count = 0;
-//     int oi;
-//     int j = 0;
-//     switch(TYPEOF(x)){
-//     case LGLSXP:
-//     case INTSXP: {
-//         int fill;
-//         SEXP out = Rf_protect(Rf_duplicate(x));
-//         int *p_out = INTEGER(out);
-//         for (int i = 0; i < size; ++i) {
-//             oi = p_o[i] - 1;
-//             // Start of new group?
-//             if (j < starts_size && i >= (p_starts[j] - 1)){
-//                 first_non_na = false;
-//                 fill_count = 0;
-//                 ++j;
-//             }
-//             is_na = (p_out[oi] == NA_INTEGER);
-//             if (!first_non_na && !is_na){
-//                 first_non_na = true;
-//             }
-//             // Resetting fill value
-//             // Are we in new NA run?
-//             if (is_na && first_non_na && prev_is_not_na){
-//                 fill_count = 0;
-//                 fill = p_out[p_o[i - 1] - 1];
-//             }
-//             // Should we fill this NA value?
-//             if (is_na && first_non_na && fill_count < fill_limit){
-//                 p_out[oi] = fill;
-//                 ++fill_count;
-//             }
-//             prev_is_not_na = !is_na;
-//         }
-//         Rf_unprotect(1);
-//         return out;
-//     }
-//     case REALSXP: {
-//         double fill;
-//         SEXP out = Rf_protect(Rf_duplicate(x));
-//         double *p_out = REAL(out);
-//         for (int i = 0; i < size; ++i) {
-//             oi = p_o[i] - 1;
-//             // Start of new group?
-//             if (j < starts_size && i >= (p_starts[j] - 1)){
-//                 first_non_na = false;
-//                 fill_count = 0;
-//                 ++j;
-//             }
-//             is_na = !(p_out[oi] == p_out[oi]);
-//             if (!first_non_na && !is_na){
-//                 first_non_na = true;
-//             }
-//             // Resetting fill value
-//             // Are we in new NA run?
-//             if (is_na && first_non_na && prev_is_not_na){
-//                 fill_count = 0;
-//                 fill = p_out[p_o[i - 1] - 1];
-//             }
-//             // Should we fill this NA value?
-//             if (is_na && first_non_na && fill_count < fill_limit){
-//                 p_out[oi] = fill;
-//                 ++fill_count;
-//             }
-//             prev_is_not_na = !is_na;
-//         }
-//         Rf_unprotect(1);
-//         return out;
-//     }
-//     case STRSXP: {
-//         int oi2;
-//         SEXP fill = Rf_protect(Rf_allocVector(STRSXP, 1));
-//         SEXP out = Rf_protect(Rf_duplicate(x));
-//         SEXP *p_out = STRING_PTR(out);
-//         for (int i = 0; i < size; ++i) {
-//             oi = p_o[i] - 1;
-//             // Start of new group?
-//             if (j < starts_size && i >= (p_starts[j] - 1)){
-//                 first_non_na = false;
-//                 fill_count = 0;
-//                 ++j;
-//             }
-//             is_na = (p_out[oi] == NA_STRING);
-//             if (!first_non_na && !is_na){
-//                 first_non_na = true;
-//             }
-//             // Resetting fill value
-//             // Are we in new NA run?
-//             if (is_na && first_non_na && prev_is_not_na){
-//                 oi2 = oi - 1;
-//                 fill_count = 0;
-//                 SET_STRING_ELT(fill, 0, STRING_ELT(out, oi2));
-//             }
-//             // Should we fill this NA value?
-//             if (is_na && first_non_na && fill_count < fill_limit){
-//                 SET_STRING_ELT(out, oi, STRING_ELT(fill, 0));
-//                 ++fill_count;
-//             }
-//             prev_is_not_na = !is_na;
-//         }
-//         Rf_unprotect(2);
-//         return out;
-//     }
-//     default: {
-//         Rf_error("cpp_roll_na_fill_grouped cannot handle the supplied SEXP");
-//         break;
-//     }
-//     }
-// }
 
 // This implementation is fast but requires groups are pre-sorted
 
