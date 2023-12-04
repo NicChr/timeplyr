@@ -155,6 +155,7 @@ time_episodes <- function(data, time, time_by = NULL,
                           .by = NULL){
   rlang::check_required(time)
   N <- df_nrow(data)
+  check_length(window, 1)
   if (window < 0){
     stop("window must be strictly greater or equal to 0")
   }
@@ -162,8 +163,9 @@ time_episodes <- function(data, time, time_by = NULL,
   time_quo <- enquo(time)
   group_vars <- get_groups(data, .by = {{ .by }})
   time_col <- tidy_select_names(data, !!time_quo)
+  out <- data
   # Data names after data-masking
-  data_nms <- names(data)
+  data_nms <- names(out)
   if (is.null(event)){
     event_col <- character(0)
     event_id_nm <- character(0)
@@ -179,27 +181,24 @@ time_episodes <- function(data, time, time_by = NULL,
       stop(paste0("Column `", event_col, "` doesn't exist"))
     }
     # Add event identifier col
-    event_id_nm <- new_var_nm(data, ".event.id")
-    data <- df_add_cols(data, add_names(list(
-      data.table::fifelse(fpluck(data, event_col) %in%
+    event_id_nm <- new_var_nm(out, ".event.id")
+    out <- df_add_cols(out, add_names(list(
+      data.table::fifelse(fpluck(out, event_col) %in%
                             event[[1L]],
                           1L, 0L)
     ), event_id_nm))
-    if (num_na(fpluck(data, event_col)) != num_na(fpluck(data, time_col))){
+    if (num_na(fpluck(out, event_col)) != num_na(fpluck(out, time_col))){
       warning(paste0("There is a mismatch of NAs between ",
                      time_col, " and ",
                      event_col, ", please check."))
     }
   }
-  out <- fselect(data, .cols = c(group_vars, time_col,
+  out <- fselect(out, .cols = c(group_vars, time_col,
                                  event_col, event_id_nm))
   # Make a copy
   out <- data.table::copy(collapse::qDT(out))
   if (length(time_col) == 0){
     stop("Please supply date or datetime for episode calculation")
-  }
-  if (length(window) != 1){
-    stop("Please supply one window for episode calculation")
   }
   time_by <- time_by_get(fpluck(out, time_col), time_by = time_by)
   # Create group ID variable
@@ -242,7 +241,7 @@ time_episodes <- function(data, time, time_by = NULL,
   # Convert non-event dates to NA
   # So that they can be skipped/ignored
   if (length(event_col) > 0){
-    which_non_event <- cpp_which(out[[event_col]] == 0L)
+    which_non_event <- cpp_which(out[[event_id_nm]] == 0L)
     event_dates <- out[[time_col]][which_non_event] # Save to re-add later
     data.table::set(out,
                     i = which_non_event,
@@ -269,7 +268,7 @@ time_episodes <- function(data, time, time_by = NULL,
   }
   # Newly added episodic columns
   new_cols <- c("t_elapsed", "ep_start", "ep_id", "ep_id_new")
-  set_rm_cols(out, c(grp_nm, grp_nm2))
+  set_rm_cols(out, c(grp_nm, grp_nm2, event_id_nm))
   # Sort by initial order
   if (!data_is_sorted){
     data.table::setorderv(out, row_id_nm)
