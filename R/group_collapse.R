@@ -94,54 +94,38 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
             method = "auto",
             call = FALSE,
             drop = drop)
-  out <- GRP_group_data(g)
+  out <- collapse::qDT(as.list(GRP_groups(g)))
   if (id){
-    out[[".group"]] <- row_id(out)
+    set_add_cols(out, list(.group = df_seq_along(out)))
   }
   include_loc <- loc ||
     (start && is.null(g[["group.starts"]])) ||
     end
   if (include_loc){
     GRP_loc <- GRP_loc(g)
-    out[[".loc"]] <- GRP_loc
-    attr(out[[".loc"]], "ptype") <- integer(0)
-    attr(out[[".loc"]], "class") <- c("vctrs_list_of", "vctrs_vctr", "list")
+    set_add_cols(out, list(.loc = structure(GRP_loc,
+                                            ptype = integer(),
+                                            class = c("vctrs_list_of",
+                                                      "vctrs_vctr",
+                                                      "list"))))
   } else {
     GRP_loc <- NULL
   }
-  # if (loc_order){
-  #   gorder <- g[["order"]]
-  #   if (is.null(gorder)){
-  #     gorder <- radix_order(g[["group.id"]])
-  #   }
-  #   for (a in names(attributes(gorder))){
-  #     attr(gorder, a) <- NULL
-  #   }
-  #   out[[".order"]] <- vctrs::as_list_of(
-  #     collapse::gsplit(x = gorder, g = g),
-  #     .ptype = integer(0)
-  #   )
-  # }
   if (start){
-    out[[".start"]] <- GRP_starts(g, loc = GRP_loc)
+    set_add_cols(out, list(.start = GRP_starts(g, loc = GRP_loc)))
   }
   if (end){
-    out[[".end"]] <- GRP_ends(g, loc = GRP_loc)
+    set_add_cols(out, list(.end = GRP_ends(g, loc = GRP_loc)))
   }
   if (!loc && include_loc){
-    out[[".loc"]] <- NULL
+    set_rm_cols(out, ".loc")
   }
   if (size){
-    out[[".size"]] <- GRP_group_sizes(g)
+    set_add_cols(out, list(.size = GRP_group_sizes(g)))
   }
   if (!sort && order){
     unsorted_i <- collapse::funique(GRP_group_id(g), sort = FALSE)
-    # which_sizes_zero <- which(GRP_group_sizes(g) == 0L)
-    # if (length(which_sizes_zero) > 0L){
-    #   unsorted_i <- c(unsorted_i, which_sizes_zero)
-    # }
-    out <- df_row_slice(out, unsorted_i,
-                        reconstruct = FALSE)
+    out <- df_row_slice(out, unsorted_i, reconstruct = FALSE)
   }
   # Method for when not dropping unused factor levels
   # At the moment a bit convoluted
@@ -215,7 +199,7 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
       }
     }
   }
-  out
+  df_as_tibble(out)
 }
 #' @export
 group_collapse.factor <- function(data, ..., order = TRUE, sort = FALSE,

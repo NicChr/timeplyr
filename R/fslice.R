@@ -124,12 +124,17 @@ fslice <- function(data, ..., .by = NULL,
       row_lens <- row_lens[keep]
       size <- size[keep]
     }
-    i <- vector("list", length(rows))
-    for (j in seq_along(i)){
-      i[[j]] <- .subset(.subset2(rows, j),
-                        .subset(n, cpp_which(n <= .subset2(row_lens, j))))
+    if (length(n) == 1){
+      i <- list_subset(rows, n)
+      i <- i[cpp_which(is.na(i), invert = TRUE)]
+    } else {
+      i <- vector("list", length(rows))
+      for (j in seq_along(i)){
+        i[[j]] <- .subset(.subset2(rows, j),
+                          .subset(n, cpp_which(n <= .subset2(row_lens, j))))
+      }
+      i <- unlist(i, use.names = FALSE, recursive = FALSE)
     }
-    i <- unlist(i, use.names = FALSE, recursive = FALSE)
     if (is.null(i)){
       i <- integer(0)
     }

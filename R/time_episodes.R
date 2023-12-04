@@ -142,7 +142,7 @@
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
-#'}
+#' }
 #' @export
 time_episodes <- function(data, time, time_by = NULL,
                           window = 1,
@@ -180,7 +180,7 @@ time_episodes <- function(data, time, time_by = NULL,
     }
     # Add event identifier col
     event_id_nm <- new_var_nm(data, ".event.id")
-    data <- dplyr::dplyr_col_modify(data, cols = add_names(list(
+    data <- df_add_cols(data, add_names(list(
       data.table::fifelse(fpluck(data, event_col) %in%
                             event[[1L]],
                           1L, 0L)
@@ -193,7 +193,8 @@ time_episodes <- function(data, time, time_by = NULL,
   }
   out <- fselect(data, .cols = c(group_vars, time_col,
                                  event_col, event_id_nm))
-  out <- as_DT(out)
+  # Make a copy
+  out <- data.table::copy(collapse::qDT(out))
   if (length(time_col) == 0){
     stop("Please supply date or datetime for episode calculation")
   }
@@ -206,43 +207,77 @@ time_episodes <- function(data, time, time_by = NULL,
   set_add_cols(out, add_names(
     list(
       group_id(data, .by = {{ .by }},
-               as_qg = FALSE, order = TRUE)
+               as_qg = TRUE, order = TRUE)
     ), grp_nm
   ))
-  set_add_cols(out, add_names(list(group_id(data, .by = {{ .by }})), grp_nm))
+  n_groups <- attr(out[[grp_nm]], "N.groups")
+  group_sizes <- attr(out[[grp_nm]], "group.sizes")
+
+  # Remove qG class
+  set_add_cols(out, add_names(
+    list(
+      unclass(out[[grp_nm]])
+    ), grp_nm
+  ))
   # Group by group vars + time
-  g2 <- collapse::GRP(fselect(out, .cols = c(grp_nm, time_col)),
-                      sort = TRUE)
-  data_is_sorted <- GRP_is_sorted(g2)
+  grp_nm2 <- new_var_nm(out, ".group")
+  set_add_cols(out, add_names(list(
+    group_id(out, .cols = c(grp_nm, time_col), order = TRUE)
+  ), grp_nm2))
+  data_is_sorted <- is_sorted(out[[grp_nm2]])
+  # Add row ID
+  row_id_nm <- new_var_nm(out, ".row_id")
+  set_add_cols(out, add_names(list(df_seq_along(out)), row_id_nm))
+  # Add second group ID
   # If data is already sorted correctly, no need to sort it
   if (!data_is_sorted){
-    out <- df_row_slice(out, GRP_order(g2))
+    data.table::setorderv(out, grp_nm2)
   }
   # # Group info
-  g <- collapse::GRP(fpluck(out, grp_nm))
-
+  # Since group IDs are sorted at this point
+  # We use our very fast internal group ID to GRP conversion
+  g <- sorted_group_id_to_GRP(out[[grp_nm]],
+                              n_groups = n_groups,
+                              group_sizes = group_sizes)
+  # Convert non-event dates to NA
+  # So that they can be skipped/ignored
+  if (length(event_col) > 0){
+    which_non_event <- cpp_which(out[[event_col]] == 0L)
+    event_dates <- out[[time_col]][which_non_event] # Save to re-add later
+    data.table::set(out,
+                    i = which_non_event,
+                    j = time_col,
+                    value = na_init(out[[time_col]]))
+  }
   ### Episode calculation ###
   # Calculation by reference (data.table set notation)
-  calc_episodes(out, time = time_col,
-                time_by = time_by,
-                time_type = time_type,
-                switch_on_boundary = switch_on_boundary,
-                g = g,
-                gid = grp_nm,
-                event = event_id_nm,
-                window = window,
-                roll_episode = roll_episode,
-                fill = fill)
+  set_calc_episodes(out, time = time_col,
+                    time_by = time_by,
+                    time_type = time_type,
+                    switch_on_boundary = switch_on_boundary,
+                    g = g,
+                    gid = grp_nm,
+                    window = window,
+                    roll_episode = roll_episode,
+                    fill = fill)
+  # Re-add dates that were modified
+  if (length(event_col) > 0){
+    data.table::set(out,
+                    i = which_non_event,
+                    j = time_col,
+                    value = event_dates)
+  }
   # Newly added episodic columns
   new_cols <- c("t_elapsed", "ep_start", "ep_id", "ep_id_new")
-  set_rm_cols(out, grp_nm)
+  set_rm_cols(out, c(grp_nm, grp_nm2))
   # Sort by initial order
   if (!data_is_sorted){
-    out <- df_reorder(out, g = g2)
+    data.table::setorderv(out, row_id_nm)
   }
+  set_rm_cols(out, row_id_nm)
   if (.add){
     # Simply bind the cols together
-    dplyr::bind_cols(data, fselect(out, .cols = new_cols))
+    vctrs::vec_cbind(data, fselect(out, .cols = new_cols))
   } else {
     # Only keep the key variables
     out_nms <- c(group_vars, time_col, event_col, new_cols)
@@ -253,183 +288,59 @@ time_episodes <- function(data, time, time_by = NULL,
 }
 # Internal helper to calculate time episodes
 # Data must be sorted by groups + time
-calc_episodes <- function(data,
-                          time, # time col
-                          time_by, # time unit (days, etc)
-                          time_type, # time_type (duration/period)
-                          switch_on_boundary,
-                          g, # GRP object
-                          gid, # group id col
-                          event, # Event col
-                          window, # Window col
-                          roll_episode, # Should episode calc be rolling?
-                          fill){ # How to fill first time elapsed for rolling calc
+set_calc_episodes <- function(data,
+                              time, # time col
+                              time_by, # time unit (days, etc)
+                              time_type, # time_type (duration/period)
+                              switch_on_boundary,
+                              g, # GRP object
+                              gid, # group id col
+                              window, # Window col
+                              roll_episode, # Should episode calc be rolling?
+                              fill){ # How to fill first time elapsed for rolling calc
   N <- df_nrow(data)
   lag <- min(N, 1L) # Bound lag to >= 0
   time_na <- na_init(fpluck(data, time)) # time NA with correct class
   time_num <- time_by_num(time_by)
   time_unit <- time_by_unit(time_by)
-  # time_threshold <- add_names(list(time_num * window), time_unit)
-
-  ##### (More efficient) METHOD assuming all rows are events #####
-
-  if (length(event) == 0L){
-    time_lag_nm <- character(0)
-    time_lag_nm2 <- character(0)
-    # Time elapsed
-    set_add_cols(data, list(
-      t_elapsed = time_elapsed(fpluck(data, time), g = g,
-                               time_by = time_by,
-                               fill = fill,
-                               time_type = time_type,
-                               rolling = roll_episode,
-                               na_skip = TRUE)
-    ))
-    # Binary variable indicating if new episode or not
-    # The first event is always a new episode
-    # Events where t_elapsed >= window are new episodes
-    set_add_cols(data, list(
-      ep_id = time_seq_id(fpluck(data, time),
-                          g = g,
-                          time_by = time_by,
-                          threshold = window,
-                          time_type = time_type,
-                          rolling = roll_episode,
-                          switch_on_boundary = switch_on_boundary,
-                          na_skip = TRUE)
-    ))
-    g3 <- collapse::GRP(fselect(data, .cols = c(gid, "ep_id")))
-    g3_starts <- GRP_starts(g3)
-    set_add_cols(data, list(ep_id_new = 0L))
-    data.table::set(data,
-                    i = g3_starts,
-                    j = "ep_id_new",
-                    value = fpluck(data, "ep_id")[g3_starts])
-    data.table::set(data,
-                    i = cpp_which(is.na(fpluck(data, "ep_id"))),
-                    j = "ep_id_new",
-                    value = NA_integer_)
-    # Add episode start dates
-    # Get min episode dates for each subject + episode
-    set_add_cols(data, list(
-      ep_start = gfirst(fpluck(data, time),
-                        g = g3,
-                        na.rm = FALSE)
-    ))
-  } else {
-
-    ##### METHOD for data with a mix of event and non-event rows #####
-    time_lag_nm <- new_var_nm(data, "date_lag")
-    time_lag_nm2 <- new_var_nm(c(names(data), time_lag_nm), "date_lag2")
-    # group_row_id_nm <- character(0)
-    is_event <- fpluck(data, event) == 1L # Logical
-    which_is_event <- cpp_which(is_event)
-    which_not_event <- cpp_which(!is_event)
-    event_data <- df_row_slice(data, which_is_event)
-    event_groups <- collapse::GRP(GRP_group_id(g)[which_is_event])
-    which_time_na <- collapse::whichNA(fpluck(data, time)) # Which time are NA
-    # Initialise lagged time as NA
-    data.table::set(data,
-                    j = time_lag_nm,
-                    value = time_na)
-    if (roll_episode){
-      data.table::set(data,
-                      i = which_is_event,
-                      j = time_lag_nm,
-                      value = flag2(fpluck(event_data, time),
-                                    g = event_groups))
-      # g = fpluck(event_data, gid)))
-    } else {
-      data.table::set(data,
-                      i = which_is_event,
-                      j = time_lag_nm,
-                      value = gfirst(fpluck(event_data, time),
-                                     g = event_groups,
-                                     # g = fpluck(event_data, gid),
-                                     na.rm = TRUE))
-    }
-    # Replace the first NA values (for event rows) with time
-    which_replace_na <- cpp_which(is_event & !is.na(fpluck(data, time)) &
-                                    is.na(fpluck(data, time_lag_nm)))
-    data.table::set(data,
-                    i = which_replace_na,
-                    j = time_lag_nm,
-                    value = fpluck(data, time)[which_replace_na])
-    # LOCF NA fill
-    data.table::set(data,
-                    j = time_lag_nm2,
-                    value = data.table::fifelse(is_event,
-                                                fpluck(data, time),
-                                                time_na))
-    data.table::set(data,
-                    j = time_lag_nm2,
-                    value = roll_na_fill(fpluck(data, time_lag_nm2),
-                                         g = g))
-
-    # Time elapsed
-    data.table::set(data,
-                    i = which_is_event,
-                    j = "t_elapsed",
-                    value = time_elapsed(fpluck(event_data, time),
-                                         g = event_groups,
-                                         time_by = time_by,
-                                         fill = fill,
-                                         time_type = time_type,
-                                         rolling = roll_episode,
-                                         na_skip = TRUE))
-    data.table::set(data,
-                    i = which_not_event,
-                    j = "t_elapsed",
-                    value = time_diff(fpluck(df_row_slice(data, which_not_event),
-                                             time_lag_nm2),
-                                      fpluck(df_row_slice(data, which_not_event),
-                                             time),
-                                      time_by = time_by,
-                                      time_type = time_type))
-    # Initialise episode ID
-    data.table::set(data,
-                    j = "ep_id",
-                    value = NA_integer_)
-    data.table::set(data,
-                    i = which_is_event,
-                    j = "ep_id",
-                    value = time_seq_id(fpluck(event_data, time),
-                                        fpluck(event_data, gid),
-                                        time_by = time_by,
-                                        threshold = window,
-                                        time_type = time_type,
-                                        rolling = roll_episode,
-                                        switch_on_boundary = switch_on_boundary,
-                                        na_skip = TRUE))
-    event_data <- df_row_slice(data, which_is_event)
-    g3 <- collapse::GRP(fselect(event_data,
-                                .cols = c(gid, "ep_id")))
-    g3_starts <- GRP_starts(g3)
-    # Initialise new episode ID
-    data.table::set(data,
-                    j = "ep_id_new",
-                    value = NA_integer_)
-    data.table::set(data,
-                    i = which_is_event,
-                    j = "ep_id_new",
-                    value = data.table::fifelse(df_seq_along(event_data) %in%
-                                                  g3_starts,
-                                                fpluck(event_data, "ep_id"),
-                                                0L))
-    # Initialise episode start date
-    data.table::set(data,
-                    j = "ep_start",
-                    value = time_na)
-    # Add episode start dates
-    # Get min episode dates for each subject + episode
-    data.table::set(data,
-                    i = which_is_event,
-                    j = "ep_start",
-                    value = gfirst(fpluck(event_data, time),
-                                   g = g3,
-                                   na.rm = TRUE))
-
-  }
-  # Remove unnecessary cols
-  set_rm_cols(data, c(time_lag_nm, time_lag_nm2, event))
+  # Time elapsed
+  set_add_cols(data, list(
+    t_elapsed = time_elapsed(fpluck(data, time), g = g,
+                             time_by = time_by,
+                             fill = fill,
+                             time_type = time_type,
+                             rolling = roll_episode,
+                             na_skip = TRUE)
+  ))
+  # Binary variable indicating if new episode or not
+  # The first event is always a new episode
+  # Events where t_elapsed >= window are new episodes
+  set_add_cols(data, list(
+    ep_id = time_seq_id(fpluck(data, time),
+                        g = g,
+                        time_by = time_by,
+                        threshold = window,
+                        time_type = time_type,
+                        rolling = roll_episode,
+                        switch_on_boundary = switch_on_boundary,
+                        na_skip = TRUE)
+  ))
+  g3 <- collapse::GRP(fselect(data, .cols = c(gid, "ep_id")))
+  g3_starts <- GRP_starts(g3)
+  set_add_cols(data, list(ep_id_new = 0L))
+  data.table::set(data,
+                  i = g3_starts,
+                  j = "ep_id_new",
+                  value = fpluck(data, "ep_id")[g3_starts])
+  data.table::set(data,
+                  i = cpp_which(is.na(fpluck(data, "ep_id"))),
+                  j = "ep_id_new",
+                  value = NA_integer_)
+  # Add episode start dates
+  # Get min episode dates for each subject + episode
+  set_add_cols(data, list(
+    ep_start = gfirst(fpluck(data, time),
+                      g = g3,
+                      na.rm = FALSE)
+  ))
 }

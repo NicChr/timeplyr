@@ -128,13 +128,16 @@ df_rm_cols <- function(data, .cols){
                                          cols_to_remove))
 }
 # Seq along df rows/cols
-df_seq_along <- function(data, along = c("rows", "cols")){
-  along <- rlang::arg_match0(along, c("rows", "cols"))
-  if (along == "rows"){
-    seq_len(df_nrow(data))
-  } else {
-    seq_len(df_ncol(data))
-  }
+df_seq_along <- function(data, along = "rows"){
+  switch(along,
+         rows = seq_len(df_nrow(data)),
+         seq_len(df_ncol(data)))
+  # along <- rlang::arg_match0(along, c("rows", "cols"))
+  # if (along == "rows"){
+  #   seq_len(df_nrow(data))
+  # } else {
+  #   seq_len(df_ncol(data))
+  # }
 }
 df_rep <- function(data, times){
   N <- df_nrow(data)
