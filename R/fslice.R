@@ -1,12 +1,18 @@
 #' Faster `dplyr::slice()`
 #'
-#' @description When there are lots of groups, the `fslice()` functions are much faster.
+#' @description
+#' When there are lots of groups, the `fslice()` functions are much faster.
 #'
 #' @details
 #' `fslice()` and friends allow for more flexibility in how you order the by-group slicing. \cr
 #' Furthermore, you can control whether the returned data frame is sliced in
 #' the order of the supplied row indices, or whether the
 #' original order is retained (like `dplyr::filter()`).
+#'
+#' In `fslice()`, when `length(n) == 1`, an optimised method is implemented
+#' that internally uses `list_subset()`, a fast function for extracting
+#' single elements from single-level lists that contain vectors of the same
+#' type, e.g. integer.
 #'
 #' `fslice_head()` and `fslice_tail()` are very fast with large numbers of groups.
 #'
