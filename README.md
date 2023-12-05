@@ -223,7 +223,7 @@ start <- dmy("17-Jan-2013")
 flights %>%
   time_count(date,
              time_by = "week", from = start, time_floor = TRUE)
-#> # A tibble: 51 × 2
+#> # A tibble: 52 × 2
 #>    date           n
 #>    <date>     <int>
 #>  1 2013-01-14  3311
@@ -236,11 +236,11 @@ flights %>%
 #>  8 2013-03-04  6546
 #>  9 2013-03-11  6555
 #> 10 2013-03-18  6547
-#> # ℹ 41 more rows
+#> # ℹ 42 more rows
 flights %>%
   time_count(date,
              time_by = "month", from = start, time_floor = TRUE)
-#> # A tibble: 12 × 2
+#> # A tibble: 13 × 2
 #>    date           n
 #>    <date>     <int>
 #>  1 2013-01-01 13001
@@ -255,6 +255,7 @@ flights %>%
 #> 10 2013-10-01 28889
 #> 11 2013-11-01 27268
 #> 12 2013-12-01 28135
+#> 13 NA         14003
 ```
 
 #### Check for missing gaps in time
@@ -423,7 +424,7 @@ inspired by the excellent ‘zoo’ and ‘tsibble’ packages.
 ``` r
 today <- today()
 year_month(today)
-#> [1] "2023 Nov"
+#> [1] "2023 Dec"
 ```
 
 The underlying data for a `year_month` is the number of months since 1
@@ -440,9 +441,9 @@ To create a sequence of ‘year_months’, one can use base arithmetic
 
 ``` r
 year_month(today) + 0:12
-#>  [1] "2023 Nov" "2023 Dec" "2024 Jan" "2024 Feb" "2024 Mar" "2024 Apr"
-#>  [7] "2024 May" "2024 Jun" "2024 Jul" "2024 Aug" "2024 Sep" "2024 Oct"
-#> [13] "2024 Nov"
+#>  [1] "2023 Dec" "2024 Jan" "2024 Feb" "2024 Mar" "2024 Apr" "2024 May"
+#>  [7] "2024 Jun" "2024 Jul" "2024 Aug" "2024 Sep" "2024 Oct" "2024 Nov"
+#> [13] "2024 Dec"
 year_quarter(today) + 0:4
 #> [1] "2023 Q4" "2024 Q1" "2024 Q2" "2024 Q3" "2024 Q4"
 ```
@@ -713,11 +714,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2023-W47"
+#> [1] "2023-W49"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W47-3"
+#> [1] "2023-W49-1"
 iso_week(today(), year = FALSE)
-#> [1] "W47"
+#> [1] "W49"
 ```
 
 ## `time_cut()`

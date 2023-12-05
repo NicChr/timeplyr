@@ -1,5 +1,8 @@
 # timeplyr (Development version)
 
+* In `time_episodes`, the calculation for when there is 
+a mixture of events and non-events has been significantly simplified.
+
 * New functions `roll_lag` and `roll_diff` for rolling lags and differences.
 
 * The `time_roll_` functions are now faster due to having amended the 

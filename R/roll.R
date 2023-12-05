@@ -174,11 +174,7 @@ roll_growth_rate <- function(x, window = Inf, g = NULL,
   group_order <- sorted_info[["group_order"]]
   is_sorted <- sorted_info[["sorted"]]
   x <- sorted_info[["x"]]
-  roll_window <- window_sequence(group_sizes,
-                                 k = window,
-                                 partial = partial,
-                                 ascending = TRUE)
-  lag_window <- roll_window - 1L
+  lag_window <- lag_sequence(group_sizes, k = window - 1, partial = partial)
   x_lagged <- roll_lag(x, lag_window)
   if (na.rm){
     lag_window <- data.table::frollsum(!is.na(x), n = lag_window,

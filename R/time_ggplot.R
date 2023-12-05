@@ -21,6 +21,7 @@
 #' @examples
 #' library(dplyr)
 #' library(timeplyr)
+#' library(ggplot2)
 #' \dontshow{
 #' .n_dt_threads <- data.table::getDTthreads()
 #' .n_collapse_threads <- collapse::get_collapse()$nthreads
@@ -47,10 +48,22 @@
 #' # An example using raw data
 #'
 #' ebola <- outbreaks::ebola_sim$linelist
+#'
+#' # We can build a helper to count and complete
+#' # Using the same time grid
+#'
+#' count_and_complete <- function(.data, time, ...,
+#'                                time_by = NULL, time_floor = TRUE){
+#'   .data %>%
+#'     time_count(!!dplyr::enquo(time), ..., time_by = time_by,
+#'                time_floor = time_floor) %>%
+#'     time_complete(!!dplyr::enquo(time), ..., time_by = time_by,
+#'                   time_floor = time_floor, fill = list(n = 0))
+#' }
 #' ebola %>%
-#'   time_count(date_of_infection, time_by = "week",
-#'              outcome) %>%
-#'   time_ggplot(date_of_infection, n, outcome)
+#'   count_and_complete(date_of_onset, outcome, time_by = "week") %>%
+#'   time_ggplot(date_of_onset, n, geom = geom_blank) +
+#'   geom_col(aes(fill = outcome))
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
@@ -100,20 +113,21 @@ time_ggplot <- function(data, time, value, group = NULL,
                                  y = .data[[value]])) +
     ggplot2::theme_minimal() +
     x_scale
+  extra_gg_args <- list(...)
   if (length(group) > 0L){
     if (facet){
       # Add a new col every 6 rows
       facet_ncol <- (n_unique(fpluck(data, group_nm)) %/% 6) + 1
       out <- out +
-        do.call(geom, list(...)) +
+        do.call(geom, extra_gg_args) +
         ggplot2::facet_wrap(group, ncol = facet_ncol,
                             scales = "free_y")
     } else {
       out <- out +
-        do.call(geom, c(list(ggplot2::aes(col = .data[[group_nm]])), list(...)))
+        do.call(geom, c(list(ggplot2::aes(col = .data[[group_nm]])), extra_gg_args))
     }
   } else {
-    out <- out + do.call(geom, list(...))
+    out <- out + do.call(geom, extra_gg_args)
   }
   out
 }

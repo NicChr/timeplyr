@@ -8,8 +8,8 @@ test_that("time_roll", {
   options(max.print = 5)
   smr <- function(x){
     x <- x[!is.na(x)]
-    c(var(x), mean(x), sd(x), quantile(x, names = FALSE,
-                                       probs = seq(0, 1, 0.1)))
+    c(var(x), mean(x), sd(x), stats::quantile(x, names = FALSE,
+                                              probs = seq(0, 1, 0.1)))
   }
     flights <- nycflights13::flights
     x <- flights$arr_delay
@@ -83,5 +83,4 @@ test_that("time_roll", {
       dplyr::pull(mean)
     expect_snapshot(smr(z2))
     options(max.print = max_print)
-  # })
 })
