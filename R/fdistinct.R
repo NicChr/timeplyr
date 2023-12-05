@@ -43,7 +43,7 @@
 #'}
 #' @export
 fdistinct <- function(data, ..., .keep_all = FALSE,
-                      sort = FALSE, order = sort,
+                       sort = FALSE, order = sort,
                       .by = NULL, .cols = NULL){
   n_dots <- dots_length(...)
   group_info <- tidy_group_info(data, ..., .by = {{ .by }},
@@ -64,94 +64,27 @@ fdistinct <- function(data, ..., .keep_all = FALSE,
     }
   }
   if (length(group_info[["extra_groups"]]) == 0L && !group_info[["groups_changed"]]){
-   out <- data
+    out <- data
   }
   out <- fselect(out, .cols = out_vars)
-  order_sort_alike <- !order || (order && sort)
-  g <- df_to_GRP(out, .cols = dup_vars, order = order,
-                 return.order = FALSE,
-                 return.groups = order_sort_alike)
-  GRP_has_groups <- !is.null(GRP_groups(g))
-  use_GRP_groups <- order_sort_alike && GRP_has_groups && !.keep_all
-  if (use_GRP_groups){
-    out <- GRP_groups(g)
+  # Using sort algorithm but returning order-of-first appearance groups
+  if (order && !sort){
+    unique_locs <- cpp_which(frowid(fselect(out, .cols = dup_vars)) == 1L)
+    slice <- !(length(unique_locs) == df_nrow(out) && is_sorted(unique_locs))
   } else {
-    if (order_sort_alike){
-      unique_locs <- GRP_starts(g)
+    if (order && sort){
+      o <- radixorderv2(fselect(out, .cols = dup_vars), starts = TRUE)
+      unique_locs <- o[attr(o, "starts")]
+      slice <- !(length(unique_locs) == df_nrow(out) &&
+                   isTRUE(attr(o, "sorted")))
     } else {
-      unique_locs <- cpp_which(frowid(g) == 1L)
+      groups <- group2(fselect(out, .cols = dup_vars), starts = TRUE)
+      unique_locs <- attr(groups, "starts")
+      slice <- !(length(unique_locs) == df_nrow(out))
     }
+  }
+  if (slice){
     out <- df_row_slice(out, unique_locs, reconstruct = FALSE)
   }
-  out <- fselect(out, .cols = out_vars)
   df_reconstruct(out, data)
 }
-# Simplest version
-# fdistinct <- function(data, ..., .keep_all = FALSE,
-#                       .by = NULL, .cols = NULL){
-#   n_dots <- dots_length(...)
-#   group_info <- group_info(data, ..., .by = {{ .by }},
-#                            .cols = .cols,
-#                            ungroup = TRUE,
-#                            rename = TRUE)
-#   all_groups <- group_info[["all_groups"]]
-#   out <- group_info[["data"]]
-#   if (n_dots == 0 && is.null(.cols)){
-#     dup_vars <- names(out)
-#     out_vars <- dup_vars
-#   } else {
-#     dup_vars <- all_groups
-#     if (.keep_all){
-#       out_vars <- names(out)
-#     } else {
-#       out_vars <- dup_vars
-#     }
-#   }
-#   if (length(group_info[["extra_groups"]]) == 0L){
-#     out <- data
-#   }
-#   out <- fselect(out, .cols = out_vars)
-#   g <- df_to_GRP(out, .cols = dup_vars,
-#                  return.order = FALSE,
-#                  return.groups = FALSE)
-#   unique_locs <- collapse::whichv(frowid(out, g = g), 1L)
-#   out <- df_row_slice(out, unique_locs, reconstruct = FALSE)
-#   df_reconstruct(out, data)
-# }
-# Slightly simpler version of above
-# fdistinct <- function(data, ..., .keep_all = FALSE,
-#                       sort = FALSE, order = sort,
-#                       .by = NULL, .cols = NULL){
-#   n_dots <- dots_length(...)
-#   group_info <- group_info(data, ..., .by = {{ .by }},
-#                            .cols = .cols,
-#                            ungroup = TRUE,
-#                            rename = TRUE)
-#   all_groups <- group_info[["all_groups"]]
-#   out <- group_info[["data"]]
-#   if (n_dots == 0 && is.null(.cols)){
-#     dup_vars <- names(out)
-#     out_vars <- dup_vars
-#   } else {
-#     dup_vars <- all_groups
-#     if (.keep_all){
-#       out_vars <- names(out)
-#     } else {
-#       out_vars <- dup_vars
-#     }
-#   }
-#   if (length(group_info[["extra_groups"]]) == 0L){
-#     out <- data
-#   }
-#   out <- fselect(out, .cols = out_vars)
-#   g <- df_to_GRP(out, .cols = dup_vars, order = order,
-#                  return.order = FALSE,
-#                  return.groups = FALSE)
-#   if (sort){
-#     unique_locs <- GRP_starts(g)
-#   } else {
-#     unique_locs <- collapse::whichv(frowid(out, g = g), 1L)
-#   }
-#   out <- df_row_slice(out, unique_locs, reconstruct = FALSE)
-#   df_reconstruct(out, data)
-# }

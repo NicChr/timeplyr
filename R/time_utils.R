@@ -176,6 +176,7 @@ time_granularity <- function(x, msg = TRUE){
   } else {
     gcd_diff <- abs(gcd_diff(x, round = TRUE))
   }
+  gcd_diff[is.na(gcd_diff)] <- 1
   if (is_date(x)){
     granularity <- "day(s)"
     scale <- 1L
@@ -214,6 +215,7 @@ time_granularity2 <- function(x){
   } else {
     gcd_diff <- abs(gcd_diff(x, round = TRUE))
   }
+  gcd_diff[is.na(gcd_diff)] <- 1
   if (is_date(x)){
     unit <- "days"
     scale <- 1

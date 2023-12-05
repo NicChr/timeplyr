@@ -5,6 +5,25 @@ collapse::set_collapse(nthreads = 1L)
 
 testthat::test_that("fdistinct", {
   flights <- nycflights13::flights
+  expect_equal(
+    fdistinct(fselect(iris, .cols = 0)),
+    structure(list(), names = character(0),
+              class = "data.frame",
+              row.names = c(NA, -1L))
+  )
+  expect_equal(
+    fdistinct(fselect(iris, .cols = 0), sort = TRUE),
+    structure(list(), names = character(0),
+              class = "data.frame",
+              row.names = c(NA, -1L))
+  )
+  expect_equal(
+    fdistinct(fselect(iris, .cols = 0), sort = FALSE, order = TRUE),
+    structure(list(), names = character(0),
+              class = "data.frame",
+              row.names = c(NA, -1L))
+  )
+
   testthat::expect_equal(fdistinct(flights, .cols = 0),
                          dplyr::distinct(flights,
                                          dplyr::across(dplyr::all_of(character(0)))))

@@ -57,14 +57,17 @@ time_diff_gcd <- function(x, time_by = 1,
   if (length(x) == 1L && is.na(x)){
     return(NA_real_)
   }
-  if (length(x) == 1L){
+  if (length(x) == 1L ||
+      # Check that the first value is NA since
+      # time_elapsed with rolling = F compares to first value
+      (length(x) == 2 && is.na(x[1L]))){
     return(1)
   }
   tdiff <- time_elapsed(x, rolling = FALSE,
                         time_by = time_by,
                         time_type = time_type,
                         g = NULL,
-                        na_skip = FALSE)
+                        na_skip = TRUE)
   tdiff <- diff_(tdiff, 1L, fill = 0)
   log10_tol <- ceiling(abs(log10(tol)))
   if (is.double(tdiff)){

@@ -26,6 +26,20 @@ group2 <- function(X, starts = FALSE, group.sizes = FALSE){
   if (is.null(X)){
     return(NULL)
   }
+  if (is_df(X) && df_ncol(X) == 0){
+    N <- df_nrow(X)
+    out <- seq_ones(N)
+    if (starts){
+      attr(out, "starts") <- min(1L, N)
+    }
+    if (group.sizes){
+      attr(out, "group.sizes") <- N
+    }
+    return(out)
+  }
+  if (is.list(X) && length(X) == 0){
+    return(NULL)
+  }
   if (is_interval(X)){
     X <- interval_separate(X)
   }
@@ -565,9 +579,19 @@ radixorderv2 <- function(x, starts = FALSE, sort = TRUE, group.sizes = FALSE,
   if (is.null(x)){
     return(NULL)
   }
-  # if (is.integer(x) && "sorted" %in% attr(attributes(x), "names")){
-  #   return(x)
-  # }
+  if (is_df(x) && df_ncol(x) == 0){
+    N <- df_nrow(x)
+    out <- seq_len(N)
+    if (starts){
+      attr(out, "starts") <- min(1L, N)
+    }
+    if (group.sizes){
+      attr(out, "group.sizes") <- N
+    }
+    attr(out, "maxgrpn") <- N
+    attr(out, "sorted") <- TRUE
+    return(out)
+  }
   if (is_GRP(x)){
     return(GRP_order(x))
   }

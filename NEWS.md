@@ -1,5 +1,7 @@
 # timeplyr (Development version)
 
+* `fdistinct` is now faster when `sort = TRUE`.
+
 * In `time_episodes`, the calculation for when there is 
 a mixture of events and non-events has been significantly simplified.
 
@@ -27,7 +29,7 @@ names. These are now evaluated once.
 
 * Improved print method speed for `year_month` and `year_quarter`
 
-# timeplyr 0.4.1
+# timeplyr 0.4.1 (24-Nov-2023)
 
 * New classes `year_month` and `year_quarter`. 
 Inspired by 'zoo' and 'tsibble', these operate similarly but
