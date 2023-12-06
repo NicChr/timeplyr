@@ -34,7 +34,7 @@ group2 <- function(X, starts = FALSE, group.sizes = FALSE){
       attr(out, "starts") <- if (N == 0) integer() else 1L
     }
     if (group.sizes){
-      attr(out, "group.sizes") <- if (N == 0) integer() else 1L
+      attr(out, "group.sizes") <- if (N == 0) integer() else N
     }
     attr(out, "class") <- c("qG", "na.included")
     return(out)
