@@ -1278,6 +1278,7 @@ bin <- function(x, breaks,
 # list items with zero-length vectors are replaced
 # with the default value
 # out-of-bounds subsets are also replaced with the default
+# the idea is that this identity always holds: length(list_subset(x)) == length(x)
 list_subset <- function(x, i, default = NA, copy_attributes = FALSE){
   check_length(default, 1)
   if (length(x) == 0){
@@ -1287,11 +1288,7 @@ list_subset <- function(x, i, default = NA, copy_attributes = FALSE){
     first_element <- x[[1]]
     ptype <- first_element[0]
   }
-  i <- as.integer(i)
-  if (length(i) == 1 && length(i) != length(x)){
-    i <- rep_len(i, length(x))
-  }
-  out <- cpp_list_subset(x, ptype, i, default)
+  out <- cpp_list_subset(x, ptype, as.integer(i), default)
   if (copy_attributes){
     attributes(out) <- attributes(first_element)
   }

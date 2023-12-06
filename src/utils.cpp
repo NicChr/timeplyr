@@ -427,6 +427,8 @@ SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP replace) {
   Rf_protect(i = Rf_coerceVector(i, INTSXP));
   const SEXP *p_x = VECTOR_PTR_RO(x);
   int n = Rf_length(x);
+  int i_n = Rf_length(i);
+  int k;
   if (n == 0){
     Rf_unprotect(2);
     return ptype;
@@ -435,9 +437,9 @@ SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP replace) {
     Rf_unprotect(2);
     Rf_error("ptype must be a zero-length vector");
   }
-  if (Rf_length(i) != n){
+  if (!(i_n == 1 || (n > 0 && i_n == n))){
     Rf_unprotect(2);
-    Rf_error("i must be an integer vector the same length as x");
+    Rf_error("i must be an integer vector of length 1 or of length(x)");
   }
   int *p_i = INTEGER(i);
   switch (TYPEOF(ptype)){
@@ -447,8 +449,9 @@ SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP replace) {
     int *p_out = LOGICAL(out);
     for (int j = 0; j < n; ++j) {
       p_out[j] = default_value;
-      if (p_i[j] <= Rf_length(p_x[j]) && p_i[j] > 0){
-        p_out[j] = LOGICAL(p_x[j])[p_i[j] - 1];
+      k = (i_n == 1 ? p_i[0] : p_i[j]);
+      if (k <= Rf_length(p_x[j]) && k > 0){
+        p_out[j] = LOGICAL(p_x[j])[k - 1];
       }
     }
     Rf_unprotect(3);
@@ -460,8 +463,9 @@ SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP replace) {
     int *p_out = INTEGER(out);
     for (int j = 0; j < n; ++j) {
       p_out[j] = default_value;
-      if (p_i[j] <= Rf_length(p_x[j]) && p_i[j] > 0){
-        p_out[j] = INTEGER(p_x[j])[p_i[j] - 1];
+      k = (i_n == 1 ? p_i[0] : p_i[j]);
+      if (k <= Rf_length(p_x[j]) && k > 0){
+        p_out[j] = INTEGER(p_x[j])[k - 1];
       }
     }
     Rf_unprotect(3);
@@ -473,8 +477,9 @@ SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP replace) {
     double *p_out = REAL(out);
     for (int j = 0; j < n; ++j) {
       p_out[j] = default_value;
-      if (p_i[j] <= Rf_length(p_x[j]) && p_i[j] > 0){
-        p_out[j] = REAL(p_x[j])[p_i[j] - 1];
+      k = (i_n == 1 ? p_i[0] : p_i[j]);
+      if (k <= Rf_length(p_x[j]) && k > 0){
+        p_out[j] = REAL(p_x[j])[k - 1];
       }
     }
     Rf_unprotect(3);
@@ -485,8 +490,9 @@ SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP replace) {
     SEXP out = Rf_protect(Rf_allocVector(STRSXP, n));
     for (int j = 0; j < n; ++j) {
       SET_STRING_ELT(out, j, default_value);
-      if (p_i[j] <= Rf_length(p_x[j]) && p_i[j] > 0){
-        SET_STRING_ELT(out, j, STRING_ELT(p_x[j], p_i[j] - 1));
+      k = (i_n == 1 ? p_i[0] : p_i[j]);
+      if (k <= Rf_length(p_x[j]) && k > 0){
+        SET_STRING_ELT(out, j, STRING_ELT(p_x[j], k - 1));
       }
     }
     Rf_unprotect(3);

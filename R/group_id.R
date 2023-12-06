@@ -471,7 +471,7 @@ qG2 <- function(x, sort = TRUE, ordered = FALSE, na.exclude = FALSE, ...){
 }
 # Mutate interval columns to group IDs
 mutate_intervals_to_ids <- function(data, order = TRUE){
-  which_int <- which(list_item_is_interval(data))
+  which_int <- cpp_which(list_item_is_interval(data))
   for (i in seq_along(which_int)){
     data[[.subset2(which_int, i)]] <- group_id.Interval(.subset2(data, .subset2(which_int, i)), order = order)
   }

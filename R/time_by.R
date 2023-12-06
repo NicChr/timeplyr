@@ -111,10 +111,10 @@ time_by <- function(data, time, time_by_unit = NULL,
   check_is_df(data)
   data_nms <- names(data)
   group_vars <- group_vars(data)
-  data <- safe_ungroup(data)
-  time_info <- mutate_summary_ungrouped(data, !!enquo(time))
-  from_info <- mutate_summary_ungrouped(data, !!enquo(from), .keep = "none")
-  to_info <- mutate_summary_ungrouped(data, !!enquo(to), .keep = "none")
+  out <- safe_ungroup(data)
+  time_info <- mutate_summary_ungrouped(out, !!enquo(time))
+  from_info <- mutate_summary_ungrouped(out, !!enquo(from), .keep = "none")
+  to_info <- mutate_summary_ungrouped(out, !!enquo(to), .keep = "none")
   time_var <- time_info[["cols"]]
   from_var <- from_info[["cols"]]
   to_var <- to_info[["cols"]]
@@ -129,14 +129,10 @@ time_by <- function(data, time, time_by_unit = NULL,
   to_data <- to_info[["data"]]
   from_data <- fselect(from_data, .cols = cpp_which(names(from_data) %in% names(time_data), invert = TRUE))
   to_data <- fselect(to_data, .cols = cpp_which(names(to_data) %in% names(time_data), invert = TRUE))
-  # to_data <- fselect(to_data,
-  #                    setdiff2(match(to_var, names(time_data), 0L), col_seq))
-
-  rlang::check_required(time)
-  data <- vctrs::vec_cbind(time_data, from_data, to_data)
-  check_is_time_or_num(data[[time_var]])
+  out <- vctrs::vec_cbind(time_data, from_data, to_data)
   if (length(time_var) > 0L){
-    time_by <- time_by_get(data[[time_var]], time_by = time_by_unit,
+    check_is_time_or_num(out[[time_var]])
+    time_by <- time_by_get(out[[time_var]], time_by = time_by_unit,
                            quiet = TRUE)
     if (time_by_length(time_by) > 1){
       stop("Please supply only one numeric value in time_by")
@@ -145,16 +141,16 @@ time_by <- function(data, time, time_by_unit = NULL,
       g <- NULL
       time_span_groups <- character(0)
     } else {
-      g <- fselect(data, .cols = group_vars)
+      g <- fselect(out, .cols = group_vars)
       time_span_groups <- group_vars
     }
-    time_span_GRP <- df_to_GRP(data, .cols = time_span_groups,
+    time_span_GRP <- df_to_GRP(out, .cols = time_span_groups,
                                return.groups = TRUE)
-    from_to_list <- get_from_to(data, time = time_var,
+    from_to_list <- get_from_to(out, time = time_var,
                                 from = from_var, to = to_var,
                                 .by = all_of(time_span_groups))
     # Aggregate time data
-    time_agg <- time_aggregate_left(data[[time_var]],
+    time_agg <- time_aggregate_left(out[[time_var]],
                                     time_by = time_by,
                                     start = fpluck(from_to_list, 1L),
                                     end = fpluck(from_to_list, 2L),
@@ -171,14 +167,14 @@ time_by <- function(data, time, time_by_unit = NULL,
                                     use.g.names = FALSE)
     time_agg <- time_int_rm_attrs(time_agg)
     time_var <- across_col_names(time_var, .fns = "", .names = .name)
-    data <- dplyr::mutate(data, "{time_var}" := time_agg)
+    out <- df_add_cols(out, add_names(list(time_agg), time_var))
     time_span <- GRP_group_data(time_span_GRP)
     if (df_nrow(time_span) == 0L){
       time_span <- df_init(time_span, 1L)
     }
     time_span$start <- time_span_start
     time_span$end <- time_span_end
-    num_gaps <- time_num_gaps(data[[time_var]],
+    num_gaps <- time_num_gaps(out[[time_var]],
                               time_by = time_by,
                               time_type = time_type,
                               g = g, use.g.names = FALSE,
@@ -189,7 +185,7 @@ time_by <- function(data, time, time_by_unit = NULL,
   if (.add){
     groups <- c(group_vars, time_var)
   }
-  out <- fgroup_by(data, .cols = groups)
+  out <- fgroup_by(out, .cols = groups)
   if (isTRUE(is.na(match(from_var, data_nms)))){
     out <- df_rm_cols(out, from_var)
   }

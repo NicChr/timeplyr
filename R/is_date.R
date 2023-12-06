@@ -1,10 +1,11 @@
 #' Utility functions for checking if date or datetime
 #'
 #' @param x Time variable. \cr
-#' Can be a `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, or `yearqtr`.
+#' Can be a `Date`, `POSIXt`, `numeric`, `integer`,
+#' `yearmon`, `yearqtr`, `year_month` or `year_quarter`.
 #'
 #' @returns
-#' A logical(1).
+#' A [logical] of length 1.
 #'
 #' @rdname is_date
 #' @export

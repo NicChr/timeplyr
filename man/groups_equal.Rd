@@ -32,17 +32,4 @@ groups_equal(iris, iris)
 groups_equal(df, df)
 groups_equal(df, df2)
 
-library(bench)
-
-all_equal_grouped_df <- function(x, y){
-  groups_equal(x, y) && all.equal(ungroup(x), ungroup(y))
-}
-
-mark(all_equal_grouped_df(df, df2),
-     isTRUE(all.equal(df, df2)),
-     iterations = 20)
-
-mark(all_equal_grouped_df(df, df),
-     isTRUE(all.equal(df, df)),
-     iterations = 20)
 }

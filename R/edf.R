@@ -115,12 +115,12 @@ edf <- function(x, g = NULL, wt = NULL){
     # Order if NAs are shifted to the end
     is_na <- is.na(x)
     which_na <- cpp_which(is_na)
-    df[, ("id") := data.table::fifelse(is_na, NA_integer_, get("id"))]
+    df[which_na, ("id") := NA_integer_]
+    if (n_na > 0){
+      df <- df[cpp_which(is_na, invert = TRUE)]
+    }
     # Sort data in ascending order
     data.table::setorderv(df, cols = "g3")
-    if (n_na > 0){
-      df <- df[!is.na(get("x"))]
-    }
     # Group sizes
     grp_n2 <- collapse::GRPN(df[["g"]], expand = TRUE)
     times <- collapse::GRPN(df[["g3"]], expand = FALSE)

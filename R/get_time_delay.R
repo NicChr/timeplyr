@@ -121,7 +121,7 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
   end_time <- end
   origin_df <- safe_ungroup(origin_info[["data"]])
   end_df <- fselect(safe_ungroup(end_info[["data"]]), .cols = end)
-  out <- data.table::copy(collapse::qDT(dplyr::bind_cols(origin_df, end_df)))
+  out <- data.table::copy(collapse::qDT(vctrs::vec_cbind(origin_df, end_df)))
   grp_nm <- new_var_nm(out, ".group.id")
   set_add_cols(out, add_names(list(group_id(data, .by = {{ .by }})), grp_nm))
   set_rm_cols(out, setdiff(names(out),
@@ -133,9 +133,15 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
   by_unit <- time_by_unit(time_by)
   by_n <- time_by_num(time_by)
   delay_nm <- new_var_nm(out, "delay")
-  out[, (delay_nm) := time_diff(get(start_time), get(end_time),
-                                time_by = time_by,
-                                time_type = time_type)]
+  set_add_cols(out, add_names(
+    list(
+      time_diff(out[[start_time]],
+                out[[end_time]],
+                time_by = time_by,
+                time_type = time_type)
+    ),
+    delay_nm
+  ))
   n_miss_delays <- num_na(out[[delay_nm]])
   if (n_miss_delays > 0){
     warning(paste(n_miss_delays, "missing observations will be
