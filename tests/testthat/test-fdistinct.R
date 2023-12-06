@@ -87,4 +87,14 @@ testthat::test_that("fdistinct", {
                                dplyr::group_by(dest, origin, tailnum) %>%
                                fslice(0) %>%
                                fdistinct(.keep_all = TRUE))
+  set.seed(42)
+  indices <- sample.int(150)
+  expect_identical(iris %>%
+                     dplyr::slice(indices) %>%
+                     dplyr::group_by(Species) %>%
+                     dplyr::distinct(),
+                   iris %>%
+                     dplyr::slice(indices) %>%
+                     dplyr::group_by(Species) %>%
+                     fdistinct())
 })

@@ -71,7 +71,11 @@ df_reconstruct <- function(data, template){
     invisible(data.table::setalloccol(out))
     return(out)
   }
-  if (inherits(template, "grouped_df") && !groups_equal(data, template)){
+  if (inherits(template, "grouped_df")){
+      # &&
+      # (!isTRUE(sum(cpp_lengths(attr(data, "groups"))) == df_nrow(data)) ||
+      # !groups_equal(data, template))
+      # ){
     template_groups <- setdiff2(names(template_attrs[["groups"]]), ".rows")
     data_groups <- setdiff2(names(attr(data, "groups")), ".rows")
     out_groups <- intersect2(template_groups, names(data))
