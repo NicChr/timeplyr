@@ -64,30 +64,16 @@ fdiff2 <- function(x, n = 1L, g = NULL, fill = NULL){
   }
 }
 
-window_sequence <- function(size, k, partial = TRUE, ascending = TRUE) {
-  .Call(`_timeplyr_cpp_window_sequence`, size, k, partial, ascending)
-}
-lag_sequence <- function(size, k, partial = TRUE) {
-  .Call(`_timeplyr_cpp_lag_sequence`, size, k, partial)
-}
-lead_sequence <- function(size, k, partial = TRUE) {
-  .Call(`_timeplyr_cpp_lead_sequence`, size, k, partial)
-}
-
 # Vctrs style rolling chop
-roll_chop <- function(x, sizes = collapse::alloc(1L, vec_length(x))){
+roll_chop <- function(x, sizes = seq_ones(vec_length(x))){
   x_size <- vec_length(x)
   out_length <- length(sizes)
   if (x_size != length(sizes)){
     stop("length of x must equal length of sizes")
   }
-  if (log10(sum(sizes)) >= 9){
-    warning("The result contains more than 1e09 elements, this may take time",
-            immediate. = TRUE)
-  }
   sizes <- as.integer(sizes)
-  which_size_gt_zero <- which(sizes > 0L)
-  which_size_zero <- which(sizes == 0L)
+  which_size_gt_zero <- cpp_which(sizes > 0L)
+  which_size_zero <- cpp_which(sizes == 0L)
   sizes_gt_zero <- sizes[which_size_gt_zero]
   seq_id_GRP <- sorted_group_id_to_GRP(seq_id(sizes_gt_zero),
                                        n_groups = length(sizes_gt_zero),

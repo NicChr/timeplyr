@@ -42,7 +42,7 @@ col_select_pos <- function(data, .cols = character()){
   nm_seq <- seq_along(data_nms)
   # Method for when cols is supplied
   if (is.numeric(.cols)){
-    rng_sign <- check_range_sign(.cols)
+    rng_sign <- slice_sign(.cols)
     if (rng_sign == -1){
       .cols <- nm_seq[match(nm_seq, abs(.cols), 0L) == 0L]
     } else {
@@ -613,6 +613,7 @@ fvar <- getFromNamespace("fvar", "collapse")
 fmedian <- getFromNamespace("fmedian", "collapse")
 ffirst <- getFromNamespace("ffirst", "collapse")
 flast <- getFromNamespace("flast", "collapse")
+fndistinct <- getFromNamespace("fndistinct", "collapse")
 
 are_whole_numbers <- function(x){
   if (is.integer(x)){
@@ -875,12 +876,18 @@ conditional_sort <- function(x){
 }
 # Check if signs are all equal
 # Special function to handle -0 selection
-check_range_sign <- function(x){
-  out <- sum(sign(1/x))
-  if (abs(out) != length(x)){
+# Returns 1 or -1, with special handling of -0 to allow slicing of all rows
+slice_sign <- function(x){
+  if (length(x)){
+    rng <- collapse::frange(x, na.rm = FALSE)
+  } else {
+    rng <- integer(2L)
+  }
+  rng_sum <- sum(sign(1 / rng))
+  if (abs(rng_sum) != 2){
     stop("Can't mix negative and positive locations")
   }
-  sign(out)
+  as.integer(sign(rng_sum))
 }
 # Base R version of purrr::pluck, alternative to [[
 fpluck <- function(x, .cols = NULL, .default = NULL){
@@ -1293,4 +1300,8 @@ list_subset <- function(x, i, default = NA, copy_attributes = FALSE){
     attributes(out) <- attributes(first_element)
   }
   out
+}
+# Like vector("list", length) but with a default to fill the list elements
+new_list <- function(length = 0L, default = NULL){
+  cpp_new_list(length, default)
 }

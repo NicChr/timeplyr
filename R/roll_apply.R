@@ -16,18 +16,24 @@
 #' basis.
 #' @param unlist If `TRUE`, the result is passed to `unlist()`.
 #' The default is `FALSE`.
+#' @param default Default value for each list element.
+#'
 #' @details
 #' `roll_apply` accepts any user function which makes it more flexible
-#' than the other rolling functions but much less efficient.
+#' than the other rolling functions but much less efficient. \cr
+#' `roll_apply2` is an alternative to `roll_apply` that instead accepts
+#' a vector of window sizes. The window sizes can be easily created
+#' using `window_sequence()`.
 #'
 #' @returns
-#' `roll_apply` returns a list the same length as `x` unless `unlist` is `TRUE`.
+#' A list the same length as `x` unless `unlist` is `TRUE`.
 #'
 #' @seealso [time_roll_apply] [roll_sum] [roll_growth_rate]
+#' @rdname roll_apply
 #' @export
 roll_apply <- function(x, fun, before = Inf, after = 0L,
                        g = NULL, partial = TRUE,
-                       unlist = FALSE){
+                       default = NULL, unlist = FALSE){
   check_is_num(before)
   check_is_num(after)
   check_length(before, 1L)
@@ -40,7 +46,7 @@ roll_apply <- function(x, fun, before = Inf, after = 0L,
   before_seq <- before_sequence(group_sizes, k = before)
   after_seq <- after_sequence(group_sizes, k = after)
   x_size <- length(x)
-  out <- vector("list", x_size)
+  out <- new_list(x_size, default)
   if (partial){
     ind <- seq_len(x_size)
   } else {
@@ -54,6 +60,40 @@ roll_apply <- function(x, fun, before = Inf, after = 0L,
   if (!fpluck(sorted_info, "sorted")){
     out <- out[collapse::greorder(seq_along(out), g = g)]
   }
+  if (unlist){
+    out <- unlist(out, use.names = FALSE)
+  }
+  out
+}
+roll_apply2 <- function(x, fun, window = window_sequence(length(x), Inf),
+                        default = NULL, unlist = FALSE,
+                        align = c("right", "left")){
+  align <- rlang::arg_match(align)
+  stopifnot(is.function(fun))
+  check_length(window, length(x))
+  x_size <- length(x)
+  out <- new_list(x_size, default)
+  which_gt_zero <- cpp_which(window > 0)
+  if (align == "right"){
+    for (i in which_gt_zero){
+      start <- i - .subset2(window, i) + 1L
+      out[[i]] <- fun(x[start:i])
+    }
+  } else {
+    for (i in which_gt_zero){
+      start <- i + .subset2(window, i) - 1L
+      out[[i]] <- fun(x[start:i])
+    }
+  }
+  # else {
+  #   for (i in which_gt_zero){
+  #     w <- .subset2(window, i - 1L)
+  #     start <- i - (w %/% 2L)
+  #     end <- i + (w %/% 2L)
+  #     out[[i]] <- fun(x[start:end])
+  #   }
+  # }
+
   if (unlist){
     out <- unlist(out, use.names = FALSE)
   }

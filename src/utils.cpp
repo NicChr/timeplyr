@@ -177,12 +177,12 @@ SEXP roll_time_threshold(SEXP x, double threshold, bool switch_on_boundary) {
 SEXP cpp_df_group_indices(SEXP rows, int size) {
   SEXP indices = Rf_protect(Rf_allocVector(INTSXP, size));
   int *p_indices = INTEGER(indices);
-  R_xlen_t ng = XLENGTH(rows);
+  R_xlen_t ng = Rf_xlength(rows);
   const SEXP* p_rows = VECTOR_PTR_RO(rows);
 
   for (R_xlen_t i = 0; i < ng; i++) {
     SEXP rows_i = p_rows[i];
-    R_xlen_t n_i = XLENGTH(rows_i);
+    R_xlen_t n_i = Rf_xlength(rows_i);
     int *p_rows_i = INTEGER(rows_i);
     for (R_xlen_t j = 0; j < n_i; j++, ++p_rows_i) {
       p_indices[*p_rows_i - 1] = i + 1;
@@ -197,7 +197,8 @@ SEXP cpp_df_group_indices(SEXP rows, int size) {
 
 const char* obj_address_formatter = "%p";
 
-SEXP r_obj_address(SEXP x) {
+[[cpp11::register]]
+SEXP cpp_r_obj_address(SEXP x) {
   static char buf[1000];
   snprintf(buf, 1000, obj_address_formatter, (void*) x);
   SEXP out = Rf_protect(Rf_allocVector(STRSXP, 1));
@@ -219,7 +220,7 @@ bool cpp_any_address_changed(SEXP x, SEXP y) {
     Rf_error("x and y must be of the same length");
   }
   for (int i = 0; i < n1; ++i) {
-    if (STRING_ELT(r_obj_address(p_x[i]), 0) != STRING_ELT(r_obj_address(p_y[i]), 0)){
+    if (STRING_ELT(cpp_r_obj_address(p_x[i]), 0) != STRING_ELT(cpp_r_obj_address(p_y[i]), 0)){
       out = true;
       break;
     }
@@ -422,7 +423,7 @@ SEXP cpp_bin_grouped(SEXP x, SEXP y, bool codes, bool right, bool include_lowest
 // List must contain elements of one type, e.g integer
 
 [[cpp11::register]]
-SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP replace) {
+SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP default_value) {
   Rf_protect(x = Rf_coerceVector(x, VECSXP));
   Rf_protect(i = Rf_coerceVector(i, INTSXP));
   const SEXP *p_x = VECTOR_PTR_RO(x);
@@ -444,11 +445,11 @@ SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP replace) {
   int *p_i = INTEGER(i);
   switch (TYPEOF(ptype)){
   case LGLSXP: {
-    bool default_value = Rf_asLogical(replace);
+    bool replace = Rf_asLogical(default_value);
     SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n));
     int *p_out = LOGICAL(out);
     for (int j = 0; j < n; ++j) {
-      p_out[j] = default_value;
+      p_out[j] = replace;
       k = (i_n == 1 ? p_i[0] : p_i[j]);
       if (k <= Rf_length(p_x[j]) && k > 0){
         p_out[j] = LOGICAL(p_x[j])[k - 1];
@@ -458,11 +459,11 @@ SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP replace) {
     return out;
   }
   case INTSXP: {
-    int default_value = Rf_asInteger(replace);
+    int replace = Rf_asInteger(default_value);
     SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
     int *p_out = INTEGER(out);
     for (int j = 0; j < n; ++j) {
-      p_out[j] = default_value;
+      p_out[j] = replace;
       k = (i_n == 1 ? p_i[0] : p_i[j]);
       if (k <= Rf_length(p_x[j]) && k > 0){
         p_out[j] = INTEGER(p_x[j])[k - 1];
@@ -472,11 +473,11 @@ SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP replace) {
     return out;
   }
   case REALSXP: {
-    double default_value = Rf_asReal(replace);
+    double replace = Rf_asReal(default_value);
     SEXP out = Rf_protect(Rf_allocVector(REALSXP, n));
     double *p_out = REAL(out);
     for (int j = 0; j < n; ++j) {
-      p_out[j] = default_value;
+      p_out[j] = replace;
       k = (i_n == 1 ? p_i[0] : p_i[j]);
       if (k <= Rf_length(p_x[j]) && k > 0){
         p_out[j] = REAL(p_x[j])[k - 1];
@@ -486,10 +487,10 @@ SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP replace) {
     return out;
   }
   case STRSXP: {
-    SEXP default_value = Rf_asChar(replace);
+    SEXP replace = Rf_asChar(default_value);
     SEXP out = Rf_protect(Rf_allocVector(STRSXP, n));
     for (int j = 0; j < n; ++j) {
-      SET_STRING_ELT(out, j, default_value);
+      SET_STRING_ELT(out, j, replace);
       k = (i_n == 1 ? p_i[0] : p_i[j]);
       if (k <= Rf_length(p_x[j]) && k > 0){
         SET_STRING_ELT(out, j, STRING_ELT(p_x[j], k - 1));
@@ -503,6 +504,18 @@ SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP replace) {
     Rf_error("cpp_list_subset cannot handle supplied SEXP");
   }
   }
+}
+
+// Create a new list with a default value
+
+[[cpp11::register]]
+SEXP cpp_new_list(R_xlen_t size, SEXP default_value) {
+  SEXP out = Rf_protect(Rf_allocVector(VECSXP, size));
+  for (R_xlen_t i = 0; i < size; ++i) {
+    SET_VECTOR_ELT(out, i, default_value);
+  }
+  Rf_unprotect(1);
+  return out;
 }
 
 // Checks that all row indices of 2 grouped data frames are the same

@@ -8,7 +8,7 @@
 #' Tidy data-masking applies.
 #' @param stat A character vector of statistical summaries to apply.
 #' This can be one or more of the following: \cr
-#' "n", "nmiss", "min", "max", "mean", "first", "last", "sd",
+#' "n", "nmiss", "ndistinct", "min", "max", "mean", "first", "last", "sd",
 #' "var", "mode", "median", "sum", "prop_complete".
 #' @param q_probs (Optional) Quantile probabilities.
 #' If supplied, `q_summarise()` is called and added to the result.
@@ -70,7 +70,7 @@
 #' @rdname stat_summarise
 #' @export
 stat_summarise <- function(data, ...,
-                           stat = .stat_fns[1:5],
+                           stat = c("n", "nmiss", "ndistinct"),
                            q_probs = NULL,
                            na.rm = TRUE, sort = TRUE,
                            .names = NULL, .by = NULL, .cols = NULL,
@@ -80,7 +80,7 @@ stat_summarise <- function(data, ...,
   if (!is.character(stat)){
     stop("stat must be a character vector")
   }
-  if (length(setdiff(stat, funs)) > 0L){
+  if (length(setdiff2(stat, funs)) > 0L){
     stop(paste0("stat must be one or more of the following:\n",
                 paste(funs, collapse = ", ")))
   }
@@ -117,9 +117,9 @@ stat_summarise <- function(data, ...,
   if ("n" %in% stat){
     n_nm <- new_n_var_nm(names(out))
     set_add_cols(out, add_names(list(fn(data, g = g)), n_nm))
-    stat <- setdiff(stat, "n")
     data.table::setcolorder(out, c(group_vars, n_nm, non_group_dot_vars))
   }
+  stat <- setdiff2(stat, "n")
   # New names
   var_nms <- across_col_names(.cols = dot_vars,
                               .fns = stat,
@@ -129,8 +129,8 @@ stat_summarise <- function(data, ...,
                               .fns = stat,
                               .names = .names)
   # Try to make sure group variables are kept
-  which_are_groups <- which(dot_vars %in% group_vars)
-  var_nms[which_are_groups] <- out_nms[which_are_groups]
+  # which_are_groups <- which(dot_vars %in% group_vars)
+  # var_nms[which_are_groups] <- out_nms[which_are_groups]
 
   data.table::setalloccol(out,
                           n = getOption("datatable.alloccol", default = 1000L) +
@@ -205,7 +205,7 @@ across_col_names <- function(.cols = NULL, .fns = NULL,
 }
 #' @rdname stat_summarise
 #' @export
-.stat_fns <- c("n", "nmiss", "min", "max", "mean", "median",
+.stat_fns <- c("n", "nmiss", "ndistinct", "min", "max", "mean", "median",
                "sd", "var", "mode", "first", "last", "sum",
                "prop_complete")
 

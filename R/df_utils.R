@@ -71,11 +71,11 @@ df_reconstruct <- function(data, template){
     invisible(data.table::setalloccol(out))
     return(out)
   }
-  if (inherits(template, "grouped_df")){
-      # &&
-      # (!isTRUE(sum(cpp_lengths(attr(data, "groups"))) == df_nrow(data)) ||
-      # !groups_equal(data, template))
-      # ){
+  if (inherits(template, "grouped_df") &&
+      # If groups are equal and address of datasets is the same
+      # Then it's likely we don't need to recalculate groups
+      !(cpp_r_obj_address(data) == cpp_r_obj_address(template) &&
+        groups_equal(data, template))){
     template_groups <- setdiff2(names(template_attrs[["groups"]]), ".rows")
     data_groups <- setdiff2(names(attr(data, "groups")), ".rows")
     out_groups <- intersect2(template_groups, names(data))
@@ -83,15 +83,17 @@ df_reconstruct <- function(data, template){
       template_attrs[["class"]] <- setdiff2(template_attrs[["class"]], "grouped_df")
       template_attrs[["groups"]] <- NULL
     } else {
+      drop_by_default <- attr(template_attrs[["groups"]], ".drop")
       sorted <- attr(template_attrs[["groups"]], "sorted")
+      order <- if (is.null(sorted)) TRUE else sorted
       groups <- group_collapse(safe_ungroup(data),
                                .cols = out_groups,
                                sort = TRUE,
-                               order = if (is.null(sorted)) TRUE else sorted,
+                               order = order,
                                id = FALSE, start = FALSE,
                                end = FALSE, size = FALSE,
                                loc = TRUE,
-                               drop = dplyr::group_by_drop_default(template))
+                               drop = drop_by_default)
       groups <- frename(groups, .cols = c(".rows" = ".loc"))
       attributes(groups[[".rows"]]) <- attributes(template_attrs[["groups"]][[".rows"]])
       for (a in setdiff2(names(attributes(groups)),
@@ -100,8 +102,8 @@ df_reconstruct <- function(data, template){
       }
       attr(groups, "sorted") <- sorted
       class(groups) <- c("tbl_df", "tbl", "data.frame")
+      attr(groups, ".drop") <- drop_by_default
       template_attrs[["groups"]] <- groups
-      attr(template_attrs[["groups"]], ".drop") <- dplyr::group_by_drop_default(template)
     }
   }
   template_attrs[["names"]] <- names(data)
@@ -136,13 +138,9 @@ df_seq_along <- function(data, along = "rows"){
   switch(along,
          rows = seq_len(df_nrow(data)),
          seq_len(df_ncol(data)))
-  # along <- rlang::arg_match0(along, c("rows", "cols"))
-  # if (along == "rows"){
-  #   seq_len(df_nrow(data))
-  # } else {
-  #   seq_len(df_ncol(data))
-  # }
 }
+# Repeat data frame rows
+# Such that identical(df_rep(data, 3), bind_rows(data, data, data))
 df_rep <- function(data, times){
   N <- df_nrow(data)
   if (N > 0L && length(times) > N){
@@ -153,32 +151,14 @@ df_rep <- function(data, times){
       stop("times must be of length 1 or nrow(data)")
     }
   }
-  df_row_slice(data, rep.int(df_seq_along(data, "rows"),
-                             times = times))
+  df_row_slice(data, rep.int(df_seq_along(data, "rows"), times = times))
 }
+# Repeat each row
 df_rep_each <- function(data, each){
   if (length(each) == 1L){
     each <- rep_len(each, df_nrow(data))
   }
   df_rep(data, each)
-  # N <- df_nrow(data)
-  # if (N > 0L && length(each) > N){
-  #   stop("each must not be greater than nrow(data)")
-  # }
-  # if (length(each) != N){
-  #   if (length(each) != 1L){
-  #     stop("each must be of length 1 or nrow(data)")
-  #   }
-  # }
-  # if (length(each) == 0L){
-  #   df_row_slice(data, 0L)
-  # }
-  # if (length(each) == 1L){
-  #   df_row_slice(data, rep(df_seq_along(data, "rows"),
-  #                          each = each))
-  # } else {
-  #   df_row_slice(data, seq_id(each))
-  # }
 }
 # Faster version of nrow specifically for data frames
 nrow2 <- function(data){

@@ -1,5 +1,10 @@
 # timeplyr (Development version)
 
+* Exported additional sequence functions.
+
+* The default summary functions in `stat_summarise` should now work
+for most vector types.
+
 * `fdistinct` is now faster when `sort = TRUE`.
 
 * In `time_episodes`, the calculation for when there is 

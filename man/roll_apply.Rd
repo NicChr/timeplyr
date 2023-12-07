@@ -11,6 +11,7 @@ roll_apply(
   after = 0L,
   g = NULL,
   partial = TRUE,
+  default = NULL,
   unlist = FALSE
 )
 }
@@ -31,11 +32,13 @@ This can for example be a vector or data frame.}
 \item{partial}{Should calculations be done using partial windows?
 Default is \code{TRUE}.}
 
+\item{default}{Default value for each list element.}
+
 \item{unlist}{If \code{TRUE}, the result is passed to \code{unlist()}.
 The default is \code{FALSE}.}
 }
 \value{
-\code{roll_apply} returns a list the same length as \code{x} unless \code{unlist} is \code{TRUE}.
+A list the same length as \code{x} unless \code{unlist} is \code{TRUE}.
 }
 \description{
 Apply any function on a rolling basis
@@ -43,7 +46,10 @@ for each group using one-pass through the data.
 }
 \details{
 \code{roll_apply} accepts any user function which makes it more flexible
-than the other rolling functions but much less efficient.
+than the other rolling functions but much less efficient. \cr
+\code{roll_apply2} is an alternative to \code{roll_apply} that instead accepts
+a vector of window sizes. The window sizes can be easily created
+using \code{window_sequence()}.
 }
 \seealso{
 \link{time_roll_apply} \link{roll_sum} \link{roll_growth_rate}

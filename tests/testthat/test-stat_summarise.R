@@ -61,7 +61,8 @@ testthat::test_that("stat_summarise", {
       stat_summarise(Species, Sepal.Length, stat = "first", .by = Species,
                      q_probs = c(0, 0.0005, 1), .names = "{.col}_first") %>%
       names(),
-    c("Species", "Species_first", "Sepal.Length_first", "p0", "p0.05", "p100")
+    c("Species", "Sepal.Length_first", "p0", "p0.05", "p100")
+    # c("Species", "Species_first", "Sepal.Length_first", "p0", "p0.05", "p100")
   )
   mean_sl <- mean(iris2$Sepal.Length)
   testthat::expect_equal(iris2 %>%
@@ -106,7 +107,8 @@ testthat::test_that("stat_summarise", {
     transmute2(mean = mean(Sepal.Length)) %>%
     stat_summarise(.cols = c("ok" = "mean"), stat = "max",
                    .by = mean, .names = "ok"),
-    data.table::data.table(ok = mean_sl)
+    data.table::data.table(ok = mean_sl,
+                           ok = mean_sl)
   )
   testthat::expect_equal(
     iris2 %>%

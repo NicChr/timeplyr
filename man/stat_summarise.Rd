@@ -8,13 +8,13 @@
 \format{
 \code{.stat_fns}
 
-An object of class \code{character} of length 13.
+An object of class \code{character} of length 14.
 }
 \usage{
 stat_summarise(
   data,
   ...,
-  stat = .stat_fns[1:5],
+  stat = c("n", "nmiss", "ndistinct"),
   q_probs = NULL,
   na.rm = TRUE,
   sort = TRUE,
@@ -34,7 +34,7 @@ Tidy data-masking applies.}
 
 \item{stat}{A character vector of statistical summaries to apply.
 This can be one or more of the following: \cr
-"n", "nmiss", "min", "max", "mean", "first", "last", "sd",
+"n", "nmiss", "ndistinct", "min", "max", "mean", "first", "last", "sd",
 "var", "mode", "median", "sum", "prop_complete".}
 
 \item{q_probs}{(Optional) Quantile probabilities.

@@ -40,38 +40,39 @@ calendar <- function(x, label = TRUE,
                      week_start = getOption("lubridate.week.start", 1),
                      fiscal_start = getOption("lubridate.fiscal.start", 1),
                      name = "time"){
-  dates <- as.POSIXlt(convert_common_dates(x))
-  year <- dates$year + 1900L
-  quarter <- as.integer(lubridate::quarter(dates,
+  dates <- convert_common_dates(x)
+  time_info <- as.POSIXlt(dates)
+  year <- time_info$year + 1900L
+  quarter <- as.integer(lubridate::quarter(time_info,
                                            type = "quarter",
                                            fiscal_start = fiscal_start))
-  month <- dates$mon + 1L
-  week <- as.integer(lubridate::week(dates))
-  day <- dates$mday
-  yday <- dates$yday
-  isoyear <- as.integer(lubridate::isoyear(dates))
-  isoweek <- as.integer(lubridate::isoweek(dates))
-  isoday <- isoday(dates)
-  epiyear <- as.integer(lubridate::epiyear(dates))
-  epiweek <- as.integer(lubridate::epiweek(dates))
-  wday <- as.integer(lubridate::wday(dates, week_start = week_start))
+  month <- time_info$mon + 1L
+  week <- as.integer(lubridate::week(time_info))
+  day <- time_info$mday
+  yday <- time_info$yday
+  isoyear <- as.integer(lubridate::isoyear(time_info))
+  isoweek <- as.integer(lubridate::isoweek(time_info))
+  isoday <- isoday(time_info)
+  epiyear <- as.integer(lubridate::epiyear(time_info))
+  epiweek <- as.integer(lubridate::epiweek(time_info))
+  wday <- as.integer(lubridate::wday(time_info, week_start = week_start))
   out_nms <- c(name, "year", "quarter", "month",
                "month_l", "week", "day", "yday", "isoyear",
                "isoweek", "isoday", "epiyear", "epiweek",
                "wday", "wday_l",
                "hour", "minute", "second")
   if (label){
-    wday_l <- lubridate::wday(dates, week_start = week_start, label = TRUE)
-    month_l <- lubridate::month(dates, label = TRUE, abbr = TRUE)
+    wday_l <- lubridate::wday(time_info, week_start = week_start, label = TRUE)
+    month_l <- lubridate::month(time_info, label = TRUE, abbr = TRUE)
   } else {
     wday_l <- NULL
     month_l <- NULL
     out_nms <- setdiff(out_nms, c("wday_l", "month_l"))
   }
   if (is_datetime(dates)){
-    hour <- dates$hour
-    minute <- dates$min
-    second <- dates$sec
+    hour <- time_info$hour
+    minute <- time_info$min
+    second <- time_info$sec
   } else {
     hour <- NULL
     minute <- NULL
