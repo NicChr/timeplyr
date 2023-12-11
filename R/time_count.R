@@ -203,7 +203,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
       int_nm <- new_var_nm(out, "interval")
       out <- df_add_cols(out, add_names(
         list(
-          time_interval(out[[time_var]], out[[int_end_nm]])
+          time_interval2(out[[time_var]], out[[int_end_nm]])
         ), int_nm
       ))
     }
@@ -357,7 +357,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
 #       }
 #
 #       int_nm <- new_var_nm(out, "interval")
-#       out[[int_nm]] <- time_interval(out[[time_var]],
+#       out[[int_nm]] <- time_interval2(out[[time_var]],
 #                                      out[[int_end_nm]])
 #     }
 #     out <- fselect(out, .cols = c(grp_nm,

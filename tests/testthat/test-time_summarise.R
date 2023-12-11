@@ -117,8 +117,8 @@ testthat::test_that("Test intervals", {
                               as_int = TRUE)
   int3 <- time_aggregate_expand(x, time_by = "37 seconds",
                                 as_int = TRUE)
-  int2 <- time_interval(time_int_rm_attrs(int2), time_int_end(int2))
-  int3 <- time_interval(time_int_rm_attrs(int3), time_int_end(int3))
+  int2 <- time_interval2(time_int_rm_attrs(int2), time_int_end(int2))
+  int3 <- time_interval2(time_int_rm_attrs(int3), time_int_end(int3))
   testthat::expect_equal(int1, int2)
   testthat::expect_equal(int1, int3)
 })

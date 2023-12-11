@@ -215,10 +215,10 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
   to <- time_cast(to, x)
   # Cut time
   time_bins <- c(unclass(time_breaks), unclass(to))
-  time_break_ind <- cut_time(x, breaks = time_bins, codes = TRUE)
-  # Time breaks subset on cut indices
-  out <- time_breaks[time_break_ind]
   if (include_interval){
+    time_break_ind <- cut_time(x, breaks = time_bins, codes = TRUE)
+    # Time breaks subset on cut indices
+    out <- time_breaks[time_break_ind]
     time_int <- tseq_interval(x = to, time_breaks)
     time_int <- time_int[time_break_ind]
     out <- new_tbl(x = out, interval = time_int)
@@ -233,6 +233,7 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
       attr(out[["interval"]], "start") <- out[["x"]]
     }
   } else {
+    out <- cut_time(x, breaks = time_bins, codes = FALSE)
     if (unique){
       out <- collapse::funique(out, sort = sort)
     } else {

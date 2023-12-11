@@ -1,5 +1,12 @@
 # timeplyr (Development version)
 
+* The internal code of `time_cut` has been simplified and improved. 
+It can now also handle very large values of `n`. 
+When `time_by` is left `NULL`, the maximum possible number of breaks used is
+`( diff(range(x)) / gcd_diff(x) ) + 1`.
+
+* `time_cut` and `time_summarisev` are now slightly faster.
+
 * `scm` now handles vectors containing only `NA` values appropriately.
 
 * Exported additional sequence functions.

@@ -129,7 +129,7 @@ time_distinct <- function(data, time = NULL, ..., time_by = NULL,
       temp_data <- dplyr::dplyr_col_modify(temp_data,
                                            add_names(
                                              list(
-                                               time_interval(time_agg, time_int_end)
+                                               time_interval2(time_agg, time_int_end)
                                              ), int_nm
                                            )
       )

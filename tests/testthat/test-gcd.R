@@ -29,6 +29,18 @@ test_that("GCD AND SCM scalars", {
   expect_identical(scm(NA_real_, na_rm = FALSE), NA_real_)
 })
 
+test_that("zero-length vectors", {
+  expect_identical(gcd(integer()), integer())
+  expect_identical(gcd(integer(), na_rm = FALSE), integer())
+  expect_identical(gcd(numeric()), numeric())
+  expect_identical(gcd(numeric(), na_rm = FALSE), numeric())
+
+  expect_identical(scm(integer()), integer())
+  expect_identical(scm(integer(), na_rm = FALSE), integer())
+  expect_identical(scm(numeric()), numeric())
+  expect_identical(scm(numeric(), na_rm = FALSE), numeric())
+})
+
 test_that("Small vectors (integers)", {
   x <- c(NA_integer_, 9L, 0L, 0L, 3L, 21L)
   y <- c(9L, NA_integer_, NA_integer_, 0L, 0L, 0L, 3L, 21L)

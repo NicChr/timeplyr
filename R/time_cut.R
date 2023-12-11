@@ -2,6 +2,8 @@
 #'
 #' @description  `time_cut()` is very useful for plotting with dates and datetimes
 #' and always returns breaks of regular width. \cr
+#'
+#' @details
 #' To specify exact widths, similar to `ggplot2::cut_width()`,
 #' supply `time_by` and `n = Inf`. \cr
 #' `time_breaks()` is a helper that
@@ -12,6 +14,20 @@
 #' trying to cut the date/date-times into
 #' groups of the highest possible time units,
 #' starting at years and ending at milliseconds.
+#'
+#' When `x` is a numeric vector, `time_cut` will behave similar to `time_cut`
+#' except for 3 things:
+#' * The intervals are all right open and equal width, except for the
+#' rightmost interval which is closed with width <= the other widths.
+#' * The left value of the leftmost interval is always `min(x)`.
+#' * Up to `n` breaks are created, i.e `<= n` breaks. This is to prioritise
+#'   pretty breaks.
+#'
+#' `time_cut` is a generalisation of `time_summarisev` such that the
+#' below identity should always hold:
+#' \preformatted{
+#'  identical(time_cut(x, n = Inf, as_factor = FALSE), time_summarisev(x))
+#' }
 #'
 #' @param x Time variable. \cr
 #' Can be a `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, or `yearqtr`.
@@ -46,10 +62,12 @@
 #' Options are "preday", "boundary", "postday", "full" and "NA".
 #' See `?timechange::time_add` for more details.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
+#'
 #' @returns
 #' `time_breaks` returns a vector of breaks. \cr
 #' `time_cut` returns either a `factor` or a vector the same class as `x`.
 #' In both cases it is the same length as `x`.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(lubridate)
@@ -106,6 +124,9 @@ time_cut <- function(x, n = 5, time_by = NULL,
                      time_type = getOption("timeplyr.time_type", "auto"),
                      roll_month = getOption("timeplyr.roll_month", "preday"),
                      roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+  if (is.null(to)){
+    to <- collapse::fmax(x, na.rm = TRUE)
+  }
   time_breaks <- time_breaks(x = x, n = n, time_by = time_by,
                              from = from, to = to,
                              time_floor = time_floor,
@@ -113,19 +134,15 @@ time_cut <- function(x, n = 5, time_by = NULL,
                              time_type = time_type,
                              roll_month = roll_month,
                              roll_dst = roll_dst)
-  if (is.null(to)){
-    to <- collapse::fmax(x, na.rm = TRUE)
-  }
+  x <- time_cast(x, time_breaks)
   to <- time_cast(to, x)
   out <- cut_time(x,
                   breaks = c(unclass(time_breaks), unclass(to)),
-                  codes = TRUE)
+                  codes = as_factor)
   if (as_factor){
     time_labels <- tseq_levels(x = to, time_breaks, fmt = fmt)
     levels(out) <- time_labels
     class(out) <- c("ordered", "factor")
-  } else {
-    out <- time_breaks[out]
   }
   out
 }
@@ -143,9 +160,6 @@ time_breaks <- function(x, n = 5, time_by = NULL,
   check_is_num(n)
   stopifnot(n >= 1)
   check_length(n, 1L)
-  if (n == Inf){
-    n <- .Machine$integer.max
-  }
   time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
   if (is.null(from)){
     from <- collapse::fmin(x, na.rm = TRUE)
@@ -155,68 +169,67 @@ time_breaks <- function(x, n = 5, time_by = NULL,
   }
   from <- time_cast(from, x)
   to <- time_cast(to, x)
-  n_unique <- n_unique(x, na.rm = TRUE)
   if (is.null(time_by)){
+    if (length(x) <= 1){
+      gcd_difference <- 1L
+    } else {
+      gcd_difference <- abs(gcd_diff(x, round = TRUE))
+    }
+    gcd_difference[is.na(gcd_difference)] <- 1L
+    time_rng_diff <- unclass(to) - unclass(from)
+    # We shouldn't try to cut up the data using more breaks than this
+    max_breaks <- (time_rng_diff %/% gcd_difference) + 1
     if (is_time(x)){
-      date_units <- c("days", "weeks", "months", "years")
-      units_to_try <- date_units
-      time_types <- rep_len("period", length(date_units))
-      if (is_datetime(x)){
-        datetime_units <- setdiff(.duration_units, date_units)
-        units_to_try <- c(datetime_units, date_units)
-        time_types <- c(rep_len("duration", length(datetime_units)), time_types)
+      if (n >= max_breaks){
+        interval_width <- gcd_difference
+        units_to_try <- rep_len("numeric", max(length(interval_width), 1))
+      } else {
+        date_units <- c("days", "weeks", "months", "years")
+        units_to_try <- date_units
+        time_types <- rep_len("period", length(date_units))
+        if (is_datetime(x)){
+          datetime_units <- setdiff(.duration_units, date_units)
+          units_to_try <- c(datetime_units, date_units)
+          time_types <- c(rep_len("duration", length(datetime_units)), time_types)
+        }
+        units_to_try <- rev(units_to_try)
+        interval_width <- rep_len(1L, length(units_to_try))
       }
-      units_to_try <- rev(units_to_try)
-      unit_nums <- rep_len(1L, length(units_to_try))
     } else {
       # Calculate range of data
-      time_rng <- collapse::frange(x, na.rm = TRUE)
-      time_rng_diff <- diff(time_rng)
-      if (length(time_rng) == 0L || isTRUE(cppdoubles::double_equal(time_rng_diff, 0))){
-        unit_nums <- 1
+      if (n >= max_breaks){
+        interval_width <- gcd_difference
       } else {
-        # Multiply gcd by 10 until range of data
-        # Another option..
-        unit_nums <- 10^(seq.int(log10(time_rng_diff/n),
-                                 log10(time_rng_diff), by = 1))
-        # Continue multiplying by 5 until range
-        unit_nums <- c(unit_nums, 5^(seq.int(logb(max(unit_nums), 5),
-                                             logb(time_rng_diff, 5),
-                                             by = 1)))
-        # Continue multiplying by 2 until range
-        unit_nums <- c(unit_nums, 2^(seq.int(round(logb(max(unit_nums), 2), 7),
-                                             round(logb(time_rng_diff, 2), 7),
-                                             by = 1)))
-        # Round the numbers off due to loss of precision
-        unit_nums <- round(unit_nums, 6)
-        if (time_rng_diff >= 3){
-          unit_nums <- ceiling(unit_nums)
-        }
-        unit_nums <- rev(unique(pretty_ceiling(unit_nums)))
+        equal_bin_width <- time_rng_diff / min(n, max_breaks, na.rm = TRUE)
+        interval_width <- pretty_ceiling(equal_bin_width)
       }
-      units_to_try <- rep_len("numeric", length(unit_nums))
+      if (is_whole_number(interval_width)){
+        interval_width <- as.integer(interval_width)
+      }
+      units_to_try <- rep_len("numeric", max(length(interval_width), 1))
     }
-    i <- 0
+    i <- 0L
     start <- from
     while(i < length(units_to_try)){
-      i <- i + 1
-      tby <- add_names(list(unit_nums[i]),
-                      units_to_try[i])
+      i <- i + 1L
+      tby <- add_names(list(interval_width[i]), units_to_try[i])
       if (time_floor){
         start <- time_floor2(from, time_by = tby, week_start = week_start)
       }
-      n_breaks <- time_seq_sizes(start, to, time_by = tby,
-                                 time_type = time_type)
-      if (n_breaks >= n){
+      n_breaks <- time_seq_sizes(start, to, time_by = tby, time_type = time_type)
+      if (length(n_breaks) == 0){
+        n_breaks <- 0
+      }
+      if (n_breaks == 0 || n_breaks >= n){
         break
       }
     }
     from <- start
     unit <- units_to_try[i]
     time_by <- unit
-    unit_multiplier <- 1
-    scale <- 1
-    num <- unit_nums[i]
+    unit_multiplier <- 1L
+    scale <- 1L
+    num <- interval_width[i]
     if (time_type == "auto"){
       time_type <- guess_seq_type(unit)
     }
@@ -226,24 +239,21 @@ time_breaks <- function(x, n = 5, time_by = NULL,
     scale <- unit_info[["scale"]]
     num <- unit_info[["num"]]
     by <- unit
-    tby <- add_names(list(1 * scale * num),
-                    unit)
+    tby <- add_names(list(num * 1L * scale), unit)
     if (time_floor){
       from <- time_floor2(from, time_by = tby, week_start = week_start)
     }
-    n_breaks <- time_seq_sizes(from, to, time_by = tby,
-                               time_type = time_type)
-    unit_multiplier <- 1
+    n_breaks <- time_seq_sizes(from, to, time_by = tby, time_type = time_type)
+    unit_multiplier <- 1L
   }
   if (n_breaks > n){
-    unit_multiplier <- (n_breaks / n)
-    unit_multiplier <- ceiling(unit_multiplier)
+    unit_multiplier <- ceiling(n_breaks / n)
   }
   time_seq_v(from, to,
-                time_by = add_names(list(num * scale * unit_multiplier), unit),
-                time_floor = FALSE,
-                week_start = week_start,
-                time_type = time_type,
-                roll_month = roll_month,
-                roll_dst = roll_dst)
+             time_by = add_names(list(num * scale * unit_multiplier), unit),
+             time_floor = FALSE,
+             week_start = week_start,
+             time_type = time_type,
+             roll_month = roll_month,
+             roll_dst = roll_dst)
 }

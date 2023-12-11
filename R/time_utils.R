@@ -157,7 +157,7 @@ time_by_pretty <- function(time_by){
   }
 }
 # Creates interval even using num
-time_interval <- function(from, to){
+time_interval2 <- function(from, to){
   if (is_time(from) && is_time(to)){
     out <- lubridate::interval(from, to)
   } else {
@@ -609,11 +609,18 @@ time_unit <- function(units, time_type = c("duration", "period", "numeric")){
 # You can move from left to right but not right to left
 time_cast <- function(x, template){
   if (inherits(template, "POSIXt")){
-    if (!inherits(x, c("Date", "POSIXt"))){
-      x <- as.POSIXct(x, origin = lubridate::origin)
+    tzone <- lubridate::tz(template)
+    if (inherits(x, "POSIXt")){
+      if (identical(tzone, lubridate::tz(x))){
+        x
+      } else {
+        lubridate::with_tz(x, tzone = tzone)
+      }
+    } else if (inherits(x, "Date")){
+      lubridate::with_tz(x, tzone = tzone)
+    } else {
+      as.POSIXct(x, tz = tzone, origin = lubridate::origin)
     }
-    lubridate::with_tz(x, tzone = lubridate::tz(template))
-    # as.POSIXct(x, tz = lubridate::tz(template), origin = lubridate::origin)
   } else if (inherits(template, "Date") &&
              !inherits(x, "POSIXt")){
     if (is.integer(x)){
@@ -773,10 +780,10 @@ is_interval <- function(x){
 
 # Convert time sequence to interval
 tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
-  out <- time_interval(seq, flag2(seq, n = -1, g = gseq))
+  out <- time_interval2(seq, flag2(seq, n = -1, g = gseq))
   to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
   end_points <- cpp_which(is.na(out) & !is.na(seq))
-  out[end_points] <- time_interval(seq[end_points], to)
+  out[end_points] <- time_interval2(seq[end_points], to)
   out
 }
 # Time cut levels from ascending time sequence

@@ -92,6 +92,8 @@ In both cases it is the same length as \code{x}.
 \description{
 \code{time_cut()} is very useful for plotting with dates and datetimes
 and always returns breaks of regular width. \cr
+}
+\details{
 To specify exact widths, similar to \code{ggplot2::cut_width()},
 supply \code{time_by} and \code{n = Inf}. \cr
 \code{time_breaks()} is a helper that
@@ -102,6 +104,22 @@ the prettiest way of cutting the interval by
 trying to cut the date/date-times into
 groups of the highest possible time units,
 starting at years and ending at milliseconds.
+
+When \code{x} is a numeric vector, \code{time_cut} will behave similar to \code{time_cut}
+except for 3 things:
+\itemize{
+\item The intervals are all right open and equal width, except for the
+rightmost interval which is closed with width <= the other widths.
+\item The left value of the leftmost interval is always \code{min(x)}.
+\item Up to \code{n} breaks are created, i.e \verb{<= n} breaks. This is to prioritise
+pretty breaks.
+}
+
+\code{time_cut} is a generalisation of \code{time_summarisev} such that the
+below identity should always hold:
+\preformatted{
+ identical(time_cut(x, n = Inf, as_factor = FALSE), time_summarisev(x))
+}
 }
 \examples{
 library(timeplyr)
