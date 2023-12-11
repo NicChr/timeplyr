@@ -195,12 +195,10 @@ SEXP cpp_df_group_indices(SEXP rows, int size) {
 
 // Address of R object
 
-const char* obj_address_formatter = "%p";
-
 [[cpp11::register]]
 SEXP cpp_r_obj_address(SEXP x) {
   static char buf[1000];
-  snprintf(buf, 1000, obj_address_formatter, (void*) x);
+  snprintf(buf, 1000, "%p", (void*) x);
   SEXP out = Rf_protect(Rf_allocVector(STRSXP, 1));
   SET_STRING_ELT(out, 0, Rf_mkChar(buf));
   Rf_unprotect(1);

@@ -70,11 +70,22 @@ int cpp_gcd2_int(int x, int y, bool na_rm){
 
 [[cpp11::register]]
 double cpp_lcm2(double x, double y, double tol, bool na_rm){
-    return ( std::fabs(x) / cpp_gcd2(x, y, tol, na_rm) ) * std::fabs(y);
+  if (na_rm && ( !(x == x) || !(y == y) )){
+    return ( !(x == x) ? y : x);
+  }
+  return ( std::fabs(x) / cpp_gcd2(x, y, tol, true) ) * std::fabs(y);
 }
 
 double cpp_lcm2_int(int x, int y, bool na_rm){
-    return ( std::fabs(x) / cpp_gcd2_int(x, y, na_rm) ) * std::fabs(y);
+  int num_nas = (x == NA_INTEGER) + (y == NA_INTEGER);
+  if ( num_nas >= 1 ){
+    if (na_rm && num_nas == 1){
+      return (x == NA_INTEGER ? y : x);
+    } else {
+      return NA_REAL;
+    }
+  }
+  return ( std::fabs(x) / cpp_gcd2_int(x, y, false) ) * std::fabs(y);
 }
 
 // greatest common divisor with tolerance
@@ -237,17 +248,13 @@ SEXP cpp_lcm(SEXP x, double tol, bool na_rm){
         if (p_x[0] == NA_INTEGER){
           lcm = NA_REAL;
         }
-        if (na_rm && n > 1 && !(lcm == lcm)){
-            lcm = 1.0;
-        }
         double int_max = double(std::numeric_limits<int>::max());
         for (int i = 1; i < n; ++i) {
-          if (!na_rm && ( !(lcm == lcm) || p_x[i] == NA_INTEGER)){
+          if (!na_rm && !(lcm == lcm)){
             lcm = NA_REAL;
             break;
           }
-          if (na_rm && p_x[i] == NA_INTEGER) continue;
-          lcm = cpp_lcm2_int(lcm, p_x[i], true);
+          lcm = cpp_lcm2_int(lcm, p_x[i], na_rm);
           if (std::fabs(lcm) > int_max){
             Rf_warning("Integer overflow, returning NA");
             lcm = NA_REAL;
@@ -264,13 +271,13 @@ SEXP cpp_lcm(SEXP x, double tol, bool na_rm){
         SEXP out = Rf_protect(Rf_allocVector(REALSXP, std::min(n, 1)));
         double *p_out = REAL(out);
         double lcm = p_x[0];
-        if (na_rm && n > 1 && !(lcm == lcm)){
-            lcm = 1.0;
-        }
         for (int i = 1; i < n; ++i) {
-            if (lcm == R_PosInf || lcm == R_NegInf) break;
-            if (na_rm && !(p_x[i] == p_x[i])) continue;
-            lcm = cpp_lcm2(lcm, p_x[i], tol, true);
+          if (!na_rm && !(lcm == lcm)){
+            lcm = NA_REAL;
+            break;
+          }
+          lcm = cpp_lcm2(lcm, p_x[i], tol, na_rm);
+          if (lcm == R_PosInf || lcm == R_NegInf) break;
         }
         p_out[0] = lcm;
         Rf_unprotect(1);

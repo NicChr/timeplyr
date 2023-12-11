@@ -1,5 +1,7 @@
 # timeplyr (Development version)
 
+* `scm` now handles vectors containing only `NA` values appropriately.
+
 * Exported additional sequence functions.
 
 * The default summary functions in `stat_summarise` should now work

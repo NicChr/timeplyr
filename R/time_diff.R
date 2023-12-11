@@ -1,13 +1,7 @@
-#' Calculate time difference
+#' Time differences by any time unit
 #'
-#' @description This is a neat wrapper around lubridate's
-#' date/datetime arithmetic with support for numeric values and
-#' any class that supports arithmetic through "base::`-`"
-#' If either x or y are date/datetimes and time_type is "duration" or "period",
-#' then lubridate arithmetic is used, otherwise base R arithmetic is used.
-#'
-#' Some more exotic time units such as quarters, fortnights, etc
-#' can be specified.
+#' @description
+#' The time difference between 2 date or date-time vectors.
 #'
 #' @param x Start date or datetime.
 #' @param y End date or datetime.
@@ -24,6 +18,13 @@
 #'
 #' @returns
 #' A numeric vector recycled to the length of `max(length(x), length(y))`.
+#'
+#' @details
+#' When `time_by` is a numeric vector, e.g `time_by = 1` then
+#' base arithmetic using \code{base::`-`} is used, otherwise 'lubridate' style
+#' durations and periods are used.\cr
+#' Some more exotic time units such as quarters, fortnights, etcetera
+#' can be specified. See `.time_units` for more choices.
 #'
 #' @examples
 #' library(timeplyr)

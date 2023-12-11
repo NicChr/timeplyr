@@ -2,7 +2,7 @@
 % Please edit documentation in R/time_diff.R
 \name{time_diff}
 \alias{time_diff}
-\title{Calculate time difference}
+\title{Time differences by any time unit}
 \usage{
 time_diff(
   x,
@@ -34,14 +34,14 @@ then arithmetic is used, e.g \code{time_by = 1}.
 A numeric vector recycled to the length of \code{max(length(x), length(y))}.
 }
 \description{
-This is a neat wrapper around lubridate's
-date/datetime arithmetic with support for numeric values and
-any class that supports arithmetic through "base::\code{-}"
-If either x or y are date/datetimes and time_type is "duration" or "period",
-then lubridate arithmetic is used, otherwise base R arithmetic is used.
-
-Some more exotic time units such as quarters, fortnights, etc
-can be specified.
+The time difference between 2 date or date-time vectors.
+}
+\details{
+When \code{time_by} is a numeric vector, e.g \code{time_by = 1} then
+base arithmetic using \code{base::`-`} is used, otherwise 'lubridate' style
+durations and periods are used.\cr
+Some more exotic time units such as quarters, fortnights, etcetera
+can be specified. See \code{.time_units} for more choices.
 }
 \examples{
 library(timeplyr)
