@@ -79,10 +79,12 @@
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
+#' time_cut(1:10, n = 5)
 #' # Easily create custom time breaks
 #' df <- nycflights13::flights %>%
-#'   fslice_sample(n = 10^3, seed = 8192821) %>%
+#'   fslice_sample(n = 10, seed = 8192821) %>%
 #'   select(time_hour) %>%
+#'   farrange(time_hour) %>%
 #'   mutate(date = as_date(time_hour))
 #'
 #' # time_cut() and time_breaks() automatically find a
@@ -92,10 +94,22 @@
 #' time_cut(df$time_hour, n = 5) # <= 5 breaks
 #' # Custom formatting
 #' time_cut(df$date, fmt = "%Y %b", time_by = "month")
-#' time_cut(df$time_hour, fmt = "%Y %b", time_by = "month")
 #' # Just the breaks
 #' time_breaks(df$date, n = 5, time_by = "month")
-#' time_breaks(df$time_hour, n = 5, time_by = "month")
+#'
+#' cut_dates <- time_cut(df$date)
+#' date_breaks <- time_breaks(df$date)
+#'
+#' # Grouping each interval into the start of its interval
+#' identical(date_breaks[group_id(cut_dates)],
+#'           time_cut(df$date, as_factor = FALSE))
+#'
+#' # WHen n = Inf and as_factor = FALSE, it should be equivalent to using
+#' # time_aggregate or time_summarisev
+#' identical(time_cut(df$date, n = Inf, time_by = "month", as_factor = FALSE),
+#'           time_summarisev(df$date, time_by = "month"))
+#' identical(time_summarisev(df$date, time_by = "month"),
+#'           time_aggregate(df$date, time_by = "month"))
 #'
 #' # To get exact breaks at regular intervals, use time_expandv
 #' weekly_breaks <- time_expandv(df$date,
@@ -179,6 +193,9 @@ time_breaks <- function(x, n = 5, time_by = NULL,
     time_rng_diff <- unclass(to) - unclass(from)
     # We shouldn't try to cut up the data using more breaks than this
     max_breaks <- (time_rng_diff %/% gcd_difference) + 1
+    if (length(max_breaks) == 0){
+      max_breaks <- 0
+    }
     if (is_time(x)){
       if (n >= max_breaks){
         interval_width <- gcd_difference

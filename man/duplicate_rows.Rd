@@ -89,7 +89,7 @@ method which utilises joins and is written almost entirely using dplyr.
 \examples{
 library(dplyr)
 library(timeplyr)
-library(nycflights13)
+library(ggplot2)
 \dontshow{
 .n_dt_threads <- data.table::getDTthreads()
 .n_collapse_threads <- collapse::get_collapse()$nthreads
@@ -97,21 +97,27 @@ data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
 # Duplicates across all columns
-flights \%>\%
+diamonds \%>\%
   duplicate_rows()
-# Duplicate flights with the same tail number and departure time
-flights \%>\%
-  duplicate_rows(tailnum, dep_time)
+# Alternatively with row ids
+diamonds \%>\%
+  filter(frowid(.) > 1)
+# Diamonds with the same dimensions
+diamonds \%>\%
+  duplicate_rows(x, y, z)
 # Can use tidyverse select notation
-flights \%>\%
-  duplicate_rows(across(contains("dep_time")), .keep_all = FALSE)
+diamonds \%>\%
+  duplicate_rows(across(where(is.factor)), .keep_all = FALSE)
 # Similar to janitor::get_dupes()
-flights \%>\%
-  duplicate_rows(tailnum, dep_time, .keep_all = FALSE, .add_count = TRUE)
-# For every day were there multiple flights that departed at the same time?
-flights \%>\%
-  group_by(year, month, day) \%>\%
-  duplicate_rows(dep_time, arr_time, .both_ways = TRUE)
+diamonds \%>\%
+  duplicate_rows(.add_count = TRUE)
+# Keep the first instance of each duplicate row
+diamonds \%>\%
+  duplicate_rows(.both_ways = TRUE)
+# Same as the below
+diamonds \%>\%
+  fadd_count(across(everything())) \%>\%
+  filter(n > 1)
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

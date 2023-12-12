@@ -1,5 +1,4 @@
-Have fixed the UBSAN/ASAN issues.
-Updated package to version 0.4.1.
+Updated package to version 0.5.0.
 
 ## Test environments
 

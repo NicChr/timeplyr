@@ -714,11 +714,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2023-W49"
+#> [1] "2023-W50"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W49-1"
+#> [1] "2023-W50-2"
 iso_week(today(), year = FALSE)
-#> [1] "W49"
+#> [1] "W50"
 ```
 
 ## `time_cut()`
@@ -1099,6 +1099,7 @@ flights %>%
 #> The below stat functions are available for use in stat_summarise
 #> n
 #> nmiss
+#> ndistinct
 #> min
 #> max
 #> mean

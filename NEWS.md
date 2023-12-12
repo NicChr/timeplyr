@@ -1,4 +1,4 @@
-# timeplyr (Development version)
+# timeplyr 0.5.0
 
 * The internal code of `time_cut` has been simplified and improved. 
 It can now also handle very large values of `n`. 
