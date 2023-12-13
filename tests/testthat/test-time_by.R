@@ -5,10 +5,21 @@ collapse::set_collapse(nthreads = 1L)
 
 testthat::test_that("time_by", {
   flights <- nycflights13::flights
-
   start <- lubridate::ymd_hms("2013-03-16 11:43:48",
                                tz = "Europe/London")
   end <- start + lubridate::ddays(10)
+  expect_snapshot(
+    flights %>%
+      time_by(time_hour, time_by = "3 days",
+              from = start, to = end,
+              time_type = "period") %>%
+      fcount()
+  )
+  expect_snapshot(
+    flights %>%
+      fslice(0) %>%
+      time_by(time_hour)
+  )
   flights_weekly <- flights %>%
     time_by(time_hour, time_by = "week")
   flights_bi_weekly <- flights %>%

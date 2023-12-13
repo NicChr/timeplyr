@@ -95,7 +95,8 @@ time_span_size(
 }
 \arguments{
 \item{x}{Time variable. \cr
-Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, or \code{yearqtr}.}
+Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, \code{yearqtr},
+\code{year_month} or \code{year_quarter}.}
 
 \item{time_by}{Time unit. \cr
 Must be one of the following:

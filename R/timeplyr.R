@@ -24,4 +24,5 @@
 #' @importFrom rlang enquos
 #' @importFrom timechange time_add
 #' @importFrom pillar tbl_sum
+#' @importFrom pillar type_sum
 "_PACKAGE"

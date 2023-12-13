@@ -169,7 +169,7 @@ time_by <- function(data, time, time_by_unit = NULL,
     time_var <- across_col_names(time_var, .fns = "", .names = .name)
     out <- df_add_cols(out, add_names(list(time_agg), time_var))
     time_span <- GRP_group_data(time_span_GRP)
-    if (df_nrow(time_span) == 0L){
+    if (df_nrow(time_span) == 0L && df_nrow(data) > 0L){
       time_span <- df_init(time_span, 1L)
     }
     time_span$start <- time_span_start

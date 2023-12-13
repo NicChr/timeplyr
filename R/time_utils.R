@@ -623,17 +623,23 @@ time_cast <- function(x, template){
     }
   } else if (inherits(template, "Date") &&
              !inherits(x, "POSIXt")){
-    if (is.integer(x)){
+    if (identical(class(x), "integer")){
       .Date(x)
     } else {
       lubridate::as_date(x)
     }
+  } else if (inherits(template, "year_month") &&
+           !inherits(x, c("POSIXt", "Date"))){
+    year_month(x)
   } else if (inherits(template, "yearmon") &&
              !inherits(x, c("POSIXt", "Date"))){
     as_yearmon(x)
   } else if (inherits(template, "yearqtr") &&
              !inherits(x, c("POSIXt", "Date", "yearmon"))){
     as_yearqtr(x)
+  } else if (inherits(template, "year_quarter") &&
+             !inherits(x, c("POSIXt", "Date"))){
+    year_quarter(x)
   } else {
     x
   }
