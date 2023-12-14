@@ -1,6 +1,6 @@
 #' Gaps in a regular time sequence
 #'
-#' @description `time_gaps()` checks for missing gaps in time for any
+#' @description `time_gaps()` checks for implicit missing gaps in time for any
 #' regular date or datetime sequence.
 #'
 #' @param x A date, datetime or numeric vector.

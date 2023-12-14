@@ -20,10 +20,8 @@
 #' @param roll_month Control how impossible dates are handled when
 #' month or year arithmetic is involved.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
-#' @param direction Direction with which to aggregate time,
-#' "l2r" ("left-to-right") or "r2l" ("right-to-left").
-#' If "l2r" (the default), then the minimum time is used as the
-#' reference time, otherwise the maximum time is used.
+#' @param interval Should the output be a `time_interval`? Default is `FALSE`.
+#'
 #' @details `time_aggregate` aggregates time using
 #' distinct moving time range blocks of a specified time unit.
 #'
@@ -62,15 +60,13 @@
 #' days <- as_date(hours)
 #'
 #' # Aggregate by week or any time unit easily
-#' unique(time_aggregate(hours, "week"))
-#' unique(time_aggregate(hours, ddays(14)))
-#' unique(time_aggregate(hours, "month"))
-#' unique(time_aggregate(days, "month"))
+#' sunique(time_aggregate(hours, "week"))
+#' sunique(time_aggregate(hours, ddays(14)))
+#' sunique(time_aggregate(hours, "month"))
+#' sunique(time_aggregate(days, "month"))
 #'
 #' # Left aligned
-#' unique(time_aggregate(days, "quarter"))
-#' # Right aligned
-#' unique(time_aggregate(days, "quarter", direction = "r2l"))
+#' sunique(time_aggregate(days, "quarter"))
 #'
 #' # Very fast by group aggregation
 #' week_by_tailnum <- time_aggregate(flights$time_hour, time_by = ddays(7),
@@ -90,23 +86,25 @@ time_aggregate <- function(x, time_by = NULL, g = NULL,
                            time_type = getOption("timeplyr.time_type", "auto"),
                            roll_month = getOption("timeplyr.roll_month", "preday"),
                            roll_dst = getOption("timeplyr.roll_dst", "boundary"),
-                           direction = c("l2r", "r2l")){
+                           interval = FALSE){
   check_is_time_or_num(x)
-  if (is.null(time_by)){
-    return(x)
-  }
-  direction <- rlang::arg_match0(direction, c("l2r", "r2l"))
-  l2r <- direction == "l2r"
-  time_by <- time_by_list(time_by)
+  time_by <- time_by_get(x, time_by = time_by)
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
-  if (l2r){
-    index <- gmin(x, g = g, na.rm = TRUE)
-  } else {
-    index <- gmax(x, g = g, na.rm = TRUE)
-  }
+  index <- gmin(x, g = g, na.rm = TRUE)
+  to <- gmax(x, g = g, na.rm = TRUE)
   tdiff <- time_diff(index, x, time_by = time_by, time_type = time_type)
-  time_to_add <- add_names(list(trunc(tdiff) * num), units)
-  time_add2(index, time_by = time_to_add, time_type = time_type,
-            roll_month = roll_month, roll_dst = roll_dst)
+  time_to_add <- add_names(list(trunc2(tdiff) * num), units)
+  out <- time_add2(index, time_by = time_to_add, time_type = time_type,
+                   roll_month = roll_month, roll_dst = roll_dst)
+  if (interval){
+    end <- time_add2(out, time_by = time_by, time_type = time_type,
+                     roll_month = roll_month, roll_dst = roll_dst)
+    set_time_cast(out, end)
+    to <- time_cast(to, out)
+    which_out_of_bounds <- cpp_which(cppdoubles::double_gt(unclass(end), unclass(to)))
+    end[which_out_of_bounds] <- to[which_out_of_bounds]
+    out <- time_interval(out, end)
+  }
+  out
 }

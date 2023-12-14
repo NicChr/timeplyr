@@ -11,7 +11,7 @@ time_aggregate(
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
   roll_dst = getOption("timeplyr.roll_dst", "boundary"),
-  direction = c("l2r", "r2l")
+  interval = FALSE
 )
 }
 \arguments{
@@ -40,10 +40,7 @@ month or year arithmetic is involved.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
 
-\item{direction}{Direction with which to aggregate time,
-"l2r" ("left-to-right") or "r2l" ("right-to-left").
-If "l2r" (the default), then the minimum time is used as the
-reference time, otherwise the maximum time is used.}
+\item{interval}{Should the output be a \code{time_interval}? Default is \code{FALSE}.}
 }
 \value{
 A time aggregated vector the same class and length as \code{x}.
@@ -86,15 +83,13 @@ hours <- sunique(flights$time_hour)
 days <- as_date(hours)
 
 # Aggregate by week or any time unit easily
-unique(time_aggregate(hours, "week"))
-unique(time_aggregate(hours, ddays(14)))
-unique(time_aggregate(hours, "month"))
-unique(time_aggregate(days, "month"))
+sunique(time_aggregate(hours, "week"))
+sunique(time_aggregate(hours, ddays(14)))
+sunique(time_aggregate(hours, "month"))
+sunique(time_aggregate(days, "month"))
 
 # Left aligned
-unique(time_aggregate(days, "quarter"))
-# Right aligned
-unique(time_aggregate(days, "quarter", direction = "r2l"))
+sunique(time_aggregate(days, "quarter"))
 
 # Very fast by group aggregation
 week_by_tailnum <- time_aggregate(flights$time_hour, time_by = ddays(7),

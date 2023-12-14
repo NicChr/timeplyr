@@ -753,7 +753,8 @@ as_yearqtr <- function(x){
   }
 }
 is_interval <- function(x){
-  isS4(x) && inherits(x, "Interval")
+  (isS4(x) && inherits(x, "Interval")) ||
+    inherits(x, "time_interval")
 }
 
 # Grouped functions that utilise

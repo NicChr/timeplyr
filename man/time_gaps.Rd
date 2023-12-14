@@ -73,7 +73,7 @@ Default is \code{FALSE}.}
 \code{time_has_gaps} returns a logical(1) of whether there are gaps.
 }
 \description{
-\code{time_gaps()} checks for missing gaps in time for any
+\code{time_gaps()} checks for implicit missing gaps in time for any
 regular date or datetime sequence.
 }
 \details{

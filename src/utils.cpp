@@ -45,7 +45,7 @@ SEXP cpp_list_which_not_null(SEXP l) {
 }
 
 bool is_interval(SEXP x){
-  return (Rf_isS4(x) && Rf_inherits(x, "Interval"));
+  return (Rf_isS4(x) && Rf_inherits(x, "Interval")) || Rf_inherits(x, "time_interval");
 }
 
 [[cpp11::register]]

@@ -30,5 +30,5 @@ is_time_or_num <- function(x){
 
 time_classes <- c("integer", "numeric",
                   "Date", "POSIXt", "yearmon", "yearqtr",
-                  "year_month", "year_quarter")
+                  "year_month", "year_quarter", "time_interval")
 

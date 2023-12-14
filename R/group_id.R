@@ -473,13 +473,13 @@ qG2 <- function(x, sort = TRUE, ordered = FALSE, na.exclude = FALSE, ...){
 mutate_intervals_to_ids <- function(data, order = TRUE){
   which_int <- cpp_which(list_item_is_interval(data))
   for (i in seq_along(which_int)){
-    data[[.subset2(which_int, i)]] <- group_id.Interval(.subset2(data, .subset2(which_int, i)), order = order)
+    data[[.subset2(which_int, i)]] <- group_id(.subset2(data, .subset2(which_int, i)), order = order)
   }
   data
 }
 interval_separate <- function(x){
-  list(start = attr(x, "start"),
-       data = strip_attrs(unclass(x)))
+  list(start = time_interval_start(x),
+       end = time_interval_end(x))
 }
 
 group_id_to_qg <- function(x,

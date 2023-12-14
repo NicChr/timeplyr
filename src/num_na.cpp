@@ -53,7 +53,7 @@ SEXP cpp_num_na(SEXP x){
     break;
   }
   default: {
-    Rf_error("num_na cannot handle the supplied SEXP");
+    Rf_error("cpp_num_na cannot handle the supplied SEXP");
     break;
   }
   }

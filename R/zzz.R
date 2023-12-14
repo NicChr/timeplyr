@@ -77,6 +77,7 @@ register_all_s3_methods <- function(){
   register_s3_method("timeplyr", "c", "time_interval")
   register_s3_method("timeplyr", "format", "time_interval")
   register_s3_method("timeplyr", "unique", "time_interval")
+  register_s3_method("timeplyr", "sort", "time_interval")
   register_s3_method("timeplyr", "print", "time_interval")
   register_s3_method("timeplyr", "rep", "time_interval")
   register_s3_method("timeplyr", "rep_len", "time_interval")
@@ -85,6 +86,7 @@ register_all_s3_methods <- function(){
   register_s3_method("timeplyr", "[[", "time_interval")
   # register_s3_method("timeplyr", "[<-", "time_interval")
   register_s3_method("pillar", "type_sum", "time_interval")
+  register_s3_method("collapse", "GRP", "time_interval")
 }
 
 on_package_load <- function(pkg, expr){
@@ -99,5 +101,11 @@ on_package_load <- function(pkg, expr){
   options("timeplyr.time_type" = getOption("timeplyr.time_type", "auto"),
           "timeplyr.roll_month" = getOption("timeplyr.roll_month", "preday"),
           "timeplyr.roll_dst" = getOption("timeplyr.roll_dst", "boundary"),
-          "timeplyr.interval_format" = getOption("timeplyr.interval_format", "start"))
+          "timeplyr.interval_format" = getOption("timeplyr.interval_format", "full"))
+}
+.onUnload <- function(libname, pkgname){
+  options(timeplyr.time_type = NULL,
+          timeplyr.roll_month = NULL,
+          timeplyr.roll_dst = NULL,
+          timeplyr.interval_format = NULL)
 }

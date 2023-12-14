@@ -425,6 +425,15 @@ GRP.Interval <- function(X, ...){
   }
   out
 }
+GRP.time_interval<- function(X, ...){
+  x <- X
+  X <- as.list(x)
+  out <- collapse::GRP(X, ...)
+  if (!is.null(GRP_groups(out))){
+    out[["groups"]] <- list(x = x[GRP_starts(out)])
+  }
+  out
+}
 GRP.NULL <- function(X, ...){
   NULL
 }

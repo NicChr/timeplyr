@@ -3,11 +3,17 @@
 \name{time_interval}
 \alias{time_interval}
 \alias{is_time_interval}
+\alias{time_interval_start}
+\alias{time_interval_end}
 \title{S3-based Time Intervals (Currently very experimental and so subject to change)}
 \usage{
 time_interval(start = integer(), end = integer())
 
 is_time_interval(x)
+
+time_interval_start(x)
+
+time_interval_end(x)
 }
 \arguments{
 \item{start}{Start time. \cr
@@ -51,11 +57,28 @@ x <- 1:10
 int <- time_interval(x, 100)
 options(timeplyr.interval_format = "full")
 int
+
+# Formatting
 format(int, "start")
 format(int, "end")
 
+month_start <- floor_date(today(), unit = "months")
+month_int <- time_interval(month_start, month_start + months(1))
+month_int
+# Custom format function for start and end dates
+format(month_int, sub_formatter = function(x) format(x, "\%Y/\%B"))
+format(month_int, interval_format = "start", sub_formatter = function(x) format(x, "\%Y/\%B"))
+
+# Divide an interval into different time units
 time_interval(today(), today() + years(0:10)) / "years"
 time_interval(today(), today() + dyears(0:10)) / ddays(365.25)
+time_interval(today(), today() + years(0:10)) / "months"
+time_interval(today(), today() + years(0:10)) / "weeks"
+time_interval(today(), today() + years(0:10)) / "7 days"
+time_interval(today(), today() + years(0:10)) / "24 hours"
+time_interval(today(), today() + years(0:10)) / "minutes"
+time_interval(today(), today() + years(0:10)) / "seconds"
+time_interval(today(), today() + years(0:10)) / "milliseconds"
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)
