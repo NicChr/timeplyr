@@ -210,17 +210,18 @@ as.character.time_interval <- function(x,
                                        interval_format = getOption("timeplyr.interval_format", "full"),
                                        sub_formatter = NULL,
                                        ...){
+  start <- time_interval_start(x)
   end <- time_interval_end(x)
   # This is important for when slicing a data frame with time_interval objects
   if (length(end) > length(x)){
     end <- end[seq_along(x)]
   }
   if (!is.null(sub_formatter)){
-    start <- do.call(sub_formatter, list(time_interval_start(x)))
+    start <- do.call(sub_formatter, list(start))
     end <- do.call(sub_formatter, list(end))
-
   } else {
-    start <- NextMethod("as.character", x)
+    start <- as.character(start)
+    end <- as.character(end)
   }
   int_fmt <- rlang::arg_match0(interval_format, c("full", "start", "end"))
   if (int_fmt == "full"){
