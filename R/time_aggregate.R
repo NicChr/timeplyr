@@ -92,13 +92,15 @@ time_aggregate <- function(x, time_by = NULL, g = NULL,
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
   index <- gmin(x, g = g, na.rm = TRUE)
-  to <- gmax(x, g = g, na.rm = TRUE)
   tdiff <- time_diff(index, x, time_by = time_by, time_type = time_type)
   time_to_add <- add_names(list(trunc2(tdiff) * num), units)
   out <- time_add2(index, time_by = time_to_add, time_type = time_type,
                    roll_month = roll_month, roll_dst = roll_dst)
   if (interval){
-    out <- time_by_interval(out, time_by = time_by)
+    out <- time_by_interval(out, time_by = time_by,
+                            # bound_range = TRUE,
+                            time_type = time_type,
+                            roll_month = roll_month, roll_dst = roll_dst)
   }
   # if (interval){
   #   end <- time_add2(out, time_by = time_by, time_type = time_type,

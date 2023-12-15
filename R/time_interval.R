@@ -78,12 +78,8 @@
 #' @rdname time_interval
 #' @export
 time_interval <- function(start = integer(), end = integer()){
-  interval <- time_interval_list(start, end)
-  out <- interval[["start"]]
-  end <- interval[["end"]]
-  structure(out,
-            end = end,
-            class = c("time_interval", oldClass(out)))
+  out <- time_interval_list(start, end)
+  vctrs::new_rcrd(out, class = "time_interval")
 }
 #' @rdname time_interval
 #' @export
@@ -112,10 +108,7 @@ time_interval_start <- function(x){
 }
 #' @export
 time_interval_start.time_interval <- function(x){
-  out <- x
-  class(out) <- setdiff2(oldClass(out), "time_interval")
-  attr(out, "end") <- NULL
-  out
+  unclass(x)[["start"]]
 }
 #' @export
 time_interval_start.Interval <- function(x){
@@ -128,7 +121,7 @@ time_interval_end <- function(x){
 }
 #' @export
 time_interval_end.time_interval <- function(x){
-  attr(x, "end", TRUE)
+  unclass(x)[["end"]]
 }
 #' @export
 time_interval_end.Interval <- function(x){
@@ -139,8 +132,7 @@ as.data.frame.time_interval <- function(x, ...){
          end = time_interval_end(x))
 }
 as.list.time_interval <- function(x, ...){
-  list(start = time_interval_start(x),
-       end = time_interval_end(x))
+  unclass(x)
 }
 `+.time_interval` <- function(e1, e2){
   start <- time_interval_start(e1)
@@ -166,32 +158,17 @@ as.list.time_interval <- function(x, ...){
   interval <- as.list(e1)
   time_diff(interval[[1L]], interval[[2L]], time_by = e2)
 }
-unique.time_interval <- function(x, ...){
-  interval <- collapse::funique(as.data.frame(x))
+unique.time_interval <- function(x, sort = FALSE, ...){
+  interval <- collapse::funique(as.data.frame(x), sort = sort)
   time_interval(interval[[1L]], interval[[2L]])
 }
 duplicated.time_interval <- function(x, ...){
-  collapse::fduplicated(as.list(x))
+  collapse::fduplicated(as.list(x), ...)
 }
-sort.time_interval <- function(x, ...){
-  interval <- as.data.frame(x)
-  x[radixorderv2(interval, ...)]
-}
-c.time_interval <- function(...){
-  dots <- list(...)
-  end <- vector("list", length(dots))
-  end_attrs <- attributes(attr(dots[[1L]], "end", TRUE))
-  end_class <- oldClass(attr(dots[[1L]], "end", TRUE))
-  for (i in seq_along(dots)){
-    end[[i]] <- attr(.subset2(dots, i), "end", TRUE)
-  }
-  start <- unlist(dots, recursive = FALSE, use.names = FALSE)
-  end <- unlist(end, recursive = FALSE, use.names = FALSE)
-  attributes(start) <- end_attrs
-  attributes(end) <- end_attrs
-  time_interval(start, end)
-  # structure(start, end = end, class = c("time_interval", end_class))
-}
+# sort.time_interval <- function(x, ...){
+#   interval <- as.data.frame(x)
+#   x[radixorderv2(interval, ...)]
+# }
 as.character.time_interval <- function(x,
                                        interval_style = getOption("timeplyr.interval_style", "full"),
                                        interval_sub_formatter = getOption("timeplyr.interval_sub_formatter", identity),
@@ -203,10 +180,6 @@ as.character.time_interval <- function(x,
   }
   start <- time_interval_start(x)
   end <- time_interval_end(x)
-  # This is important for when slicing a data frame with time_interval objects
-  if (length(end) > length(x)){
-    end <- end[seq_along(x)]
-  }
   if (!is.null(interval_sub_formatter)){
     start <- do.call(interval_sub_formatter, list(start))
     end <- do.call(interval_sub_formatter, list(end))
@@ -235,9 +208,13 @@ format.time_interval <- function(x,
                       interval_style = interval_style,
                       interval_sub_formatter = interval_sub_formatter), ...)
 }
+vec_ptype_abbr.time_interval <- function(x, ...) "tm_intv"
+vec_ptype_full.time_interval <- function(x, ...) "time_interval"
+
+# vec_ptype2.time_interval.date <- function(x, y, ...) lubridate::Date()
+
 print.time_interval <- function(x, max = NULL, ...){
   out <- x
-  end <- time_interval_end(out)
   N <- length(out)
   if (is.null(max)){
     max <- getOption("max.print", 9999L)
@@ -246,83 +223,35 @@ print.time_interval <- function(x, max = NULL, ...){
   if (max < N){
     i <- seq_len(max)
     out <- out[i]
-    end <- end[i]
     additional_msg <- paste(" [ reached 'max' / getOption(\"max.print\") -- omitted",
                             N - max, "entries ]\n")
   } else {
     additional_msg <- character()
   }
-  print(as.character(out), max = max + 1, ...)
+  vctrs::obj_print_header(x)
+  vctrs::obj_print_data(out)
   cat(additional_msg)
   invisible(x)
 }
-`[.time_interval` <- function(x, ..., drop = TRUE){
-  cl <- oldClass(x)
-  end <- `[`(attr(x, "end", TRUE), ..., drop = drop)
-  class(x) <- NULL
-  val <- NextMethod("[")
-  attr(val, "end") <- end
-  class(val) <- cl
-  val
-}
-#' @export
-`[<-.time_interval` <- function(x, i, value){
-  start <- time_interval_start(x)
-  end <- time_interval_end(x)
-  replace <- value
-  if (is_time_interval(value)){
-    start[i] <- time_interval_start(value)
-    end[i] <- time_interval_end(value)
-  } else {
-    start[i] <- value
-    end[i] <- value
-  }
-  out <- time_interval(start, end)
-  out
-}
-`[[.time_interval` <- function(x, ..., drop = TRUE){
-  cl <- oldClass(x)
-  end <- `[[`(attr(x, "end", TRUE), ..., drop = drop)
-  class(x) <- NULL
-  val <- NextMethod("[[")
-  attr(val, "end") <- end
-  class(val) <- cl
-  val
-}
-type_sum.time_interval <- function(x) {
-  "time_intrv"
-}
-rep_len.time_interval <- function(x, length.out){
-  x[rep_len(seq_along(x), length.out = length.out)]
-}
-rep.int.time_interval <- function(x, ...){
-  x[rep.int(seq_along(x), ...)]
-}
-rep.time_interval <- function(x, ...){
-  x[rep(seq_along(x), ...)]
-}
 as.Date.time_interval <- function(x, ...){
-  class(x) <- setdiff2(oldClass(x), "time_interval")
-  as.Date(x, ...)
+  as.Date(time_interval_start(x), ...)
 }
 as.POSIXct.time_interval <- function(x, ...){
-  class(x) <- setdiff2(oldClass(x), "time_interval")
-  as.POSIXct(x, ...)
+  as.POSIXct(time_interval_start(x), ...)
 }
 as.POSIXlt.time_interval <- function(x, ...){
-  class(x) <- setdiff2(oldClass(x), "time_interval")
-  as.POSIXlt(x, ...)
+  as.POSIXlt(time_interval_start(x), ...)
 }
-is.na.time_interval <- function(x){
-  is.na(unclass(x)) & is.na(time_interval_end(x))
-}
+# is.na.time_interval <- function(x){
+#   is.na(unclass(x)) & is.na(time_interval_end(x))
+# }
 # new_pillar_shaft.time_interval <- function(x, ...) {
 #   x <- format(x)
 #   pillar::new_pillar_shaft_simple(x, width = 10, align = "left")
 # }
-pillar_shaft.time_interval <- function(x, ...) {
-  out <- format(x)
-  # out[cpp_which(is.na(x[["start"]]) | is.na(x[["end"]]))] <- time_interval(NA, NA)
-  pillar::new_pillar_shaft_simple(out, align = "right")
-}
+# pillar_shaft.time_interval <- function(x, ...) {
+#   out <- format(x)
+#   # out[cpp_which(is.na(x[["start"]]) | is.na(x[["end"]]))] <- time_interval(NA, NA)
+#   pillar::new_pillar_shaft_simple(out, align = "right")
+# }
 

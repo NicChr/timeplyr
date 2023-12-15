@@ -227,7 +227,11 @@ list_to_tibble <- function(x){
   if (is_df(x)){
     N <- df_nrow(x)
   } else {
-    N <- collapse::fnrow(x)
+    if (length(x) == 0){
+      N <- 0L
+    } else {
+      N <- length(x[[1L]])
+    }
   }
   # Remove NULL items
   x <- list_rm_null(x)
@@ -243,7 +247,11 @@ list_to_data_frame <- function(x){
   if (is_df(x)){
     N <- df_nrow(x)
   } else {
-    N <- collapse::fnrow(x)
+    if (length(x) == 0){
+      N <- 0L
+    } else {
+      N <- length(x[[1L]])
+    }
   }
   # Remove NULL items
   x <- list_rm_null(x)

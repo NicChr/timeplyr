@@ -94,34 +94,45 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
             method = "auto",
             call = FALSE,
             drop = drop)
-  out <- collapse::qDT(as.list(GRP_groups(g)))
+  out <- list_to_data_frame(as.list(GRP_groups(g)))
+  # out <- collapse::qDT(as.list(GRP_groups(g)))
   if (id){
-    set_add_cols(out, list(.group = df_seq_along(out)))
+    out[[".group"]] <- df_seq_along(out)
+    # set_add_cols(out, list(.group = df_seq_along(out)))
   }
   include_loc <- loc ||
     (start && is.null(g[["group.starts"]])) ||
     end
   if (include_loc){
     GRP_loc <- GRP_loc(g)
-    set_add_cols(out, list(.loc = structure(GRP_loc,
-                                            ptype = integer(),
-                                            class = c("vctrs_list_of",
-                                                      "vctrs_vctr",
-                                                      "list"))))
+    out[[".loc"]] <- structure(GRP_loc,
+                               ptype = integer(),
+                               class = c("vctrs_list_of",
+                                         "vctrs_vctr",
+                                         "list"))
+    # set_add_cols(out, list(.loc = structure(GRP_loc,
+    #                                         ptype = integer(),
+    #                                         class = c("vctrs_list_of",
+    #                                                   "vctrs_vctr",
+    #                                                   "list"))))
   } else {
     GRP_loc <- NULL
   }
   if (start){
-    set_add_cols(out, list(.start = GRP_starts(g, loc = GRP_loc)))
+    out[[".start"]] <- GRP_starts(g, loc = GRP_loc)
+    # set_add_cols(out, list(.start = GRP_starts(g, loc = GRP_loc)))
   }
   if (end){
-    set_add_cols(out, list(.end = GRP_ends(g, loc = GRP_loc)))
+    out[[".end"]] <- GRP_ends(g, loc = GRP_loc)
+    # set_add_cols(out, list(.end = GRP_ends(g, loc = GRP_loc)))
   }
   if (!loc && include_loc){
-    set_rm_cols(out, ".loc")
+    out[[".loc"]] <- NULL
+    # set_rm_cols(out, ".loc")
   }
   if (size){
-    set_add_cols(out, list(.size = GRP_group_sizes(g)))
+    out[[".size"]] <- GRP_group_sizes(g)
+    # set_add_cols(out, list(.size = GRP_group_sizes(g)))
   }
   if (!sort && order){
     unsorted_i <- collapse::funique(GRP_group_id(g), sort = FALSE)

@@ -387,7 +387,11 @@ time_by_interval <- function(x, time_by = NULL,
   #   right_bound <- time_cast(collapse::fmax(x, na.rm = TRUE), end)
   #   which_closed <- cpp_which(cppdoubles::double_gt(unclass(end), unclass(right_bound)))
   #   # end[which_closed] <- right_bound
-  #   out[which_closed] <- time_interval(start[which_closed], right_bound)
+  #   out[which_closed] <- time_interval(start[which_closed],
+  #                                      time_add2(right_bound,
+  #                                                time_by = time_by,
+  #                                                roll_month = roll_month,
+  #                                                roll_dst = roll_dst))
   # }
   out
 }
