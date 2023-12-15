@@ -366,3 +366,28 @@ time_span_size <- function(x, time_by = NULL, from = NULL, to = NULL,
   }
   out
 }
+time_by_interval <- function(x, time_by = NULL,
+                             # bound_range = FALSE,
+                             time_type = getOption("timeplyr.time_type", "auto"),
+                             roll_month = getOption("timeplyr.roll_month", "preday"),
+                             roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+  time_by <- time_by_get(x, time_by = time_by)
+  check_time_by_length_is_one(time_by)
+  direction <- time_by_sign(time_by)
+  if (isTRUE(direction < 0)){
+    stop("Right-closed and left-open intervals are currently unsupported")
+  }
+  end <- time_add2(x, time_by,
+                   time_type = time_type,
+                   roll_month = roll_month,
+                   roll_dst = roll_dst)
+  start <- time_cast(x, end)
+  out <- time_interval(start, end)
+  # if (bound_range){
+  #   right_bound <- time_cast(collapse::fmax(x, na.rm = TRUE), end)
+  #   which_closed <- cpp_which(cppdoubles::double_gt(unclass(end), unclass(right_bound)))
+  #   # end[which_closed] <- right_bound
+  #   out[which_closed] <- time_interval(start[which_closed], right_bound)
+  # }
+  out
+}

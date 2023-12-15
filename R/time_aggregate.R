@@ -98,13 +98,16 @@ time_aggregate <- function(x, time_by = NULL, g = NULL,
   out <- time_add2(index, time_by = time_to_add, time_type = time_type,
                    roll_month = roll_month, roll_dst = roll_dst)
   if (interval){
-    end <- time_add2(out, time_by = time_by, time_type = time_type,
-                     roll_month = roll_month, roll_dst = roll_dst)
-    set_time_cast(out, end)
-    to <- time_cast(to, out)
-    which_out_of_bounds <- cpp_which(cppdoubles::double_gt(unclass(end), unclass(to)))
-    end[which_out_of_bounds] <- to[which_out_of_bounds]
-    out <- time_interval(out, end)
+    out <- time_by_interval(out, time_by = time_by)
   }
+  # if (interval){
+  #   end <- time_add2(out, time_by = time_by, time_type = time_type,
+  #                    roll_month = roll_month, roll_dst = roll_dst)
+  #   set_time_cast(out, end)
+  #   to <- time_cast(to, out)
+  #   which_out_of_bounds <- cpp_which(cppdoubles::double_gt(unclass(end), unclass(to)))
+  #   end[which_out_of_bounds] <- to[which_out_of_bounds]
+  #   out <- time_interval(out, end)
+  # }
   out
 }

@@ -32,12 +32,12 @@ right-open intervals that contain a vector of start dates and end dates.
 }
 \details{
 In the near-future, all time aggregated variables will utilise these intervals.
-One can control the appearance of the intervals through the "timeplyr.interval_format" option.
+One can control the appearance of the intervals through the "timeplyr.interval_style" option.
 For example:
 
-\code{options(timeplyr.interval_format = "full")} - Full interval format.
-\code{options(timeplyr.interval_format = "start")} - Start time of the interval.
-\code{options(timeplyr.interval_format = "end")} - end time of the interval.
+\code{options(timeplyr.interval_style = "full")} - Full interval format.
+\code{options(timeplyr.interval_style = "start")} - Start time of the interval.
+\code{options(timeplyr.interval_style = "end")} - end time of the interval.
 
 Representing time using intervals is natural because when one talks about a day or an hour,
 they are implicitly referring to an interval of time. Even a unit as small as a second
@@ -55,10 +55,10 @@ collapse::set_collapse(nthreads = 1L)
 }
 x <- 1:10
 int <- time_interval(x, 100)
-options(timeplyr.interval_format = "full")
+options(timeplyr.interval_style = "full")
 int
 
-# Formatting
+# Displaying the start or end values of the intervals
 format(int, "start")
 format(int, "end")
 
@@ -66,8 +66,17 @@ month_start <- floor_date(today(), unit = "months")
 month_int <- time_interval(month_start, month_start + months(1))
 month_int
 # Custom format function for start and end dates
-format(month_int, sub_formatter = function(x) format(x, "\%Y/\%B"))
-format(month_int, interval_format = "start", sub_formatter = function(x) format(x, "\%Y/\%B"))
+format(month_int, interval_sub_formatter = function(x) format(x, "\%Y/\%B"))
+format(month_int, interval_style = "start", interval_sub_formatter = function(x) format(x, "\%Y/\%B"))
+
+# Advanced formatting
+
+# As shown above, we can specify formatting functions for the dates
+# in our intervals
+# Sometimes it's useful to set a default function
+
+options(timeplyr.interval_sub_formatter = function(x) format(x, "\%b \%Y"))
+month_int
 
 # Divide an interval into different time units
 time_interval(today(), today() + years(0:10)) / "years"
@@ -79,6 +88,7 @@ time_interval(today(), today() + years(0:10)) / "24 hours"
 time_interval(today(), today() + years(0:10)) / "minutes"
 time_interval(today(), today() + years(0:10)) / "seconds"
 time_interval(today(), today() + years(0:10)) / "milliseconds"
+
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)
