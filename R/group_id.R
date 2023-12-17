@@ -478,8 +478,8 @@ mutate_intervals_to_ids <- function(data, order = TRUE){
   data
 }
 interval_separate <- function(x){
-  list(start = time_interval_start(x),
-       end = time_interval_end(x))
+  list(start = interval_start(x),
+       end = interval_end(x))
 }
 
 group_id_to_qg <- function(x,

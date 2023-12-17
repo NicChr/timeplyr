@@ -10,8 +10,7 @@ time_aggregate(
   g = NULL,
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
-  interval = FALSE
+  roll_dst = getOption("timeplyr.roll_dst", "boundary")
 )
 }
 \arguments{
@@ -39,11 +38,9 @@ and \code{durations} are used otherwise.}
 month or year arithmetic is involved.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
-
-\item{interval}{Should the output be a \code{time_interval}? Default is \code{FALSE}.}
 }
 \value{
-A time aggregated vector the same class and length as \code{x}.
+A \code{time_interval}.
 }
 \description{
 Aggregate time to a higher unit for possibly many groups
@@ -97,8 +94,8 @@ week_by_tailnum <- time_aggregate(flights$time_hour, time_by = ddays(7),
 # Confirm this has been done by group as each group will have a
 # Different aggregate start date
 flights \%>\%
-  mutate(week_by_tailnum) \%>\%
-  stat_summarise(week_by_tailnum, .by = tailnum, stat = "min",
+  mutate(week_start = interval_start(week_by_tailnum)) \%>\%
+  stat_summarise(week_start, .by = tailnum, stat = "min",
                  sort = FALSE)
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
@@ -106,5 +103,5 @@ collapse::set_collapse(nthreads = .n_collapse_threads)
 }
 }
 \seealso{
-\link{time_summarisev}
+\link{time_summarisev} \link{time_cut}
 }

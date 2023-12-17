@@ -1,8 +1,15 @@
 #' S3-based Time Intervals (Currently very experimental and so subject to change)
 #'
 #' @description
-#' Inspired by both 'lubridate' and 'ivs', `time_interval` is an S3 class for
-#' right-open intervals that contain a vector of start dates and end dates.
+#' Inspired by both 'lubridate' and 'ivs', `time_interval` is a 'vctrs' style
+#' class for right-open intervals that contain a vector of start dates and end dates.
+#'
+#' @returns
+#' An object of class `time_interval`.
+#' `is_time_interval` returns a logical of length 1.
+#' `interval_start` returns the start times.
+#' `interval_end` returns the end times.
+#' `interval_count` returns a data frame of unique intervals and their counts.
 #'
 #' @details
 #' In the near-future, all time aggregated variables will utilise these intervals.
@@ -27,6 +34,7 @@
 #' `year_month` or `year_quarter`.
 #'
 #' @examples
+#' library(dplyr)
 #' library(timeplyr)
 #' library(lubridate)
 #' \dontshow{
@@ -48,8 +56,10 @@
 #' month_int <- time_interval(month_start, month_start + months(1))
 #' month_int
 #' # Custom format function for start and end dates
-#' format(month_int, interval_sub_formatter = function(x) format(x, "%Y/%B"))
-#' format(month_int, interval_style = "start", interval_sub_formatter = function(x) format(x, "%Y/%B"))
+#' format(month_int, interval_sub_formatter =
+#'          function(x) format(x, format = "%Y/%B"))
+#' format(month_int, interval_style = "start",
+#'        interval_sub_formatter = function(x) format(x, format = "%Y/%B"))
 #'
 #' # Advanced formatting
 #'
@@ -57,7 +67,8 @@
 #' # in our intervals
 #' # Sometimes it's useful to set a default function
 #'
-#' options(timeplyr.interval_sub_formatter = function(x) format(x, "%b %Y"))
+#' options(timeplyr.interval_sub_formatter =
+#'           function(x) format(x, format = "%b %Y"))
 #' month_int
 #'
 #' # Divide an interval into different time units
@@ -70,6 +81,12 @@
 #' time_interval(today(), today() + years(0:10)) / "minutes"
 #' time_interval(today(), today() + years(0:10)) / "seconds"
 #' time_interval(today(), today() + years(0:10)) / "milliseconds"
+#'
+#' # Cutting Sepal Length into blocks of width 1
+#' int <- time_aggregate(iris$Sepal.Length, time_by = 1)
+#' int %>%
+#'   interval_count() %>%
+#'   mutate(interval = time_interval(start, end), .before = n)
 #'
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
@@ -103,40 +120,54 @@ time_interval_list <- function(start, end){
 }
 #' @rdname time_interval
 #' @export
-time_interval_start <- function(x){
-  UseMethod("time_interval_start")
+interval_start <- function(x){
+  UseMethod("interval_start")
 }
 #' @export
-time_interval_start.time_interval <- function(x){
+interval_start.time_interval <- function(x){
   unclass(x)[["start"]]
 }
 #' @export
-time_interval_start.Interval <- function(x){
+interval_start.Interval <- function(x){
   attr(x, "start", TRUE)
 }
 #' @rdname time_interval
 #' @export
-time_interval_end <- function(x){
-  UseMethod("time_interval_end")
+interval_end <- function(x){
+  UseMethod("interval_end")
 }
 #' @export
-time_interval_end.time_interval <- function(x){
+interval_end.time_interval <- function(x){
   unclass(x)[["end"]]
 }
 #' @export
-time_interval_end.Interval <- function(x){
-  time_interval_start(x) + strip_attrs(unclass(x))
+interval_end.Interval <- function(x){
+  interval_start(x) + strip_attrs(unclass(x))
+}
+#' @rdname time_interval
+#' @export
+interval_count <- function(x){
+  UseMethod("interval_count")
+}
+#' @export
+interval_count.time_interval <- function(x){
+  intervals <- as.data.frame(x)
+  fcount(intervals, .cols = 1:2, order = TRUE)
+  # counts <- fcount(intervals, .cols = 1:2)
+  # out <- counts[[3L]]
+  # names(out) <- as.character(time_interval(counts[[1L]], counts[[2L]]))
+  # out
 }
 as.data.frame.time_interval <- function(x, ...){
-  new_df(start = time_interval_start(x),
-         end = time_interval_end(x))
+  new_df(start = interval_start(x),
+         end = interval_end(x))
 }
 as.list.time_interval <- function(x, ...){
   unclass(x)
 }
 `+.time_interval` <- function(e1, e2){
-  start <- time_interval_start(e1)
-  end <- time_interval_end(e1)
+  start <- interval_start(e1)
+  end <- interval_end(e1)
   start <- time_add2(start, e2)
   end <- time_add2(end, e2)
   time_interval(start, end)
@@ -148,8 +179,8 @@ as.list.time_interval <- function(x, ...){
     ),
     time_by_unit(time_by)
   )
-  start <- time_interval_start(e1)
-  end <- time_interval_end(e1)
+  start <- interval_start(e1)
+  end <- interval_end(e1)
   start <- time_add2(start, time_by)
   end <- time_add2(end, time_by)
   time_interval(start, end)
@@ -158,8 +189,8 @@ as.list.time_interval <- function(x, ...){
   interval <- as.list(e1)
   time_diff(interval[[1L]], interval[[2L]], time_by = e2)
 }
-unique.time_interval <- function(x, sort = FALSE, ...){
-  interval <- collapse::funique(as.data.frame(x), sort = sort)
+unique.time_interval <- function(x, ...){
+  interval <- collapse::funique(as.data.frame(x), ...)
   time_interval(interval[[1L]], interval[[2L]])
 }
 duplicated.time_interval <- function(x, ...){
@@ -178,8 +209,8 @@ as.character.time_interval <- function(x,
   } else {
     int_fmt <- rlang::arg_match0(interval_style, c("full", "start", "end"))
   }
-  start <- time_interval_start(x)
-  end <- time_interval_end(x)
+  start <- interval_start(x)
+  end <- interval_end(x)
   if (!is.null(interval_sub_formatter)){
     start <- do.call(interval_sub_formatter, list(start))
     end <- do.call(interval_sub_formatter, list(end))
@@ -234,16 +265,16 @@ print.time_interval <- function(x, max = NULL, ...){
   invisible(x)
 }
 as.Date.time_interval <- function(x, ...){
-  as.Date(time_interval_start(x), ...)
+  as.Date(interval_start(x), ...)
 }
 as.POSIXct.time_interval <- function(x, ...){
-  as.POSIXct(time_interval_start(x), ...)
+  as.POSIXct(interval_start(x), ...)
 }
 as.POSIXlt.time_interval <- function(x, ...){
-  as.POSIXlt(time_interval_start(x), ...)
+  as.POSIXlt(interval_start(x), ...)
 }
 # is.na.time_interval <- function(x){
-#   is.na(unclass(x)) & is.na(time_interval_end(x))
+#   is.na(unclass(x)) & is.na(interval_end(x))
 # }
 # new_pillar_shaft.time_interval <- function(x, ...) {
 #   x <- format(x)

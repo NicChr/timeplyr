@@ -1,13 +1,13 @@
 #' Cut dates and datetimes into regularly spaced date or datetime intervals
 #'
-#' @description  `time_cut()` is very useful for plotting with dates and datetimes
-#' and always returns breaks of regular width. \cr
+#' @description
+#' `time_breaks` and `time_cut()` are very useful for
+#' plotting with dates and date-times as the breaks are of regular width.
 #'
 #' @details
-#' To specify exact widths, similar to `ggplot2::cut_width()`,
-#' supply `time_by` and `n = Inf`. \cr
-#' `time_breaks()` is a helper that
-#' returns only the time breaks.
+#' To retrieve regular time breaks that simply spans the range of `x`,
+#' use `time_seq()` or `time_aggregate()`.
+#' This can also be achieved in `time_cut()` by supplying `n = Inf`.
 #'
 #' By default `time_cut()` will try to find
 #'  the prettiest way of cutting the interval by
@@ -17,8 +17,7 @@
 #'
 #' When `x` is a numeric vector, `time_cut` will behave similar to `time_cut`
 #' except for 3 things:
-#' * The intervals are all right open and equal width, except for the
-#' rightmost interval which is closed with width <= the other widths.
+#' * The intervals are all right-open and of equal width.
 #' * The left value of the leftmost interval is always `min(x)`.
 #' * Up to `n` breaks are created, i.e `<= n` breaks. This is to prioritise
 #'   pretty breaks.
@@ -27,6 +26,11 @@
 #' below identity should always hold:
 #' \preformatted{
 #'  identical(time_cut(x, n = Inf, as_factor = FALSE), time_summarisev(x))
+#' }
+#' Or also:
+#' \preformatted{
+#'  breaks <- time_breaks(x, n = Inf)
+#'  identical(breaks[unclass(time_cut(x, n = Inf))], time_summarisev(x))
 #' }
 #'
 #' @param x Time variable. \cr
@@ -44,16 +48,11 @@
 #' then arithmetic is used, e.g `time_by = 1`.
 #' @param from Time series start date.
 #' @param to Time series end date.
-#' @param fmt (Optional) Date/datetime format for the factor labels.
-#' If supplied, this is passed to `format()`.
 #' @param time_floor Logical. Should the initial date/datetime be
 #' floored before building the sequence?
-#' @param n_at_most \bold{Deprecated}. No longer used.
 #' @param week_start day on which week starts following ISO conventions - 1
 #' means Monday (default), 7 means Sunday.
 #' This is only used when `time_floor = TRUE`.
-#' @param as_factor Logical. If `TRUE` the output is an ordered factor.
-#' Setting this to `FALSE` is sometimes much faster.
 #' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations` are used otherwise.
@@ -62,11 +61,13 @@
 #' Options are "preday", "boundary", "postday", "full" and "NA".
 #' See `?timechange::time_add` for more details.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
+#' @param as_factor Should the output be a `factor`? Default is `TRUE`.
+#' @param as_interval Should the output be a `time_interval`? Default is `FALSE`.
 #'
 #' @returns
 #' `time_breaks` returns a vector of breaks. \cr
-#' `time_cut` returns either a `factor` or a vector the same class as `x`.
-#' In both cases it is the same length as `x`.
+#' `time_cut` returns either a `factor`, `time_interval` or a vector the
+#' same class as `x`.
 #'
 #' @examples
 #' library(timeplyr)
@@ -93,7 +94,9 @@
 #' # Works with datetimes as well
 #' time_cut(df$time_hour, n = 5) # <= 5 breaks
 #' # Custom formatting
-#' time_cut(df$date, fmt = "%Y %b", time_by = "month")
+#' options(timeplyr.interval_sub_formatter =
+#'           function(x) format(x, format = "%Y %b"))
+#' time_cut(df$date, time_by = "month")
 #' # Just the breaks
 #' time_breaks(df$date, n = 5, time_by = "month")
 #'
@@ -131,42 +134,82 @@
 #' @export
 time_cut <- function(x, n = 5, time_by = NULL,
                      from = NULL, to = NULL,
-                     fmt = NULL,
                      time_floor = FALSE,
                      week_start = getOption("lubridate.week.start", 1),
-                     n_at_most = TRUE, as_factor = TRUE,
+                     as_factor = TRUE,
+                     as_interval = FALSE,
                      time_type = getOption("timeplyr.time_type", "auto"),
                      roll_month = getOption("timeplyr.roll_month", "preday"),
                      roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+  if (as_interval && as_factor){
+    stop("Choose either as_interval or as_factor, not both")
+  }
   if (is.null(to)){
     to <- collapse::fmax(x, na.rm = TRUE)
   }
-  time_breaks <- time_breaks(x = x, n = n, time_by = time_by,
-                             from = from, to = to,
-                             time_floor = time_floor,
-                             week_start = week_start,
-                             time_type = time_type,
-                             roll_month = roll_month,
-                             roll_dst = roll_dst)
+  breaks_list <- .time_breaks(x = x, n = n, time_by = time_by,
+                              from = from, to = to,
+                              time_floor = time_floor,
+                              week_start = week_start,
+                              time_type = time_type,
+                              roll_month = roll_month,
+                              roll_dst = roll_dst)
+  time_breaks <- breaks_list[["breaks"]]
   x <- time_cast(x, time_breaks)
   to <- time_cast(to, x)
   out <- cut_time(x,
                   breaks = c(unclass(time_breaks), unclass(to)),
                   codes = as_factor)
   if (as_factor){
-    time_labels <- tseq_levels(x = to, time_breaks, fmt = fmt)
+    time_labels <- as.character(
+      time_by_interval(time_breaks,
+                       time_by = breaks_list[["time_by"]],
+                       time_type = time_type,
+                       roll_month = roll_month,
+                       roll_dst = roll_dst)
+    )
+    # time_labels <- tseq_levels(x = to, time_breaks, fmt = fmt)
     levels(out) <- time_labels
     class(out) <- c("ordered", "factor")
+  }
+  ##### NEAR-FUTURE TO-DO FOR ME:
+  # 1. Uncomment the below else clause
+  # 2. Remove the as_interval clause
+  # 3. Remove the as_interval argument of the function
+  # else {
+  #   out <- time_by_interval(out, time_by = breaks_list[["time_by"]],
+  #                           time_type = time_type,
+  #                           roll_month = roll_month, roll_dst = roll_dst)
+  # }
+  if (as_interval){
+    out <- time_by_interval(out, time_by = breaks_list[["time_by"]],
+                            time_type = time_type,
+                            roll_month = roll_month, roll_dst = roll_dst)
   }
   out
 }
 #' @rdname time_cut
 #' @export
 time_breaks <- function(x, n = 5, time_by = NULL,
+                         from = NULL, to = NULL,
+                         time_floor = FALSE,
+                         week_start = getOption("lubridate.week.start", 1),
+                         time_type = getOption("timeplyr.time_type", "auto"),
+                         roll_month = getOption("timeplyr.roll_month", "preday"),
+                         roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+  out <- .time_breaks(x, n = n, time_by = time_by,
+                           from = from, to = to,
+                           time_floor = time_floor,
+                           week_start = week_start,
+                           time_type = time_type,
+                           roll_month = roll_month,
+                           roll_dst = roll_dst)
+  out[["breaks"]]
+}
+.time_breaks <- function(x, n = 5, time_by = NULL,
                         from = NULL, to = NULL,
                         time_floor = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
-                        n_at_most = TRUE,
                         time_type = getOption("timeplyr.time_type", "auto"),
                         roll_month = getOption("timeplyr.roll_month", "preday"),
                         roll_dst = getOption("timeplyr.roll_dst", "boundary")){
@@ -266,11 +309,17 @@ time_breaks <- function(x, n = 5, time_by = NULL,
   if (n_breaks > n){
     unit_multiplier <- ceiling(n_breaks / n)
   }
-  time_seq_v(from, to,
-             time_by = add_names(list(num * scale * unit_multiplier), unit),
-             time_floor = FALSE,
-             week_start = week_start,
-             time_type = time_type,
-             roll_month = roll_month,
-             roll_dst = roll_dst)
+  time_increment <- add_names(list(num * scale * unit_multiplier), unit)
+  breaks <- time_seq_v(from, to,
+                       time_by = time_increment,
+                       time_floor = FALSE,
+                       week_start = week_start,
+                       time_type = time_type,
+                       roll_month = roll_month,
+                       roll_dst = roll_dst)
+  list(
+    breaks = breaks,
+    time_by = time_increment,
+    time_type = time_type
+  )
 }

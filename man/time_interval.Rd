@@ -3,17 +3,20 @@
 \name{time_interval}
 \alias{time_interval}
 \alias{is_time_interval}
-\alias{time_interval_start}
-\alias{time_interval_end}
+\alias{interval_start}
+\alias{interval_end}
+\alias{interval_count}
 \title{S3-based Time Intervals (Currently very experimental and so subject to change)}
 \usage{
 time_interval(start = integer(), end = integer())
 
 is_time_interval(x)
 
-time_interval_start(x)
+interval_start(x)
 
-time_interval_end(x)
+interval_end(x)
+
+interval_count(x)
 }
 \arguments{
 \item{start}{Start time. \cr
@@ -26,9 +29,16 @@ Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearm
 
 \item{x}{A 'time_interval'.}
 }
+\value{
+An object of class \code{time_interval}.
+\code{is_time_interval} returns a logical of length 1.
+\code{interval_start} returns the start times.
+\code{interval_end} returns the end times.
+\code{interval_count} returns a data frame of unique intervals and their counts.
+}
 \description{
-Inspired by both 'lubridate' and 'ivs', \code{time_interval} is an S3 class for
-right-open intervals that contain a vector of start dates and end dates.
+Inspired by both 'lubridate' and 'ivs', \code{time_interval} is a 'vctrs' style
+class for right-open intervals that contain a vector of start dates and end dates.
 }
 \details{
 In the near-future, all time aggregated variables will utilise these intervals.
@@ -45,6 +55,7 @@ is just an interval and therefore base R objects like Dates and POSIXcts are
 also intervals.
 }
 \examples{
+library(dplyr)
 library(timeplyr)
 library(lubridate)
 \dontshow{
@@ -66,8 +77,10 @@ month_start <- floor_date(today(), unit = "months")
 month_int <- time_interval(month_start, month_start + months(1))
 month_int
 # Custom format function for start and end dates
-format(month_int, interval_sub_formatter = function(x) format(x, "\%Y/\%B"))
-format(month_int, interval_style = "start", interval_sub_formatter = function(x) format(x, "\%Y/\%B"))
+format(month_int, interval_sub_formatter =
+         function(x) format(x, format = "\%Y/\%B"))
+format(month_int, interval_style = "start",
+       interval_sub_formatter = function(x) format(x, format = "\%Y/\%B"))
 
 # Advanced formatting
 
@@ -75,7 +88,8 @@ format(month_int, interval_style = "start", interval_sub_formatter = function(x)
 # in our intervals
 # Sometimes it's useful to set a default function
 
-options(timeplyr.interval_sub_formatter = function(x) format(x, "\%b \%Y"))
+options(timeplyr.interval_sub_formatter =
+          function(x) format(x, format = "\%b \%Y"))
 month_int
 
 # Divide an interval into different time units
@@ -88,6 +102,12 @@ time_interval(today(), today() + years(0:10)) / "24 hours"
 time_interval(today(), today() + years(0:10)) / "minutes"
 time_interval(today(), today() + years(0:10)) / "seconds"
 time_interval(today(), today() + years(0:10)) / "milliseconds"
+
+# Cutting Sepal Length into blocks of width 1
+int <- time_aggregate(iris$Sepal.Length, time_by = 1)
+int \%>\%
+  interval_count() \%>\%
+  mutate(interval = time_interval(start, end), .before = n)
 
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)

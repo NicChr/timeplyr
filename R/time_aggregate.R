@@ -20,7 +20,6 @@
 #' @param roll_month Control how impossible dates are handled when
 #' month or year arithmetic is involved.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
-#' @param interval Should the output be a `time_interval`? Default is `FALSE`.
 #'
 #' @details `time_aggregate` aggregates time using
 #' distinct moving time range blocks of a specified time unit.
@@ -39,9 +38,10 @@
 #' it may be more efficient to cut the data using the period sequence which can
 #' be achieved using `time_summarisev`.
 #'
-#' @seealso [time_summarisev]
+#' @seealso [time_summarisev] [time_cut]
+#'
 #' @returns
-#' A time aggregated vector the same class and length as `x`.
+#' A `time_interval`.
 #'
 #' @examples
 #' library(timeplyr)
@@ -74,8 +74,8 @@
 #' # Confirm this has been done by group as each group will have a
 #' # Different aggregate start date
 #' flights %>%
-#'   mutate(week_by_tailnum) %>%
-#'   stat_summarise(week_by_tailnum, .by = tailnum, stat = "min",
+#'   mutate(week_start = interval_start(week_by_tailnum)) %>%
+#'   stat_summarise(week_start, .by = tailnum, stat = "min",
 #'                  sort = FALSE)
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
@@ -85,8 +85,7 @@
 time_aggregate <- function(x, time_by = NULL, g = NULL,
                            time_type = getOption("timeplyr.time_type", "auto"),
                            roll_month = getOption("timeplyr.roll_month", "preday"),
-                           roll_dst = getOption("timeplyr.roll_dst", "boundary"),
-                           interval = FALSE){
+                           roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   check_is_time_or_num(x)
   time_by <- time_by_get(x, time_by = time_by)
   num <- time_by_num(time_by)
@@ -96,12 +95,15 @@ time_aggregate <- function(x, time_by = NULL, g = NULL,
   time_to_add <- add_names(list(trunc2(tdiff) * num), units)
   out <- time_add2(index, time_by = time_to_add, time_type = time_type,
                    roll_month = roll_month, roll_dst = roll_dst)
-  if (interval){
-    out <- time_by_interval(out, time_by = time_by,
-                            # bound_range = TRUE,
-                            time_type = time_type,
-                            roll_month = roll_month, roll_dst = roll_dst)
-  }
+  time_by_interval(out, time_by = time_by,
+                   time_type = time_type,
+                   roll_month = roll_month, roll_dst = roll_dst)
+  # if (as_interval){
+  #   out <- time_by_interval(out, time_by = time_by,
+  #                           # bound_range = TRUE,
+  #                           time_type = time_type,
+  #                           roll_month = roll_month, roll_dst = roll_dst)
+  # }
   # if (interval){
   #   end <- time_add2(out, time_by = time_by, time_type = time_type,
   #                    roll_month = roll_month, roll_dst = roll_dst)
@@ -111,5 +113,5 @@ time_aggregate <- function(x, time_by = NULL, g = NULL,
   #   end[which_out_of_bounds] <- to[which_out_of_bounds]
   #   out <- time_interval(out, end)
   # }
-  out
+  # out
 }

@@ -11,11 +11,10 @@ time_cut(
   time_by = NULL,
   from = NULL,
   to = NULL,
-  fmt = NULL,
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
-  n_at_most = TRUE,
   as_factor = TRUE,
+  as_interval = FALSE,
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
   roll_dst = getOption("timeplyr.roll_dst", "boundary")
@@ -29,7 +28,6 @@ time_breaks(
   to = NULL,
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
-  n_at_most = TRUE,
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
   roll_dst = getOption("timeplyr.roll_dst", "boundary")
@@ -58,9 +56,6 @@ then arithmetic is used, e.g \code{time_by = 1}.
 
 \item{to}{Time series end date.}
 
-\item{fmt}{(Optional) Date/datetime format for the factor labels.
-If supplied, this is passed to \code{format()}.}
-
 \item{time_floor}{Logical. Should the initial date/datetime be
 floored before building the sequence?}
 
@@ -68,10 +63,9 @@ floored before building the sequence?}
 means Monday (default), 7 means Sunday.
 This is only used when \code{time_floor = TRUE}.}
 
-\item{n_at_most}{\bold{Deprecated}. No longer used.}
+\item{as_factor}{Should the output be a \code{factor}? Default is \code{TRUE}.}
 
-\item{as_factor}{Logical. If \code{TRUE} the output is an ordered factor.
-Setting this to \code{FALSE} is sometimes much faster.}
+\item{as_interval}{Should the output be a \code{time_interval}? Default is \code{FALSE}.}
 
 \item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks, months or years are specified,
@@ -86,18 +80,17 @@ See \code{?timechange::time_add} for more details.}
 }
 \value{
 \code{time_breaks} returns a vector of breaks. \cr
-\code{time_cut} returns either a \code{factor} or a vector the same class as \code{x}.
-In both cases it is the same length as \code{x}.
+\code{time_cut} returns either a \code{factor}, \code{time_interval} or a vector the
+same class as \code{x}.
 }
 \description{
-\code{time_cut()} is very useful for plotting with dates and datetimes
-and always returns breaks of regular width. \cr
+\code{time_breaks} and \code{time_cut()} are very useful for
+plotting with dates and date-times as the breaks are of regular width.
 }
 \details{
-To specify exact widths, similar to \code{ggplot2::cut_width()},
-supply \code{time_by} and \code{n = Inf}. \cr
-\code{time_breaks()} is a helper that
-returns only the time breaks.
+To retrieve regular time breaks that simply spans the range of \code{x},
+use \code{time_seq()} or \code{time_aggregate()}.
+This can also be achieved in \code{time_cut()} by supplying \code{n = Inf}.
 
 By default \code{time_cut()} will try to find
 the prettiest way of cutting the interval by
@@ -108,8 +101,7 @@ starting at years and ending at milliseconds.
 When \code{x} is a numeric vector, \code{time_cut} will behave similar to \code{time_cut}
 except for 3 things:
 \itemize{
-\item The intervals are all right open and equal width, except for the
-rightmost interval which is closed with width <= the other widths.
+\item The intervals are all right-open and of equal width.
 \item The left value of the leftmost interval is always \code{min(x)}.
 \item Up to \code{n} breaks are created, i.e \verb{<= n} breaks. This is to prioritise
 pretty breaks.
@@ -119,6 +111,11 @@ pretty breaks.
 below identity should always hold:
 \preformatted{
  identical(time_cut(x, n = Inf, as_factor = FALSE), time_summarisev(x))
+}
+Or also:
+\preformatted{
+ breaks <- time_breaks(x, n = Inf)
+ identical(breaks[unclass(time_cut(x, n = Inf))], time_summarisev(x))
 }
 }
 \examples{
@@ -146,7 +143,9 @@ time_cut(df$date)
 # Works with datetimes as well
 time_cut(df$time_hour, n = 5) # <= 5 breaks
 # Custom formatting
-time_cut(df$date, fmt = "\%Y \%b", time_by = "month")
+options(timeplyr.interval_sub_formatter =
+          function(x) format(x, format = "\%Y \%b"))
+time_cut(df$date, time_by = "month")
 # Just the breaks
 time_breaks(df$date, n = 5, time_by = "month")
 
