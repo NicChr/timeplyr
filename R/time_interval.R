@@ -5,11 +5,11 @@
 #' class for right-open intervals that contain a vector of start dates and end dates.
 #'
 #' @returns
-#' An object of class `time_interval`.
-#' `is_time_interval` returns a logical of length 1.
-#' `interval_start` returns the start times.
-#' `interval_end` returns the end times.
-#' `interval_count` returns a data frame of unique intervals and their counts.
+#' An object of class `time_interval`. \cr
+#' `is_time_interval` returns a logical of length 1. \cr
+#' `interval_start` returns the start times. \cr
+#' `interval_end` returns the end times. \cr
+#' `interval_count` returns a data frame of unique intervals and their counts. \cr
 #'
 #' @details
 #' In the near-future, all time aggregated variables will utilise these intervals.

@@ -30,11 +30,11 @@ Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearm
 \item{x}{A 'time_interval'.}
 }
 \value{
-An object of class \code{time_interval}.
-\code{is_time_interval} returns a logical of length 1.
-\code{interval_start} returns the start times.
-\code{interval_end} returns the end times.
-\code{interval_count} returns a data frame of unique intervals and their counts.
+An object of class \code{time_interval}. \cr
+\code{is_time_interval} returns a logical of length 1. \cr
+\code{interval_start} returns the start times. \cr
+\code{interval_end} returns the end times. \cr
+\code{interval_count} returns a data frame of unique intervals and their counts. \cr
 }
 \description{
 Inspired by both 'lubridate' and 'ivs', \code{time_interval} is a 'vctrs' style
