@@ -35,6 +35,7 @@ register_all_s3_methods <- function(){
   register_s3_method("zoo", "rep.int", "yearqtr")
   register_s3_method("zoo", "rep_len", "yearqtr")
   register_s3_method("pillar", "tbl_sum", "time_tbl_df")
+  # register_s3_method("pillar", "tbl_sum", "episodes_tbl_df")
   register_s3_method("timeplyr", "rep", "year_month")
   register_s3_method("timeplyr", "rep.int", "year_month")
   register_s3_method("timeplyr", "rep_len", "year_month")

@@ -4,7 +4,6 @@ data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 
 testthat::test_that("Testing time episodes", {
-  expect_snapshot({
   flights <- dplyr::select(nycflights13::flights, origin, dest, time_hour)
 
   flights[["id"]] <- row_id(flights)
@@ -602,7 +601,6 @@ testthat::test_that("Testing time episodes", {
     list_to_tibble(list("res2 == ep_id_new" = c(TRUE, NA),
                         "n" = c(13L, 7L)))
   )
-})
 })
 
 test_that("Simple episodic tests", {

@@ -21,6 +21,7 @@ stat_summarise(
   .names = NULL,
   .by = NULL,
   .cols = NULL,
+  inform_stats = TRUE,
   as_tbl = FALSE
 )
 
@@ -57,6 +58,9 @@ Columns are specified using tidy-select.}
 \item{.cols}{(Optional) alternative to \code{...} that accepts
 a named character vector or numeric vector.
 If speed is an expensive resource, it is recommended to use this.}
+
+\item{inform_stats}{Should available stat functions be displayed
+at the start of each session? Default is \code{TRUE}.}
 
 \item{as_tbl}{Should the result be a \code{tibble}? Default is \code{FALSE}.}
 }

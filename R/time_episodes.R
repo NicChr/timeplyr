@@ -276,15 +276,131 @@ time_episodes <- function(data, time, time_by = NULL,
   set_rm_cols(out, row_id_nm)
   if (.add){
     # Simply bind the cols together
-    vctrs::vec_cbind(data, fselect(out, .cols = new_cols))
+    out <- vctrs::vec_cbind(data, fselect(out, .cols = new_cols))
   } else {
     # Only keep the key variables
     out_nms <- c(group_vars, time_col, event_col, new_cols)
     # Set the column order
     out <- fselect(out, .cols = out_nms)
-    df_reconstruct(out, data)
   }
+  out <- df_reconstruct(out, data)
+  # out <- structure(out, time = time_col)
+                   # by_groups = setdiff(group_vars, group_vars(data)))
+  # class(out) <- c("episodes_tbl_df", class(out))
+  out
 }
+# tbl_sum.episodes_tbl_df <- function(x, ...){
+#   # TO-DO: Add avg events per episode
+#   groups_header <- character()
+#   episodes_header <- character()
+#   # Groups
+#   group_vars <- group_vars(x)
+#   if (length(group_vars) > 0){
+#     groups <- group_data(x)
+#     groups_header <- c("Groups" =
+#                          paste0(paste(group_vars, collapse = ", "),
+#                                 " [",
+#                                 prettyNum(df_nrow(groups), big.mark = ","),
+#                                 "]"))
+#   }
+#   # Episodes
+#   if ("ep_id_new" %in% names(x)){
+#     ep_summary <- stat_summarise(
+#       x, .data[["ep_id_new"]],
+#       stat = "max", sort = FALSE,
+#       inform_stats = FALSE
+#     )
+#     median_episodes <- median(ep_summary$max)
+#     total_episodes <- sum(ep_summary$max)
+#     episodes_header <- c(
+#       "Episodes" = paste0(
+#         prettyNum(total_episodes, big.mark = ","),
+#         ", ",
+#         "Median - ",
+#         prettyNum(round(median_episodes), big.mark = ","),
+#         " ",
+#         finline_hist(ep_summary$max, n_bins = 7)
+#       )
+#     )
+#   }
+#   num_row <- prettyNum(df_nrow(x), big.mark = ",")
+#   num_col <- prettyNum(df_ncol(x), big.mark = ",")
+#   tbl_header <- c("A tibble" = paste0(num_row, " x ", num_col))
+#   c(tbl_header,
+#     groups_header,
+#     episodes_header)
+# }
+# tbl_sum.episodes_tbl_df <- function(x, ...){
+#   # TO-DO: Add avg events per episode
+#   group_vars <- group_vars(x)
+#   if (length(group_vars) > 0){
+#     groups <- group_data(x)
+#     groups_header <- c("Groups" =
+#                          paste0(paste(group_vars, collapse = ", "),
+#                                 " [",
+#                                 prettyNum(df_nrow(groups), big.mark = ","),
+#                                 "]"))
+#   } else {
+#     groups_header <- character()
+#   }
+#   ep_summary <- stat_summarise(
+#     x, .data[["ep_id_new"]],
+#     # .by = dplyr::all_of(attr(x, "by_groups")),
+#     stat = "max", sort = FALSE,
+#     inform_stats = FALSE
+#   )
+#   # rowid <- row_id(x, .by = dplyr::all_of(attr(x, "by_groups")))
+#   # time_summary <- x %>%
+#   #   df_row_slice(rowid > 1L) %>%
+#   #   stat_summarise(.data[["t_elapsed"]],
+#   #   .by = dplyr::all_of(attr(x, "by_groups")),
+#   #   stat = "mean", sort = FALSE,
+#   #   inform_stats = FALSE
+#   # )
+#   # mean_episodes <- mean(ep_summary$max)
+#   # x %>% as_tibble() %>%
+#   #   fadd_count(.by = tailnum) %>%
+#   #   filter(ep_id_new != 1) %>%
+#   #   summarise(mean = arithmetic_mean(t_elapsed, weights = n/nrow(x)))
+#
+#   ### Elapsed time between events (weighted by group counts)
+#   # which_not_index <- cpp_which(x$ep_id_new != 1L)
+#   # counts <- fadd_count(x, .by = dplyr::all_of(attr(x, "by_groups")))[["n"]]
+#   # weighted_elapsed <- arithmetic_mean(
+#   #   x$t_elapsed[which_not_index],
+#   #   weights = counts[which_not_index]
+#   # )
+#   # POOLED MEAN (use this probably..)
+#   # x %>% as_tibble() %>%
+#   #   fadd_count(.by = tailnum) %>%
+#   #   filter(ep_id_new != 1) %>%
+#   #   summarise(mean_time = mean(t_elapsed),
+#   #             n = n(), .by = tailnum) %>%
+#   #   summarise(mean = arithmetic_mean(mean_time, weights = n))
+#   median_episodes <- median(ep_summary$max)
+#   total_episodes <- sum(ep_summary$max)
+#   episodes_header <- c(
+#     "Episodes" = paste0(
+#       prettyNum(total_episodes, big.mark = ","),
+#       ", ",
+#       "Median - ",
+#       prettyNum(round(median_episodes), big.mark = ","),
+#       " ",
+#       finline_hist(ep_summary$max, n_bins = 7)
+#     )
+#   )
+#   # elapsed_header <- c(
+#   #   "Time b/w events (weighted)" = paste0(
+#   #     round(weighted_elapsed, 2)
+#   #   )
+#   # )
+#   num_row <- prettyNum(df_nrow(x), big.mark = ",")
+#   num_col <- prettyNum(df_ncol(x), big.mark = ",")
+#   tbl_header <- c("A tibble" = paste0(num_row, " x ", num_col))
+#   c(tbl_header,
+#     groups_header,
+#     episodes_header)
+# }
 # Internal helper to calculate time episodes
 # Data must be sorted by groups + time
 set_calc_episodes <- function(data,

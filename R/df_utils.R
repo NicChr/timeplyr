@@ -493,8 +493,15 @@ df_select <- function(x, .cols){
 df_add_cols <- function(data, cols){
   dplyr::dplyr_col_modify(data, cols)
 }
-
-# out <- .subset(x, .cols)
-# attr(out, "class") <- attr(x, "class")
-# attr(out, "row.names") <- attr(x, "row.names")
-# out
+# Extremely simple count functions for grouped_df
+df_count <- function(.data, name = "n"){
+  out <- group_data(.data)
+  out[[name]] <- cpp_lengths(out[[".rows"]])
+  fselect(out, .cols = setdiff2(names(out), ".rows"))
+}
+df_add_count <- function(.data, name = "n"){
+  groups <- group_data(.data)
+  counts <- cpp_lengths(groups[[".rows"]])
+  group_ids <- df_group_id(.data)
+  df_add_cols(.data, add_names(list(counts[group_ids]), name))
+}

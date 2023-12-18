@@ -26,6 +26,8 @@
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
 #' @param as_tbl Should the result be a `tibble`? Default is `FALSE`.
+#' @param inform_stats Should available stat functions be displayed
+#' at the start of each session? Default is `TRUE`.
 #'
 #' @returns
 #' A summary `data.table` containing the summary values for each group.
@@ -74,8 +76,11 @@ stat_summarise <- function(data, ...,
                            q_probs = NULL,
                            na.rm = TRUE, sort = TRUE,
                            .names = NULL, .by = NULL, .cols = NULL,
+                           inform_stats = TRUE,
                            as_tbl = FALSE){
-  inform_available_stats()
+  if (inform_stats){
+    inform_available_stats()
+  }
   funs <- .stat_fns
   if (!is.character(stat)){
     stop("stat must be a character vector")
