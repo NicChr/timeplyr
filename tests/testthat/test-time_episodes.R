@@ -409,6 +409,7 @@ testthat::test_that("Testing time episodes", {
                                              time_by = NULL,
                                              window = 7) %>%
                                suppressMessages() %>%
+                               dplyr::as_tibble() %>%
                                fcount(ep_id, ep_id_new))
   testthat::expect_identical(
     base1,
@@ -418,35 +419,41 @@ testthat::test_that("Testing time episodes", {
                     time_by = NULL,
                     window = 7,
                     event = list(event = 1)) %>%
+      dplyr::as_tibble() %>%
       fcount(ep_id, ep_id_new)
   )
   testthat::expect_identical(flights %>%
                                time_episodes(.by = id2, time = time_hour,
                                              time_by = list("hours" = 18.5),
                                              window = 2) %>%
+                               dplyr::as_tibble() %>%
                                fcount(ep_id, ep_id_new),
                              flights %>%
                                time_episodes(.by = id2, time = time_hour,
                                              time_by = "4 hours",
                                              window = 9.25) %>%
+                               dplyr::as_tibble() %>%
                                fcount(ep_id, ep_id_new))
   testthat::expect_identical(base1,
                              flights %>%
                                time_episodes(.by = id1, time = time_hour,
                                              time_by = "hour",
                                              window = 7) %>%
+                               dplyr::as_tibble() %>%
                                fcount(ep_id, ep_id_new))
   testthat::expect_identical(base2,
                              flights %>%
                                time_episodes(.by = id2, time = time_hour,
                                              time_by = "hour",
                                              window = 240) %>%
+                               dplyr::as_tibble() %>%
                                fcount(ep_id, ep_id_new))
   testthat::expect_identical(base3,
                              flights %>%
                                time_episodes(.by = id1, time = time_hour,
                                              time_by = "hour",
                                              window = 7) %>%
+                               dplyr::as_tibble() %>%
                                fcount(id1, ep_id,
                                                ep_id_new, ep_start))
   testthat::expect_identical(base4,
@@ -454,6 +461,7 @@ testthat::test_that("Testing time episodes", {
                                time_episodes(.by = id2, time = time_hour,
                                              time_by = "hour",
                                              window = 240) %>%
+                               dplyr::as_tibble() %>%
                                fcount(id2, ep_id,
                                       ep_id_new, ep_start))
   testthat::expect_identical(base1,
@@ -462,6 +470,7 @@ testthat::test_that("Testing time episodes", {
                                              time_by = "hour",
                                              window = 7,
                                              .add = TRUE) %>%
+                               dplyr::as_tibble() %>%
                                fcount(ep_id, ep_id_new))
   testthat::expect_identical(base2,
                              flights %>%
@@ -469,6 +478,7 @@ testthat::test_that("Testing time episodes", {
                                              time_by = "hour",
                                              window = 240,
                                              .add = TRUE) %>%
+                               dplyr::as_tibble() %>%
                                fcount(ep_id, ep_id_new))
   testthat::expect_identical(base3,
                              flights %>%
@@ -476,6 +486,7 @@ testthat::test_that("Testing time episodes", {
                                              time_by = "hour",
                                              window = 7,
                                              .add = TRUE) %>%
+                               dplyr::as_tibble() %>%
                                fcount(id1, ep_id,
                                       ep_id_new, ep_start))
   testthat::expect_identical(base4,
@@ -484,6 +495,7 @@ testthat::test_that("Testing time episodes", {
                                              time_by = "hour",
                                              window = 240,
                                              .add = TRUE) %>%
+                               dplyr::as_tibble() %>%
                                fcount(id2, ep_id,
                                       ep_id_new, ep_start))
   # Grouped
@@ -493,6 +505,7 @@ testthat::test_that("Testing time episodes", {
                                              time_by = "hour",
                                              window = 7,
                                              .add = TRUE) %>%
+                               dplyr::as_tibble() %>%
                                fcount(ep_id, ep_id_new))
   testthat::expect_identical(base2,
                              flights %>%
@@ -500,6 +513,7 @@ testthat::test_that("Testing time episodes", {
                                              time_by = "hour",
                                              window = 240,
                                              .add = TRUE) %>%
+                               dplyr::as_tibble() %>%
                                fcount(ep_id, ep_id_new))
   testthat::expect_identical(base3,
                              flights %>%
@@ -507,6 +521,7 @@ testthat::test_that("Testing time episodes", {
                                              time_by = "hour",
                                              window = 7,
                                              .add = TRUE) %>%
+                               dplyr::as_tibble() %>%
                                fcount(id1, ep_id,
                                       ep_id_new, ep_start))
   testthat::expect_identical(base4,
@@ -515,6 +530,7 @@ testthat::test_that("Testing time episodes", {
                                              time_by = "hour",
                                              window = 240,
                                              .add = TRUE) %>%
+                               dplyr::as_tibble() %>%
                                fcount(id2, ep_id,
                                       ep_id_new, ep_start))
 
@@ -551,7 +567,8 @@ testthat::test_that("Testing time episodes", {
                                fslice(0) %>%
                                time_episodes(.by = id2, time = time_hour,
                                              time_by = "hour",
-                                             window = 240),
+                                             window = 240) %>%
+                               dplyr::as_tibble(),
                              structure(list(id2 = integer(0),
                                             time_hour = structure(numeric(0), tzone = "UTC", class = c("POSIXct", "POSIXt")),
                                             t_elapsed = numeric(0),
@@ -580,7 +597,7 @@ testthat::test_that("Testing time episodes", {
   testthat::expect_equal(
     df %>%
       time_episodes(value, roll_episode = TRUE, window = 100, .add = TRUE) %>%
-      safe_ungroup() %>%
+      df_as_tibble() %>%
       fcount(res1 == ep_id_new),
     list_to_tibble(list("res1 == ep_id_new" = c(TRUE, NA),
                         "n" = c(13L, 7L)))
@@ -596,7 +613,7 @@ testthat::test_that("Testing time episodes", {
     df %>%
       time_episodes(value, roll_episode = FALSE, window = 200,
                     .add = TRUE) %>%
-      safe_ungroup() %>%
+      df_as_tibble() %>%
       fcount(res2 == ep_id_new),
     list_to_tibble(list("res2 == ep_id_new" = c(TRUE, NA),
                         "n" = c(13L, 7L)))

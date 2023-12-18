@@ -131,7 +131,11 @@ time_by_pretty <- function(time_by){
     if (num == 1){
       paste(num, "numeric unit", sep = " ")
     } else {
-      paste(num, "numeric units", sep = " ")
+      pretty_num <- round(num, 2)
+      if (!cppdoubles::double_equal(num, pretty_num)){
+        pretty_num <- paste0("~", pretty_num)
+      }
+      paste(pretty_num, "numeric units", sep = " ")
     }
   } else {
     num_seconds <- unit_to_seconds(time_by)
@@ -140,11 +144,7 @@ time_by_pretty <- function(time_by){
     higher_unit <- higher_unit_info$unit
     num <- num_seconds / scale
     units <- higher_unit
-    # pretty_unit_info <- seconds_to_unit(num_seconds)
-    # pretty_unit <- sub("(s)", "", pretty_unit_info[["unit"]],
-    #                    fixed = TRUE)
-    # scale <- pretty_unit_info[["scale"]]
-    # pretty_num <- prettyNum(round(num_seconds / scale, 2))
+
     pretty_num <- round(num, 2)
     if (!cppdoubles::double_equal(num, pretty_num)){
       pretty_num <- paste0("~", pretty_num)

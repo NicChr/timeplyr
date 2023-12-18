@@ -39,7 +39,10 @@ fgroup_by <- function(data, ..., .add = FALSE,
   out <- group_info[["data"]]
   groups <- group_info[["all_groups"]]
   if (.add){
-    if (length(groups) == 0){
+    if (length(groups) == 0 || (
+      length(setdiff2(groups, init_group_vars)) == 0 && order &&
+      isTRUE(.drop == dplyr::group_by_drop_default(data))
+      )){
       return(data)
     }
     groups <- unique(c(init_group_vars, groups))
