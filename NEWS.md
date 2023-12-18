@@ -1,5 +1,10 @@
 # timeplyr (Development version)
 
+* New functions `gcd2` and `scm2` which are vectorised binary versions of 
+`gcd` and `scm` respectively.
+
+* New class `time_interval` to represent right-open time intervals. 
+
 # timeplyr 0.5.0
 
 * The internal code of `time_cut` has been simplified and improved. 
