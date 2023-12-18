@@ -16,6 +16,14 @@ cpp_lcm <- function(x, tol, na_rm) {
   .Call(`_timeplyr_cpp_lcm`, x, tol, na_rm)
 }
 
+cpp_gcd2_vectorised <- function(x, y, tol, na_rm) {
+  .Call(`_timeplyr_cpp_gcd2_vectorised`, x, y, tol, na_rm)
+}
+
+cpp_lcm2_vectorised <- function(x, y, tol, na_rm) {
+  .Call(`_timeplyr_cpp_lcm2_vectorised`, x, y, tol, na_rm)
+}
+
 cpp_is_whole_num <- function(x, tol, na_rm) {
   .Call(`_timeplyr_cpp_is_whole_num`, x, tol, na_rm)
 }

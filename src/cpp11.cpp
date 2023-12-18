@@ -33,6 +33,20 @@ extern "C" SEXP _timeplyr_cpp_lcm(SEXP x, SEXP tol, SEXP na_rm) {
     return cpp11::as_sexp(cpp_lcm(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(tol), cpp11::as_cpp<cpp11::decay_t<bool>>(na_rm)));
   END_CPP11
 }
+// gcd.cpp
+SEXP cpp_gcd2_vectorised(SEXP x, SEXP y, double tol, bool na_rm);
+extern "C" SEXP _timeplyr_cpp_gcd2_vectorised(SEXP x, SEXP y, SEXP tol, SEXP na_rm) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_gcd2_vectorised(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(y), cpp11::as_cpp<cpp11::decay_t<double>>(tol), cpp11::as_cpp<cpp11::decay_t<bool>>(na_rm)));
+  END_CPP11
+}
+// gcd.cpp
+SEXP cpp_lcm2_vectorised(SEXP x, SEXP y, double tol, bool na_rm);
+extern "C" SEXP _timeplyr_cpp_lcm2_vectorised(SEXP x, SEXP y, SEXP tol, SEXP na_rm) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_lcm2_vectorised(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(y), cpp11::as_cpp<cpp11::decay_t<double>>(tol), cpp11::as_cpp<cpp11::decay_t<bool>>(na_rm)));
+  END_CPP11
+}
 // is_whole_num.cpp
 SEXP cpp_is_whole_num(SEXP x, double tol, bool na_rm);
 extern "C" SEXP _timeplyr_cpp_is_whole_num(SEXP x, SEXP tol, SEXP na_rm) {
@@ -269,11 +283,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_df_group_indices",     (DL_FUNC) &_timeplyr_cpp_df_group_indices,     2},
     {"_timeplyr_cpp_gcd",                  (DL_FUNC) &_timeplyr_cpp_gcd,                  5},
     {"_timeplyr_cpp_gcd2",                 (DL_FUNC) &_timeplyr_cpp_gcd2,                 4},
+    {"_timeplyr_cpp_gcd2_vectorised",      (DL_FUNC) &_timeplyr_cpp_gcd2_vectorised,      4},
     {"_timeplyr_cpp_int_sequence",         (DL_FUNC) &_timeplyr_cpp_int_sequence,         3},
     {"_timeplyr_cpp_is_whole_num",         (DL_FUNC) &_timeplyr_cpp_is_whole_num,         3},
     {"_timeplyr_cpp_lag_sequence",         (DL_FUNC) &_timeplyr_cpp_lag_sequence,         3},
     {"_timeplyr_cpp_lcm",                  (DL_FUNC) &_timeplyr_cpp_lcm,                  3},
     {"_timeplyr_cpp_lcm2",                 (DL_FUNC) &_timeplyr_cpp_lcm2,                 4},
+    {"_timeplyr_cpp_lcm2_vectorised",      (DL_FUNC) &_timeplyr_cpp_lcm2_vectorised,      4},
     {"_timeplyr_cpp_lead_sequence",        (DL_FUNC) &_timeplyr_cpp_lead_sequence,        3},
     {"_timeplyr_cpp_lengths",              (DL_FUNC) &_timeplyr_cpp_lengths,              1},
     {"_timeplyr_cpp_list_subset",          (DL_FUNC) &_timeplyr_cpp_list_subset,          4},

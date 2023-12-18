@@ -6,7 +6,9 @@
 #'
 #' `gcd()` returns the greatest common divisor. \cr
 #' `scm()` returns the smallest common multiple. \cr
-#' `gcd_diff()` returns the greatest common divisor of numeric differences.
+#' `gcd_diff()` returns the greatest common divisor of numeric differences. \cr
+#' `gcd2()` is a vectorised binary version of `gcd`. \cr
+#' `scm2()` is a vectorised binary version of `scm`.
 #'
 #' @param x A [numeric] vector.
 #' @param tol Tolerance. This must
@@ -27,7 +29,7 @@
 #' For integers, the algorithm always breaks early once `gcd > 0 && gcd <= 1`.
 #' @param lag Lag of differences.
 #' @param fill Value to initialise the algorithm for `gcd_diff()`.
-#'
+#' @param y A [numeric] vector.
 #' @returns
 #' A number representing the GCD or SCM.
 #'
@@ -54,9 +56,7 @@
 #'
 #'
 #' If you want to calculate the gcd & lcm for 2 values
-#' instead of a vector of values,
-#' use the internal functions `cpp_gcd2` and `cpp_lcm2`.
-#' You can then easily write a vectorised method using these.
+#' or across 2 vectors of values, use `gcd2` and `scm2`.
 #'
 #' @examples
 #' library(timeplyr)
@@ -67,12 +67,20 @@
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
+#'
+#' # Binary versions
+#' gcd2(15, 25)
+#' gcd2(15, seq(5, 25, 5))
+#' scm2(15, seq(5, 25, 5))
+#' scm2(15, 25)
+#'
+#' # GCD across a vector
 #' gcd(c(0, 5, 25))
 #' mark(gcd(c(0, 5, 25)))
 #'
 #' x <- rnorm(10^6)
 #' gcd(x)
-#' gcd(x, round = TRUE)
+#' gcd(x, round = FALSE)
 #' mark(gcd(x))
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
@@ -106,4 +114,14 @@ gcd_diff <- function(x, lag = 1L, fill = NA,
         na_rm,
         break_early,
         round)
+}
+#' @rdname gcd
+#' @export
+gcd2 <- function(x, y, tol = sqrt(.Machine$double.eps), na_rm = TRUE){
+  .Call(`_timeplyr_cpp_gcd2_vectorised`, x, y, as.double(tol), na_rm)
+}
+#' @rdname gcd
+#' @export
+scm2 <- function(x, y, tol = sqrt(.Machine$double.eps), na_rm = TRUE){
+  .Call(`_timeplyr_cpp_lcm2_vectorised`, x, y, as.double(tol), na_rm)
 }

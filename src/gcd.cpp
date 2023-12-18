@@ -287,3 +287,112 @@ SEXP cpp_lcm(SEXP x, double tol, bool na_rm){
   }
   }
 }
+
+// Vectorised binary gcd
+
+[[cpp11::register]]
+SEXP cpp_gcd2_vectorised(SEXP x, SEXP y, double tol, bool na_rm){
+  if (tol < 0 || tol >= 1){
+    Rf_error("tol must be >= 0 and < 1");
+  }
+  R_xlen_t xn = Rf_xlength(x);
+  R_xlen_t yn = Rf_xlength(y);
+  R_xlen_t n = std::max(xn, yn);
+  if (xn == 0 || yn == 0){
+    n = 0;
+  }
+  switch(TYPEOF(x)){
+  case INTSXP: {
+    Rf_protect(x = Rf_coerceVector(x, INTSXP));
+    Rf_protect(y = Rf_coerceVector(y, INTSXP));
+    SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
+    int *p_out = INTEGER(out);
+    int *p_x = INTEGER(x);
+    int *p_y = INTEGER(y);
+    R_xlen_t xi;
+    R_xlen_t yi;
+    for (R_xlen_t i = 0; i < n; ++i) {
+      xi = i % xn;
+      yi = i % yn;
+      p_out[i] = cpp_gcd2_int(p_x[xi], p_y[yi], na_rm);
+    }
+    Rf_unprotect(3);
+    return out;
+  }
+  default: {
+    Rf_protect(x = Rf_coerceVector(x, REALSXP));
+    Rf_protect(y = Rf_coerceVector(y, REALSXP));
+    SEXP out = Rf_protect(Rf_allocVector(REALSXP, n));
+    double *p_out = REAL(out);
+    double *p_x = REAL(x);
+    double *p_y = REAL(y);
+    R_xlen_t xi;
+    R_xlen_t yi;
+    for (R_xlen_t i = 0; i < n; ++i) {
+      xi = i % xn;
+      yi = i % yn;
+      p_out[i] = cpp_gcd2(p_x[xi], p_y[yi], tol, na_rm);
+    }
+    Rf_unprotect(3);
+    return out;
+  }
+  }
+}
+
+[[cpp11::register]]
+SEXP cpp_lcm2_vectorised(SEXP x, SEXP y, double tol, bool na_rm){
+  if (tol < 0 || tol >= 1){
+    Rf_error("tol must be >= 0 and < 1");
+  }
+  R_xlen_t xn = Rf_xlength(x);
+  R_xlen_t yn = Rf_xlength(y);
+  R_xlen_t n = std::max(xn, yn);
+  if (xn == 0 || yn == 0){
+    n = 0;
+  }
+  switch(TYPEOF(x)){
+  case INTSXP: {
+    double dbl_lcm;
+    int int_lcm;
+    double int_max = std::numeric_limits<int>::max();
+    Rf_protect(x = Rf_coerceVector(x, INTSXP));
+    Rf_protect(y = Rf_coerceVector(y, INTSXP));
+    SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
+    int *p_out = INTEGER(out);
+    int *p_x = INTEGER(x);
+    int *p_y = INTEGER(y);
+    R_xlen_t xi;
+    R_xlen_t yi;
+    for (R_xlen_t i = 0; i < n; ++i) {
+      xi = i % xn;
+      yi = i % yn;
+      dbl_lcm = cpp_lcm2_int(p_x[xi], p_y[yi], na_rm);
+      if (!(dbl_lcm == dbl_lcm) || std::fabs(dbl_lcm) > int_max){
+        p_out[i] = NA_INTEGER;
+      } else {
+        int_lcm = dbl_lcm;
+        p_out[i] = int_lcm;
+      }
+    }
+    Rf_unprotect(3);
+    return out;
+  }
+  default: {
+    Rf_protect(x = Rf_coerceVector(x, REALSXP));
+    Rf_protect(y = Rf_coerceVector(y, REALSXP));
+    SEXP out = Rf_protect(Rf_allocVector(REALSXP, n));
+    double *p_out = REAL(out);
+    double *p_x = REAL(x);
+    double *p_y = REAL(y);
+    R_xlen_t xi;
+    R_xlen_t yi;
+    for (R_xlen_t i = 0; i < n; ++i) {
+      xi = i % xn;
+      yi = i % yn;
+      p_out[i] = cpp_lcm2(p_x[xi], p_y[yi], tol, na_rm);
+    }
+    Rf_unprotect(3);
+    return out;
+  }
+  }
+}

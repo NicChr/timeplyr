@@ -4,6 +4,8 @@
 \alias{gcd}
 \alias{scm}
 \alias{gcd_diff}
+\alias{gcd2}
+\alias{scm2}
 \title{Greatest common divisor and smallest common multiple}
 \usage{
 gcd(
@@ -25,6 +27,10 @@ gcd_diff(
   round = TRUE,
   break_early = TRUE
 )
+
+gcd2(x, y, tol = sqrt(.Machine$double.eps), na_rm = TRUE)
+
+scm2(x, y, tol = sqrt(.Machine$double.eps), na_rm = TRUE)
 }
 \arguments{
 \item{x}{A \link{numeric} vector.}
@@ -52,6 +58,8 @@ For integers, the algorithm always breaks early once \code{gcd > 0 && gcd <= 1}.
 \item{lag}{Lag of differences.}
 
 \item{fill}{Value to initialise the algorithm for \code{gcd_diff()}.}
+
+\item{y}{A \link{numeric} vector.}
 }
 \value{
 A number representing the GCD or SCM.
@@ -62,7 +70,9 @@ using the Euclidean algorithm.
 
 \code{gcd()} returns the greatest common divisor. \cr
 \code{scm()} returns the smallest common multiple. \cr
-\code{gcd_diff()} returns the greatest common divisor of numeric differences.
+\code{gcd_diff()} returns the greatest common divisor of numeric differences. \cr
+\code{gcd2()} is a vectorised binary version of \code{gcd}. \cr
+\code{scm2()} is a vectorised binary version of \code{scm}.
 }
 \details{
 \subsection{Method}{
@@ -86,9 +96,7 @@ This is calculated using the GCD and the formula is: \cr
 \code{SCM(x, y) = (abs(x) / GCD(x, y) ) * abs(y)}
 
 If you want to calculate the gcd & lcm for 2 values
-instead of a vector of values,
-use the internal functions \code{cpp_gcd2} and \code{cpp_lcm2}.
-You can then easily write a vectorised method using these.
+or across 2 vectors of values, use \code{gcd2} and \code{scm2}.
 }
 
 }
@@ -102,12 +110,20 @@ library(bench)
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
+
+# Binary versions
+gcd2(15, 25)
+gcd2(15, seq(5, 25, 5))
+scm2(15, seq(5, 25, 5))
+scm2(15, 25)
+
+# GCD across a vector
 gcd(c(0, 5, 25))
 mark(gcd(c(0, 5, 25)))
 
 x <- rnorm(10^6)
 gcd(x)
-gcd(x, round = TRUE)
+gcd(x, round = FALSE)
 mark(gcd(x))
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
