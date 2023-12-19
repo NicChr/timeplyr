@@ -85,8 +85,7 @@
 #' # Cutting Sepal Length into blocks of width 1
 #' int <- time_aggregate(iris$Sepal.Length, time_by = 1)
 #' int %>%
-#'   interval_count() %>%
-#'   mutate(interval = time_interval(start, end), .before = n)
+#'   interval_count()
 #'
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
@@ -151,12 +150,10 @@ interval_count <- function(x){
 }
 #' @export
 interval_count.time_interval <- function(x){
-  intervals <- as.data.frame(x)
-  fcount(intervals, .cols = 1:2, order = TRUE)
-  # counts <- fcount(intervals, .cols = 1:2)
-  # out <- counts[[3L]]
-  # names(out) <- as.character(time_interval(counts[[1L]], counts[[2L]]))
-  # out
+  new_tbl(interval = x) %>%
+    fcount(.cols = 1L, order = TRUE)
+  # intervals <- as.data.frame(x)
+  # fcount(intervals, .cols = 1:2, order = TRUE)
 }
 as.data.frame.time_interval <- function(x, ...){
   new_df(start = interval_start(x),

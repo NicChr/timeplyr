@@ -106,8 +106,7 @@ time_interval(today(), today() + years(0:10)) / "milliseconds"
 # Cutting Sepal Length into blocks of width 1
 int <- time_aggregate(iris$Sepal.Length, time_by = 1)
 int \%>\%
-  interval_count() \%>\%
-  mutate(interval = time_interval(start, end), .before = n)
+  interval_count()
 
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)

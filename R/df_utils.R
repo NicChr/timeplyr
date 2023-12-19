@@ -494,9 +494,14 @@ df_add_cols <- function(data, cols){
   dplyr::dplyr_col_modify(data, cols)
 }
 # Extremely simple count functions for grouped_df
-df_count <- function(.data, name = "n"){
+df_count <- function(.data, name = "n", wt = character()){
   out <- group_data(.data)
-  out[[name]] <- cpp_lengths(out[[".rows"]])
+  if (length(wt) > 0){
+    counts <- collapse::fsum(.data[[wt]], g = df_group_id(.data))
+  } else {
+    counts <- cpp_lengths(out[[".rows"]])
+  }
+  out[[name]] <- counts
   fselect(out, .cols = setdiff2(names(out), ".rows"))
 }
 df_add_count <- function(.data, name = "n"){

@@ -209,11 +209,12 @@ fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
   out <- safe_ungroup(data)
   g1 <- group_id(data, .by = {{ .by }}, order = sort_groups)
   out[[grp_nm1]] <- g1
-  out <- mutate2(out,
-                 !!enquo(order_by),
-                 .keep = "none",
-                 .by = all_of(grp_nm1))
-  order_by_nm <- tidy_transform_names(data, !!enquo(order_by))
+  out_info <- mutate_summary_grouped(out,
+                                     !!enquo(order_by),
+                                     .keep = "none",
+                                     .by = all_of(grp_nm1))
+  out <- out_info[["data"]]
+  order_by_nm <- out_info[["cols"]]
   row_nm <- new_var_nm(names(out), "row_id")
   out[[row_nm]] <- df_seq_along(out)
   g2 <- group_id(out[[order_by_nm]])
@@ -228,7 +229,8 @@ fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
   out1 <- fslice_head(out, n = n, prop = prop, .by = all_of(grp_nm1),
                       sort_groups = sort_groups)
   if (with_ties){
-    i <- out[[row_nm]][cpp_which(out[[grp_nm]] %in% out1[[grp_nm]])]
+    i <- out[[row_nm]][collapse::whichNA(collapse::fmatch(out[[grp_nm]], out1[[grp_nm]],
+                                                          overid = 2L), invert = TRUE)]
   } else {
     i <- out1[[row_nm]]
   }
@@ -255,11 +257,12 @@ fslice_max <- function(data, order_by, ..., n, prop, .by = NULL,
   out <- safe_ungroup(data)
   g1 <- group_id(data, .by = {{ .by }}, order = sort_groups)
   out[[grp_nm1]] <- g1
-  out <- mutate2(out,
-                 !!enquo(order_by),
-                 .keep = "none",
-                 .by = all_of(grp_nm1))
-  order_by_nm <- tidy_transform_names(data, !!enquo(order_by))
+  out_info <- mutate_summary_grouped(out,
+                                     !!enquo(order_by),
+                                     .keep = "none",
+                                     .by = all_of(grp_nm1))
+  out <- out_info[["data"]]
+  order_by_nm <- out_info[["cols"]]
   row_nm <- new_var_nm(names(out), "row_id")
   out[[row_nm]] <- df_seq_along(out)
   g2 <- group_id(out[[order_by_nm]], ascending = FALSE)
@@ -274,7 +277,8 @@ fslice_max <- function(data, order_by, ..., n, prop, .by = NULL,
   out1 <- fslice_head(out, n = n, prop = prop, .by = all_of(grp_nm1),
                       sort_groups = sort_groups)
   if (with_ties){
-    i <- out[[row_nm]][cpp_which(out[[grp_nm]] %in% out1[[grp_nm]])]
+    i <- out[[row_nm]][collapse::whichNA(collapse::fmatch(out[[grp_nm]], out1[[grp_nm]],
+                                                          overid = 2L), invert = TRUE)]
   } else {
     i <- out1[[row_nm]]
   }
@@ -306,8 +310,9 @@ fslice_sample <- function(data, n, replace = FALSE, prop,
   seed_is_null <- is.null(seed)
   has_weights <- !rlang::quo_is_null(enquo(weights))
   if (has_weights){
-    data <- mutate2(data, !!enquo(weights))
-    weights_var <- tidy_transform_names(data, !!enquo(weights))
+    data_info  <- mutate_summary_grouped(data, !!enquo(weights))
+    data <- data_info[["data"]]
+    weights_var <- data_info[["cols"]]
   }
   slice_info <- df_slice_prepare(data, n, prop,
                                  .by = {{ .by }},
@@ -319,7 +324,7 @@ fslice_sample <- function(data, n, replace = FALSE, prop,
   rows <- vector("list", length(slice_info[["rows"]]))
   if (has_weights){
     g <- group_id(data, .by = {{ .by }}, order = sort_groups)
-    weights <- collapse::gsplit(data[[weights_var]], g = g)
+    weights <- gsplit2(data[[weights_var]], g = g)
   } else {
     weights <- NULL
   }
