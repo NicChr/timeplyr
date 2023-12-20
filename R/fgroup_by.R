@@ -9,7 +9,8 @@
 #' @param .add Should groups be added to existing groups?
 #' Default is `FALSE`.
 #' @param order Should groups be ordered? If `FALSE`
-#' groups will be ordered based on first-appearance.
+#' groups will be ordered based on first-appearance. \cr
+#' Typically, setting order to `FALSE` is faster.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using `tidyselect`.
 #' @param .cols (Optional) alternative to `...` that accepts
@@ -27,9 +28,9 @@
 #'
 #' @export
 fgroup_by <- function(data, ..., .add = FALSE,
-                      order = TRUE,
+                      order = df_group_by_order_default(data),
                       .by = NULL, .cols = NULL,
-                      .drop = TRUE){
+                      .drop = df_group_by_drop_default(data)){
   init_group_vars <- group_vars(data)
   group_info <- tidy_group_info(safe_ungroup(data), ...,
                                 .by = {{ .by }},
@@ -39,10 +40,14 @@ fgroup_by <- function(data, ..., .add = FALSE,
   out <- group_info[["data"]]
   groups <- group_info[["all_groups"]]
   if (.add){
-    if (length(groups) == 0 || (
-      length(setdiff2(groups, init_group_vars)) == 0 && order &&
-      isTRUE(.drop == dplyr::group_by_drop_default(data))
-      )){
+    # dont_reorder_groups <- order == df_group_by_order_default(data)
+    # recalculate_groups <- !dont_reorder_groups || !(.drop == df_group_by_drop_default(data))
+    # no_extra_groups <- length(groups) == 0 || (length(setdiff2(groups, init_group_vars)) == 0)
+    # if (!recalculate_groups && no_extra_groups){
+    order_unchanged <- order == df_group_by_order_default(data)
+    drop_unchanged <-  .drop == df_group_by_drop_default(data)
+    no_extra_groups <- length(groups) == 0 || (length(setdiff2(groups, init_group_vars)) == 0)
+    if (order_unchanged && drop_unchanged && no_extra_groups){
       return(data)
     }
     groups <- unique(c(init_group_vars, groups))
@@ -63,35 +68,3 @@ fgroup_by <- function(data, ..., .add = FALSE,
   }
   out
 }
-# An simple implementations of dplyr::count (without weights)
-# fcount2 <- function(data, ..., order = TRUE, .by = NULL, .cols = NULL){
-#  out <- fgroup_by(data, ..., .cols = .cols, .by = {{ .by }}, order = order,
-#                   .add = TRUE)
-#  groups <- group_data(out)
-#  out <- fselect(groups, .cols = setdiff2(names(groups), ".rows"))
-#  counts <- collapse::vlengths(groups[[".rows"]])
-#  out <- df_add_cols(out, list(n = counts))
-#  df_reconstruct(out, data)
-# }
-# fadd_count2 <- function(data, ..., order = TRUE, .by = NULL, .cols = NULL){
-#   out <- fgroup_by(data, ..., .cols = .cols, .by = {{ .by }}, order = order,
-#                    .add = TRUE)
-#   groups <- group_data(out)
-#   group_ids <- df_group_id(out)
-#   counts <- collapse::vlengths(groups[[".rows"]])[group_ids]
-#   out <- df_add_cols(out, list(n = counts))
-#   df_reconstruct(out, data)
-# }
-# fcount3 <- function(data, ..., order = TRUE, .by = NULL, .cols = NULL, name = NULL){
-#   out <- group_collapse(data, ..., .cols = .cols, .by = {{ .by }},
-#                         order = order,
-#                         sort = TRUE,
-#                         start = FALSE, end = FALSE, loc = FALSE, size = TRUE,
-#                         id = FALSE)
-#   count_nm <- name
-#   if (is.null(count_nm)){
-#     count_nm <- new_n_var_nm(out)
-#   }
-#   out <- frename(out, .cols = add_names(c(".size"), count_nm))
-#   df_reconstruct(out, data)
-# }

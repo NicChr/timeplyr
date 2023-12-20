@@ -83,9 +83,9 @@ df_reconstruct <- function(data, template){
       template_attrs[["class"]] <- setdiff2(template_attrs[["class"]], "grouped_df")
       template_attrs[["groups"]] <- NULL
     } else {
-      drop_by_default <- attr(template_attrs[["groups"]], ".drop")
+      drop_by_default <- df_group_by_drop_default(template)
+      order <- df_group_by_order_default(template)
       sorted <- attr(template_attrs[["groups"]], "sorted")
-      order <- if (is.null(sorted)) TRUE else sorted
       groups <- group_collapse(safe_ungroup(data),
                                .cols = out_groups,
                                sort = TRUE,
@@ -495,18 +495,59 @@ df_add_cols <- function(data, cols){
 }
 # Extremely simple count functions for grouped_df
 df_count <- function(.data, name = "n", wt = character()){
-  out <- group_data(.data)
+  groups <- group_data(.data)
   if (length(wt) > 0){
     counts <- collapse::fsum(.data[[wt]], g = df_group_id(.data))
   } else {
-    counts <- cpp_lengths(out[[".rows"]])
+    counts <- cpp_lengths(groups[[".rows"]])
   }
+  out <- fselect(groups, .cols = setdiff2(names(groups), ".rows"))
   out[[name]] <- counts
-  fselect(out, .cols = setdiff2(names(out), ".rows"))
+  out <- df_reconstruct(out, safe_ungroup(.data))
+  # if (inherits(.data, "grouped_df")){
+  #   groups[[".rows"]] <- structure(as.list(df_seq_along(out)),
+  #                                  ptype = integer(),
+  #                                  class = c("vctrs_list_of",
+  #                                            "vctrs_vctr",
+  #                                            "list"))
+  #   attr(out, "groups") <- groups
+  #   class(out) <- class(.data)
+  # }
+  out
 }
-df_add_count <- function(.data, name = "n"){
+df_add_count <- function(.data, name = "n", wt = character()){
   groups <- group_data(.data)
-  counts <- cpp_lengths(groups[[".rows"]])
   group_ids <- df_group_id(.data)
-  df_add_cols(.data, add_names(list(counts[group_ids]), name))
+  if (length(wt) > 0){
+    counts <- gsum(.data[[wt]], g = group_ids)
+  } else {
+    counts <- cpp_lengths(groups[[".rows"]])[group_ids]
+  }
+  df_add_cols(.data, add_names(list(counts), name))
+}
+df_group_by_drop_default <- function(x){
+  if (inherits(x, "grouped_df")){
+    attr(attr(x, "groups", TRUE), ".drop", TRUE)
+  } else {
+    TRUE
+  }
+}
+df_group_by_order_default <- function(x){
+  if (inherits(x, "grouped_df")){
+    out <- attr(attr(x, "groups", TRUE), "sorted", TRUE)
+  } else {
+    out <- TRUE
+  }
+  if (is.null(out)){
+    TRUE
+  } else {
+    out
+  }
+}
+vctrs_new_list_of <- function(x = list(), ptype){
+  structure(x,
+            ptype = ptype,
+            class = c("vctrs_list_of",
+                      "vctrs_vctr",
+                      "list"))
 }

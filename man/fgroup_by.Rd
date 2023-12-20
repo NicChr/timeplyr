@@ -8,10 +8,10 @@ fgroup_by(
   data,
   ...,
   .add = FALSE,
-  order = TRUE,
+  order = df_group_by_order_default(data),
   .by = NULL,
   .cols = NULL,
-  .drop = TRUE
+  .drop = df_group_by_drop_default(data)
 )
 }
 \arguments{
@@ -23,7 +23,8 @@ fgroup_by(
 Default is \code{FALSE}.}
 
 \item{order}{Should groups be ordered? If \code{FALSE}
-groups will be ordered based on first-appearance.}
+groups will be ordered based on first-appearance. \cr
+Typically, setting order to \code{FALSE} is faster.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using \code{tidyselect}.}

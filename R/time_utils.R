@@ -58,8 +58,12 @@ unit_parse <- function(x){
                                          text = x))
   }
   num <- as.numeric(num_str)
-  if (length(num) == 0L) num <- 1L
-  if (is_whole_number(num)) num <- as.integer(num)
+  if (length(num) == 0L){
+    num <- 1L
+  }
+  if (is_whole_number(num) && is_integerable(num)){
+    num <- as.integer(num)
+  }
   scale <- 1L
   if (length(num_str) > 0L){
     x <- sub(num_str, "", x, fixed = TRUE) # Remove numbers
@@ -697,7 +701,9 @@ cut_time2 <- function(x, breaks, rightmost.closed = FALSE, left.open = FALSE){
              all.inside = FALSE)
   ]
 }
-
+# .bincode but with extra features and limited to right-open intervals
+# It can return the breaks as well as the break locations (one or the other)
+# It can also include out-of-bounds values (like in findInterval)
 cut_time <- function(x, breaks, include_oob = FALSE, codes = FALSE){
   cpp_bin(x, breaks, codes = codes, right = FALSE,
           include_lowest = TRUE, include_oob = include_oob)

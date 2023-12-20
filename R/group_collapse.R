@@ -105,11 +105,7 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
     end
   if (include_loc){
     GRP_loc <- GRP_loc(g)
-    out[[".loc"]] <- structure(GRP_loc,
-                               ptype = integer(),
-                               class = c("vctrs_list_of",
-                                         "vctrs_vctr",
-                                         "list"))
+    out[[".loc"]] <- vctrs_new_list_of(GRP_loc, integer())
     # set_add_cols(out, list(.loc = structure(GRP_loc,
     #                                         ptype = integer(),
     #                                         class = c("vctrs_list_of",
@@ -178,13 +174,7 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
         }
         # Bind the combinations that don't exist
         if (loc){
-          missed_categories[[".loc"]] <- structure(
-            list(integer()),
-            ptype = integer(),
-            class = c("vctrs_list_of",
-                      "vctrs_vctr",
-                      "list")
-          )
+          missed_categories[[".loc"]] <- vctrs_new_list_of(integer(), integer())
         }
         if (start){
           missed_categories[[".start"]] <- 0L
@@ -256,7 +246,7 @@ group_collapse.data.frame <- function(data, ..., order = TRUE, sort = FALSE,
     rowids <- list(rowids)[ss]
     out <- new_tbl(".group" = integer(ss) + 1L)
     if (loc){
-      out[[".loc"]] <- vctrs::new_list_of(rowids, ptype = integer(0))
+      out[[".loc"]] <- vctrs_new_list_of(rowids, integer())
     }
     # if (loc_order){
     #   out[[".order"]] <- vctrs::as_list_of(rowids, .ptype = integer(0))
@@ -293,7 +283,7 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
                                       size = TRUE, loc = TRUE,
                                       # loc_order = TRUE,
                                       start = TRUE, end = TRUE,
-                                      drop = dplyr::group_by_drop_default(data)){
+                                      drop = df_group_by_drop_default(data)){
   n_dots <- dots_length(...)
   # Error checking on .by
   check_by(data, .by = {{ .by }})
@@ -304,7 +294,7 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
       order &&
       ascending &&
       sort &&
-      drop == dplyr::group_by_drop_default(data)){
+      drop == df_group_by_drop_default(data)){
     out <- group_data(data)
     out_nms <- names(out)
     out <- frename(out, .cols = c(".loc" = ".rows"))
@@ -314,7 +304,7 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
       ncol <- ncol(out)
       out <- fselect(out, .cols = c(seq_len(ncol - 2L), ncol, ncol - 1L))
     }
-    sizes <- collapse::vlengths(out[[".loc"]], use.names = FALSE)
+    sizes <- cpp_lengths(out[[".loc"]])
     if (start){
       gstarts <- integer(length(sizes))
       gstarts[cpp_which(sizes != 0L)] <- GRP_loc_starts(out[[".loc"]])
