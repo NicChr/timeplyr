@@ -99,11 +99,7 @@ edf <- function(x, g = NULL, wt = NULL){
     out <- out[radix_order(x_order)]
   } else {
     # Create group IDs
-    df <- data.table::copy(
-      collapse::qDT(
-        do.call(recycle_args, list3(x = x, g = g, wt = wt))
-      )
-    )
+    df <- new_dt(x = x, g = g, wt = wt, .recycle = TRUE)
     df[, ("g") := group_id(.SD, order = FALSE, .cols = names(.SD)),
        .SDcols = "g"]
     df[, ("g1") := group_id(.SD, order = TRUE, .cols = names(.SD)),

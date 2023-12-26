@@ -520,13 +520,23 @@ df_cbind <- function(..., .repair_names = TRUE){
   if (.repair_names){
     names(out) <- unique_name_repair(names(out))
   }
-  if (length(dots) > 0){
+  if (length(dots) == 1){
+   out <- dots[[1L]]
+  } else if (length(dots) > 1){
     N <- nrow_range[1L]
     # Adjustment for 0-column only data frames
     if (df_nrow(out) != N){
       attr(out, "row.names") <- .set_row_names(N)
     }
-    out <- df_reconstruct(out, dots[[1L]])
+    template <- dots[[1L]]
+    if (inherits(template, "grouped_df") &&
+        all(group_vars(template) %in% names(out))){
+      out <- df_reconstruct(out, safe_ungroup(template))
+      class(out) <- class(template)
+      attr(out, "groups") <- attr(template, "groups")
+    } else {
+      out <- df_reconstruct(out, template)
+    }
   }
   out
 }
