@@ -3,20 +3,11 @@
 \name{time_interval}
 \alias{time_interval}
 \alias{is_time_interval}
-\alias{interval_start}
-\alias{interval_end}
-\alias{interval_count}
 \title{S3-based Time Intervals (Currently very experimental and so subject to change)}
 \usage{
 time_interval(start = integer(), end = integer())
 
 is_time_interval(x)
-
-interval_start(x)
-
-interval_end(x)
-
-interval_count(x)
 }
 \arguments{
 \item{start}{Start time. \cr
@@ -112,4 +103,7 @@ int \%>\%
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)
 }
+}
+\seealso{
+\link{interval_start}
 }

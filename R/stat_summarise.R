@@ -117,7 +117,7 @@ stat_summarise <- function(data, ...,
   if (df_nrow(out) == 0L && length(group_vars) == 0L){
     out <- df_init(out, 1L)
   }
-  out <- as_DT(out)
+  out <- df_as_dt(out, .copy = FALSE)
   n_nm <- character()
   if ("n" %in% stat){
     n_nm <- new_n_var_nm(names(out))

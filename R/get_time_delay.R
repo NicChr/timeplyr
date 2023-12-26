@@ -121,7 +121,7 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
   end_time <- end
   origin_df <- safe_ungroup(origin_info[["data"]])
   end_df <- fselect(safe_ungroup(end_info[["data"]]), .cols = end)
-  out <- data.table::copy(collapse::qDT(vctrs::vec_cbind(origin_df, end_df)))
+  out <- data.table::copy(collapse::qDT(df_cbind(origin_df, end_df)))
   grp_nm <- new_var_nm(out, ".group.id")
   set_add_cols(out, add_names(list(group_id(data, .by = {{ .by }})), grp_nm))
   set_rm_cols(out, setdiff(names(out),

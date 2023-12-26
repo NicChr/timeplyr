@@ -33,6 +33,8 @@
 #' Can be a `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, `yearqtr`,
 #' `year_month` or `year_quarter`.
 #'
+#' @seealso [interval_start]
+#'
 #' @examples
 #' library(dplyr)
 #' library(timeplyr)
@@ -110,50 +112,7 @@ time_interval_list <- function(start, end){
   )){
     stop("start must be finite")
   }
-  # if (!identical(class(start), class(end))){
-  #   stop(paste0("Incompatible classes\n start: <",
-  #               paste(class(start), collapse = " "), ">",
-  #               "\n end: <", paste(class(end), collapse = " "), ">"))
-  # }
   recycle_args(start = start, end = end)
-}
-#' @rdname time_interval
-#' @export
-interval_start <- function(x){
-  UseMethod("interval_start")
-}
-#' @export
-interval_start.time_interval <- function(x){
-  unclass(x)[["start"]]
-}
-#' @export
-interval_start.Interval <- function(x){
-  attr(x, "start", TRUE)
-}
-#' @rdname time_interval
-#' @export
-interval_end <- function(x){
-  UseMethod("interval_end")
-}
-#' @export
-interval_end.time_interval <- function(x){
-  unclass(x)[["end"]]
-}
-#' @export
-interval_end.Interval <- function(x){
-  interval_start(x) + strip_attrs(unclass(x))
-}
-#' @rdname time_interval
-#' @export
-interval_count <- function(x){
-  UseMethod("interval_count")
-}
-#' @export
-interval_count.time_interval <- function(x){
-  new_tbl(interval = x) %>%
-    fcount(.cols = 1L, order = TRUE)
-  # intervals <- as.data.frame(x)
-  # fcount(intervals, .cols = 1:2, order = TRUE)
 }
 as.data.frame.time_interval <- function(x, ...){
   new_df(start = interval_start(x),
@@ -193,10 +152,7 @@ unique.time_interval <- function(x, ...){
 duplicated.time_interval <- function(x, ...){
   collapse::fduplicated(as.list(x), ...)
 }
-# sort.time_interval <- function(x, ...){
-#   interval <- as.data.frame(x)
-#   x[radixorderv2(interval, ...)]
-# }
+
 as.character.time_interval <- function(x,
                                        interval_style = getOption("timeplyr.interval_style", "full"),
                                        interval_sub_formatter = getOption("timeplyr.interval_sub_formatter", identity),
@@ -209,8 +165,8 @@ as.character.time_interval <- function(x,
   start <- interval_start(x)
   end <- interval_end(x)
   if (!is.null(interval_sub_formatter)){
-    start <- do.call(interval_sub_formatter, list(start))
-    end <- do.call(interval_sub_formatter, list(end))
+    start <- interval_sub_formatter(start)
+    end <- interval_sub_formatter(end)
   } else {
     start <- as.character(start)
     end <- as.character(end)
@@ -238,8 +194,6 @@ format.time_interval <- function(x,
 }
 vec_ptype_abbr.time_interval <- function(x, ...) "tm_intv"
 vec_ptype_full.time_interval <- function(x, ...) "time_interval"
-
-# vec_ptype2.time_interval.date <- function(x, y, ...) lubridate::Date()
 
 print.time_interval <- function(x, max = NULL, ...){
   out <- x
@@ -270,16 +224,4 @@ as.POSIXct.time_interval <- function(x, ...){
 as.POSIXlt.time_interval <- function(x, ...){
   as.POSIXlt(interval_start(x), ...)
 }
-# is.na.time_interval <- function(x){
-#   is.na(unclass(x)) & is.na(interval_end(x))
-# }
-# new_pillar_shaft.time_interval <- function(x, ...) {
-#   x <- format(x)
-#   pillar::new_pillar_shaft_simple(x, width = 10, align = "left")
-# }
-# pillar_shaft.time_interval <- function(x, ...) {
-#   out <- format(x)
-#   # out[cpp_which(is.na(x[["start"]]) | is.na(x[["end"]]))] <- time_interval(NA, NA)
-#   pillar::new_pillar_shaft_simple(out, align = "right")
-# }
 

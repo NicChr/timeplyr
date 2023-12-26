@@ -264,6 +264,13 @@ extern "C" SEXP _timeplyr_cpp_new_list(SEXP size, SEXP default_value) {
     return cpp11::as_sexp(cpp_new_list(cpp11::as_cpp<cpp11::decay_t<R_xlen_t>>(size), cpp11::as_cpp<cpp11::decay_t<SEXP>>(default_value)));
   END_CPP11
 }
+// utils.cpp
+SEXP cpp_nrows(SEXP x);
+extern "C" SEXP _timeplyr_cpp_nrows(SEXP x) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_nrows(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x)));
+  END_CPP11
+}
 // which.cpp
 SEXP cpp_which_(SEXP x, bool invert);
 extern "C" SEXP _timeplyr_cpp_which_(SEXP x, SEXP invert) {
@@ -295,6 +302,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_list_subset",          (DL_FUNC) &_timeplyr_cpp_list_subset,          4},
     {"_timeplyr_cpp_list_which_not_null",  (DL_FUNC) &_timeplyr_cpp_list_which_not_null,  1},
     {"_timeplyr_cpp_new_list",             (DL_FUNC) &_timeplyr_cpp_new_list,             2},
+    {"_timeplyr_cpp_nrows",                (DL_FUNC) &_timeplyr_cpp_nrows,                1},
     {"_timeplyr_cpp_num_na",               (DL_FUNC) &_timeplyr_cpp_num_na,               1},
     {"_timeplyr_cpp_r_obj_address",        (DL_FUNC) &_timeplyr_cpp_r_obj_address,        1},
     {"_timeplyr_cpp_roll_diff",            (DL_FUNC) &_timeplyr_cpp_roll_diff,            3},

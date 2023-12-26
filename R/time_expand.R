@@ -131,7 +131,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
                        .cols = cpp_which(match(names(from_data), names(time_data), 0L) == 0L))
   to_data <- fselect(to_data,
                      .cols = cpp_which(match(names(to_data), names(time_data), 0L) == 0L))
-  out <- vctrs::vec_cbind(time_data, from_data, to_data)
+  out <- df_cbind(time_data, from_data, to_data)
   out <- data.table::copy(collapse::qDT(out))
   if (length(time_var) > 0){
     time_type <- match_time_type(time_type)

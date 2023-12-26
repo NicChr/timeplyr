@@ -119,7 +119,7 @@ time_summarise <- function(data, time = NULL, ..., time_by = NULL,
                        .cols = cpp_which(match(names(from_data), names(time_data), 0L) == 0L))
   to_data <- fselect(to_data,
                      .cols = cpp_which(match(names(to_data), names(time_data), 0L) == 0L))
-  temp_data <- vctrs::vec_cbind(time_data, from_data, to_data)
+  temp_data <- df_cbind(time_data, from_data, to_data)
   # Add variable to keep track of group IDs
   grp_nm <- new_var_nm(temp_data, ".group.id")
   temp_data <- dplyr::dplyr_col_modify(temp_data,

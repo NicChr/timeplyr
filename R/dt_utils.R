@@ -7,6 +7,40 @@
 #   }
 # }
 
+empty_dt <- function(){
+  collapse::qDT(empty_df())
+}
+
+# This makes a copy
+# Also data.tables currently can't have (n > 0) x 0 structure
+new_dt <- function(..., .copy = TRUE, .recycle = FALSE){
+  out <- new_df(..., .recycle = .recycle)
+  out <- collapse::qDT(out)
+  # data.table::setattr(out, "class", c("data.table", "data.frame"))
+  # data.table::setattr(out, "row.names", .set_row_names(0L))
+  # data.table::setalloccol(out)
+  if (.copy){
+    out <- data.table::copy(out)
+  }
+  out
+}
+
+# df_as_DT2 <- function(x, .copy = TRUE){
+#   out <- df_reconstruct(x, empty_dt())
+#   if (.copy){
+#     out <- data.table::copy(out)
+#   }
+#   out
+# }
+
+df_as_dt <- function(x, .copy = TRUE){
+  out <- collapse::qDT(x)
+  if (.copy){
+    out <- data.table::copy(out)
+  }
+  out
+}
+
 # Convert to data table
 as_DT <- function(x){
   if (inherits(x, "data.table")){

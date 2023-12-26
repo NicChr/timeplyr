@@ -104,5 +104,5 @@ add_calendar <- function(data, time = NULL, label = TRUE,
   }
   calendar <- fselect(calendar(data[[time_var]], label = label, week_start = week_start,
                        fiscal_start = fiscal_start), .cols = -1L)
-  dplyr::bind_cols(data, calendar)
+  df_cbind(data, calendar)
 }

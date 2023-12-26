@@ -148,6 +148,10 @@ cpp_new_list <- function(size, default_value) {
   .Call(`_timeplyr_cpp_new_list`, size, default_value)
 }
 
+cpp_nrows <- function(x) {
+  .Call(`_timeplyr_cpp_nrows`, x)
+}
+
 cpp_which_ <- function(x, invert) {
   .Call(`_timeplyr_cpp_which_`, x, invert)
 }

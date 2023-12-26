@@ -509,10 +509,34 @@ SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP default_value) {
 [[cpp11::register]]
 SEXP cpp_new_list(R_xlen_t size, SEXP default_value) {
   SEXP out = Rf_protect(Rf_allocVector(VECSXP, size));
-  for (R_xlen_t i = 0; i < size; ++i) {
-    SET_VECTOR_ELT(out, i, default_value);
+  if (!Rf_isNull(default_value)){
+    for (R_xlen_t i = 0; i < size; ++i) {
+      SET_VECTOR_ELT(out, i, default_value);
+    }
   }
   Rf_unprotect(1);
+  return out;
+}
+
+// R_xlen_t cpp_df_nrow(SEXP x){
+//   return Rf_xlength(Rf_getAttrib(x, R_RowNamesSymbol));
+// }
+
+// Numbers of rows of a list of data frames
+// Specifically for df_cbind()
+
+[[cpp11::register]]
+SEXP cpp_nrows(SEXP x) {
+  Rf_protect(x = Rf_coerceVector(x, VECSXP));
+  const SEXP *p_x = VECTOR_PTR_RO(x);
+  int n = Rf_length(x);
+  SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
+  int *p_out = INTEGER(out);
+  // SEXP row_names_str = Rf_protect(Rf_mkChar("row.names"));
+  for (int i = 0; i < n; ++i) {
+    p_out[i] = Rf_length(Rf_getAttrib(p_x[i], R_RowNamesSymbol));
+  }
+  Rf_unprotect(2);
   return out;
 }
 

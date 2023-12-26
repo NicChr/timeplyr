@@ -2,6 +2,7 @@
 data.table::setDTthreads(threads = 2L)
 # Set number of collapse threads to 1
 collapse::set_collapse(nthreads = 1L)
+options(timeplyr.interval_sub_formatter = identity)
 
 test_that("time breaks", {
   start1 <- lubridate::ymd_hms("2013-03-16 11:43:48",

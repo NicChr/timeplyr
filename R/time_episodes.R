@@ -46,8 +46,7 @@
 #' Default is `0`.
 #' @param .add 	Should episodic variables be added to the data? \cr
 #' If `FALSE` (the default), then only the relevant variables are returned. \cr
-#' If `TRUE`, the episodic variables are added to the original data using
-#' `dplyr::bind_cols()`. \cr
+#' If `TRUE`, the episodic variables are added to the original data.
 #' In both cases, the order of the data is unchanged.
 #' @param event (\bold{Optional}) List that encodes which rows are events,
 #' and which aren't.
@@ -80,8 +79,12 @@
 #' It is assumed that after a pre-determined amount of time, a positive result
 #' represents a new episode of infection.
 #'
-#' To perform simple time-since-event analysis, set `window` to `1`, which is
-#' the default.
+#' To perform simple time-since-event analysis, which means one
+#' is not interested in episodes, simply use `time_elapsed()` instead.
+#'
+#' To find implicit missing gaps in time, set `window` to `1` and
+#' `switch_on_boundary` to `FALSE`. Any event classified as an
+#' episode in this scenario is an event following a gap in time.
 #'
 #' The data are always sorted before calculation and then
 #' sorted back to the input order.
@@ -197,7 +200,7 @@ time_episodes <- function(data, time, time_by = NULL,
   out <- fselect(out, .cols = c(group_vars, time_col,
                                  event_col, event_id_nm))
   # Make a copy
-  out <- data.table::copy(collapse::qDT(out))
+  out <- df_as_dt(out)
   if (length(time_col) == 0){
     stop("Please supply date or datetime for episode calculation")
   }
@@ -276,7 +279,7 @@ time_episodes <- function(data, time, time_by = NULL,
   set_rm_cols(out, row_id_nm)
   if (.add){
     # Simply bind the cols together
-    out <- vctrs::vec_cbind(data, fselect(out, .cols = new_cols))
+    out <- df_cbind(data, fselect(out, .cols = new_cols))
   } else {
     # Only keep the key variables
     out_nms <- c(group_vars, time_col, event_col, new_cols)

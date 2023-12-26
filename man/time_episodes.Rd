@@ -71,8 +71,7 @@ Default is \code{0}.}
 
 \item{.add}{Should episodic variables be added to the data? \cr
 If \code{FALSE} (the default), then only the relevant variables are returned. \cr
-If \code{TRUE}, the episodic variables are added to the original data using
-\code{dplyr::bind_cols()}. \cr
+If \code{TRUE}, the episodic variables are added to the original data.
 In both cases, the order of the data is unchanged.}
 
 \item{event}{(\bold{Optional}) List that encodes which rows are events,
@@ -112,8 +111,12 @@ a new infection represents a new \bold{episode}.
 It is assumed that after a pre-determined amount of time, a positive result
 represents a new episode of infection.
 
-To perform simple time-since-event analysis, set \code{window} to \code{1}, which is
-the default.
+To perform simple time-since-event analysis, which means one
+is not interested in episodes, simply use \code{time_elapsed()} instead.
+
+To find implicit missing gaps in time, set \code{window} to \code{1} and
+\code{switch_on_boundary} to \code{FALSE}. Any event classified as an
+episode in this scenario is an event following a gap in time.
 
 The data are always sorted before calculation and then
 sorted back to the input order.

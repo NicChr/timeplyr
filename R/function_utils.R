@@ -540,11 +540,15 @@ new_var_nm <- function(data, check = ".group.id"){
 }
 # Recycle arguments
 recycle_args <- function (..., length = NULL, use.names = FALSE){
-  out <- list(...)
+  out <- list3(...)
   lens <- cpp_lengths(out)
   uniq_lens <- collapse::fnunique(lens)
   if (is.null(length)) {
-    recycle_length <- collapse::fmax(lens)
+    if (length(lens)){
+      recycle_length <- max(lens)
+    } else {
+      recycle_length <- 0L
+    }
   } else {
     recycle_length <- length
   }
@@ -1303,5 +1307,6 @@ list_subset <- function(x, i, default = NA, copy_attributes = FALSE){
 }
 # Like vector("list", length) but with a default to fill the list elements
 new_list <- function(length = 0L, default = NULL){
-  cpp_new_list(length, default)
+  check_length(length, 1)
+  cpp_new_list(as.numeric(length), default)
 }

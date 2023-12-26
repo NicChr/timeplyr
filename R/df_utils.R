@@ -167,7 +167,7 @@ nrow2 <- function(data){
 # Do all list elements have same number of elements?
 is_list_df_like <- function(X){
   check_is_list(X)
-  lens <- collapse::vlengths(X, use.names = FALSE)
+  lens <- cpp_lengths(X)
   collapse::fnunique(lens) <= 1
 }
 # Convenience function
@@ -277,8 +277,12 @@ list_to_data_frame <- function(x){
 # }
 # Create new df with no name checks or length checks
 # ..N is there purely to create an (n > 0) x 0 data frame
-new_df <- function(..., ..N = NULL){
-  out <- list3(...)
+new_df <- function(..., ..N = NULL, .recycle = FALSE){
+  if (.recycle){
+    out <- recycle_args(...)
+  } else {
+    out <- list3(...)
+  }
   if (is.null(..N)){
     if (length(out) == 0L){
       row_names <- integer()
@@ -294,20 +298,9 @@ new_df <- function(..., ..N = NULL){
                         names = as.character(names(out)))
   out
 }
-new_tbl <- function(..., ..N = NULL){
-  out <- new_df(..., ..N = ..N)
+new_tbl <- function(..., ..N = NULL, .recycle = FALSE){
+  out <- new_df(..., ..N = ..N, .recycle = .recycle)
   add_attr(out, "class", c("tbl_df", "tbl", "data.frame"))
-}
-# This makes a copy
-# Also data.tables currently can't have (n > 0) x 0 structure
-new_dt <- function(..., .copy = TRUE){
-  out <- new_df(...)
-  out <- collapse::qDT(out)
-  # data.table::setDT(out)
-  if (.copy){
-    out <- data.table::copy(out)
-  }
-  out
 }
 # Pluck data frame row (works for matrices and df-like lists too)
 pluck_row <- function(x, i = 1L, j = collapse::seq_col(x),
@@ -370,56 +363,16 @@ df_paste_names <- function(data,  sep = "_", .cols = names(data)){
   do.call(paste, c(fselect(data, .cols = .cols),
                    list(sep = sep)))
 }
-# Efficient way to compare the group information
-# of 2 grouped_df objects
-# Much better than simply using setequal
-# group_data_equal <- function(x, y){
-#   # groups1 <- group_data(x)
-#   # groups2 <- group_data(y)
-#   groups1 <- attr(x, "groups")
-#   groups2 <- attr(y, "groups")
-#   group_vars1 <- group_vars(x)
-#   group_vars2 <- group_vars(y)
-#   out <- df_nrow(x) == df_nrow(y)
-#   if (out){
-#     out <- isTRUE(all.equal(names(groups1), names(groups2)))
-#   }
-#   if (out){
-#     out <- df_nrow(groups1) == df_nrow(groups2)
-#   }
-#   if (out){
-#     out <- cpp_group_data_rows_equal(groups1[[".rows"]], groups2[[".rows"]])
-#   }
-#   if (out){
-#     out <- is.null(groups1) && is.null(groups2) || (
-#       df_nrow(
-#         vctrs::vec_set_difference(
-#           fselect(groups1, .cols = group_vars1),
-#           fselect(groups2, .cols = group_vars2)
-#         )
-#       ) == 0L
-#     )
-#   }
-#   # if (out){
-#   #  # loc1 <- unlist(fpluck(groups1, ".rows"), use.names = FALSE)
-#   #  # loc2 <- unlist(fpluck(groups2, ".rows"), use.names = FALSE)
-#   #  # abs_diff <- collapse::fmax(abs(loc1 - loc2))
-#   #  # out <- length(abs_diff) == 0 || abs_diff == 0
-#   #  # diff_range <- collapse::frange(loc1 - loc2)
-#   #  # # out <- sum(abs(diff_range), na.rm = TRUE) == 0
-#   #
-#   #  # collapse::setop(loc1, op = "-", loc2)
-#   #  # out <- sum(abs(collapse::frange(loc1)),
-#   #  #            na.rm = TRUE) == 0
-#   #  # One method
-#   #  # first_diff <- vec_head(loc1) - vec_head(loc2)
-#   #  # first_diff_is_zero <- length(first_diff) == 0L || first_diff == 0L
-#   #  # first_diff_is_zero && collapse::fnunique(loc1 - loc2) <= 1L
-#   #  # Another method
-#   #  # out <- isTRUE(all.equal(loc1, loc2))
-#   # }
-#   out
-# }
+empty_df <- function(){
+  `attributes<-`(
+    list(),
+    list(
+      class = "data.frame",
+      row.names = integer(),
+      names = character()
+    )
+  )
+}
 empty_tbl <- function(){
   `attributes<-`(
     list(),
@@ -429,6 +382,9 @@ empty_tbl <- function(){
       names = character()
     )
   )
+}
+df_as_df <- function(x){
+  df_reconstruct(x, empty_df())
 }
 # Faster as_tibble
 df_as_tibble <- function(x){
@@ -550,4 +506,33 @@ vctrs_new_list_of <- function(x = list(), ptype){
             class = c("vctrs_list_of",
                       "vctrs_vctr",
                       "list"))
+}
+# Like dplyr::bind_cols() but written in mostly base R
+# and simpler..
+df_cbind <- function(..., .repair_names = TRUE){
+  out <- c(...)
+  dots <- list(...)
+  nrow_range <- collapse::.range(cpp_nrows(dots), TRUE)
+  if (isTRUE(nrow_range[1] != nrow_range[2])){
+    stop("All data frames must be of equal size")
+  }
+  out <- list_to_data_frame(out)
+  if (.repair_names){
+    names(out) <- unique_name_repair(names(out))
+  }
+  if (length(dots) > 0){
+    N <- nrow_range[1L]
+    # Adjustment for 0-column only data frames
+    if (df_nrow(out) != N){
+      attr(out, "row.names") <- .set_row_names(N)
+    }
+    out <- df_reconstruct(out, dots[[1L]])
+  }
+  out
+}
+unique_name_repair <- function(x){
+  col_seq <- seq_along(x)
+  which_dup <- cpp_which(collapse::fduplicated(x, all = TRUE))
+  x[which_dup] <- paste0(x[which_dup], "...", col_seq[which_dup])
+  x
 }

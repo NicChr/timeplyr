@@ -88,8 +88,7 @@
 #' @export
 fslice <- function(data, ..., .by = NULL,
                    keep_order = FALSE, sort_groups = TRUE){
-  dots <- list(...)
-  n <- unlist(dots, recursive = TRUE, use.names = FALSE)
+  n <- c(...)
   N <- df_nrow(data)
   if (length(n) == 0L){
     n <- 0L

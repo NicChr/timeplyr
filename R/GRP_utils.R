@@ -653,7 +653,7 @@ grouped_row_id <- function(x, ascending = TRUE){
 # Helper to grab group sizes
 group_sizes <- function(x, sort = FALSE, expand = FALSE){
   if (sort && !expand){
-    groups <- radixorderv2(x, group.sizes = TRUE)
+    groups <- radixorderv2(x, group.sizes = TRUE, sort = TRUE)
   } else {
     groups <- group2(x, group.sizes = TRUE)
   }
