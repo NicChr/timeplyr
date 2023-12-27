@@ -268,18 +268,23 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
                          expand_type = expand_type,
                          keep_class = FALSE,
                          log_limit = log_limit)
-  out <- as_DT(data)
+  out <- df_as_dt(data, .copy = FALSE)
   fill_na <- any(!is.na(fill))
   # Full-join
   if (df_nrow(expanded_df) > 0 && df_ncol(expanded_df) > 0){
+    pre_obj_addr <- cpp_r_obj_address(out)
     out <- dplyr::full_join(out, expanded_df, by = names(expanded_df))
+    post_obj_addr <- cpp_r_obj_address(out)
     # out <- collapse_join(out, expanded_df,
     #                      on = names(expanded_df),
     #                      how = "full",
     #                      sort = sort)
     if (sort){
-      setorderv2(out, names(expanded_df))
-      # out <- farrange(out, .cols = names(expanded_df))
+      if (identical(pre_obj_addr, post_obj_addr)){
+        out <- farrange(out, .cols = names(expanded_df))
+      } else {
+        setorderv2(out, names(expanded_df))
+      }
     }
   }
   # Replace NA with fill

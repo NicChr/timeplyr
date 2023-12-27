@@ -132,7 +132,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
   to_data <- fselect(to_data,
                      .cols = cpp_which(match(names(to_data), names(time_data), 0L) == 0L))
   out <- df_cbind(time_data, from_data, to_data)
-  out <- data.table::copy(collapse::qDT(out))
+  out <- df_as_dt(out, .copy = TRUE)
   if (length(time_var) > 0){
     time_type <- match_time_type(time_type)
     time_by <- time_by_get(out[[time_var]], time_by = time_by)
@@ -263,7 +263,7 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
   out_info <- mutate_summary_grouped(out, !!enquo(time), .by = {{ .by }})
   time_var <- out_info[["cols"]]
   check_length_lte(time_var, 1)
-  out <- as_DT(out_info[["data"]])
+  out <- df_as_dt(out_info[["data"]], .copy = FALSE)
   expanded_df <- time_expand(out,
                              ...,
                              time = across(all_of(time_var)),
@@ -285,18 +285,23 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
     if (length(time_var) > 0){
       out[, (time_var) := time_cast(get(time_var), expanded_df[[time_var]])]
     }
+    pre_obj_addr <- cpp_r_obj_address(out)
     out <- dplyr::full_join(out, expanded_df, by = names(expanded_df))
+    post_obj_addr <- cpp_r_obj_address(out)
     # out <- collapse_join(out, expanded_df,
     #                      on = names(expanded_df),
     #                      how = "full",
     #                      sort = FALSE)
     if (sort){
-      setorderv2(out, c(group_vars, time_var,
-                        setdiff(names(expanded_df),
-                                c(group_vars, time_var))))
-      # out <- farrange(out, .cols = c(group_vars, time_var,
-      #                                setdiff(names(expanded_df),
-      #                                        c(group_vars, time_var))))
+      if (identical(pre_obj_addr, post_obj_addr)){
+        out <- farrange(out, .cols = c(group_vars, time_var,
+                                       setdiff(names(expanded_df),
+                                               c(group_vars, time_var))))
+      } else {
+        setorderv2(out, c(group_vars, time_var,
+                          setdiff(names(expanded_df),
+                                  c(group_vars, time_var))))
+      }
     }
   }
   # Replace NA with fill

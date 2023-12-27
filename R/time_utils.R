@@ -132,11 +132,11 @@ time_by_pretty <- function(time_by){
   }
   num <- time_by[[1L]]
   if (units == "numeric"){
-    if (num == 1){
+    if (isTRUE(num == 1)){
       paste(num, "numeric unit", sep = " ")
     } else {
       pretty_num <- round(num, 2)
-      if (!cppdoubles::double_equal(num, pretty_num)){
+      if (isTRUE(!cppdoubles::double_equal(num, pretty_num))){
         pretty_num <- paste0("~", pretty_num)
       }
       paste(pretty_num, "numeric units", sep = " ")
@@ -150,10 +150,10 @@ time_by_pretty <- function(time_by){
     units <- higher_unit
 
     pretty_num <- round(num, 2)
-    if (!cppdoubles::double_equal(num, pretty_num)){
+    if (isTRUE(!cppdoubles::double_equal(num, pretty_num))){
       pretty_num <- paste0("~", pretty_num)
     }
-    if (num == 1){
+    if (isTRUE(num == 1)){
       paste0(plural_unit_to_single(units))
     } else {
       paste0(pretty_num, " ", units)
@@ -237,8 +237,20 @@ time_granularity2 <- function(x){
 # Scale is in comparison to seconds
 seconds_to_unit <- function(x){
   if (length(x) == 0L){
-    return(list("unit" = "seconds",
-                "scale" = numeric(0)))
+    return(
+      list(
+        unit = "seconds",
+        scale = numeric()
+      )
+    )
+  }
+  if (length(x) == 1 && is.na(x)){
+    return(
+      list(
+        unit = "seconds",
+        scale = NA_real_
+      )
+    )
   }
   x <- abs(x)
   if (x == 0){

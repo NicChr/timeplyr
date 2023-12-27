@@ -562,7 +562,7 @@ time_roll_window_size <- function(time, window = Inf,
   }
   if (isTRUE(time_num == 0)){
     if (close_left_boundary){
-      out <- frowid(as_DT(list(group_id = group_id(g), time = time)))
+      out <- frowid(new_df(group_id = group_id(g), time = time))
     } else {
       out <- integer(length(time))
     }

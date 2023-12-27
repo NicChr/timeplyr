@@ -96,7 +96,7 @@ time_diff <- function(x, y, time_by = 1L,
     if (time_type == "period"){
       # Use distinct start/end pairs (intervals)
       # Instead of all of them because it's usually more efficient
-      interval_tbl <- list_to_data_frame(recycle_args(x = x, y = y, num = num))
+      interval_tbl <- new_df(x = x, y = y, num = num, .recycle = TRUE)
       interval_groups <- collapse::group(interval_tbl, starts = TRUE, group.sizes = TRUE)
       starts <- attr(interval_groups, "starts")
       sizes <- attr(interval_groups, "group.sizes")

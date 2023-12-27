@@ -90,7 +90,7 @@ q_summarise <- function(data, ...,
   out <- fselect(
     out, .cols = c(group_vars, non_group_dot_vars)
   )
-  out <- as_DT(out)
+  out <- df_as_dt(out, .copy = FALSE)
   group_id_nm <- new_var_nm(out, "group_id")
   set_add_cols(out, add_names(list(GRP_group_id(groups)), group_id_nm))
   # When there's no groups, collapse likes a NULL g object (usually)

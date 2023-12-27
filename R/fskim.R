@@ -40,13 +40,12 @@ fskim <- function(data, hist = FALSE){
   check_is_df(data)
   N <- df_nrow(data)
   num_cols <- df_ncol(data)
-  data <- as_DT(safe_ungroup(data))
+  data <- df_as_dt(data, .copy = FALSE)
   data_nms <- names(data)
   col_classes <- vapply(data, function(x) vec_tail(class(x)), "")
   out <- df_as_dt(fenframe(col_classes,
                            name = "col",
                            value = "class"))
-  data.table::setalloccol(out, n = 1000)
   chr_vars <- data_nms[vapply(data, is.character, FALSE, USE.NAMES = FALSE)]
   # Convert character to factor
   if (length(chr_vars) > 0L){

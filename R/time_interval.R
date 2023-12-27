@@ -107,8 +107,8 @@ is_time_interval <- function(x){
 time_interval_list <- function(start, end){
   set_time_cast(start, end)
   if (typeof(start) == "double" && (
-    collapse::anyv(unclass(start), Inf) ||
-    collapse::anyv(unclass(start), -Inf)
+    collapse::anyv(start, Inf) ||
+    collapse::anyv(start, -Inf)
   )){
     stop("start must be finite")
   }
@@ -172,9 +172,9 @@ as.character.time_interval <- function(x,
     end <- as.character(end)
   }
   if (int_fmt == "full"){
-    out <- paste0("[", start, "--", end, ")")
+    out <- paste0("[", start, ", ", end, ")")
     which_closed <- cpp_which(start == end)
-    out[which_closed] <- paste0("[", start[which_closed], "--", end[which_closed], "]")
+    out[which_closed] <- paste0("[", start[which_closed], ", ", end[which_closed], "]")
     # which_left_open <- cpp_which(start > end)
     # out[which_left_open] <- paste0("(", start[which_left_open], "--", end[which_left_open], "]")
     out

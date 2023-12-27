@@ -62,13 +62,26 @@ df_reconstruct <- function(data, template){
   }
   data_attrs <- attributes(data)
   template_attrs <- attributes(template)
-
   if (inherits(template, "data.table")){
-    if (!is.null(attr(data, "groups"))){
-      attr(data, "groups") <- NULL
+    # colnames <- names(data)
+    row_names <- .row_names_info(data, type = 0L)
+    # out <- data
+    # class(out) <- template_attrs[["class"]]
+    # data.table::setalloccol(out)
+    out <- collapse::qDT(data)
+    data.table::setalloccol(out)
+    #####
+    # THIS IS TECHNICALLY NOT CORRECT BUT ALIGNS WITH BASE R
+    # DATA.TABLE CANNOT HANDLE (n > 0) x 0 data frames
+    # This ensures you can add vectors of size n to
+    # an (n > 0) x 0 data.table
+    data.table::setattr(out, "row.names", row_names)
+    #####
+    # for (a in setdiff2(names(template_attrs), c("class", "row.names", "names", ".internal.selfref"))){
+    for (a in setdiff2(names(template_attrs),
+                       c("row.names", "names", ".internal.selfref"))){
+      data.table::setattr(out, a, template_attrs[[a]])
     }
-    out <- as_DT(safe_ungroup(data))
-    invisible(data.table::setalloccol(out))
     return(out)
   }
   if (inherits(template, "grouped_df") &&
@@ -300,7 +313,8 @@ new_df <- function(..., ..N = NULL, .recycle = FALSE){
 }
 new_tbl <- function(..., ..N = NULL, .recycle = FALSE){
   out <- new_df(..., ..N = ..N, .recycle = .recycle)
-  add_attr(out, "class", c("tbl_df", "tbl", "data.frame"))
+  class(out) <- c("tbl_df", "tbl", "data.frame")
+  out
 }
 # Pluck data frame row (works for matrices and df-like lists too)
 pluck_row <- function(x, i = 1L, j = collapse::seq_col(x),
@@ -320,7 +334,7 @@ pluck_row <- function(x, i = 1L, j = collapse::seq_col(x),
   #   2L
   # )
   out <- fpluck(
-    data.table::melt(as_DT(x), measure.vars = names(x),
+    data.table::melt(df_as_dt(x, .copy = FALSE), measure.vars = names(x),
                      value.name = "value"),
     "value"
   )
@@ -350,7 +364,7 @@ dplyr_summarise <- function(...){
 safe_ungroup <- function(data){
   if (inherits(data, "grouped_df")){
     attr(data, "groups") <- NULL
-    attr(data, "class") <- c("tbl_df", "tbl", "data.frame")
+    class(data) <- c("tbl_df", "tbl", "data.frame")
   }
   data
 }
@@ -413,14 +427,13 @@ df_group_id <- function(x){
   if (is.null(groups)){
     out <- seq_ones(N)
   } else {
-    rows <- groups[[".rows"]]
-    out <- cpp_df_group_indices(rows, N)
+    out <- cpp_df_group_indices(groups[[".rows"]], N)
   }
   out
 }
 # Reorder data frame to original order after having sorted it using a GRP
 df_reorder <- function(data, g){
-  df_row_slice(data, collapse::greorder(df_seq_along(data, "rows"), g = g))
+  df_row_slice(data, greorder2(df_seq_along(data, "rows"), g = g))
 }
 # Drop rows that are all empty
 df_drop_empty <- function(data, .cols = names(data)){
@@ -432,7 +445,7 @@ df_drop_empty <- function(data, .cols = names(data)){
 dplyr_drop_empty <- function(data, .cols = dplyr::everything()){
   dplyr::filter(data, !dplyr::if_all(.cols = {{ .cols }}, .fns = is.na))
 }
-
+# roll_lag() can now do this
 df_lag <- function(x, n = 1L, g = NULL){
   df_row_slice(x, flag2(df_seq_along(x), n = n, g = g))
 }
@@ -509,10 +522,10 @@ vctrs_new_list_of <- function(x = list(), ptype){
 }
 # Like dplyr::bind_cols() but written in mostly base R
 # and simpler..
-df_cbind <- function(..., .repair_names = TRUE){
+df_cbind <- function(..., .repair_names = TRUE, .sep = "..."){
   out <- c(...)
   dots <- list(...)
-  nrow_range <- collapse::.range(cpp_nrows(dots), TRUE)
+  nrow_range <- collapse::.range(cpp_nrows(dots), na.rm = TRUE)
   if (isTRUE(nrow_range[1] != nrow_range[2])){
     stop("All data frames must be of equal size")
   }
@@ -529,6 +542,10 @@ df_cbind <- function(..., .repair_names = TRUE){
       attr(out, "row.names") <- .set_row_names(N)
     }
     template <- dots[[1L]]
+    # Special method for grouped_df because
+    # we don't need to recalculate groups
+    # Since we're not rearranging or renaming variables
+    # except in the case of duplicates.
     if (inherits(template, "grouped_df") &&
         all(group_vars(template) %in% names(out))){
       out <- df_reconstruct(out, safe_ungroup(template))
@@ -540,9 +557,9 @@ df_cbind <- function(..., .repair_names = TRUE){
   }
   out
 }
-unique_name_repair <- function(x){
+unique_name_repair <- function(x, .sep = "..."){
   col_seq <- seq_along(x)
   which_dup <- cpp_which(collapse::fduplicated(x, all = TRUE))
-  x[which_dup] <- paste0(x[which_dup], "...", col_seq[which_dup])
+  x[which_dup] <- paste0(x[which_dup], .sep, col_seq[which_dup])
   x
 }
