@@ -10,7 +10,7 @@ fcount(
   ...,
   wt = NULL,
   sort = FALSE,
-  order = TRUE,
+  order = df_group_by_order_default(data),
   name = NULL,
   .by = NULL,
   .cols = NULL
@@ -21,7 +21,7 @@ fadd_count(
   ...,
   wt = NULL,
   sort = FALSE,
-  order = TRUE,
+  order = df_group_by_order_default(data),
   name = NULL,
   .by = NULL,
   .cols = NULL

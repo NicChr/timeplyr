@@ -77,8 +77,15 @@
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #'}
 #' @export
-fcount <- function(data, ..., wt = NULL, sort = FALSE, order = TRUE,
+fcount <- function(data, ..., wt = NULL, sort = FALSE,
+                   order = df_group_by_order_default(data),
                    name = NULL, .by = NULL, .cols = NULL){
+  if (dots_length() == 0 && rlang::quo_is_null(rlang::enquo(.by))){
+    return(
+      count_simple(data, ..., wt = !!enquo(wt), sort = sort, order = order,
+                   name = name, .by = {{ .by }}, .cols = .cols)
+    )
+  }
   group_vars <- group_vars(data)
   group_info <- tidy_group_info(data, ..., .by = {{ .by }},
                                 .cols = .cols,
@@ -103,10 +110,10 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, order = TRUE,
       (order && length(group_vars) > 0L && length(group_vars) == length(all_vars))
   )
   if (use_only_grouped_df_groups){
-    g <- df_to_GRP(data, return.order = FALSE, order = order)
+    g <- df_to_GRP(data, return.order = FALSE, order = order, return.groups = TRUE)
   } else {
     g <- df_to_GRP(out, .cols = all_vars, return.order = FALSE,
-                   order = order)
+                   order = order, return.groups = TRUE)
   }
   group_data <- GRP_groups(g)
   if (is.null(group_data)){
@@ -146,6 +153,56 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, order = TRUE,
   if (sort){
     row_order <- radix_order(-nobs)
     out <- df_row_slice(out, row_order)
+  }
+  df_reconstruct(out, data)
+}
+# A basic and very fast count() method
+# The above method is faster when there are many groups
+# because creating the list of group locations through
+# group_by() is unnecessarily expensive
+# If the data is already grouped and no variables are supplied
+# through ..., then this is very fast
+count_simple <- function(data, ..., wt = NULL, sort = FALSE,
+                         order = df_group_by_order_default(data),
+                         name = NULL, .by = NULL, .cols = NULL){
+  out <- fgroup_by(data, ..., .add = TRUE,
+                   order = order, .cols = .cols,
+                   .by = {{ .by }})
+  if (!rlang::quo_is_null(enquo(wt))){
+    out_info <- mutate_summary_ungrouped(out, !!enquo(wt))
+    wt_var <- out_info[["cols"]]
+    weights <- out_info[["data"]][[wt_var]]
+  } else {
+    weights <- NULL
+  }
+  if (is.null(name)){
+    name <- new_n_var_nm(group_vars(out))
+  }
+  out <- df_count(out, weights = weights, name = name)
+  if (sort){
+    out <- farrange(out, desc(.data[[name]]))
+  }
+  df_reconstruct(out, data)
+}
+add_count_simple <- function(data, ..., wt = NULL, sort = FALSE,
+                         order = df_group_by_order_default(data),
+                         name = NULL, .by = NULL, .cols = NULL){
+  out <- fgroup_by(data, ..., .add = TRUE,
+                   order = order, .cols = .cols,
+                   .by = {{ .by }})
+  if (!rlang::quo_is_null(enquo(wt))){
+    out_info <- mutate_summary_ungrouped(out, !!enquo(wt))
+    wt_var <- out_info[["cols"]]
+    weights <- out_info[["data"]][[wt_var]]
+  } else {
+    weights <- NULL
+  }
+  if (is.null(name)){
+    name <- new_n_var_nm(out)
+  }
+  out <- df_add_count(out, weights = weights, name = name)
+  if (sort){
+    out <- farrange(out, desc(.data[[name]]))
   }
   df_reconstruct(out, data)
 }
@@ -194,8 +251,15 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE, order = TRUE,
 # }
 #' @rdname fcount
 #' @export
-fadd_count <- function(data, ..., wt = NULL, sort = FALSE, order = TRUE,
+fadd_count <- function(data, ..., wt = NULL, sort = FALSE,
+                       order = df_group_by_order_default(data),
                        name = NULL, .by = NULL, .cols = NULL){
+  if (dots_length() == 0 && rlang::quo_is_null(rlang::enquo(.by))){
+    return(
+      add_count_simple(data, ..., wt = !!enquo(wt), sort = sort, order = order,
+                       name = name, .by = {{ .by }}, .cols = .cols)
+    )
+  }
   group_vars <- group_vars(data)
   group_info <- tidy_group_info(data, ..., .by = {{ .by }},
                                 .cols = .cols,

@@ -271,6 +271,13 @@ extern "C" SEXP _timeplyr_cpp_nrows(SEXP x) {
     return cpp11::as_sexp(cpp_nrows(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x)));
   END_CPP11
 }
+// utils.cpp
+SEXP cpp_address_equal(SEXP x, SEXP y);
+extern "C" SEXP _timeplyr_cpp_address_equal(SEXP x, SEXP y) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_address_equal(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(y)));
+  END_CPP11
+}
 // which.cpp
 SEXP cpp_which_(SEXP x, bool invert);
 extern "C" SEXP _timeplyr_cpp_which_(SEXP x, SEXP invert) {
@@ -283,6 +290,7 @@ extern "C" {
 static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_after_sequence",           (DL_FUNC) &_timeplyr_after_sequence,           2},
     {"_timeplyr_before_sequence",          (DL_FUNC) &_timeplyr_before_sequence,          2},
+    {"_timeplyr_cpp_address_equal",        (DL_FUNC) &_timeplyr_cpp_address_equal,        2},
     {"_timeplyr_cpp_any_address_changed",  (DL_FUNC) &_timeplyr_cpp_any_address_changed,  2},
     {"_timeplyr_cpp_bin",                  (DL_FUNC) &_timeplyr_cpp_bin,                  6},
     {"_timeplyr_cpp_bin_grouped",          (DL_FUNC) &_timeplyr_cpp_bin_grouped,          6},

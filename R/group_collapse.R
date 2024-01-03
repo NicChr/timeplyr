@@ -100,9 +100,7 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
     out[[".group"]] <- df_seq_along(out)
     # set_add_cols(out, list(.group = df_seq_along(out)))
   }
-  include_loc <- loc ||
-    (start && is.null(g[["group.starts"]])) ||
-    end
+  include_loc <- loc || end
   if (include_loc){
     GRP_loc <- GRP_loc(g)
     out[[".loc"]] <- vctrs_new_list_of(GRP_loc, integer())
@@ -115,7 +113,7 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
     GRP_loc <- NULL
   }
   if (start){
-    out[[".start"]] <- GRP_starts(g, loc = GRP_loc)
+    out[[".start"]] <- GRP_starts(g)
     # set_add_cols(out, list(.start = GRP_starts(g, loc = GRP_loc)))
   }
   if (end){
@@ -174,7 +172,7 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
         }
         # Bind the combinations that don't exist
         if (loc){
-          missed_categories[[".loc"]] <- vctrs_new_list_of(integer(), integer())
+          missed_categories[[".loc"]] <- vctrs_new_list_of(list(integer()), integer())
         }
         if (start){
           missed_categories[[".start"]] <- 0L
@@ -185,7 +183,8 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
         if (size){
           missed_categories[[".size"]] <- 0L
         }
-        out <- vctrs::vec_rbind(out, missed_categories)
+        out <- collapse::rowbind(out, missed_categories,
+                                 return = "data.frame")
         if (id){
           out[[".group"]] <- group_id(out, .cols = group_names,
                                       order = order)
@@ -306,8 +305,7 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
     }
     sizes <- cpp_lengths(out[[".loc"]])
     if (start){
-      gstarts <- integer(length(sizes))
-      gstarts[cpp_which(sizes != 0L)] <- GRP_loc_starts(out[[".loc"]])
+      gstarts <- GRP_loc_starts(out[[".loc"]])
       out[[".start"]] <- gstarts
     }
     if (end){

@@ -166,7 +166,8 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
                                   stat = c("n", "min", "max",
                                            "mean", "sd"),
                                   sort = FALSE,
-                                  q_probs = probs)
+                                  q_probs = probs,
+                                  inform_stats = FALSE)
   delay_summary[, ("se") := get("sd")/sqrt(get("n"))]
   delay_summary[, ("iqr") := get("p75") - get("p25")]
   if (length(group_vars) > 0L){
@@ -194,7 +195,6 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
       fcount(across(all_of(c(grp_nm, group_vars))),
              across(all_of(delay_nm), ceiling),
              name = "n")
-    data.table::setDT(delay_tbl)
     delay_tbl[, ("cumulative") := collapse::fcumsum(get("n"),
                                                     g = get(grp_nm),
                                                     na.rm = TRUE)]

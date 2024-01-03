@@ -45,9 +45,10 @@ fgroup_by <- function(data, ..., .add = FALSE,
     # no_extra_groups <- length(groups) == 0 || (length(setdiff2(groups, init_group_vars)) == 0)
     # if (!recalculate_groups && no_extra_groups){
     order_unchanged <- order == df_group_by_order_default(data)
-    drop_unchanged <-  .drop == df_group_by_drop_default(data)
+    drop_unchanged <- .drop == df_group_by_drop_default(data)
     no_extra_groups <- length(groups) == 0 || (length(setdiff2(groups, init_group_vars)) == 0)
-    if (order_unchanged && drop_unchanged && no_extra_groups){
+    groups_unchanged <- all(group_info$address_equal[init_group_vars])
+    if (order_unchanged && drop_unchanged && no_extra_groups && groups_unchanged){
       return(data)
     }
     groups <- unique(c(init_group_vars, groups))

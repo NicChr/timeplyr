@@ -540,6 +540,24 @@ SEXP cpp_nrows(SEXP x) {
   return out;
 }
 
+[[cpp11::register]]
+SEXP cpp_address_equal(SEXP x, SEXP y) {
+  const SEXP* p_x = VECTOR_PTR_RO(x);
+  const SEXP* p_y = VECTOR_PTR_RO(y);
+  int n1 = Rf_length(x);
+  int n2 = Rf_length(y);
+  if (n1 != n2){
+    Rf_error("x and y must be of the same length");
+  }
+  SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n1));
+  int *p_out = LOGICAL(out);
+  for (int i = 0; i < n1; ++i) {
+    p_out[i] = (STRING_ELT(cpp_r_obj_address(p_x[i]), 0) == STRING_ELT(cpp_r_obj_address(p_y[i]), 0));
+  }
+  Rf_unprotect(1);
+  return out;
+}
+
 // Checks that all row indices of 2 grouped data frames are the same
 
 // bool cpp_group_data_rows_equal(SEXP rows1, SEXP rows2) {

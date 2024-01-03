@@ -462,38 +462,66 @@ df_select <- function(x, .cols){
 df_add_cols <- function(data, cols){
   dplyr::dplyr_col_modify(data, cols)
 }
+# # Extremely simple count functions for grouped_df
+# df_count <- function(.data, name = "n", wt = character()){
+#   groups <- group_data(.data)
+#   if (length(wt) > 0){
+#     counts <- collapse::fsum(.data[[wt]], g = df_group_id(.data))
+#   } else {
+#     counts <- cpp_lengths(groups[[".rows"]])
+#   }
+#   out <- fselect(groups, .cols = setdiff2(names(groups), ".rows"))
+#   out[[name]] <- counts
+#   out <- df_reconstruct(out, safe_ungroup(.data))
+#   # if (inherits(.data, "grouped_df")){
+#   #   groups[[".rows"]] <- structure(as.list(df_seq_along(out)),
+#   #                                  ptype = integer(),
+#   #                                  class = c("vctrs_list_of",
+#   #                                            "vctrs_vctr",
+#   #                                            "list"))
+#   #   attr(out, "groups") <- groups
+#   #   class(out) <- class(.data)
+#   # }
+#   out
+# }
 # Extremely simple count functions for grouped_df
-df_count <- function(.data, name = "n", wt = character()){
+df_count <- function(.data, name = "n", weights = NULL){
   groups <- group_data(.data)
-  if (length(wt) > 0){
-    counts <- collapse::fsum(.data[[wt]], g = df_group_id(.data))
+  if (!is.null(weights)){
+    if (length(weights) != df_nrow(.data)){
+      stop("Weights must satisfy `length(weights) == nrow(.data)`")
+    }
+    counts <- collapse::fsum(weights, g = df_group_id(.data), use.g.names = FALSE)
   } else {
     counts <- cpp_lengths(groups[[".rows"]])
   }
   out <- fselect(groups, .cols = setdiff2(names(groups), ".rows"))
   out[[name]] <- counts
-  out <- df_reconstruct(out, safe_ungroup(.data))
-  # if (inherits(.data, "grouped_df")){
-  #   groups[[".rows"]] <- structure(as.list(df_seq_along(out)),
-  #                                  ptype = integer(),
-  #                                  class = c("vctrs_list_of",
-  #                                            "vctrs_vctr",
-  #                                            "list"))
-  #   attr(out, "groups") <- groups
-  #   class(out) <- class(.data)
-  # }
   out
 }
-df_add_count <- function(.data, name = "n", wt = character()){
+df_add_count <- function(.data, name = "n", weights = NULL){
   groups <- group_data(.data)
   group_ids <- df_group_id(.data)
-  if (length(wt) > 0){
-    counts <- gsum(.data[[wt]], g = group_ids)
+  if (!is.null(weights)){
+    if (length(weights) != df_nrow(.data)){
+      stop("Weights must satisfy `length(weights) == nrow(.data)`")
+    }
+    counts <- gsum(weights, g = group_ids)
   } else {
     counts <- cpp_lengths(groups[[".rows"]])[group_ids]
   }
   df_add_cols(.data, add_names(list(counts), name))
 }
+# df_add_count <- function(.data, name = "n", wt = character()){
+#   groups <- group_data(.data)
+#   group_ids <- df_group_id(.data)
+#   if (length(wt) > 0){
+#     counts <- gsum(.data[[wt]], g = group_ids)
+#   } else {
+#     counts <- cpp_lengths(groups[[".rows"]])[group_ids]
+#   }
+#   df_add_cols(.data, add_names(list(counts), name))
+# }
 df_group_by_drop_default <- function(x){
   if (inherits(x, "grouped_df")){
     attr(attr(x, "groups", TRUE), ".drop", TRUE)

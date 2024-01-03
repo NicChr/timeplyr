@@ -432,13 +432,18 @@ tidy_group_info_tidyselect <- function(data, ..., .by = NULL, .cols = NULL,
   } else {
     all_groups <- c(group_vars, setdiff2(extra_groups, group_vars))
   }
-  any_groups_changed <- cpp_any_address_changed(df_select(safe_ungroup(data), group_vars),
-                                                df_select(safe_ungroup(out), group_vars))
+  address_equal <- add_names(cpp_address_equal(
+    data, df_select(safe_ungroup(out), names(data))
+  ), names(data))
+  any_groups_changed <- !all(address_equal[group_vars])
+  # any_groups_changed <- cpp_any_address_changed(df_select(safe_ungroup(data), group_vars),
+  #                                               df_select(safe_ungroup(out), group_vars))
   list("data" = out,
        "dplyr_groups" = group_vars,
        "extra_groups" = extra_groups,
        "all_groups" = all_groups,
-       "groups_changed" = any_groups_changed)
+       "groups_changed" = any_groups_changed,
+       "address_equal" = address_equal)
 }
 
 tidy_group_info_datamask <- function(data, ..., .by = NULL,
@@ -469,13 +474,18 @@ tidy_group_info_datamask <- function(data, ..., .by = NULL,
   } else {
     all_groups <- c(group_vars, setdiff2(extra_groups, group_vars))
   }
-  any_groups_changed <- cpp_any_address_changed(df_select(safe_ungroup(data), group_vars),
-                                                df_select(safe_ungroup(out), group_vars))
+  address_equal <- add_names(cpp_address_equal(
+    data, df_select(safe_ungroup(out), names(data))
+  ), names(data))
+  any_groups_changed <- !all(address_equal[group_vars])
+  # any_groups_changed <- cpp_any_address_changed(df_select(safe_ungroup(data), group_vars),
+  #                                               df_select(safe_ungroup(out), group_vars))
   list("data" = out,
        "dplyr_groups" = group_vars,
        "extra_groups" = extra_groups,
        "all_groups" = all_groups,
-       "groups_changed" = any_groups_changed)
+       "groups_changed" = any_groups_changed,
+       "address_equal" = address_equal)
 }
 
 tidy_group_info <- function(data, ..., .by = NULL, .cols = NULL,

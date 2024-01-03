@@ -97,7 +97,10 @@
 #' @export
 time_interval <- function(start = integer(), end = integer()){
   out <- time_interval_list(start, end)
-  vctrs::new_rcrd(out, class = "time_interval")
+  class(out) <- c("time_interval", "vctrs_rcrd", "vctrs_vctr")
+  invisible(vctrs::field) # Just in case accessing namespace is necessary
+  out
+  # vctrs::new_rcrd(out, class = "time_interval")
 }
 #' @rdname time_interval
 #' @export
@@ -115,8 +118,11 @@ time_interval_list <- function(start, end){
   recycle_args(start = start, end = end)
 }
 as.data.frame.time_interval <- function(x, ...){
-  new_df(start = interval_start(x),
-         end = interval_end(x))
+  interval <- unclass(x)
+  new_df(start = interval[[1L]],
+         end = interval[[1L]])
+  # new_df(start = interval_start(x),
+  #        end = interval_end(x))
 }
 as.list.time_interval <- function(x, ...){
   unclass(x)
@@ -146,8 +152,17 @@ as.list.time_interval <- function(x, ...){
   time_diff(interval[[1L]], interval[[2L]], time_by = e2)
 }
 unique.time_interval <- function(x, ...){
-  interval <- collapse::funique(as.data.frame(x), ...)
-  time_interval(interval[[1L]], interval[[2L]])
+  cl <- class(x)
+  out <- unclass(collapse::funique(as.data.frame(x), ...))
+  class(out) <- cl
+  out
+}
+xtfrm.time_interval <- function(x){
+  group_id(x, order = TRUE)
+}
+sort.time_interval <- function(x, ...){
+  o <- radixorderv2(unclass(x), ...)
+  x[o]
 }
 duplicated.time_interval <- function(x, ...){
   collapse::fduplicated(as.list(x), ...)

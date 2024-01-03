@@ -151,19 +151,19 @@ group_id <- function(data, ...,
 group_id.default <- function(data, ..., order = TRUE,
                              ascending = TRUE,
                              as_qg = FALSE){
-  g <- GRP2(safe_ungroup(data),
+  g <- GRP3(safe_ungroup(data),
             sort = order,
             decreasing = !ascending,
             na.last = TRUE,
             return.groups = FALSE,
-            return.order = FALSE,
+            return.order = order,
             method = "auto",
             call = FALSE)
   out <- GRP_group_id(g)
   if (as_qg){
     out <- group_id_to_qg(out,
                           n_groups = GRP_n_groups(g),
-                          # group_starts = g[["group.starts"]],
+                          group_starts = GRP_starts(g),
                           group_sizes = GRP_group_sizes(g),
                           ordered = order)
   }
@@ -185,17 +185,16 @@ group_id.factor <- function(data, ..., order = TRUE,
 group_id.Interval <- function(data, ..., order = TRUE,
                               ascending = TRUE, as_qg = FALSE){
   X <- interval_separate(data)
-  # X[[1L]][is.na(X[[2L]])] <- NA
-  groups <- collapse::GRP(X, sort = order,
-                          decreasing = !ascending,
-                          call = FALSE,
-                          return.groups = FALSE,
-                          return.order = FALSE)
+  groups <- GRP3(X, sort = order,
+                 decreasing = !ascending,
+                 call = FALSE,
+                 return.groups = FALSE,
+                 return.order = order)
   out <- GRP_group_id(groups)
   if (as_qg){
     out <- group_id_to_qg(out,
                           n_groups = GRP_n_groups(groups),
-                          # group_starts = groups[["group.starts"]],
+                          group_starts = GRP_starts(groups),
                           group_sizes = GRP_group_sizes(groups),
                           ordered = order)
   }
@@ -218,25 +217,26 @@ group_id.data.frame <- function(data, ...,
     out <- collapse::alloc(1L, N)
     n_groups <- min(N, 1L)
     group_sizes <- N
-    # group_starts <- n_groups
+    group_starts <- n_groups
   } else {
-    g <- GRP2(group_info[["data"]], by = all_groups,
+    g <- GRP3(group_info[["data"]],
+              by = all_groups,
               sort = order,
               decreasing = !ascending,
               na.last = TRUE,
               return.groups = FALSE,
-              return.order = FALSE,
+              return.order = order,
               method = "auto",
               call = FALSE)
     out <- GRP_group_id(g)
     n_groups <- GRP_n_groups(g)
     group_sizes <- GRP_group_sizes(g)
-    # group_starts <- g[["group.starts"]]
+    group_starts <- GRP_starts(g)
   }
   if (as_qg){
     out <- group_id_to_qg(out,
                           n_groups = n_groups,
-                          # group_starts = group_starts,
+                          group_starts = group_starts,
                           group_sizes = group_sizes,
                           ordered = order)
   }
@@ -254,10 +254,11 @@ group_id.grouped_df <- function(data, ...,
   if (n_dots == 0 && is.null(.cols) && order && ascending){
     out <- df_group_id(data)
     if (as_qg){
+      groups <- group_data(data)
       out <- group_id_to_qg(out,
-                            n_groups = df_nrow(group_data(data)),
-                            group_sizes = collapse::vlengths(group_data(data)[[".rows"]],
-                                                             use.names = FALSE),
+                            n_groups = df_nrow(groups),
+                            group_starts = GRP_loc_starts(groups[[".rows"]]),
+                            group_sizes = cpp_lengths(groups[[".rows"]]),
                             ordered = order)
     }
   } else {
@@ -311,7 +312,7 @@ add_group_id <- function(data, ...,
                         .cols = .cols,
                         as_qg = as_qg)
   col_to_add <- add_names(list(group_ids), .name)
-  dplyr::dplyr_col_modify(data, col_to_add)
+  df_add_cols(data, col_to_add)
 }
 #' @rdname group_id
 #' @export
@@ -358,7 +359,7 @@ add_row_id <- function(data, ..., ascending = TRUE,
                     ascending = ascending,
                     .by = {{ .by }}, .cols = .cols)
   col_to_add <- add_names(list(row_ids), .name)
-  dplyr::dplyr_col_modify(data, col_to_add)
+  df_add_cols(data, col_to_add)
 }
 #' @rdname group_id
 #' @export
@@ -432,10 +433,10 @@ add_group_order <- function(data, ..., ascending = TRUE,
   if (is.null(.name)){
     .name <- new_var_nm(names(data), "group_order")
   }
-  dplyr::dplyr_col_modify(data, add_names(list(group_order(data, ...,
-                                                          .by = {{ .by }}, .cols = .cols,
-                                                          ascending = ascending)),
-                                         .name))
+  df_add_cols(data, add_names(list(group_order(data, ...,
+                                               .by = {{ .by }}, .cols = .cols,
+                                               ascending = ascending)),
+                              .name))
 }
 
 qG2 <- function(x, sort = TRUE, ordered = FALSE, na.exclude = FALSE, ...){
