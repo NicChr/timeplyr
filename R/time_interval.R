@@ -120,7 +120,7 @@ time_interval_list <- function(start, end){
 as.data.frame.time_interval <- function(x, ...){
   interval <- unclass(x)
   new_df(start = interval[[1L]],
-         end = interval[[1L]])
+         end = interval[[2L]])
   # new_df(start = interval_start(x),
   #        end = interval_end(x))
 }
@@ -148,12 +148,14 @@ as.list.time_interval <- function(x, ...){
   time_interval(start, end)
 }
 `/.time_interval` <- function(e1, e2){
-  interval <- as.list(e1)
+  interval <- unclass(e1)
   time_diff(interval[[1L]], interval[[2L]], time_by = e2)
 }
-unique.time_interval <- function(x, ...){
+unique.time_interval <- function(x, sort = FALSE, method = "auto",
+                                 decreasing = FALSE, na.last = TRUE, ...){
   cl <- class(x)
-  out <- unclass(collapse::funique(as.data.frame(x), ...))
+  out <- unclass(collapse::funique(as.data.frame(x), sort = sort, method = method,
+                                   decreasing = decreasing, na.last = na.last))
   class(out) <- cl
   out
 }
@@ -165,7 +167,7 @@ sort.time_interval <- function(x, ...){
   x[o]
 }
 duplicated.time_interval <- function(x, ...){
-  collapse::fduplicated(as.list(x), ...)
+  collapse::fduplicated(unclass(x), ...)
 }
 
 as.character.time_interval <- function(x,

@@ -19,6 +19,9 @@
 #' then arithmetic is used, e.g `time_by = 1`.
 #' @param from Time series start date. If `NULL` then min time is used.
 #' @param to Time series end date. If `NULL` then max time is used.
+#' @param .name An optional glue specification passed to `stringr::glue()`
+#' which can be used to concatenate
+#' strings to the time column name or replace it.
 #' @param complete \bold{Deprecated}.
 #' Use `time_complete()` after `time_count()` to
 #' complete missing gaps in time (as well as optionally expand groups).
@@ -104,6 +107,7 @@
 #' @export
 time_count <- function(data, time = NULL, ..., time_by = NULL,
                        from = NULL, to = NULL,
+                       .name = "{.col}_intv",
                        complete = FALSE,
                        wt = NULL, name = NULL,
                        sort = FALSE,
@@ -114,7 +118,6 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                        roll_month = getOption("timeplyr.roll_month", "preday"),
                        roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                        include_interval = FALSE){
-  int_nm <- character()
   original_groups <- get_groups(data, {{ .by }})
   by_groups <- tidy_select_pos(data, {{ .by }})
   # Determine common bounds
@@ -148,6 +151,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
   out <- fgroup_by(out, .cols = original_groups, order = FALSE)
   n_nm <- names(out)[length(names(out))]
   time_var <- setdiff2(names(out), c(group_vars, n_nm, from_var, to_var))
+  time_agg_var <- across_col_names(time_var, .fns = "", .names = .name)
   if (!missing(complete) || complete){
     rlang::warn(c("x" = "'complete' has been deprecated and will not be applied",
                   "Please use `time_complete()`",
@@ -187,28 +191,15 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                                     roll_month = roll_month,
                                     roll_dst = roll_dst,
                                     time_floor = time_floor,
-                                    week_start = week_start,
-                                    as_int = include_interval)
-    time_int_end <- time_int_end(time_agg)
-    time_agg <- time_int_rm_attrs(time_agg)
-    int_end_nm <- new_var_nm(names(out), "int_end")
-    out <- df_add_cols(out, add_names(list(time_agg, time_int_end), c(time_var, int_end_nm)))
-    groups2 <- df_to_GRP(safe_ungroup(out), .cols = c(original_groups, time_var, extra_groups))
-    # groups2 <- GRP2(list(out[[time_var]], group_id(groups)), sort = TRUE)
+                                    week_start = week_start)
+    out <- df_add_cols(out, add_names(list(time_agg), time_agg_var))
+    groups2 <- df_to_GRP(safe_ungroup(out), .cols = c(original_groups, time_agg_var, extra_groups))
     counts <- collapse::fsum(out[[n_nm]], g = groups2, use.g.names = FALSE, na.rm = FALSE)
     group_start_locs <- GRP_starts(groups2)
     out <- df_row_slice(out, group_start_locs)
     out <- df_add_cols(out, add_names(list(counts), n_nm))
-    if (include_interval){
-      int_nm <- new_var_nm(out, "interval")
-      out <- df_add_cols(out, add_names(
-        list(
-          time_interval2(out[[time_var]], out[[int_end_nm]])
-        ), int_nm
-      ))
-    }
   }
-  out <- fselect(out, .cols = c(original_groups, time_var, int_nm, extra_groups, n_nm))
+  out <- fselect(out, .cols = c(original_groups, time_agg_var, extra_groups, n_nm))
   if (sort){
     out <- df_row_slice(out, radix_order(desc(out[[n_nm]])), reconstruct = FALSE)
   }

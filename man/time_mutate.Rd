@@ -11,6 +11,7 @@ time_mutate(
   time_by = NULL,
   from = NULL,
   to = NULL,
+  .name = "{.col}_intv",
   time_type = getOption("timeplyr.time_type", "auto"),
   include_interval = FALSE,
   .by = NULL,
@@ -45,15 +46,16 @@ then arithmetic is used, e.g \code{time_by = 1}.
 
 \item{to}{Time series end date.}
 
+\item{.name}{An optional glue specification passed to \code{stringr::glue()}
+which can be used to concatenate
+strings to the time column name or replace it.}
+
 \item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks, months or years are specified,
 and \code{durations}
 are used otherwise.}
 
-\item{include_interval}{Logical. If \code{TRUE} then
-a column "interval" of the form \verb{time_min <= x < time_max} is added
-showing the time interval in which the respective counts belong to.
-The rightmost interval will always be closed.}
+\item{include_interval}{\bold{Deprecated}. No longer used.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}

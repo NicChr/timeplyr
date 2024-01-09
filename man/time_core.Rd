@@ -61,8 +61,7 @@ time_summarisev(
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
-  include_interval = FALSE
+  roll_dst = getOption("timeplyr.roll_dst", "boundary")
 )
 
 time_countv(
@@ -74,7 +73,6 @@ time_countv(
   unique = TRUE,
   complete = FALSE,
   time_type = getOption("timeplyr.time_type", "auto"),
-  include_interval = FALSE,
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = getOption("timeplyr.roll_month", "preday"),
@@ -145,11 +143,6 @@ See \code{?timechange::time_add} for more details.}
 
 \item{unique}{Should the result be unique or match the length of the vector?
 Default is \code{TRUE}.}
-
-\item{include_interval}{Logical. If \code{TRUE} then the result is a \code{tibble}
-with a column "interval" of the form \verb{time_min <= x < time_max}
-showing the time interval in which the aggregated time points belong to.
-The rightmost interval will always be closed.}
 
 \item{complete}{Logical. If \code{TRUE} implicit gaps in time are filled
 before counting and after time aggregation (controlled using \code{time_by}).

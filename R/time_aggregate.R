@@ -97,7 +97,8 @@ time_aggregate <- function(x, time_by = NULL, g = NULL,
                    roll_month = roll_month, roll_dst = roll_dst)
   time_by_interval(out, time_by = time_by,
                    time_type = time_type,
-                   roll_month = roll_month, roll_dst = roll_dst)
+                   roll_month = roll_month,
+                   roll_dst = roll_dst)
   # if (as_interval){
   #   out <- time_by_interval(out, time_by = time_by,
   #                           # bound_range = TRUE,

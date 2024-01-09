@@ -11,7 +11,7 @@ q_summarise(
   type = 7,
   pivot = c("wide", "long"),
   na.rm = TRUE,
-  sort = TRUE,
+  sort = df_group_by_order_default(data),
   .by = NULL,
   .cols = NULL
 )

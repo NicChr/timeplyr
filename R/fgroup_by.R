@@ -60,7 +60,7 @@ fgroup_by <- function(data, ..., .add = FALSE,
                              loc = TRUE, sort = TRUE,
                              size = FALSE,
                              start = FALSE, end = FALSE,
-                             drop = .drop)
+                             .drop = .drop)
     groups <- frename(groups, .cols = c(".rows" = ".loc"))
     attr(groups, ".drop") <- .drop
     attr(groups, "sorted") <- order

@@ -87,7 +87,6 @@
 #'
 #' # To aggregate multiple variables, use time_aggregate or time_summarisev
 #'
-#'
 #' flights %>%
 #'   select(time_hour) %>%
 #'   mutate(across(everything(), \(x) time_summarisev(x, time_by = dweeks(1)))) %>%
@@ -100,7 +99,7 @@
 #' @export
 time_by <- function(data, time, time_by_unit = NULL,
                     from = NULL, to = NULL,
-                    .name = "{.col}",
+                    .name = "{.col}_intv",
                     .add = FALSE,
                     time_type = getOption("timeplyr.time_type", "auto"),
                     time_floor = FALSE,
@@ -151,21 +150,22 @@ time_by <- function(data, time, time_by_unit = NULL,
                                 .by = all_of(time_span_groups))
     # Aggregate time data
     time_agg <- time_aggregate_left(out[[time_var]],
-                                    time_by = time_by,
-                                    start = fpluck(from_to_list, 1L),
-                                    end = fpluck(from_to_list, 2L),
-                                    g = time_span_GRP,
-                                    time_type = time_type,
-                                    roll_month = roll_month,
-                                    roll_dst = roll_dst,
-                                    time_floor = time_floor,
-                                    week_start = week_start,
-                                    as_int = TRUE)
-    time_span_start <- collapse::fmin(time_agg, g = time_span_GRP,
+                                     time_by = time_by,
+                                     start = fpluck(from_to_list, 1L),
+                                     end = fpluck(from_to_list, 2L),
+                                     g = time_span_GRP,
+                                     time_type = time_type,
+                                     roll_month = roll_month,
+                                     roll_dst = roll_dst,
+                                     time_floor = time_floor,
+                                     week_start = week_start)
+    time_span_start <- collapse::fmin(interval_start(time_agg), g = time_span_GRP,
                                       use.g.names = FALSE)
-    time_span_end <- collapse::fmax(time_int_end(time_agg), g = time_span_GRP,
+    time_span_end <- collapse::fmax(out[[time_var]], g = time_span_GRP,
                                     use.g.names = FALSE)
-    time_agg <- time_int_rm_attrs(time_agg)
+    # time_span_end <- collapse::fmax(time_int_end(time_agg), g = time_span_GRP,
+    #                                 use.g.names = FALSE)
+    # time_agg <- time_int_rm_attrs(time_agg)
     time_var <- across_col_names(time_var, .fns = "", .names = .name)
     out <- df_add_cols(out, add_names(list(time_agg), time_var))
     time_span <- GRP_group_data(time_span_GRP)
@@ -174,7 +174,7 @@ time_by <- function(data, time, time_by_unit = NULL,
     }
     time_span$start <- time_span_start
     time_span$end <- time_span_end
-    num_gaps <- time_num_gaps(out[[time_var]],
+    num_gaps <- time_num_gaps(interval_start(out[[time_var]]),
                               time_by = time_by,
                               time_type = time_type,
                               g = g, use.g.names = FALSE,

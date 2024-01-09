@@ -248,7 +248,7 @@ GRP_starts <- function(GRP, use.g.names = FALSE){
       # For factors with 0 size, replace calculated group starts with 0
       out[cpp_which(GRP_sizes == 0L)] <- 0L
     } else {
-      o <- GRP_order_simple(GRP)
+      o <- GRP_order(GRP)
       starts <- attr(o, "starts")
       if (collapse::anyv(GRP_sizes, 0L)){
         out <- integer(GRP_n_groups(GRP))
@@ -302,6 +302,12 @@ GRP_order <- function(GRP){
     group_id <- GRP_group_id(GRP)
     if (GRP_is_sorted(GRP) || is_sorted(group_id)){
       out <- seq_along(group_id)
+      sizes <- GRP_group_sizes(GRP)
+      if (is.null(GRP[["group.starts"]])){
+        starts <- calc_sorted_group_starts(sizes)
+      } else {
+        starts <- GRP[["group.starts"]]
+      }
       # This should not be used unless through radixorderv
       # if (group.sizes){
       #   attributes(out) <- list("starts" = GRP_starts(GRP),
@@ -309,8 +315,8 @@ GRP_order <- function(GRP){
       #                           "maxgrpn" = collapse::fmax(GRP_group_sizes(GRP)),
       #                           "sorted" = TRUE)
       # } else {
-        attributes(out) <- list(starts = GRP_starts(GRP),
-                                maxgrpn = collapse::fmax(GRP_group_sizes(GRP)),
+        attributes(out) <- list(starts = starts,
+                                maxgrpn = collapse::fmax(sizes),
                                 sorted = TRUE)
       # }
     } else {
@@ -335,16 +341,16 @@ GRP_order <- function(GRP){
   out
 }
 # Simpler version
-GRP_order_simple <- function(GRP){
-  if (is.null(GRP)){
-    return(NULL)
-  }
-  out <- GRP[["order"]]
-  if (is.null(out)){
-    out <- radixorderv2(GRP_group_id(GRP), starts = TRUE)
-  }
-  out
-}
+# GRP_order_simple <- function(GRP){
+#   if (is.null(GRP)){
+#     return(NULL)
+#   }
+#   out <- GRP[["order"]]
+#   if (is.null(out)){
+#     out <- radixorderv2(GRP_group_id(GRP), starts = TRUE)
+#   }
+#   out
+# }
 # Making this because of a bug when gsplit(NULL, GRP(x, sort = FALSE))
 GRP_loc <- function(GRP, use.g.names = FALSE){
   if (length(GRP_group_id(GRP)) == 0L){
@@ -793,3 +799,40 @@ group_sizes <- function(x, sort = FALSE, expand = FALSE){
   }
   out
 }
+new_GRP <- function(N.groups = NULL,
+                    group.id = NULL,
+                    group.sizes = NULL,
+                    groups = NULL,
+                    group.vars = NULL,
+                    ordered = NULL,
+                    order = NULL,
+                    group.starts = NULL,
+                    call = NULL){
+  out <- list(
+    N.groups = N.groups,
+    group.id = group.id,
+    group.sizes = group.sizes,
+    groups = groups,
+    group.vars = group.vars,
+    ordered = ordered,
+    order = order,
+    group.starts = group.starts,
+    call = call
+  )
+  class(out) <- "GRP"
+  out
+}
+# qg_to_GRP <- function(x){
+#  new_GRP(
+#    N.groups = attr(x, "N.groups"),
+#    group.id = strip_attrs(x),
+#    group.sizes = attr(x, "group.sizes"),
+#    groups = NULL,
+#    group.vars = NULL,
+#    ordered = add_names(c(inherits(x, "ordered"), is_sorted(unclass(x))),
+#                        c("ordered", "sorted")),
+#    order = NULL,
+#    group.starts = attr(x, "starts"),
+#    call = NULL
+#  )
+# }

@@ -11,6 +11,7 @@ time_count(
   time_by = NULL,
   from = NULL,
   to = NULL,
+  .name = "{.col}_intv",
   complete = FALSE,
   wt = NULL,
   name = NULL,
@@ -47,6 +48,10 @@ then arithmetic is used, e.g \code{time_by = 1}.
 \item{from}{Time series start date. If \code{NULL} then min time is used.}
 
 \item{to}{Time series end date. If \code{NULL} then max time is used.}
+
+\item{.name}{An optional glue specification passed to \code{stringr::glue()}
+which can be used to concatenate
+strings to the time column name or replace it.}
 
 \item{complete}{\bold{Deprecated}.
 Use \code{time_complete()} after \code{time_count()} to

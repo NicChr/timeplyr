@@ -53,8 +53,8 @@ interval_range <- function(x, na_rm = TRUE){
 interval_range.time_interval <- function(x, na_rm = TRUE){
   start <- interval_start(x)
   end <- interval_end(x)
-  c(collapse::fmin(start, na.rm = na_rm),
-    collapse::fmax(end, na.rm = na_rm))
+  time_interval(collapse::fmin(start, na.rm = na_rm),
+                collapse::fmax(end, na.rm = na_rm))
 }
 #' @rdname interval_utils
 #' @export

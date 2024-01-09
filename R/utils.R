@@ -395,11 +395,61 @@ get_group_info <- function(data, ..., type = c("select", "data-mask"),
        "all_groups" = all_groups)
 }
 
+# tidy_group_info_tidyselect <- function(data, ..., .by = NULL, .cols = NULL,
+#                                   ungroup = TRUE, rename = TRUE,
+#                                   unique_groups = TRUE){
+#   n_dots <- dots_length(...)
+#   # check_cols(n_dots = n_dots, .cols = .cols)
+#   group_vars <- get_groups(data, {{ .by }})
+#   group_pos <- match(group_vars, names(data))
+#   extra_groups <- character()
+#   if (ungroup){
+#     out <- safe_ungroup(data)
+#   } else {
+#     out <- data
+#   }
+#   # Data-masking for dots expressions
+#   if (n_dots > 0){
+#     extra_groups <- tidy_select_names(out, ...)
+#     if (rename){
+#       out <- frename(out, ...)
+#     }
+#   }
+#   if (!is.null(.cols)){
+#     extra_group_pos <- col_select_pos(out, .cols = .cols)
+#     if (rename){
+#       out <- col_rename(out, .cols = .cols)
+#       extra_groups <- names(extra_group_pos)
+#     } else {
+#       extra_groups <- names(data)[extra_group_pos]
+#     }
+#   }
+#   # Recalculate group vars in case they were renamed
+#   group_vars <- names(out)[group_pos]
+#   if (unique_groups){
+#     extra_groups <- setdiff2(extra_groups, group_vars)
+#     all_groups <- c(group_vars, extra_groups)
+#   } else {
+#     all_groups <- c(group_vars, setdiff2(extra_groups, group_vars))
+#   }
+#   address_equal <- add_names(cpp_address_equal(
+#     data, df_select(safe_ungroup(out), names(data))
+#   ), names(data))
+#   any_groups_changed <- !all(address_equal[group_vars])
+#   # any_groups_changed <- cpp_any_address_changed(df_select(safe_ungroup(data), group_vars),
+#   #                                               df_select(safe_ungroup(out), group_vars))
+#   list("data" = out,
+#        "dplyr_groups" = group_vars,
+#        "extra_groups" = extra_groups,
+#        "all_groups" = all_groups,
+#        "groups_changed" = any_groups_changed,
+#        "address_equal" = address_equal)
+# }
+
 tidy_group_info_tidyselect <- function(data, ..., .by = NULL, .cols = NULL,
-                                  ungroup = TRUE, rename = TRUE,
-                                  unique_groups = TRUE){
+                                       ungroup = TRUE, rename = TRUE,
+                                       unique_groups = TRUE){
   n_dots <- dots_length(...)
-  # check_cols(n_dots = n_dots, .cols = .cols)
   group_vars <- get_groups(data, {{ .by }})
   group_pos <- match(group_vars, names(data))
   extra_groups <- character()
@@ -408,36 +458,25 @@ tidy_group_info_tidyselect <- function(data, ..., .by = NULL, .cols = NULL,
   } else {
     out <- data
   }
-  # Data-masking for dots expressions
-  if (n_dots > 0){
-    extra_groups <- tidy_select_names(out, ...)
-    if (rename){
-      out <- frename(out, ...)
-    }
+  extra_group_pos <- tidy_select_pos(out, ..., .cols = .cols)
+  if (!rename){
+    names(extra_group_pos) <- names(data)[extra_group_pos]
   }
-  if (!is.null(.cols)){
-    extra_group_pos <- col_select_pos(out, .cols = .cols)
-    if (rename){
-      out <- col_rename(out, .cols = .cols)
-      extra_groups <- names(extra_group_pos)
-    } else {
-      extra_groups <- names(data)[extra_group_pos]
-    }
-  }
+  out <- frename(out, .cols = extra_group_pos)
+  extra_groups <- names(extra_group_pos)
   # Recalculate group vars in case they were renamed
   group_vars <- names(out)[group_pos]
+  address_equal <- rep_len(TRUE, df_ncol(data))
+  address_equal[extra_group_pos] <-
+    names(data)[extra_group_pos] == names(extra_group_pos)
+  names(address_equal) <- names(data)
+  any_groups_changed <- !all(address_equal[group_vars])
   if (unique_groups){
     extra_groups <- setdiff2(extra_groups, group_vars)
     all_groups <- c(group_vars, extra_groups)
   } else {
     all_groups <- c(group_vars, setdiff2(extra_groups, group_vars))
   }
-  address_equal <- add_names(cpp_address_equal(
-    data, df_select(safe_ungroup(out), names(data))
-  ), names(data))
-  any_groups_changed <- !all(address_equal[group_vars])
-  # any_groups_changed <- cpp_any_address_changed(df_select(safe_ungroup(data), group_vars),
-  #                                               df_select(safe_ungroup(out), group_vars))
   list("data" = out,
        "dplyr_groups" = group_vars,
        "extra_groups" = extra_groups,
@@ -1193,16 +1232,15 @@ tsp <- function(x){
 }
 # Simple wrapper around collapse::join
 collapse_join <- function(x, y, on, how, sort = FALSE, ...){
-  fselect(
-    collapse::join(x, y,
-                   on = on, sort = sort, how = how,
-                   verbose = FALSE,
-                   keep.col.order = FALSE,
-                   drop.dup.cols = FALSE,
-                   overid = 2,
-                   ...),
-    .cols = c(names(x), setdiff(names(y), names(x)))
-  )
+  out <- collapse::join(x, y,
+                        on = on, sort = sort, how = how,
+                        verbose = FALSE,
+                        keep.col.order = FALSE,
+                        drop.dup.cols = FALSE,
+                        overid = 2,
+                        ...)
+  fselect(out,
+          .cols = c(names(x), intersect(setdiff(names(y), names(x)), names(out))))
 }
 # Use this as an automated tolerance estimate when dealing with small numbers
 # Doesn't handle small differences between large numbers though.
@@ -1319,4 +1357,12 @@ list_subset <- function(x, i, default = NA, copy_attributes = FALSE){
 new_list <- function(length = 0L, default = NULL){
   check_length(length, 1)
   cpp_new_list(as.numeric(length), default)
+}
+# levels() but the result is its own factor
+levels_factor <- function(x){
+  lvls <- levels(x)
+  out <- seq_along(lvls)
+  levels(out) <- lvls
+  class(out) <- class(x)
+  out
 }

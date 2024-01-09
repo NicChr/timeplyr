@@ -80,7 +80,7 @@
 fcount <- function(data, ..., wt = NULL, sort = FALSE,
                    order = df_group_by_order_default(data),
                    name = NULL, .by = NULL, .cols = NULL){
-  if (dots_length() == 0 && rlang::quo_is_null(rlang::enquo(.by))){
+  if (dots_length(...) == 0 && rlang::quo_is_null(rlang::enquo(.by))){
     return(
       count_simple(data, ..., wt = !!enquo(wt), sort = sort, order = order,
                    name = name, .by = {{ .by }}, .cols = .cols)
@@ -254,7 +254,7 @@ add_count_simple <- function(data, ..., wt = NULL, sort = FALSE,
 fadd_count <- function(data, ..., wt = NULL, sort = FALSE,
                        order = df_group_by_order_default(data),
                        name = NULL, .by = NULL, .cols = NULL){
-  if (dots_length() == 0 && rlang::quo_is_null(rlang::enquo(.by))){
+  if (dots_length(...) == 0 && rlang::quo_is_null(rlang::enquo(.by))){
     return(
       add_count_simple(data, ..., wt = !!enquo(wt), sort = sort, order = order,
                        name = name, .by = {{ .by }}, .cols = .cols)

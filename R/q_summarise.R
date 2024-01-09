@@ -61,7 +61,7 @@ q_summarise <- function(data, ...,
                         probs = seq(0, 1, 0.25),
                         type = 7,
                         pivot = c("wide", "long"),
-                        na.rm = TRUE, sort = TRUE,
+                        na.rm = TRUE, sort = df_group_by_order_default(data),
                         .by = NULL, .cols = NULL){
   pivot <- rlang::arg_match0(pivot, c("wide", "long"))
   wide <- pivot == "wide"

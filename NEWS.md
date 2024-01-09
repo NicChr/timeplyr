@@ -1,5 +1,7 @@
 # timeplyr (Development version)
 
+* `time_episodes` has a custom print method displaying key summary metrics.
+
 * New functions `gcd2` and `scm2` which are vectorised binary versions of 
 `gcd` and `scm` respectively.
 

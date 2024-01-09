@@ -11,6 +11,7 @@ time_distinct(
   time_by = NULL,
   from = NULL,
   to = NULL,
+  .name = "{.col}_intv",
   .keep_all = FALSE,
   time_type = getOption("timeplyr.time_type", "auto"),
   include_interval = FALSE,

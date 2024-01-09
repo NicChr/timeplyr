@@ -26,3 +26,5 @@
 #' @importFrom pillar tbl_sum
 #' @importFrom pillar type_sum
 "_PACKAGE"
+
+.datatable.aware <- TRUE

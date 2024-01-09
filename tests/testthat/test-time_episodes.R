@@ -622,8 +622,8 @@ testthat::test_that("Testing time episodes", {
 
 test_that("Simple episodic tests", {
   set.seed(4200)
-  df <- dplyr::tibble(time = time_cast(sample.int(30, 15, T), Sys.Date()),
-                      event = sample(c("e", "ne"), 15, T, prob = c(0.6, 0.4)))
+  df <- dplyr::tibble(time = time_cast(sample.int(30, 15, TRUE), Sys.Date()),
+                      event = sample(c("e", "ne"), 15, TRUE, prob = c(0.6, 0.4)))
 
   expect_snapshot({
     df %>%

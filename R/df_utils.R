@@ -106,7 +106,7 @@ df_reconstruct <- function(data, template){
                                id = FALSE, start = FALSE,
                                end = FALSE, size = FALSE,
                                loc = TRUE,
-                               drop = drop_by_default)
+                               .drop = drop_by_default)
       groups <- frename(groups, .cols = c(".rows" = ".loc"))
       attributes(groups[[".rows"]]) <- attributes(template_attrs[["groups"]][[".rows"]])
       for (a in setdiff2(names(attributes(groups)),
@@ -452,12 +452,19 @@ df_lag <- function(x, n = 1L, g = NULL){
 
 # A fast base R df select (to be used in fselect and friends)
 df_select <- function(x, .cols){
+  attrs <- attributes(x)
   out <- .subset(x, .cols)
-  # out <- list_rm_null(.subset(x, .cols))
-  class(out) <- attr(x, "class")
-  attr(out, "row.names") <- .set_row_names(df_nrow(x))
+  attrs[["names"]] <- attr(out, "names")
+  attrs[["row.names"]] <- .row_names_info(x, type = 0L)
+  attributes(out) <- attrs
   out
 }
+# df_select <- function(x, .cols){
+#   out <- .subset(x, .cols)
+#   class(out) <- attr(x, "class")
+#   attr(out, "row.names") <- .set_row_names(df_nrow(x))
+#   out
+# }
 
 df_add_cols <- function(data, cols){
   dplyr::dplyr_col_modify(data, cols)

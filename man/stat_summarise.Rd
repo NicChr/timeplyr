@@ -17,7 +17,7 @@ stat_summarise(
   stat = c("n", "nmiss", "ndistinct"),
   q_probs = NULL,
   na.rm = TRUE,
-  sort = TRUE,
+  sort = df_group_by_order_default(data),
   .names = NULL,
   .by = NULL,
   .cols = NULL,

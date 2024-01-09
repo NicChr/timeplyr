@@ -23,10 +23,6 @@
 #' @param unique Should the result be unique or match the length of the vector?
 #' Default is `TRUE`.
 #' @param sort Should the output be sorted? Default is `TRUE`.
-#' @param include_interval Logical. If `TRUE` then the result is a `tibble`
-#' with a column "interval" of the form `time_min <= x < time_max`
-#' showing the time interval in which the aggregated time points belong to.
-#' The rightmost interval will always be closed.
 #' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations` are used otherwise.
@@ -187,8 +183,7 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
                             time_floor = FALSE,
                             week_start = getOption("lubridate.week.start", 1),
                             roll_month = getOption("timeplyr.roll_month", "preday"),
-                            roll_dst = getOption("timeplyr.roll_dst", "boundary"),
-                            include_interval = FALSE){
+                            roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   check_is_time_or_num(x)
   check_length_lte(from, 1)
   check_length_lte(to, 1)
@@ -204,6 +199,7 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
   if (isTRUE(from > to)){
     stop("from must be <= to")
   }
+  time_by <- time_by_get(x, time_by = time_by)
   # Time sequence
   time_breaks <- time_expandv(x, time_by = time_by,
                               from = from, to = to,
@@ -216,34 +212,46 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
   to <- time_cast(to, x)
   # Cut time
   time_bins <- c(unclass(time_breaks), unclass(to))
-  if (include_interval){
-    time_break_ind <- cut_time(x, breaks = time_bins, codes = TRUE)
-    # Time breaks subset on cut indices
-    out <- time_breaks[time_break_ind]
-    time_int <- tseq_interval(x = to, time_breaks)
-    time_int <- time_int[time_break_ind]
-    out <- new_tbl(x = out, interval = time_int)
-    # Unique and sorting
-    if (unique){
-      out <- fdistinct(out, .cols = "x", .keep_all = TRUE, sort = sort)
-    }
-    if (sort && !unique){
-      out <- farrange(out, .cols = "x")
-    }
-    if (!is_interval(time_int)){
-      attr(out[["interval"]], "start") <- out[["x"]]
-    }
-  } else {
-    out <- cut_time(x, breaks = time_bins, codes = FALSE)
-    if (unique){
-      out <- collapse::funique(out, sort = sort)
-    } else {
-      if (sort){
-        out <- radix_sort(out)
-      }
-    }
+  out <- cut_time(x, breaks = time_bins, codes = FALSE)
+  if (unique){
+    out <- collapse::funique(out, sort = sort)
   }
+  if (sort && !unique){
+    out <- sort(out)
+  }
+  out <- time_by_interval(out, time_by = time_by,
+                          time_type = time_type,
+                          roll_month = roll_month,
+                          roll_dst = roll_dst)
   out
+  # if (include_interval){
+  #   time_break_ind <- cut_time(x, breaks = time_bins, codes = TRUE)
+  #   # Time breaks subset on cut indices
+  #   out <- time_breaks[time_break_ind]
+  #   time_int <- tseq_interval(x = to, time_breaks)
+  #   time_int <- time_int[time_break_ind]
+  #   out <- new_tbl(x = out, interval = time_int)
+  #   # Unique and sorting
+  #   if (unique){
+  #     out <- fdistinct(out, .cols = "x", .keep_all = TRUE, sort = sort)
+  #   }
+  #   if (sort && !unique){
+  #     out <- farrange(out, .cols = "x")
+  #   }
+  #   if (!is_interval(time_int)){
+  #     attr(out[["interval"]], "start") <- out[["x"]]
+  #   }
+  # } else {
+  #   out <- cut_time(x, breaks = time_bins, codes = FALSE)
+  #   if (unique){
+  #     out <- collapse::funique(out, sort = sort)
+  #   } else {
+  #     if (sort){
+  #       out <- radix_sort(out)
+  #     }
+  #   }
+  # }
+  # out
 }
 #' @rdname time_core
 #' @export
@@ -251,7 +259,6 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
                         sort = TRUE, unique = TRUE,
                         complete = FALSE,
                         time_type = getOption("timeplyr.time_type", "auto"),
-                        include_interval = FALSE,
                         time_floor = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
                         roll_month = getOption("timeplyr.roll_month", "preday"),
@@ -292,39 +299,51 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
     }
     out <- c(out, integer(length(time_missed)))
   }
-  if (include_interval){
-    time_seq_int <- tseq_interval(x = to, time_breaks)
-    time_int <- time_seq_int[time_break_ind]
-    if (complete && length(time_missed) > 0L){
-      time_int <- c(time_int, time_seq_int[cpp_which(attr(time_seq_int, "start") %in%
-                                                       time_cast(time_missed, attr(time_seq_int, "start")))])
-    }
-    out <- new_tbl(x = x, interval = time_int, n = out)
-    if (unique){
-      out <- fdistinct(out, .cols = "x", .keep_all = TRUE, sort = sort)
-    }
-    if (sort && !unique){
-      out <- farrange(out, .cols = "x")
-    }
-    if (!is_interval(out[["interval"]])){
-      attr(out[["interval"]], "start") <- out[["x"]]
-    }
-  } else {
-    if (unique || sort){
-      dt <- new_dt(x = x, n = out, .copy = TRUE)
-      if (unique){
-        dt <- collapse::funique(dt, cols = "x", sort = FALSE)
-      }
-      if (sort){
-        setorderv2(dt, cols = "x")
-      }
-      out <- df_as_tibble(dt)
-    }
+  out <- new_tbl(x = x, n = out)
+  if (unique){
+    out <- fdistinct(out, .cols = "x", sort = sort, .keep_all = TRUE)
   }
-  if (!is_df(out)){
-    out <- new_tbl(x = x, n = out)
+  if (sort && !unique){
+    out <- farrange(out, .cols = "x")
   }
+  out[["x"]] <- time_by_interval(out[["x"]], time_by = time_by,
+                                 time_type = time_type,
+                                 roll_month = roll_month,
+                                 roll_dst = roll_dst)
   out
+  # if (include_interval){
+  #   time_seq_int <- tseq_interval(x = to, time_breaks)
+  #   time_int <- time_seq_int[time_break_ind]
+  #   if (complete && length(time_missed) > 0L){
+  #     time_int <- c(time_int, time_seq_int[cpp_which(attr(time_seq_int, "start") %in%
+  #                                                      time_cast(time_missed, attr(time_seq_int, "start")))])
+  #   }
+  #   out <- new_tbl(x = x, interval = time_int, n = out)
+  #   if (unique){
+  #     out <- fdistinct(out, .cols = "x", .keep_all = TRUE, sort = sort)
+  #   }
+  #   if (sort && !unique){
+  #     out <- farrange(out, .cols = "x")
+  #   }
+  #   if (!is_interval(out[["interval"]])){
+  #     attr(out[["interval"]], "start") <- out[["x"]]
+  #   }
+  # } else {
+  #   if (unique || sort){
+  #     dt <- new_dt(x = x, n = out, .copy = TRUE)
+  #     if (unique){
+  #       dt <- collapse::funique(dt, cols = "x", sort = FALSE)
+  #     }
+  #     if (sort){
+  #       setorderv2(dt, cols = "x")
+  #     }
+  #     out <- df_as_tibble(dt)
+  #   }
+  # }
+  # if (!is_df(out)){
+  #   out <- new_tbl(x = x, n = out)
+  # }
+  # out
 }
 #' @rdname time_core
 #' @export

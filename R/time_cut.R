@@ -136,14 +136,12 @@ time_cut <- function(x, n = 5, time_by = NULL,
                      from = NULL, to = NULL,
                      time_floor = FALSE,
                      week_start = getOption("lubridate.week.start", 1),
-                     as_factor = TRUE,
-                     as_interval = FALSE,
                      time_type = getOption("timeplyr.time_type", "auto"),
                      roll_month = getOption("timeplyr.roll_month", "preday"),
                      roll_dst = getOption("timeplyr.roll_dst", "boundary")){
-  if (as_interval && as_factor){
-    stop("Choose either as_interval or as_factor, not both")
-  }
+  # if (as_interval && as_factor){
+  #   stop("Choose either as_interval or as_factor, not both")
+  # }
   if (is.null(to)){
     to <- collapse::fmax(x, na.rm = TRUE)
   }
@@ -159,19 +157,22 @@ time_cut <- function(x, n = 5, time_by = NULL,
   to <- time_cast(to, x)
   out <- cut_time(x,
                   breaks = c(unclass(time_breaks), unclass(to)),
-                  codes = as_factor)
-  if (as_factor){
-    time_labels <- as.character(
-      time_by_interval(time_breaks,
-                       time_by = breaks_list[["time_by"]],
-                       time_type = time_type,
-                       roll_month = roll_month,
-                       roll_dst = roll_dst)
-    )
-    # time_labels <- tseq_levels(x = to, time_breaks, fmt = fmt)
-    levels(out) <- time_labels
-    class(out) <- c("ordered", "factor")
-  }
+                  codes = FALSE)
+  # out <- cut_time(x,
+  #                 breaks = c(unclass(time_breaks), unclass(to)),
+  #                 codes = as_factor)
+  # if (as_factor){
+  #   time_labels <- as.character(
+  #     time_by_interval(time_breaks,
+  #                      time_by = breaks_list[["time_by"]],
+  #                      time_type = time_type,
+  #                      roll_month = roll_month,
+  #                      roll_dst = roll_dst)
+  #   )
+  #   # time_labels <- tseq_levels(x = to, time_breaks, fmt = fmt)
+  #   levels(out) <- time_labels
+  #   class(out) <- c("ordered", "factor")
+  # }
   ##### NEAR-FUTURE TO-DO FOR ME:
   # 1. Uncomment the below else clause
   # 2. Remove the as_interval clause
@@ -181,11 +182,14 @@ time_cut <- function(x, n = 5, time_by = NULL,
   #                           time_type = time_type,
   #                           roll_month = roll_month, roll_dst = roll_dst)
   # }
-  if (as_interval){
-    out <- time_by_interval(out, time_by = breaks_list[["time_by"]],
-                            time_type = time_type,
-                            roll_month = roll_month, roll_dst = roll_dst)
-  }
+  # if (as_interval){
+  #   out <- time_by_interval(out, time_by = breaks_list[["time_by"]],
+  #                           time_type = time_type,
+  #                           roll_month = roll_month, roll_dst = roll_dst)
+  # }
+  out <- time_by_interval(out, time_by = breaks_list[["time_by"]],
+                          time_type = time_type,
+                          roll_month = roll_month, roll_dst = roll_dst)
   out
 }
 #' @rdname time_cut

@@ -178,7 +178,7 @@ time_granularity <- function(x, msg = TRUE){
   if (length(x) <= 1){
     gcd_diff <- 1L
   } else {
-    gcd_diff <- abs(gcd_diff(x, round = TRUE))
+    gcd_diff <- abs(gcd_diff(x))
   }
   gcd_diff[is.na(gcd_diff)] <- 1
   if (is_date(x)){
@@ -217,7 +217,7 @@ time_granularity2 <- function(x){
   if (length(x) <= 1){
     gcd_diff <- 1L
   } else {
-    gcd_diff <- abs(gcd_diff(x, round = TRUE))
+    gcd_diff <- abs(gcd_diff(x))
   }
   gcd_diff[is.na(gcd_diff)] <- 1
   if (is_date(x)){
@@ -987,8 +987,7 @@ time_aggregate_left <- function(x, time_by, g = NULL,
                                 week_start = getOption("lubridate.week.start", 1),
                                 time_type = getOption("timeplyr.time_type", "auto"),
                                 roll_month = getOption("timeplyr.roll_month", "preday"),
-                                roll_dst = getOption("timeplyr.roll_dst", "boundary"),
-                                as_int = TRUE){
+                                roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   time_by <- time_by_list(time_by)
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
@@ -1020,20 +1019,64 @@ time_aggregate_left <- function(x, time_by, g = NULL,
   time_to_add <- add_names(list(trunc2(tdiff) * num), units)
   out <- time_add2(start, time_by = time_to_add, time_type = time_type,
                    roll_month = roll_month, roll_dst = roll_dst)
-  if (as_int){
-    int_end <- time_add2(out, time_by = time_by, time_type = time_type,
-                         roll_month = roll_month, roll_dst = roll_dst)
-    set_time_cast(out, int_end)
-    end <- time_cast(end, out)
-    which_out_of_bounds <- cpp_which(cppdoubles::double_gt(unclass(int_end),
-                                                           unclass(end)))
-    int_end[which_out_of_bounds] <- end[which_out_of_bounds]
-    out <- structure(out,
-                     end = int_end,
-                     direction = "left-to-right")
-  }
-  out
+  time_by_interval(out, time_by = time_by,
+                   time_type = time_type,
+                   roll_month = roll_month,
+                   roll_dst = roll_dst)
 }
+# time_aggregate_left <- function(x, time_by, g = NULL,
+#                                 start = NULL, end = NULL,
+#                                 time_floor = FALSE,
+#                                 week_start = getOption("lubridate.week.start", 1),
+#                                 time_type = getOption("timeplyr.time_type", "auto"),
+#                                 roll_month = getOption("timeplyr.roll_month", "preday"),
+#                                 roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+#                                 as_int = TRUE){
+#   time_by <- time_by_list(time_by)
+#   num <- time_by_num(time_by)
+#   units <- time_by_unit(time_by)
+#   time_na <- na_init(x)
+#   g <- GRP2(g, return.groups = FALSE)
+#   if (!is.null(start)){
+#     if (length(start) != length(x)){
+#       stop("start must be the same length as x")
+#     }
+#     start <- time_cast(start, x)
+#     x[cpp_which(x < start)] <- time_na
+#   } else {
+#     start <- gmin(x, g = g, na.rm = TRUE)
+#   }
+#   if (!is.null(end)){
+#     if (length(end) != length(x)){
+#       stop("end must be the same length as x")
+#     }
+#     end <- time_cast(end, x)
+#     x[cpp_which(x > end)] <- time_na
+#   } else {
+#     end <- gmax(x, g = g, na.rm = TRUE)
+#   }
+#   if (time_floor){
+#     start <- time_floor2(start, time_by = time_by,
+#                          week_start = week_start)
+#   }
+#   tdiff <- time_diff(start, x, time_by = time_by, time_type = time_type)
+#   time_to_add <- add_names(list(trunc2(tdiff) * num), units)
+#   out <- time_add2(start, time_by = time_to_add, time_type = time_type,
+#                    roll_month = roll_month, roll_dst = roll_dst)
+#   if (as_int){
+#     int_end <- time_add2(out, time_by = time_by, time_type = time_type,
+#                          roll_month = roll_month, roll_dst = roll_dst)
+#     set_time_cast(out, int_end)
+#     end <- time_cast(end, out)
+#     which_out_of_bounds <- cpp_which(cppdoubles::double_gt(unclass(int_end),
+#                                                            unclass(end)))
+#     int_end[which_out_of_bounds] <- end[which_out_of_bounds]
+#     out <- structure(out,
+#                      end = int_end,
+#                      direction = "left-to-right")
+#   }
+#   out
+# }
 # Important that this holds:
 # length(x) == length(start) == length(end)
 time_aggregate_right <- function(x, time_by, g = NULL,

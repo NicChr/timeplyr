@@ -61,7 +61,7 @@ fn <- function(x, g = NULL, sort = TRUE,
 #' @rdname fast_stats
 fcummean <- function(x, g = NULL, na.rm = FALSE, ...){
   x <- safe_ungroup(x)
-  g <- GRP2(g, sort = FALSE, return.groups = FALSE)
+  g <- GRP3(g, sort = FALSE, return.groups = FALSE)
   if (is.null(g)){
     sizes <- seq_len(vec_length(x))
   } else {

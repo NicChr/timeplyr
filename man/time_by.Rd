@@ -13,7 +13,7 @@ time_by(
   time_by_unit = NULL,
   from = NULL,
   to = NULL,
-  .name = "{.col}",
+  .name = "{.col}_intv",
   .add = FALSE,
   time_type = getOption("timeplyr.time_type", "auto"),
   time_floor = FALSE,
@@ -131,7 +131,6 @@ weekly_flights \%>\%
   summarise(n = n(), arr_delay = mean(arr_delay, na.rm = TRUE))
 
 # To aggregate multiple variables, use time_aggregate or time_summarisev
-
 
 flights \%>\%
   select(time_hour) \%>\%

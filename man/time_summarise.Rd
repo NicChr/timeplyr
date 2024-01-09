@@ -11,6 +11,7 @@ time_summarise(
   time_by = NULL,
   from = NULL,
   to = NULL,
+  .name = "{.col}_intv",
   time_type = getOption("timeplyr.time_type", "auto"),
   include_interval = FALSE,
   .by = NULL,
@@ -44,6 +45,10 @@ then arithmetic is used, e.g \code{time_by = 1}.
 \item{from}{Time series start date.}
 
 \item{to}{Time series end date.}
+
+\item{.name}{An optional glue specification passed to \code{stringr::glue()}
+which can be used to concatenate
+strings to the time column name or replace it.}
 
 \item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks, months or years are specified,

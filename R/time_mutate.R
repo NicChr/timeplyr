@@ -20,14 +20,14 @@
 #' then arithmetic is used, e.g `time_by = 1`.
 #' @param from Time series start date.
 #' @param to Time series end date.
+#' @param .name An optional glue specification passed to `stringr::glue()`
+#' which can be used to concatenate
+#' strings to the time column name or replace it.
 #' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations`
 #' are used otherwise.
-#' @param include_interval Logical. If `TRUE` then
-#' a column "interval" of the form `time_min <= x < time_max` is added
-#' showing the time interval in which the respective counts belong to.
-#' The rightmost interval will always be closed.
+#' @param include_interval \bold{Deprecated}. No longer used.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
 #' @param .keep Control which columns are retained.
@@ -74,6 +74,7 @@
 #' @export
 time_mutate <- function(data, time = NULL, ..., time_by = NULL,
                         from = NULL, to = NULL,
+                        .name = "{.col}_intv",
                         time_type = getOption("timeplyr.time_type", "auto"),
                         include_interval = FALSE,
                         .by = NULL,
@@ -111,9 +112,7 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
   out <- df_cbind(time_data, from_data, to_data)
   # Add variable to keep track of group IDs
   grp_nm <- new_var_nm(out, ".group.id")
-  out <- dplyr::dplyr_col_modify(out,
-                                 cols = add_names(list(group_ids), grp_nm))
-  int_nm <- character()
+  out <- df_add_cols(out, cols = add_names(list(group_ids), grp_nm))
   if (length(time_var) > 0L){
     # User supplied unit
     if (!is.null(time_by)){
@@ -136,30 +135,18 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
                                     roll_month = roll_month,
                                     roll_dst = roll_dst,
                                     time_floor = time_floor,
-                                    week_start = week_start,
-                                    as_int = include_interval)
-    time_int_end <- time_int_end(time_agg)
-    time_agg <- time_int_rm_attrs(time_agg)
-    out <- dplyr::dplyr_col_modify(out,
-                                   add_names(
-                                     list(time_agg), time_var
-                                   )
-    )
-    if (include_interval){
-      int_nm <- new_var_nm(names(out), "interval")
-      out <- dplyr::dplyr_col_modify(out,
-                                     add_names(
-                                       list(
-                                         time_interval2(time_agg, time_int_end)
-                                       ), int_nm
-                                     )
+                                    week_start = week_start)
+    time_agg_var <- across_col_names(time_var, .fns = "", .names = .name)
+    out <- df_add_cols(
+      out, add_names(
+        list(time_agg), time_agg_var
       )
-    }
+    )
   }
   out <- df_rm_cols(out, grp_nm)
   out <- mutate2(safe_ungroup(out),
                  ...,
-                 .by = all_of(c(group_vars, time_var, int_nm)),
+                 .by = all_of(c(group_vars, time_agg_var)),
                  .keep = .keep)
   df_reconstruct(out, data)
 }

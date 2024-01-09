@@ -17,7 +17,7 @@ group_collapse(
   loc = TRUE,
   start = TRUE,
   end = TRUE,
-  drop = TRUE
+  .drop = df_group_by_drop_default(data)
 )
 }
 \arguments{
@@ -53,7 +53,7 @@ If speed is an expensive resource, it is recommended to use this.}
 
 \item{end}{Should group end locations be added? Default is \code{TRUE}.}
 
-\item{drop}{Should unused factor levels be dropped? Default is \code{TRUE}.}
+\item{.drop}{Should unused factor levels be dropped? Default is \code{TRUE}.}
 }
 \value{
 A \code{tibble} of unique groups and an integer ID uniquely identifying each group.

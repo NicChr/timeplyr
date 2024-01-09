@@ -173,12 +173,17 @@ group_id.default <- function(data, ..., order = TRUE,
 group_id.factor <- function(data, ..., order = TRUE,
                              ascending = TRUE,
                              as_qg = FALSE){
+  out <- unclass(data)
   if (order && ascending && !as_qg){
-    strip_attrs(unclass(data))
+    out <- strip_attrs(out)
+    if (anyNA(out)){
+      out[cpp_which(is.na(out))] <- length(levels(data)) + 1L
+    }
   } else {
-    group_id(unclass(data),
-             order = order, ascending = ascending, as_qg = as_qg)
+    out <- group_id(out, order = order,
+                    ascending = ascending, as_qg = as_qg)
   }
+  out
 }
 # No need to have this anymore as there is a collapse::GRP.interval method..
 #' @export
@@ -284,7 +289,7 @@ group_id.GRP <- function(data, ..., order = TRUE, as_qg = FALSE){
       out <- group_id_to_qg(out,
                             n_groups = GRP_n_groups(data),
                             group_sizes = GRP_group_sizes(data),
-                            # group_starts = data[["group.starts"]],
+                            group_starts = GRP_starts(data),
                             ordered = order)
     }
   }
@@ -509,3 +514,16 @@ group_id_to_qg <- function(x,
 qg_to_integer <- function(x){
   strip_attrs(x)
 }
+# Cool alternative to qG() because S3 method for group_id() kicks in
+quick_group <- function(x, ...){
+  group_id(x, as_qg = TRUE, ...)
+}
+# my_factor <- function(x, ordered = FALSE, ...){
+#   out <- quick_group(x, ...)
+#   lvls <- x[attr(out, "starts")]
+#   attributes(out) <- NULL
+#   levels(out) <- lvls
+#   class(out) <- c(if (ordered) "ordered" else character(),
+#                   "factor")
+#   out
+# }

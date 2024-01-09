@@ -13,8 +13,6 @@ time_cut(
   to = NULL,
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
-  as_factor = TRUE,
-  as_interval = FALSE,
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
   roll_dst = getOption("timeplyr.roll_dst", "boundary")
@@ -63,10 +61,6 @@ floored before building the sequence?}
 means Monday (default), 7 means Sunday.
 This is only used when \code{time_floor = TRUE}.}
 
-\item{as_factor}{Should the output be a \code{factor}? Default is \code{TRUE}.}
-
-\item{as_interval}{Should the output be a \code{time_interval}? Default is \code{FALSE}.}
-
 \item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks, months or years are specified,
 and \code{durations} are used otherwise.}
@@ -77,6 +71,10 @@ Options are "preday", "boundary", "postday", "full" and "NA".
 See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
+
+\item{as_factor}{Should the output be a \code{factor}? Default is \code{TRUE}.}
+
+\item{as_interval}{Should the output be a \code{time_interval}? Default is \code{FALSE}.}
 }
 \value{
 \code{time_breaks} returns a vector of breaks. \cr
