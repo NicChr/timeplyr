@@ -199,6 +199,7 @@ SEXP cpp_df_group_indices(SEXP rows, int size) {
 SEXP cpp_r_obj_address(SEXP x) {
   static char buf[1000];
   snprintf(buf, 1000, "%p", (void*) x);
+  // return Rf_ScalarString(Rf_mkChar(buf));
   SEXP out = Rf_protect(Rf_allocVector(STRSXP, 1));
   SET_STRING_ELT(out, 0, Rf_mkChar(buf));
   Rf_unprotect(1);
@@ -558,6 +559,10 @@ SEXP cpp_address_equal(SEXP x, SEXP y) {
   return out;
 }
 
+[[cpp11::register]]
+SEXP cpp_copy(SEXP x) {
+  return Rf_duplicate(x);
+}
 // Checks that all row indices of 2 grouped data frames are the same
 
 // bool cpp_group_data_rows_equal(SEXP rows1, SEXP rows2) {

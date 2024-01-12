@@ -695,7 +695,7 @@ vec_slice3 <- function(x, i){
   if (is.logical(i)){
     i <- cpp_which(i)
   }
-  if (is.atomic(x)){
+  if (is.atomic(x) || is_interval(x)){
     x[i]
   } else if (is_df(x)){
     df_row_slice(x, i)
@@ -1366,3 +1366,4 @@ levels_factor <- function(x){
   class(out) <- class(x)
   out
 }
+# copy <- cpp_copy

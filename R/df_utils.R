@@ -69,12 +69,13 @@ df_reconstruct <- function(data, template){
     # class(out) <- template_attrs[["class"]]
     # data.table::setalloccol(out)
     out <- collapse::qDT(data)
-    data.table::setalloccol(out)
+    # data.table::setalloccol(out)
     #####
     # THIS IS TECHNICALLY NOT CORRECT BUT ALIGNS WITH BASE R
     # DATA.TABLE CANNOT HANDLE (n > 0) x 0 data frames
     # This ensures you can add vectors of size n to
     # an (n > 0) x 0 data.table
+    # attr(out, "row.names") <- row_names
     data.table::setattr(out, "row.names", row_names)
     #####
     # for (a in setdiff2(names(template_attrs), c("class", "row.names", "names", ".internal.selfref"))){
@@ -597,4 +598,16 @@ unique_name_repair <- function(x, .sep = "..."){
   which_dup <- cpp_which(collapse::fduplicated(x, all = TRUE))
   x[which_dup] <- paste0(x[which_dup], .sep, col_seq[which_dup])
   x
+}
+dplyr_reconstruct.time_tbl_df <- function(data, template){
+  df_reconstruct(data, template)
+}
+dplyr_reconstruct.episodes_tbl_df <- function(data, template){
+  df_reconstruct(data, template)
+}
+dplyr_row_slice.time_tbl_df <- function(data, i, ..., .preserve = FALSE){
+  df_row_slice(data, i)
+}
+dplyr_row_slice.episodes_tbl_df <- function(data, i, ..., .preserve = FALSE){
+  df_row_slice(data, i)
 }

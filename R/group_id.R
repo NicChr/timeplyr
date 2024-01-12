@@ -518,12 +518,19 @@ qg_to_integer <- function(x){
 quick_group <- function(x, ...){
   group_id(x, as_qg = TRUE, ...)
 }
-# my_factor <- function(x, ordered = FALSE, ...){
-#   out <- quick_group(x, ...)
-#   lvls <- x[attr(out, "starts")]
-#   attributes(out) <- NULL
-#   levels(out) <- lvls
-#   class(out) <- c(if (ordered) "ordered" else character(),
-#                   "factor")
-#   out
-# }
+# A faster version of factor()
+# Uses group_id method dispatch
+quick_factor <- function(x, na_exclude = TRUE, ordered = FALSE, ...){
+  out <- quick_group(x, order = TRUE, ...)
+  lvls <- x[attr(out, "starts")]
+  attributes(out) <- NULL
+  if (na_exclude && anyNA(x)){
+   which_na <- cpp_which(is.na(x))
+   out[which_na] <- NA
+   lvls <- lvls[seq_len(length(lvls) - 1L)]
+  }
+  levels(out) <- as.character(lvls)
+  class(out) <- c(if (ordered) "ordered" else character(),
+                  "factor")
+  out
+}

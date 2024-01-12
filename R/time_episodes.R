@@ -140,6 +140,7 @@
 #' episodes %>%
 #'   ungroup() %>%
 #'   time_count(time = ep_start, time_by = "week", time_floor = TRUE) %>%
+#'   mutate(ep_start = interval_start(ep_start_intv)) %>%
 #'   ggplot(aes(x = ep_start, y = n)) +
 #'   geom_bar(stat = "identity")
 #' \dontshow{

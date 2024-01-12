@@ -64,8 +64,7 @@
 #' flights %>%
 #'   fdistinct(time_hour) %>%
 #'   time_mutate(time = across(time_hour, as_date),
-#'               time_by = "month", .keep = "none",
-#'               include_interval = TRUE) %>%
+#'               time_by = "month", .keep = "none") %>%
 #'   fdistinct()
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)

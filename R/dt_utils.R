@@ -34,13 +34,28 @@ new_dt <- function(..., .copy = TRUE, .recycle = FALSE){
 }
 
 df_as_dt <- function(x, .copy = TRUE){
-  # out <- collapse::qDT(x)
   out <- df_reconstruct(x, empty_dt())
   if (.copy){
-    out <- data.table::copy(out)
+    out <- cpp_copy(out)
+    # if (list_has_interval(out)){
+    #   out <- cpp_copy(out)
+    # } else {
+    #   out <- data.table::copy(out)
+    # }
   }
   out
 }
+
+# df_as_dt <- function(x, .copy = TRUE){
+#   # out <- collapse::qDT(x)
+#   out <- x
+#   if (.copy){
+#     out <- data.table::copy(out)
+#   }
+#   df_reconstruct(out, empty_dt())
+#   # out <- df_reconstruct(out, empty_dt())
+#   # out
+# }
 
 # Convert to data table
 as_DT <- function(x){

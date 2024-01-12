@@ -103,13 +103,9 @@
 #' cut_dates <- time_cut(df$date)
 #' date_breaks <- time_breaks(df$date)
 #'
-#' # Grouping each interval into the start of its interval
-#' identical(date_breaks[group_id(cut_dates)],
-#'           time_cut(df$date, as_factor = FALSE))
-#'
 #' # WHen n = Inf and as_factor = FALSE, it should be equivalent to using
 #' # time_aggregate or time_summarisev
-#' identical(time_cut(df$date, n = Inf, time_by = "month", as_factor = FALSE),
+#' identical(time_cut(df$date, n = Inf, time_by = "month"),
 #'           time_summarisev(df$date, time_by = "month"))
 #' identical(time_summarisev(df$date, time_by = "month"),
 #'           time_aggregate(df$date, time_by = "month"))
@@ -122,10 +118,12 @@
 #' weekly_labels <- format(weekly_breaks, "%b-%d")
 #' df %>%
 #'   time_count(time = date, time_by = "week") %>%
+#'   mutate(date = interval_start(date_intv)) %>%
 #'   ggplot(aes(x = date, y = n)) +
 #'   geom_bar(stat = "identity") +
 #'   scale_x_date(breaks = weekly_breaks,
 #'                labels = weekly_labels)
+#' reset_timeplyr_options()
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)

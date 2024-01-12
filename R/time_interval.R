@@ -88,7 +88,7 @@
 #' int <- time_aggregate(iris$Sepal.Length, time_by = 1)
 #' int %>%
 #'   interval_count()
-#'
+#' reset_timeplyr_options()
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
@@ -117,10 +117,19 @@ time_interval_list <- function(start, end){
   }
   recycle_args(start = start, end = end)
 }
+# Like time_interval() but no checks or recycling
+new_time_interval <- function(start, end){
+  out <- list(start = start, end = end)
+  class(out) <- c("time_interval", "vctrs_rcrd", "vctrs_vctr")
+  out
+}
 as.data.frame.time_interval <- function(x, ...){
-  interval <- unclass(x)
-  new_df(start = interval[[1L]],
-         end = interval[[2L]])
+  out <- unclass(x)
+  attr(out, "row.names") <- .set_row_names(length(out[[1L]]))
+  class(out) <- "data.frame"
+  out
+  # new_df(start = interval[[1L]],
+  #        end = interval[[2L]])
   # new_df(start = interval_start(x),
   #        end = interval_end(x))
 }
@@ -132,7 +141,7 @@ as.list.time_interval <- function(x, ...){
   end <- interval_end(e1)
   start <- time_add2(start, e2)
   end <- time_add2(end, e2)
-  time_interval(start, end)
+  new_time_interval(start, end)
 }
 `-.time_interval` <- function(e1, e2){
   time_by <- time_by_list(e2)
@@ -145,20 +154,25 @@ as.list.time_interval <- function(x, ...){
   end <- interval_end(e1)
   start <- time_add2(start, time_by)
   end <- time_add2(end, time_by)
-  time_interval(start, end)
+  new_time_interval(start, end)
 }
 `/.time_interval` <- function(e1, e2){
-  interval <- unclass(e1)
-  time_diff(interval[[1L]], interval[[2L]], time_by = e2)
+  time_diff(interval_start(e1), interval_end(e1), time_by = e2)
+}
+`[.time_interval` <- function(x, i){
+  out <- collapse::ss(unclass(x), i = i)
+  class(out) <- class(x)
+  out
 }
 unique.time_interval <- function(x, sort = FALSE, method = "auto",
                                  decreasing = FALSE, na.last = TRUE, ...){
   cl <- class(x)
-  out <- unclass(collapse::funique(as.data.frame(x), sort = sort, method = method,
+  out <- as.list(collapse::funique(as.data.frame(x), sort = sort, method = method,
                                    decreasing = decreasing, na.last = na.last))
   class(out) <- cl
   out
 }
+funique.time_interval <- unique.time_interval
 xtfrm.time_interval <- function(x){
   group_id(x, order = TRUE)
 }

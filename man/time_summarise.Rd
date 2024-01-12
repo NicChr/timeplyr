@@ -109,16 +109,14 @@ flights \%>\%
   mutate(date = as_date(time_hour)) \%>\%
   time_summarise(mean_arr_time = mean(arr_time, na.rm = TRUE),
                  time = date,
-                 time_by = "month",
-                 include_interval = TRUE)
+                 time_by = "month")
 # Example of monthly summary using zoo's yearmon
 \donttest{
 flights \%>\%
   mutate(yearmon = zoo::as.yearmon(as_date(time_hour))) \%>\%
   time_summarise(time = yearmon,
                  n = n(),
-                 mean_arr_time = mean(arr_time, na.rm = TRUE),
-                 include_interval = TRUE)
+                 mean_arr_time = mean(arr_time, na.rm = TRUE))
 }
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)

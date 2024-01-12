@@ -156,6 +156,10 @@ cpp_address_equal <- function(x, y) {
   .Call(`_timeplyr_cpp_address_equal`, x, y)
 }
 
+cpp_copy <- function(x) {
+  .Call(`_timeplyr_cpp_copy`, x)
+}
+
 cpp_which_ <- function(x, invert) {
   .Call(`_timeplyr_cpp_which_`, x, invert)
 }

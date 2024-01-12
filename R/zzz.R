@@ -28,6 +28,7 @@ register_s3_method <- function(pkg, generic, class, fun = NULL){
 register_all_s3_methods <- function(){
   register_s3_method("collapse", "GRP", "Interval")
   register_s3_method("collapse", "GRP", "NULL")
+  register_s3_method("collapse", "funique", "time_interval")
   register_s3_method("zoo", "rep", "yearmon")
   register_s3_method("zoo", "rep.int", "yearmon")
   register_s3_method("zoo", "rep_len", "yearmon")
@@ -86,7 +87,7 @@ register_all_s3_methods <- function(){
   # register_s3_method("base", "rep", "time_interval")
   # register_s3_method("base", "rep_len", "time_interval")
   # register_s3_method("base", "rep.int", "time_interval")
-  # register_s3_method("base", "[", "time_interval")
+  register_s3_method("base", "[", "time_interval")
   # register_s3_method("base", "[[", "time_interval")
   # register_s3_method("base", "is.na", "time_interval")
   # register_s3_method("base", "[<-", "time_interval")
@@ -96,6 +97,10 @@ register_all_s3_methods <- function(){
   register_s3_method("vctrs", "vec_ptype_full", "time_interval")
   register_s3_method("vctrs", "vec_ptype_abbr", "time_interval")
   # register_s3_method("vctrs", "vec_ptype2", "time_interval.date")
+  register_s3_method("dplyr", "dplyr_reconstruct", "time_tbl_df")
+  register_s3_method("dplyr", "dplyr_reconstruct", "episodes_tbl_df")
+  register_s3_method("dplyr", "dplyr_row_slice", "time_tbl_df")
+  register_s3_method("dplyr", "dplyr_row_slice", "episodes_tbl_df")
 }
 
 on_package_load <- function(pkg, expr){
@@ -107,17 +112,19 @@ on_package_load <- function(pkg, expr){
   }
 }
 .onAttach <- function(...){
+  # .initial_options <- options()
   options("timeplyr.time_type" = getOption("timeplyr.time_type", "auto"),
           "timeplyr.roll_month" = getOption("timeplyr.roll_month", "preday"),
           "timeplyr.roll_dst" = getOption("timeplyr.roll_dst", "boundary"),
           "timeplyr.interval_style" = getOption("timeplyr.interval_style", "full"),
-          "timeplyr.interval_sub_formatter" = getOption("timeplyr.interval_sub_formatter", identity))
-
+          "timeplyr.interval_sub_formatter" = getOption("timeplyr.interval_sub_formatter", identity),
+          "timeplyr.use_intervals" = getOption("timeplyr.use_intervals", FALSE))
 }
 .onUnload <- function(libname, pkgname){
   options(timeplyr.time_type = NULL,
           timeplyr.roll_month = NULL,
           timeplyr.roll_dst = NULL,
           timeplyr.interval_style = NULL,
-          timeplyr.interval_sub_formatter = NULL)
+          timeplyr.interval_sub_formatter = NULL,
+          timeplyr.use_intervals = NULL)
 }

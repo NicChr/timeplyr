@@ -45,6 +45,9 @@
 #' This can for example be a vector or data frame.
 #' @param use.g.names Should the result include group names?
 #' Default is `TRUE`.
+#' @param as_interval Should result be a `time_interval`?
+#' Default is `TRUE`. \cr
+#' This can be controlled globally through `options(timeplyr.use_intervals)`.
 #'
 #' @returns
 #' Vectors (typically the same class as `x`) of varying lengths depending
@@ -86,9 +89,9 @@
 #' time_summarisev(y, time_by = "quarter")
 #' time_summarisev(y, time_by = "quarter", unique = TRUE)
 #' flights %>%
-#'   fcount(quarter_start = time_summarisev(time_hour, "quarter"))
+#'   fcount(quarter = time_summarisev(time_hour, "quarter"))
 #' # Alternatively
-#' time_countv(x, time_by = "quarter")
+#' time_countv(flights$time_hour, time_by = "quarter")
 #' # If you want the above as an atomic vector just use tibble::deframe
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
@@ -183,7 +186,8 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
                             time_floor = FALSE,
                             week_start = getOption("lubridate.week.start", 1),
                             roll_month = getOption("timeplyr.roll_month", "preday"),
-                            roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                            roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                            as_interval = getOption("timeplyr.use_intervals", FALSE)){
   check_is_time_or_num(x)
   check_length_lte(from, 1)
   check_length_lte(to, 1)
@@ -219,10 +223,12 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
   if (sort && !unique){
     out <- sort(out)
   }
-  out <- time_by_interval(out, time_by = time_by,
-                          time_type = time_type,
-                          roll_month = roll_month,
-                          roll_dst = roll_dst)
+  if (as_interval){
+    out <- time_by_interval(out, time_by = time_by,
+                            time_type = time_type,
+                            roll_month = roll_month,
+                            roll_dst = roll_dst)
+  }
   out
   # if (include_interval){
   #   time_break_ind <- cut_time(x, breaks = time_bins, codes = TRUE)
@@ -262,7 +268,8 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
                         time_floor = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
                         roll_month = getOption("timeplyr.roll_month", "preday"),
-                        roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                        roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                        as_interval = getOption("timeplyr.use_intervals", FALSE)){
   check_is_time_or_num(x)
   time_by <- time_by_get(x, time_by = time_by)
   if (is.null(from)){
@@ -306,10 +313,12 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
   if (sort && !unique){
     out <- farrange(out, .cols = "x")
   }
-  out[["x"]] <- time_by_interval(out[["x"]], time_by = time_by,
-                                 time_type = time_type,
-                                 roll_month = roll_month,
-                                 roll_dst = roll_dst)
+  if (as_interval){
+    out[["x"]] <- time_by_interval(out[["x"]], time_by = time_by,
+                                   time_type = time_type,
+                                   roll_month = roll_month,
+                                   roll_dst = roll_dst)
+  }
   out
   # if (include_interval){
   #   time_seq_int <- tseq_interval(x = to, time_breaks)

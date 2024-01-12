@@ -278,6 +278,13 @@ extern "C" SEXP _timeplyr_cpp_address_equal(SEXP x, SEXP y) {
     return cpp11::as_sexp(cpp_address_equal(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(y)));
   END_CPP11
 }
+// utils.cpp
+SEXP cpp_copy(SEXP x);
+extern "C" SEXP _timeplyr_cpp_copy(SEXP x) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_copy(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x)));
+  END_CPP11
+}
 // which.cpp
 SEXP cpp_which_(SEXP x, bool invert);
 extern "C" SEXP _timeplyr_cpp_which_(SEXP x, SEXP invert) {
@@ -294,6 +301,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_any_address_changed",  (DL_FUNC) &_timeplyr_cpp_any_address_changed,  2},
     {"_timeplyr_cpp_bin",                  (DL_FUNC) &_timeplyr_cpp_bin,                  6},
     {"_timeplyr_cpp_bin_grouped",          (DL_FUNC) &_timeplyr_cpp_bin_grouped,          6},
+    {"_timeplyr_cpp_copy",                 (DL_FUNC) &_timeplyr_cpp_copy,                 1},
     {"_timeplyr_cpp_dbl_sequence",         (DL_FUNC) &_timeplyr_cpp_dbl_sequence,         3},
     {"_timeplyr_cpp_df_group_indices",     (DL_FUNC) &_timeplyr_cpp_df_group_indices,     2},
     {"_timeplyr_cpp_gcd",                  (DL_FUNC) &_timeplyr_cpp_gcd,                  5},

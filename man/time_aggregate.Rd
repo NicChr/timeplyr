@@ -10,7 +10,8 @@ time_aggregate(
   g = NULL,
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary")
+  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+  as_interval = getOption("timeplyr.use_intervals", FALSE)
 )
 }
 \arguments{
@@ -38,6 +39,10 @@ and \code{durations} are used otherwise.}
 month or year arithmetic is involved.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
+
+\item{as_interval}{Should result be a \code{time_interval}?
+Default is \code{TRUE}. \cr
+This can be controlled globally through \code{options(timeplyr.use_intervals)}.}
 }
 \value{
 A \code{time_interval}.

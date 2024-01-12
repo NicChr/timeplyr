@@ -61,7 +61,8 @@ time_summarisev(
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary")
+  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+  as_interval = getOption("timeplyr.use_intervals", FALSE)
 )
 
 time_countv(
@@ -76,7 +77,8 @@ time_countv(
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary")
+  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+  as_interval = getOption("timeplyr.use_intervals", FALSE)
 )
 
 time_span_size(
@@ -144,6 +146,10 @@ See \code{?timechange::time_add} for more details.}
 \item{unique}{Should the result be unique or match the length of the vector?
 Default is \code{TRUE}.}
 
+\item{as_interval}{Should result be a \code{time_interval}?
+Default is \code{TRUE}. \cr
+This can be controlled globally through \code{options(timeplyr.use_intervals)}.}
+
 \item{complete}{Logical. If \code{TRUE} implicit gaps in time are filled
 before counting and after time aggregation (controlled using \code{time_by}).
 The default is \code{FALSE}.}
@@ -194,9 +200,9 @@ identical(y[!y \%in\% x], time_gaps(x))
 time_summarisev(y, time_by = "quarter")
 time_summarisev(y, time_by = "quarter", unique = TRUE)
 flights \%>\%
-  fcount(quarter_start = time_summarisev(time_hour, "quarter"))
+  fcount(quarter = time_summarisev(time_hour, "quarter"))
 # Alternatively
-time_countv(x, time_by = "quarter")
+time_countv(flights$time_hour, time_by = "quarter")
 # If you want the above as an atomic vector just use tibble::deframe
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)

@@ -106,6 +106,12 @@ roll_lag.data.frame <- function(x, n = 1L, g = NULL, fill = NULL){
   }
   out
 }
+#' @export
+roll_lag.time_interval <- function(x, n = 1L, g = NULL, fill = NULL){
+  out <- roll_lag(as.data.frame(x, n = n, g = g, fill = fill))
+  out <- unclass(out)
+  new_time_interval(out[[1L]], out[[2L]])
+}
 #' @rdname roll_lag
 #' @export
 roll_diff <- function(x, n = 1L, g = NULL, fill = NULL){
@@ -154,6 +160,10 @@ roll_diff.data.frame <- function(x, n = 1L, g = NULL, fill = NULL){
     }
   }
   out
+}
+#' @export
+roll_diff.time_interval <- function(x, n = 1L, g = NULL, fill = NULL){
+  roll_diff(as.data.frame(x, n = n, g = g, fill = fill))
 }
 #' @rdname roll_lag
 #' @export

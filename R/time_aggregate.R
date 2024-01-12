@@ -20,6 +20,9 @@
 #' @param roll_month Control how impossible dates are handled when
 #' month or year arithmetic is involved.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
+#' @param as_interval Should result be a `time_interval`?
+#' Default is `TRUE`. \cr
+#' This can be controlled globally through `options(timeplyr.use_intervals)`.
 #'
 #' @details `time_aggregate` aggregates time using
 #' distinct moving time range blocks of a specified time unit.
@@ -85,7 +88,8 @@
 time_aggregate <- function(x, time_by = NULL, g = NULL,
                            time_type = getOption("timeplyr.time_type", "auto"),
                            roll_month = getOption("timeplyr.roll_month", "preday"),
-                           roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                           roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                           as_interval = getOption("timeplyr.use_intervals", FALSE)){
   check_is_time_or_num(x)
   time_by <- time_by_get(x, time_by = time_by)
   num <- time_by_num(time_by)
@@ -95,10 +99,13 @@ time_aggregate <- function(x, time_by = NULL, g = NULL,
   time_to_add <- add_names(list(trunc2(tdiff) * num), units)
   out <- time_add2(index, time_by = time_to_add, time_type = time_type,
                    roll_month = roll_month, roll_dst = roll_dst)
-  time_by_interval(out, time_by = time_by,
-                   time_type = time_type,
-                   roll_month = roll_month,
-                   roll_dst = roll_dst)
+  if (as_interval){
+    out <- time_by_interval(out, time_by = time_by,
+                            time_type = time_type,
+                            roll_month = roll_month,
+                            roll_dst = roll_dst)
+  }
+  out
   # if (as_interval){
   #   out <- time_by_interval(out, time_by = time_by,
   #                           # bound_range = TRUE,

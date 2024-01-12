@@ -98,7 +98,7 @@ time_interval(today(), today() + years(0:10)) / "milliseconds"
 int <- time_aggregate(iris$Sepal.Length, time_by = 1)
 int \%>\%
   interval_count()
-
+reset_timeplyr_options()
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

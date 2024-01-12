@@ -40,27 +40,27 @@ fskim <- function(data, hist = FALSE){
   check_is_df(data)
   N <- df_nrow(data)
   num_cols <- df_ncol(data)
-  data <- df_as_dt(data, .copy = FALSE)
-  data_nms <- names(data)
-  col_classes <- vapply(data, function(x) vec_tail(class(x)), "")
+  skim_df <- df_as_dt(data, .copy = TRUE)
+  data_nms <- names(skim_df)
+  col_classes <- vapply(skim_df, function(x) vec_tail(class(x)), "")
   out <- df_as_dt(fenframe(col_classes,
                            name = "col",
                            value = "class"))
-  chr_vars <- data_nms[vapply(data, is.character, FALSE, USE.NAMES = FALSE)]
+  chr_vars <- data_nms[vapply(skim_df, is.character, FALSE, USE.NAMES = FALSE)]
   # Convert character to factor
   if (length(chr_vars) > 0L){
-    data[, (chr_vars) :=
+    skim_df[, (chr_vars) :=
            lapply(.SD, function(x) collapse::qF(x, sort = TRUE, ordered = TRUE)),
          .SDcols = chr_vars]
   }
   # Separate vars
-  lgl_vars <- data_nms[vapply(data, is.logical, FALSE)]
-  num_vars <- data_nms[vapply(data, function(x) inherits(x, c("integer", "numeric")), FALSE)]
-  # exotic_num_vars <- data_nms[vapply(data, function(x) !inherits(x, c("integer", "numeric")) &&
+  lgl_vars <- data_nms[vapply(skim_df, is.logical, FALSE)]
+  num_vars <- data_nms[vapply(skim_df, function(x) inherits(x, c("integer", "numeric")), FALSE)]
+  # exotic_num_vars <- data_nms[vapply(skim_df, function(x) !inherits(x, c("integer", "numeric")) &&
   #                                      is.numeric(x), logical(1))]
-  date_vars <- data_nms[vapply(data, is_date, FALSE)]
-  datetime_vars <- data_nms[vapply(data, is_datetime, FALSE)]
-  cat_vars <- data_nms[vapply(data, is.factor, FALSE)]
+  date_vars <- data_nms[vapply(skim_df, is_date, FALSE)]
+  datetime_vars <- data_nms[vapply(skim_df, is_datetime, FALSE)]
+  cat_vars <- data_nms[vapply(skim_df, is.factor, FALSE)]
   other_vars <- setdiff(data_nms,
                         c(lgl_vars, num_vars,
                           # exotic_num_vars,
@@ -69,7 +69,7 @@ fskim <- function(data, hist = FALSE){
     warning(paste0("Unsure how to calculate summaries for these variables: \n",
                    paste(other_vars, collapse = "\n")),
             "\n\nFalling back to character")
-    data[, (other_vars) := lapply(.SD, function(x) collapse::qF(as.character(x),
+    skim_df[, (other_vars) := lapply(.SD, function(x) collapse::qF(as.character(x),
                                                                 ordered = TRUE,
                                                                 sort = TRUE)),
          .SDcols = other_vars]
@@ -81,7 +81,7 @@ fskim <- function(data, hist = FALSE){
 
   ### Logical variables -----
 
-  lgl_data <- fselect(data, .cols = lgl_vars)
+  lgl_data <- fselect(skim_df, .cols = lgl_vars)
   which_lgl <- which(out[["col"]] %in% lgl_vars)
   lgl_out <- out[which_lgl]
   # Pre-allocate columns
@@ -121,7 +121,7 @@ fskim <- function(data, hist = FALSE){
 
   ### Numeric variables -----
 
-  num_data <- fselect(data, .cols = num_vars)
+  num_data <- fselect(skim_df, .cols = num_vars)
   which_num <- which(out[["col"]] %in% num_vars)
   num_out <- out[which_num]
   # Pre-allocate columns
@@ -267,7 +267,7 @@ fskim <- function(data, hist = FALSE){
 
   ### Date variables -----
 
-  date_data <- fselect(data, .cols = date_vars)
+  date_data <- fselect(skim_df, .cols = date_vars)
   which_date <- which(out[["col"]] %in% date_vars)
   date_out <- out[which_date]
   # Pre-allocate columns
@@ -313,7 +313,7 @@ fskim <- function(data, hist = FALSE){
 
   ### Datetime variables -----
 
-  datetime_data <- fselect(data, .cols = datetime_vars)
+  datetime_data <- fselect(skim_df, .cols = datetime_vars)
   which_datetime <- which(out[["col"]] %in% datetime_vars)
   datetime_out <- out[which_datetime]
   # Pre-allocate columns
@@ -360,7 +360,7 @@ fskim <- function(data, hist = FALSE){
 
   ### Categorical variables -----
 
-  cat_data <- fselect(data, .cols = cat_vars)
+  cat_data <- fselect(skim_df, .cols = cat_vars)
   which_cat <- which(out[["col"]] %in% cat_vars)
   cat_out <- out[which_cat]
   # Pre-allocate columns
