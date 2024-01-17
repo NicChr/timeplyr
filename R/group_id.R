@@ -176,9 +176,10 @@ group_id.factor <- function(data, ..., order = TRUE,
   out <- unclass(data)
   if (order && ascending && !as_qg){
     out <- strip_attrs(out)
-    if (anyNA(out)){
-      out[cpp_which(is.na(out))] <- length(levels(data)) + 1L
-    }
+    out[cpp_which_na(out)] <- length(levels(data)) + 1L
+    # if (anyNA(out)){
+    #   out[cpp_cpp_which_na(out)] <- length(levels(data)) + 1L
+    # }
   } else {
     out <- group_id(out, order = order,
                     ascending = ascending, as_qg = as_qg)
@@ -515,22 +516,36 @@ qg_to_integer <- function(x){
   strip_attrs(x)
 }
 # Cool alternative to qG() because S3 method for group_id() kicks in
-quick_group <- function(x, ...){
-  group_id(x, as_qg = TRUE, ...)
+quick_group <- function(x, ..., order = TRUE, ascending = TRUE){
+  group_id(x, ..., order = order, as_qg = TRUE, ascending = ascending)
 }
 # A faster version of factor()
 # Uses group_id method dispatch
-quick_factor <- function(x, na_exclude = TRUE, ordered = FALSE, ...){
-  out <- quick_group(x, order = TRUE, ...)
-  lvls <- x[attr(out, "starts")]
+quick_factor <- function(x = integer(), order = TRUE, na_exclude = TRUE,
+                         ordered = FALSE, ascending = TRUE){
+  if (is.null(x)) x <- integer()
+  out <- quick_group(x, order = order, ascending = ascending)
+  starts <- attr(out, "starts")
+  lvls <- x[starts]
   attributes(out) <- NULL
-  if (na_exclude && anyNA(x)){
-   which_na <- cpp_which(is.na(x))
-   out[which_na] <- NA
-   lvls <- lvls[seq_len(length(lvls) - 1L)]
+  # Handling of NA values
+  if (na_exclude){
+    which_na <- cpp_which(is.na(x))
+   # which_na <- cpp_which_na(x)
+   if (length(which_na) > 0){
+     if (order){
+       lvls <- lvls[seq_len(length(lvls) - 1L)]
+     } else {
+       lvl_to_exclude <- out[which_na[1L]]
+       which_decrement_one <- cpp_which(out > lvl_to_exclude)
+       out[which_decrement_one] <- out[which_decrement_one] - 1L
+       lvls <- lvls[-lvl_to_exclude]
+       # lvls <- lvls[-match(which_na[1], starts)]
+     }
+     out[which_na] <- NA
+   }
   }
-  levels(out) <- as.character(lvls)
-  class(out) <- c(if (ordered) "ordered" else character(),
-                  "factor")
+  attr(out, "levels") <- as.character(lvls)
+  class(out) <- c(if (ordered) "ordered" else character(), "factor")
   out
 }

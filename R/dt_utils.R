@@ -129,3 +129,16 @@ set_add_cols <- function(DT, cols = NULL){
 #   names(y) <- y_nms
 #   data.table::set(x, j = y_nms, value = y)[]
 # }
+dplyr_col_modify.data.table <- function(data, cols){
+  cols <- vctrs::vec_recycle_common(!!!cols, .size = df_nrow(data))
+  out <- as.list(vctrs::vec_data(data))
+  nms <- rlang::as_utf8_character(rlang::names2(cols))
+  names(out) <- rlang::as_utf8_character(rlang::names2(out))
+  for (i in seq_along(cols)) {
+    nm <- nms[[i]]
+    out[[nm]] <- cols[[i]]
+  }
+  row_names <- .row_names_info(data, type = 0L)
+  out <- vctrs::new_data_frame(out, n = df_nrow(data), row.names = row_names)
+  dplyr::dplyr_reconstruct(out, data)
+}

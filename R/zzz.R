@@ -101,6 +101,7 @@ register_all_s3_methods <- function(){
   register_s3_method("dplyr", "dplyr_reconstruct", "episodes_tbl_df")
   register_s3_method("dplyr", "dplyr_row_slice", "time_tbl_df")
   register_s3_method("dplyr", "dplyr_row_slice", "episodes_tbl_df")
+  register_s3_method("dplyr", "dplyr_col_modify", "data.table")
 }
 
 on_package_load <- function(pkg, expr){
@@ -118,7 +119,8 @@ on_package_load <- function(pkg, expr){
           "timeplyr.roll_dst" = getOption("timeplyr.roll_dst", "boundary"),
           "timeplyr.interval_style" = getOption("timeplyr.interval_style", "full"),
           "timeplyr.interval_sub_formatter" = getOption("timeplyr.interval_sub_formatter", identity),
-          "timeplyr.use_intervals" = getOption("timeplyr.use_intervals", FALSE))
+          "timeplyr.use_intervals" = getOption("timeplyr.use_intervals", FALSE),
+          "timeplyr.cores" = getOption("timeplyr.cores", 1))
 }
 .onUnload <- function(libname, pkgname){
   options(timeplyr.time_type = NULL,
@@ -126,5 +128,6 @@ on_package_load <- function(pkg, expr){
           timeplyr.roll_dst = NULL,
           timeplyr.interval_style = NULL,
           timeplyr.interval_sub_formatter = NULL,
-          timeplyr.use_intervals = NULL)
+          timeplyr.use_intervals = NULL,
+          timeplyr.cores = NULL)
 }

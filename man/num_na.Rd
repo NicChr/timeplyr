@@ -16,6 +16,10 @@ Number of \code{NA} values.
 A faster and more efficient alternative to \code{sum(is.na(x))}. \cr
 Long vectors, i.e vectors with length >= 2^31 are also supported.
 }
+\details{
+If \code{x} is a data frame, \code{num_na()} counts the number of empty rows with
+only missing values.
+}
 \examples{
 library(timeplyr)
 library(bench)

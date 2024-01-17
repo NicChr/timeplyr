@@ -9,6 +9,10 @@
 #' @returns
 #' Number of `NA` values.
 #'
+#' @details
+#' If `x` is a data frame, `num_na()` counts the number of empty rows with
+#' only missing values.
+#'
 #' @examples
 #' library(timeplyr)
 #' library(bench)

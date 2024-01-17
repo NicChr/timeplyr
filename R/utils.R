@@ -807,7 +807,7 @@ CJ2 <- function(X){
     return(X)
   }
   out <- vector("list", nargs)
-  d <- cpp_lengths(X)
+  d <- lengths(X, use.names = FALSE)
   orep <- prod(d)
   if (orep == 0L){
     for (i in seq_len(nargs)){
@@ -1366,4 +1366,56 @@ levels_factor <- function(x){
   class(out) <- class(x)
   out
 }
-# copy <- cpp_copy
+
+# timeplyr_n_cores <- function(){
+#   getOption("timeplyr.cores", 1L)
+# }
+
+# with_local_seed <- function(.f, ..., .seed = NULL){
+#   # Check if a seed already exists in global environment
+#   seed_exists <- exists(".Random.seed", envir = globalenv())
+#   # Save it in the first instance
+#   if (seed_exists){
+#     old <- .Random.seed
+#   }
+#   # Does user want to use local seed?
+#   seed_is_null <- is.null(.seed)
+#   if (!seed_is_null){
+#     set.seed(.seed)
+#   }
+#   add_seed <- function(){assign(".Random.seed", old, envir = globalenv())}
+#   rm_seed <- function(){remove(".Random.seed", envir = globalenv())}
+#   if (seed_exists && !seed_is_null){
+#     # do.call(on.exit, list(add_seed()), envir = environment(.f))
+#     # xfun::exit_call(add_seed, n = 2)
+#     on.exit(add_seed())
+#     # on.exit({ assign(".Random.seed", old, envir = globalenv())})
+#   } else if (!seed_is_null){
+#     # do.call(on.exit, list(rm_seed()), envir = environment(.f))
+#     # xfun::exit_call(rm_seed, n = 2)
+#     on.exit(rm_seed())
+#     # on.exit({remove(".Random.seed", envir = globalenv())})
+#   }
+#   # .f
+#   do.call(.f, list(...), envir = parent.frame())
+# }
+
+# Apply a function using a LOCAL seed
+# This has the nice property that the seed that was previously
+# set is NOT interrupted
+# This function acts as a way of applying RNG functions
+# completely separately to the user environment,
+# without affecting the global seed
+with_local_seed <- function(expr, .seed = NULL, ...){
+  old <- globalenv()[[".Random.seed"]]
+  if (is.null(old)){
+    set.seed(NULL)
+    old <- globalenv()[[".Random.seed"]]
+  }
+  # Does user want to use local seed?
+  if (!is.null(.seed)){
+    set.seed(.seed, ...)
+  }
+  on.exit({assign(".Random.seed", old, envir = globalenv())})
+  eval(expr, envir = parent.frame())
+}

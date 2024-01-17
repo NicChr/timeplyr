@@ -12,6 +12,18 @@
 // #endif
 // }
 
+// bool openmp_support() {
+// #ifdef _OPENMP
+//   return true;
+// #else
+//   return false;
+// #endif
+// }
+
+// int openmp_cores(){
+//   cpp11::function base_get_option = cpp11::package("base")["getOption"];
+//   return Rf_asInteger(base_get_option("timeplyr.cores", 1));
+// }
 
 [[cpp11::register]]
 SEXP cpp_list_which_not_null(SEXP l) {
@@ -91,7 +103,7 @@ SEXP cpp_sorted_group_starts(SEXP group_sizes){
   int init = 1;
   p_out[0] = 1;
   // cumsum over group_sizes[-length(group_sizes)]
-  for (int i = 0; i < (n - 1); i++){
+  for (int i = 0; i < (n - 1); ++i){
     init += p_gsizes[i];
     p_out[i + 1] = init;
   }
@@ -180,7 +192,7 @@ SEXP cpp_df_group_indices(SEXP rows, int size) {
   R_xlen_t ng = Rf_xlength(rows);
   const SEXP* p_rows = VECTOR_PTR_RO(rows);
 
-  for (R_xlen_t i = 0; i < ng; i++) {
+  for (R_xlen_t i = 0; i < ng; ++i) {
     SEXP rows_i = p_rows[i];
     R_xlen_t n_i = Rf_xlength(rows_i);
     int *p_rows_i = INTEGER(rows_i);
@@ -266,7 +278,7 @@ SEXP cpp_bin(SEXP x, SEXP breaks, bool codes, bool right, bool include_lowest,
     int *p_x = INTEGER(x);
     double *p_b = REAL(breaks);
     int *p_out = INTEGER(out);
-    for (R_xlen_t i = 0; i < n; i++) {
+    for (R_xlen_t i = 0; i < n; ++i) {
       p_out[i] = NA_INTEGER;
       // If not NA
       if (p_x[i] != NA_INTEGER) {
@@ -297,7 +309,7 @@ SEXP cpp_bin(SEXP x, SEXP breaks, bool codes, bool right, bool include_lowest,
     int *p_x = INTEGER(x);
     double *p_b = REAL(breaks);
     int *p_out = INTEGER(out);
-    for (R_xlen_t i = 0; i < n; i++) {
+    for (R_xlen_t i = 0; i < n; ++i) {
       p_out[i] = NA_INTEGER;
       // If not NA
       if (p_x[i] != NA_INTEGER) {
@@ -331,7 +343,7 @@ SEXP cpp_bin(SEXP x, SEXP breaks, bool codes, bool right, bool include_lowest,
     double *p_x = REAL(x);
     double *p_b = REAL(breaks);
     int *p_out = INTEGER(out);
-    for (R_xlen_t i = 0; i < n; i++) {
+    for (R_xlen_t i = 0; i < n; ++i) {
       p_out[i] = NA_INTEGER;
       // If not NA
       if (p_x[i] == p_x[i]) {
@@ -362,7 +374,7 @@ SEXP cpp_bin(SEXP x, SEXP breaks, bool codes, bool right, bool include_lowest,
     double *p_x = REAL(x);
     double *p_b = REAL(breaks);
     double *p_out = REAL(out);
-    for (R_xlen_t i = 0; i < n; i++) {
+    for (R_xlen_t i = 0; i < n; ++i) {
       p_out[i] = NA_REAL;
       // If not NA
       if (p_x[i] == p_x[i]) {

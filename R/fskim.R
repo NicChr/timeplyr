@@ -40,9 +40,9 @@ fskim <- function(data, hist = FALSE){
   check_is_df(data)
   N <- df_nrow(data)
   num_cols <- df_ncol(data)
-  skim_df <- df_as_dt(data, .copy = TRUE)
+  skim_df <- df_as_dt(data, .copy = FALSE)
   data_nms <- names(skim_df)
-  col_classes <- vapply(skim_df, function(x) vec_tail(class(x)), "")
+  col_classes <- vapply(skim_df, function(x) vec_head(class(x)), "")
   out <- df_as_dt(fenframe(col_classes,
                            name = "col",
                            value = "class"))
@@ -69,10 +69,13 @@ fskim <- function(data, hist = FALSE){
     warning(paste0("Unsure how to calculate summaries for these variables: \n",
                    paste(other_vars, collapse = "\n")),
             "\n\nFalling back to character")
-    skim_df[, (other_vars) := lapply(.SD, function(x) collapse::qF(as.character(x),
-                                                                ordered = TRUE,
-                                                                sort = TRUE)),
-         .SDcols = other_vars]
+    for (var in other_vars){
+      skim_df[[var]] <- quick_factor(skim_df[[var]])
+    }
+    # skim_df[, (other_vars) := lapply(.SD, function(x) collapse::qF(as.character(x),
+    #                                                             ordered = TRUE,
+    #                                                             sort = TRUE)),
+    #      .SDcols = other_vars]
     cat_vars <- c(cat_vars, other_vars)
     # Sort cat + other vars in order of first appearance
     cat_vars <- data_nms[sort(match(cat_vars, data_nms))]
