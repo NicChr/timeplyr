@@ -181,6 +181,13 @@ extern "C" SEXP _timeplyr_cpp_lead_sequence(SEXP size, SEXP k, SEXP partial) {
   END_CPP11
 }
 // utils.cpp
+R_xlen_t cpp_vector_size(SEXP x);
+extern "C" SEXP _timeplyr_cpp_vector_size(SEXP x) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_vector_size(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x)));
+  END_CPP11
+}
+// utils.cpp
 SEXP cpp_list_which_not_null(SEXP l);
 extern "C" SEXP _timeplyr_cpp_list_which_not_null(SEXP l) {
   BEGIN_CPP11
@@ -338,6 +345,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_roll_na_fill_grouped", (DL_FUNC) &_timeplyr_cpp_roll_na_fill_grouped, 4},
     {"_timeplyr_cpp_row_id",               (DL_FUNC) &_timeplyr_cpp_row_id,               3},
     {"_timeplyr_cpp_sorted_group_starts",  (DL_FUNC) &_timeplyr_cpp_sorted_group_starts,  1},
+    {"_timeplyr_cpp_vector_size",          (DL_FUNC) &_timeplyr_cpp_vector_size,          1},
     {"_timeplyr_cpp_which_",               (DL_FUNC) &_timeplyr_cpp_which_,               2},
     {"_timeplyr_cpp_which_na",             (DL_FUNC) &_timeplyr_cpp_which_na,             1},
     {"_timeplyr_cpp_window_sequence",      (DL_FUNC) &_timeplyr_cpp_window_sequence,      4},

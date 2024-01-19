@@ -108,9 +108,16 @@ roll_lag.data.frame <- function(x, n = 1L, g = NULL, fill = NULL){
 }
 #' @export
 roll_lag.time_interval <- function(x, n = 1L, g = NULL, fill = NULL){
-  out <- roll_lag(as.data.frame(x, n = n, g = g, fill = fill))
+  out <- roll_lag(as.data.frame(x), n = n, g = g, fill = fill)
   out <- unclass(out)
   new_time_interval(out[[1L]], out[[2L]])
+}
+roll_lag.vctrs_rcrd <- function(x, n = 1L, g = NULL, fill = NULL){
+  out <- roll_lag(list_to_data_frame(unclass(x)), n = n, g = g, fill = fill)
+  out <- unclass(out)
+  attr(out, "row.names") <- NULL
+  class(out) <- class(x)
+  out
 }
 #' @rdname roll_lag
 #' @export

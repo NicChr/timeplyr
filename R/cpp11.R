@@ -100,6 +100,10 @@ cpp_lead_sequence <- function(size, k, partial) {
   .Call(`_timeplyr_cpp_lead_sequence`, size, k, partial)
 }
 
+cpp_vector_size <- function(x) {
+  .Call(`_timeplyr_cpp_vector_size`, x)
+}
+
 cpp_list_which_not_null <- function(l) {
   .Call(`_timeplyr_cpp_list_which_not_null`, l)
 }

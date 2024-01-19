@@ -28,7 +28,9 @@ register_s3_method <- function(pkg, generic, class, fun = NULL){
 register_all_s3_methods <- function(){
   register_s3_method("collapse", "GRP", "Interval")
   register_s3_method("collapse", "GRP", "NULL")
-  register_s3_method("collapse", "funique", "time_interval")
+  # register_s3_method("collapse", "funique", "time_interval")
+  register_s3_method("collapse", "funique", "vctrs_rcrd")
+  register_s3_method("timeplyr", "roll_lag", "vctrs_rcrd")
   register_s3_method("zoo", "rep", "yearmon")
   register_s3_method("zoo", "rep.int", "yearmon")
   register_s3_method("zoo", "rep_len", "yearmon")

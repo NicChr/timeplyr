@@ -50,7 +50,7 @@ fskim <- function(data, hist = FALSE){
   # Convert character to factor
   if (length(chr_vars) > 0L){
     skim_df[, (chr_vars) :=
-           lapply(.SD, function(x) collapse::qF(x, sort = TRUE, ordered = TRUE)),
+           lapply(.SD, function(x) quick_factor(x, order = TRUE, ordered = TRUE)),
          .SDcols = chr_vars]
   }
   # Separate vars

@@ -807,7 +807,7 @@ CJ2 <- function(X){
     return(X)
   }
   out <- vector("list", nargs)
-  d <- lengths(X, use.names = FALSE)
+  d <- cpp_lengths(X)
   orep <- prod(d)
   if (orep == 0L){
     for (i in seq_len(nargs)){

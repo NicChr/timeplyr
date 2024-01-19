@@ -164,15 +164,29 @@ as.list.time_interval <- function(x, ...){
   class(out) <- class(x)
   out
 }
-unique.time_interval <- function(x, sort = FALSE, method = "auto",
+# unique.time_interval <- function(x, sort = FALSE, method = "auto",
+#                                  decreasing = FALSE, na.last = TRUE, ...){
+#   cl <- class(x)
+#   out <- as.list(collapse::funique(as.data.frame(x), sort = sort, method = method,
+#                                    decreasing = decreasing, na.last = na.last))
+#   class(out) <- cl
+#   out
+# }
+
+# funique.time_interval <- unique.time_interval
+
+# General collapse::funique method for vctrs rcrds
+funique.vctrs_rcrd <- function(x, sort = FALSE, method = "auto",
                                  decreasing = FALSE, na.last = TRUE, ...){
   cl <- class(x)
-  out <- as.list(collapse::funique(as.data.frame(x), sort = sort, method = method,
-                                   decreasing = decreasing, na.last = na.last))
+  out <- collapse::funique(unclass(x), sort = sort, method = method,
+                                   decreasing = decreasing, na.last = na.last)
   class(out) <- cl
   out
 }
-funique.time_interval <- unique.time_interval
+
+unique.time_interval <- funique.vctrs_rcrd
+
 xtfrm.time_interval <- function(x){
   group_id(x, order = TRUE)
 }
@@ -202,16 +216,20 @@ as.character.time_interval <- function(x,
     start <- as.character(start)
     end <- as.character(end)
   }
+  which_na <- cpp_which(is.na(x))
   if (int_fmt == "full"){
     out <- paste0("[", start, ", ", end, ")")
     which_closed <- cpp_which(start == end)
     out[which_closed] <- paste0("[", start[which_closed], ", ", end[which_closed], "]")
     # which_left_open <- cpp_which(start > end)
     # out[which_left_open] <- paste0("(", start[which_left_open], "--", end[which_left_open], "]")
+    out[which_na] <- NA_character_
     out
   } else if (int_fmt == "start"){
+    start[which_na] <- NA_character_
     start
   } else {
+    end[which_na] <- NA_character_
     end
   }
 }

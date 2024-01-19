@@ -34,16 +34,30 @@ new_dt <- function(..., .copy = TRUE, .recycle = FALSE){
 }
 
 df_as_dt <- function(x, .copy = TRUE){
-  out <- df_reconstruct(x, empty_dt())
+  out <- x
   if (.copy){
     out <- cpp_copy(out)
-    # if (list_has_interval(out)){
-    #   out <- cpp_copy(out)
-    # } else {
-    #   out <- data.table::copy(out)
-    # }
   }
+  # Prefer collapse::qDT() to data.table::setalloccol()
+  # Because the latter destroys time intervals
+  out <- collapse::qDT(out, keep.attr = TRUE)
+  data.table::setattr(out, "row.names", attr(x, "row.names"))
   out
+  # out <- df_reconstruct(x, empty_dt())
+  # if (.copy){
+  #
+  #
+  #   out <- collapse::qDT(cpp_copy(out))
+  #   # cpp_dt_unlock(out)
+  #   # data.table::setalloccol(out)
+  #   # out <- data.table::copy(out)
+  #   # if (list_has_interval(out)){
+  #   #   out <- cpp_copy(out)
+  #   # } else {
+  #   #   out <- data.table::copy(out)
+  #   # }
+  # }
+  # out
 }
 
 # df_as_dt <- function(x, .copy = TRUE){

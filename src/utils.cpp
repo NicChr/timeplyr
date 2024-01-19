@@ -26,6 +26,34 @@
 // }
 
 [[cpp11::register]]
+R_xlen_t cpp_vector_size(SEXP x){
+  if (Rf_isFrame(x)){
+    return Rf_xlength(Rf_GetRowNames(x));
+  } else if (Rf_isVectorList(x)){
+    if (Rf_inherits(x, "vctrs_rcrd")){
+      return Rf_xlength(VECTOR_ELT(x, 0));
+    } else {
+      return Rf_xlength(x);
+      // int n = Rf_length(x);
+      // if (n == 0){
+      //   return 0;
+      // } else {
+      //   R_xlen_t init = Rf_xlength(VECTOR_ELT(x, 0));
+      //   for (int i = 1; i < n; ++i) {
+      //     if (Rf_xlength(VECTOR_ELT(x, i)) != init){
+      //       Rf_error("All list elements must be of equal length");
+      //     }
+      //   }
+      //   return init;
+      // }
+    }
+  } else {
+    return Rf_xlength(x);
+  }
+  // return Rf_inherits(x, "vctrs_rcrd") ? Rf_length(VECTOR_ELT(x, 0)) : Rf_length(x);
+}
+
+[[cpp11::register]]
 SEXP cpp_list_which_not_null(SEXP l) {
   // Coerce l to list
   Rf_protect(l = Rf_coerceVector(l, VECSXP));
@@ -247,7 +275,7 @@ SEXP cpp_lengths(SEXP x) {
   SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
   int *p_out = INTEGER(out);
   for (int i = 0; i < n; ++i) {
-    p_out[i] = Rf_length(p_x[i]);
+    p_out[i] = cpp_vector_size(p_x[i]);
   }
   Rf_unprotect(2);
   return out;
@@ -575,6 +603,11 @@ SEXP cpp_address_equal(SEXP x, SEXP y) {
 SEXP cpp_copy(SEXP x) {
   return Rf_duplicate(x);
 }
+// SEXP cpp_dt_unlock(SEXP x) {
+//   Rf_setAttrib(x, Rf_install(".data.table.locked"), R_NilValue);
+//   return x;
+// }
+
 // Checks that all row indices of 2 grouped data frames are the same
 
 // bool cpp_group_data_rows_equal(SEXP rows1, SEXP rows2) {
