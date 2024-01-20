@@ -1,7 +1,6 @@
+#include "timeplyr_cpp.h"
 #include <cpp11.hpp>
 #include <Rinternals.h>
-
-#define R_NO_REMAP
 
 // o must be the order of groups, e.g order(g)
 // sizes must be the sorted group sizes, e.g table(g), or count(df, g)[["g"]]

@@ -1,19 +1,6 @@
+#include "timeplyr_cpp.h"
 #include <cpp11.hpp>
 #include <Rinternals.h>
-
-double r_sum(SEXP x, bool na_rm = false){
-  cpp11::function base_sum = cpp11::package("base")["sum"];
-  return Rf_asReal(base_sum(x, cpp11::named_arg("na.rm") = na_rm));
-}
-
-double r_min(SEXP x){
-  cpp11::function base_min = cpp11::package("base")["min"];
-  double out = R_PosInf;
-  if (Rf_length(x) > 0){
-    out = Rf_asReal(base_min(x));
-  }
-  return out;
-}
 
 // Rcpp version
 // double r_sum(SEXP x){
@@ -46,7 +33,7 @@ SEXP before_sequence(SEXP size, double k) {
   }
   int size_n = Rf_length(size);
   k = std::fmax(k, 0);
-  SEXP out = Rf_protect(Rf_allocVector(INTSXP, r_sum(size_sexp)));
+  SEXP out = Rf_protect(Rf_allocVector(INTSXP, r_sum(size_sexp, false)));
   int *p_out = INTEGER(out);
   int *p_size = INTEGER(size_sexp);
   R_xlen_t index = 0;
@@ -73,7 +60,7 @@ SEXP after_sequence(SEXP size, double k) {
   }
   int size_n = Rf_length(size);
   k = std::fmax(k, 0);
-  SEXP out = Rf_protect(Rf_allocVector(INTSXP, r_sum(size_sexp)));
+  SEXP out = Rf_protect(Rf_allocVector(INTSXP, r_sum(size_sexp, false)));
   int *p_out = INTEGER(out);
   int *p_size = INTEGER(size_sexp);
   R_xlen_t index = 0;
@@ -103,7 +90,7 @@ SEXP cpp_int_sequence(SEXP size, SEXP from, SEXP by) {
   if (from_n <= 0 || by_n <= 0){
     Rf_error("from and by must both have length >= 0");
   }
-  double out_size = r_sum(size);
+  double out_size = r_sum(size, false);
   double min_size = r_min(size);
   if (!(out_size == out_size)){
     Rf_error("size must not contain NA values");
@@ -165,7 +152,7 @@ SEXP cpp_dbl_sequence(SEXP size, SEXP from, SEXP by) {
     Rf_error("from and by must both have length >= 0");
   }
   // To recycle we would need to do sum * remainder of the sum over n
-  double out_size = r_sum(size);
+  double out_size = r_sum(size, false);
   double min_size = r_min(size);
   if (!(out_size == out_size)){
     Rf_error("size must not contain NA values");
@@ -221,7 +208,7 @@ SEXP cpp_window_sequence(SEXP size,
     Rf_error("size must be a vector of non-negative integers");
   }
   k = std::fmax(k, 0);
-  SEXP out = Rf_protect(Rf_allocVector(INTSXP, r_sum(size_sexp)));
+  SEXP out = Rf_protect(Rf_allocVector(INTSXP, r_sum(size_sexp, false)));
   int *p_out = INTEGER(out);
   int *p_size = INTEGER(size_sexp);
   R_xlen_t index = 0;
@@ -291,7 +278,7 @@ SEXP cpp_lag_sequence(SEXP size, double k, bool partial = false) {
   }
   int size_n = Rf_length(size);
   k = std::fmax(k, 0);
-  SEXP out = Rf_protect(Rf_allocVector(INTSXP, r_sum(size)));
+  SEXP out = Rf_protect(Rf_allocVector(INTSXP, r_sum(size, false)));
   int *p_out = INTEGER(out);
   R_xlen_t index = 0;
   if (partial){
@@ -328,7 +315,7 @@ SEXP cpp_lead_sequence(SEXP size, double k, bool partial = false) {
   }
   int size_n = Rf_length(size);
   k = std::fmax(k, 0);
-  SEXP out = Rf_protect(Rf_allocVector(INTSXP, r_sum(size)));
+  SEXP out = Rf_protect(Rf_allocVector(INTSXP, r_sum(size, false)));
   int *p_out = INTEGER(out);
   R_xlen_t index = 0;
   int idiff;

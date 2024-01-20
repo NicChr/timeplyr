@@ -183,7 +183,7 @@ roll_growth <- function(x, window = 1,
   } else {
     roll <- function(...) frollmean3(...)
   }
-  x_na <- cpp_which(is.na(x))
+  x_na <- cpp_which_na(x)
   has_na <- length(x_na) > 0
   if (!is.null(weights) && has_na){
     weights[x_na] <- NA_real_

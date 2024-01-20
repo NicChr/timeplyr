@@ -61,8 +61,9 @@
 #' Options are "preday", "boundary", "postday", "full" and "NA".
 #' See `?timechange::time_add` for more details.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
-#' @param as_factor Should the output be a `factor`? Default is `TRUE`.
-#' @param as_interval Should the output be a `time_interval`? Default is `FALSE`.
+#' @param as_interval Should result be a `time_interval`?
+#' Default is `FALSE`. \cr
+#' This can be controlled globally through `options(timeplyr.use_intervals)`.
 #'
 #' @returns
 #' `time_breaks` returns a vector of breaks. \cr
@@ -90,6 +91,7 @@
 #'
 #' # time_cut() and time_breaks() automatically find a
 #' # suitable way to cut the data
+#' options(timeplyr.use_intervals = TRUE)
 #' time_cut(df$date)
 #' # Works with datetimes as well
 #' time_cut(df$time_hour, n = 5) # <= 5 breaks
@@ -136,7 +138,8 @@ time_cut <- function(x, n = 5, time_by = NULL,
                      week_start = getOption("lubridate.week.start", 1),
                      time_type = getOption("timeplyr.time_type", "auto"),
                      roll_month = getOption("timeplyr.roll_month", "preday"),
-                     roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                     roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                     as_interval = getOption("timeplyr.use_intervals", FALSE)){
   # if (as_interval && as_factor){
   #   stop("Choose either as_interval or as_factor, not both")
   # }
@@ -185,9 +188,11 @@ time_cut <- function(x, n = 5, time_by = NULL,
   #                           time_type = time_type,
   #                           roll_month = roll_month, roll_dst = roll_dst)
   # }
-  out <- time_by_interval(out, time_by = breaks_list[["time_by"]],
-                          time_type = time_type,
-                          roll_month = roll_month, roll_dst = roll_dst)
+  if (as_interval){
+    out <- time_by_interval(out, time_by = breaks_list[["time_by"]],
+                            time_type = time_type,
+                            roll_month = roll_month, roll_dst = roll_dst)
+  }
   out
 }
 #' @rdname time_cut

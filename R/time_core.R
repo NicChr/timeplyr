@@ -46,7 +46,7 @@
 #' @param use.g.names Should the result include group names?
 #' Default is `TRUE`.
 #' @param as_interval Should result be a `time_interval`?
-#' Default is `TRUE`. \cr
+#' Default is `FALSE`. \cr
 #' This can be controlled globally through `options(timeplyr.use_intervals)`.
 #'
 #' @returns

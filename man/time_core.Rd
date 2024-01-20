@@ -147,7 +147,7 @@ See \code{?timechange::time_add} for more details.}
 Default is \code{TRUE}.}
 
 \item{as_interval}{Should result be a \code{time_interval}?
-Default is \code{TRUE}. \cr
+Default is \code{FALSE}. \cr
 This can be controlled globally through \code{options(timeplyr.use_intervals)}.}
 
 \item{complete}{Logical. If \code{TRUE} implicit gaps in time are filled

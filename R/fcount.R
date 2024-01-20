@@ -80,7 +80,7 @@
 fcount <- function(data, ..., wt = NULL, sort = FALSE,
                    order = df_group_by_order_default(data),
                    name = NULL, .by = NULL, .cols = NULL){
-  if (dots_length(...) == 0 && rlang::quo_is_null(rlang::enquo(.by))){
+  if (dots_length(...) == 0 && rlang::quo_is_null(rlang::enquo(.by)) && is.null(.cols)){
     return(
       count_simple(data, ..., wt = !!enquo(wt), sort = sort, order = order,
                    name = name, .by = {{ .by }}, .cols = .cols)
@@ -147,7 +147,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE,
       nobs <- as.integer(nobs)
     }
     # Replace NA with 0
-    nobs[cpp_which(is.na(nobs))] <- 0L
+    nobs[cpp_which_na(nobs)] <- 0L
   }
   out[[name]] <- nobs
   if (sort){
@@ -254,7 +254,7 @@ add_count_simple <- function(data, ..., wt = NULL, sort = FALSE,
 fadd_count <- function(data, ..., wt = NULL, sort = FALSE,
                        order = df_group_by_order_default(data),
                        name = NULL, .by = NULL, .cols = NULL){
-  if (dots_length(...) == 0 && rlang::quo_is_null(rlang::enquo(.by))){
+  if (dots_length(...) == 0 && rlang::quo_is_null(rlang::enquo(.by)) && is.null(.cols)){
     return(
       add_count_simple(data, ..., wt = !!enquo(wt), sort = sort, order = order,
                        name = name, .by = {{ .by }}, .cols = .cols)
@@ -303,7 +303,7 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE,
                    g = g,
                    na.rm = TRUE)
     # Replace NA with 0
-    nobs[cpp_which(is.na(nobs))] <- 0
+    nobs[cpp_which_na(nobs)] <- 0
     if (isTRUE(all_integerable(nobs))){
       nobs <- as.integer(nobs)
     }

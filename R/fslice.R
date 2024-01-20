@@ -131,7 +131,7 @@ fslice <- function(data, ..., .by = NULL,
     }
     if (length(n) == 1 && slice_sign >= 1){
       i <- list_subset(rows, n)
-      i <- i[cpp_which(is.na(i), invert = TRUE)]
+      i <- i[cpp_which_not_na(i)]
     } else {
       i <- vector("list", length(rows))
       for (j in seq_along(i)){
@@ -234,7 +234,7 @@ fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
     i <- out1[[row_nm]]
   }
   if (na_rm){
-    i2 <- out[[row_nm]][cpp_which(is.na(out[[order_by_nm]]))]
+    i2 <- out[[row_nm]][cpp_which_na(out[[order_by_nm]])]
     i <- setdiff(i, i2)
   }
   if (is.null(i)){
@@ -282,7 +282,7 @@ fslice_max <- function(data, order_by, ..., n, prop, .by = NULL,
     i <- out1[[row_nm]]
   }
   if (na_rm){
-    i2 <- out[[row_nm]][cpp_which(is.na(out[[order_by_nm]]))]
+    i2 <- out[[row_nm]][cpp_which_na(out[[order_by_nm]])]
     i <- setdiff(i, i2)
   }
   if (is.null(i)){

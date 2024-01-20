@@ -1,8 +1,12 @@
+#include "timeplyr_cpp.h"
 #include <cpp11.hpp>
 #include <Rinternals.h>
 
-#define R_NO_REMAP
-#define VECTOR_PTR_RO(x) ((const SEXP*) DATAPTR_RO(x))
+// #include <cpp11.hpp>
+// #include <Rinternals.h>
+//
+// #define R_NO_REMAP
+// #define VECTOR_PTR_RO(x) ((const SEXP*) DATAPTR_RO(x))
 
 // bool test_long_vector_support() {
 // #ifdef LONG_VECTOR_SUPPORT
@@ -28,24 +32,24 @@
 [[cpp11::register]]
 R_xlen_t cpp_vector_size(SEXP x){
   if (Rf_isFrame(x)){
-    return Rf_xlength(Rf_GetRowNames(x));
+    return Rf_xlength(Rf_getAttrib(x, R_RowNamesSymbol));
   } else if (Rf_isVectorList(x)){
     if (Rf_inherits(x, "vctrs_rcrd")){
       return Rf_xlength(VECTOR_ELT(x, 0));
     } else {
-      return Rf_xlength(x);
-      // int n = Rf_length(x);
-      // if (n == 0){
-      //   return 0;
-      // } else {
-      //   R_xlen_t init = Rf_xlength(VECTOR_ELT(x, 0));
-      //   for (int i = 1; i < n; ++i) {
-      //     if (Rf_xlength(VECTOR_ELT(x, i)) != init){
-      //       Rf_error("All list elements must be of equal length");
-      //     }
-      //   }
-      //   return init;
-      // }
+      // return Rf_xlength(x);
+      int n = Rf_length(x);
+      if (n == 0){
+        return 0;
+      } else {
+        R_xlen_t init = Rf_xlength(VECTOR_ELT(x, 0));
+        for (int i = 1; i < n; ++i) {
+          if (Rf_xlength(VECTOR_ELT(x, i)) != init){
+            Rf_error("All list elements must be of equal length");
+          }
+        }
+        return init;
+      }
     }
   } else {
     return Rf_xlength(x);
@@ -603,6 +607,31 @@ SEXP cpp_address_equal(SEXP x, SEXP y) {
 SEXP cpp_copy(SEXP x) {
   return Rf_duplicate(x);
 }
+
+int num_cores(){
+  int out = Rf_asInteger(Rf_GetOption1(Rf_installChar(Rf_mkChar("timeplyr.cores"))));
+  if (out >= 1){
+    int max_cores = omp_get_max_threads();
+    return out > max_cores ? max_cores : out;
+  } else {
+    return 1;
+  }
+}
+
+double r_sum(SEXP x, bool na_rm = false){
+  cpp11::function base_sum = cpp11::package("base")["sum"];
+  return Rf_asReal(base_sum(x, cpp11::named_arg("na.rm") = na_rm));
+}
+
+double r_min(SEXP x){
+  cpp11::function base_min = cpp11::package("base")["min"];
+  double out = R_PosInf;
+  if (Rf_length(x) > 0){
+    out = Rf_asReal(base_min(x));
+  }
+  return out;
+}
+
 // SEXP cpp_dt_unlock(SEXP x) {
 //   Rf_setAttrib(x, Rf_install(".data.table.locked"), R_NilValue);
 //   return x;

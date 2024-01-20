@@ -396,7 +396,7 @@ convert_common_dates <- function(x){
   if (is_time(x)){
     out <- x
   } else if (is.character(x)){
-    which_na <- cpp_which(is.na(x))
+    which_na <- cpp_which_na(x)
     out <- lubridate::ymd(x, quiet = TRUE)
     num_na <- num_na(out)
     if (num_na > length(which_na)){
@@ -1371,7 +1371,7 @@ multiply_single_unit_period_by_number <- function(per, num){
   per_length <- length(per_num)
   per_num[cpp_which(is.nan(per_num))] <- NA_real_
   other_fill <- integer(per_length)
-  other_fill[cpp_which(is.na(per_num))] <- NA_integer_
+  other_fill[cpp_which_na(per_num)] <- NA_integer_
   switch(
     per_unit,
     years = {
@@ -1533,7 +1533,7 @@ divide_interval_by_period2 <- function(start, end, per){
   if (num_na(estimate) == 0) {
     adj_dur_est(estimate, timespans[[1]], timespans[[2]], timespans[[3]])
   } else {
-    not_nas <- cpp_which(is.na(estimate), invert = TRUE)
+    not_nas <- cpp_which_not_na(estimate)
     start2 <- timespans[[1]][not_nas]
     end2 <- timespans[[2]][not_nas]
     per2 <- timespans[[3]][not_nas]

@@ -1,26 +1,6 @@
-// #ifdef _OPENMP
-//   #include <omp.h>
-//   #define OMP_NUM_PROCS omp_get_num_procs()
-//   #define OMP_THREAD_LIMIT omp_get_thread_limit()
-//   #define OMP_MAX_THREADS omp_get_max_threads()
-// #else
-//   #define OMP_NUM_PROCS 1
-//   #define OMP_THREAD_LIMIT 1
-//   #define OMP_MAX_THREADS 1
-// #endif
-
+#include "timeplyr_cpp.h"
 #include <cpp11.hpp>
 #include <Rinternals.h>
-
-#define R_NO_REMAP
-
-// bool openmp_support() {
-// #ifdef _OPENMP
-//   return true;
-// #else
-//   return false;
-// #endif
-// }
 
 // A simple and more efficient which()
 
@@ -79,11 +59,11 @@ SEXP cpp_which_(SEXP x, bool invert) {
     } else {
       int size = 0;
       for (int j = 0; j < n; ++j) size += (p_x[j] == TRUE);
-      // if (n < 10000){
+      // if (n < 100000){
       //   for (int j = 0; j < n; ++j) size += (p_x[j] == TRUE);
       // } else {
-      //   // #pragma omp simd reduction(+:size)
-      //   #pragma omp parallel for simd num_threads(openmp_cores()) reduction(+:size)
+      //   // size = r_sum(x, true);
+      //   #pragma omp parallel for simd num_threads(num_cores()) reduction(+:size)
       //   for (int j = 0; j < n; ++j) size += (p_x[j] == TRUE);
       // }
       SEXP out = Rf_protect(Rf_allocVector(INTSXP, size));
@@ -100,4 +80,3 @@ SEXP cpp_which_(SEXP x, bool invert) {
     }
   }
 }
-

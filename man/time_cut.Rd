@@ -15,7 +15,8 @@ time_cut(
   week_start = getOption("lubridate.week.start", 1),
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary")
+  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+  as_interval = getOption("timeplyr.use_intervals", FALSE)
 )
 
 time_breaks(
@@ -72,9 +73,9 @@ See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
 
-\item{as_factor}{Should the output be a \code{factor}? Default is \code{TRUE}.}
-
-\item{as_interval}{Should the output be a \code{time_interval}? Default is \code{FALSE}.}
+\item{as_interval}{Should result be a \code{time_interval}?
+Default is \code{FALSE}. \cr
+This can be controlled globally through \code{options(timeplyr.use_intervals)}.}
 }
 \value{
 \code{time_breaks} returns a vector of breaks. \cr
@@ -137,6 +138,7 @@ df <- nycflights13::flights \%>\%
 
 # time_cut() and time_breaks() automatically find a
 # suitable way to cut the data
+options(timeplyr.use_intervals = TRUE)
 time_cut(df$date)
 # Works with datetimes as well
 time_cut(df$time_hour, n = 5) # <= 5 breaks

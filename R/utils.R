@@ -725,29 +725,30 @@ vec_tail <- function(x, n = 1L){
   vctrs::vec_slice(x, seq.int(from = N - size + 1L, by = 1L, length.out = size))
 }
 # Returns the length or nrows (if list or df)
-vec_length <- function(x){
-  if (is.list(x)){
-    if (inherits(x, "data.frame")){
-      out <- df_nrow(x)
-    } else {
-      out <- cpp_lengths(x)
-      nunique <- collapse::fnunique(out)
-      if (nunique > 1L){
-        stop("x must be a vector, matrix, data frame or list with equal lengths")
-      } else {
-        out <- out[nunique]
-      }
-      if (length(out) == 0L){
-        out <- 0L
-      }
-    }
-  } else if (is.array(x)){
-    out <- dim(x)[1L]
-  } else {
-    out <- length(x)
-  }
-  out
-}
+vec_length <- cpp_vector_size
+# vec_length <- function(x){
+#   if (is.list(x)){
+#     if (inherits(x, "data.frame")){
+#       out <- df_nrow(x)
+#     } else {
+#       out <- cpp_lengths(x)
+#       nunique <- collapse::fnunique(out)
+#       if (nunique > 1L){
+#         stop("x must be a vector, matrix, data frame or list with equal lengths")
+#       } else {
+#         out <- out[nunique]
+#       }
+#       if (length(out) == 0L){
+#         out <- 0L
+#       }
+#     }
+#   } else if (is.array(x)){
+#     out <- dim(x)[1L]
+#   } else {
+#     out <- length(x)
+#   }
+#   out
+# }
 # Returns the width or ncol (if list or df)
 vec_width <- function(x){
   if (is.list(x)){

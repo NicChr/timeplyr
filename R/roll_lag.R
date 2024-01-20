@@ -28,6 +28,8 @@
 #' `lag_`, `lead_` and `diff_` are wrappers around the 'c++' functions that offer
 #' very low overhead of ~1 microsecond and thus are primarily for programmers.
 #'
+#' `roll_diff()` silently returns `NA` when there is integer overflow.
+#'
 #' @returns
 #' A vector the same length as `x`.
 #'
@@ -79,7 +81,7 @@ roll_lag.default <- function(x, n = 1L, g = NULL, fill = NULL){
     out <- x[lagged_indices]
     if (!is.null(fill)){
       check_length(fill, 1)
-      out[cpp_which(is.na(lagged_indices))] <- cast2(fill, out)
+      out[cpp_which_na(lagged_indices)] <- cast2(fill, out)
     }
   }
   out
@@ -99,7 +101,7 @@ roll_lag.data.frame <- function(x, n = 1L, g = NULL, fill = NULL){
   out <- df_row_slice(x, lag_s)
   if (!is.null(fill)){
     check_length(fill, 1)
-    which_fill <- cpp_which(is.na(lag_s))
+    which_fill <- cpp_which_na(lag_s)
     for (i in seq_len(df_ncol(out))){
       out[[i]][which_fill] <- cast2(fill, out[[i]])
     }
@@ -137,7 +139,7 @@ roll_diff.default <- function(x, n = 1L, g = NULL, fill = NULL){
     out <- strip_attrs(out)
     if (!is.null(fill)){
       check_length(fill, 1)
-      out[cpp_which(is.na(lagged_indices))] <- cast2(fill, out)
+      out[cpp_which_na(lagged_indices)] <- cast2(fill, out)
     }
   }
   out
@@ -161,16 +163,19 @@ roll_diff.data.frame <- function(x, n = 1L, g = NULL, fill = NULL){
   }
   if (!is.null(fill)){
     check_length(fill, 1)
-    which_fill <- cpp_which(is.na(lag_s))
+    which_fill <- cpp_which_na(lag_s)
     for (i in seq_len(df_ncol(out))){
       out[[i]][which_fill] <- cast2(fill, out[[i]])
     }
   }
   out
 }
+roll_diff.vctrs_rcrd <- function(x, n = 1L, g = NULL, fill = NULL){
+  roll_diff(list_to_data_frame(unclass(x)), n = n, g = g, fill = fill)
+}
 #' @export
 roll_diff.time_interval <- function(x, n = 1L, g = NULL, fill = NULL){
-  roll_diff(as.data.frame(x, n = n, g = g, fill = fill))
+  roll_diff(as.data.frame(x), n = n, g = g, fill = fill)
 }
 #' @rdname roll_lag
 #' @export

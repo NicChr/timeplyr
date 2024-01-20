@@ -68,6 +68,10 @@ cpp_which_na <- function(x) {
   .Call(`_timeplyr_cpp_which_na`, x)
 }
 
+cpp_which_not_na <- function(x) {
+  .Call(`_timeplyr_cpp_which_not_na`, x)
+}
+
 cpp_row_id <- function(order, group_sizes, ascending) {
   .Call(`_timeplyr_cpp_row_id`, order, group_sizes, ascending)
 }

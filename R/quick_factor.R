@@ -57,7 +57,8 @@ quick_factor <- function(x = integer(), levels = NULL, order = TRUE,
     if (order){
       lvls <- lvls[seq_len(length(lvls) - 1L)]
     } else {
-      lvls <- lvls[cpp_which(is.na(lvls), invert = TRUE)]
+      lvls <- lvls[cpp_which_not_na(lvls)]
+      # lvls <- lvls[cpp_which(is.na(lvls), invert = TRUE)]
     }
   }
   out <- collapse::fmatch(x, lvls, overid = 2L)

@@ -610,7 +610,7 @@ time_roll_window <- function(x, window = Inf, time = seq_along(x),
                                          time_type = time_type,
                                          roll_month = roll_month,
                                          roll_dst = roll_dst)
-  window_widths[cpp_which(is.na(window_widths))] <- 0L
+  window_widths[cpp_which_na(window_widths)] <- 0L
   out <- roll_chop(x, sizes = window_widths)
   vctrs::new_list_of(out, ptype = x[0L])
 }
@@ -634,7 +634,7 @@ time_roll_apply <- function(x, window = Inf, fun,
                                  time_type = time_type,
                                  roll_month = roll_month,
                                  roll_dst = roll_dst)
-  sizes[cpp_which(is.na(sizes))] <- 0L
+  sizes[cpp_which_na(sizes)] <- 0L
   x_size <- length(x)
   out <- vector("list", x_size)
   for (i in seq_len(x_size)){

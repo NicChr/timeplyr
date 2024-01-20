@@ -160,6 +160,7 @@ time_episodes <- function(data, time, time_by = NULL,
   rlang::check_required(time)
   N <- df_nrow(data)
   check_length(window, 1)
+  check_is_num(window)
   if (window < 0){
     stop("window must be strictly greater or equal to 0")
   }
@@ -288,7 +289,9 @@ time_episodes <- function(data, time, time_by = NULL,
     out <- fselect(out, .cols = out_nms)
   }
   out <- df_reconstruct(out, data)
-  out <- structure(out, time = time_col, time_by = time_by)
+  threshold <- time_by
+  threshold[[1L]] <- time_by_num(time_by) * window
+  out <- structure(out, time = time_col, time_by = time_by, threshold = threshold)
                    # by_groups = setdiff(group_vars, group_vars(data)))
   class(out) <- c("episodes_tbl_df", class(out))
   out
@@ -298,6 +301,7 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
   groups_header <- character()
   episodes_header <- character()
   elapsed_header <- character()
+  threshold_header <- character()
   # Groups
   group_vars <- group_vars(x)
   GRPS <- df_to_GRP(x, return.groups = FALSE)
@@ -318,19 +322,20 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
     mean_episodes <- total_episodes / length(max_episodes)
     episodes_header <- c(
       "Episodes" = paste0(
+        "N: ",
         prettyNum(total_episodes, big.mark = ","),
         ", ",
-        "Median - ",
+        "Median: ",
         prettyNum(round(median_episodes), big.mark = ","),
-        " ",
-        "Mean - ",
+        ", ",
+        "Mean: ",
         prettyNum(round(mean_episodes, 2), big.mark = ","),
         " ",
         finline_hist(max_episodes, n_bins = 7)
       )
     )
   }
-  if ("t_elapsed" %in% names(x)){
+  if ("t_elapsed" %in% names(x) && "ep_id_new" %in% names(x)){
     counts <- fn(x[["ep_id_new"]], g = GRPS, use.g.names = FALSE)
     ## Elapsed time between events (weighted by group counts)
     which_index <- cpp_which(x[["ep_id_new"]] == 1L)
@@ -342,20 +347,26 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
     if (length(pooled_elapsed) == 0){
       pooled_string <- "NaN"
       } else {
-        pooled_string <- time_by_pretty(
-          add_names(
-            list(
-              pooled_elapsed * time_by_num(attr(x, "time_by"))
-            ), time_by_unit(attr(x, "time_by"))
-          )
+        pretty_mean <- add_names(
+          list(
+            pooled_elapsed * time_by_num(attr(x, "time_by"))
+          ), time_by_unit(attr(x, "time_by"))
         )
+        if (is.null(names(pretty_mean))){
+          pooled_string <- "NA"
+        } else {
+          pooled_string <- time_by_pretty(pretty_mean)
+        }
       }
     elapsed_header <- c(
       "Time b/w events" = paste0(
-        "Pooled mean  -  ",
+        "Pooled mean: ",
         pooled_string
       )
     )
+  }
+  if (!is.null(attr(x, "threshold"))){
+    threshold_header <- c("Threshold" = time_by_pretty(attr(x, "threshold")))
   }
   num_row <- prettyNum(df_nrow(x), big.mark = ",")
   num_col <- prettyNum(df_ncol(x), big.mark = ",")
@@ -363,7 +374,8 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
   c(tbl_header,
     groups_header,
     episodes_header,
-    elapsed_header)
+    elapsed_header,
+    threshold_header)
 }
 # tbl_sum.episodes_tbl_df <- function(x, ...){
 #   # TO-DO: Add avg events per episode
@@ -524,7 +536,7 @@ set_calc_episodes <- function(data,
                   j = "ep_id_new",
                   value = fpluck(data, "ep_id")[g3_starts])
   data.table::set(data,
-                  i = cpp_which(is.na(fpluck(data, "ep_id"))),
+                  i = cpp_which_na(fpluck(data, "ep_id")),
                   j = "ep_id_new",
                   value = NA_integer_)
   # Add episode start dates

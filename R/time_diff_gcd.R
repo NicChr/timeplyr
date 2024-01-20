@@ -19,6 +19,8 @@
 #' using `digits = ceiling(abs(log10(tol)))` to try and avoid
 #' precision issues.
 #'
+#' @seealso [gcd_diff]
+#'
 #' @returns
 #' A double vector of length 1 or length 0 if `length(x)` is 0.
 #'
