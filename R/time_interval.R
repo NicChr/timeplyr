@@ -85,7 +85,7 @@
 #' time_interval(today(), today() + years(0:10)) / "milliseconds"
 #'
 #' # Cutting Sepal Length into blocks of width 1
-#' int <- time_aggregate(iris$Sepal.Length, time_by = 1)
+#' int <- time_aggregate(iris$Sepal.Length, time_by = 1, as_interval = TRUE)
 #' int %>%
 #'   interval_count()
 #' reset_timeplyr_options()
@@ -180,7 +180,7 @@ funique.vctrs_rcrd <- function(x, sort = FALSE, method = "auto",
                                  decreasing = FALSE, na.last = TRUE, ...){
   cl <- class(x)
   out <- collapse::funique(unclass(x), sort = sort, method = method,
-                                   decreasing = decreasing, na.last = na.last)
+                           decreasing = decreasing, na.last = na.last)
   class(out) <- cl
   out
 }

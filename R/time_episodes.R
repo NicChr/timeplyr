@@ -131,6 +131,24 @@
 #'   mutate(date = as_date(time_hour)) %>%
 #'   group_by(origin, dest) %>%
 #'   time_episodes(date, time_by = "week", window = 1)
+#'
+#' # The pooled average time between flights of a specific origin and destination
+#' # is ~ 5.2 hours
+#' # This average is a weighted average of average time between events
+#' # Weighted by the frequency of origin-destination groups (pairs)
+#'
+#' # It can be calculated like so:
+#' # flights %>%
+#' #   arrange(origin, dest, time_hour) %>%
+#' #   group_by(origin, dest) %>%
+#' #   mutate(time_diff = time_diff(lag(time_hour), time_hour, "hours")) %>%
+#' #   summarise(n = n(),
+#' #             mean = mean(time_diff, na.rm = TRUE)) %>%
+#' #   ungroup() %>%
+#' #   summarise(pooled_mean = weighted.mean(mean, n, na.rm = TRUE))
+#'
+#' events
+#'
 #' episodes <- events %>%
 #'   filter(ep_id_new > 1)
 #' nrow(fdistinct(episodes, origin, dest)) # 55 origin-destinations
@@ -139,8 +157,8 @@
 #' # dry-periods
 #' episodes %>%
 #'   ungroup() %>%
-#'   time_count(time = ep_start, time_by = "week", time_floor = TRUE) %>%
-#'   mutate(ep_start = interval_start(ep_start_intv)) %>%
+#'   time_count(time = ep_start, time_by = "week", time_floor = TRUE,
+#'              .name = "ep_start") %>%
 #'   ggplot(aes(x = ep_start, y = n)) +
 #'   geom_bar(stat = "identity")
 #' \dontshow{

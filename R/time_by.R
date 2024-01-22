@@ -49,6 +49,9 @@
 #' group-by-group basis (the default), or should the time variable be aggregated
 #' using the full data? If done by group, different groups may contain
 #' different time sequences. This only applies when `.add = TRUE`.
+#' @param as_interval Should time variable be a `time_interval`?
+#' Default is `FALSE`. \cr
+#' This can be controlled globally through `options(timeplyr.use_intervals)`.
 #' @param x A `time_tbl_df`.
 #'
 #' @returns
@@ -106,6 +109,7 @@ time_by <- function(data, time, time_by_unit = NULL,
                     week_start = getOption("lubridate.week.start", 1),
                     roll_month = getOption("timeplyr.roll_month", "preday"),
                     roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                    as_interval = getOption("timeplyr.use_intervals", FALSE),
                     .time_by_group = TRUE){
   check_is_df(data)
   data_nms <- names(data)
@@ -150,16 +154,23 @@ time_by <- function(data, time, time_by_unit = NULL,
                                 .by = all_of(time_span_groups))
     # Aggregate time data
     time_agg <- time_aggregate_left(out[[time_var]],
-                                     time_by = time_by,
-                                     start = fpluck(from_to_list, 1L),
-                                     end = fpluck(from_to_list, 2L),
-                                     g = time_span_GRP,
-                                     time_type = time_type,
-                                     roll_month = roll_month,
-                                     roll_dst = roll_dst,
-                                     time_floor = time_floor,
-                                     week_start = week_start)
-    time_span_start <- collapse::fmin(interval_start(time_agg), g = time_span_GRP,
+                                    time_by = time_by,
+                                    start = fpluck(from_to_list, 1L),
+                                    end = fpluck(from_to_list, 2L),
+                                    g = time_span_GRP,
+                                    time_type = time_type,
+                                    roll_month = roll_month,
+                                    roll_dst = roll_dst,
+                                    time_floor = time_floor,
+                                    week_start = week_start,
+                                    as_interval = as_interval)
+    if (as_interval){
+      time_start <- interval_start(time_agg)
+    } else {
+      time_start <- time_agg
+    }
+    time_span_start <- collapse::fmin(time_start,
+                                      g = time_span_GRP,
                                       use.g.names = FALSE)
     time_span_end <- collapse::fmax(out[[time_var]], g = time_span_GRP,
                                     use.g.names = FALSE)
@@ -174,7 +185,7 @@ time_by <- function(data, time, time_by_unit = NULL,
     }
     time_span$start <- time_span_start
     time_span$end <- time_span_end
-    num_gaps <- time_num_gaps(interval_start(out[[time_var]]),
+    num_gaps <- time_num_gaps(time_start,
                               time_by = time_by,
                               time_type = time_type,
                               g = g, use.g.names = FALSE,

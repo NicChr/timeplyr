@@ -9,18 +9,19 @@ testthat::test_that("General tests", {
                               tz = "Europe/London")
   end <- start + lubridate::ddays(10)
   testthat::expect_equal(flights,
-                         flights %>% time_mutate(time_hour))
+                         flights %>% time_mutate(time_hour, .name = "time_hour"))
   df1 <- flights %>% time_mutate(time = time_hour,
-                                 include_interval = FALSE,
                                  time_by = "week",
                                  .by = dplyr::all_of(c("origin", "dest", "tailnum")),
                                  time_type = "duration",
-                                 .keep = "none") %>%
+                                 .keep = "none",
+                                 .name = "time_hour") %>%
     fcount(origin, dest, tailnum, time_hour)
 
   df2 <- flights %>%
-    time_count(time = time_hour, time_by = "week", .by =
-                 dplyr::all_of(c("origin", "dest", "tailnum")),
+    time_count(time = time_hour, time_by = "week",
+               .name = "time_hour",
+               .by = dplyr::all_of(c("origin", "dest", "tailnum")),
                time_type = "duration") %>%
     dplyr::filter(.data[["n"]] > 0)
   testthat::expect_equal(df_nrow(dplyr::anti_join(df1, df2)), 0)
@@ -31,7 +32,8 @@ testthat::test_that("General tests", {
     flights2 %>%
       time_mutate(time = time_hour,
                 time_by = "week",
-                from = start) %>%
+                from = start,
+                .name = "time_hour") %>%
       dplyr::pull(time_hour),
     time_summarisev(flights2$time_hour,
                     time_by = "week",
@@ -42,7 +44,8 @@ testthat::test_that("General tests", {
       time_mutate(time = time_hour,
                   time_by = "week",
                   time_type = "period",
-                  .by = c(origin, dest)) %>%
+                  .by = c(origin, dest),
+                  .name = "time_hour") %>%
       dplyr::pull(time_hour),
     flights2 %>%
       dplyr::mutate(time_hour = time_summarisev(time_hour,
@@ -56,7 +59,8 @@ testthat::test_that("General tests", {
       time_mutate(time = time_hour,
                   time_by = "week",
                   .by = c(origin, dest),
-                  time_type = "duration") %>%
+                  time_type = "duration",
+                  .name = "time_hour") %>%
       dplyr::pull(time_hour),
     flights2 %>%
       dplyr::mutate(time_hour = time_summarisev(time_hour,

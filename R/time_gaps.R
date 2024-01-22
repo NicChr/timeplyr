@@ -86,7 +86,7 @@ time_gaps <- function(x, time_by = NULL,
   time_tbl <- fenframe(x,
                        name = "group",
                        value = "time")
-  time_not_na <- cpp_which(is.na(time_tbl[["time"]]), invert = TRUE)
+  time_not_na <- cpp_which_not_na(time_tbl[["time"]])
   time_tbl <- df_row_slice(time_tbl, time_not_na)
   time_full_tbl <- fenframe(time_seq,
                             name = "group",

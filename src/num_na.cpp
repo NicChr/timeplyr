@@ -175,23 +175,27 @@ SEXP cpp_num_na(SEXP x){
     if (n >= 100000){
       #pragma omp parallel for simd num_threads(num_cores()) reduction(+:count)
       for (R_xlen_t i = 0; i < n; ++i){
-        count = count +
-          ( !((p_x[i]).r == (p_x[i]).r) ) ||
-          ( !((p_x[i]).i == (p_x[i]).i) );
+        count = count + ( ((p_x[i]).r != (p_x[i]).r) || ((p_x[i]).i != (p_x[i]).i) );
       }
     } else {
       for (R_xlen_t i = 0; i < n; ++i){
-        count = count +
-          ( !((p_x[i]).r == (p_x[i]).r) ) ||
-          ( !((p_x[i]).i == (p_x[i]).i) );
+        count = count + ( ((p_x[i]).r != (p_x[i]).r) || ((p_x[i]).i != (p_x[i]).i) );
       }
     }
     break;
   }
   case VECSXP: {
+    // It would be simpler to use sum(cpp_empty_row())
+    // As shown below..
+    // Though we can optimise on this counting the number of empty rows
+    // at the same time as checking the last col for NAs
+    // Start
+    // R_xlen_t num_row = cpp_vector_size(x);
     // SEXP is_empty = Rf_protect(cpp_empty_row(x));
+    // int *p_is_empty = LOGICAL(is_empty);
     // ++n_protections;
-    // count = r_sum(is_empty, false);
+    // count = count_true(p_is_empty, num_row);
+    // End
     const SEXP *p_x = VECTOR_PTR_RO(x);
     int num_col = Rf_length(x);
     R_xlen_t num_row = cpp_vector_size(x);
@@ -247,9 +251,7 @@ SEXP cpp_num_na(SEXP x){
         Rcomplex *p_xj = COMPLEX(p_x[j]);
 #pragma omp parallel for simd num_threads(num_cores())
         for (R_xlen_t i = 0; i < num_row; ++i){
-          p_n_nas[i] = p_n_nas[i] +
-            ( !((p_xj[i]).r == (p_xj[i]).r) ) ||
-            ( !((p_xj[i]).i == (p_xj[i]).i) );
+          p_n_nas[i] = p_n_nas[i] + ( ((p_xj[i]).r != (p_xj[i]).r) || ((p_xj[i]).i != (p_xj[i]).i) );
         }
         break;
       }
@@ -291,9 +293,7 @@ SEXP cpp_num_na(SEXP x){
       Rcomplex *p_xj = COMPLEX(p_x[num_col - 1]);
 #pragma omp parallel for simd num_threads(num_cores()) reduction(+:count)
       for (R_xlen_t i = 0; i < num_row; ++i){
-        p_n_nas[i] = p_n_nas[i] +
-          ( !((p_xj[i]).r == (p_xj[i]).r) ) ||
-          ( !((p_xj[i]).i == (p_xj[i]).i) );
+        p_n_nas[i] = p_n_nas[i] + ( ((p_xj[i]).r != (p_xj[i]).r) || ((p_xj[i]).i != (p_xj[i]).i) );
         count = count + (p_n_nas[i] == num_col);
       }
       break;
@@ -430,8 +430,7 @@ SEXP cpp_which_na(SEXP x){
       int i = 0;
       while (whichi < count){
         p_out[whichi] = i + 1;
-        whichi += ( !((p_x[i]).r == (p_x[i]).r) ) ||
-          ( !((p_x[i]).i == (p_x[i]).i) );
+        whichi += ( ( !((p_x[i]).r == (p_x[i]).r) ) || ( !((p_x[i]).i == (p_x[i]).i) ) );
         ++i;
       }
       Rf_unprotect(2);
@@ -443,8 +442,7 @@ SEXP cpp_which_na(SEXP x){
       R_xlen_t i = 0;
       while (whichi < count){
         p_out[whichi] = i + 1;
-        whichi += ( !((p_x[i]).r == (p_x[i]).r) ) ||
-          ( !((p_x[i]).i == (p_x[i]).i) );
+        whichi += ( ( !((p_x[i]).r == (p_x[i]).r) ) || ( !((p_x[i]).i == (p_x[i]).i) ) );
         ++i;
       }
       Rf_unprotect(2);
@@ -578,7 +576,7 @@ SEXP cpp_which_not_na(SEXP x){
     SEXP out = Rf_protect(Rf_allocVector(REALSXP, n));
     double *p_out = REAL(out);
     for (R_xlen_t i = 0; i < n; ++i){
-      p_out[i] = i + 1.0;
+      p_out[i] = i + 1;
     }
     Rf_unprotect(1);
     return out;
@@ -595,8 +593,7 @@ SEXP cpp_which_not_na(SEXP x){
       int i = 0;
       while (whichi < out_size){
         p_out[whichi] = i + 1;
-        whichi += ( ((p_x[i]).r == (p_x[i]).r) ) &&
-          ( ((p_x[i]).i == (p_x[i]).i) );
+        whichi += ( ( ((p_x[i]).r == (p_x[i]).r) ) && ( ((p_x[i]).i == (p_x[i]).i) ) );
         ++i;
       }
       Rf_unprotect(2);
@@ -608,8 +605,7 @@ SEXP cpp_which_not_na(SEXP x){
       R_xlen_t i = 0;
       while (whichi < out_size){
         p_out[whichi] = i + 1;
-        whichi += ( ((p_x[i]).r == (p_x[i]).r) ) &&
-          ( ((p_x[i]).i == (p_x[i]).i) );
+        whichi += ( ( ((p_x[i]).r == (p_x[i]).r) ) && ( ((p_x[i]).i == (p_x[i]).i) ) );
         ++i;
       }
       Rf_unprotect(2);

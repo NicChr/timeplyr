@@ -36,5 +36,6 @@ double r_sum(SEXP x, bool na_rm);
 double r_min(SEXP x);
 int num_cores();
 SEXP cpp_which_(SEXP x, bool invert);
+R_xlen_t count_true(int *px, R_xlen_t n);
 
 #endif

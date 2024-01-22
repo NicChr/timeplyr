@@ -77,8 +77,7 @@
 #' # Confirm this has been done by group as each group will have a
 #' # Different aggregate start date
 #' flights %>%
-#'   mutate(week_start = interval_start(week_by_tailnum)) %>%
-#'   stat_summarise(week_start, .by = tailnum, stat = "min",
+#'   stat_summarise(week_by_tailnum, .by = tailnum, stat = "min",
 #'                  sort = FALSE)
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)

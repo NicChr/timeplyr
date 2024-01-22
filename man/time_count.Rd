@@ -22,7 +22,7 @@ time_count(
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
   roll_dst = getOption("timeplyr.roll_dst", "boundary"),
-  include_interval = FALSE
+  as_interval = getOption("timeplyr.use_intervals", FALSE)
 )
 }
 \arguments{
@@ -96,10 +96,9 @@ See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
 
-\item{include_interval}{Logical. If \code{TRUE} then
-a column "interval" of the form \verb{time_min <= x < time_max} is added
-showing the time interval in which the respective counts belong to.
-The rightmost interval will always be closed.}
+\item{as_interval}{Should time variable be a \code{time_interval}?
+Default is \code{FALSE}. \cr
+This can be controlled globally through \code{options(timeplyr.use_intervals)}.}
 }
 \value{
 An object of class \code{data.frame}
@@ -147,7 +146,7 @@ df \%>\%
   time_count(time = date, time_by = list("months" = 3),
              from = dmy("15-01-2013"),
              time_floor = TRUE,
-             include_interval = TRUE)
+             as_interval = TRUE)
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

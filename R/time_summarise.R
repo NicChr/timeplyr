@@ -27,10 +27,9 @@
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations`
 #' are used otherwise.
-#' @param include_interval Logical. If `TRUE` then
-#' a column "interval" of the form `time_min <= x < time_max` is added
-#' showing the time interval in which the respective counts belong to.
-#' The rightmost interval will always be closed.
+#' @param as_interval Should time variable be a `time_interval`?
+#' Default is `FALSE`. \cr
+#' This can be controlled globally through `options(timeplyr.use_intervals)`.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
 #' @param time_floor Should `from` be floored to the nearest unit
@@ -70,7 +69,8 @@
 #'   mutate(date = as_date(time_hour)) %>%
 #'   time_summarise(mean_arr_time = mean(arr_time, na.rm = TRUE),
 #'                  time = date,
-#'                  time_by = "month")
+#'                  time_by = "month",
+#'                  .name = "month", as_interval = TRUE)
 #' # Example of monthly summary using zoo's yearmon
 #' \donttest{
 #' flights %>%
@@ -89,12 +89,12 @@ time_summarise <- function(data, time = NULL, ..., time_by = NULL,
                            from = NULL, to = NULL,
                            .name = "{.col}_intv",
                            time_type = getOption("timeplyr.time_type", "auto"),
-                           include_interval = FALSE,
                            .by = NULL,
                            time_floor = FALSE,
                            week_start = getOption("lubridate.week.start", 1),
                            roll_month = getOption("timeplyr.roll_month", "preday"),
                            roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                           as_interval = getOption("timeplyr.use_intervals", FALSE),
                            sort = TRUE){
   check_is_df(data)
   group_vars <- get_groups(data, {{ .by }})
@@ -148,7 +148,8 @@ time_summarise <- function(data, time = NULL, ..., time_by = NULL,
                                     roll_month = roll_month,
                                     roll_dst = roll_dst,
                                     time_floor = time_floor,
-                                    week_start = week_start)
+                                    week_start = week_start,
+                                    as_interval = as_interval)
     time_var <- across_col_names(time_var, .fns = "", .names = .name)
     temp_data <- df_add_cols(temp_data,
                              add_names(

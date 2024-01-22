@@ -22,7 +22,7 @@
 #' @seealso [gcd_diff]
 #'
 #' @returns
-#' A double vector of length 1 or length 0 if `length(x)` is 0.
+#' A list of length 1.
 #'
 #' @examples
 #' library(timeplyr)
@@ -34,10 +34,13 @@
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
-#' time_diff_gcd(1:10)
-#' time_diff_gcd(seq(0, 1, 0.2))
+#' gcd_diff(1:10)
+#' gcd_diff(seq(0, 1, 0.2))
 #'
-#' time_diff_gcd(time_seq(today(), today() + 100, time_by = "3 days"))
+#' gcd_diff(time_seq(today(), today() + 100, time_by = "3 days"))
+#' time_diff_gcd(time_seq(today(), today() + 100, time_by = "3 days"),
+#'               time_by = "days")
+#'
 #' time_diff_gcd(time_seq(now(), len = 10^2, time_by = "125 seconds"))
 #'
 #' # Monthly gcd using lubridate periods
@@ -46,7 +49,7 @@
 #' time_diff_gcd(quarter_seq, time_by = "months", time_type = "duration")
 #'
 #' # Detects monthly granularity
-#' double_equal(time_diff_gcd(as.vector(time(AirPassengers))), 1/12)
+#' double_equal(gcd_diff(as.vector(time(AirPassengers))), 1/12)
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
@@ -65,6 +68,7 @@ time_diff_gcd <- function(x, time_by = 1,
       (length(x) == 2 && is.na(x[1L]))){
     return(1)
   }
+  time_by <- time_by_get(x, time_by = time_by)
   tdiff <- time_elapsed(x, rolling = FALSE,
                         time_by = time_by,
                         time_type = time_type,
@@ -75,7 +79,8 @@ time_diff_gcd <- function(x, time_by = 1,
   if (is.double(tdiff)){
     tdiff <- round(abs(tdiff), digits = log10_tol + 1)
   }
-  gcd(tdiff, tol = tol, na_rm = TRUE, round = FALSE)
+  gcd <- gcd(tdiff, tol = tol, na_rm = TRUE, round = FALSE)
+  add_names(list(time_by_num(time_by) * gcd), time_by_unit(time_by))
 }
 
 # Previous method

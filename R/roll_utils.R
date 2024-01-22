@@ -32,12 +32,15 @@ flag2 <- function(x, n = 1L, g = NULL, fill = NULL){
       return(cpp_roll_lag(x, n, fill))
     }
   }
-  o <- radixorderv2(g, starts = FALSE, sort = FALSE, group.sizes = TRUE)
-  if (is_GRP(g)){
-    sizes <- GRP_group_sizes(g)
-  } else {
-    sizes <- attr(o, "group.sizes")
-  }
+  # o <- radixorderv2(g, starts = FALSE, sort = FALSE, group.sizes = TRUE)
+  # if (is_GRP(g)){
+  #   sizes <- GRP_group_sizes(g)
+  # } else {
+  #   sizes <- attr(o, "group.sizes")
+  # }
+  order_and_counts <- group_order_and_counts(g)
+  o <- order_and_counts[[1L]]
+  sizes <- order_and_counts[[2L]]
   if (n >= 0){
     cpp_roll_lag_grouped(x, n, o, sizes, fill)
   } else {
@@ -51,12 +54,9 @@ fdiff2 <- function(x, n = 1L, g = NULL, fill = NULL){
   }
   check_length(n, 1)
   n <- as.integer(n)
-  o <- radixorderv2(g, starts = FALSE, sort = FALSE, group.sizes = TRUE)
-  if (is_GRP(g)){
-    sizes <- GRP_group_sizes(g)
-  } else {
-    sizes <- attr(o, "group.sizes")
-  }
+  order_and_counts <- group_order_and_counts(g)
+  o <- order_and_counts[[1L]]
+  sizes <- order_and_counts[[2L]]
   if (is.null(g)){
     cpp_roll_diff(x, k = n, fill = fill)
   } else {

@@ -95,7 +95,7 @@ time_interval(today(), today() + years(0:10)) / "seconds"
 time_interval(today(), today() + years(0:10)) / "milliseconds"
 
 # Cutting Sepal Length into blocks of width 1
-int <- time_aggregate(iris$Sepal.Length, time_by = 1)
+int <- time_aggregate(iris$Sepal.Length, time_by = 1, as_interval = TRUE)
 int \%>\%
   interval_count()
 reset_timeplyr_options()

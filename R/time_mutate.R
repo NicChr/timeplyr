@@ -27,7 +27,9 @@
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations`
 #' are used otherwise.
-#' @param include_interval \bold{Deprecated}. No longer used.
+#' @param as_interval Should time variable be a `time_interval`?
+#' Default is `FALSE`. \cr
+#' This can be controlled globally through `options(timeplyr.use_intervals)`.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
 #' @param .keep Control which columns are retained.
@@ -75,13 +77,13 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
                         from = NULL, to = NULL,
                         .name = "{.col}_intv",
                         time_type = getOption("timeplyr.time_type", "auto"),
-                        include_interval = FALSE,
                         .by = NULL,
                         .keep = c("all", "used", "unused", "none"),
                         time_floor = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
                         roll_month = getOption("timeplyr.roll_month", "preday"),
-                        roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                        roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                        as_interval = getOption("timeplyr.use_intervals", FALSE)){
   check_is_df(data)
   has_groups <- length(group_vars(data)) > 0
   group_vars <- get_groups(data, {{ .by }})
@@ -134,7 +136,8 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
                                     roll_month = roll_month,
                                     roll_dst = roll_dst,
                                     time_floor = time_floor,
-                                    week_start = week_start)
+                                    week_start = week_start,
+                                    as_interval = as_interval)
     time_agg_var <- across_col_names(time_var, .fns = "", .names = .name)
     out <- df_add_cols(
       out, add_names(

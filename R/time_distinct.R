@@ -25,10 +25,9 @@
 #' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations` are used otherwise.
-#' @param include_interval Logical. If `TRUE` then
-#' a column "interval" of the form `time_min <= x < time_max` is added
-#' showing the time interval in which the respective counts belong to.
-#' The rightmost interval will always be closed.
+#' @param as_interval Should time variable be a `time_interval`?
+#' Default is `FALSE`. \cr
+#' This can be controlled globally through `options(timeplyr.use_intervals)`.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
 #' @param time_floor Should `from` be floored to the nearest unit
@@ -46,6 +45,9 @@
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
 #' @param sort Should the result be sorted? Default is `TRUE`.
 #' If `FALSE` then original (input) order is kept.
+#' @param .name An optional glue specification passed to `stringr::glue()`
+#' which can be used to concatenate
+#' strings to the time column name or replace it.
 #'
 #' @returns
 #' A `data.frame` of distinct aggregate time values across groups.
@@ -56,12 +58,12 @@ time_distinct <- function(data, time = NULL, ..., time_by = NULL,
                           .name = "{.col}_intv",
                           .keep_all = FALSE,
                           time_type = getOption("timeplyr.time_type", "auto"),
-                          include_interval = FALSE,
                           .by = NULL,
                           time_floor = FALSE,
                           week_start = getOption("lubridate.week.start", 1),
                           roll_month = getOption("timeplyr.roll_month", "preday"),
                           roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                          as_interval = getOption("timeplyr.use_intervals", FALSE),
                           sort = FALSE){
   check_is_df(data)
   group_vars <- get_groups(data, {{ .by }})
@@ -115,7 +117,8 @@ time_distinct <- function(data, time = NULL, ..., time_by = NULL,
                                     roll_month = roll_month,
                                     roll_dst = roll_dst,
                                     time_floor = time_floor,
-                                    week_start = week_start)
+                                    week_start = week_start,
+                                    as_interval = as_interval)
     time_var <- across_col_names(time_var, .fns = "", .names = .name)
     temp_data <- df_add_cols(temp_data,
                              add_names(
@@ -124,9 +127,10 @@ time_distinct <- function(data, time = NULL, ..., time_by = NULL,
     )
   }
   temp_data <- df_rm_cols(temp_data, grp_nm)
-  fdistinct(safe_ungroup(temp_data),
-            across(dplyr::any_of(c(group_vars, time_var))),
-            ...,
-            .keep_all = .keep_all,
-            sort = sort)
+  out <- fdistinct(safe_ungroup(temp_data),
+                   across(dplyr::any_of(c(group_vars, time_var))),
+                   ...,
+                   .keep_all = .keep_all,
+                   sort = sort)
+  df_reconstruct(out, data)
 }

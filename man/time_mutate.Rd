@@ -13,13 +13,13 @@ time_mutate(
   to = NULL,
   .name = "{.col}_intv",
   time_type = getOption("timeplyr.time_type", "auto"),
-  include_interval = FALSE,
   .by = NULL,
   .keep = c("all", "used", "unused", "none"),
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary")
+  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+  as_interval = getOption("timeplyr.use_intervals", FALSE)
 )
 }
 \arguments{
@@ -55,8 +55,6 @@ the time expansion when days, weeks, months or years are specified,
 and \code{durations}
 are used otherwise.}
 
-\item{include_interval}{\bold{Deprecated}. No longer used.}
-
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
 
@@ -78,6 +76,10 @@ Options are "preday", "boundary", "postday", "full" and "NA".
 See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
+
+\item{as_interval}{Should time variable be a \code{time_interval}?
+Default is \code{FALSE}. \cr
+This can be controlled globally through \code{options(timeplyr.use_intervals)}.}
 }
 \value{
 A \code{data.frame} with added columns.

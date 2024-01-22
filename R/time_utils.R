@@ -173,14 +173,18 @@ time_interval2 <- function(from, to){
   }
   out
 }
-time_granularity <- function(x, msg = TRUE){
+gcd_time_diff <- function(x){
   x <- collapse::funique(x)
   if (length(x) <= 1){
-    gcd_diff <- 1L
+    out <- 1L
   } else {
-    gcd_diff <- abs(gcd_diff(x))
+    out <- abs(gcd_diff(x))
   }
-  gcd_diff[is.na(gcd_diff)] <- 1
+  out[is.na(out)] <- 1L
+  out
+}
+time_granularity <- function(x, msg = TRUE){
+  gcd_diff <- gcd_time_diff(x)
   if (is_date(x)){
     granularity <- "day(s)"
     scale <- 1L
@@ -213,13 +217,7 @@ time_granularity <- function(x, msg = TRUE){
 }
 # A more focused version
 time_granularity2 <- function(x){
-  x <- collapse::funique(x)
-  if (length(x) <= 1){
-    gcd_diff <- 1L
-  } else {
-    gcd_diff <- abs(gcd_diff(x))
-  }
-  gcd_diff[is.na(gcd_diff)] <- 1
+  gcd_diff <- gcd_time_diff(x)
   if (is_date(x)){
     unit <- "days"
     scale <- 1
@@ -987,7 +985,8 @@ time_aggregate_left <- function(x, time_by, g = NULL,
                                 week_start = getOption("lubridate.week.start", 1),
                                 time_type = getOption("timeplyr.time_type", "auto"),
                                 roll_month = getOption("timeplyr.roll_month", "preday"),
-                                roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                                roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                                as_interval = getOption("timeplyr.use_intervals", FALSE)){
   time_by <- time_by_list(time_by)
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
@@ -1019,10 +1018,13 @@ time_aggregate_left <- function(x, time_by, g = NULL,
   time_to_add <- add_names(list(trunc2(tdiff) * num), units)
   out <- time_add2(start, time_by = time_to_add, time_type = time_type,
                    roll_month = roll_month, roll_dst = roll_dst)
-  time_by_interval(out, time_by = time_by,
-                   time_type = time_type,
-                   roll_month = roll_month,
-                   roll_dst = roll_dst)
+  if (as_interval){
+    out <- time_by_interval(out, time_by = time_by,
+                            time_type = time_type,
+                            roll_month = roll_month,
+                            roll_dst = roll_dst)
+  }
+  out
 }
 # time_aggregate_left <- function(x, time_by, g = NULL,
 #                                 start = NULL, end = NULL,

@@ -14,12 +14,12 @@ time_distinct(
   .name = "{.col}_intv",
   .keep_all = FALSE,
   time_type = getOption("timeplyr.time_type", "auto"),
-  include_interval = FALSE,
   .by = NULL,
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = getOption("timeplyr.roll_month", "preday"),
   roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+  as_interval = getOption("timeplyr.use_intervals", FALSE),
   sort = FALSE
 )
 }
@@ -47,17 +47,16 @@ then arithmetic is used, e.g \code{time_by = 1}.
 
 \item{to}{Time series end date.}
 
+\item{.name}{An optional glue specification passed to \code{stringr::glue()}
+which can be used to concatenate
+strings to the time column name or replace it.}
+
 \item{.keep_all}{If \code{TRUE} then all columns of data frame are kept,
 default is \code{FALSE}.}
 
 \item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks, months or years are specified,
 and \code{durations} are used otherwise.}
-
-\item{include_interval}{Logical. If \code{TRUE} then
-a column "interval" of the form \verb{time_min <= x < time_max} is added
-showing the time interval in which the respective counts belong to.
-The rightmost interval will always be closed.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
@@ -78,6 +77,10 @@ Options are "preday", "boundary", "postday", "full" and "NA".
 See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
+
+\item{as_interval}{Should time variable be a \code{time_interval}?
+Default is \code{FALSE}. \cr
+This can be controlled globally through \code{options(timeplyr.use_intervals)}.}
 
 \item{sort}{Should the result be sorted? Default is \code{TRUE}.
 If \code{FALSE} then original (input) order is kept.}

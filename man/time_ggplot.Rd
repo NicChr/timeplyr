@@ -72,16 +72,17 @@ ebola <- outbreaks::ebola_sim$linelist
 # We can build a helper to count and complete
 # Using the same time grid
 
-count_and_complete <- function(.data, time, ...,
+count_and_complete <- function(.data, time, .name, ...,
                                time_by = NULL, time_floor = TRUE){
   .data \%>\%
     time_count(!!dplyr::enquo(time), ..., time_by = time_by,
-               time_floor = time_floor) \%>\%
-    time_complete(!!dplyr::enquo(time), ..., time_by = time_by,
+               time_floor = time_floor,
+               .name = .name) \%>\%
+    time_complete(.data[[.name]], ..., time_by = time_by,
                   time_floor = time_floor, fill = list(n = 0))
 }
 ebola \%>\%
-  count_and_complete(date_of_onset, outcome, time_by = "week") \%>\%
+  count_and_complete(date_of_onset, outcome, time_by = "week", .name = "date_of_onset") \%>\%
   time_ggplot(date_of_onset, n, geom = geom_blank) +
   geom_col(aes(fill = outcome))
 \dontshow{

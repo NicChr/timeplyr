@@ -822,6 +822,22 @@ new_GRP <- function(N.groups = NULL,
   class(out) <- "GRP"
   out
 }
+
+# A wrapper to grab the order and counts of groups
+# Specifically for the c++ rolling calculations
+group_order_and_counts <- function(g = NULL){
+  o <- radixorderv2(g, starts = FALSE, sort = FALSE, group.sizes = TRUE)
+  if (is_GRP(g)){
+    sizes <- GRP_group_sizes(g)
+    # Accounting for factors
+    if (collapse::anyv(sizes, 0L)){
+      sizes <- sizes[cpp_which(sizes > 0L)]
+    }
+  } else {
+    sizes <- attr(o, "group.sizes")
+  }
+  list(order = o, sizes = sizes)
+}
 # qg_to_GRP <- function(x){
 #  new_GRP(
 #    N.groups = attr(x, "N.groups"),

@@ -67,9 +67,8 @@ test_that("time cut", {
   tseq <- time_span(x, time_by = "hour")
   x_missed <- time_cast(setdiff(tseq, x), tseq)
 
-  res1 <- time_cut(x, n = 5, as_factor = FALSE)
-  expect_equal(res1,
-                             time_summarisev(x, time_by = list("months" = 3),
+  res1 <- time_cut(x, n = 5)
+  expect_equal(res1, time_summarisev(x, time_by = list("months" = 3),
                                              sort = FALSE, unique = FALSE))
   res2 <- time_cut(x, n = 5, time_by = "week",
                    from = start2, to = end1)

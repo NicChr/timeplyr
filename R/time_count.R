@@ -54,10 +54,9 @@
 #' Options are "preday", "boundary", "postday", "full" and "NA".
 #' See `?timechange::time_add` for more details.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
-#' @param include_interval Logical. If `TRUE` then
-#' a column "interval" of the form `time_min <= x < time_max` is added
-#' showing the time interval in which the respective counts belong to.
-#' The rightmost interval will always be closed.
+#' @param as_interval Should time variable be a `time_interval`?
+#' Default is `FALSE`. \cr
+#' This can be controlled globally through `options(timeplyr.use_intervals)`.
 #' @returns
 #' An object of class `data.frame`
 #' containing the aggregate time variable and corresponding counts.
@@ -99,7 +98,7 @@
 #'   time_count(time = date, time_by = list("months" = 3),
 #'              from = dmy("15-01-2013"),
 #'              time_floor = TRUE,
-#'              include_interval = TRUE)
+#'              as_interval = TRUE)
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
@@ -117,7 +116,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                        time_type = getOption("timeplyr.time_type", "auto"),
                        roll_month = getOption("timeplyr.roll_month", "preday"),
                        roll_dst = getOption("timeplyr.roll_dst", "boundary"),
-                       include_interval = FALSE){
+                       as_interval = getOption("timeplyr.use_intervals", FALSE)){
   original_groups <- get_groups(data, {{ .by }})
   by_groups <- tidy_select_pos(data, {{ .by }})
   # Determine common bounds
@@ -191,7 +190,8 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                                     roll_month = roll_month,
                                     roll_dst = roll_dst,
                                     time_floor = time_floor,
-                                    week_start = week_start)
+                                    week_start = week_start,
+                                    as_interval = as_interval)
     out <- df_add_cols(out, add_names(list(time_agg), time_agg_var))
     groups2 <- df_to_GRP(safe_ungroup(out), .cols = c(original_groups, time_agg_var, extra_groups))
     counts <- collapse::fsum(out[[n_nm]], g = groups2, use.g.names = FALSE, na.rm = FALSE)

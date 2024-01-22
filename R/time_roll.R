@@ -226,7 +226,7 @@ time_roll_sum <- function(x, window = Inf,
                                  gbreaks = sorted_g,
                                  right = close_left_boundary,
                                  codes = TRUE)
-  adj_window[collapse::whichNA(adj_window)] <- 0L
+  adj_window[cpp_which_na(adj_window)] <- 0L
   final_window <- naive_window - adj_window
   # if (lag != 0){
   #   x <- flag2(x, n = lag, g = sorted_g)
@@ -330,7 +330,7 @@ time_roll_mean <- function(x, window = Inf,
                                  gbreaks = sorted_g,
                                  right = close_left_boundary,
                                  codes = TRUE)
-  adj_window[collapse::whichNA(adj_window)] <- 0L
+  adj_window[cpp_which_na(adj_window)] <- 0L
   final_window <- naive_window - adj_window
   # if (lag != 0){
   #   x <- flag2(x, n = lag, g = sorted_g)
@@ -430,7 +430,7 @@ time_roll_growth_rate <- function(x, window = Inf,
                                  gbreaks = sorted_g,
                                  right = close_left_boundary,
                                  codes = TRUE)
-  adj_window[collapse::whichNA(adj_window)] <- 0L
+  adj_window[cpp_which_na(adj_window)] <- 0L
   final_window <- naive_window - adj_window
   if (is.null(time_step)){
     # Check first for gaps in time
@@ -573,7 +573,7 @@ time_roll_window_size <- function(time, window = Inf,
                               gbreaks = g,
                               right = close_left_boundary,
                               codes = TRUE)
-    which_na <- collapse::whichNA(adj_window)
+    which_na <- cpp_which_na(adj_window)
     adj_window[which_na] <- 0L
     out <- naive_window - adj_window
   }

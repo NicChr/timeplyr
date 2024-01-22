@@ -13,12 +13,12 @@ time_summarise(
   to = NULL,
   .name = "{.col}_intv",
   time_type = getOption("timeplyr.time_type", "auto"),
-  include_interval = FALSE,
   .by = NULL,
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = getOption("timeplyr.roll_month", "preday"),
   roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+  as_interval = getOption("timeplyr.use_intervals", FALSE),
   sort = TRUE
 )
 }
@@ -55,11 +55,6 @@ the time expansion when days, weeks, months or years are specified,
 and \code{durations}
 are used otherwise.}
 
-\item{include_interval}{Logical. If \code{TRUE} then
-a column "interval" of the form \verb{time_min <= x < time_max} is added
-showing the time interval in which the respective counts belong to.
-The rightmost interval will always be closed.}
-
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
 
@@ -79,6 +74,10 @@ Options are "preday", "boundary", "postday", "full" and "NA".
 See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
+
+\item{as_interval}{Should time variable be a \code{time_interval}?
+Default is \code{FALSE}. \cr
+This can be controlled globally through \code{options(timeplyr.use_intervals)}.}
 
 \item{sort}{Should the result be sorted? Default is \code{TRUE}.
 If \code{FALSE} then original (input) order is kept.
@@ -109,7 +108,8 @@ flights \%>\%
   mutate(date = as_date(time_hour)) \%>\%
   time_summarise(mean_arr_time = mean(arr_time, na.rm = TRUE),
                  time = date,
-                 time_by = "month")
+                 time_by = "month",
+                 .name = "month", as_interval = TRUE)
 # Example of monthly summary using zoo's yearmon
 \donttest{
 flights \%>\%

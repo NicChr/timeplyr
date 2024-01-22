@@ -5,8 +5,9 @@
         switch_on_boundary = TRUE) %>% farrange(time)
     Output
       # A tibble:        15 x 5
-      # Episodes:        5, Median - 5 Mean - 5 ▁▁▁▇▁▁▁
-      # Time b/w events: Pooled mean - ~1.86 numeric units
+      # Episodes:        N: 5, Median: 5, Mean: 5 ▁▁▁▇▁▁▁
+      # Time b/w events: Pooled mean: ~1.86 numeric units
+      # Threshold:       3 numeric units
          time       t_elapsed ep_start   ep_id ep_id_new
          <date>         <dbl> <date>     <int>     <int>
        1 1970-01-04         0 1970-01-04     1         1
@@ -32,8 +33,9 @@
         switch_on_boundary = FALSE) %>% farrange(time)
     Output
       # A tibble:        15 x 6
-      # Episodes:        3, Median - 3 Mean - 3 ▁▁▁▇▁▁▁
-      # Time b/w events: Pooled mean - ~1.86 numeric units
+      # Episodes:        N: 3, Median: 3, Mean: 3 ▁▁▁▇▁▁▁
+      # Time b/w events: Pooled mean: ~1.86 numeric units
+      # Threshold:       3 numeric units
          time       event t_elapsed ep_start   ep_id ep_id_new
          <date>     <chr>     <dbl> <date>     <int>     <int>
        1 1970-01-04 e             0 1970-01-04     1         1
@@ -59,8 +61,9 @@
         switch_on_boundary = TRUE, event = list(event = "e")) %>% farrange(time)
     Output
       # A tibble:        15 x 6
-      # Episodes:        4, Median - 4 Mean - 4 ▁▁▁▇▁▁▁
-      # Time b/w events: Pooled mean - 3 numeric units
+      # Episodes:        N: 4, Median: 4, Mean: 4 ▁▁▁▇▁▁▁
+      # Time b/w events: Pooled mean: 3 numeric units
+      # Threshold:       3 numeric units
          time       event t_elapsed ep_start   ep_id ep_id_new
          <date>     <chr>     <dbl> <date>     <int>     <int>
        1 1970-01-04 e             0 1970-01-04     1         1
@@ -86,8 +89,9 @@
         switch_on_boundary = FALSE, event = list(event = "e")) %>% farrange(time)
     Output
       # A tibble:        15 x 6
-      # Episodes:        3, Median - 3 Mean - 3 ▁▁▁▇▁▁▁
-      # Time b/w events: Pooled mean - 3 numeric units
+      # Episodes:        N: 3, Median: 3, Mean: 3 ▁▁▁▇▁▁▁
+      # Time b/w events: Pooled mean: 3 numeric units
+      # Threshold:       3 numeric units
          time       event t_elapsed ep_start   ep_id ep_id_new
          <date>     <chr>     <dbl> <date>     <int>     <int>
        1 1970-01-04 e         0     1970-01-04     1         1
@@ -113,8 +117,9 @@
         roll_episode = FALSE, switch_on_boundary = TRUE) %>% farrange(time)
     Output
       # A tibble:        15 x 5
-      # Episodes:        6, Median - 6 Mean - 6 ▁▁▁▇▁▁▁
-      # Time b/w events: Pooled mean - ~1.92 weeks
+      # Episodes:        N: 6, Median: 6, Mean: 6 ▁▁▁▇▁▁▁
+      # Time b/w events: Pooled mean: ~1.92 weeks
+      # Threshold:       5 days
          time       t_elapsed ep_start   ep_id ep_id_new
          <date>         <int> <date>     <int>     <int>
        1 1970-01-04         0 1970-01-04     1         1
@@ -140,8 +145,9 @@
         roll_episode = FALSE, switch_on_boundary = FALSE) %>% farrange(time)
     Output
       # A tibble:        15 x 5
-      # Episodes:        4, Median - 4 Mean - 4 ▁▁▁▇▁▁▁
-      # Time b/w events: Pooled mean - ~1.92 weeks
+      # Episodes:        N: 4, Median: 4, Mean: 4 ▁▁▁▇▁▁▁
+      # Time b/w events: Pooled mean: ~1.92 weeks
+      # Threshold:       5 days
          time       t_elapsed ep_start   ep_id ep_id_new
          <date>         <dbl> <date>     <int>     <int>
        1 1970-01-04       0   1970-01-04     1         1
