@@ -611,8 +611,9 @@ SEXP cpp_copy(SEXP x) {
 int num_cores(){
   int out = Rf_asInteger(Rf_GetOption1(Rf_installChar(Rf_mkChar("timeplyr.cores"))));
   if (out >= 1){
-    int max_cores = omp_get_max_threads();
-    return out > max_cores ? max_cores : out;
+    return out;
+    // int max_cores = omp_get_max_threads();
+    // return out > max_cores ? max_cores : out;
   } else {
     return 1;
   }
