@@ -129,6 +129,17 @@ flights %>%
   time_count(date, time_by = "quarter")
 ```
 
+### We can also make use of timeplyr time intervals
+
+```{r}
+quarters <- time_aggregate(flights$date, time_by = "quarter", as_interval = TRUE)
+interval_count(quarters)
+
+# Or simply
+flights %>%
+  time_count(date, time_by = "quarter", as_interval = TRUE)
+```
+
 #### Ensure full weeks/months/years by using `time_floor = TRUE`
 
 ```{r}
@@ -200,7 +211,7 @@ flights %>%
                         ~ mean(.x, na.rm = TRUE)),
                  time_by = "month",   
                  time_floor = TRUE, # Full months
-                 include_interval = TRUE) # Time interval
+                 as_interval = TRUE) # Time interval
 ```
 
 # Grouped rolling time functions
@@ -412,23 +423,18 @@ iso_week(today(), year = FALSE)
 
 ## `time_cut()`
 
-Create pretty time axes using `time_cut()` and `time_breaks()`
+Create pretty time axes using `time_breaks()`
 
 ```{r}
 times <- flights$time_hour
 dates <- flights$date
 
-levels(time_cut(dates, n = 10))
 date_breaks <- time_breaks(dates, n = 12)
 time_breaks <- time_breaks(times, n = 12, time_floor = TRUE)
 
 weekly_data <- flights %>%
   time_count(time = date, time_by = "week",
-             to = max(time_span(date, time_by = "week")),
-             include_interval = TRUE) %>%
-  # Filter full weeks
-  mutate(n_days = interval/days(1)) %>%
-  filter(n_days == 7)
+             to = max(time_span(date, time_by = "week")))
 weekly_data %>%
   ggplot(aes(x = date, y = n)) + 
   geom_bar(stat = "identity", fill = "#0072B2") + 

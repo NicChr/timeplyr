@@ -42,9 +42,9 @@ R_xlen_t cpp_vector_size(SEXP x){
       if (n == 0){
         return 0;
       } else {
-        R_xlen_t init = Rf_xlength(VECTOR_ELT(x, 0));
+        R_xlen_t init = cpp_vector_size(VECTOR_ELT(x, 0));
         for (int i = 1; i < n; ++i) {
-          if (Rf_xlength(VECTOR_ELT(x, i)) != init){
+          if (cpp_vector_size(VECTOR_ELT(x, i)) != init){
             Rf_error("All list elements must be of equal length");
           }
         }

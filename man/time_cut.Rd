@@ -166,8 +166,8 @@ weekly_breaks <- time_expandv(df$date,
                               time_floor = TRUE)
 weekly_labels <- format(weekly_breaks, "\%b-\%d")
 df \%>\%
-  time_count(time = date, time_by = "week") \%>\%
-  mutate(date = interval_start(date_intv)) \%>\%
+  time_count(time = date, time_by = "week", .name = "date") \%>\%
+  mutate(date = interval_start(date)) \%>\%
   ggplot(aes(x = date, y = n)) +
   geom_bar(stat = "identity") +
   scale_x_date(breaks = weekly_breaks,

@@ -75,7 +75,7 @@
 #' @export
 time_mutate <- function(data, time = NULL, ..., time_by = NULL,
                         from = NULL, to = NULL,
-                        .name = "{.col}_intv",
+                        .name = "{.col}",
                         time_type = getOption("timeplyr.time_type", "auto"),
                         .by = NULL,
                         .keep = c("all", "used", "unused", "none"),

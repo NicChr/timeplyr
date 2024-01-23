@@ -11,7 +11,7 @@ time_count(
   time_by = NULL,
   from = NULL,
   to = NULL,
-  .name = "{.col}_intv",
+  .name = "{.col}",
   complete = FALSE,
   wt = NULL,
   name = NULL,

@@ -46,10 +46,10 @@ library(timeplyr)
 library(tidyverse)
 #> ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
 #> ✔ dplyr     1.1.4     ✔ readr     2.1.4
-#> ✔ forcats   1.0.0     ✔ stringr   1.5.1
-#> ✔ ggplot2   3.4.4     ✔ tibble    3.2.1
-#> ✔ lubridate 1.9.3     ✔ tidyr     1.3.0
-#> ✔ purrr     1.0.2     
+#> ✔ forcats   1.0.0     ✔ stringr   1.5.0
+#> ✔ ggplot2   3.4.3     ✔ tibble    3.2.1
+#> ✔ lubridate 1.9.2     ✔ tidyr     1.3.0
+#> ✔ purrr     1.0.1     
 #> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 #> ✖ dplyr::desc()   masks timeplyr::desc()
 #> ✖ dplyr::filter() masks stats::filter()
@@ -216,6 +216,31 @@ flights %>%
 #> 4 2013-10-01 84292
 ```
 
+### We can also make use of timeplyr time intervals
+
+``` r
+quarters <- time_aggregate(flights$date, time_by = "quarter", as_interval = TRUE)
+interval_count(quarters)
+#> # A tibble: 4 × 2
+#>                   interval     n
+#>                  <tm_intv> <int>
+#> 1 [2013-01-01, 2013-04-01) 80789
+#> 2 [2013-04-01, 2013-07-01) 85369
+#> 3 [2013-07-01, 2013-10-01) 86326
+#> 4 [2013-10-01, 2014-01-01) 84292
+
+# Or simply
+flights %>%
+  time_count(date, time_by = "quarter", as_interval = TRUE)
+#> # A tibble: 4 × 2
+#>                       date     n
+#>                  <tm_intv> <int>
+#> 1 [2013-01-01, 2013-04-01) 80789
+#> 2 [2013-04-01, 2013-07-01) 85369
+#> 3 [2013-07-01, 2013-10-01) 86326
+#> 4 [2013-10-01, 2014-01-01) 84292
+```
+
 #### Ensure full weeks/months/years by using `time_floor = TRUE`
 
 ``` r
@@ -353,22 +378,22 @@ flights %>%
                         ~ mean(.x, na.rm = TRUE)),
                  time_by = "month",   
                  time_floor = TRUE, # Full months
-                 include_interval = TRUE) # Time interval
-#> # A tibble: 12 × 4
-#>    date       interval                       arr_time dep_time
-#>    <date>     <Interval>                        <dbl>    <dbl>
-#>  1 2013-01-01 2013-01-01 UTC--2013-02-01 UTC    1523.    1347.
-#>  2 2013-02-01 2013-02-01 UTC--2013-03-01 UTC    1522.    1348.
-#>  3 2013-03-01 2013-03-01 UTC--2013-04-01 UTC    1510.    1359.
-#>  4 2013-04-01 2013-04-01 UTC--2013-05-01 UTC    1501.    1353.
-#>  5 2013-05-01 2013-05-01 UTC--2013-06-01 UTC    1503.    1351.
-#>  6 2013-06-01 2013-06-01 UTC--2013-07-01 UTC    1468.    1351.
-#>  7 2013-07-01 2013-07-01 UTC--2013-08-01 UTC    1456.    1353.
-#>  8 2013-08-01 2013-08-01 UTC--2013-09-01 UTC    1495.    1350.
-#>  9 2013-09-01 2013-09-01 UTC--2013-10-01 UTC    1504.    1334.
-#> 10 2013-10-01 2013-10-01 UTC--2013-11-01 UTC    1520.    1340.
-#> 11 2013-11-01 2013-11-01 UTC--2013-12-01 UTC    1523.    1344.
-#> 12 2013-12-01 2013-12-01 UTC--2013-12-31 UTC    1505.    1357.
+                 as_interval = TRUE) # Time interval
+#> # A tibble: 12 × 3
+#>                        date arr_time dep_time
+#>                   <tm_intv>    <dbl>    <dbl>
+#>  1 [2013-01-01, 2013-02-01)    1523.    1347.
+#>  2 [2013-02-01, 2013-03-01)    1522.    1348.
+#>  3 [2013-03-01, 2013-04-01)    1510.    1359.
+#>  4 [2013-04-01, 2013-05-01)    1501.    1353.
+#>  5 [2013-05-01, 2013-06-01)    1503.    1351.
+#>  6 [2013-06-01, 2013-07-01)    1468.    1351.
+#>  7 [2013-07-01, 2013-08-01)    1456.    1353.
+#>  8 [2013-08-01, 2013-09-01)    1495.    1350.
+#>  9 [2013-09-01, 2013-10-01)    1504.    1334.
+#> 10 [2013-10-01, 2013-11-01)    1520.    1340.
+#> 11 [2013-11-01, 2013-12-01)    1523.    1344.
+#> 12 [2013-12-01, 2014-01-01)    1505.    1357.
 ```
 
 # Grouped rolling time functions
@@ -386,7 +411,7 @@ eu_stock %>%
     time_ggplot(date, month_mean, group)
 ```
 
-![](man/figures/README-unnamed-chunk-16-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-17-1.png)<!-- -->
 
 ## By-group rolling (locf) NA fill
 
@@ -424,7 +449,7 @@ inspired by the excellent ‘zoo’ and ‘tsibble’ packages.
 ``` r
 today <- today()
 year_month(today)
-#> [1] "2023 Dec"
+#> [1] "2024 Jan"
 ```
 
 The underlying data for a `year_month` is the number of months since 1
@@ -441,11 +466,11 @@ To create a sequence of ‘year_months’, one can use base arithmetic
 
 ``` r
 year_month(today) + 0:12
-#>  [1] "2023 Dec" "2024 Jan" "2024 Feb" "2024 Mar" "2024 Apr" "2024 May"
-#>  [7] "2024 Jun" "2024 Jul" "2024 Aug" "2024 Sep" "2024 Oct" "2024 Nov"
-#> [13] "2024 Dec"
+#>  [1] "2024 Jan" "2024 Feb" "2024 Mar" "2024 Apr" "2024 May" "2024 Jun"
+#>  [7] "2024 Jul" "2024 Aug" "2024 Sep" "2024 Oct" "2024 Nov" "2024 Dec"
+#> [13] "2025 Jan"
 year_quarter(today) + 0:4
-#> [1] "2023 Q4" "2024 Q1" "2024 Q2" "2024 Q3" "2024 Q4"
+#> [1] "2024 Q1" "2024 Q2" "2024 Q3" "2024 Q4" "2025 Q1"
 ```
 
 ## `time_elapsed()`
@@ -714,42 +739,34 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2023-W51"
+#> [1] "2024-W04"
 iso_week(today(), day = TRUE)
-#> [1] "2023-W51-2"
+#> [1] "2024-W04-2"
 iso_week(today(), year = FALSE)
-#> [1] "W51"
+#> [1] "W04"
 ```
 
 ## `time_cut()`
 
-Create pretty time axes using `time_cut()` and `time_breaks()`
+Create pretty time axes using `time_breaks()`
 
 ``` r
 times <- flights$time_hour
 dates <- flights$date
 
-levels(time_cut(dates, n = 10))
-#> [1] "[2013-01-01--2013-03-01)" "[2013-03-01--2013-05-01)"
-#> [3] "[2013-05-01--2013-07-01)" "[2013-07-01--2013-09-01)"
-#> [5] "[2013-09-01--2013-11-01)" "[2013-11-01--2014-01-01)"
 date_breaks <- time_breaks(dates, n = 12)
 time_breaks <- time_breaks(times, n = 12, time_floor = TRUE)
 
 weekly_data <- flights %>%
   time_count(time = date, time_by = "week",
-             to = max(time_span(date, time_by = "week")),
-             include_interval = TRUE) %>%
-  # Filter full weeks
-  mutate(n_days = interval/days(1)) %>%
-  filter(n_days == 7)
+             to = max(time_span(date, time_by = "week")))
 weekly_data %>%
   ggplot(aes(x = date, y = n)) + 
   geom_bar(stat = "identity", fill = "#0072B2") + 
   scale_x_date(breaks = date_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-34-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-35-1.png)<!-- -->
 
 ``` r
 
@@ -759,7 +776,7 @@ flights %>%
   scale_x_datetime(breaks = time_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-34-2.png)<!-- -->
+![](man/figures/README-unnamed-chunk-35-2.png)<!-- -->
 
 ## Efficient grouped functions
 

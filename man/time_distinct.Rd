@@ -11,7 +11,7 @@ time_distinct(
   time_by = NULL,
   from = NULL,
   to = NULL,
-  .name = "{.col}_intv",
+  .name = "{.col}",
   .keep_all = FALSE,
   time_type = getOption("timeplyr.time_type", "auto"),
   .by = NULL,

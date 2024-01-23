@@ -11,7 +11,7 @@ time_summarise(
   time_by = NULL,
   from = NULL,
   to = NULL,
-  .name = "{.col}_intv",
+  .name = "{.col}",
   time_type = getOption("timeplyr.time_type", "auto"),
   .by = NULL,
   time_floor = FALSE,

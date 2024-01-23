@@ -102,7 +102,7 @@
 #' @export
 time_by <- function(data, time, time_by_unit = NULL,
                     from = NULL, to = NULL,
-                    .name = "{.col}_intv",
+                    .name = "{.col}",
                     .add = FALSE,
                     time_type = getOption("timeplyr.time_type", "auto"),
                     time_floor = FALSE,
