@@ -9,12 +9,6 @@ SEXP cpp_empty_row(SEXP x){
   const SEXP *p_x = VECTOR_PTR_RO(x);
   int num_col = Rf_length(x);
   int n_protections = 0;
-  // R_xlen_t num_row = 0;
-  // if (Rf_isFrame(x)){
-  //   num_row = Rf_xlength(Rf_getAttrib(x, R_RowNamesSymbol));
-  // } else if (num_col > 0){
-  //   num_row = Rf_xlength(p_x[0]);
-  // }
   R_xlen_t num_row = cpp_vector_size(x);
   // Check that list elements are all equal in length
   // and all atomic vectors and not NULL
@@ -22,9 +16,6 @@ SEXP cpp_empty_row(SEXP x){
     if (!Rf_isVectorAtomic(p_x[j])){
       Rf_error("All list elements must be atomic vectors");
     }
-    // if (Rf_xlength(p_x[j]) != num_row){
-    //   Rf_error("All list elements must be of equal length");
-    // }
   }
   SEXP is_empty = Rf_protect(Rf_allocVector(LGLSXP, num_row));
   ++n_protections;

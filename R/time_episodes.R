@@ -333,11 +333,13 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
   }
   # Episodes
   if ("ep_id_new" %in% names(x)){
-    max_episodes <- collapse::fmax(x[["ep_id_new"]], g = GRPS,
+    # max_episodes <- collapse::fmax(x[["ep_id_new"]], g = GRPS,
+    #                                use.g.names = FALSE, na.rm = TRUE)
+    n_episodes <- collapse::fsum(x[["ep_id_new"]] > 0L, g = GRPS,
                                    use.g.names = FALSE, na.rm = TRUE)
-    median_episodes <- collapse::fmedian(max_episodes)
-    total_episodes <- sum(max_episodes)
-    mean_episodes <- total_episodes / length(max_episodes)
+    median_episodes <- collapse::fmedian(n_episodes)
+    total_episodes <- sum(n_episodes)
+    mean_episodes <- total_episodes / length(n_episodes)
     episodes_header <- c(
       "Episodes" = paste0(
         "N: ",
@@ -349,7 +351,7 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
         "Mean: ",
         prettyNum(round(mean_episodes, 2), big.mark = ","),
         " ",
-        finline_hist(max_episodes, n_bins = 7)
+        finline_hist(n_episodes, n_bins = 7)
       )
     )
   }
