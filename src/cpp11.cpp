@@ -131,6 +131,13 @@ extern "C" SEXP _timeplyr_cpp_which_not_na(SEXP x) {
     return cpp11::as_sexp(cpp_which_not_na(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x)));
   END_CPP11
 }
+// roll.cpp
+SEXP cpp_roll_growth_rate(SEXP x, SEXP lag, bool log);
+extern "C" SEXP _timeplyr_cpp_roll_growth_rate(SEXP x, SEXP lag, SEXP log) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_roll_growth_rate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(lag), cpp11::as_cpp<cpp11::decay_t<bool>>(log)));
+  END_CPP11
+}
 // row_id.cpp
 SEXP cpp_row_id(SEXP order, SEXP group_sizes, bool ascending);
 extern "C" SEXP _timeplyr_cpp_row_id(SEXP order, SEXP group_sizes, SEXP ascending) {
@@ -344,6 +351,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_r_obj_address",        (DL_FUNC) &_timeplyr_cpp_r_obj_address,        1},
     {"_timeplyr_cpp_roll_diff",            (DL_FUNC) &_timeplyr_cpp_roll_diff,            3},
     {"_timeplyr_cpp_roll_diff_grouped",    (DL_FUNC) &_timeplyr_cpp_roll_diff_grouped,    5},
+    {"_timeplyr_cpp_roll_growth_rate",     (DL_FUNC) &_timeplyr_cpp_roll_growth_rate,     3},
     {"_timeplyr_cpp_roll_lag",             (DL_FUNC) &_timeplyr_cpp_roll_lag,             3},
     {"_timeplyr_cpp_roll_lag_grouped",     (DL_FUNC) &_timeplyr_cpp_roll_lag_grouped,     5},
     {"_timeplyr_cpp_roll_lead",            (DL_FUNC) &_timeplyr_cpp_roll_lead,            3},

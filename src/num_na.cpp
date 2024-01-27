@@ -113,11 +113,12 @@ SEXP cpp_num_na(SEXP x){
   if (n == 0){
     return Rf_ScalarInteger(count);
   }
+  bool do_parallel = n >= 100000;
   switch ( TYPEOF(x) ){
   case LGLSXP:
   case INTSXP: {
     int *p_x = INTEGER(x);
-    if (n >= 100000){
+    if (do_parallel){
       #pragma omp parallel for simd num_threads(num_cores()) reduction(+:count)
       // #pragma omp parallel for simd num_threads(Rf_asInteger(cpp11::package("base")["getOption"]("timeplyr.cores", 1))) reduction(+:count)
       for (R_xlen_t i = 0; i < n; ++i){
@@ -132,7 +133,7 @@ SEXP cpp_num_na(SEXP x){
   }
   case REALSXP: {
     double *p_x = REAL(x);
-    if (n >= 100000){
+    if (do_parallel){
       #pragma omp parallel for simd num_threads(num_cores()) reduction(+:count)
       for (R_xlen_t i = 0; i < n; ++i){
         count = count + (p_x[i] != p_x[i]);
@@ -146,7 +147,7 @@ SEXP cpp_num_na(SEXP x){
   }
   case STRSXP: {
     SEXP *p_x = STRING_PTR(x);
-    if (n >= 100000){
+    if (do_parallel){
       #pragma omp parallel for simd num_threads(num_cores()) reduction(+:count)
       for (R_xlen_t i = 0; i < n; ++i){
         count = count + (p_x[i] == NA_STRING);
@@ -163,7 +164,7 @@ SEXP cpp_num_na(SEXP x){
   }
   case CPLXSXP: {
     Rcomplex *p_x = COMPLEX(x);
-    if (n >= 100000){
+    if (do_parallel){
       #pragma omp parallel for simd num_threads(num_cores()) reduction(+:count)
       for (R_xlen_t i = 0; i < n; ++i){
         count = count + ( ((p_x[i]).r != (p_x[i]).r) || ((p_x[i]).i != (p_x[i]).i) );
