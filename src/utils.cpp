@@ -58,6 +58,32 @@ R_xlen_t cpp_vector_size(SEXP x){
 }
 
 [[cpp11::register]]
+int cpp_vector_width(SEXP x){
+  if (Rf_isFrame(x)){
+    return Rf_length(Rf_getAttrib(x, R_NamesSymbol));
+  } else if (Rf_isVectorList(x)){
+    if (Rf_inherits(x, "vctrs_rcrd")){
+      return Rf_length(x);
+    } else {
+      int n = Rf_length(x);
+      if (n == 0){
+        return 0;
+      } else {
+        R_xlen_t init = cpp_vector_size(VECTOR_ELT(x, 0));
+        for (int i = 1; i < n; ++i) {
+          if (cpp_vector_size(VECTOR_ELT(x, i)) != init){
+            Rf_error("All list elements must be of equal length");
+          }
+        }
+        return n;
+      }
+    }
+  } else {
+    return 0;
+  }
+}
+
+[[cpp11::register]]
 SEXP cpp_list_which_not_null(SEXP l) {
   // Coerce l to list
   Rf_protect(l = Rf_coerceVector(l, VECSXP));
@@ -630,6 +656,134 @@ double r_min(SEXP x){
   if (Rf_length(x) > 0){
     out = Rf_asReal(base_min(x));
   }
+  return out;
+}
+
+[[cpp11::register]]
+SEXP cpp_consecutive_na_id(SEXP x, bool left_to_right){
+  int n_protections = 0;
+  int count = 0;
+  int is_na;
+  R_xlen_t n = cpp_vector_size(x);
+  SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
+  ++n_protections;
+  int *p_out = INTEGER(out);
+  // This nicely handles NULL and avoids loop too
+  switch ( TYPEOF(x) ){
+  case LGLSXP:
+  case INTSXP: {
+    int *p_x = INTEGER(x);
+    if (left_to_right){
+      for (R_xlen_t i = 0; i < n; ++i){
+        is_na = (p_x[i] == NA_INTEGER);
+        count = (count + is_na) * is_na;
+        p_out[i] = count;
+        // p_out[i] = count == 0 ? NA_INTEGER : count;
+      }
+    } else {
+      for (R_xlen_t i = n - 1; i >= 0; --i){
+        is_na = (p_x[i] == NA_INTEGER);
+        count = (count + is_na) * is_na;
+        p_out[i] = count;
+        // p_out[i] = count == 0 ? NA_INTEGER : count;
+      }
+    }
+
+    break;
+  }
+  case REALSXP: {
+    double *p_x = REAL(x);
+    if (left_to_right){
+      for (R_xlen_t i = 0; i < n; ++i){
+        // Because NaN == NaN is false
+        is_na = (p_x[i] != p_x[i]);
+        count = (count + is_na) * is_na;
+        p_out[i] = count;
+        // p_out[i] = count == 0 ? NA_INTEGER : count;
+      }
+    } else {
+      for (R_xlen_t i = n - 1; i >= 0; --i){
+        // Because NaN == NaN is false
+        is_na = (p_x[i] != p_x[i]);
+        count = (count + is_na) * is_na;
+        p_out[i] = count;
+        // p_out[i] = count == 0 ? NA_INTEGER : count;
+      }
+    }
+
+    break;
+  }
+  case STRSXP: {
+    SEXP *p_x = STRING_PTR(x);
+    if (left_to_right){
+      for (R_xlen_t i = 0; i < n; ++i){
+        is_na = (p_x[i] == NA_STRING);
+        count = (count + is_na) * is_na;
+        p_out[i] = count;
+        // p_out[i] = count == 0 ? NA_INTEGER : count;
+      }
+    } else {
+      for (R_xlen_t i = n - 1; i >= 0; --i){
+        is_na = (p_x[i] == NA_STRING);
+        count = (count + is_na) * is_na;
+        p_out[i] = count;
+        // p_out[i] = count == 0 ? NA_INTEGER : count;
+      }
+    }
+
+    break;
+  }
+  case RAWSXP: {
+    break;
+  }
+  case CPLXSXP: {
+    Rcomplex *p_x = COMPLEX(x);
+    if (left_to_right){
+      for (R_xlen_t i = 0; i < n; ++i){
+        is_na = (p_x[i]).r != (p_x[i]).r || (p_x[i]).i != (p_x[i]).i;
+        count = (count + is_na) * is_na;
+        p_out[i] = count;
+        // p_out[i] = count == 0 ? NA_INTEGER : count;
+      }
+    } else {
+      for (R_xlen_t i = n - 1; i >= 0; --i){
+        is_na = (p_x[i]).r != (p_x[i]).r || (p_x[i]).i != (p_x[i]).i;
+        count = (count + is_na) * is_na;
+        p_out[i] = count;
+        // p_out[i] = count == 0 ? NA_INTEGER : count;
+      }
+    }
+
+    break;
+  }
+  case VECSXP: {
+    SEXP is_empty = Rf_protect(cpp_missing_row(x, cpp_vector_width(x)));
+    ++n_protections;
+    int *p_is_empty = LOGICAL(is_empty);
+    if (left_to_right){
+      for (R_xlen_t i = 0; i < n; ++i){
+        is_na = (p_is_empty[i] == TRUE);
+        count = (count + is_na) * is_na;
+        p_out[i] = count;
+        // p_out[i] = count == 0 ? NA_INTEGER : count;
+      }
+    } else {
+      for (R_xlen_t i = n - 1; i >= 0; --i){
+        is_na = (p_is_empty[i] == TRUE);
+        count = (count + is_na) * is_na;
+        p_out[i] = count;
+        // p_out[i] = count == 0 ? NA_INTEGER : count;
+      }
+    }
+    break;
+  }
+  default: {
+    Rf_unprotect(n_protections);
+    Rf_error("%s cannot handle an object of type %s", __func__, Rf_type2char(TYPEOF(x)));
+    break;
+  }
+  }
+  Rf_unprotect(n_protections);
   return out;
 }
 

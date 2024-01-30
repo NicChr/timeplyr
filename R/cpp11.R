@@ -60,6 +60,14 @@ cpp_roll_na_fill_grouped <- function(x, o, sizes, fill_limit) {
   .Call(`_timeplyr_cpp_roll_na_fill_grouped`, x, o, sizes, fill_limit)
 }
 
+cpp_na_col_counts <- function(x) {
+  .Call(`_timeplyr_cpp_na_col_counts`, x)
+}
+
+cpp_missing_row <- function(x, threshold) {
+  .Call(`_timeplyr_cpp_missing_row`, x, threshold)
+}
+
 cpp_num_na <- function(x) {
   .Call(`_timeplyr_cpp_num_na`, x)
 }
@@ -110,6 +118,10 @@ cpp_lead_sequence <- function(size, k, partial) {
 
 cpp_vector_size <- function(x) {
   .Call(`_timeplyr_cpp_vector_size`, x)
+}
+
+cpp_vector_width <- function(x) {
+  .Call(`_timeplyr_cpp_vector_width`, x)
 }
 
 cpp_list_which_not_null <- function(l) {
@@ -174,6 +186,10 @@ cpp_address_equal <- function(x, y) {
 
 cpp_copy <- function(x) {
   .Call(`_timeplyr_cpp_copy`, x)
+}
+
+cpp_consecutive_na_id <- function(x, left_to_right) {
+  .Call(`_timeplyr_cpp_consecutive_na_id`, x, left_to_right)
 }
 
 cpp_which_ <- function(x, invert) {

@@ -2,7 +2,121 @@
 #include <cpp11.hpp>
 #include <Rinternals.h>
 
-SEXP cpp_empty_row(SEXP x){
+// SEXP cpp_empty_row(SEXP x){
+//   if (!Rf_isVectorList(x)){
+//     Rf_error("x must be a data frame");
+//   }
+//   const SEXP *p_x = VECTOR_PTR_RO(x);
+//   int num_col = Rf_length(x);
+//   int n_protections = 0;
+//   R_xlen_t num_row = cpp_vector_size(x);
+//   // Check that list elements are all equal in length
+//   // and all atomic vectors and not NULL
+//   for (int j = 0; j < num_col; ++j){
+//     if (!Rf_isVectorAtomic(p_x[j])){
+//       Rf_error("All list elements must be atomic vectors");
+//     }
+//   }
+//   SEXP is_empty = Rf_protect(Rf_allocVector(LGLSXP, num_row));
+//   ++n_protections;
+//   int *p_is_empty = LOGICAL(is_empty);
+//   memset(p_is_empty, 0, num_row * sizeof(int));
+//   int do_parallel = num_row >= 100000;
+//   int n_cores = do_parallel ? num_cores() : 1;
+// #pragma omp parallel num_threads(n_cores) if(do_parallel)
+//   for (int j = 0; j < num_col; ++j){
+//     switch ( TYPEOF(p_x[j]) ){
+//     case LGLSXP:
+//     case INTSXP: {
+//       int *p_xj = INTEGER(p_x[j]);
+//       if (j == 0){
+// // #pragma omp parallel for simd num_threads(num_cores())
+// #pragma omp for simd
+//         for (R_xlen_t i = 0; i < num_row; ++i){
+//           p_is_empty[i] = (p_xj[i] == NA_INTEGER);
+//         }
+//       } else {
+// // #pragma omp parallel for simd num_threads(num_cores())
+// #pragma omp for simd
+//         for (R_xlen_t i = 0; i < num_row; ++i){
+//           p_is_empty[i] = p_is_empty[i] && (p_xj[i] == NA_INTEGER);
+//         }
+//       }
+//       break;
+//     }
+//     case REALSXP: {
+//       double *p_xj = REAL(p_x[j]);
+//       if (j == 0){
+// // #pragma omp parallel for simd num_threads(num_cores())
+// #pragma omp for simd
+//         for (R_xlen_t i = 0; i < num_row; ++i){
+//           p_is_empty[i] = (p_xj[i] != p_xj[i]);
+//         }
+//       } else {
+// // #pragma omp parallel for simd num_threads(num_cores())
+// #pragma omp for simd
+//         for (R_xlen_t i = 0; i < num_row; ++i){
+//           p_is_empty[i] = p_is_empty[i] && (p_xj[i] != p_xj[i]);
+//         }
+//       }
+//       break;
+//     }
+//     case STRSXP: {
+//       SEXP *p_xj = STRING_PTR(p_x[j]);
+//       if (j == 0){
+// // #pragma omp parallel for simd num_threads(num_cores())
+// #pragma omp for simd
+//         for (R_xlen_t i = 0; i < num_row; ++i){
+//           p_is_empty[i] = (p_xj[i] == NA_STRING);
+//         }
+//       } else {
+// // #pragma omp parallel for simd num_threads(num_cores())
+// #pragma omp for simd
+//         for (R_xlen_t i = 0; i < num_row; ++i){
+//           p_is_empty[i] = p_is_empty[i] && (p_xj[i] == NA_STRING);
+//         }
+//       }
+//
+//       break;
+//     }
+//     case RAWSXP: {
+//       break;
+//     }
+//     case CPLXSXP: {
+//       Rcomplex *p_xj = COMPLEX(p_x[j]);
+//       if (j == 0){
+// // #pragma omp parallel for simd num_threads(num_cores())
+// #pragma omp for simd
+//         for (R_xlen_t i = 0; i < num_row; ++i){
+//           p_is_empty[i] = (
+//             ( ((p_xj[i]).r != (p_xj[i]).r) ) ||
+//               ( ((p_xj[i]).i != (p_xj[i]).i) )
+//           );
+//         }
+//       } else {
+// // #pragma omp parallel for simd num_threads(num_cores())
+// #pragma omp for simd
+//         for (R_xlen_t i = 0; i < num_row; ++i){
+//           p_is_empty[i] = p_is_empty[i] && (
+//             ( ((p_xj[i]).r != (p_xj[i]).r) ) ||
+//               ( ((p_xj[i]).i != (p_xj[i]).i) )
+//           );
+//         }
+//       }
+//       break;
+//     }
+//     default: {
+//       Rf_unprotect(n_protections);
+//       Rf_error("%s cannot handle an object of type %s", __func__, Rf_type2char(TYPEOF(p_x[j])));
+//     }
+//     }
+//   }
+//   Rf_unprotect(n_protections);
+//   return is_empty;
+// }
+
+[[cpp11::register]]
+SEXP cpp_na_col_counts(SEXP x){
   if (!Rf_isVectorList(x)){
     Rf_error("x must be a data frame");
   }
@@ -10,17 +124,10 @@ SEXP cpp_empty_row(SEXP x){
   int num_col = Rf_length(x);
   int n_protections = 0;
   R_xlen_t num_row = cpp_vector_size(x);
-  // Check that list elements are all equal in length
-  // and all atomic vectors and not NULL
-  for (int j = 0; j < num_col; ++j){
-    if (!Rf_isVectorAtomic(p_x[j])){
-      Rf_error("All list elements must be atomic vectors");
-    }
-  }
-  SEXP is_empty = Rf_protect(Rf_allocVector(LGLSXP, num_row));
+  SEXP n_empty = Rf_protect(Rf_allocVector(INTSXP, num_row));
   ++n_protections;
-  int *p_is_empty = LOGICAL(is_empty);
-  memset(p_is_empty, 0, num_row * sizeof(int));
+  int *p_n_empty = INTEGER(n_empty);
+  memset(p_n_empty, 0, num_row * sizeof(int));
   int do_parallel = num_row >= 100000;
   int n_cores = do_parallel ? num_cores() : 1;
 #pragma omp parallel num_threads(n_cores) if(do_parallel)
@@ -29,52 +136,25 @@ SEXP cpp_empty_row(SEXP x){
     case LGLSXP:
     case INTSXP: {
       int *p_xj = INTEGER(p_x[j]);
-      if (j == 0){
-// #pragma omp parallel for simd num_threads(num_cores())
 #pragma omp for simd
-        for (R_xlen_t i = 0; i < num_row; ++i){
-          p_is_empty[i] = (p_xj[i] == NA_INTEGER);
-        }
-      } else {
-// #pragma omp parallel for simd num_threads(num_cores())
-#pragma omp for simd
-        for (R_xlen_t i = 0; i < num_row; ++i){
-          p_is_empty[i] = p_is_empty[i] && (p_xj[i] == NA_INTEGER);
-        }
+      for (R_xlen_t i = 0; i < num_row; ++i){
+        p_n_empty[i] += (p_xj[i] == NA_INTEGER);
       }
       break;
     }
     case REALSXP: {
       double *p_xj = REAL(p_x[j]);
-      if (j == 0){
-// #pragma omp parallel for simd num_threads(num_cores())
 #pragma omp for simd
-        for (R_xlen_t i = 0; i < num_row; ++i){
-          p_is_empty[i] = (p_xj[i] != p_xj[i]);
-        }
-      } else {
-// #pragma omp parallel for simd num_threads(num_cores())
-#pragma omp for simd
-        for (R_xlen_t i = 0; i < num_row; ++i){
-          p_is_empty[i] = p_is_empty[i] && (p_xj[i] != p_xj[i]);
-        }
+      for (R_xlen_t i = 0; i < num_row; ++i){
+        p_n_empty[i] += (p_xj[i] != p_xj[i]);
       }
       break;
     }
     case STRSXP: {
       SEXP *p_xj = STRING_PTR(p_x[j]);
-      if (j == 0){
-// #pragma omp parallel for simd num_threads(num_cores())
 #pragma omp for simd
-        for (R_xlen_t i = 0; i < num_row; ++i){
-          p_is_empty[i] = (p_xj[i] == NA_STRING);
-        }
-      } else {
-// #pragma omp parallel for simd num_threads(num_cores())
-#pragma omp for simd
-        for (R_xlen_t i = 0; i < num_row; ++i){
-          p_is_empty[i] = p_is_empty[i] && (p_xj[i] == NA_STRING);
-        }
+      for (R_xlen_t i = 0; i < num_row; ++i){
+        p_n_empty[i] += (p_xj[i] == NA_STRING);
       }
 
       break;
@@ -84,24 +164,18 @@ SEXP cpp_empty_row(SEXP x){
     }
     case CPLXSXP: {
       Rcomplex *p_xj = COMPLEX(p_x[j]);
-      if (j == 0){
-// #pragma omp parallel for simd num_threads(num_cores())
 #pragma omp for simd
-        for (R_xlen_t i = 0; i < num_row; ++i){
-          p_is_empty[i] = (
-            ( ((p_xj[i]).r != (p_xj[i]).r) ) ||
-              ( ((p_xj[i]).i != (p_xj[i]).i) )
-          );
-        }
-      } else {
-// #pragma omp parallel for simd num_threads(num_cores())
-#pragma omp for simd
-        for (R_xlen_t i = 0; i < num_row; ++i){
-          p_is_empty[i] = p_is_empty[i] && (
-            ( ((p_xj[i]).r != (p_xj[i]).r) ) ||
-              ( ((p_xj[i]).i != (p_xj[i]).i) )
-          );
-        }
+      for (R_xlen_t i = 0; i < num_row; ++i){
+        p_n_empty[i] += (p_xj[i]).r != (p_xj[i]).r || (p_xj[i]).i != (p_xj[i]).i;
+      }
+      break;
+    }
+    case VECSXP: {
+      SEXP n_empty_nested = Rf_protect(cpp_na_col_counts(VECTOR_ELT(x, j)));
+      ++n_protections;
+      int *p_n_empty_nested = INTEGER(n_empty_nested);
+      for (R_xlen_t j = 0; j < num_row; ++j){
+        p_n_empty[j] += (p_n_empty_nested[j] >= 1);
       }
       break;
     }
@@ -112,8 +186,228 @@ SEXP cpp_empty_row(SEXP x){
     }
   }
   Rf_unprotect(n_protections);
-  return is_empty;
+  return n_empty;
 }
+// SEXP cpp_na_col_counts(SEXP x){
+//   if (!Rf_isVectorList(x)){
+//     Rf_error("x must be a data frame");
+//   }
+//   const SEXP *p_x = VECTOR_PTR_RO(x);
+//   int num_col = Rf_length(x);
+//   int n_protections = 0;
+//   R_xlen_t num_row = cpp_vector_size(x);
+//   // Check that list elements are all equal in length
+//   // and all atomic vectors and not NULL
+//   for (int j = 0; j < num_col; ++j){
+//     if (!Rf_isVectorAtomic(p_x[j])){
+//       Rf_error("All list elements must be atomic vectors");
+//     }
+//   }
+//   SEXP n_empty = Rf_protect(Rf_allocVector(INTSXP, num_row));
+//   ++n_protections;
+//   int *p_n_empty = INTEGER(n_empty);
+//   memset(p_n_empty, 0, num_row * sizeof(int));
+//   int do_parallel = num_row >= 100000;
+//   int n_cores = do_parallel ? num_cores() : 1;
+// #pragma omp parallel num_threads(n_cores) if(do_parallel)
+//   for (int j = 0; j < num_col; ++j){
+//     switch ( TYPEOF(p_x[j]) ){
+//     case LGLSXP:
+//     case INTSXP: {
+//       int *p_xj = INTEGER(p_x[j]);
+// #pragma omp for simd
+//       for (R_xlen_t i = 0; i < num_row; ++i){
+//         p_n_empty[i] += (p_xj[i] == NA_INTEGER);
+//       }
+//       break;
+//     }
+//     case REALSXP: {
+//       double *p_xj = REAL(p_x[j]);
+// #pragma omp for simd
+//       for (R_xlen_t i = 0; i < num_row; ++i){
+//         p_n_empty[i] += (p_xj[i] != p_xj[i]);
+//       }
+//       break;
+//     }
+//     case STRSXP: {
+//       SEXP *p_xj = STRING_PTR(p_x[j]);
+// #pragma omp for simd
+//       for (R_xlen_t i = 0; i < num_row; ++i){
+//         p_n_empty[i] += (p_xj[i] == NA_STRING);
+//       }
+//
+//       break;
+//     }
+//     case RAWSXP: {
+//       break;
+//     }
+//     case CPLXSXP: {
+//       Rcomplex *p_xj = COMPLEX(p_x[j]);
+// #pragma omp for simd
+//       for (R_xlen_t i = 0; i < num_row; ++i){
+//         p_n_empty[i] += (p_xj[i]).r != (p_xj[i]).r || (p_xj[i]).i != (p_xj[i]).i;
+//       }
+//       break;
+//     }
+//     default: {
+//       Rf_unprotect(n_protections);
+//       Rf_error("%s cannot handle an object of type %s", __func__, Rf_type2char(TYPEOF(p_x[j])));
+//     }
+//     }
+//   }
+//   Rf_unprotect(n_protections);
+//   return n_empty;
+// }
+
+// Are rows empty for at least ncol (>= ncol)?
+
+[[cpp11::register]]
+SEXP cpp_missing_row(SEXP x, int threshold){
+  if (!Rf_isVectorList(x)){
+    Rf_error("x must be a data frame");
+  }
+  if (threshold == NA_INTEGER){
+    Rf_error("threshold cannot be NA");
+  }
+  int n_cols = cpp_vector_width(x);
+  int over_threshold;
+  R_xlen_t n_rows = cpp_vector_size(x);
+  if (threshold < 0){
+    threshold = 0;
+  }
+  if (threshold > n_cols){
+    threshold = n_cols;
+  }
+  // Special case when there are 0 cols
+  if (n_cols == 0){
+    SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n_rows));
+    int *p_out = INTEGER(out);
+    memset(p_out, 0, n_rows * sizeof(int));
+    Rf_unprotect(1);
+    return out;
+    // All rows always have >= 0 empty values
+  } else if (threshold <= 0){
+    SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n_rows));
+    int *p_out = INTEGER(out);
+#pragma omp for simd
+    for (R_xlen_t i = 0; i < n_rows; ++i){
+      p_out[i] = 1;
+    }
+    Rf_unprotect(1);
+    return out;
+  } else {
+    SEXP out = Rf_protect(cpp_na_col_counts(x));
+    int *p_out = INTEGER(out);
+#pragma omp for simd
+    for (R_xlen_t i = 0; i < n_rows; ++i){
+      over_threshold = (p_out[i] - threshold + 1) >= 1;
+      p_out[i] = over_threshold;
+    }
+    SET_TYPEOF(out, LGLSXP);
+    Rf_unprotect(1);
+    return out;
+  }
+}
+// SEXP cpp_missing_row(SEXP x, double prop){
+//   if (prop != prop){
+//     Rf_error("prop cannot be NA");
+//   }
+//   int n_cols = cpp_vector_width(x);
+//   int over_threshold;
+//   R_xlen_t n_rows = cpp_vector_size(x);
+//   int threshold;
+//   if (prop <= 0){
+//     threshold = 0;
+//   } else if (prop >= 1){
+//     threshold = n_cols;
+//   } else {
+//     threshold = std::floor( (prop * n_cols) + 0.0000000001);
+//   }
+//   // Special case when there are 0 cols
+//   if (n_cols == 0){
+//     SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n_rows));
+//     int *p_out = INTEGER(out);
+//     memset(p_out, 0, n_rows * sizeof(int));
+//     Rf_unprotect(1);
+//     return out;
+//     // All rows always have >= 0 empty values
+//   } else if (threshold == 0.0 || prop == 0.0){
+//     SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n_rows));
+//     int *p_out = INTEGER(out);
+// #pragma omp for simd
+//     for (R_xlen_t i = 0; i < n_rows; ++i){
+//       p_out[i] = true;
+//     }
+//     Rf_unprotect(1);
+//     return out;
+//   } else {
+//     SEXP out = Rf_protect(cpp_na_col_counts(x));
+//     int *p_out = INTEGER(out);
+// #pragma omp for simd
+//     for (R_xlen_t i = 0; i < n_rows; ++i){
+//       over_threshold = p_out[i] / threshold;
+//       p_out[i] = over_threshold;
+//     }
+//     // SET_TYPEOF(out, LGLSXP);
+//     Rf_unprotect(1);
+//     return out;
+//   }
+// }
+// SEXP cpp_missing_row(SEXP x, double prop){
+//   // if (!(prop >= 0.0 && prop <= 1.0)){
+//   //   Rf_error("prop must be in the range [0,1]");
+//   // }
+//   if (prop != prop){
+//     Rf_error("prop cannot be NA");
+//   }
+//   int n_cols = cpp_vector_width(x);
+//   R_xlen_t n_rows = cpp_vector_size(x);
+//   int threshold;
+//   if (prop <= 0){
+//     threshold = 0;
+//   } else if (prop >= 1){
+//     threshold = n_cols;
+//   } else {
+//     threshold = std::floor(prop * n_cols);
+//   }
+//   if (n_cols == 0){
+//     SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n_rows));
+//     int *p_out = INTEGER(out);
+//     memset(p_out, 0, n_rows * sizeof(int));
+//     Rf_unprotect(1);
+//     return out;
+//   } else if (threshold == n_cols){
+//     return cpp_empty_row(x);
+//   } else {
+//     SEXP counts = Rf_protect(cpp_na_col_counts(x));
+//     int *p_counts = INTEGER(counts);
+//     SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n_rows));
+//     int *p_out = LOGICAL(out);
+// #pragma omp parallel num_threads(num_cores()) if(n_rows >= 100000)
+//     for (R_xlen_t i = 0; i < n_rows; ++i){
+//       p_out[i] = p_counts[i] >= threshold;
+//     }
+//     Rf_unprotect(2);
+//     return out;
+//   }
+// }
+// SEXP cpp_missing_row(SEXP x, int n_cols){
+//   if (n_cols == Rf_length(x)){
+//     return cpp_empty_row(x);
+//   } else {
+//     R_xlen_t n = cpp_vector_size(x);
+//     SEXP counts = Rf_protect(cpp_na_col_counts(x));
+//     int *p_counts = INTEGER(counts);
+//     SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n));
+//     int *p_out = LOGICAL(out);
+// #pragma omp parallel num_threads(num_cores()) if(n >= 100000)
+//     for (R_xlen_t i = 0; i < n; ++i){
+//       p_out[i] = p_counts[i] >= n_cols;
+//     }
+//     Rf_unprotect(2);
+//     return out;
+//   }
+// }
 
 [[cpp11::register]]
 SEXP cpp_num_na(SEXP x){
@@ -190,114 +484,17 @@ SEXP cpp_num_na(SEXP x){
   }
   case VECSXP: {
     R_xlen_t num_row = cpp_vector_size(x);
-    SEXP is_empty = Rf_protect(cpp_empty_row(x));
-    int *p_is_empty = LOGICAL(is_empty);
+    SEXP is_empty = Rf_protect(cpp_missing_row(x, cpp_vector_width(x)));
+    // SEXP is_empty = Rf_protect(cpp_empty_row(x));
     ++n_protections;
+    int *p_is_empty = LOGICAL(is_empty);
     count = count_true(p_is_empty, num_row);
-    // We can optimise on this counting the number of empty rows
-    // at the same time as checking the last col for NAs
-//     const SEXP *p_x = VECTOR_PTR_RO(x);
-//     int num_col = Rf_length(x);
-//     R_xlen_t num_row = cpp_vector_size(x);
-//     // R_xlen_t num_row = 0;
-//     // if (num_col > 0){
-//     //   num_row = Rf_xlength(p_x[0]);
-//     // }
-//     // Check that list elements are all equal in length
-//     // and all atomic vectors and not NULL
-//     for (int j = 0; j < num_col; ++j){
-//       if (!Rf_isVectorAtomic(p_x[j])){
-//         Rf_error("All list elements must be atomic vectors");
-//       }
-//       // if (Rf_xlength(p_x[j]) != num_row){
-//       //   Rf_error("All list elements must be of equal length");
-//       // }
-//     }
-//     SEXP n_nas = Rf_protect(Rf_allocVector(INTSXP, num_row));
+//     SEXP empty_col_counts = Rf_protect(cpp_na_col_counts(x));
+//     int *p_empty_col_counts = INTEGER(empty_col_counts);
 //     ++n_protections;
-//     int *p_n_nas = INTEGER(n_nas);
-//     memset(p_n_nas, 0, num_row * sizeof(int));
-//     for (int j = 0; j < (num_col - 1) ; ++j){
-//       switch ( TYPEOF(p_x[j]) ){
-//       case LGLSXP:
-//       case INTSXP: {
-//         int *p_xj = INTEGER(p_x[j]);
-// #pragma omp parallel for simd num_threads(num_cores())
-//         for (R_xlen_t i = 0; i < num_row; ++i){
-//           p_n_nas[i] = p_n_nas[i] + (p_xj[i] == NA_INTEGER);
-//         }
-//         break;
-//       }
-//       case REALSXP: {
-//         double *p_xj = REAL(p_x[j]);
-// #pragma omp parallel for simd num_threads(num_cores())
-//         for (R_xlen_t i = 0; i < num_row; ++i){
-//           p_n_nas[i] = p_n_nas[i] + !(p_xj[i] == p_xj[i]);
-//         }
-//         break;
-//       }
-//       case STRSXP: {
-//         SEXP *p_xj = STRING_PTR(p_x[j]);
-// #pragma omp parallel for simd num_threads(num_cores())
-//         for (R_xlen_t i = 0; i < num_row; ++i){
-//           p_n_nas[i] = p_n_nas[i] + (p_xj[i] == NA_STRING);
-//         }
-//         break;
-//       }
-//       case RAWSXP: {
-//         break;
-//       }
-//       case CPLXSXP: {
-//         Rcomplex *p_xj = COMPLEX(p_x[j]);
-// #pragma omp parallel for simd num_threads(num_cores())
-//         for (R_xlen_t i = 0; i < num_row; ++i){
-//           p_n_nas[i] = p_n_nas[i] + ( ((p_xj[i]).r != (p_xj[i]).r) || ((p_xj[i]).i != (p_xj[i]).i) );
-//         }
-//         break;
-//       }
-//       }
-//     }
-//     switch ( TYPEOF(p_x[num_col - 1]) ){
-//     case LGLSXP:
-//     case INTSXP: {
-//       int *p_xj = INTEGER(p_x[num_col - 1]);
-// #pragma omp parallel for simd num_threads(num_cores()) reduction(+:count)
-//       for (R_xlen_t i = 0; i < num_row; ++i){
-//         p_n_nas[i] = p_n_nas[i] + (p_xj[i] == NA_INTEGER);
-//         count = count + (p_n_nas[i] == num_col);
-//       }
-//       break;
-//     }
-//     case REALSXP: {
-//       double *p_xj = REAL(p_x[num_col - 1]);
-// #pragma omp parallel for simd num_threads(num_cores()) reduction(+:count)
-//       for (R_xlen_t i = 0; i < num_row; ++i){
-//         p_n_nas[i] = p_n_nas[i] + !(p_xj[i] == p_xj[i]);
-//         count = count + (p_n_nas[i] == num_col);
-//       }
-//       break;
-//     }
-//     case STRSXP: {
-//       SEXP *p_xj = STRING_PTR(p_x[num_col - 1]);
-// #pragma omp parallel for simd num_threads(num_cores()) reduction(+:count)
-//       for (R_xlen_t i = 0; i < num_row; ++i){
-//         p_n_nas[i] = p_n_nas[i] + (p_xj[i] == NA_STRING);
-//         count = count + (p_n_nas[i] == num_col);
-//       }
-//       break;
-//     }
-//     case RAWSXP: {
-//       break;
-//     }
-//     case CPLXSXP: {
-//       Rcomplex *p_xj = COMPLEX(p_x[num_col - 1]);
-// #pragma omp parallel for simd num_threads(num_cores()) reduction(+:count)
-//       for (R_xlen_t i = 0; i < num_row; ++i){
-//         p_n_nas[i] = p_n_nas[i] + ( ((p_xj[i]).r != (p_xj[i]).r) || ((p_xj[i]).i != (p_xj[i]).i) );
-//         count = count + (p_n_nas[i] == num_col);
-//       }
-//       break;
-//     }
+// #pragma omp parallel for simd if(do_parallel) num_threads(n_cores)
+//     for (R_xlen_t i = 0; i < num_row; ++i){
+//       count += p_empty_col_counts[i] >= n_cols;
 //     }
     break;
   }
@@ -319,7 +516,7 @@ SEXP cpp_num_na(SEXP x){
 
 [[cpp11::register]]
 SEXP cpp_which_na(SEXP x){
-  R_xlen_t n = Rf_xlength(x);
+  R_xlen_t n = cpp_vector_size(x);
   bool is_short = (n <= std::numeric_limits<int>::max());
   if (n == 0){
     SEXP out = Rf_protect(Rf_allocVector(INTSXP, 0));
@@ -416,7 +613,7 @@ SEXP cpp_which_na(SEXP x){
     }
   }
   case RAWSXP: {
-    SEXP out = Rf_protect(Rf_allocVector(INTSXP, 0));
+    SEXP out = Rf_protect(Rf_allocVector(INTSXP, 1));
     Rf_unprotect(1);
     return out;
   }
@@ -450,7 +647,8 @@ SEXP cpp_which_na(SEXP x){
     }
   }
   case VECSXP: {
-    SEXP is_empty = Rf_protect(cpp_empty_row(x));
+    SEXP is_empty = Rf_protect(cpp_missing_row(x, cpp_vector_width(x)));
+    // SEXP is_empty = Rf_protect(cpp_empty_row(x));
     SEXP out = Rf_protect(cpp_which_(is_empty, false));
     Rf_unprotect(2);
     return out;
@@ -613,7 +811,8 @@ SEXP cpp_which_not_na(SEXP x){
     }
   }
   case VECSXP: {
-    SEXP is_empty = Rf_protect(cpp_empty_row(x));
+    SEXP is_empty = Rf_protect(cpp_missing_row(x, cpp_vector_width(x)));
+    // SEXP is_empty = Rf_protect(cpp_empty_row(x));
     SEXP out = Rf_protect(cpp_which_(is_empty, true));
     Rf_unprotect(2);
     return out;

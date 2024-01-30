@@ -32,10 +32,13 @@
 // #endif
 
 R_xlen_t cpp_vector_size(SEXP x);
+int cpp_vector_width(SEXP x);
 double r_sum(SEXP x, bool na_rm);
 double r_min(SEXP x);
 int num_cores();
 SEXP cpp_which_(SEXP x, bool invert);
 R_xlen_t count_true(int *px, R_xlen_t n);
+SEXP cpp_empty_row(SEXP x);
+SEXP cpp_missing_row(SEXP x, int threshold);
 
 #endif

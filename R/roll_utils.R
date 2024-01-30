@@ -167,6 +167,22 @@ frollmean3 <- function(x, n, weights = NULL, ...){
   }
   out
 }
+# For fun.. A (mostly) base R NA locf/locb
+# Just to show how useful a simple function like consecutive_na_id() can be
+na_locf <- function(x){
+  na_id <- cpp_consecutive_na_id(x, TRUE)
+  i <- seq_len(vec_length(x)) - na_id
+  i[cpp_which(i == 0L)] <- NA_integer_
+  vec_slice3(x, i)
+  # x[seq_along(x) - na_id]
+}
+na_focb <- function(x){
+  na_id <- cpp_consecutive_na_id(x, FALSE)
+  i <- seq_len(vec_length(x)) + na_id
+  i[cpp_which(i == 0L)] <- NA_integer_
+  vec_slice3(x, i)
+  # x[seq_along(x) + na_id]
+}
 # Mostly base R rolling chop
 # roll_chop3 <- function(x, sizes = collapse::alloc(1L, vec_length(x))){
 #   x_size <- vec_length(x)

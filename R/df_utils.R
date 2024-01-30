@@ -29,7 +29,15 @@ group_vars <- function(x){
 group_data <- function(x){
   if (inherits(x, "grouped_df")){
     attr(x, "groups")
-  } else {
+  }
+  # else if (inherits(x, "data.frame")){
+  #   N <- df_nrow(x)
+  #   out <- list(.rows = vctrs_new_list_of(list(df_seq_along(x)), ptype = integer()))
+  #   class(out) <- "data.frame"
+  #   attr(out, "row.names") <- .set_row_names(1L)
+  #   out
+  #   }
+  else {
     dplyr::group_data(x)
   }
 }

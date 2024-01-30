@@ -18,195 +18,195 @@ SEXP cpp_roll_lag(SEXP x, int k, SEXP fill) {
     switch(TYPEOF(x)){
     case LGLSXP:
     case INTSXP: {
-        int fill_value = NA_INTEGER;
-        if (fill_size >= 1){
-            fill_value = Rf_asInteger(fill);
+      int fill_value = NA_INTEGER;
+      if (fill_size >= 1){
+        fill_value = Rf_asInteger(fill);
+      }
+      SEXP out = Rf_protect(Rf_duplicate(x));
+      int *p_x = INTEGER(x);
+      int *p_out = INTEGER(out);
+      for (R_xlen_t i = 0; i < size; ++i) {
+        if (i < k){
+          p_out[i] = fill_value;
+        } else {
+          p_out[i] = p_x[i - k];
         }
-        SEXP out = Rf_protect(Rf_duplicate(x));
-        int *p_x = INTEGER(x);
-        int *p_out = INTEGER(out);
-        for (R_xlen_t i = 0; i < size; ++i) {
-            if (i < k){
-                p_out[i] = fill_value;
-            } else {
-                p_out[i] = p_x[i - k];
-            }
-        }
-        Rf_unprotect(1);
-        return out;
+      }
+      Rf_unprotect(1);
+      return out;
     }
     case REALSXP: {
-        double fill_value = NA_REAL;
-        if (fill_size >= 1){
-            fill_value = Rf_asReal(fill);
+      double fill_value = NA_REAL;
+      if (fill_size >= 1){
+        fill_value = Rf_asReal(fill);
+      }
+      SEXP out = Rf_protect(Rf_duplicate(x));
+      double *p_x = REAL(x);
+      double *p_out = REAL(out);
+      for (R_xlen_t i = 0; i < size; ++i) {
+        if (i < k){
+          p_out[i] = fill_value;
+        } else {
+          p_out[i] = p_x[i - k];
         }
-        SEXP out = Rf_protect(Rf_duplicate(x));
-        double *p_x = REAL(x);
-        double *p_out = REAL(out);
-        for (R_xlen_t i = 0; i < size; ++i) {
-            if (i < k){
-                p_out[i] = fill_value;
-            } else {
-                p_out[i] = p_x[i - k];
-            }
-        }
-        Rf_unprotect(1);
-        return out;
+      }
+      Rf_unprotect(1);
+      return out;
     }
     case STRSXP: {
-        SEXP fill_sexp = Rf_protect(Rf_allocVector(STRSXP, 1));
-        if (fill_size >= 1){
-            SET_STRING_ELT(fill_sexp, 0, Rf_asChar(fill));
+      SEXP fill_sexp = Rf_protect(Rf_allocVector(STRSXP, 1));
+      if (fill_size >= 1){
+        SET_STRING_ELT(fill_sexp, 0, Rf_asChar(fill));
+      } else {
+        SET_STRING_ELT(fill_sexp, 0, NA_STRING);
+      }
+      SEXP out = Rf_protect(Rf_duplicate(x));
+      for (R_xlen_t i = 0; i < size; ++i) {
+        if (i < k){
+          SET_STRING_ELT(out, i, STRING_ELT(fill_sexp, 0));
         } else {
-            SET_STRING_ELT(fill_sexp, 0, NA_STRING);
+          SET_STRING_ELT(out, i, STRING_ELT(x, i - k));
         }
-        SEXP out = Rf_protect(Rf_duplicate(x));
-        for (R_xlen_t i = 0; i < size; ++i) {
-            if (i < k){
-                SET_STRING_ELT(out, i, STRING_ELT(fill_sexp, 0));
-            } else {
-                SET_STRING_ELT(out, i, STRING_ELT(x, i - k));
-            }
-        }
-        Rf_unprotect(2);
-        return out;
+      }
+      Rf_unprotect(2);
+      return out;
     }
     default: {
-        Rf_error("cpp_roll_lag cannot handle the supplied SEXP");
-        break;
+      Rf_error("cpp_roll_lag cannot handle the supplied SEXP");
+      break;
     }
     }
 }
 
 [[cpp11::register]]
 SEXP cpp_roll_lead(SEXP x, int k, SEXP fill) {
-    R_xlen_t size = Rf_xlength(x);
-    int fill_size = Rf_length(fill);
-    if (fill_size > 1){
-        Rf_error("fill size must be NULL or length 1");
+  R_xlen_t size = Rf_xlength(x);
+  int fill_size = Rf_length(fill);
+  if (fill_size > 1){
+    Rf_error("fill size must be NULL or length 1");
+  }
+  if (k < 0){
+    Rf_error("k must be a non-negative integer");
+  }
+  switch(TYPEOF(x)){
+  case LGLSXP:
+  case INTSXP: {
+    int fill_value = NA_INTEGER;
+    if (fill_size >= 1){
+      fill_value = Rf_asInteger(fill);
     }
-    if (k < 0){
-        Rf_error("k must be a non-negative integer");
+    SEXP out = Rf_protect(Rf_duplicate(x));
+    int *p_x = INTEGER(x);
+    int *p_out = INTEGER(out);
+    for (R_xlen_t i = 0; i < size; ++i) {
+      if (i >= (size - k)){
+        p_out[i] = fill_value;
+      } else {
+        p_out[i] = p_x[i + k];
+      }
     }
-    switch(TYPEOF(x)){
-    case LGLSXP:
-    case INTSXP: {
-        int fill_value = NA_INTEGER;
-        if (fill_size >= 1){
-            fill_value = Rf_asInteger(fill);
-        }
-        SEXP out = Rf_protect(Rf_duplicate(x));
-        int *p_x = INTEGER(x);
-        int *p_out = INTEGER(out);
-        for (R_xlen_t i = 0; i < size; ++i) {
-            if (i >= (size - k)){
-                p_out[i] = fill_value;
-            } else {
-                p_out[i] = p_x[i + k];
-            }
-        }
-        Rf_unprotect(1);
-        return out;
+    Rf_unprotect(1);
+    return out;
+  }
+  case REALSXP: {
+    double fill_value = NA_REAL;
+    if (fill_size >= 1){
+      fill_value = Rf_asReal(fill);
     }
-    case REALSXP: {
-        double fill_value = NA_REAL;
-        if (fill_size >= 1){
-            fill_value = Rf_asReal(fill);
-        }
-        SEXP out = Rf_protect(Rf_duplicate(x));
-        double *p_x = REAL(x);
-        double *p_out = REAL(out);
-        for (R_xlen_t i = 0; i < size; ++i) {
-            if (i >= (size - k)){
-                p_out[i] = fill_value;
-            } else {
-                p_out[i] = p_x[i + k];
-            }
-        }
-        Rf_unprotect(1);
-        return out;
+    SEXP out = Rf_protect(Rf_duplicate(x));
+    double *p_x = REAL(x);
+    double *p_out = REAL(out);
+    for (R_xlen_t i = 0; i < size; ++i) {
+      if (i >= (size - k)){
+        p_out[i] = fill_value;
+      } else {
+        p_out[i] = p_x[i + k];
+      }
     }
-    case STRSXP: {
-        SEXP fill_sexp = Rf_protect(Rf_allocVector(STRSXP, 1));
-        if (fill_size >= 1){
-            SET_STRING_ELT(fill_sexp, 0, Rf_asChar(fill));
-        } else {
-            SET_STRING_ELT(fill_sexp, 0, NA_STRING);
-        }
-        SEXP out = Rf_protect(Rf_duplicate(x));
-        for (R_xlen_t i = 0; i < size; ++i) {
-            if (i >= (size - k)){
-                SET_STRING_ELT(out, i, STRING_ELT(fill_sexp, 0));
-            } else {
-                SET_STRING_ELT(out, i, STRING_ELT(x, i + k));
-            }
-        }
-        Rf_unprotect(2);
-        return out;
+    Rf_unprotect(1);
+    return out;
+  }
+  case STRSXP: {
+    SEXP fill_sexp = Rf_protect(Rf_allocVector(STRSXP, 1));
+    if (fill_size >= 1){
+      SET_STRING_ELT(fill_sexp, 0, Rf_asChar(fill));
+    } else {
+      SET_STRING_ELT(fill_sexp, 0, NA_STRING);
     }
-    default: {
-        Rf_error("cpp_roll_lead cannot handle the supplied SEXP");
-        break;
+    SEXP out = Rf_protect(Rf_duplicate(x));
+    for (R_xlen_t i = 0; i < size; ++i) {
+      if (i >= (size - k)){
+        SET_STRING_ELT(out, i, STRING_ELT(fill_sexp, 0));
+      } else {
+        SET_STRING_ELT(out, i, STRING_ELT(x, i + k));
+      }
     }
-    }
+    Rf_unprotect(2);
+    return out;
+  }
+  default: {
+    Rf_error("cpp_roll_lead cannot handle the supplied SEXP");
+    break;
+  }
+  }
 }
 
 
 [[cpp11::register]]
 SEXP cpp_roll_lag_grouped(SEXP x, int k, SEXP o, SEXP sizes, SEXP fill) {
-    int size = Rf_length(x);
-    int o_size = Rf_length(o);
-    int fill_size = Rf_length(fill);
-    if (o_size != size){
-        Rf_error("x and o must both be the same length");
+  int size = Rf_length(x);
+  int o_size = Rf_length(o);
+  int fill_size = Rf_length(fill);
+  if (o_size != size){
+    Rf_error("x and o must both be the same length");
+  }
+  if (fill_size > 1){
+    Rf_error("fill size must be NULL or length 1");
+  }
+  if (k < 0){
+    Rf_error("k must be a non-negative integer");
+  }
+  int *p_sizes = INTEGER(sizes);
+  int *p_o = INTEGER(o);
+  int oi;
+  int j = 0;
+  int group_count = 0;
+  int running_group_size = p_sizes[0];
+  switch(TYPEOF(x)){
+  case LGLSXP:
+  case INTSXP: {
+    int fill_value = NA_INTEGER;
+    // k = std::min(k, p_sizes[j]);
+    if (fill_size >= 1){
+      fill_value = Rf_asInteger(fill);
     }
-    if (fill_size > 1){
-        Rf_error("fill size must be NULL or length 1");
+    SEXP out = Rf_protect(Rf_duplicate(x));
+    int *p_x = INTEGER(x);
+    int *p_out = INTEGER(out);
+    for (int i = 0; i < size; ++i) {
+      oi = p_o[i] - 1;
+      // Start of new group?
+      if (i > (running_group_size - 1)){
+        ++j;
+        running_group_size += p_sizes[j];
+        group_count = 0;
+      }
+      if (group_count < k){
+        p_out[oi] = fill_value;
+      } else {
+        p_out[oi] = p_x[p_o[i - k] - 1];
+      }
+      ++group_count;
     }
-    if (k < 0){
-        Rf_error("k must be a non-negative integer");
+    Rf_unprotect(1);
+    return out;
+  }
+  case REALSXP: {
+    double fill_value = NA_REAL;
+    // k = std::min(k, p_sizes[j]);
+    if (fill_size >= 1){
+      fill_value = Rf_asReal(fill);
     }
-    int *p_sizes = INTEGER(sizes);
-    int *p_o = INTEGER(o);
-    int oi;
-    int j = 0;
-    int group_count = 0;
-    int running_group_size = p_sizes[0];
-    switch(TYPEOF(x)){
-    case LGLSXP:
-    case INTSXP: {
-        int fill_value = NA_INTEGER;
-        // k = std::min(k, p_sizes[j]);
-        if (fill_size >= 1){
-            fill_value = Rf_asInteger(fill);
-        }
-        SEXP out = Rf_protect(Rf_duplicate(x));
-        int *p_x = INTEGER(x);
-        int *p_out = INTEGER(out);
-        for (int i = 0; i < size; ++i) {
-            oi = p_o[i] - 1;
-            // Start of new group?
-            if (i > (running_group_size - 1)){
-                ++j;
-                running_group_size += p_sizes[j];
-                group_count = 0;
-            }
-            if (group_count < k){
-                p_out[oi] = fill_value;
-            } else {
-                p_out[oi] = p_x[p_o[i - k] - 1];
-            }
-            ++group_count;
-        }
-        Rf_unprotect(1);
-        return out;
-    }
-    case REALSXP: {
-        double fill_value = NA_REAL;
-        // k = std::min(k, p_sizes[j]);
-        if (fill_size >= 1){
-            fill_value = Rf_asReal(fill);
-        }
         SEXP out = Rf_protect(Rf_duplicate(x));
         double *p_x = REAL(x);
         double *p_out = REAL(out);

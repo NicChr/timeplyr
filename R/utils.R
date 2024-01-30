@@ -750,24 +750,25 @@ vec_length <- cpp_vector_size
 #   out
 # }
 # Returns the width or ncol (if list or df)
-vec_width <- function(x){
-  if (is.list(x)){
-    if (is_df(x)){
-      out <- df_ncol(x)
-    } else {
-      lens <- cpp_lengths(x)
-      if (collapse::fnunique(lens) > 1L){
-        stop("x must be a vector, matrix, data frame or list with equal lengths")
-      }
-      out <- length(lens)
-    }
-  } else if (is.array(x)) {
-    out <- dim(x)[2L]
-  } else {
-    out <- collapse::fncol(x)
-  }
-  out
-}
+vec_width <- cpp_vector_width
+# vec_width <- function(x){
+#   if (is.list(x)){
+#     if (is_df(x)){
+#       out <- df_ncol(x)
+#     } else {
+#       lens <- cpp_lengths(x)
+#       if (collapse::fnunique(lens) > 1L){
+#         stop("x must be a vector, matrix, data frame or list with equal lengths")
+#       }
+#       out <- length(lens)
+#     }
+#   } else if (is.array(x)) {
+#     out <- dim(x)[2L]
+#   } else {
+#     out <- collapse::fncol(x)
+#   }
+#   out
+# }
 
 # Taken from utils package
 getFromNamespace <- function(x, ns, pos = -1, envir = as.environment(pos)){
@@ -1363,10 +1364,46 @@ new_list <- function(length = 0L, default = NULL){
 levels_factor <- function(x){
   lvls <- levels(x)
   out <- seq_along(lvls)
-  levels(out) <- lvls
+  attr(out, "levels") <- lvls
+  # levels(out) <- lvls
   class(out) <- class(x)
   out
 }
+used_levels <- function(x){
+  # 3 methods can be used
+  as.character(fintersect(levels_factor(x), x))
+  # levels(quick_factor(x, na_exclude = !anyNA(levels(x))))
+  # fintersect(levels(x), x)
+
+  # which_unused <- cpp_which(
+  #   GRP_group_sizes(
+  #     GRP2(x, drop = FALSE)
+  #   ) != 0L
+  # )
+  # lvls[which_unused]
+}
+unused_levels <- function(x){
+  # 3 methods can be used
+  as.character(fsetdiff(levels_factor(x), x))
+  # fsetdiff(levels(x), used_levels(x))
+  # fsetdiff(levels(x), x)
+
+  # sizes <- GRP_group_sizes(
+  #   GRP2(x, drop = FALSE)
+  # )
+  # which_unused <- cpp_which(sizes == 0L)
+  # lvls[which_unused]
+}
+# Blazing fast droplevels()
+# fdroplevels <- function(x){
+#   quick_factor(x)
+#   # out <- x
+#   # if (is.factor(x)){
+#   #   used <- used_levels(x)
+#   #   attr(out, "levels") <- used
+#   # }
+#   # out
+# }
 
 # timeplyr_n_cores <- function(){
 #   getOption("timeplyr.cores", 1L)
@@ -1419,4 +1456,11 @@ with_local_seed <- function(expr, .seed = NULL, ...){
   }
   on.exit({assign(".Random.seed", old, envir = globalenv())})
   eval(expr, envir = parent.frame())
+}
+# Very fast and memory efficient setdiff and intersect
+fsetdiff <- function(x, y){
+  vec_slice3(x, cpp_which_na(collapse::fmatch(x, y, overid = 2L)))
+}
+fintersect <- function(x, y){
+  vec_slice3(x, cpp_which_not_na(collapse::fmatch(x, y, overid = 2L)))
 }

@@ -62,7 +62,13 @@ quick_factor <- function(x = integer(), levels = NULL, order = TRUE,
     }
   }
   out <- collapse::fmatch(x, lvls, overid = 2L)
-  attr(out, "levels") <- as.character(lvls)
+  if (is_datetime(x)){
+    attr(out, "levels") <- format(lvls, usetz = TRUE)
+  } else {
+    attr(out, "levels") <- as.character(lvls)
+  }
+  # attr(out, "ordered") <- order
+  # attr(out, "na_excluded") <- na_exclude
   class(out) <- c(if (ordered) "ordered" else character(), "factor")
   out
 }

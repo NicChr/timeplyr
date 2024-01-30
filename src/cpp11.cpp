@@ -111,6 +111,20 @@ extern "C" SEXP _timeplyr_cpp_roll_na_fill_grouped(SEXP x, SEXP o, SEXP sizes, S
   END_CPP11
 }
 // num_na.cpp
+SEXP cpp_na_col_counts(SEXP x);
+extern "C" SEXP _timeplyr_cpp_na_col_counts(SEXP x) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_na_col_counts(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x)));
+  END_CPP11
+}
+// num_na.cpp
+SEXP cpp_missing_row(SEXP x, int threshold);
+extern "C" SEXP _timeplyr_cpp_missing_row(SEXP x, SEXP threshold) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_missing_row(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<int>>(threshold)));
+  END_CPP11
+}
+// num_na.cpp
 SEXP cpp_num_na(SEXP x);
 extern "C" SEXP _timeplyr_cpp_num_na(SEXP x) {
   BEGIN_CPP11
@@ -199,6 +213,13 @@ R_xlen_t cpp_vector_size(SEXP x);
 extern "C" SEXP _timeplyr_cpp_vector_size(SEXP x) {
   BEGIN_CPP11
     return cpp11::as_sexp(cpp_vector_size(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x)));
+  END_CPP11
+}
+// utils.cpp
+int cpp_vector_width(SEXP x);
+extern "C" SEXP _timeplyr_cpp_vector_width(SEXP x) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_vector_width(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x)));
   END_CPP11
 }
 // utils.cpp
@@ -313,6 +334,13 @@ extern "C" SEXP _timeplyr_cpp_copy(SEXP x) {
     return cpp11::as_sexp(cpp_copy(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x)));
   END_CPP11
 }
+// utils.cpp
+SEXP cpp_consecutive_na_id(SEXP x, bool left_to_right);
+extern "C" SEXP _timeplyr_cpp_consecutive_na_id(SEXP x, SEXP left_to_right) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_consecutive_na_id(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<bool>>(left_to_right)));
+  END_CPP11
+}
 // which.cpp
 SEXP cpp_which_(SEXP x, bool invert);
 extern "C" SEXP _timeplyr_cpp_which_(SEXP x, SEXP invert) {
@@ -329,6 +357,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_any_address_changed",  (DL_FUNC) &_timeplyr_cpp_any_address_changed,  2},
     {"_timeplyr_cpp_bin",                  (DL_FUNC) &_timeplyr_cpp_bin,                  6},
     {"_timeplyr_cpp_bin_grouped",          (DL_FUNC) &_timeplyr_cpp_bin_grouped,          6},
+    {"_timeplyr_cpp_consecutive_na_id",    (DL_FUNC) &_timeplyr_cpp_consecutive_na_id,    2},
     {"_timeplyr_cpp_copy",                 (DL_FUNC) &_timeplyr_cpp_copy,                 1},
     {"_timeplyr_cpp_dbl_sequence",         (DL_FUNC) &_timeplyr_cpp_dbl_sequence,         3},
     {"_timeplyr_cpp_df_group_indices",     (DL_FUNC) &_timeplyr_cpp_df_group_indices,     2},
@@ -345,6 +374,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_lengths",              (DL_FUNC) &_timeplyr_cpp_lengths,              1},
     {"_timeplyr_cpp_list_subset",          (DL_FUNC) &_timeplyr_cpp_list_subset,          4},
     {"_timeplyr_cpp_list_which_not_null",  (DL_FUNC) &_timeplyr_cpp_list_which_not_null,  1},
+    {"_timeplyr_cpp_missing_row",          (DL_FUNC) &_timeplyr_cpp_missing_row,          2},
+    {"_timeplyr_cpp_na_col_counts",        (DL_FUNC) &_timeplyr_cpp_na_col_counts,        1},
     {"_timeplyr_cpp_new_list",             (DL_FUNC) &_timeplyr_cpp_new_list,             2},
     {"_timeplyr_cpp_nrows",                (DL_FUNC) &_timeplyr_cpp_nrows,                1},
     {"_timeplyr_cpp_num_na",               (DL_FUNC) &_timeplyr_cpp_num_na,               1},
@@ -361,6 +392,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_row_id",               (DL_FUNC) &_timeplyr_cpp_row_id,               3},
     {"_timeplyr_cpp_sorted_group_starts",  (DL_FUNC) &_timeplyr_cpp_sorted_group_starts,  1},
     {"_timeplyr_cpp_vector_size",          (DL_FUNC) &_timeplyr_cpp_vector_size,          1},
+    {"_timeplyr_cpp_vector_width",         (DL_FUNC) &_timeplyr_cpp_vector_width,         1},
     {"_timeplyr_cpp_which_",               (DL_FUNC) &_timeplyr_cpp_which_,               2},
     {"_timeplyr_cpp_which_na",             (DL_FUNC) &_timeplyr_cpp_which_na,             1},
     {"_timeplyr_cpp_which_not_na",         (DL_FUNC) &_timeplyr_cpp_which_not_na,         1},
