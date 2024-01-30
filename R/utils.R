@@ -724,51 +724,14 @@ vec_tail <- function(x, n = 1L){
   }
   vctrs::vec_slice(x, seq.int(from = N - size + 1L, by = 1L, length.out = size))
 }
+
+# The below 2 functions CANNOT HANDLE MATRICES
+# They are treated as regular vectors
+
 # Returns the length or nrows (if list or df)
 vec_length <- cpp_vector_size
-# vec_length <- function(x){
-#   if (is.list(x)){
-#     if (inherits(x, "data.frame")){
-#       out <- df_nrow(x)
-#     } else {
-#       out <- cpp_lengths(x)
-#       nunique <- collapse::fnunique(out)
-#       if (nunique > 1L){
-#         stop("x must be a vector, matrix, data frame or list with equal lengths")
-#       } else {
-#         out <- out[nunique]
-#       }
-#       if (length(out) == 0L){
-#         out <- 0L
-#       }
-#     }
-#   } else if (is.array(x)){
-#     out <- dim(x)[1L]
-#   } else {
-#     out <- length(x)
-#   }
-#   out
-# }
 # Returns the width or ncol (if list or df)
 vec_width <- cpp_vector_width
-# vec_width <- function(x){
-#   if (is.list(x)){
-#     if (is_df(x)){
-#       out <- df_ncol(x)
-#     } else {
-#       lens <- cpp_lengths(x)
-#       if (collapse::fnunique(lens) > 1L){
-#         stop("x must be a vector, matrix, data frame or list with equal lengths")
-#       }
-#       out <- length(lens)
-#     }
-#   } else if (is.array(x)) {
-#     out <- dim(x)[2L]
-#   } else {
-#     out <- collapse::fncol(x)
-#   }
-#   out
-# }
 
 # Taken from utils package
 getFromNamespace <- function(x, ns, pos = -1, envir = as.environment(pos)){
@@ -1360,6 +1323,15 @@ new_list <- function(length = 0L, default = NULL){
   check_length(length, 1)
   cpp_new_list(as.numeric(length), default)
 }
+
+# Very fast and memory efficient setdiff and intersect
+fsetdiff <- function(x, y){
+  vec_slice3(x, cpp_which_na(collapse::fmatch(x, y, overid = 2L)))
+}
+fintersect <- function(x, y){
+  vec_slice3(x, cpp_which_not_na(collapse::fmatch(x, y, overid = 2L)))
+}
+
 # levels() but the result is its own factor
 levels_factor <- function(x){
   lvls <- levels(x)
@@ -1370,73 +1342,13 @@ levels_factor <- function(x){
   out
 }
 used_levels <- function(x){
-  # 3 methods can be used
   as.character(fintersect(levels_factor(x), x))
-  # levels(quick_factor(x, na_exclude = !anyNA(levels(x))))
-  # fintersect(levels(x), x)
-
-  # which_unused <- cpp_which(
-  #   GRP_group_sizes(
-  #     GRP2(x, drop = FALSE)
-  #   ) != 0L
-  # )
-  # lvls[which_unused]
+  # levels(quick_factor(x))
 }
 unused_levels <- function(x){
-  # 3 methods can be used
   as.character(fsetdiff(levels_factor(x), x))
   # fsetdiff(levels(x), used_levels(x))
-  # fsetdiff(levels(x), x)
-
-  # sizes <- GRP_group_sizes(
-  #   GRP2(x, drop = FALSE)
-  # )
-  # which_unused <- cpp_which(sizes == 0L)
-  # lvls[which_unused]
 }
-# Blazing fast droplevels()
-# fdroplevels <- function(x){
-#   quick_factor(x)
-#   # out <- x
-#   # if (is.factor(x)){
-#   #   used <- used_levels(x)
-#   #   attr(out, "levels") <- used
-#   # }
-#   # out
-# }
-
-# timeplyr_n_cores <- function(){
-#   getOption("timeplyr.cores", 1L)
-# }
-
-# with_local_seed <- function(.f, ..., .seed = NULL){
-#   # Check if a seed already exists in global environment
-#   seed_exists <- exists(".Random.seed", envir = globalenv())
-#   # Save it in the first instance
-#   if (seed_exists){
-#     old <- .Random.seed
-#   }
-#   # Does user want to use local seed?
-#   seed_is_null <- is.null(.seed)
-#   if (!seed_is_null){
-#     set.seed(.seed)
-#   }
-#   add_seed <- function(){assign(".Random.seed", old, envir = globalenv())}
-#   rm_seed <- function(){remove(".Random.seed", envir = globalenv())}
-#   if (seed_exists && !seed_is_null){
-#     # do.call(on.exit, list(add_seed()), envir = environment(.f))
-#     # xfun::exit_call(add_seed, n = 2)
-#     on.exit(add_seed())
-#     # on.exit({ assign(".Random.seed", old, envir = globalenv())})
-#   } else if (!seed_is_null){
-#     # do.call(on.exit, list(rm_seed()), envir = environment(.f))
-#     # xfun::exit_call(rm_seed, n = 2)
-#     on.exit(rm_seed())
-#     # on.exit({remove(".Random.seed", envir = globalenv())})
-#   }
-#   # .f
-#   do.call(.f, list(...), envir = parent.frame())
-# }
 
 # Apply a function using a LOCAL seed
 # This has the nice property that the seed that was previously
@@ -1456,11 +1368,4 @@ with_local_seed <- function(expr, .seed = NULL, ...){
   }
   on.exit({assign(".Random.seed", old, envir = globalenv())})
   eval(expr, envir = parent.frame())
-}
-# Very fast and memory efficient setdiff and intersect
-fsetdiff <- function(x, y){
-  vec_slice3(x, cpp_which_na(collapse::fmatch(x, y, overid = 2L)))
-}
-fintersect <- function(x, y){
-  vec_slice3(x, cpp_which_not_na(collapse::fmatch(x, y, overid = 2L)))
 }
