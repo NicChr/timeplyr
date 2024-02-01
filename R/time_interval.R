@@ -177,15 +177,23 @@ as.list.time_interval <- function(x, ...){
 
 # General collapse::funique method for vctrs rcrds
 funique.vctrs_rcrd <- function(x, sort = FALSE, method = "auto",
-                                 decreasing = FALSE, na.last = TRUE, ...){
+                               decreasing = FALSE, na.last = TRUE, ...){
+  cl <- class(x)
+  out <- collapse::funique(unclass(x), sort = sort, method = method,
+                           decreasing = decreasing, na.last = na.last, ...)
+  class(out) <- cl
+  out
+}
+
+unique.time_interval <- function(x, incomparables = FALSE, sort = FALSE,
+                                 method = "auto", decreasing = FALSE,
+                                 na.last = TRUE, ...){
   cl <- class(x)
   out <- collapse::funique(unclass(x), sort = sort, method = method,
                            decreasing = decreasing, na.last = na.last)
   class(out) <- cl
   out
 }
-
-unique.time_interval <- funique.vctrs_rcrd
 
 xtfrm.time_interval <- function(x){
   group_id(x, order = TRUE)
