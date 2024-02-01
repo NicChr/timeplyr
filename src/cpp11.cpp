@@ -118,10 +118,10 @@ extern "C" SEXP _timeplyr_cpp_na_col_counts(SEXP x) {
   END_CPP11
 }
 // num_na.cpp
-SEXP cpp_missing_row(SEXP x, int threshold);
-extern "C" SEXP _timeplyr_cpp_missing_row(SEXP x, SEXP threshold) {
+SEXP cpp_missing_row(SEXP x, double threshold, bool threshold_is_prop);
+extern "C" SEXP _timeplyr_cpp_missing_row(SEXP x, SEXP threshold, SEXP threshold_is_prop) {
   BEGIN_CPP11
-    return cpp11::as_sexp(cpp_missing_row(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<int>>(threshold)));
+    return cpp11::as_sexp(cpp_missing_row(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(threshold), cpp11::as_cpp<cpp11::decay_t<bool>>(threshold_is_prop)));
   END_CPP11
 }
 // num_na.cpp
@@ -374,7 +374,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_lengths",              (DL_FUNC) &_timeplyr_cpp_lengths,              1},
     {"_timeplyr_cpp_list_subset",          (DL_FUNC) &_timeplyr_cpp_list_subset,          4},
     {"_timeplyr_cpp_list_which_not_null",  (DL_FUNC) &_timeplyr_cpp_list_which_not_null,  1},
-    {"_timeplyr_cpp_missing_row",          (DL_FUNC) &_timeplyr_cpp_missing_row,          2},
+    {"_timeplyr_cpp_missing_row",          (DL_FUNC) &_timeplyr_cpp_missing_row,          3},
     {"_timeplyr_cpp_na_col_counts",        (DL_FUNC) &_timeplyr_cpp_na_col_counts,        1},
     {"_timeplyr_cpp_new_list",             (DL_FUNC) &_timeplyr_cpp_new_list,             2},
     {"_timeplyr_cpp_nrows",                (DL_FUNC) &_timeplyr_cpp_nrows,                1},

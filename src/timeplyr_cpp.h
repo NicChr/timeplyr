@@ -39,6 +39,6 @@ int num_cores();
 SEXP cpp_which_(SEXP x, bool invert);
 R_xlen_t count_true(int *px, R_xlen_t n);
 SEXP cpp_empty_row(SEXP x);
-SEXP cpp_missing_row(SEXP x, int threshold);
+SEXP cpp_missing_row(SEXP x, double threshold, bool threshold_is_prop);
 
 #endif

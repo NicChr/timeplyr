@@ -444,11 +444,18 @@ df_group_id <- function(x){
 df_reorder <- function(data, g){
   df_row_slice(data, greorder2(df_seq_along(data, "rows"), g = g))
 }
-# Drop rows that are all empty
+# Fast/efficient drop empty rows
 df_drop_empty <- function(data, .cols = names(data)){
-  is_empty_row <- collapse::missing_cases(fselect(data, .cols = .cols), prop = 1)
+  # is_empty_row <- collapse::missing_cases(fselect(data, .cols = .cols), prop = 1)
+  is_empty_row <- cpp_missing_row(fselect(data, .cols = .cols),
+                                  length(.cols),
+                                  FALSE)
   which_not_empty <- cpp_which(is_empty_row, invert = TRUE)
-  df_row_slice(data, which_not_empty)
+  if (length(which_not_empty) == df_nrow(data)){
+    data
+  } else {
+    df_row_slice(data, which_not_empty)
+  }
 }
 # Alternative dplyr way, just for fun
 dplyr_drop_empty <- function(data, .cols = dplyr::everything()){

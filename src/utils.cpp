@@ -35,7 +35,7 @@ R_xlen_t cpp_vector_size(SEXP x){
     return Rf_xlength(Rf_getAttrib(x, R_RowNamesSymbol));
   } else if (Rf_isVectorList(x)){
     if (Rf_inherits(x, "vctrs_rcrd")){
-      return Rf_xlength(VECTOR_ELT(x, 0));
+      return cpp_vector_size(VECTOR_ELT(x, 0));
     } else {
       // return Rf_xlength(x);
       int n = Rf_length(x);
@@ -69,9 +69,10 @@ int cpp_vector_width(SEXP x){
       if (n == 0){
         return 0;
       } else {
-        R_xlen_t init = cpp_vector_size(VECTOR_ELT(x, 0));
+        const SEXP *p_x = VECTOR_PTR_RO(x);
+        R_xlen_t init = cpp_vector_size(p_x[0]);
         for (int i = 1; i < n; ++i) {
-          if (cpp_vector_size(VECTOR_ELT(x, i)) != init){
+          if (cpp_vector_size(p_x[i]) != init){
             Rf_error("All list elements must be of equal length");
           }
         }
@@ -757,7 +758,7 @@ SEXP cpp_consecutive_na_id(SEXP x, bool left_to_right){
     break;
   }
   case VECSXP: {
-    SEXP is_empty = Rf_protect(cpp_missing_row(x, cpp_vector_width(x)));
+    SEXP is_empty = Rf_protect(cpp_missing_row(x, 1, true));
     ++n_protections;
     int *p_is_empty = LOGICAL(is_empty);
     if (left_to_right){

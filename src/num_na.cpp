@@ -58,11 +58,16 @@ SEXP cpp_na_col_counts(SEXP x){
       break;
     }
     case VECSXP: {
-      SEXP n_empty_nested = Rf_protect(cpp_na_col_counts(VECTOR_ELT(x, j)));
+      // SEXP n_empty_nested = Rf_protect(cpp_na_col_counts(VECTOR_ELT(x, j)));
+      SEXP is_empty_nested = Rf_protect(cpp_missing_row(VECTOR_ELT(x, j), 1, true));
       ++n_protections;
-      int *p_n_empty_nested = INTEGER(n_empty_nested);
-      for (R_xlen_t j = 0; j < num_row; ++j){
-        p_n_empty[j] += (p_n_empty_nested[j] >= 1);
+      int *p_is_empty_nested = LOGICAL(is_empty_nested);
+      // int *p_n_empty_nested = INTEGER(n_empty_nested);
+      for (R_xlen_t k = 0; k < num_row; ++k){
+        p_n_empty[k] += p_is_empty_nested[k];
+        // p_n_empty[k] += (p_n_empty_nested[k] >= 1);
+        // gte_one = (p_n_empty_nested[k] >= 1);
+        // p_n_empty[k] += gte_one;
       }
       break;
     }
@@ -77,9 +82,10 @@ SEXP cpp_na_col_counts(SEXP x){
 }
 
 // Are rows empty for at least ncol (>= threshold)?
+// or ncol >= floor(threshold * ncol(x)) if threshold is a proportion
 
 [[cpp11::register]]
-SEXP cpp_missing_row(SEXP x, int threshold){
+SEXP cpp_missing_row(SEXP x, double threshold, bool threshold_is_prop){
   if (!Rf_isVectorList(x)){
     Rf_error("x must be a data frame");
   }
@@ -88,12 +94,23 @@ SEXP cpp_missing_row(SEXP x, int threshold){
   }
   int n_cols = cpp_vector_width(x);
   int over_threshold;
+  int col_threshold = threshold;
   R_xlen_t n_rows = cpp_vector_size(x);
-  if (threshold < 0){
-    threshold = 0;
-  }
-  if (threshold > n_cols){
-    threshold = n_cols;
+  if (threshold_is_prop){
+      if (threshold < 0){
+        col_threshold = 0;
+      } else if (threshold > 1){
+        col_threshold = n_cols;
+      } else {
+        col_threshold = std::floor( (threshold * n_cols) + 0.0000000001);
+      }
+  } else {
+    if (threshold < 0){
+      col_threshold = 0;
+    }
+    if (threshold > n_cols){
+      col_threshold = n_cols;
+    }
   }
   // Special case when there are 0 cols
   if (n_cols == 0){
@@ -103,7 +120,7 @@ SEXP cpp_missing_row(SEXP x, int threshold){
     Rf_unprotect(1);
     return out;
     // All rows always have >= 0 empty values
-  } else if (threshold <= 0){
+  } else if (col_threshold <= 0){
     SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n_rows));
     int *p_out = INTEGER(out);
 #pragma omp for simd
@@ -117,7 +134,7 @@ SEXP cpp_missing_row(SEXP x, int threshold){
     int *p_out = INTEGER(out);
 #pragma omp for simd
     for (R_xlen_t i = 0; i < n_rows; ++i){
-      over_threshold = (p_out[i] - threshold + 1) >= 1;
+      over_threshold = (p_out[i] - col_threshold + 1) >= 1;
       p_out[i] = over_threshold;
     }
     SET_TYPEOF(out, LGLSXP);
@@ -125,106 +142,6 @@ SEXP cpp_missing_row(SEXP x, int threshold){
     return out;
   }
 }
-// SEXP cpp_missing_row(SEXP x, double prop){
-//   if (prop != prop){
-//     Rf_error("prop cannot be NA");
-//   }
-//   int n_cols = cpp_vector_width(x);
-//   int over_threshold;
-//   R_xlen_t n_rows = cpp_vector_size(x);
-//   int threshold;
-//   if (prop <= 0){
-//     threshold = 0;
-//   } else if (prop >= 1){
-//     threshold = n_cols;
-//   } else {
-//     threshold = std::floor( (prop * n_cols) + 0.0000000001);
-//   }
-//   // Special case when there are 0 cols
-//   if (n_cols == 0){
-//     SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n_rows));
-//     int *p_out = INTEGER(out);
-//     memset(p_out, 0, n_rows * sizeof(int));
-//     Rf_unprotect(1);
-//     return out;
-//     // All rows always have >= 0 empty values
-//   } else if (threshold == 0.0 || prop == 0.0){
-//     SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n_rows));
-//     int *p_out = INTEGER(out);
-// #pragma omp for simd
-//     for (R_xlen_t i = 0; i < n_rows; ++i){
-//       p_out[i] = true;
-//     }
-//     Rf_unprotect(1);
-//     return out;
-//   } else {
-//     SEXP out = Rf_protect(cpp_na_col_counts(x));
-//     int *p_out = INTEGER(out);
-// #pragma omp for simd
-//     for (R_xlen_t i = 0; i < n_rows; ++i){
-//       over_threshold = p_out[i] / threshold;
-//       p_out[i] = over_threshold;
-//     }
-//     // SET_TYPEOF(out, LGLSXP);
-//     Rf_unprotect(1);
-//     return out;
-//   }
-// }
-// SEXP cpp_missing_row(SEXP x, double prop){
-//   // if (!(prop >= 0.0 && prop <= 1.0)){
-//   //   Rf_error("prop must be in the range [0,1]");
-//   // }
-//   if (prop != prop){
-//     Rf_error("prop cannot be NA");
-//   }
-//   int n_cols = cpp_vector_width(x);
-//   R_xlen_t n_rows = cpp_vector_size(x);
-//   int threshold;
-//   if (prop <= 0){
-//     threshold = 0;
-//   } else if (prop >= 1){
-//     threshold = n_cols;
-//   } else {
-//     threshold = std::floor(prop * n_cols);
-//   }
-//   if (n_cols == 0){
-//     SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n_rows));
-//     int *p_out = INTEGER(out);
-//     memset(p_out, 0, n_rows * sizeof(int));
-//     Rf_unprotect(1);
-//     return out;
-//   } else if (threshold == n_cols){
-//     return cpp_empty_row(x);
-//   } else {
-//     SEXP counts = Rf_protect(cpp_na_col_counts(x));
-//     int *p_counts = INTEGER(counts);
-//     SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n_rows));
-//     int *p_out = LOGICAL(out);
-// #pragma omp parallel num_threads(num_cores()) if(n_rows >= 100000)
-//     for (R_xlen_t i = 0; i < n_rows; ++i){
-//       p_out[i] = p_counts[i] >= threshold;
-//     }
-//     Rf_unprotect(2);
-//     return out;
-//   }
-// }
-// SEXP cpp_missing_row(SEXP x, int n_cols){
-//   if (n_cols == Rf_length(x)){
-//     return cpp_empty_row(x);
-//   } else {
-//     R_xlen_t n = cpp_vector_size(x);
-//     SEXP counts = Rf_protect(cpp_na_col_counts(x));
-//     int *p_counts = INTEGER(counts);
-//     SEXP out = Rf_protect(Rf_allocVector(LGLSXP, n));
-//     int *p_out = LOGICAL(out);
-// #pragma omp parallel num_threads(num_cores()) if(n >= 100000)
-//     for (R_xlen_t i = 0; i < n; ++i){
-//       p_out[i] = p_counts[i] >= n_cols;
-//     }
-//     Rf_unprotect(2);
-//     return out;
-//   }
-// }
 
 [[cpp11::register]]
 SEXP cpp_num_na(SEXP x){
@@ -301,7 +218,7 @@ SEXP cpp_num_na(SEXP x){
   }
   case VECSXP: {
     R_xlen_t num_row = cpp_vector_size(x);
-    SEXP is_empty = Rf_protect(cpp_missing_row(x, cpp_vector_width(x)));
+    SEXP is_empty = Rf_protect(cpp_missing_row(x, 1, true));
     // SEXP is_empty = Rf_protect(cpp_empty_row(x));
     ++n_protections;
     int *p_is_empty = LOGICAL(is_empty);
@@ -464,7 +381,7 @@ SEXP cpp_which_na(SEXP x){
     }
   }
   case VECSXP: {
-    SEXP is_empty = Rf_protect(cpp_missing_row(x, cpp_vector_width(x)));
+    SEXP is_empty = Rf_protect(cpp_missing_row(x, 1, true));
     // SEXP is_empty = Rf_protect(cpp_empty_row(x));
     SEXP out = Rf_protect(cpp_which_(is_empty, false));
     Rf_unprotect(2);
@@ -628,7 +545,7 @@ SEXP cpp_which_not_na(SEXP x){
     }
   }
   case VECSXP: {
-    SEXP is_empty = Rf_protect(cpp_missing_row(x, cpp_vector_width(x)));
+    SEXP is_empty = Rf_protect(cpp_missing_row(x, 1, true));
     // SEXP is_empty = Rf_protect(cpp_empty_row(x));
     SEXP out = Rf_protect(cpp_which_(is_empty, true));
     Rf_unprotect(2);

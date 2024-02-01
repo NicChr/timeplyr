@@ -64,8 +64,8 @@ cpp_na_col_counts <- function(x) {
   .Call(`_timeplyr_cpp_na_col_counts`, x)
 }
 
-cpp_missing_row <- function(x, threshold) {
-  .Call(`_timeplyr_cpp_missing_row`, x, threshold)
+cpp_missing_row <- function(x, threshold, threshold_is_prop) {
+  .Call(`_timeplyr_cpp_missing_row`, x, threshold, threshold_is_prop)
 }
 
 cpp_num_na <- function(x) {
