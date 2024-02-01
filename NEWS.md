@@ -1,6 +1,6 @@
 # timeplyr (Development version)
 
-`roll_na_fill` can now also handle data frames.
+* `roll_na_fill` can now also handle data frames.
 
 * `num_na` can now handle data frames that contain data frames or 
 vctrs 'rcrd' style lists.
