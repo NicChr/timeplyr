@@ -21,6 +21,8 @@
 #define OMP_MAX_THREADS 1
 #endif
 
+#define integer_max_ std::numeric_limits<int>::max()
+
 // #ifdef OMP_VER_4
 // #define SAFE_SIMD _Pragma("omp simd")
 // #define SAFE_FOR_SIMD _Pragma("omp for simd")

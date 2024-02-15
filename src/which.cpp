@@ -8,7 +8,7 @@
 // Count the number of true values
 
 R_xlen_t count_true(int *px, R_xlen_t n){
-  if (n > std::numeric_limits<int>::max()){
+  if (n > integer_max_){
     R_xlen_t size = 0;
     R_xlen_t N = n;
 #pragma omp parallel for simd num_threads(num_cores()) reduction(+:size)
@@ -32,7 +32,7 @@ R_xlen_t count_true(int *px, R_xlen_t n){
 SEXP cpp_which_(SEXP x, bool invert){
   R_xlen_t n = Rf_xlength(x);
   int *p_x = LOGICAL(x);
-  bool is_long = (n > std::numeric_limits<int>::max());
+  bool is_long = (n > integer_max_);
   if (invert){
     if (is_long){
       R_xlen_t size = count_true(p_x, n);

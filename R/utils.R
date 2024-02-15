@@ -1136,13 +1136,13 @@ allNA2 <- function(x){
   collapse::allNA(x)
 }
 # collapse::whichv but handles the case when both x and value are length zero
-whichv2 <- function(x, value, invert = FALSE){
-  if (!length(x) && !length(value)){
-    integer()
-  } else {
-    collapse::whichv(x, value, invert)
-  }
-}
+# whichv2 <- function(x, value, invert = FALSE){
+#   if (!length(x) && !length(value)){
+#     integer()
+#   } else {
+#     collapse::whichv(x, value, invert)
+#   }
+# }
 # Build on top of any and all
 # Are none TRUE?
 none <- function(..., na.rm = FALSE){

@@ -107,7 +107,7 @@ SEXP cpp_int_sequence(SEXP size, SEXP from, SEXP by) {
   int increment;
   int seq_size;
   double seq_end;
-  int int_max = std::numeric_limits<int>::max();
+  int int_max = integer_max_;
   if (size_n > 0){
     int *p_size = INTEGER(size);
     int *p_from = INTEGER(from);
@@ -208,7 +208,8 @@ SEXP cpp_window_sequence(SEXP size,
     Rf_error("size must be a vector of non-negative integers");
   }
   k = std::fmax(k, 0);
-  SEXP out = Rf_protect(Rf_allocVector(INTSXP, r_sum(size_sexp, false)));
+  R_xlen_t N = r_sum(size_sexp, false);
+  SEXP out = Rf_protect(Rf_allocVector(INTSXP, N));
   int *p_out = INTEGER(out);
   int *p_size = INTEGER(size_sexp);
   R_xlen_t index = 0;

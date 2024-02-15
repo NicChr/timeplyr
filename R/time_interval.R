@@ -96,6 +96,9 @@
 #' @rdname time_interval
 #' @export
 time_interval <- function(start = integer(), end = integer()){
+  if (is_time_interval(start) || is_time_interval(end)){
+    stop("nested time intervals are currently not supported")
+  }
   out <- time_interval_list(start, end)
   class(out) <- c("time_interval", "vctrs_rcrd", "vctrs_vctr")
   invisible(vctrs::field) # Just in case accessing namespace is necessary
@@ -159,11 +162,11 @@ as.list.time_interval <- function(x, ...){
 `/.time_interval` <- function(e1, e2){
   time_diff(interval_start(e1), interval_end(e1), time_by = e2)
 }
-`[.time_interval` <- function(x, i){
-  out <- collapse::ss(unclass(x), i = i)
-  class(out) <- class(x)
-  out
-}
+# `[.time_interval` <- function(x, i){
+#   out <- collapse::ss(unclass(x), i = i)
+#   class(out) <- class(x)
+#   out
+# }
 # unique.time_interval <- function(x, sort = FALSE, method = "auto",
 #                                  decreasing = FALSE, na.last = TRUE, ...){
 #   cl <- class(x)
@@ -224,7 +227,7 @@ as.character.time_interval <- function(x,
     start <- as.character(start)
     end <- as.character(end)
   }
-  which_na <- cpp_which(is.na(x))
+  which_na <- cpp_which_na(x)
   if (int_fmt == "full"){
     out <- paste0("[", start, ", ", end, ")")
     which_closed <- cpp_which(start == end)
@@ -280,5 +283,15 @@ as.POSIXct.time_interval <- function(x, ...){
 }
 as.POSIXlt.time_interval <- function(x, ...){
   as.POSIXlt(interval_start(x), ...)
+}
+is_nested_time_interval <- function(x){
+  out <- FALSE
+  for (i in seq_len(vec_width(x))){
+    if (inherits(.subset2(x, i), "time_interval")){
+      out <- TRUE
+      break
+    }
+  }
+  out
 }
 

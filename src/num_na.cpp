@@ -2,6 +2,16 @@
 #include <cpp11.hpp>
 #include <Rinternals.h>
 
+// We could add threshold and threshold_is_prop arguments
+// that only come into effect here when x is a nested data frame
+// The problem with thresholds with nested data frames is for example
+// You may want to classify a row as empty when 1 col is empty
+// But if that col is a vctrs 'rcrd', and the threshold is passed
+// to the inner function, 'rcrds' with >= 1 missing field will also count as NA
+// This is probably undesirable..
+// A potential solution would be to have threshold and nested_threshold
+// arguments for the user (maybe too complicated?)
+
 [[cpp11::register]]
 SEXP cpp_na_col_counts(SEXP x){
   if (!Rf_isVectorList(x)){
@@ -89,7 +99,7 @@ SEXP cpp_missing_row(SEXP x, double threshold, bool threshold_is_prop){
   if (!Rf_isVectorList(x)){
     Rf_error("x must be a data frame");
   }
-  if (threshold == NA_INTEGER){
+  if (threshold != threshold){
     Rf_error("threshold cannot be NA");
   }
   int n_cols = cpp_vector_width(x);
@@ -99,8 +109,10 @@ SEXP cpp_missing_row(SEXP x, double threshold, bool threshold_is_prop){
   if (threshold_is_prop){
       if (threshold < 0){
         col_threshold = 0;
-      } else if (threshold > 1){
-        col_threshold = n_cols;
+      } else if (threshold < 0){
+        col_threshold = 0;
+      } else if (threshold == R_PosInf){
+        col_threshold = n_cols + 1;
       } else {
         col_threshold = std::floor( (threshold * n_cols) + 0.0000000001);
       }
@@ -108,8 +120,8 @@ SEXP cpp_missing_row(SEXP x, double threshold, bool threshold_is_prop){
     if (threshold < 0){
       col_threshold = 0;
     }
-    if (threshold > n_cols){
-      col_threshold = n_cols;
+    if (threshold == R_PosInf){
+      col_threshold = n_cols + 1;
     }
   }
   // Special case when there are 0 cols
@@ -237,7 +249,7 @@ SEXP cpp_num_na(SEXP x){
     break;
   }
   }
-  if (count <= std::numeric_limits<int>::max()){
+  if (count <= integer_max_){
     Rf_unprotect(n_protections);
     return Rf_ScalarInteger(count);
   } else {
@@ -251,7 +263,7 @@ SEXP cpp_num_na(SEXP x){
 [[cpp11::register]]
 SEXP cpp_which_na(SEXP x){
   R_xlen_t n = cpp_vector_size(x);
-  bool is_short = (n <= std::numeric_limits<int>::max());
+  bool is_short = (n <= integer_max_);
   if (n == 0){
     SEXP out = Rf_protect(Rf_allocVector(INTSXP, 0));
     Rf_unprotect(1);
@@ -397,7 +409,7 @@ SEXP cpp_which_na(SEXP x){
 [[cpp11::register]]
 SEXP cpp_which_not_na(SEXP x){
   R_xlen_t n = cpp_vector_size(x);
-  bool is_short = (n <= std::numeric_limits<int>::max());
+  bool is_short = (n <= integer_max_);
   if (n == 0){
     SEXP out = Rf_protect(Rf_allocVector(INTSXP, 0));
     Rf_unprotect(1);

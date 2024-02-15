@@ -3,7 +3,7 @@
 #include <Rinternals.h>
 
 [[cpp11::register]]
-SEXP cpp_roll_growth_rate(SEXP x, SEXP lag, bool log) {
+SEXP cpp_roll_growth_rate(SEXP x, SEXP lag, bool log){
   R_xlen_t n = Rf_xlength(x);
   R_xlen_t lag_n = Rf_xlength(lag);
   if (n != lag_n){

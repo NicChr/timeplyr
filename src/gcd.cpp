@@ -246,7 +246,7 @@ SEXP cpp_lcm(SEXP x, double tol, bool na_rm){
       lcm = NA_REAL;
     }
     int lcm_int = p_x[0];
-    double int_max = double(std::numeric_limits<int>::max());
+    double int_max = double(integer_max_);
     for (int i = 1; i < n; ++i) {
       if (!na_rm && !(lcm == lcm)){
         lcm = NA_REAL;
@@ -351,7 +351,7 @@ SEXP cpp_lcm2_vectorised(SEXP x, SEXP y, double tol, bool na_rm){
   case INTSXP: {
     double dbl_lcm;
     int int_lcm;
-    double int_max = std::numeric_limits<int>::max();
+    double int_max = integer_max_;
     Rf_protect(x = Rf_coerceVector(x, INTSXP));
     Rf_protect(y = Rf_coerceVector(y, INTSXP));
     SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));

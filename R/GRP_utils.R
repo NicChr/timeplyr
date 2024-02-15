@@ -5,8 +5,9 @@ GRP2 <- function(X, ...){
   is_list_with_intervals <- is.list(X) && list_has_interval(X)
   if (is_list_with_intervals){
     x <- X
-    which_int <- which(list_item_is_interval(X))
+    which_int <- cpp_which(list_item_is_interval(X))
     for (i in seq_along(which_int)){
+      # X <- C_set_vector_elt(X, .subset(which_int, i), group_id(.subset2(X, .subset(which_int, i))))
       X[[.subset(which_int, i)]] <- group_id(.subset2(X, .subset(which_int, i)))
     }
     args[["X"]] <- X

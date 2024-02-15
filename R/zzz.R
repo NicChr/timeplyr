@@ -90,7 +90,7 @@ register_all_s3_methods <- function(){
   # register_s3_method("base", "rep", "time_interval")
   # register_s3_method("base", "rep_len", "time_interval")
   # register_s3_method("base", "rep.int", "time_interval")
-  register_s3_method("base", "[", "time_interval")
+  # register_s3_method("base", "[", "time_interval")
   # register_s3_method("base", "[[", "time_interval")
   # register_s3_method("base", "is.na", "time_interval")
   # register_s3_method("base", "[<-", "time_interval")

@@ -2,23 +2,48 @@
 % Please edit documentation in R/num_na.R
 \name{num_na}
 \alias{num_na}
-\title{Fast number of missing values}
+\alias{which_na}
+\alias{which_not_na}
+\alias{is_na}
+\title{Efficient functions for dealing with missing values.}
 \usage{
 num_na(x)
+
+which_na(x)
+
+which_not_na(x)
+
+is_na(x, threshold = 1, threshold_type = c("prop", "count"))
 }
 \arguments{
 \item{x}{A vector.}
+
+\item{threshold}{For \code{is_na} the threshold of cols per row that have
+at least this many missing values. Threshold can be a proportion or
+absolute count/number. The default value is 1.}
+
+\item{threshold_type}{Control whether the threshold is a proportion
+or absolute count/number. Options are "count" or "prop".}
 }
 \value{
 Number of \code{NA} values.
 }
 \description{
-A faster and more efficient alternative to \code{sum(is.na(x))}. \cr
-Long vectors, i.e vectors with length >= 2^31 are also supported.
+\code{num_na()} is a faster and more efficient alternative to \code{sum(is.na(x))}. \cr
+\code{which_na()} is a more efficient alternative to \code{which(is.na(x))} \cr
+\code{which_not_na()} is a more efficient alternative to \code{which(!is.na(x))} \cr
+\code{is_na()} returns a logical vector indicating which rows have
+a number or proportion of columns of missing values >= \code{threshold}. \cr
 }
 \details{
-If \code{x} is a data frame, \code{num_na()} counts the number of empty rows with
-only missing values.
+Long vectors, i.e vectors with length >= 2^31 are also supported. \cr
+All these functions can be parallelised through \code{options(timeplyr.cores)}. \cr
+
+To replicate \code{complete.cases(x)}, use \code{!is_na(x, 1, "count")}.
+
+If \code{x} is a data frame, \code{num_na()}, \code{which_na()} and \code{which_not_na()} treat
+rows as empty when the entire row contains \code{NA}s. To gain finer control, use
+\code{is_na()}.
 }
 \examples{
 library(timeplyr)
@@ -29,12 +54,29 @@ library(bench)
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
+x <- 1:10
+x[c(1, 5, 10)] <- NA
+num_na(x)
+which_na(x)
+which_not_na(x)
+is_na(x)
+
+# is_na for data frames checks if row is empty
+df <- data.frame(x = x, y = 1:10)
+is_na(df) # Empty rows (i.e all NA)
+is_na(df, threshold = 1, threshold_type = "count") # >= 1 col with NA
+
+
 flights <- nycflights13::flights
+
+# We set the number of parallel cores to use
+options(timeplyr.cores = 2)
 
 # num_na is more efficient than using `sum(is.na())`
 mark(vapply(flights, num_na, integer(1)),
      vapply(flights, function(x) sum(is.na(x)), integer(1)),
      iterations = 10)
+reset_timeplyr_options() # Set cores back to 1 safely
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

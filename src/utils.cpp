@@ -300,16 +300,26 @@ bool cpp_any_address_changed(SEXP x, SEXP y) {
 
 [[cpp11::register]]
 SEXP cpp_lengths(SEXP x) {
-  Rf_protect(x = Rf_coerceVector(x, VECSXP));
   int n = Rf_length(x);
-  const SEXP* p_x = VECTOR_PTR_RO(x);
   SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
   int *p_out = INTEGER(out);
-  for (int i = 0; i < n; ++i) {
-    p_out[i] = cpp_vector_size(p_x[i]);
+  // bool do_parallel = n >= 100000;
+  if (!Rf_isVectorList(x)){
+// #pragma omp parallel for simd if(do_parallel) num_threads(num_cores())
+    for (int i = 0; i < n; ++i) {
+      p_out[i] = 1;
+    }
+    Rf_unprotect(1);
+    return out;
+  } else {
+    const SEXP* p_x = VECTOR_PTR_RO(x);
+// #pragma omp parallel for simd if(do_parallel) num_threads(num_cores())
+    for (int i = 0; i < n; ++i) {
+      p_out[i] = cpp_vector_size(p_x[i]);
+    }
+    Rf_unprotect(1);
+    return out;
   }
-  Rf_unprotect(2);
-  return out;
 }
 
 
@@ -786,6 +796,14 @@ SEXP cpp_consecutive_na_id(SEXP x, bool left_to_right){
   }
   Rf_unprotect(n_protections);
   return out;
+}
+
+[[cpp11::register]]
+void C_set_vector_elt(SEXP x, int i, SEXP y){
+  // SEXP out = Rf_protect(Rf_shallow_duplicate(x));
+  SET_VECTOR_ELT(x, i - 1, y);
+  // Rf_unprotect(1);
+  // return out;
 }
 
 // SEXP cpp_dt_unlock(SEXP x) {
