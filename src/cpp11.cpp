@@ -342,11 +342,10 @@ extern "C" SEXP _timeplyr_cpp_consecutive_na_id(SEXP x, SEXP left_to_right) {
   END_CPP11
 }
 // utils.cpp
-void C_set_vector_elt(SEXP x, int i, SEXP y);
-extern "C" SEXP _timeplyr_C_set_vector_elt(SEXP x, SEXP i, SEXP y) {
+SEXP cpp_which_first_gap(SEXP x, int increment, bool left_to_right);
+extern "C" SEXP _timeplyr_cpp_which_first_gap(SEXP x, SEXP increment, SEXP left_to_right) {
   BEGIN_CPP11
-    C_set_vector_elt(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<int>>(i), cpp11::as_cpp<cpp11::decay_t<SEXP>>(y));
-    return R_NilValue;
+    return cpp11::as_sexp(cpp_which_first_gap(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<int>>(increment), cpp11::as_cpp<cpp11::decay_t<bool>>(left_to_right)));
   END_CPP11
 }
 // which.cpp
@@ -359,7 +358,6 @@ extern "C" SEXP _timeplyr_cpp_which_(SEXP x, SEXP invert) {
 
 extern "C" {
 static const R_CallMethodDef CallEntries[] = {
-    {"_timeplyr_C_set_vector_elt",         (DL_FUNC) &_timeplyr_C_set_vector_elt,         3},
     {"_timeplyr_after_sequence",           (DL_FUNC) &_timeplyr_after_sequence,           2},
     {"_timeplyr_before_sequence",          (DL_FUNC) &_timeplyr_before_sequence,          2},
     {"_timeplyr_cpp_address_equal",        (DL_FUNC) &_timeplyr_cpp_address_equal,        2},
@@ -403,6 +401,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_vector_size",          (DL_FUNC) &_timeplyr_cpp_vector_size,          1},
     {"_timeplyr_cpp_vector_width",         (DL_FUNC) &_timeplyr_cpp_vector_width,         1},
     {"_timeplyr_cpp_which_",               (DL_FUNC) &_timeplyr_cpp_which_,               2},
+    {"_timeplyr_cpp_which_first_gap",      (DL_FUNC) &_timeplyr_cpp_which_first_gap,      3},
     {"_timeplyr_cpp_which_na",             (DL_FUNC) &_timeplyr_cpp_which_na,             1},
     {"_timeplyr_cpp_which_not_na",         (DL_FUNC) &_timeplyr_cpp_which_not_na,         1},
     {"_timeplyr_cpp_window_sequence",      (DL_FUNC) &_timeplyr_cpp_window_sequence,      4},

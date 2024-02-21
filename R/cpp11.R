@@ -192,8 +192,8 @@ cpp_consecutive_na_id <- function(x, left_to_right) {
   .Call(`_timeplyr_cpp_consecutive_na_id`, x, left_to_right)
 }
 
-C_set_vector_elt <- function(x, i, y) {
-  invisible(.Call(`_timeplyr_C_set_vector_elt`, x, i, y))
+cpp_which_first_gap <- function(x, increment, left_to_right) {
+  .Call(`_timeplyr_cpp_which_first_gap`, x, increment, left_to_right)
 }
 
 cpp_which_ <- function(x, invert) {

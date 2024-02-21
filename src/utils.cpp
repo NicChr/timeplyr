@@ -799,11 +799,39 @@ SEXP cpp_consecutive_na_id(SEXP x, bool left_to_right){
 }
 
 [[cpp11::register]]
-void C_set_vector_elt(SEXP x, int i, SEXP y){
-  // SEXP out = Rf_protect(Rf_shallow_duplicate(x));
-  SET_VECTOR_ELT(x, i - 1, y);
-  // Rf_unprotect(1);
-  // return out;
+SEXP cpp_which_first_gap(SEXP x, int increment, bool left_to_right) {
+  int n = Rf_length(x);
+  int *p_x = INTEGER(x);
+  bool no_gap = true;
+  int gap_loc;
+  if (left_to_right){
+    for (int i = 0; i < (n - 1); ++i){
+      if ((p_x[i + 1] - p_x[i]) > increment){
+        gap_loc = i + 1;
+        no_gap = false;
+        break;
+      }
+    }
+  } else {
+    for (int i = (n - 1); i > 0; --i){
+      if ((p_x[i] - p_x[i - 1]) > increment){
+        gap_loc = i + 1;
+        no_gap = false;
+        break;
+      }
+    }
+  }
+  if (no_gap){
+    SEXP out = Rf_protect(Rf_allocVector(INTSXP, 0));
+    Rf_unprotect(1);
+    return out;
+  } else {
+    SEXP out = Rf_protect(Rf_allocVector(INTSXP, 1));
+    int *p_out = INTEGER(out);
+    p_out[0] = gap_loc;
+    Rf_unprotect(1);
+    return out;
+  }
 }
 
 // SEXP cpp_dt_unlock(SEXP x) {
