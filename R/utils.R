@@ -1369,3 +1369,4 @@ with_local_seed <- function(expr, .seed = NULL, ...){
   on.exit({assign(".Random.seed", old, envir = globalenv())})
   eval(expr, envir = parent.frame())
 }
+
