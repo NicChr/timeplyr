@@ -36,7 +36,7 @@ testthat::test_that("Time sequence IDs", {
   x <- c(NA, 2, 4, 8, 10, 12, 14, 18,
          6, 12, NA, 12, NA, NA, 14, 14,
          NA, NA, NA, 10, NA, NA, NA, NA)
-  g <- seq_id(rep(8, 3))
+  g <- cheapr::seq_id(rep(8, 3))
   rowid <- seq_along(x)
   # t1 <- time_elapsed(x, g = g, time_by = 2, na_skip = TRUE)
   # testthat::expect_equal(time_seq_id(x, g = g, time_by = 2, na_skip = TRUE),

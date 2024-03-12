@@ -168,8 +168,8 @@ time_completev <- function(x, time_by = NULL, from = NULL, to = NULL,
                             roll_month = roll_month,
                             roll_dst = roll_dst)
   out <- time_cast(x, time_full)
-  # out <- c(x, time_full[cpp_which(time_full %in% x, invert = TRUE)])
-  gaps <- time_full[collapse::whichNA(collapse::fmatch(time_full, out, overid = 2L))]
+  # out <- c(x, time_full[which_(time_full %in% x, invert = TRUE)])
+  gaps <- time_full[cheapr::which_na(collapse::fmatch(time_full, out, overid = 2L))]
   if (length(gaps) > 0){
     out <- c(out, gaps)
   }
@@ -300,7 +300,7 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
   out <- group_sizes(x, expand = TRUE)
   # (Optionally) complete time data
   if (complete){
-    time_missed <- time_breaks[collapse::whichNA(collapse::fmatch(time_breaks, x, overid = 2L))]
+    time_missed <- time_breaks[cheapr::which_na(collapse::fmatch(time_breaks, x, overid = 2L))]
     if (length(time_missed) > 0L){
       x <- c(x, time_missed) # Complete time sequence
     }
@@ -324,7 +324,7 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
   #   time_seq_int <- tseq_interval(x = to, time_breaks)
   #   time_int <- time_seq_int[time_break_ind]
   #   if (complete && length(time_missed) > 0L){
-  #     time_int <- c(time_int, time_seq_int[cpp_which(attr(time_seq_int, "start") %in%
+  #     time_int <- c(time_int, time_seq_int[which_(attr(time_seq_int, "start") %in%
   #                                                      time_cast(time_missed, attr(time_seq_int, "start")))])
   #   }
   #   out <- new_tbl(x = x, interval = time_int, n = out)
@@ -346,7 +346,7 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
   #     if (sort){
   #       setorderv2(dt, cols = "x")
   #     }
-  #     out <- df_as_tibble(dt)
+  #     out <- df_as_tbl(dt)
   #   }
   # }
   # if (!is_df(out)){
@@ -413,7 +413,7 @@ time_by_interval <- function(x, time_by = NULL,
   out <- time_interval(start, end)
   # if (bound_range){
   #   right_bound <- time_cast(collapse::fmax(x, na.rm = TRUE), end)
-  #   which_closed <- cpp_which(cppdoubles::double_gt(unclass(end), unclass(right_bound)))
+  #   which_closed <- which_(cppdoubles::double_gt(unclass(end), unclass(right_bound)))
   #   # end[which_closed] <- right_bound
   #   out[which_closed] <- time_interval(start[which_closed],
   #                                      time_add2(right_bound,

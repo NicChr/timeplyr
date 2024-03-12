@@ -226,7 +226,7 @@ time_roll_sum <- function(x, window = Inf,
                                  gbreaks = sorted_g,
                                  right = close_left_boundary,
                                  codes = TRUE)
-  adj_window[cpp_which_na(adj_window)] <- 0L
+  adj_window[cheapr::which_na(adj_window)] <- 0L
   final_window <- naive_window - adj_window
   # if (lag != 0){
   #   x <- flag2(x, n = lag, g = sorted_g)
@@ -245,7 +245,7 @@ time_roll_sum <- function(x, window = Inf,
     } else {
       is_partial <- cppdoubles::double_lt(abs(elapsed) + 1, time_num)
     }
-    out[cpp_which(is_partial)] <- NA_real_
+    out[which_(is_partial)] <- NA_real_
   }
   # For duplicate times, we take the last value of each duplicate
   out <- glast(out, g = sorted_g2)
@@ -330,7 +330,7 @@ time_roll_mean <- function(x, window = Inf,
                                  gbreaks = sorted_g,
                                  right = close_left_boundary,
                                  codes = TRUE)
-  adj_window[cpp_which_na(adj_window)] <- 0L
+  adj_window[cheapr::which_na(adj_window)] <- 0L
   final_window <- naive_window - adj_window
   # if (lag != 0){
   #   x <- flag2(x, n = lag, g = sorted_g)
@@ -349,7 +349,7 @@ time_roll_mean <- function(x, window = Inf,
     } else {
       is_partial <- cppdoubles::double_lt(abs(elapsed) + 1, time_num)
     }
-    out[cpp_which(is_partial)] <- NA_real_
+    out[which_(is_partial)] <- NA_real_
   }
   # For duplicate times, we take the last mean value of each duplicate
   out <- glast(out, g = sorted_g2)
@@ -430,7 +430,7 @@ time_roll_growth_rate <- function(x, window = Inf,
                                  gbreaks = sorted_g,
                                  right = close_left_boundary,
                                  codes = TRUE)
-  adj_window[cpp_which_na(adj_window)] <- 0L
+  adj_window[cheapr::which_na(adj_window)] <- 0L
   final_window <- naive_window - adj_window
   if (is.null(time_step)){
     # Check first for gaps in time
@@ -441,7 +441,7 @@ time_roll_growth_rate <- function(x, window = Inf,
                               use.g.names = TRUE)
     if (sum(has_gaps) > 0){
       if (has_groups){
-        group_ids <- cpp_which(has_gaps)
+        group_ids <- which_(has_gaps)
         if (is.null(names(has_gaps))){
           groups_with_gaps <- group_ids
           group_sub_msg <- "in group ID:"
@@ -482,7 +482,7 @@ time_roll_growth_rate <- function(x, window = Inf,
                                            align = "right")
     }
     out <- ( (x / x_lagged) ^ (1 / (lag_window)) )
-    out[cpp_which(x == 0 & x_lagged == 0)] <- 1
+    out[which_(x == 0 & x_lagged == 0)] <- 1
   } else {
     time_step <- time_by_list(time_step)
     lag_window <- final_window - 1L
@@ -499,7 +499,7 @@ time_roll_growth_rate <- function(x, window = Inf,
                              align = "right")
     }
     out <- ( (x / x_lagged) ^ (1 / (time_differences)) )
-    out[cpp_which(x == 0 & x_lagged == 0)] <- 1
+    out[which_(x == 0 & x_lagged == 0)] <- 1
   }
   if (!partial){
     elapsed <- time_elapsed(time, time_by = unit_time_by,
@@ -509,7 +509,7 @@ time_roll_growth_rate <- function(x, window = Inf,
     } else {
       is_partial <- cppdoubles::double_lt(abs(elapsed) + 1, time_num)
     }
-    out[cpp_which(is_partial)] <- NA_real_
+    out[which_(is_partial)] <- NA_real_
   }
   out <- glast(out, g = sorted_g2)
   if (!groups_are_sorted){
@@ -573,7 +573,7 @@ time_roll_window_size <- function(time, window = Inf,
                               gbreaks = g,
                               right = close_left_boundary,
                               codes = TRUE)
-    which_na <- cpp_which_na(adj_window)
+    which_na <- cheapr::which_na(adj_window)
     adj_window[which_na] <- 0L
     out <- naive_window - adj_window
   }
@@ -590,7 +590,7 @@ time_roll_window_size <- function(time, window = Inf,
     } else {
       is_partial <- cppdoubles::double_lt(abs(elapsed) + 1, time_num)
     }
-    out[cpp_which(is_partial)] <- NA_integer_
+    out[which_(is_partial)] <- NA_integer_
   }
   out
 }
@@ -610,7 +610,7 @@ time_roll_window <- function(x, window = Inf, time = seq_along(x),
                                          time_type = time_type,
                                          roll_month = roll_month,
                                          roll_dst = roll_dst)
-  window_widths[cpp_which_na(window_widths)] <- 0L
+  window_widths[cheapr::which_na(window_widths)] <- 0L
   out <- roll_chop(x, sizes = window_widths)
   vctrs::new_list_of(out, ptype = x[0L])
 }
@@ -634,7 +634,7 @@ time_roll_apply <- function(x, window = Inf, fun,
                                  time_type = time_type,
                                  roll_month = roll_month,
                                  roll_dst = roll_dst)
-  sizes[cpp_which_na(sizes)] <- 0L
+  sizes[cheapr::which_na(sizes)] <- 0L
   x_size <- length(x)
   out <- vector("list", x_size)
   for (i in seq_len(x_size)){
@@ -790,7 +790,7 @@ time_roll_apply <- function(x, window = Inf, fun,
 #     } else {
 #       is_partial <- cppdoubles::double_lt(abs(elapsed) + 1, time_num)
 #     }
-#     out[cpp_which(is_partial)] <- NA_real_
+#     out[which_(is_partial)] <- NA_real_
 #   }
 #   # For duplicate times, we take the last value of each duplicate
 #   out <- glast(out, g = sorted_g2)

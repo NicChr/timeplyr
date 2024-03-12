@@ -103,7 +103,7 @@ fslice <- function(data, ..., .by = NULL,
   group_vars <- get_groups(data, .by = {{ .by }})
   if (length(group_vars) == 0L){
     if (any(abs(rng) > N)){
-      i <- n[cpp_which(data.table::between(n, -N, N))]
+      i <- n[which_(data.table::between(n, -N, N))]
     } else {
       i <- n
     }
@@ -115,7 +115,7 @@ fslice <- function(data, ..., .by = NULL,
                                size = TRUE, start = FALSE, end = FALSE)
     # Constrain n to <= max GRPN
     GN <-  max(group_df[[".size"]])
-    n <- n[cpp_which(data.table::between(n, -GN, GN))]
+    n <- n[which_(data.table::between(n, -GN, GN))]
     rows <- group_df[[".loc"]]
     row_lens <- group_df[[".size"]]
     if (slice_sign >= 1){
@@ -123,7 +123,7 @@ fslice <- function(data, ..., .by = NULL,
     } else {
       size <- pmax.int(0L, row_lens - max(abs(n)))
     }
-    keep <- cpp_which(size > 0)
+    keep <- which_(size > 0)
     if (length(rows) - length(keep) > 0L){
       rows <- rows[keep]
       row_lens <- row_lens[keep]
@@ -131,12 +131,12 @@ fslice <- function(data, ..., .by = NULL,
     }
     if (length(n) == 1 && slice_sign >= 1){
       i <- list_subset(rows, n)
-      i <- i[cpp_which_not_na(i)]
+      i <- i[cheapr::which_not_na(i)]
     } else {
       i <- vector("list", length(rows))
       for (j in seq_along(i)){
         i[[j]] <- .subset(.subset2(rows, j),
-                          .subset(n, cpp_which(n <= .subset2(row_lens, j))))
+                          .subset(n, which_(n <= .subset2(row_lens, j))))
       }
       i <- unlist(i, use.names = FALSE, recursive = FALSE)
     }
@@ -234,7 +234,7 @@ fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
     i <- out1[[row_nm]]
   }
   if (na_rm){
-    i2 <- out[[row_nm]][cpp_which_na(out[[order_by_nm]])]
+    i2 <- out[[row_nm]][cheapr::which_na(out[[order_by_nm]])]
     i <- setdiff(i, i2)
   }
   if (is.null(i)){
@@ -282,7 +282,7 @@ fslice_max <- function(data, order_by, ..., n, prop, .by = NULL,
     i <- out1[[row_nm]]
   }
   if (na_rm){
-    i2 <- out[[row_nm]][cpp_which_na(out[[order_by_nm]])]
+    i2 <- out[[row_nm]][cheapr::which_na(out[[order_by_nm]])]
     i <- setdiff(i, i2)
   }
   if (is.null(i)){
@@ -417,7 +417,7 @@ df_slice_prepare <- function(data, n, prop, .by = NULL, sort_groups = TRUE,
     }
     slice_sizes <- as.integer(slice_sizes)
   }
-  keep <- cpp_which(slice_sizes > 0)
+  keep <- which_(slice_sizes > 0)
   if (length(rows) - length(keep) > 0L){
     rows <- rows[keep]
     group_sizes <- group_sizes[keep]

@@ -29,7 +29,7 @@ register_all_s3_methods <- function(){
   register_s3_method("collapse", "GRP", "Interval")
   register_s3_method("collapse", "GRP", "NULL")
   # register_s3_method("collapse", "funique", "time_interval")
-  register_s3_method("collapse", "funique", "vctrs_rcrd")
+  # register_s3_method("collapse", "funique", "vctrs_rcrd")
   register_s3_method("timeplyr", "roll_lag", "vctrs_rcrd")
   register_s3_method("timeplyr", "roll_diff", "vctrs_rcrd")
   register_s3_method("zoo", "rep", "yearmon")
@@ -82,7 +82,7 @@ register_all_s3_methods <- function(){
   register_s3_method("base", "-", "time_interval")
   register_s3_method("base", "/", "time_interval")
   # register_s3_method("base", "c", "time_interval")
-  register_s3_method("base", "unique", "time_interval")
+  # register_s3_method("base", "unique", "time_interval")
   register_s3_method("base", "duplicated", "time_interval")
   register_s3_method("base", "xtfrm", "time_interval")
   register_s3_method("base", "sort", "time_interval")
@@ -122,8 +122,7 @@ on_package_load <- function(pkg, expr){
           "timeplyr.roll_dst" = getOption("timeplyr.roll_dst", "boundary"),
           "timeplyr.interval_style" = getOption("timeplyr.interval_style", "full"),
           "timeplyr.interval_sub_formatter" = getOption("timeplyr.interval_sub_formatter", identity),
-          "timeplyr.use_intervals" = getOption("timeplyr.use_intervals", FALSE),
-          "timeplyr.cores" = getOption("timeplyr.cores", 1))
+          "timeplyr.use_intervals" = getOption("timeplyr.use_intervals", FALSE))
 }
 .onUnload <- function(libname, pkgname){
   options(timeplyr.time_type = NULL,
@@ -131,6 +130,5 @@ on_package_load <- function(pkg, expr){
           timeplyr.roll_dst = NULL,
           timeplyr.interval_style = NULL,
           timeplyr.interval_sub_formatter = NULL,
-          timeplyr.use_intervals = NULL,
-          timeplyr.cores = NULL)
+          timeplyr.use_intervals = NULL)
 }

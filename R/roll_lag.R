@@ -81,7 +81,7 @@ roll_lag.default <- function(x, n = 1L, g = NULL, fill = NULL){
     out <- x[lagged_indices]
     if (!is.null(fill)){
       check_length(fill, 1)
-      out[cpp_which_na(lagged_indices)] <- cast2(fill, out)
+      out[cheapr::which_na(lagged_indices)] <- cast2(fill, out)
     }
   }
   out
@@ -101,7 +101,7 @@ roll_lag.data.frame <- function(x, n = 1L, g = NULL, fill = NULL){
   out <- df_row_slice(x, lag_s)
   if (!is.null(fill)){
     check_length(fill, 1)
-    which_fill <- cpp_which_na(lag_s)
+    which_fill <- cheapr::which_na(lag_s)
     for (i in seq_len(df_ncol(out))){
       out[[i]][which_fill] <- cast2(fill, out[[i]])
     }
@@ -115,7 +115,7 @@ roll_lag.time_interval <- function(x, n = 1L, g = NULL, fill = NULL){
   new_time_interval(out[[1L]], out[[2L]])
 }
 roll_lag.vctrs_rcrd <- function(x, n = 1L, g = NULL, fill = NULL){
-  out <- roll_lag(list_to_data_frame(unclass(x)), n = n, g = g, fill = fill)
+  out <- roll_lag(list_as_df(unclass(x)), n = n, g = g, fill = fill)
   out <- unclass(out)
   attr(out, "row.names") <- NULL
   class(out) <- class(x)
@@ -139,7 +139,7 @@ roll_diff.default <- function(x, n = 1L, g = NULL, fill = NULL){
     out <- strip_attrs(out)
     if (!is.null(fill)){
       check_length(fill, 1)
-      out[cpp_which_na(lagged_indices)] <- cast2(fill, out)
+      out[cheapr::which_na(lagged_indices)] <- cast2(fill, out)
     }
   }
   out
@@ -163,7 +163,7 @@ roll_diff.data.frame <- function(x, n = 1L, g = NULL, fill = NULL){
   }
   if (!is.null(fill)){
     check_length(fill, 1)
-    which_fill <- cpp_which_na(lag_s)
+    which_fill <- cheapr::which_na(lag_s)
     for (i in seq_len(df_ncol(out))){
       out[[i]][which_fill] <- cast2(fill, out[[i]])
     }
@@ -171,7 +171,7 @@ roll_diff.data.frame <- function(x, n = 1L, g = NULL, fill = NULL){
   out
 }
 roll_diff.vctrs_rcrd <- function(x, n = 1L, g = NULL, fill = NULL){
-  roll_diff(list_to_data_frame(unclass(x)), n = n, g = g, fill = fill)
+  roll_diff(list_as_df(unclass(x)), n = n, g = g, fill = fill)
 }
 #' @export
 roll_diff.time_interval <- function(x, n = 1L, g = NULL, fill = NULL){
@@ -182,9 +182,9 @@ roll_diff.time_interval <- function(x, n = 1L, g = NULL, fill = NULL){
 lag_seq <- function(size, n = 1L, partial = FALSE){
   check_length(n, 1)
   if (n >= 0){
-    lag_sequence(as.integer(size), k = n, partial = partial)
+    cheapr::lag_sequence(as.integer(size), k = n, partial = partial)
   } else {
-    -lead_sequence(as.integer(size), k = -n, partial = partial)
+    -cheapr::lead_sequence(as.integer(size), k = -n, partial = partial)
   }
 }
 #' @rdname roll_lag

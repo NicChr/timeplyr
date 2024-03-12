@@ -1,20 +1,3 @@
-#' Grouped `unique()`, `sort()` and `duplicated()`
-#'
-#' @description These functions use `collapse` and are like the
-#' `collapse` counterpart but differ in that they accept a group `g` argument
-#' which allows for more flexible by-group sorting.
-#'
-#' @param x A vector or data frame.
-#' @param g Object used for grouping, passed directly to `collapse::GRP()`.\cr
-#' This can for example be a vector or data frame.
-#' @param sort Should the result be sorted? \cr
-#' This only applies to `gunique()`.
-#' @param order Should the groups be treated as ordered groups?
-#' Default is `TRUE`.
-#' @param use.g.names Should group names be used? Default is `TRUE`.
-#' @param all If `TRUE`, `gduplicated()` returns all duplicated values,
-#' including the first occurrence.
-#' @rdname gunique
 gunique <- function(x, g = NULL, sort = FALSE, order = TRUE,
                     use.g.names = TRUE){
   if (is.null(g)){
@@ -43,7 +26,6 @@ gunique <- function(x, g = NULL, sort = FALSE, order = TRUE,
   }
   vec_slice2(x, GRP_starts(g))
 }
-#' @rdname gunique
 gduplicated <- function(x, g = NULL, order = TRUE, all = FALSE){
   # out_nms <- names(x)
   if (is.null(g)){
@@ -59,7 +41,6 @@ gduplicated <- function(x, g = NULL, order = TRUE, all = FALSE){
   }
   GRP_duplicated(g, all = all)
 }
-#' @rdname gunique
 gwhich_duplicated <- function(x, g = NULL, order = TRUE, all = FALSE){
   if (is.null(g)){
     g <- GRP2(x, sort = order,
@@ -73,7 +54,6 @@ gwhich_duplicated <- function(x, g = NULL, order = TRUE, all = FALSE){
   }
   GRP_which_duplicated(g, all = all)
 }
-#' @rdname gunique
 gsort <- function(x, g = NULL, order = TRUE, use.g.names = TRUE){
   if (is.null(g)){
     order <- radixorderv2(x)
@@ -105,7 +85,6 @@ gsort <- function(x, g = NULL, order = TRUE, use.g.names = TRUE){
     vec_slice2(x, order)
   }
 }
-#' @rdname gunique
 gorder <- function(x, g = NULL, order = TRUE){
   if (is.null(g)){
     order <- radixorderv2(x)

@@ -77,7 +77,7 @@ ts_as_tibble.default <- function(x, name = "time", value = "value", group = "gro
   out <- list(groups, time, as.vector(x))
   not_null <- cpp_list_which_not_null(out)
   out_nms <- c(group, name, value)[not_null]
-  list_to_tibble(add_names(.subset(out, not_null), out_nms))
+  list_as_tbl(add_names(.subset(out, not_null), out_nms))
 }
 #' @rdname ts_as_tibble
 #' @export
@@ -94,7 +94,7 @@ ts_as_tibble.mts <- function(x, name = "time", value = "value", group = "group")
   out <- list(groups, time, as.vector(x))
   not_null <- cpp_list_which_not_null(out)
   out_nms <- c(group, name, value)[not_null]
-  list_to_tibble(add_names(.subset(out, not_null), out_nms))
+  list_as_tbl(add_names(.subset(out, not_null), out_nms))
 }
 #' @rdname ts_as_tibble
 #' @export
@@ -127,7 +127,7 @@ ts_as_tibble.xts <- function(x, name = "time", value = "value", group = "group")
   out <- list(groups, time, as.vector(x))
   not_null <- cpp_list_which_not_null(out)
   out_nms <- c(group, name, value)[not_null]
-  list_to_tibble(add_names(.subset(out, not_null), out_nms))
+  list_as_tbl(add_names(.subset(out, not_null), out_nms))
 }
 #' @rdname ts_as_tibble
 #' @export
@@ -144,7 +144,7 @@ ts_as_tibble.zoo <- function(x, name = "time", value = "value", group = "group")
   out <- list(groups, time, as.vector(x))
   not_null <- cpp_list_which_not_null(out)
   out_nms <- c(group, name, value)[not_null]
-  list_to_tibble(add_names(.subset(out, not_null), out_nms))
+  list_as_tbl(add_names(.subset(out, not_null), out_nms))
 }
 #' @rdname ts_as_tibble
 #' @export
@@ -160,5 +160,5 @@ ts_as_tibble.timeSeries <- function(x, name = "time", value = "value", group = "
   out <- list(groups, time, as.vector(x))
   not_null <- cpp_list_which_not_null(out)
   out_nms <- c(group, name, value)[not_null]
-  list_to_tibble(add_names(.subset(out, not_null), out_nms))
+  list_as_tbl(add_names(.subset(out, not_null), out_nms))
 }

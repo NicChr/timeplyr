@@ -183,7 +183,7 @@ roll_growth <- function(x, window = 1,
   } else {
     roll <- function(...) frollmean3(...)
   }
-  x_na <- cpp_which_na(x)
+  x_na <- cheapr::which_na(x)
   has_na <- length(x_na) > 0
   if (!is.null(weights) && has_na){
     weights[x_na] <- NA_real_
@@ -237,11 +237,11 @@ roll_growth <- function(x, window = 1,
     # Growth of value compared to lagged value
     growth <- numerator / denominator
     # 0/0 = NaN and assume 0 to 0 events represents no growth, i.e GR = 1.
-    growth[cpp_which(numerator == 0 & denominator == 0)] <- 1
+    growth[which_(numerator == 0 & denominator == 0)] <- 1
   }
   # NA/0 remains NA
   if (!is.null(inf_fill)){
-    growth[cpp_which(is.infinite(growth))] <- inf_fill
+    growth[which_(is.infinite(growth))] <- inf_fill
   }
   growth
 }

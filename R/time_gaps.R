@@ -83,21 +83,21 @@ time_gaps <- function(x, time_by = NULL,
       stop("x is not regular given the chosen time unit")
     }
   }
-  time_tbl <- fenframe(x,
-                       name = "group",
-                       value = "time")
-  time_not_na <- cpp_which_not_na(time_tbl[["time"]])
+  time_tbl <- cheapr::enframe_(x,
+                               name = "group",
+                               value = "time")
+  time_not_na <- cheapr::which_not_na(time_tbl[["time"]])
   time_tbl <- df_row_slice(time_tbl, time_not_na)
-  time_full_tbl <- fenframe(time_seq,
-                            name = "group",
-                            value = "time")
+  time_full_tbl <- cheapr::enframe_(time_seq,
+                                    name = "group",
+                                    value = "time")
   out_tbl <- collapse_join(time_full_tbl, time_tbl,
                            on = names(time_tbl),
                            how = "anti")
   if (!use.g.names){
     out_tbl <- fselect(out_tbl, .cols = "time")
   }
-  fdeframe(out_tbl)
+  cheapr::deframe_(out_tbl)
 }
 #' @rdname time_gaps
 #' @export
@@ -135,7 +135,7 @@ time_num_gaps <- function(x, time_by = NULL,
   out <- full_seq_size - n_unique
   if (!na.rm){
     nmiss <- fnmiss(x, g = g, use.g.names = FALSE)
-    out[cpp_which(nmiss > 0)] <- NA
+    out[which_(nmiss > 0)] <- NA
   }
   if (use.g.names){
     names(out) <- GRP_names(g)

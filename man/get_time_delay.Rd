@@ -16,7 +16,7 @@ get_time_delay(
   .by = NULL,
   include_plot = TRUE,
   x_scales = "fixed",
-  bw = "SJ",
+  bw = "sj",
   ...
 )
 }

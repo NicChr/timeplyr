@@ -46,7 +46,7 @@ testthat::test_that("grouped quantile tests", {
                            q_summarise(arr_delay, pivot = "long", .by = origin,
                                      sort = FALSE) %>%
                            as.list() %>%
-                           list_to_tibble()
+                           list_as_tbl()
   )
   testthat::expect_equal(flights %>%
                            dplyr::reframe(arr_delay =
@@ -61,7 +61,7 @@ testthat::test_that("grouped quantile tests", {
                            q_summarise(arr_delay, pivot = "wide", .by = origin,
                                      sort = FALSE) %>%
                            as.list() %>%
-                           list_to_tibble()
+                           list_as_tbl()
   )
   testthat::expect_equal(
     flights %>%

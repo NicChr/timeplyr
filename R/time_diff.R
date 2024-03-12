@@ -112,8 +112,8 @@ time_diff <- function(x, y, time_by = 1L,
 
       unit <- period_unit(units)(abs(num))
       out <- sign(num) * divide_interval_by_period2(x, y, unit)
-      out[cpp_which(num == 0 & x > y)] <- -Inf
-      out[cpp_which(num == 0 & x < y)] <- Inf
+      out[which_(num == 0 & x > y)] <- -Inf
+      out[which_(num == 0 & x < y)] <- Inf
       # Expand them back to original length
       if (distinct_pairs){
         out <- out[interval_groups]

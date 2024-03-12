@@ -1,132 +1,63 @@
-#' Grouped statistical functions.
-#'
-#' @description These functions are wrappers around the collapse equivalents
-#' but always return a vector the same length and same order as x.\cr
-#' They all accept group IDs for grouped calculations.
-#'
-#' @param x An atomic vector.
-#' @param g Group IDs passed directly to `collapse::GRP()`.
-#' This can be a vector, list or data frame.
-#' @param na.rm Should `NA` values be removed? Default is `TRUE`.
-#' @param ... Additional parameters passed on to the collapse package
-#' equivalents, `fsum()`, `fmean()`, `fmin()`, `fmax()`,
-#' `fsd()`, `fvar()`, `fmode()`, `fmedian()`, `ffirst()`, `flast()` and
-#' `fnobs()`
-#'
-#' @returns
-#' A vector the same length as `x`.
-#'
-#' @examples
-#' library(timeplyr)
-#' library(dplyr)
-#' library(ggplot2)
-#' \dontshow{
-#' .n_dt_threads <- data.table::getDTthreads()
-#' .n_collapse_threads <- collapse::get_collapse()$nthreads
-#' data.table::setDTthreads(threads = 2L)
-#' collapse::set_collapse(nthreads = 1L)
-#' }
-#' # Dplyr
-#' iris %>%
-#'   mutate(mean = mean(Sepal.Length), .by = Species)
-#' # Timeplyr
-#' iris %>%
-#'   mutate(mean = gmean(Sepal.Length, g = Species))
-#'
-#' # One can utilise pick() to specify multiple groups
-#' mpg %>%
-#'   mutate(mean = gmean(displ, g = pick(manufacturer, model)))
-#'
-#' # Alternatively you can create a unique ID for each group
-#' mpg %>%
-#'   add_group_id(manufacturer, model) %>%
-#'   mutate(mean = gmean(displ, g = group_id))
-#'
-#' # Another example
-#'
-#' iris %>%
-#'   add_group_id(Species, .name = "g") %>%
-#'   mutate(min = gmin(Sepal.Length, g = g),
-#'          max = gmax(Sepal.Length, g = g),
-#'          sum = gsum(Sepal.Length, g = g),
-#'          mean = gmean(Sepal.Length, g = g)) %>%
-#'   # The below is equivalent to above
-#'   mutate(min2 = min(Sepal.Length),
-#'          max2 = max(Sepal.Length),
-#'          sum2 = sum(Sepal.Length),
-#'          mean2 = mean(Sepal.Length),
-#'          .by = Species) %>%
-#'   distinct(Species,
-#'            min, min2,
-#'            max, max2,
-#'            sum, sum2,
-#'            mean, mean2)
-#' \dontshow{
-#' data.table::setDTthreads(threads = .n_dt_threads)
-#' collapse::set_collapse(nthreads = .n_collapse_threads)
-#'}
-#' @rdname gsum
-#' @export
 gsum <- function(x, g = NULL, na.rm = TRUE, ...){
   collapse::fsum(x, g = g, use.g.names = FALSE,
                  na.rm = na.rm, TRA = "replace_fill", ...)
 }
-#' @rdname gsum
-#' @export
+
+
 gmean <- function(x, g = NULL, na.rm = TRUE, ...){
   collapse::fmean(x, g = g, use.g.names = FALSE,
                  na.rm = na.rm, TRA = "replace_fill", ...)
 }
-#' @rdname gsum
-#' @export
+
+
 gmin <- function(x, g = NULL, na.rm = TRUE, ...){
   collapse::fmin(x, g = g, use.g.names = FALSE,
                   na.rm = na.rm, TRA = "replace_fill", ...)
 }
-#' @rdname gsum
-#' @export
+
+
 gmax <- function(x, g = NULL, na.rm = TRUE, ...){
   collapse::fmax(x, g = g, use.g.names = FALSE,
                  na.rm = na.rm, TRA = "replace_fill", ...)
 }
-#' @rdname gsum
-#' @export
+
+
 gsd <- function(x, g = NULL, na.rm = TRUE, ...){
   collapse::fsd(x, g = g, use.g.names = FALSE,
                  na.rm = na.rm, TRA = "replace_fill", ...)
 }
-#' @rdname gsum
-#' @export
+
+
 gvar <- function(x, g = NULL, na.rm = TRUE, ...){
   collapse::fvar(x, g = g, use.g.names = FALSE,
                  na.rm = na.rm, TRA = "replace_fill", ...)
 }
-#' @rdname gsum
-#' @export
+
+
 gmode <- function(x, g = NULL, na.rm = TRUE, ...){
   collapse::fmode(x, g = g, use.g.names = FALSE,
                  na.rm = na.rm, TRA = "replace_fill", ...)
 }
-#' @rdname gsum
-#' @export
+
+
 gmedian <- function(x, g = NULL, na.rm = TRUE, ...){
   collapse::fmedian(x, g = g, use.g.names = FALSE,
                  na.rm = na.rm, TRA = "replace_fill", ...)
 }
-#' @rdname gsum
-#' @export
+
+
 gfirst <- function(x, g = NULL, na.rm = TRUE, ...){
   collapse::ffirst(x, g = g, use.g.names = FALSE,
                  na.rm = na.rm, TRA = "replace_fill", ...)
 }
-#' @rdname gsum
-#' @export
+
+
 glast <- function(x, g = NULL, na.rm = TRUE, ...){
   collapse::flast(x, g = g, use.g.names = FALSE,
                  na.rm = na.rm, TRA = "replace_fill", ...)
 }
-#' @rdname gsum
-#' @export
+
+
 gnobs <- function(x, g = NULL, ...){
   collapse::fnobs(x, g = g, use.g.names = FALSE,
                   TRA = "replace_fill", ...)

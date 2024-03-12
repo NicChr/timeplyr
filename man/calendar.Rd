@@ -2,7 +2,6 @@
 % Please edit documentation in R/calendar.R
 \name{calendar}
 \alias{calendar}
-\alias{add_calendar}
 \title{Create a table of common time units from a date or datetime sequence.}
 \usage{
 calendar(
@@ -11,14 +10,6 @@ calendar(
   week_start = getOption("lubridate.week.start", 1),
   fiscal_start = getOption("lubridate.fiscal.start", 1),
   name = "time"
-)
-
-add_calendar(
-  data,
-  time = NULL,
-  label = TRUE,
-  week_start = getOption("lubridate.week.start", 1),
-  fiscal_start = getOption("lubridate.fiscal.start", 1)
 )
 }
 \arguments{
@@ -35,10 +26,6 @@ You can set \code{lubridate.week.start} option to control this parameter globall
 \item{fiscal_start}{Numeric indicating the starting month of a fiscal year.}
 
 \item{name}{Name of date/datetime column.}
-
-\item{data}{A data frame.}
-
-\item{time}{Time variable.}
 }
 \value{
 An object of class \code{tibble}.

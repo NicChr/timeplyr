@@ -157,8 +157,9 @@
 #' # dry-periods
 #' episodes %>%
 #'   ungroup() %>%
-#'   time_count(time = ep_start, time_by = "week", time_floor = TRUE,
-#'              .name = "ep_start") %>%
+#'   time_by(ep_start, time_by = "week", time_floor = TRUE,
+#'           .name = "ep_start") %>%
+#'   count() %>%
 #'   ggplot(aes(x = ep_start, y = n)) +
 #'   geom_bar(stat = "identity")
 #' \dontshow{
@@ -264,7 +265,7 @@ time_episodes <- function(data, time, time_by = NULL,
   # Convert non-event dates to NA
   # So that they can be skipped/ignored
   if (length(event_col) > 0){
-    which_non_event <- cpp_which(out[[event_id_nm]] == 0L)
+    which_non_event <- which_(out[[event_id_nm]] == 0L)
     event_dates <- out[[time_col]][which_non_event] # Save to re-add later
     data.table::set(out,
                     i = which_non_event,
@@ -351,14 +352,14 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
         "Mean: ",
         prettyNum(round(mean_episodes, 2), big.mark = ","),
         " ",
-        finline_hist(n_episodes, n_bins = 7)
+        inline_hist(n_episodes, n_bins = 7)
       )
     )
   }
   if ("t_elapsed" %in% names(x) && "ep_id_new" %in% names(x)){
     counts <- fn(x[["ep_id_new"]], g = GRPS, use.g.names = FALSE)
     ## Elapsed time between events (weighted by group counts)
-    which_index <- cpp_which(x[["ep_id_new"]] == 1L)
+    which_index <- which_(x[["ep_id_new"]] == 1L)
     elapsed <- x[["t_elapsed"]]
     elapsed[which_index] <- NA
     mean_elapsed <- collapse::fmean(elapsed, g = GRPS,
@@ -472,7 +473,7 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
 #   #   summarise(mean = arithmetic_mean(t_elapsed, weights = n/nrow(x)))
 #
 #   ### Elapsed time between events (weighted by group counts)
-#   # which_not_index <- cpp_which(x$ep_id_new != 1L)
+#   # which_not_index <- which_(x$ep_id_new != 1L)
 #   # counts <- fadd_count(x, .by = dplyr::all_of(attr(x, "by_groups")))[["n"]]
 #   # weighted_elapsed <- arithmetic_mean(
 #   #   x$t_elapsed[which_not_index],
@@ -556,7 +557,7 @@ set_calc_episodes <- function(data,
                   j = "ep_id_new",
                   value = fpluck(data, "ep_id")[g3_starts])
   data.table::set(data,
-                  i = cpp_which_na(fpluck(data, "ep_id")),
+                  i = cheapr::which_na(fpluck(data, "ep_id")),
                   j = "ep_id_new",
                   value = NA_integer_)
   # Add episode start dates

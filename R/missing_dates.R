@@ -15,7 +15,7 @@ missing_dates.default <- function(x){
   check_is_time(x)
   d <- lubridate::floor_date(collapse::funique(x), unit = "days")
   d_seq <- time_expandv(d, time_by = list("days" = 1))
-  # lubridate::as_date(d_seq[cpp_which(!d_seq %in% d)])
+  # lubridate::as_date(d_seq[which_(!d_seq %in% d)])
   lubridate::as_date(
     d_seq[collapse::whichNA(collapse::fmatch(d_seq, d, overid = 2L))]
   )

@@ -1,31 +1,3 @@
-#' Supplementary fast statistical functions, `collapse` style
-#'
-#' @param x A vector or data frame.
-#' In the case of `fn()` this can be left unused as long as g is not `NULL`,
-#' otherwise it is used as a template with which to calculate group sizes.
-#' For example, is `x` is a vector, lengths are calculated per-group,
-#' and if `x` is a data frame, numbers of rows are calculated per-group.
-#' @param g Object to be used for grouping,
-#' passed directly to `collapse::GRP()`.
-#' @param sort Should the grouped counts be ordered by the sorted groups?
-#' If `FALSE` the result is ordered by groups of first appearance.
-#' @param expand Should the grouped counts be expanded to match the length
-#' and order of the data? Default is `FALSE`.
-#' @param use.g.names If `TRUE` group names are added to the result as names.
-#' This only applies to `fn()`. Default is `TRUE`.
-#' @param ... Additional parameters passed to `collapse::fsum()`.
-#' @param na.rm Should `NA` values be removed? Default is `FALSE`.
-#' @details `fn()` Is different to the other `collapse`
-#' fast statistical functions because given a data frame, it
-#' operates on the entire data frame, instead of column-wise. It is similar
-#' to the the other statistical functions in that order of the returned groups
-#' matches that of `collapse::fnobs()`.
-#' For example, `collapse::GRPN(c(2, 2, 1), expand = FALSE)`
-#' returns `c(2, 1)` whereas `fn(g = c(2, 2, 1))` returns `c(1, 2)` which
-#' is similar to `collapse::fnobs(rep(1, 3), g = c(2, 2, 1))`. \cr
-#' While `fn()` is not entirely useful as a function, it is useful for
-#' internal code that utilises `GRP` objects.
-#' @rdname fast_stats
 fn <- function(x, g = NULL, sort = TRUE,
                expand = FALSE, use.g.names = !expand){
   x_missing <- missing(x)
@@ -58,22 +30,6 @@ fn <- function(x, g = NULL, sort = TRUE,
   }
   nobs
 }
-#' @rdname fast_stats
-fcummean <- function(x, g = NULL, na.rm = FALSE, ...){
-  x <- safe_ungroup(x)
-  g <- GRP3(g, sort = FALSE, return.groups = FALSE)
-  if (is.null(g)){
-    sizes <- seq_len(vec_length(x))
-  } else {
-    sizes <- frowid(g)
-  }
-  if (na.rm){
-    sizes <- sizes - collapse::fcumsum(is.na(x), g = g, na.rm = FALSE)
-  }
-  cum_sum <- collapse::fcumsum(x, g = g, na.rm = na.rm)
-  cum_sum / sizes
-}
-#' @rdname fast_stats
 fnmiss <- function(x, g = NULL, sort = TRUE, use.g.names = TRUE,
                    na.rm = FALSE){
   if (is.null(x)){
@@ -87,23 +43,4 @@ fnmiss <- function(x, g = NULL, sort = TRUE, use.g.names = TRUE,
     nobs <- collapse::qM(nobs)
   }
   N - nobs
-}
-#' @rdname fast_stats
-fprop_complete <- function(x, g = NULL, sort = TRUE, use.g.names = TRUE,
-                           na.rm = FALSE){
-  if (is.null(x)){
-    return(0L)
-  }
-  x <- safe_ungroup(x)
-  g <- GRP2(g, sort = sort)
-  N <- fn(x, g = g, use.g.names = FALSE)
-  nobs <- collapse::fnobs(x, g = g, use.g.names = use.g.names)
-  if (!is.null(collapse::fncol(nobs))){
-    nobs <- collapse::qM(nobs)
-  }
-  nobs / N
-}
-#' @rdname fast_stats
-fprop_missing <- function(x, g = NULL, sort = TRUE, use.g.names = TRUE){
-  1 - fprop_complete(x, g = g, sort = sort, use.g.names = use.g.names)
 }

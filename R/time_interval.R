@@ -127,14 +127,7 @@ new_time_interval <- function(start, end){
   out
 }
 as.data.frame.time_interval <- function(x, ...){
-  out <- unclass(x)
-  attr(out, "row.names") <- .set_row_names(length(out[[1L]]))
-  class(out) <- "data.frame"
-  out
-  # new_df(start = interval[[1L]],
-  #        end = interval[[2L]])
-  # new_df(start = interval_start(x),
-  #        end = interval_end(x))
+  list_as_df(x)
 }
 as.list.time_interval <- function(x, ...){
   unclass(x)
@@ -161,41 +154,6 @@ as.list.time_interval <- function(x, ...){
 }
 `/.time_interval` <- function(e1, e2){
   time_diff(interval_start(e1), interval_end(e1), time_by = e2)
-}
-# `[.time_interval` <- function(x, i){
-#   out <- collapse::ss(unclass(x), i = i)
-#   class(out) <- class(x)
-#   out
-# }
-# unique.time_interval <- function(x, sort = FALSE, method = "auto",
-#                                  decreasing = FALSE, na.last = TRUE, ...){
-#   cl <- class(x)
-#   out <- as.list(collapse::funique(as.data.frame(x), sort = sort, method = method,
-#                                    decreasing = decreasing, na.last = na.last))
-#   class(out) <- cl
-#   out
-# }
-
-# funique.time_interval <- unique.time_interval
-
-# General collapse::funique method for vctrs rcrds
-funique.vctrs_rcrd <- function(x, sort = FALSE, method = "auto",
-                               decreasing = FALSE, na.last = TRUE, ...){
-  cl <- class(x)
-  out <- collapse::funique(unclass(x), sort = sort, method = method,
-                           decreasing = decreasing, na.last = na.last, ...)
-  class(out) <- cl
-  out
-}
-
-unique.time_interval <- function(x, incomparables = FALSE, sort = FALSE,
-                                 method = "auto", decreasing = FALSE,
-                                 na.last = TRUE, ...){
-  cl <- class(x)
-  out <- collapse::funique(unclass(x), sort = sort, method = method,
-                           decreasing = decreasing, na.last = na.last)
-  class(out) <- cl
-  out
 }
 
 xtfrm.time_interval <- function(x){
@@ -227,12 +185,12 @@ as.character.time_interval <- function(x,
     start <- as.character(start)
     end <- as.character(end)
   }
-  which_na <- cpp_which_na(x)
+  which_na <- cheapr::which_na(x)
   if (int_fmt == "full"){
     out <- paste0("[", start, ", ", end, ")")
-    which_closed <- cpp_which(start == end)
+    which_closed <- which_(start == end)
     out[which_closed] <- paste0("[", start[which_closed], ", ", end[which_closed], "]")
-    # which_left_open <- cpp_which(start > end)
+    # which_left_open <- which_(start > end)
     # out[which_left_open] <- paste0("(", start[which_left_open], "--", end[which_left_open], "]")
     out[which_na] <- NA_character_
     out

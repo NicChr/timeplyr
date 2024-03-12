@@ -147,7 +147,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE,
       nobs <- as.integer(nobs)
     }
     # Replace NA with 0
-    nobs[cpp_which_na(nobs)] <- 0L
+    nobs[cheapr::which_na(nobs)] <- 0L
   }
   out[[name]] <- nobs
   if (sort){
@@ -303,7 +303,7 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE,
                    g = g,
                    na.rm = TRUE)
     # Replace NA with 0
-    nobs[cpp_which_na(nobs)] <- 0
+    nobs[cheapr::which_na(nobs)] <- 0
     if (isTRUE(all_integerable(nobs))){
       nobs <- as.integer(nobs)
     }

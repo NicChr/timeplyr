@@ -116,7 +116,7 @@ time_aggregate <- function(x, time_by = NULL, g = NULL,
   #                    roll_month = roll_month, roll_dst = roll_dst)
   #   set_time_cast(out, end)
   #   to <- time_cast(to, out)
-  #   which_out_of_bounds <- cpp_which(cppdoubles::double_gt(unclass(end), unclass(to)))
+  #   which_out_of_bounds <- which_(cppdoubles::double_gt(unclass(end), unclass(to)))
   #   end[which_out_of_bounds] <- to[which_out_of_bounds]
   #   out <- time_interval(out, end)
   # }

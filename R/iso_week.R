@@ -65,7 +65,7 @@ isoday <- function(x){
 #   m <- x$mon + 1L
 #   d <- x$mday
 #   wday <- x$wday
-#   wday[cpp_which(wday == 0L)] <- 7L
+#   wday[which_(wday == 0L)] <- 7L
 #   date <- as_int_date(lubridate::make_date(y, m, d))
 #   date <- date + (4L - wday)
 #   jan1 <- as.integer(lubridate::make_date(as.POSIXlt(date)$year + 1900L, 1L, 1L))

@@ -75,9 +75,11 @@ ebola <- outbreaks::ebola_sim$linelist
 count_and_complete <- function(.data, time, .name, ...,
                                time_by = NULL, time_floor = TRUE){
   .data \%>\%
-    time_count(!!dplyr::enquo(time), ..., time_by = time_by,
+    time_by(!!dplyr::enquo(time), time_by = time_by,
                time_floor = time_floor,
                .name = .name) \%>\%
+    dplyr::count(...) \%>\%
+    dplyr::ungroup() \%>\%
     time_complete(.data[[.name]], ..., time_by = time_by,
                   time_floor = time_floor, fill = list(n = 0))
 }

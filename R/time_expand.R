@@ -128,9 +128,9 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
   from_data <- safe_ungroup(from_info[["data"]])
   to_data <- safe_ungroup(to_info[["data"]])
   from_data <- fselect(from_data,
-                       .cols = cpp_which(match(names(from_data), names(time_data), 0L) == 0L))
+                       .cols = which_(match(names(from_data), names(time_data), 0L) == 0L))
   to_data <- fselect(to_data,
-                     .cols = cpp_which(match(names(to_data), names(time_data), 0L) == 0L))
+                     .cols = which_(match(names(to_data), names(time_data), 0L) == 0L))
   out <- df_cbind(time_data, from_data, to_data)
   out <- df_as_dt(out, .copy = TRUE)
   if (length(time_var) > 0){
@@ -309,7 +309,7 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
     fill <- fill[!is.na(fill)]
     fill_nms <- names(fill)
     for (i in seq_along(fill)){
-      out[cpp_which(is.na(get(fill_nms[[i]]))),
+      out[which_(is.na(get(fill_nms[[i]]))),
           (fill_nms[[i]]) := fill[[i]]]
     }
   }

@@ -2,59 +2,30 @@
 #include <cpp11.hpp>
 #include <Rinternals.h>
 
-// #include <cpp11.hpp>
-// #include <Rinternals.h>
-//
-// #define R_NO_REMAP
-// #define VECTOR_PTR_RO(x) ((const SEXP*) DATAPTR_RO(x))
-
-// bool test_long_vector_support() {
-// #ifdef LONG_VECTOR_SUPPORT
-//   return true;
-// #else
-//   return false;
-// #endif
-// }
-
-// bool openmp_support() {
-// #ifdef _OPENMP
-//   return true;
-// #else
-//   return false;
-// #endif
-// }
-
-// int openmp_cores(){
-//   cpp11::function base_get_option = cpp11::package("base")["getOption"];
-//   return Rf_asInteger(base_get_option("timeplyr.cores", 1));
-// }
-
-[[cpp11::register]]
 R_xlen_t cpp_vector_size(SEXP x){
   if (Rf_isFrame(x)){
     return Rf_xlength(Rf_getAttrib(x, R_RowNamesSymbol));
+    // Is x a list?
   } else if (Rf_isVectorList(x)){
     if (Rf_inherits(x, "vctrs_rcrd")){
       return cpp_vector_size(VECTOR_ELT(x, 0));
+    } else if (Rf_inherits(x, "POSIXlt")){
+      return Rf_xlength(VECTOR_ELT(x, 0));
+    } else if (Rf_isObject(x)){
+      return Rf_asReal(cpp11::package("base")["length"](x));
     } else {
-      // return Rf_xlength(x);
-      int n = Rf_length(x);
-      if (n == 0){
-        return 0;
-      } else {
-        R_xlen_t init = cpp_vector_size(VECTOR_ELT(x, 0));
-        for (int i = 1; i < n; ++i) {
-          if (cpp_vector_size(VECTOR_ELT(x, i)) != init){
-            Rf_error("All list elements must be of equal length");
-          }
-        }
-        return init;
-      }
+      return Rf_xlength(x);
     }
+    // Catch-all
   } else {
     return Rf_xlength(x);
   }
-  // return Rf_inherits(x, "vctrs_rcrd") ? Rf_length(VECTOR_ELT(x, 0)) : Rf_length(x);
+}
+
+[[cpp11::register]]
+SEXP cpp_r_vector_size(SEXP x){
+  R_xlen_t size = cpp_vector_size(x);
+  return size > integer_max_ ? Rf_ScalarReal(size) : Rf_ScalarInteger(size);
 }
 
 [[cpp11::register]]
@@ -296,30 +267,6 @@ bool cpp_any_address_changed(SEXP x, SEXP y) {
     }
   }
   return out;
-}
-
-[[cpp11::register]]
-SEXP cpp_lengths(SEXP x) {
-  int n = Rf_length(x);
-  SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
-  int *p_out = INTEGER(out);
-  // bool do_parallel = n >= 100000;
-  if (!Rf_isVectorList(x)){
-// #pragma omp parallel for simd if(do_parallel) num_threads(num_cores())
-    for (int i = 0; i < n; ++i) {
-      p_out[i] = 1;
-    }
-    Rf_unprotect(1);
-    return out;
-  } else {
-    const SEXP* p_x = VECTOR_PTR_RO(x);
-// #pragma omp parallel for simd if(do_parallel) num_threads(num_cores())
-    for (int i = 0; i < n; ++i) {
-      p_out[i] = cpp_vector_size(p_x[i]);
-    }
-    Rf_unprotect(1);
-    return out;
-  }
 }
 
 
@@ -586,20 +533,6 @@ SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP default_value) {
   }
 }
 
-// Create a new list with a default value
-
-[[cpp11::register]]
-SEXP cpp_new_list(R_xlen_t size, SEXP default_value) {
-  SEXP out = Rf_protect(Rf_allocVector(VECSXP, size));
-  if (!Rf_isNull(default_value)){
-    for (R_xlen_t i = 0; i < size; ++i) {
-      SET_VECTOR_ELT(out, i, default_value);
-    }
-  }
-  Rf_unprotect(1);
-  return out;
-}
-
 // R_xlen_t cpp_df_nrow(SEXP x){
 //   return Rf_xlength(Rf_getAttrib(x, R_RowNamesSymbol));
 // }
@@ -643,31 +576,6 @@ SEXP cpp_address_equal(SEXP x, SEXP y) {
 [[cpp11::register]]
 SEXP cpp_copy(SEXP x) {
   return Rf_duplicate(x);
-}
-
-int num_cores(){
-  int out = Rf_asInteger(Rf_GetOption1(Rf_installChar(Rf_mkChar("timeplyr.cores"))));
-  if (out >= 1){
-    return out;
-    // int max_cores = omp_get_max_threads();
-    // return out > max_cores ? max_cores : out;
-  } else {
-    return 1;
-  }
-}
-
-double r_sum(SEXP x, bool na_rm = false){
-  cpp11::function base_sum = cpp11::package("base")["sum"];
-  return Rf_asReal(base_sum(x, cpp11::named_arg("na.rm") = na_rm));
-}
-
-double r_min(SEXP x){
-  cpp11::function base_min = cpp11::package("base")["min"];
-  double out = R_PosInf;
-  if (Rf_length(x) > 0){
-    out = Rf_asReal(base_min(x));
-  }
-  return out;
 }
 
 [[cpp11::register]]
@@ -767,27 +675,27 @@ SEXP cpp_consecutive_na_id(SEXP x, bool left_to_right){
 
     break;
   }
-  case VECSXP: {
-    SEXP is_empty = Rf_protect(cpp_missing_row(x, 1, true));
-    ++n_protections;
-    int *p_is_empty = LOGICAL(is_empty);
-    if (left_to_right){
-      for (R_xlen_t i = 0; i < n; ++i){
-        is_na = (p_is_empty[i] == TRUE);
-        count = (count + is_na) * is_na;
-        p_out[i] = count;
-        // p_out[i] = count == 0 ? NA_INTEGER : count;
-      }
-    } else {
-      for (R_xlen_t i = n - 1; i >= 0; --i){
-        is_na = (p_is_empty[i] == TRUE);
-        count = (count + is_na) * is_na;
-        p_out[i] = count;
-        // p_out[i] = count == 0 ? NA_INTEGER : count;
-      }
-    }
-    break;
-  }
+  // case VECSXP: {
+  //   SEXP is_empty = Rf_protect(cpp_missing_row(x, 1, true));
+  //   ++n_protections;
+  //   int *p_is_empty = LOGICAL(is_empty);
+  //   if (left_to_right){
+  //     for (R_xlen_t i = 0; i < n; ++i){
+  //       is_na = (p_is_empty[i] == TRUE);
+  //       count = (count + is_na) * is_na;
+  //       p_out[i] = count;
+  //       // p_out[i] = count == 0 ? NA_INTEGER : count;
+  //     }
+  //   } else {
+  //     for (R_xlen_t i = n - 1; i >= 0; --i){
+  //       is_na = (p_is_empty[i] == TRUE);
+  //       count = (count + is_na) * is_na;
+  //       p_out[i] = count;
+  //       // p_out[i] = count == 0 ? NA_INTEGER : count;
+  //     }
+  //   }
+  //   break;
+  // }
   default: {
     Rf_unprotect(n_protections);
     Rf_error("%s cannot handle an object of type %s", __func__, Rf_type2char(TYPEOF(x)));

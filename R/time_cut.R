@@ -119,7 +119,8 @@
 #'                               time_floor = TRUE)
 #' weekly_labels <- format(weekly_breaks, "%b-%d")
 #' df %>%
-#'   time_count(time = date, time_by = "week", .name = "date") %>%
+#'   time_by(date, time_by = "week", .name = "date") %>%
+#'   count() %>%
 #'   mutate(date = interval_start(date)) %>%
 #'   ggplot(aes(x = date, y = n)) +
 #'   geom_bar(stat = "identity") +
@@ -237,7 +238,7 @@ time_breaks <- function(x, n = 5, time_by = NULL,
     if (length(x) <= 1){
       gcd_difference <- 1L
     } else {
-      gcd_difference <- abs(gcd_diff(x, round = TRUE))
+      gcd_difference <- abs(gcd_diff(x))
     }
     gcd_difference[is.na(gcd_difference)] <- 1L
     time_rng_diff <- unclass(to) - unclass(from)

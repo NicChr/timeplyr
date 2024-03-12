@@ -110,10 +110,10 @@ edf <- function(x, g = NULL, wt = NULL){
     df[, ("id") := seq_len(.N)]
     # Order if NAs are shifted to the end
     is_na <- is.na(x)
-    which_na <- cpp_which(is_na)
+    which_na <- which_(is_na)
     df[which_na, ("id") := NA_integer_]
     if (n_na > 0){
-      df <- df[cpp_which(is_na, invert = TRUE)]
+      df <- df[which_(is_na, invert = TRUE)]
     }
     # Sort data in ascending order
     data.table::setorderv(df, cols = "g3")

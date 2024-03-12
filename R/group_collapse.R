@@ -99,9 +99,9 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
   # if (!is.list(data)){
   #   out <- new_df(x = out)
   # } else {
-  #   out <- list_to_data_frame(as.list(out))
+  #   out <- list_as_df(as.list(out))
   # }
-  out <- list_to_data_frame(as.list(GRP_groups(g)))
+  out <- list_as_df(as.list(GRP_groups(g)))
   # out <- collapse::qDT(as.list(GRP_groups(g)))
   if (id){
     out[[".group"]] <- df_seq_along(out)
@@ -146,9 +146,9 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
                                 c(".group", ".loc", ".start", ".end", ".size")]
     group_out <- fselect(out, .cols = group_names)
     is_factor <- vapply(group_out, is.factor, FALSE, USE.NAMES = FALSE)
-    non_factors <- fselect(group_out, .cols = cpp_which(is_factor, invert = TRUE))
+    non_factors <- fselect(group_out, .cols = which_(is_factor, invert = TRUE))
     if (any(is_factor)){
-      factors <- fselect(group_out, .cols = cpp_which(is_factor))
+      factors <- fselect(group_out, .cols = which_(is_factor))
       group_data_size <- prod(
         vapply(factors, collapse::fnlevels, 0L)
       )
@@ -156,10 +156,10 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
       if (num_missing_categories > 0){
         # crossed_join(c(lapply(non_factors, collapse::funique),
         #                lapply(factors, levels_factor)))
-        full <- list_to_data_frame(
+        full <- list_as_df(
           add_names(
             CJ2(
-              lapply(factors, levels_factor)
+              lapply(factors, cheapr::levels_factor)
             )
             , names(factors)
           )
@@ -167,7 +167,7 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
         missed <- collapse_join(
           full, group_out, how = "anti", on = names(full)
         )
-        for (non_factor in names(group_out)[cpp_which(is_factor, invert = TRUE)]){
+        for (non_factor in names(group_out)[which_(is_factor, invert = TRUE)]){
           missed[[non_factor]] <- na_init(group_out[[non_factor]])
         }
         if (id){
@@ -201,7 +201,7 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
       }
     }
   }
-  df_as_tibble(out)
+  df_as_tbl(out)
 }
 #' @export
 group_collapse.factor <- function(data, ..., order = TRUE, sort = FALSE,
@@ -305,14 +305,14 @@ group_collapse.grouped_df <- function(data, ..., order = TRUE, sort = FALSE,
       ncol <- ncol(out)
       out <- fselect(out, .cols = c(seq_len(ncol - 2L), ncol, ncol - 1L))
     }
-    sizes <- cpp_lengths(out[[".loc"]])
+    sizes <- cheapr::lengths_(out[[".loc"]])
     if (start){
       gstarts <- GRP_loc_starts(out[[".loc"]])
       out[[".start"]] <- gstarts
     }
     if (end){
       gends <- integer(length(sizes))
-      gends[cpp_which(sizes != 0L)] <- GRP_loc_ends(out[[".loc"]])
+      gends[which_(sizes != 0L)] <- GRP_loc_ends(out[[".loc"]])
       out[[".end"]] <- gends
     }
     if (size){

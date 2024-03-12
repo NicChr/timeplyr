@@ -176,9 +176,9 @@ group_id.factor <- function(data, ..., order = TRUE,
   out <- unclass(data)
   if (order && ascending && !as_qg){
     out <- strip_attrs(out)
-    out[cpp_which_na(out)] <- length(levels(data)) + 1L
+    out[cheapr::which_na(out)] <- length(levels(data)) + 1L
     # if (anyNA(out)){
-    #   out[cpp_cpp_which_na(out)] <- length(levels(data)) + 1L
+    #   out[cpp_cheapr::which_na(out)] <- length(levels(data)) + 1L
     # }
   } else {
     out <- group_id(out, order = order,
@@ -264,7 +264,7 @@ group_id.grouped_df <- function(data, ...,
       out <- group_id_to_qg(out,
                             n_groups = df_nrow(groups),
                             group_starts = GRP_loc_starts(groups[[".rows"]]),
-                            group_sizes = cpp_lengths(groups[[".rows"]]),
+                            group_sizes = cheapr::lengths_(groups[[".rows"]]),
                             ordered = order)
     }
   } else {
@@ -448,7 +448,7 @@ add_group_order <- function(data, ..., ascending = TRUE,
 qG2 <- function(x, sort = TRUE, ordered = FALSE, na.exclude = FALSE, ...){
   if (is_interval(x)){
     if (na.exclude){
-      which_not_na <- cpp_which(int_is_na(x), invert = TRUE)
+      which_not_na <- which_(int_is_na(x), invert = TRUE)
       out <- collapse::alloc(NA_integer_, length(x))
       qgroup <- group_id(x[which_not_na], order = sort, as_qg = TRUE)
       n_groups <- attr(qgroup, "N.groups")
@@ -478,7 +478,7 @@ qG2 <- function(x, sort = TRUE, ordered = FALSE, na.exclude = FALSE, ...){
 }
 # Mutate interval columns to group IDs
 mutate_intervals_to_ids <- function(data, order = TRUE){
-  which_int <- cpp_which(list_item_is_interval(data))
+  which_int <- which_(list_item_is_interval(data))
   for (i in seq_along(which_int)){
     data[[.subset2(which_int, i)]] <- group_id(.subset2(data, .subset2(which_int, i)), order = order)
   }

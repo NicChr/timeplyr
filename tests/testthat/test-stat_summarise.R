@@ -4,7 +4,7 @@ data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 
 testthat::test_that("stat_summarise", {
-  iris2 <- df_as_tibble(fslice_sample(iris, n = 10^3, replace = TRUE, seed = 918291))
+  iris2 <- dplyr::as_tibble(fslice_sample(iris, n = 10^3, replace = TRUE, seed = 918291))
 
   stat_summarise(fslice(iris2, 0))
   stat_summarise(fslice(iris2, 0), stat = "mean")

@@ -581,7 +581,7 @@ testthat::test_that("Testing time episodes", {
   g <- sample(1:2, 20, T)
   x[sample.int(20, 7)] <- NA
   names(x) <- g
-  df <- fenframe(x)
+  df <- cheapr::enframe_(x)
 
   df <- df %>%
     farrange(name, value) %>%
@@ -597,9 +597,9 @@ testthat::test_that("Testing time episodes", {
   testthat::expect_equal(
     df %>%
       time_episodes(value, roll_episode = TRUE, window = 100, .add = TRUE) %>%
-      df_as_tibble() %>%
+      dplyr::as_tibble() %>%
       fcount(res1 == ep_id_new),
-    list_to_tibble(list("res1 == ep_id_new" = c(TRUE, NA),
+    list_as_tbl(list("res1 == ep_id_new" = c(TRUE, NA),
                         "n" = c(13L, 7L)))
   )
 
@@ -613,9 +613,9 @@ testthat::test_that("Testing time episodes", {
     df %>%
       time_episodes(value, roll_episode = FALSE, window = 200,
                     .add = TRUE) %>%
-      df_as_tibble() %>%
+      dplyr::as_tibble() %>%
       fcount(res2 == ep_id_new),
-    list_to_tibble(list("res2 == ep_id_new" = c(TRUE, NA),
+    list_as_tbl(list("res2 == ep_id_new" = c(TRUE, NA),
                         "n" = c(13L, 7L)))
   )
 })

@@ -9,9 +9,9 @@ n_unique <- function(x, na.rm = FALSE){
   out <- collapse::fnunique(x)
   if (na.rm){
    if (is.list(x)){
-     any_na <- any(collapse::missing_cases(x, prop = 1))
+     any_na <- any(cheapr::row_all_na(x))
    } else {
-     any_na <- anyNA(x)
+     any_na <- cheapr::any_na(x)
    }
     na_offset <- as.integer(any_na)
   }
@@ -56,7 +56,7 @@ col_select_pos <- function(data, .cols = character()){
   }
   is_na <- is.na(out)
   if (any(is_na)){
-    first_na_col <- .subset(.cols, .subset(cpp_which(is_na), 1L))
+    first_na_col <- .subset(.cols, .subset(which_(is_na), 1L))
     if (is.numeric(first_na_col)){
       stop(paste("Location", first_na_col, "doesn't exist",
                  sep = " "))
@@ -181,8 +181,8 @@ mutate_summary_ungrouped <- function(.data, ...,
   keep_cols <- switch(.keep,
                       all = names(used),
                       none = final_cols,
-                      used = names(used)[cpp_which(used)],
-                      unused = names(used)[cpp_which(used, invert = TRUE)])
+                      used = names(used)[which_(used)],
+                      unused = names(used)[which_(used, invert = TRUE)])
   out_data <- fselect(out_data, .cols = keep_cols)
   out <- list(data = out_data, cols = final_cols)
   out
@@ -205,8 +205,8 @@ mutate_summary_grouped <- function(.data, ...,
   keep_cols <- switch(.keep,
                       all = names(used),
                       none = final_cols,
-                      used = names(used)[cpp_which(used)],
-                      unused = names(used)[cpp_which(used, invert = TRUE)])
+                      used = names(used)[which_(used)],
+                      unused = names(used)[which_(used, invert = TRUE)])
   # Add missed group vars
   keep_cols <- c(group_vars, keep_cols[match(keep_cols, group_vars, 0L) == 0L])
   # Match the original ordering of columns
@@ -590,7 +590,7 @@ new_var_nm <- function(data, check = ".group.id"){
 # Recycle arguments
 recycle_args <- function (..., length = NULL, use.names = FALSE){
   out <- list3(...)
-  lens <- cpp_lengths(out)
+  lens <- cheapr::lengths_(out)
   uniq_lens <- collapse::fnunique(lens)
   if (is.null(length)) {
     if (length(lens)){
@@ -602,7 +602,7 @@ recycle_args <- function (..., length = NULL, use.names = FALSE){
     recycle_length <- length
   }
   recycle_length <- recycle_length * (!collapse::anyv(lens, 0L))
-  recycle <- cpp_which(lens != recycle_length)
+  recycle <- which_(lens != recycle_length)
   out[recycle] <- lapply(out[recycle], function(x) rep_len(x, recycle_length))
   if (use.names){
     names(out) <- dot_nms(...)
@@ -693,7 +693,7 @@ vec_slice2 <- function(x, i){
 }
 vec_slice3 <- function(x, i){
   if (is.logical(i)){
-    i <- cpp_which(i)
+    i <- which_(i)
   }
   if (is.atomic(x) || is_interval(x)){
     x[i]
@@ -729,7 +729,7 @@ vec_tail <- function(x, n = 1L){
 # They are treated as regular vectors
 
 # Returns the length or nrows (if list or df)
-vec_length <- cpp_vector_size
+vec_length <- cpp_r_vector_size
 # Returns the width or ncol (if list or df)
 vec_width <- cpp_vector_width
 
@@ -772,7 +772,7 @@ CJ2 <- function(X){
     return(X)
   }
   out <- vector("list", nargs)
-  d <- cpp_lengths(X)
+  d <- cheapr::lengths_(X)
   orep <- prod(d)
   if (orep == 0L){
     for (i in seq_len(nargs)){
@@ -1093,16 +1093,8 @@ add_names <- function(x, value){
   names(x) <- value
   x
 }
-# Use data.table matching if both are character, otherwise base R
-fmatch <- function(x, table, nomatch = NA_integer_){
-  if (is.character(x) && is.character(table)){
-    data.table::chmatch(x, table, nomatch = nomatch)
-  } else {
-    match(x, table, nomatch = nomatch)
-  }
-}
 match_and_factor <- function(x, table){
-  out <- fmatch(x, table)
+  out <- collapse::fmatch(x, table)
   levels(out) <- as.character(table)
   class(out) <- "factor"
   out
@@ -1128,12 +1120,6 @@ allv2 <- function(x, value){
    return(FALSE)
   }
   collapse::allv(x, value)
-}
-allNA2 <- function(x){
-  if (!length(x)){
-    return(FALSE)
-  }
-  collapse::allNA(x)
 }
 # collapse::whichv but handles the case when both x and value are length zero
 # whichv2 <- function(x, value, invert = FALSE){
@@ -1232,9 +1218,7 @@ collapse_join <- function(x, y, on, how, sort = FALSE, ...){
 #   invisible(x)
 # }
 # Remove NULL list elements
-list_rm_null <- function(x){
-  .subset(x, cpp_list_which_not_null(x))
-}
+list_rm_null <- getFromNamespace("cpp_list_rm_null", "cheapr")
 
 # nth element
 # returns empty vector if n > length(x)
@@ -1318,36 +1302,13 @@ list_subset <- function(x, i, default = NA, copy_attributes = FALSE){
   }
   out
 }
-# Like vector("list", length) but with a default to fill the list elements
-new_list <- function(length = 0L, default = NULL){
-  check_length(length, 1)
-  cpp_new_list(as.numeric(length), default)
-}
 
 # Very fast and memory efficient setdiff and intersect
 fsetdiff <- function(x, y){
-  vec_slice3(x, cpp_which_na(collapse::fmatch(x, y, overid = 2L)))
+  vec_slice3(x, x %!in_% y)
 }
 fintersect <- function(x, y){
-  vec_slice3(x, cpp_which_not_na(collapse::fmatch(x, y, overid = 2L)))
-}
-
-# levels() but the result is its own factor
-levels_factor <- function(x){
-  lvls <- levels(x)
-  out <- seq_along(lvls)
-  attr(out, "levels") <- lvls
-  # levels(out) <- lvls
-  class(out) <- class(x)
-  out
-}
-used_levels <- function(x){
-  as.character(fintersect(levels_factor(x), x))
-  # levels(quick_factor(x))
-}
-unused_levels <- function(x){
-  as.character(fsetdiff(levels_factor(x), x))
-  # fsetdiff(levels(x), used_levels(x))
+  vec_slice3(x, x %in_% y)
 }
 
 # Apply a function using a LOCAL seed
@@ -1370,3 +1331,24 @@ with_local_seed <- function(expr, .seed = NULL, ...){
   eval(expr, envir = parent.frame())
 }
 
+
+# Cheapr functions --------------------------------------------------------
+
+gcd_diff <- function(x){
+  cheapr::gcd(diff_(x), na_rm = TRUE)
+}
+which_ <- cheapr::which_
+num_na <- function(x){
+  cheapr::num_na(x, recursive = FALSE)
+}
+`%in_%` <- cheapr::`%in_%`
+`%!in_%` <- cheapr::`%!in_%`
+
+sequences <- function(size, from = 1L, by = 1L, add_id = FALSE){
+  time_cast(cheapr::sequence_(size, from, by, add_id), from)
+}
+df_select <- getFromNamespace("df_select", "cheapr")
+list_as_df <- getFromNamespace("list_as_df", "cheapr")
+inline_hist <- getFromNamespace("inline_hist", "cheapr")
+new_list <- cheapr::new_list
+window_sequence <- cheapr::window_sequence

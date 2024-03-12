@@ -1,7 +1,5 @@
 #' Create a table of common time units from a date or datetime sequence.
 #'
-#' @param data A data frame.
-#' @param time Time variable.
 #' @param x date or datetime vector.
 #' @param label Logical. Should labelled (ordered factor) versions of
 #' week day and month be returned? Default is `TRUE`.
@@ -85,24 +83,4 @@ calendar <- function(x, label = TRUE,
             hour, minute, second),
     out_nms
   )
-}
-#' @rdname calendar
-#' @export
-add_calendar <- function(data, time = NULL, label = TRUE,
-                         week_start = getOption("lubridate.week.start", 1),
-                         fiscal_start = getOption("lubridate.fiscal.start", 1)){
-  if (rlang::quo_is_null(enquo(time))){
-    time_vars <- names(data)[cpp_which(vapply(data, is_time, FALSE))]
-    if (length(time_vars) == 0) {
-      stop("Please specify a time variable")
-    } else {
-      time_var <- time_vars[[1L]]
-      message(paste0("Using ", time_var))
-    }
-  } else {
-    time_var <- tidy_select_names(data, !!enquo(time))
-  }
-  calendar <- fselect(calendar(data[[time_var]], label = label, week_start = week_start,
-                       fiscal_start = fiscal_start), .cols = -1L)
-  df_cbind(data, calendar)
 }

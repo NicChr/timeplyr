@@ -5,7 +5,7 @@ GRP2 <- function(X, ...){
   is_list_with_intervals <- is.list(X) && list_has_interval(X)
   if (is_list_with_intervals){
     x <- X
-    which_int <- cpp_which(list_item_is_interval(X))
+    which_int <- which_(list_item_is_interval(X))
     for (i in seq_along(which_int)){
       # X <- C_set_vector_elt(X, .subset(which_int, i), group_id(.subset2(X, .subset(which_int, i))))
       X[[.subset(which_int, i)]] <- group_id(.subset2(X, .subset(which_int, i)))
@@ -37,7 +37,7 @@ GRP3 <- function(X, by = NULL, sort = TRUE,
   is_list_with_intervals <- is.list(X) && list_has_interval(X)
   if (is_list_with_intervals){
     x <- X
-    which_int <- cpp_which(list_item_is_interval(X))
+    which_int <- which_(list_item_is_interval(X))
     for (i in seq_along(which_int)){
       X[[.subset(which_int, i)]] <- group_id(.subset2(X, .subset(which_int, i)))
     }
@@ -207,7 +207,7 @@ GRP_duplicated <- function(GRP, all = FALSE){
 }
 # Alternative that just returns dup indices
 GRP_which_duplicated <- function(GRP, all = FALSE){
-  cpp_which(GRP_duplicated(GRP, all))
+  which_(GRP_duplicated(GRP, all))
 }
 calc_sorted_group_starts <- function(group_sizes){
   cpp_sorted_group_starts(as.integer(group_sizes))
@@ -224,7 +224,7 @@ calc_sorted_group_ends <- function(group_sizes){
 #     if (GRP_is_sorted(GRP)){
 #       out <- calc_sorted_group_starts(GRP_sizes)
 #       # For factors with 0 size, replace calculated group starts with 0
-#       out[cpp_which(GRP_sizes == 0L)] <- 0L
+#       out[which_(GRP_sizes == 0L)] <- 0L
 #     } else {
 #       if (is.null(loc)){
 #         loc <- GRP_loc(GRP, use.g.names = FALSE)
@@ -247,13 +247,13 @@ GRP_starts <- function(GRP, use.g.names = FALSE){
     if (GRP_is_sorted(GRP)){
       out <- calc_sorted_group_starts(GRP_sizes)
       # For factors with 0 size, replace calculated group starts with 0
-      out[cpp_which(GRP_sizes == 0L)] <- 0L
+      out[which_(GRP_sizes == 0L)] <- 0L
     } else {
       o <- GRP_order(GRP)
       starts <- attr(o, "starts")
       if (collapse::anyv(GRP_sizes, 0L)){
         out <- integer(GRP_n_groups(GRP))
-        out[cpp_which(GRP_sizes == 0L, invert = TRUE)] <- o[starts]
+        out[which_(GRP_sizes == 0L, invert = TRUE)] <- o[starts]
       } else {
         out <- o[starts]
       }
@@ -274,7 +274,7 @@ GRP_ends <- function(GRP, use.g.names = FALSE,
   if (GRP_is_sorted(GRP)){
     out <- calc_sorted_group_ends(GRP_sizes)
     # For factors with 0 size, replace 0 with NA
-    out[cpp_which(GRP_sizes == 0L)] <- 0L
+    out[which_(GRP_sizes == 0L)] <- 0L
   } else {
     if (is.null(loc)){
       loc <- GRP_loc(GRP, use.g.names = FALSE)
@@ -380,7 +380,7 @@ GRP_loc_starts <- function(loc){
 }
 GRP_loc_ends <- function(loc, sizes = NULL){
   if (is.null(sizes)){
-    sizes <- cpp_lengths(loc)
+    sizes <- cheapr::lengths_(loc)
   }
   list_subset(loc, sizes, default = 0L)
   # unlist(
@@ -407,7 +407,7 @@ GRP_is_sorted <- function(GRP){
   isTRUE(ordered[names(ordered) == "sorted"])
 }
 GRP_group_data <- function(GRP, expand = FALSE){
-  out <- list_to_tibble(as.list(GRP_groups(GRP)))
+  out <- list_as_tbl(as.list(GRP_groups(GRP)))
   if (expand){
     out <- df_row_slice(out, GRP_group_id(GRP))
   }
@@ -436,7 +436,7 @@ df_as_GRP <- function(data, return.groups = TRUE, return.order = TRUE){
   gvars <- group_vars(data)
   n_groups <- df_nrow(gdata)
   group_id <- df_group_id(data)
-  gsizes <- cpp_lengths(gdata[[".rows"]])
+  gsizes <- cheapr::lengths_(gdata[[".rows"]])
   if (return.order){
     gorder <- collapse::radixorderv(group_id,
                                     starts = TRUE,
@@ -746,7 +746,7 @@ GRP_row_id <- function(g, ascending = TRUE){
       start <- group_sizes
       every <- -1L
     }
-    out <- sequence2(group_sizes, from = start, by = every)
+    out <- sequences(group_sizes, from = start, by = every)
   } else {
     if (!ascending){
       o <- seq.int(length.out = size, from = size, by = -1L)
@@ -832,7 +832,7 @@ group_order_and_counts <- function(g = NULL){
     sizes <- GRP_group_sizes(g)
     # Accounting for factors
     if (collapse::anyv(sizes, 0L)){
-      sizes <- sizes[cpp_which(sizes > 0L)]
+      sizes <- sizes[which_(sizes > 0L)]
     }
   } else {
     sizes <- attr(o, "group.sizes")

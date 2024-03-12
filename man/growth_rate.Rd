@@ -72,6 +72,10 @@ growth_rate(assets)
 rel_diff <- exp(diff(log(assets)))
 all.equal(rel_diff, relative_increases)
 
+geometric_mean <- function(x, na.rm = TRUE, weights = NULL){
+  exp(collapse::fmean(log(x), na.rm = na.rm, w = weights))
+}
+
 geometric_mean(rel_diff) == growth_rate(assets)
 
 # Weighted growth rate

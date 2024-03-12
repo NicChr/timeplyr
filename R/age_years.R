@@ -47,7 +47,7 @@ age_years <- function(start, end = if (is_date(start)) Sys.Date() else Sys.time(
 age_months <- function(start, end = if (is_date(start)) Sys.Date() else Sys.time()){
   check_is_time(start)
   check_is_time(end)
-  interval_tbl <- list_to_data_frame(recycle_args(start = start, end = end))
+  interval_tbl <- list_as_df(recycle_args(start = start, end = end))
   interval_groups <- group2(interval_tbl, starts = TRUE, group.sizes = TRUE)
   starts <- attr(interval_groups, "starts")
   sizes <- attr(interval_groups, "group.sizes")

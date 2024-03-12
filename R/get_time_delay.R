@@ -102,7 +102,7 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
                            probs = c(0.25, 0.5, 0.75, 0.95),
                            .by = NULL,
                            include_plot = TRUE, x_scales = "fixed",
-                           bw = "SJ",
+                           bw = "sj",
                            ...){
   group_vars <- get_groups(data, {{ .by }})
   origin_info <- mutate_summary_grouped(data,
@@ -149,7 +149,7 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
                   sep = " "))
   }
   # Remove outliers
-  out <- out[cpp_which(data.table::between(get(delay_nm), min_delay, max_delay,
+  out <- out[which_(data.table::between(get(delay_nm), min_delay, max_delay,
                                  incbounds = TRUE, NAbounds = NA)), ]
   # Quantile summary
   iqr_p_missed <- setdiff(c(0.25, 0.75), probs)

@@ -130,8 +130,8 @@ time_by <- function(data, time, time_by_unit = NULL,
   col_seq <- seq_along(names(time_data))
   from_data <- from_info[["data"]]
   to_data <- to_info[["data"]]
-  from_data <- fselect(from_data, .cols = cpp_which(names(from_data) %in% names(time_data), invert = TRUE))
-  to_data <- fselect(to_data, .cols = cpp_which(names(to_data) %in% names(time_data), invert = TRUE))
+  from_data <- fselect(from_data, .cols = which_(names(from_data) %in% names(time_data), invert = TRUE))
+  to_data <- fselect(to_data, .cols = which_(names(to_data) %in% names(time_data), invert = TRUE))
   out <- df_cbind(time_data, from_data, to_data)
   if (length(time_var) > 0L){
     check_is_time_or_num(out[[time_var]])

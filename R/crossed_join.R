@@ -48,15 +48,12 @@ crossed_join <- function(X, sort = FALSE, unique = TRUE,
   } else {
     X <- as.list(X)
   }
-  expanded_n <- prod(cpp_lengths(X))
+  expanded_n <- prod(cheapr::lengths_(X))
   expand_check(expanded_n, log_limit)
   if (strings_as_factors){
-    is_chr <- vapply(X, is.character, FALSE, USE.NAMES = FALSE)
-    which_chr <- which(is_chr)
+    which_chr <- which_(vapply(X, is.character, FALSE, USE.NAMES = FALSE))
     X[which_chr] <- lapply(X[which_chr],
-                           function(x) quick_factor(x,
-                                                    order = FALSE,
-                                                    ordered = FALSE))
+                           function(x) cheapr::factor_(x, order = FALSE))
   }
   # out <- .Call(Ccj, X)
   # do.call(CJ, args = c(X, list(sorted = FALSE, unique = FALSE)))

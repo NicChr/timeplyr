@@ -63,6 +63,10 @@
 #' rel_diff <- exp(diff(log(assets)))
 #' all.equal(rel_diff, relative_increases)
 #'
+#' geometric_mean <- function(x, na.rm = TRUE, weights = NULL){
+#'   exp(collapse::fmean(log(x), na.rm = na.rm, w = weights))
+#' }
+#'
 #' geometric_mean(rel_diff) == growth_rate(assets)
 #'
 #' # Weighted growth rate
@@ -110,7 +114,7 @@ growth_rate <- function(x, na.rm = FALSE, log = FALSE, inf_fill = NULL){
     gr <- ( (x_n / x_1) ^ (1 / (n - 1)) )
   }
   if (!is.null(inf_fill)){
-    gr[cpp_which(is.infinite(gr))] <- inf_fill
+    gr[which_(is.infinite(gr))] <- inf_fill
   }
   gr
 }

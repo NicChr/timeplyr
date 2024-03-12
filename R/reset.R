@@ -3,7 +3,7 @@
 #' @returns
 #' Resets the timeplyr global options (prefixed with `"timeplyr."`): \cr
 #' time_type, roll_month, roll_dst, interval_style,
-#' interval_sub_formatter, use_intervals and cores.
+#' interval_sub_formatter and use_intervals.
 #'
 #' @description
 #' One can set global options to be used in timeplyr. These options include:
@@ -15,8 +15,6 @@
 #' * use_intervals - Controls whether `time_intervals` are
 #' returned whenever dates or date-times are aggregated. If this is `FALSE`
 #' the start time (or left-hand side) is always returned.
-#' * cores - The number of "openMP" cores to use. The default is 1 and this is currently limited
-#' to a few functions.
 #'
 #'
 #' @examples
@@ -34,6 +32,5 @@ reset_timeplyr_options <- function(){
           "timeplyr.roll_dst" = "boundary",
           "timeplyr.interval_style" = "full",
           "timeplyr.interval_sub_formatter" = identity,
-          "timeplyr.use_intervals" = FALSE,
-          "timeplyr.cores" = 1)
+          "timeplyr.use_intervals" = FALSE)
 }

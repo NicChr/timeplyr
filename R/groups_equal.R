@@ -1,30 +1,3 @@
-#' Are groups equal?
-#'
-#' @description
-#' This function is a very fast utility for quickly checking if
-#' the group data between 2 data frames are identical.
-#'
-#' @param x A `grouped_df`.
-#' @param y A `grouped_df`.
-#'
-#' @returns
-#' A logical indicating whether the groups are identical or not.
-#'
-#' @examples
-#' library(dplyr)
-#' library(timeplyr)
-#'
-#' df <- iris %>%
-#'   group_by(Species)
-#' df2 <- iris %>%
-#'   fslice_sample(seed = 1777) %>%
-#'   group_by(Species)
-#'
-#' groups_equal(iris, iris)
-#' groups_equal(df, df)
-#' groups_equal(df, df2)
-#'
-#' @export
 groups_equal <- function(x, y){
   groups1 <- strip_attrs(attr(x, "groups"))
   groups2 <- strip_attrs(attr(y, "groups"))

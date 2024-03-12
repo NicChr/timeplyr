@@ -1,12 +1,5 @@
 ##### data.table specific helpers #####
 
-# set_dt_threads <- function(threads = 1L){
-#   setDTthreads <- try(get("setDTthreads", asNamespace("data.table")))
-#   if (exists("setDTthreads", inherits = FALSE)){
-#     setDTthreads(threads = threads)
-#   }
-# }
-
 empty_dt <- function(){
   out <- list()
   class(out) <- c("data.table", "data.frame")
@@ -22,15 +15,6 @@ new_dt <- function(..., .copy = TRUE, .recycle = FALSE){
     new_df(..., .recycle = .recycle),
     .copy = .copy
   )
-  # out <- new_df(..., .recycle = .recycle)
-  # out <- collapse::qDT(out)
-  # # data.table::setattr(out, "class", c("data.table", "data.frame"))
-  # # data.table::setattr(out, "row.names", .set_row_names(0L))
-  # # data.table::setalloccol(out)
-  # if (.copy){
-  #   out <- data.table::copy(out)
-  # }
-  # out
 }
 
 df_as_dt <- function(x, .copy = TRUE){
@@ -69,26 +53,6 @@ df_as_dt <- function(x, .copy = TRUE){
 #   df_reconstruct(out, empty_dt())
 #   # out <- df_reconstruct(out, empty_dt())
 #   # out
-# }
-
-# Convert to data table
-as_DT <- function(x){
-  if (inherits(x, "data.table")){
-    x[TRUE]
-  } else if (inherits(x, "data.frame") &&
-             collapse::fncol(x) > 0L){
-    collapse::qDT(x[TRUE])
-  } else {
-    data.table::as.data.table(x)
-  }
-}
-# df_complete_cases <- function(data, .cols = names(data)){
-#   df_row_slice(data, vctrs::vec_detect_complete(
-#     fselect(data, .cols = .cols)
-#   ))
-#   # df_row_slice(data, collapse::whichv(rowSums(is.na(
-#   #   fselect(data, .cols = .cols)
-#   # )), 0))
 # }
 
 # key and sort with na.last argument

@@ -137,17 +137,12 @@ df_reconstruct <- function(data, template){
 df_row_slice <- function(data, i, reconstruct = TRUE){
   if (is.logical(i)){
     check_length(i, df_nrow(data))
-    i <- cpp_which(i)
-  }
-  if (df_ncol(data) == 0L || list_has_interval(data)){
-    .slice <- vctrs::vec_slice
-  } else {
-    .slice <- collapse::ss
+    i <- which_(i)
   }
   if (reconstruct){
-    df_reconstruct(.slice(safe_ungroup(data), i), data)
+    df_reconstruct(vctrs::vec_slice(safe_ungroup(data), i), data)
   } else {
-    .slice(data, i)
+    vctrs::vec_slice(data, i)
   }
 }
 df_rm_cols <- function(data, .cols){
@@ -182,54 +177,15 @@ df_rep_each <- function(data, each){
   }
   df_rep(data, each)
 }
-# Faster version of nrow specifically for data frames
-nrow2 <- function(data){
-  length(attr(data, "row.names"))
-}
 # Do all list elements have same number of elements?
 is_list_df_like <- function(X){
   check_is_list(X)
-  lens <- cpp_lengths(X)
+  lens <- cheapr::lengths_(X)
   collapse::fnunique(lens) <= 1
 }
 # Convenience function
 is_df <- function(x){
   inherits(x, "data.frame")
-}
-# alternative tibble::enframe
-# Turns named vector to 2-column data frame
-# or unnamed vector to 1-column data frame
-fenframe <- function(x, name = "name", value = "value"){
-  if (is_df(x)){
-    x <- strip_attr(unclass(x), "row.names")
-  }
-  if (!vctrs::vec_is(x)){
-    stop("x must be a vector")
-  }
-  x_nms <- names(x)
-  x <- unname(x)
-  if (is.null(x_nms)){
-    out <- list(x)
-    names(out) <- value
-  } else {
-    out <- list(x_nms, x)
-    names(out) <- c(name, value)
-  }
-  attr(out, "class") <- c("tbl_df", "tbl", "data.frame")
-  attr(out, "row.names") <- .set_row_names(length(x))
-  out
-}
-# alternative tibble::deframe
-fdeframe <- function(x){
-  ncol <- df_ncol(x)
-  if (!(is_df(x) && ncol %in% (1:2))){
-    stop("`x` must be a 1 or 2 col data frame")
-  }
-  out <- .subset2(x, ncol)
-  if (ncol == 2){
-    names(out) <- as.character(.subset2(x, 1L))
-  }
-  out
 }
 df_n_distinct <- function(data){
   GRP_n_groups(
@@ -245,42 +201,8 @@ list3 <- function(...){
 # No checks are done so use with caution
 # Cannot contain duplicate names
 # or different length list elements
-list_to_tibble <- function(x){
-  if (is_df(x)){
-    N <- df_nrow(x)
-  } else {
-    if (length(x) == 0){
-      N <- 0L
-    } else {
-      N <- length(x[[1L]])
-    }
-  }
-  # Remove NULL items
-  x <- list_rm_null(x)
-  attributes(x) <- list(class = c("tbl_df", "tbl", "data.frame"),
-                        row.names = c(NA_integer_, -N),
-                        names = as.character(names(x)))
-  x
-}
-# Very fast conversion of list to data frame
-# It must have unique names and list lengths must all be equal
-# NULL elements are removed
-list_to_data_frame <- function(x){
-  if (is_df(x)){
-    N <- df_nrow(x)
-  } else {
-    if (length(x) == 0){
-      N <- 0L
-    } else {
-      N <- length(x[[1L]])
-    }
-  }
-  # Remove NULL items
-  x <- list_rm_null(x)
-  attributes(x) <- list(class = "data.frame",
-                        row.names = c(NA_integer_, -N),
-                        names = as.character(names(x)))
-  x
+list_as_tbl <- function(x){
+  df_as_tbl(list_as_df(x))
 }
 # List to data.table (NO COPY!)
 # list_to_data_table <- function(x){
@@ -325,37 +247,7 @@ new_tbl <- function(..., ..N = NULL, .recycle = FALSE){
   class(out) <- c("tbl_df", "tbl", "data.frame")
   out
 }
-# Pluck data frame row (works for matrices and df-like lists too)
-pluck_row <- function(x, i = 1L, j = collapse::seq_col(x),
-                      use.names = TRUE){
-  if (length(i) != 1L){
-    stop("i must be of length 1")
-  }
-  if (sign(i) < 0L){
-    stop("i must be >= 0")
-  }
-  if (length(j) == 0L){
-    stop("length(j) must be >= 1")
-  }
-  x <- collapse::ss(x, i = i, j = j)
-  # out <- fpluck(
-  #   collapse::pivot(x, values = names(x), how = "longer"),
-  #   2L
-  # )
-  out <- fpluck(
-    data.table::melt(df_as_dt(x, .copy = FALSE), measure.vars = names(x),
-                     value.name = "value"),
-    "value"
-  )
-  if (use.names){
-    if (length(out) == 0L){
-      names(out) <- character(0)
-    } else {
-      names(out) <- names(x)
-    }
-  }
-  out
-}
+
 # Temporary check to see if user has dplyr::reframe
 dplyr_reframe_exists <- function(){
   .reframe <- try(dplyr::reframe, silent = TRUE)
@@ -407,11 +299,15 @@ empty_tbl <- function(){
   )
 }
 df_as_df <- function(x){
-  df_reconstruct(x, empty_df())
+  list_as_df(x)
+  # df_reconstruct(x, empty_df())
 }
 # Faster as_tibble
-df_as_tibble <- function(x){
-  df_reconstruct(x, empty_tbl())
+df_as_tbl <- function(x){
+  out <- list_as_df(x)
+  class(out) <- c("tbl_df", "tbl", "data.frame")
+  out
+  # df_reconstruct(x, empty_tbl())
 }
 # Initialise data frame with NA
 df_init <- function(x, size = 1L){
@@ -447,10 +343,8 @@ df_reorder <- function(data, g){
 # Fast/efficient drop empty rows
 df_drop_empty <- function(data, .cols = names(data)){
   # is_empty_row <- collapse::missing_cases(fselect(data, .cols = .cols), prop = 1)
-  is_empty_row <- cpp_missing_row(fselect(data, .cols = .cols),
-                                  length(.cols),
-                                  FALSE)
-  which_not_empty <- cpp_which(is_empty_row, invert = TRUE)
+  is_empty_row <- cheapr::row_all_na(fselect(data, .cols = .cols))
+  which_not_empty <- which_(is_empty_row, invert = TRUE)
   if (length(which_not_empty) == df_nrow(data)){
     data
   } else {
@@ -466,15 +360,6 @@ df_lag <- function(x, n = 1L, g = NULL){
   df_row_slice(x, flag2(df_seq_along(x), n = n, g = g))
 }
 
-# A fast base R df select (to be used in fselect and friends)
-df_select <- function(x, .cols){
-  attrs <- attributes(x)
-  out <- .subset(x, .cols)
-  attrs[["names"]] <- attr(out, "names")
-  attrs[["row.names"]] <- .row_names_info(x, type = 0L)
-  attributes(out) <- attrs
-  out
-}
 # df_select <- function(x, .cols){
 #   out <- .subset(x, .cols)
 #   class(out) <- attr(x, "class")
@@ -491,7 +376,7 @@ df_add_cols <- function(data, cols){
 #   if (length(wt) > 0){
 #     counts <- collapse::fsum(.data[[wt]], g = df_group_id(.data))
 #   } else {
-#     counts <- cpp_lengths(groups[[".rows"]])
+#     counts <- cheapr::lengths_(groups[[".rows"]])
 #   }
 #   out <- fselect(groups, .cols = setdiff2(names(groups), ".rows"))
 #   out[[name]] <- counts
@@ -516,7 +401,7 @@ df_count <- function(.data, name = "n", weights = NULL){
     }
     counts <- collapse::fsum(weights, g = df_group_id(.data), use.g.names = FALSE)
   } else {
-    counts <- cpp_lengths(groups[[".rows"]])
+    counts <- cheapr::lengths_(groups[[".rows"]])
   }
   out <- fselect(groups, .cols = setdiff2(names(groups), ".rows"))
   out[[name]] <- counts
@@ -531,7 +416,7 @@ df_add_count <- function(.data, name = "n", weights = NULL){
     }
     counts <- gsum(weights, g = group_ids)
   } else {
-    counts <- cpp_lengths(groups[[".rows"]])[group_ids]
+    counts <- cheapr::lengths_(groups[[".rows"]])[group_ids]
   }
   df_add_cols(.data, add_names(list(counts), name))
 }
@@ -541,7 +426,7 @@ df_add_count <- function(.data, name = "n", weights = NULL){
 #   if (length(wt) > 0){
 #     counts <- gsum(.data[[wt]], g = group_ids)
 #   } else {
-#     counts <- cpp_lengths(groups[[".rows"]])[group_ids]
+#     counts <- cheapr::lengths_(groups[[".rows"]])[group_ids]
 #   }
 #   df_add_cols(.data, add_names(list(counts), name))
 # }
@@ -580,7 +465,7 @@ df_cbind <- function(..., .repair_names = TRUE, .sep = "..."){
   if (isTRUE(nrow_range[1] != nrow_range[2])){
     stop("All data frames must be of equal size")
   }
-  out <- list_to_data_frame(out)
+  out <- list_as_df(out)
   if (.repair_names){
     names(out) <- unique_name_repair(names(out))
   }
@@ -609,8 +494,9 @@ df_cbind <- function(..., .repair_names = TRUE, .sep = "..."){
   out
 }
 unique_name_repair <- function(x, .sep = "..."){
+  x <- as.character(x)
   col_seq <- seq_along(x)
-  which_dup <- cpp_which(collapse::fduplicated(x, all = TRUE))
+  which_dup <- which_(collapse::fduplicated(x, all = TRUE))
   x[which_dup] <- paste0(x[which_dup], .sep, col_seq[which_dup])
   x
 }

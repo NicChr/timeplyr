@@ -125,8 +125,8 @@ frename.grouped_df <- function(data, ..., .cols = NULL){
   # Rename data columns
   out <- col_rename(safe_ungroup(data), .cols = pos)
   # Rename group data columns
-  group_pos <- cpp_which(group_vars %in% names(data)[pos])
-  names(group_pos) <- names(out)[cpp_which(names(out) %in% names(pos) &
+  group_pos <- which_(group_vars %in% names(data)[pos])
+  names(group_pos) <- names(out)[which_(names(out) %in% names(pos) &
                                              names(data) %in% group_vars)]
   groups <- col_rename(groups, .cols = group_pos)
   attr(out, "groups") <- groups

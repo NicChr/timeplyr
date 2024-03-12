@@ -287,7 +287,7 @@ time_seq_sizes <- function(from, to, time_by,
   set_time_cast(from, to)
   tdiff <- time_diff(from, to, time_by = time_by,
                      time_type = time_type)
-  tdiff[cpp_which(from == to)] <- 0L
+  tdiff[which_(from == to)] <- 0L
   tdiff_rng <- collapse::frange(tdiff, na.rm = TRUE)
   if (isTRUE(any(tdiff_rng < 0))){
     stop("At least 1 sequence length is negative, please check the time_by unit increments")
@@ -344,7 +344,7 @@ time_seq_v2 <- function(sizes, from, time_by,
     from <- time_floor2(from, time_by, week_start = week_start)
   }
   if (time_by_is_num(time_by)){
-    out <- sequence2(sizes, from = from, by = num)
+    out <- sequences(sizes, from = from, by = num)
   } else {
     time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
     is_special_case_days <- time_type == "auto" &&
@@ -433,9 +433,9 @@ duration_seq_v2 <- function(sizes, from, units, num = 1){
   from <- as_datetime2(from)
   time_by <- add_names(list(num), units)
   num_seconds <- unit_to_seconds(time_by)
-  time_seq <- double_sequence(sizes,
-                              from = time_as_number(from),
-                              by = num_seconds)
+  time_seq <- cheapr::sequence_(sizes,
+                                from = time_as_number(from),
+                                by = num_seconds)
   .POSIXct(time_seq, lubridate::tz(from))
   # time_cast(time_seq, from)
 }
@@ -455,7 +455,7 @@ date_seq_v2 <- function(sizes, from, units = c("days", "weeks"), num = 1L){
     units <- "days"
     num <- num * 7L
   }
-  out <- sequence2(sizes, from = unclass(from), by = num)
+  out <- sequences(sizes, from = unclass(from), by = num)
   class(out) <- "Date"
   out
 }
@@ -512,12 +512,12 @@ period_seq_v2 <- function(sizes, from, units, num = 1L,
   period_df <- collapse::funique(period_df, cols = "g")
   # Setting up vector arithmetic
   g <- rep.int(period_df[["g"]], times = period_df[["sizes"]])
-  num <- sequence2(period_df[["sizes"]], from = 1L, by = period_df[["num"]]) - 1L
+  num <- sequences(period_df[["sizes"]], from = 1L, by = period_df[["num"]]) - 1L
   # Split these by group
   by <- collapse::gsplit(num, g = g, use.g.names = FALSE)
   # Repeat these by the group counts
   group_counts <- period_df[["n"]]
-  which_n_gt_1 <- cpp_which(group_counts > 1L)
+  which_n_gt_1 <- which_(group_counts > 1L)
   for (ind in which_n_gt_1){
     by[ind][[1L]] <- rep.int(.subset2(by, ind),
                              .subset2(group_counts, ind))

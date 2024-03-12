@@ -394,7 +394,7 @@ convert_common_dates <- function(x){
   if (is_time(x)){
     out <- x
   } else if (is.character(x)){
-    which_na <- cpp_which_na(x)
+    which_na <- cheapr::which_na(x)
     out <- lubridate::ymd(x, quiet = TRUE)
     num_na <- num_na(out)
     if (num_na > length(which_na)){
@@ -413,14 +413,14 @@ convert_common_dates <- function(x){
 period_by_calc <- function(from, to, length){
   seconds_unit <- period_unit("seconds")
   set_recycle_args(from, to, length)
-  which_len_1 <- cpp_which(length == 1)
+  which_len_1 <- which_(length == 1)
   sec_diff <- time_diff(from, to,
                         time_by = list("seconds" = 1),
                         time_type = "period")
   out <- lubridate::seconds_to_period(sec_diff / (length - 1))
   period_info <- collapse::qDF(time_unit_info(out))
   n_unique_slots <- df_ncol(period_info) - rowSums(period_info == 0)
-  which_multi <- cpp_which(n_unique_slots > 1)
+  which_multi <- which_(n_unique_slots > 1)
   out[which_multi] <- seconds_unit(
     lubridate::period_to_seconds(out[which_multi])
   )
@@ -487,13 +487,13 @@ duration_by_calc <- function(from, to, length){
                         time_type = "duration")
   out <- seconds_unit(sec_diff / (length - 1))
   length <- rep_len(length, length(out))
-  out[cpp_which(length == 1)] <- seconds_unit(0) # Special case
+  out[which_(length == 1)] <- seconds_unit(0) # Special case
   out
 }
 num_by_calc <- function(from, to, length){
   out <- (to - from) / (length - 1)
   length <- rep_len(length, length(out))
-  out[cpp_which(length == 1)] <- 0
+  out[which_(length == 1)] <- 0
   out
 }
 # Vectorized except for periods
@@ -805,7 +805,7 @@ is_interval <- function(x){
 tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
   out <- time_interval2(seq, flag2(seq, n = -1, g = gseq))
   to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
-  end_points <- cpp_which(is.na(out) & !is.na(seq))
+  end_points <- which_(is.na(out) & !is.na(seq))
   out[end_points] <- time_interval2(seq[end_points], to)
   out
 }
@@ -825,7 +825,7 @@ tseq_levels <- function(x, seq, gx = NULL, gseq = NULL, fmt = NULL){
                               g = gseq, n = max(-1L, -n)),
                         ")")
   to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
-  end_points <- cpp_which(is.na(out) & !is.na(seq))
+  end_points <- which_(is.na(out) & !is.na(seq))
   out[end_points] <- stringr::str_c("[",
                                     time_breaks_fmt[end_points],
                                     ", ",
@@ -997,7 +997,7 @@ time_aggregate_left <- function(x, time_by, g = NULL,
       stop("start must be the same length as x")
     }
     start <- time_cast(start, x)
-    x[cpp_which(x < start)] <- time_na
+    x[which_(x < start)] <- time_na
   } else {
     start <- gmin(x, g = g, na.rm = TRUE)
   }
@@ -1006,7 +1006,7 @@ time_aggregate_left <- function(x, time_by, g = NULL,
       stop("end must be the same length as x")
     }
     end <- time_cast(end, x)
-    x[cpp_which(x > end)] <- time_na
+    x[which_(x > end)] <- time_na
   } else {
     end <- gmax(x, g = g, na.rm = TRUE)
   }
@@ -1044,7 +1044,7 @@ time_aggregate_left <- function(x, time_by, g = NULL,
 #       stop("start must be the same length as x")
 #     }
 #     start <- time_cast(start, x)
-#     x[cpp_which(x < start)] <- time_na
+#     x[which_(x < start)] <- time_na
 #   } else {
 #     start <- gmin(x, g = g, na.rm = TRUE)
 #   }
@@ -1053,7 +1053,7 @@ time_aggregate_left <- function(x, time_by, g = NULL,
 #       stop("end must be the same length as x")
 #     }
 #     end <- time_cast(end, x)
-#     x[cpp_which(x > end)] <- time_na
+#     x[which_(x > end)] <- time_na
 #   } else {
 #     end <- gmax(x, g = g, na.rm = TRUE)
 #   }
@@ -1070,7 +1070,7 @@ time_aggregate_left <- function(x, time_by, g = NULL,
 #                          roll_month = roll_month, roll_dst = roll_dst)
 #     set_time_cast(out, int_end)
 #     end <- time_cast(end, out)
-#     which_out_of_bounds <- cpp_which(cppdoubles::double_gt(unclass(int_end),
+#     which_out_of_bounds <- which_(cppdoubles::double_gt(unclass(int_end),
 #                                                            unclass(end)))
 #     int_end[which_out_of_bounds] <- end[which_out_of_bounds]
 #     out <- structure(out,
@@ -1099,7 +1099,7 @@ time_aggregate_right <- function(x, time_by, g = NULL,
       stop("start must be the same length as x")
     }
     start <- time_cast(start, x)
-    x[cpp_which(x < start)] <- time_na
+    x[which_(x < start)] <- time_na
   } else {
     start <- gmin(x, g = g, na.rm = TRUE)
   }
@@ -1108,7 +1108,7 @@ time_aggregate_right <- function(x, time_by, g = NULL,
       stop("end must be the same length as x")
     }
     end <- time_cast(end, x)
-    x[cpp_which(x > end)] <- time_na
+    x[which_(x > end)] <- time_na
   } else {
     end <- gmax(x, g = g, na.rm = TRUE)
   }
@@ -1125,7 +1125,7 @@ time_aggregate_right <- function(x, time_by, g = NULL,
                          roll_month = roll_month, roll_dst = roll_dst)
     set_time_cast(out, int_end)
     start <- time_cast(start, out)
-    which_out_of_bounds <- cpp_which(cppdoubles::double_lt(unclass(int_end),
+    which_out_of_bounds <- which_(cppdoubles::double_lt(unclass(int_end),
                                                            unclass(start)))
     int_end[which_out_of_bounds] <- start[which_out_of_bounds]
     out <- structure(out,
@@ -1177,7 +1177,7 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
       stop("start must be the same length as x")
     }
     start <- time_cast(start, x)
-    x[cpp_which(x < start)] <- time_na
+    x[which_(x < start)] <- time_na
   }
   if (is.null(end)){
     end <- gmax(x, g = g, na.rm = TRUE)
@@ -1186,7 +1186,7 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
       stop("end must be the same length as x")
     }
     end <- time_cast(end, x)
-    x[cpp_which(x > end)] <- time_na
+    x[which_(x > end)] <- time_na
   }
   .start <- start[group_starts]
   .end <- end[group_starts]
@@ -1222,7 +1222,7 @@ time_aggregate_expand <- function(x, time_by, g = NULL,
                          roll_month = roll_month, roll_dst = roll_dst)
     set_time_cast(out, int_end)
     end <- time_cast(end, out)
-    which_out_of_bounds <- cpp_which(cppdoubles::double_gt(time_as_number(int_end),
+    which_out_of_bounds <- which_(cppdoubles::double_gt(time_as_number(int_end),
                                                            time_as_number(end)))
     int_end[which_out_of_bounds] <- end[which_out_of_bounds]
     out <- structure(out,
@@ -1344,7 +1344,7 @@ as_int_date <- function(x){
   out
 }
 check_time_not_missing <- function(x){
-  if (anyNA(x)){
+  if (cheapr::any_na(x)){
     stop("time index must not contain NA values")
   }
 }
@@ -1371,9 +1371,9 @@ multiply_single_unit_period_by_number <- function(per, num){
   num[is.infinite(num)] <- NA_real_
   per_num <- per_num * num
   per_length <- length(per_num)
-  per_num[cpp_which(is.nan(per_num))] <- NA_real_
+  per_num[which_(is.nan(per_num))] <- NA_real_
   other_fill <- integer(per_length)
-  other_fill[cpp_which_na(per_num)] <- NA_integer_
+  other_fill[cheapr::which_na(per_num)] <- NA_integer_
   switch(
     per_unit,
     years = {
@@ -1499,7 +1499,7 @@ adj_dur_est <- function (est, start, end, per){
                        # est * per)
                        multiply_single_unit_period_by_number(per, est),
                        time_type = "period")
-  while (length(which <- cpp_which(up_date < end))) {
+  while (length(which <- which_(up_date < end))) {
     est[which] <- est[which] + 1
     up_date[which] <- time_add2(up_date[which],
                                 # est[which] * per[which])
@@ -1507,7 +1507,7 @@ adj_dur_est <- function (est, start, end, per){
                                 time_type = "period")
   }
   low_date <- up_date
-  while (length(which <- cpp_which(low_date > end))) {
+  while (length(which <- which_(low_date > end))) {
     est[which] <- est[which] - 1
     up_date[which] <- low_date[which]
     low_date[which] <- time_add2(start[which],
@@ -1517,7 +1517,7 @@ adj_dur_est <- function (est, start, end, per){
   }
   frac <- strip_attrs(unclass(difftime(end, low_date, units = "secs"))) /
     strip_attrs(unclass(difftime(up_date, low_date, units = "secs")))
-  frac[cpp_which(low_date == up_date)] <- 0
+  frac[which_(low_date == up_date)] <- 0
   est + frac
 }
 # Faster method for interval(start, end) / period() when period
@@ -1535,7 +1535,7 @@ divide_interval_by_period2 <- function(start, end, per){
   if (num_na(estimate) == 0) {
     adj_dur_est(estimate, timespans[[1]], timespans[[2]], timespans[[3]])
   } else {
-    not_nas <- cpp_which_not_na(estimate)
+    not_nas <- cheapr::which_not_na(estimate)
     start2 <- timespans[[1]][not_nas]
     end2 <- timespans[[2]][not_nas]
     per2 <- timespans[[3]][not_nas]
@@ -1580,7 +1580,7 @@ days_in_month <- function (m, y) {
                         Dec = 31L
   )
   n_days <- N_DAYS_IN_MONTHS[m]
-  n_days[cpp_which(m == 2L & lubridate::leap_year(y))] <- 29L
+  n_days[which_(m == 2L & lubridate::leap_year(y))] <- 29L
   n_days
 }
 int_to_per <- function (start, end){
@@ -1591,8 +1591,8 @@ int_to_per <- function (start, end){
   start <- unclass(as.POSIXlt(start))
   end <- unclass(as.POSIXlt(end))
   negs <- duration < 0
-  wnegs <- cpp_which(negs)
-  wnnegs <- cpp_which(negs, invert = TRUE)
+  wnegs <- which_(negs)
+  wnnegs <- which_(negs, invert = TRUE)
   per <- list()
   for (nm in c("sec", "min", "hour", "mday", "mon", "year")) {
     per[[nm]] <- integer(length(negs))
@@ -1602,32 +1602,32 @@ int_to_per <- function (start, end){
   names(per) <- c("second", "minute", "hour", "day", "month",
                   "year")
   nsecs <- per$second < 0
-  wnsecs <- cpp_which(nsecs)
+  wnsecs <- which_(nsecs)
   per$second[wnsecs] <- 60 + per$second[wnsecs]
   per$minute[wnsecs] <- per$minute[wnsecs] - 1
   per$second[wnegs] <- -per$second[wnegs]
   nmins <- per$minute < 0
-  wnmins <- cpp_which(nmins)
+  wnmins <- which_(nmins)
   per$minute[wnmins] <- 60 + per$minute[wnmins]
   per$hour[wnmins] <- per$hour[wnmins] - 1
   per$minute[wnegs] <- -per$minute[wnegs]
   nhous <- per$hour < 0
-  wnhous <- cpp_which(nhous)
+  wnhous <- which_(nhous)
   per$hour[wnhous] <- 24 + per$hour[wnhous]
   per$hour[wnegs] <- -per$hour[wnegs]
   ndays <- !negs & per$day < 0
-  wndays <- cpp_which(ndays)
+  wndays <- which_(ndays)
   if (length(wndays) > 0) {
     add_months <- rep.int(-1, sum(ndays, na.rm = TRUE))
     pmonth <- end$mon[wndays]
-    pmonth[cpp_which(pmonth == 0)] <- 1
+    pmonth[which_(pmonth == 0)] <- 1
     prev_month_days <- days_in_month(pmonth, end$year[wndays])
     per$day[wndays] <- pmax(prev_month_days - start$mday[wndays],
                             0) + end$mday[wndays]
     per$month[wndays] <- per$month[wndays] + add_months
   }
   ndays <- negs & per$day < 0
-  wndays <- cpp_which(ndays)
+  wndays <- which_(ndays)
   if (length(wndays) > 0) {
     add_months <- rep.int(1L, sum(ndays, na.rm = TRUE))
     this_month_days <- days_in_month(end$mon[wndays] + 1,
@@ -1639,12 +1639,10 @@ int_to_per <- function (start, end){
   per$day[wnhous] <- per$day[wnhous] - 1
   per$day[wnegs] <- -per$day[wnegs]
   nmons <- per$month < 0
-  wnmons <- cpp_which(nmons)
+  wnmons <- which_(nmons)
   per$month[wnmons] <- 12 + per$month[wnmons]
   per$year[wnmons] <- per$year[wnmons] - 1
   per$month[wnegs] <- -per$month[wnegs]
   per$year[wnegs] <- -per$year[wnegs]
   per
 }
-
-

@@ -19,8 +19,6 @@
 #' using `digits = ceiling(abs(log10(tol)))` to try and avoid
 #' precision issues.
 #'
-#' @seealso [gcd_diff]
-#'
 #' @returns
 #' A list of length 1.
 #'
@@ -34,39 +32,39 @@
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
-#' gcd_diff(1:10)
-#' gcd_diff(seq(0, 1, 0.2))
+#' time_gcd_diff(1:10)
+#' time_gcd_diff(seq(0, 1, 0.2))
 #'
-#' gcd_diff(time_seq(today(), today() + 100, time_by = "3 days"))
-#' time_diff_gcd(time_seq(today(), today() + 100, time_by = "3 days"),
+#' time_gcd_diff(time_seq(today(), today() + 100, time_by = "3 days"))
+#' time_gcd_diff(time_seq(today(), today() + 100, time_by = "3 days"),
 #'               time_by = "days")
 #'
-#' time_diff_gcd(time_seq(now(), len = 10^2, time_by = "125 seconds"))
+#' time_gcd_diff(time_seq(now(), len = 10^2, time_by = "125 seconds"))
 #'
 #' # Monthly gcd using lubridate periods
 #' quarter_seq <- time_seq(today(), len = 24, time_by = months(4))
-#' time_diff_gcd(quarter_seq, time_by = months(1))
-#' time_diff_gcd(quarter_seq, time_by = "months", time_type = "duration")
+#' time_gcd_diff(quarter_seq, time_by = months(1))
+#' time_gcd_diff(quarter_seq, time_by = "months", time_type = "duration")
 #'
 #' # Detects monthly granularity
-#' double_equal(gcd_diff(as.vector(time(AirPassengers))), 1/12)
+#' double_equal(time_gcd_diff(as.vector(time(AirPassengers))), 1/12)
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #'}
 #' @export
-time_diff_gcd <- function(x, time_by = 1,
+time_gcd_diff <- function(x, time_by = 1,
                           time_type = getOption("timeplyr.time_type", "auto"),
                           tol = sqrt(.Machine$double.eps)){
   x <- collapse::funique(x, sort = FALSE)
   if (length(x) == 1L && is.na(x)){
-    return(NA_real_)
+    return(list(numeric = NA_real_))
   }
   if (length(x) == 1L ||
       # Check that the first value is NA since
       # time_elapsed with rolling = F compares to first value
       (length(x) == 2 && is.na(x[1L]))){
-    return(1)
+    return(list(numeric = 1))
   }
   time_by <- time_by_get(x, time_by = time_by)
   tdiff <- time_elapsed(x, rolling = FALSE,
@@ -79,12 +77,12 @@ time_diff_gcd <- function(x, time_by = 1,
   if (is.double(tdiff)){
     tdiff <- round(abs(tdiff), digits = log10_tol + 1)
   }
-  gcd <- gcd(tdiff, tol = tol, na_rm = TRUE, round = FALSE)
+  gcd <- cheapr::gcd(tdiff, tol = tol, na_rm = TRUE, round = FALSE)
   add_names(list(time_by_num(time_by) * gcd), time_by_unit(time_by))
 }
 
 # Previous method
-# time_diff_gcd2 <- function(x, time_by = 1,
+# time_gcd_diff2 <- function(x, time_by = 1,
 #                           time_type = getOption("timeplyr.time_type", "auto"),
 #                           is_sorted = FALSE,
 #                           tol = sqrt(.Machine$double.eps)){
@@ -114,7 +112,7 @@ time_diff_gcd <- function(x, time_by = 1,
 #       abs(tdiff), digits = log10_tol
 #     )
 #   )
-#   tdiff <- tdiff[cpp_which(double_gt(tdiff, 0, tol = tol))]
+#   tdiff <- tdiff[which_(double_gt(tdiff, 0, tol = tol))]
 #   if (length(tdiff) == 1 && tdiff == Inf){
 #     return(10^(-log10_tol))
 #   }

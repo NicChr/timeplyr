@@ -7,7 +7,7 @@ time_seq_fill <- function(x, time_by = NULL,
   check_time_by_length_is_one(time_by)
   # If the sequence starts/ends with NA, we need to work with everything but these
   # first/last NA values
-  which_na <- cpp_which_na(x)
+  which_na <- cheapr::which_na(x)
   if (length(which_na) == length(x)){
     warning("all values of x are NA, cannot fill the explicit missing values")
     return(x)

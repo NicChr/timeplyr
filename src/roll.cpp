@@ -14,12 +14,10 @@ SEXP cpp_roll_growth_rate(SEXP x, SEXP lag, bool log){
   SEXP out = Rf_protect(Rf_allocVector(REALSXP, n));
   double *p_x = REAL(x);
   double *p_out = REAL(out);
-  int do_parallel = n >= 100000;
-// #pragma omp parallel for num_threads(num_cores()) if(do_parallel)
-// #pragma omp parallel for simd if(do_parallel) num_threads(num_cores())
+  // int do_parallel = n >= 100000;
   // Here we perform the growth rate either on log(x) or on x
   if (log){
-#pragma omp parallel for simd if(do_parallel) num_threads(num_cores())
+// #pragma omp parallel for simd if(do_parallel) num_threads(num_cores())
     for (R_xlen_t i = 0; i < n; ++i){
       if (p_lag[i] == NA_INTEGER){
         p_out[i] = NA_REAL;
@@ -30,7 +28,7 @@ SEXP cpp_roll_growth_rate(SEXP x, SEXP lag, bool log){
       }
     }
   } else {
-#pragma omp parallel for simd if(do_parallel) num_threads(num_cores())
+// #pragma omp parallel for simd if(do_parallel) num_threads(num_cores())
     for (R_xlen_t i = 0; i < n; ++i){
       if (p_lag[i] == NA_INTEGER){
         p_out[i] = NA_REAL;
