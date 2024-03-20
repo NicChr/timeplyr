@@ -13,6 +13,8 @@ time_aggregate(
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
   roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+  time_floor = FALSE,
+  week_start = getOption("lubridate.week.start", 1),
   as_interval = getOption("timeplyr.use_intervals", FALSE)
 )
 }
@@ -45,6 +47,15 @@ and \code{durations} are used otherwise.}
 month or year arithmetic is involved.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
+
+\item{time_floor}{Should \code{from} be floored to the nearest unit specified
+through the \code{time_by} argument?
+This is particularly useful for starting sequences at the
+beginning of a week or month for example.}
+
+\item{week_start}{day on which week starts following ISO conventions - 1
+means Monday (default), 7 means Sunday.
+This is only used when \code{time_floor = TRUE}.}
 
 \item{as_interval}{Should result be a \code{time_interval}?
 Default is \code{TRUE}. \cr

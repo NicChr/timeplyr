@@ -1,5 +1,14 @@
 # timeplyr (Development version)
 
+* Deprecated most of the data frame specific `time_` functions, with the exception of
+`time_by`, `time_episodes`, `time_expand` and `time_complete`.
+
+* Internal bug fix for period time differences. 
+
+* `time_aggregate` gains the `from`, `to`, `time_floor` and `week_start` arguments.
+
+* Removed much of the C++ functionality to the cheapr package, which is on CRAN.
+
 * `roll_na_fill` can now also handle data frames.
 
 * `num_na` can now handle data frames that contain data frames or 

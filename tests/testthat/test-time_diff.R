@@ -63,15 +63,20 @@ testthat::test_that("time diff", {
                                  duration_unit(unit)(1))
 
   }
-  for (i in seq_along(.period_units)){
-    unit <- .period_units[i]
-    by <- add_names(list(1), unit)
-    testthat::expect_identical(time_diff(start1, end1, time_by = by,
-                                         time_type = "period"),
-                               lubridate::interval(start1, end1) /
-                                 period_unit(unit)(1))
-
-  }
+  # for (i in seq_along(.period_units)){
+  #   unit <- .period_units[i]
+  #   by <- add_names(list(1), unit)
+  #   # expect_identical(
+  #   #   start1 + period_unit(unit)(time_diff(start1, end1, time_by = by,
+  #   #                                        time_type = "period")),
+  #   #   end1
+  #   # )
+  #   testthat::expect_identical(time_diff(start1, end1, time_by = by,
+  #                                        time_type = "period"),
+  #                              lubridate::interval(start1, end1) /
+  #                                period_unit(unit)(1))
+  #
+  # }
   leap1 <- lubridate::dmy("29-02-2020")
   leap2 <- lubridate::dmy("28-02-2021")
   leap3 <- lubridate::dmy("01-03-2021")

@@ -19,6 +19,13 @@
 #' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations` are used otherwise.
+#' @param time_floor Should `from` be floored to the nearest unit specified
+#' through the `time_by` argument?
+#' This is particularly useful for starting sequences at the
+#' beginning of a week or month for example.
+#' @param week_start day on which week starts following ISO conventions - 1
+#' means Monday (default), 7 means Sunday.
+#' This is only used when `time_floor = TRUE`.
 #' @param roll_month Control how impossible dates are handled when
 #' month or year arithmetic is involved.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
@@ -91,19 +98,27 @@ time_aggregate <- function(x, time_by = NULL, g = NULL,
                            time_type = getOption("timeplyr.time_type", "auto"),
                            roll_month = getOption("timeplyr.roll_month", "preday"),
                            roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                           time_floor = FALSE,
+                           week_start = getOption("lubridate.week.start", 1),
                            as_interval = getOption("timeplyr.use_intervals", FALSE)){
   check_is_time_or_num(x)
   time_by <- time_by_get(x, time_by = time_by)
-  # if (time_by_unit(time_by) %!in_% c("seconds", "minutes") && is.null(g)){
-  #   return(time_summarisev(
-  #     x, time_by = time_by,
-  #     from = from, to = to,
-  #     time_type = time_type,
-  #     roll_month = roll_month,
-  #     roll_dst = roll_dst,
-  #     as_interval = as_interval
-  #   ))
-  # }
+  ## This uses a breakpoints-cut method which is much more efficient
+  ## when there are relatively small numbers of breaks and large data
+  if (time_type == "period" &&
+      time_by_unit(time_by) %!in_% c("seconds", "minutes", "hours") &&
+      is.null(g)){
+    return(time_summarisev(
+      x, time_by = time_by,
+      from = from, to = to,
+      time_type = time_type,
+      roll_month = roll_month,
+      roll_dst = roll_dst,
+      time_floor = time_floor,
+      week_start = week_start,
+      as_interval = as_interval
+    ))
+  }
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
   if (is.null(from)){
@@ -121,6 +136,9 @@ time_aggregate <- function(x, time_by = NULL, g = NULL,
     }
     to <- time_cast(to, x)
     x[x > to] <- NA
+  }
+  if (time_floor){
+    from <- time_floor2(from, time_by = time_by, week_start = week_start)
   }
   tdiff <- time_diff(index, x, time_by = time_by, time_type = time_type)
   time_to_add <- add_names(list(trunc2(tdiff) * num), units)

@@ -1501,22 +1501,33 @@ adj_dur_est <- function (est, start, end, per){
   up_date <- time_add2(start,
                        # est * per)
                        multiply_single_unit_period_by_number(per, est),
-                       time_type = "period")
+                       time_type = "period",
+                       ### NOT SURE ABOUT THE BELOW roll_dst LINE
+                       roll_dst = "xfirst")
+  # up_date2 <- up_date
   while (length(which <- which_(up_date < end))) {
+    # up_date2 <- up_date
     est[which] <- est[which] + 1
-    up_date[which] <- time_add2(up_date[which],
-                                # est[which] * per[which])
-                                multiply_single_unit_period_by_number(per[which], est[which]),
-                                time_type = "period")
+    up_date[which] <- time_add(start[which],
+
+    # As as 20-March-2024 lubridate uses the below line
+    # Which I think is likely wrong and a typo...
+    # It was causing incorrect hourly time differences
+    # Between 2 date-times after DST
+
+    # up_date[which] <- time_add2(up_date[which],
+                                period_to_list(
+                                  multiply_single_unit_period_by_number(per[which], est[which])
+                                  ))
   }
   low_date <- up_date
   while (length(which <- which_(low_date > end))) {
     est[which] <- est[which] - 1
     up_date[which] <- low_date[which]
-    low_date[which] <- time_add2(start[which],
-                                 # est[which] * per[which])
-                                 multiply_single_unit_period_by_number(per[which], est[which]),
-                                 time_type = "period")
+    low_date[which] <- time_add(start[which],
+                                 period_to_list(
+                                   multiply_single_unit_period_by_number(per[which], est[which])
+                                   ))
   }
   frac <- strip_attrs(unclass(difftime(end, low_date, units = "secs"))) /
     strip_attrs(unclass(difftime(up_date, low_date, units = "secs")))

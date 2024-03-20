@@ -8,12 +8,8 @@ n_unique <- function(x, na.rm = FALSE){
   }
   out <- collapse::fnunique(x)
   if (na.rm){
-   if (is.list(x)){
-     any_na <- any(cheapr::row_all_na(x))
-   } else {
-     any_na <- cheapr::any_na(x)
-   }
-    na_offset <- as.integer(any_na)
+    any_missing <- cheapr::any_na(x, recursive = !is.list(x))
+    na_offset <- as.integer(any_missing)
   }
   out - na_offset
 }
@@ -54,9 +50,9 @@ col_select_pos <- function(data, .cols = character()){
   } else {
     stop(".cols must be a numeric or character vector")
   }
-  is_na <- is.na(out)
-  if (any(is_na)){
-    first_na_col <- .subset(.cols, .subset(which_(is_na), 1L))
+  # is_na <- is.na(out)
+  if (cheapr::any_na(out)){
+    first_na_col <- .subset(.cols, .subset(cheapr::which_na(out), 1L))
     if (is.numeric(first_na_col)){
       stop(paste("Location", first_na_col, "doesn't exist",
                  sep = " "))
@@ -339,38 +335,6 @@ summarise_list <- function(data, ..., fix.names = TRUE){
 dots_length <- function(...){
   nargs()
 }
-# Greatest common divisor (Euclidean algorithm)
-# Function contributed by 'Matthew Lundberg' at:
-# https://stackoverflow.com/questions/21502181/finding-the-gcd-without-looping-r
-
-# gcd <- function(x,y) {
-#   r <- x%%y;
-#   return(ifelse(r, gcd(y, r), y))
-# }
-
-# gcd2 <- function(x, y, tol = 0) {
-#   while(isTRUE(abs(y) > tol)){
-#     r <- x %% y
-#     x <- y
-#     y <- r
-#   }
-#   x
-# }
-# Original function I wrote using Matthew Lundberg's gcd function above
-# gcd2 <- function(x){
-#   if (!is.numeric(x)){
-#     stop("x must be a numeric vector")
-#   }
-#   if (length(x) <= 1L){
-#     return(x)
-#   }
-#   Reduce(gcd, x)
-# }
-
-# Exponentially weighted moving average
-# ewma <- function (x, ratio) {
-#   c(stats::filter(x * ratio, 1 - ratio, "recursive", init = x[1]))
-# }
 
 # This function is for functions like count() where extra groups need
 # to be created
@@ -694,12 +658,10 @@ vec_slice3 <- function(x, i){
   if (is.logical(i)){
     i <- which_(i)
   }
-  if (is.atomic(x) || is_interval(x)){
-    x[i]
-  } else if (is_df(x)){
+  if (is_df(x)){
     df_row_slice(x, i)
   } else {
-    collapse::ss(x, i)
+    x[i]
   }
 }
 # Vctrs version of utils::head/tail
@@ -1092,12 +1054,6 @@ add_names <- function(x, value){
   names(x) <- value
   x
 }
-match_and_factor <- function(x, table){
-  out <- collapse::fmatch(x, table)
-  levels(out) <- as.character(table)
-  class(out) <- "factor"
-  out
-}
 check_is_list <- function(x){
   if (!is.list(x)){
     stop(paste(deparse1(substitute(x)), "must be a list"))
@@ -1247,6 +1203,14 @@ last_class <- function(x){
 trunc2 <- function(x){
   if (is.integer(x)) x else trunc(x)
 }
+# Truncate away from 0
+# atrunc <- function(x){
+#   if (is.integer(x)){
+#     x
+#   } else {
+#     ceiling(abs(x)) * sign(x)
+#   }
+# }
 round2 <- function(x, digits = 0){
   if (is.integer(x)) x else round(x, digits)
 }
@@ -1304,10 +1268,10 @@ list_subset <- function(x, i, default = NA, copy_attributes = FALSE){
 
 # Very fast and memory efficient setdiff and intersect
 fsetdiff <- function(x, y){
-  vec_slice3(x, x %!in_% y)
+  vec_slice3(x, which_not_in(x, y))
 }
 fintersect <- function(x, y){
-  vec_slice3(x, x %in_% y)
+  vec_slice3(x, which_in(x, y))
 }
 
 # Apply a function using a LOCAL seed
@@ -1336,6 +1300,8 @@ gcd_diff <- function(x){
   cheapr::gcd(diff_(x), na_rm = TRUE)
 }
 which_ <- cheapr::which_
+which_in <- getFromNamespace("which_in", "cheapr")
+which_not_in <- getFromNamespace("which_not_in", "cheapr")
 num_na <- function(x){
   cheapr::num_na(x, recursive = FALSE)
 }

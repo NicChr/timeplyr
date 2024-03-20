@@ -153,10 +153,10 @@ time_by <- function(data, time, time_by_unit = NULL,
                                 from = from_var, to = to_var,
                                 .by = all_of(time_span_groups))
     # Aggregate time data
-    time_agg <- time_aggregate_left(out[[time_var]],
+    time_agg <- time_aggregate(out[[time_var]],
                                     time_by = time_by,
-                                    start = fpluck(from_to_list, 1L),
-                                    end = fpluck(from_to_list, 2L),
+                                    from = fpluck(from_to_list, 1L),
+                                    to = fpluck(from_to_list, 2L),
                                     g = time_span_GRP,
                                     time_type = time_type,
                                     roll_month = roll_month,

@@ -47,8 +47,12 @@
 #' library(bench)
 #'
 #' # Period differences are much faster
+#' # check = FALSE because the results are fractionally different.
+#' # lubridate:::adjust_estimate likely has a typo in the first while loop
+#'
 #' mark(timeplyr = time_diff(flights$time_hour, today(), "weeks", time_type = "period"),
-#'      lubridate = interval(flights$time_hour, today()) / weeks(1))
+#'      lubridate = interval(flights$time_hour, today()) / weeks(1),
+#'      check = FALSE)
 #' }
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
