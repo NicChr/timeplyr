@@ -115,8 +115,12 @@ roll_lag.time_interval <- function(x, n = 1L, g = NULL, fill = NULL){
   new_time_interval(out[[1L]], out[[2L]])
 }
 roll_lag.vctrs_rcrd <- function(x, n = 1L, g = NULL, fill = NULL){
-  out <- roll_lag(list_as_df(unclass(x)), n = n, g = g, fill = fill)
-  out <- unclass(out)
+  out <- unclass(
+    roll_lag(
+      list_as_df(x),
+      n = n, g = g, fill = fill
+    )
+  )
   attr(out, "row.names") <- NULL
   class(out) <- class(x)
   out
@@ -171,7 +175,7 @@ roll_diff.data.frame <- function(x, n = 1L, g = NULL, fill = NULL){
   out
 }
 roll_diff.vctrs_rcrd <- function(x, n = 1L, g = NULL, fill = NULL){
-  roll_diff(list_as_df(unclass(x)), n = n, g = g, fill = fill)
+  roll_diff(list_as_df(x), n = n, g = g, fill = fill)
 }
 #' @export
 roll_diff.time_interval <- function(x, n = 1L, g = NULL, fill = NULL){

@@ -223,7 +223,7 @@ list_as_tbl <- function(x){
 # ..N is there purely to create an (n > 0) x 0 data frame
 new_df <- function(..., ..N = NULL, .recycle = FALSE){
   if (.recycle){
-    out <- recycle_args(...)
+    out <- recycle(...)
   } else {
     out <- list3(...)
   }
@@ -237,15 +237,16 @@ new_df <- function(..., ..N = NULL, .recycle = FALSE){
   } else {
     row_names <- .set_row_names(..N)
   }
-  attributes(out) <- list(class = "data.frame",
-                        row.names = row_names,
-                        names = as.character(names(out)))
+  # if (is.null(attr(out, "names", TRUE))){
+  #   names(out) <- dot_nms(...)[cpp_list_which_not_null(list(...))]
+  # }
+  attr(out, "names") <- as.character(attr(out, "names", TRUE))
+  attr(out, "row.names") <- row_names
+  class(out) <- "data.frame"
   out
 }
 new_tbl <- function(..., ..N = NULL, .recycle = FALSE){
-  out <- new_df(..., ..N = ..N, .recycle = .recycle)
-  class(out) <- c("tbl_df", "tbl", "data.frame")
-  out
+  df_as_tbl(new_df(..., ..N = ..N, .recycle = .recycle))
 }
 
 # Temporary check to see if user has dplyr::reframe
@@ -298,16 +299,15 @@ empty_tbl <- function(){
     )
   )
 }
+
 df_as_df <- function(x){
   list_as_df(x)
-  # df_reconstruct(x, empty_df())
 }
 # Faster as_tibble
 df_as_tbl <- function(x){
   out <- list_as_df(x)
   class(out) <- c("tbl_df", "tbl", "data.frame")
   out
-  # df_reconstruct(x, empty_tbl())
 }
 # Initialise data frame with NA
 df_init <- function(x, size = 1L){
@@ -420,16 +420,7 @@ df_add_count <- function(.data, name = "n", weights = NULL){
   }
   df_add_cols(.data, add_names(list(counts), name))
 }
-# df_add_count <- function(.data, name = "n", wt = character()){
-#   groups <- group_data(.data)
-#   group_ids <- df_group_id(.data)
-#   if (length(wt) > 0){
-#     counts <- gsum(.data[[wt]], g = group_ids)
-#   } else {
-#     counts <- cheapr::lengths_(groups[[".rows"]])[group_ids]
-#   }
-#   df_add_cols(.data, add_names(list(counts), name))
-# }
+
 df_group_by_drop_default <- function(x){
   if (inherits(x, "grouped_df")){
     attr(attr(x, "groups", TRUE), ".drop", TRUE)
@@ -460,7 +451,7 @@ vctrs_new_list_of <- function(x = list(), ptype){
 # and simpler..
 df_cbind <- function(..., .repair_names = TRUE, .sep = "..."){
   out <- c(...)
-  dots <- list(...)
+  dots <- list3(...)
   nrow_range <- collapse::.range(cpp_nrows(dots), na.rm = TRUE)
   if (isTRUE(nrow_range[1] != nrow_range[2])){
     stop("All data frames must be of equal size")

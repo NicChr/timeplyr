@@ -69,6 +69,12 @@ year_quarter <- function(x){
 YM <- function(length = 0L){
   new_year_month(integer(length))
 }
+#' @rdname year_month
+#' @export
+year_month_decimal <- function(x){
+  m <- ( x * 12 ) - (1970 * 12)
+  new_year_month(m)
+}
 new_year_month <- function(x){
   check_is_num(x)
   class(x) <- "year_month"
@@ -180,6 +186,12 @@ new_year_quarter <- function(x){
 #' @export
 YQ <- function(length = 0L){
   new_year_quarter(integer(length))
+}
+#' @rdname year_month
+#' @export
+year_quarter_decimal <- function(x){
+  q <- ( x * 4 ) - (1970 * 4)
+  new_year_quarter(q)
 }
 `[.year_quarter` <- function(x, ..., drop = TRUE){
   cl <- oldClass(x)

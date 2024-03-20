@@ -4,7 +4,9 @@
 \alias{year_month}
 \alias{year_quarter}
 \alias{YM}
+\alias{year_month_decimal}
 \alias{YQ}
+\alias{year_quarter_decimal}
 \title{Fast methods for creating year-months and year-quarters}
 \usage{
 year_month(x)
@@ -13,7 +15,11 @@ year_quarter(x)
 
 YM(length = 0L)
 
+year_month_decimal(x)
+
 YQ(length = 0L)
+
+year_quarter_decimal(x)
 }
 \arguments{
 \item{x}{A \code{year_month}, \code{year_quarter}, or any other time-based object.}

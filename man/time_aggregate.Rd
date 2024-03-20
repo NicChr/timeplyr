@@ -8,6 +8,8 @@ time_aggregate(
   x,
   time_by = NULL,
   g = NULL,
+  from = NULL,
+  to = NULL,
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
   roll_dst = getOption("timeplyr.roll_dst", "boundary"),
@@ -30,6 +32,10 @@ Must be one of the following:
 
 \item{g}{Grouping object passed directly to \code{collapse::GRP()}.
 This can for example be a vector or data frame.}
+
+\item{from}{Start.}
+
+\item{to}{End.}
 
 \item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks, months or years are specified,

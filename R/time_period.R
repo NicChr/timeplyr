@@ -1,8 +1,3 @@
-single_time_period <- function(num, units){
-  time_by <- time_by_list(units)
-  time_by[[1]] <- num * time_by[[1]]
-  time_by
-}
 time_period <- function(years = 0L,
                         months = 0L,
                         weeks = 0L,
@@ -38,7 +33,7 @@ time_period <- function(years = 0L,
 
   ### Stop if there are any decimals
 
-  for (i in seq_along(args)){
+  for (i in seq_len(length(args) - 1L)){
     if (!is_whole_number(args[[i]])){
       stop(paste(names(args)[i], "must be a vector of whole numbers"))
     }
@@ -53,12 +48,27 @@ time_period <- function(years = 0L,
 
   if (all(period_lengths > 0L)){
     ### Recycle vectors to common max length
-    out[!is_missing] <- do.call(recycle_args, args[!is_missing])
+    out[!is_missing] <- do.call(recycle, args[!is_missing])
+
+    # Fill all rows with NA if any of them contain NA
+
+    # which_na_fill <- cheapr::which_(cheapr::row_any_na(list_as_df(out[!is_missing])))
+
+
 
     ### Fill the vectors not specified by the user with an integer of zeroes
     if (any(is_missing)){
-      out[is_missing] <- new_list(sum(is_missing), default = integer(max_length))
+      fill <- integer(max_length)
+      # if (length(which_na_fill) > 0){
+      #   fill[which_na_fill] <- NA_integer_
+      # }
+      out[is_missing] <- new_list(sum(is_missing), default = fill)
     }
+    # else if (length(which_na_fill) > 0) {
+    #   for (per in out){
+    #     out[[per]][which_na_fill] <- NA
+    #   }
+    # }
   }
   do.call(new_time_period, out)
 }

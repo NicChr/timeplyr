@@ -2,6 +2,13 @@
 
 lubridate_period <- function(...){
   periods <- unclass(time_period(...))
+  # lubridate::period() propagates NA values across all periods
+  if (cheapr::num_na(periods, recursive = TRUE) > 0){
+    which_na_fill <- cheapr::which_(cheapr::row_any_na(list_as_df(periods)))
+    for (i in seq_along(periods)){
+      periods[[i]][which_na_fill] <- NA
+    }
+  }
   out <- lubridate::period()
   out@year <- periods[["years"]]
   out@month <- periods[["months"]]
@@ -26,92 +33,29 @@ period_unit <- function(units = "seconds"){
 }
 
 seconds <- function(x = 1){
-  out <- lubridate::period()
-  fill <- integer(length(x))
-  per_num <- rep_len(x, length(x))
-  out@year <- fill
-  out@month <- fill
-  out@day <- fill
-  out@hour <- fill
-  out@minute <- fill
-  out@.Data <- per_num
-  out
+  lubridate_period(seconds = x)
 }
 
 minutes <- function(x = 1L){
-  out <- lubridate::period()
-  fill <- integer(length(x))
-  per_num <- rep_len(x, length(x))
-  out@year <- fill
-  out@month <- fill
-  out@day <- fill
-  out@hour <- fill
-  out@minute <- per_num
-  out@.Data <- fill
-  out
+  lubridate_period(minutes = x)
 }
 
 hours <- function(x = 1L){
-  out <- lubridate::period()
-  fill <- integer(length(x))
-  per_num <- rep_len(x, length(x))
-  out@year <- fill
-  out@month <- fill
-  out@day <- fill
-  out@hour <- per_num
-  out@minute <- fill
-  out@.Data <- fill
-  out
+  lubridate_period(hours = x)
 }
 
 days <- function(x = 1L){
-  out <- lubridate::period()
-  fill <- integer(length(x))
-  per_num <- rep_len(x, length(x))
-  out@year <- fill
-  out@month <- fill
-  out@day <- per_num
-  out@hour <- fill
-  out@minute <- fill
-  out@.Data <- fill
-  out
+  lubridate_period(days = x)
 }
 
 weeks <- function(x = 1L){
-  out <- lubridate::period()
-  fill <- integer(length(x))
-  per_num <- rep_len(x, length(x)) * 7L
-  out@year <- fill
-  out@month <- fill
-  out@day <- per_num
-  out@hour <- fill
-  out@minute <- fill
-  out@.Data <- fill
-  out
+  lubridate_period(weeks = x)
 }
 
 months <- function(x = 1L){
-  out <- lubridate::period()
-  fill <- integer(length(x))
-  per_num <- rep_len(x, length(x))
-  out@year <- fill
-  out@month <- per_num
-  out@day <- fill
-  out@hour <- fill
-  out@minute <- fill
-  out@.Data <- fill
-  out
+  lubridate_period(months = x)
 }
 
 years <- function(x = 1L){
-  out <- lubridate::period()
-  fill <- integer(length(x))
-  per_num <- rep_len(x, length(x))
-  out@year <- per_num
-  out@month <- fill
-  out@day <- fill
-  out@hour <- fill
-  out@minute <- fill
-  out@.Data <- fill
-  out
+  lubridate_period(years = x)
 }

@@ -972,7 +972,10 @@ time_as_character <- function(x){
 # Fast NA check for lubridate intervals
 int_is_na <- function(x){
   X <- interval_separate(x)
-  is.na(X[[1L]]) & is.na(X[[2L]])
+  cheapr::row_all_na(
+    new_df(start = X[[1L]], end = X[[2L]])
+  )
+  # is.na(X[[1L]]) & is.na(X[[2L]])
 }
 time_as_number <- function(x){
   strip_attrs(unclass(x))
@@ -1529,7 +1532,7 @@ divide_interval_by_period2 <- function(start, end, per){
   estimate <- (time_as_number(as_datetime2(end)) -
                  time_as_number(as_datetime2(start)) ) / unit_to_seconds(per)
   max_len <- max(length(start), length(end), length(per))
-  timespans <- recycle_args(start, end, length = max_len)
+  timespans <- recycle(start, end, length = max_len)
   # Here we make sure to use rep method for lubridate periods
   timespans[[3]] <- rep_single_unit_period(per, length.out = max_len)
   if (num_na(estimate) == 0) {

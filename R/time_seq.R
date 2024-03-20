@@ -491,7 +491,7 @@ period_seq_v2 <- function(sizes, from, units, num = 1L,
   # Following timechange rules.
   convert_back_to_date <- is_date(from) &&
     unit %in% c("day", "week", "month", "year")
-  period_df <- recycle_args(from, num, sizes, use.names = TRUE)
+  period_df <- recycle(from, num, sizes, use.names = TRUE)
   data.table::setDT(period_df)
   period_df[, ("row_id") := seq_len(.N)]
   # We want to eliminate unnecessary grouped calculations

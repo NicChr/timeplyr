@@ -588,7 +588,7 @@ new_var_nm <- function(data, check = ".group.id"){
   return(check)
 }
 # Recycle arguments
-recycle_args <- function (..., length = NULL, use.names = FALSE){
+recycle <- function (..., length = NULL, use.names = FALSE){
   out <- list3(...)
   lens <- cheapr::lengths_(out)
   uniq_lens <- collapse::fnunique(lens)
@@ -613,7 +613,7 @@ set_recycle_args <- function(..., length = NULL, use.names = TRUE){
   if (identical(base::parent.frame(n = 1), base::globalenv())){
     stop("Users cannot use set_recycle_args from the global environment")
   }
-  recycled_list <- recycle_args(..., length = length, use.names = use.names)
+  recycled_list <- recycle(..., length = length, use.names = use.names)
   out_nms <- names(recycled_list)
   for (i in seq_along(recycled_list)){
     assign(out_nms[i], recycled_list[[i]], envir = parent.frame(n = 1))
@@ -653,12 +653,11 @@ sample2 <- function(x, size = length(x), replace = FALSE, prob = NULL){
 # double_lte <- cppdoubles::double_lte
 # double_gt <- cppdoubles::double_gt
 # double_lt <- cppdoubles::double_lt
-setv <- getFromNamespace("setv", "collapse")
 fcumsum <- getFromNamespace("fcumsum", "collapse")
 # set <- getFromNamespace("set", "data.table")
 fsum <- getFromNamespace("fsum", "collapse")
 fmin <- getFromNamespace("fmin", "collapse")
-fmax<- getFromNamespace("fmax", "collapse")
+fmax <- getFromNamespace("fmax", "collapse")
 fmean <- getFromNamespace("fmean", "collapse")
 fmode <- getFromNamespace("fmode", "collapse")
 fsd <- getFromNamespace("fsd", "collapse")
@@ -1330,7 +1329,6 @@ with_local_seed <- function(expr, .seed = NULL, ...){
   on.exit({assign(".Random.seed", old, envir = globalenv())})
   eval(expr, envir = parent.frame())
 }
-
 
 # Cheapr functions --------------------------------------------------------
 

@@ -14,6 +14,8 @@
 #' * Numeric vector, e.g. `time_by = 7`.
 #' @param g Grouping object passed directly to `collapse::GRP()`.
 #' This can for example be a vector or data frame.
+#' @param from Start.
+#' @param to End.
 #' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations` are used otherwise.
@@ -85,15 +87,41 @@
 #'}
 #' @export
 time_aggregate <- function(x, time_by = NULL, g = NULL,
+                           from = NULL, to = NULL,
                            time_type = getOption("timeplyr.time_type", "auto"),
                            roll_month = getOption("timeplyr.roll_month", "preday"),
                            roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                            as_interval = getOption("timeplyr.use_intervals", FALSE)){
   check_is_time_or_num(x)
   time_by <- time_by_get(x, time_by = time_by)
+  # if (time_by_unit(time_by) %!in_% c("seconds", "minutes") && is.null(g)){
+  #   return(time_summarisev(
+  #     x, time_by = time_by,
+  #     from = from, to = to,
+  #     time_type = time_type,
+  #     roll_month = roll_month,
+  #     roll_dst = roll_dst,
+  #     as_interval = as_interval
+  #   ))
+  # }
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
-  index <- gmin(x, g = g, na.rm = TRUE)
+  if (is.null(from)){
+    index <- gmin(x, g = g, na.rm = TRUE)
+  } else {
+    if (length(from) %!in_% c(1, length(x))){
+      stop("length of from must be 1 or length(x)")
+    }
+    index <- time_cast(from, x)
+    x[x < index] <- NA
+  }
+  if (!is.null(to)){
+    if (length(to) %!in_% c(1, length(x))){
+      stop("length of to must be 1 or length(x)")
+    }
+    to <- time_cast(to, x)
+    x[x > to] <- NA
+  }
   tdiff <- time_diff(index, x, time_by = time_by, time_type = time_type)
   time_to_add <- add_names(list(trunc2(tdiff) * num), units)
   out <- time_add2(index, time_by = time_to_add, time_type = time_type,
@@ -105,20 +133,4 @@ time_aggregate <- function(x, time_by = NULL, g = NULL,
                             roll_dst = roll_dst)
   }
   out
-  # if (as_interval){
-  #   out <- time_by_interval(out, time_by = time_by,
-  #                           # bound_range = TRUE,
-  #                           time_type = time_type,
-  #                           roll_month = roll_month, roll_dst = roll_dst)
-  # }
-  # if (interval){
-  #   end <- time_add2(out, time_by = time_by, time_type = time_type,
-  #                    roll_month = roll_month, roll_dst = roll_dst)
-  #   set_time_cast(out, end)
-  #   to <- time_cast(to, out)
-  #   which_out_of_bounds <- which_(cppdoubles::double_gt(unclass(end), unclass(to)))
-  #   end[which_out_of_bounds] <- to[which_out_of_bounds]
-  #   out <- time_interval(out, end)
-  # }
-  # out
 }

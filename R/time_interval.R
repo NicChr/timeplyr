@@ -118,7 +118,7 @@ time_interval_list <- function(start, end){
   )){
     stop("start must be finite")
   }
-  recycle_args(start = start, end = end)
+  recycle(start = start, end = end)
 }
 # Like time_interval() but no checks or recycling
 new_time_interval <- function(start, end){
@@ -252,4 +252,3 @@ is_nested_time_interval <- function(x){
   }
   out
 }
-
