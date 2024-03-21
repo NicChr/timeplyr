@@ -250,7 +250,7 @@ time_breaks <- function(x, n = 5, time_by = NULL,
     if (is_time(x)){
       if (n >= max_breaks){
         interval_width <- gcd_difference
-        units_to_try <- rep_len("numeric", max(length(interval_width), 1))
+        units_to_try <- rep_len(get_time_unit(x), max(length(interval_width), 1))
       } else {
         date_units <- c("days", "weeks", "months", "years")
         units_to_try <- date_units

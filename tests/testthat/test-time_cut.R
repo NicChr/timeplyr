@@ -75,6 +75,32 @@ test_that("time cut", {
   expect_equal(sum(is.na(res2)),
                              length(x[x < time_cast(start2, x) |
                                         x > time_cast(end1, x)]))
+
+  expect_equal(
+    time_cut(c(1, 5, 10), n = 100, as_interval = TRUE, time_by = 3),
+    structure(list(start = c(1, 4, 10), end = c(4, 7, 13)), class = c("time_interval",
+                                                                      "vctrs_rcrd", "vctrs_vctr"))
+  )
+  expect_equal(
+    time_cut(c(1, 5, 10), n = Inf, as_interval = TRUE, time_by = 3),
+    structure(list(start = c(1, 4, 10), end = c(4, 7, 13)), class = c("time_interval",
+                                                                      "vctrs_rcrd", "vctrs_vctr"))
+  )
+
+  expect_equal(time_cut(x, n = Inf), x)
+  expect_equal(time_cut(y, n = Inf), y)
+  expect_equal(time_cut(x, n = 10^5), x)
+  expect_equal(time_cut(y, n = 10^5), y)
+  expect_equal(time_cut(x, n = Inf, time_by = "weeks"),
+               time_aggregate(x, time_by = "weeks"))
+  expect_equal(time_cut(y, n = Inf, time_by = "weeks"),
+               time_aggregate(y, time_by = "weeks"))
+  expect_equal(
+    lubridate::as_date(
+      time_cut(y, n = Inf, time_by = "weeks", time_type = "duration")
+    ),
+    time_aggregate(y, time_by = "weeks", time_type = "duration")
+  )
   # expect_equal(levels(res2),
   #                        c("[2013-03-15 20:00:00 EDT, 2013-03-22 20:00:00 EDT)",
   #                          "[2013-03-22 20:00:00 EDT, 2013-03-26 07:43:48 EDT]"))

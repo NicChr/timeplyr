@@ -39,15 +39,18 @@ time_period <- function(years = 0L,
     }
   }
   ### Recycled size
+
   period_lengths <- cheapr::lengths_(args)
   max_length <- max(period_lengths)
 
   ### Template output
+
   out <- new_list(length(units), default = integer())
   names(out) <- units
 
+  ### Recycle
+
   if (all(period_lengths > 0L)){
-    ### Recycle vectors to common max length
     out[!is_missing] <- do.call(recycle, args[!is_missing])
 
     # Fill all rows with NA if any of them contain NA

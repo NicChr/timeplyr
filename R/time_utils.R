@@ -964,18 +964,10 @@ label_date_short <- function(format = c("%Y", "%b", "%d", "%H:%M"),
 # Unique posix vector to character remains unique
 time_as_character <- function(x){
   if (is_datetime(x)){
-    format(x, format = "%Y-%m-%d %H:%M:%S %Z")
+    format(x, usetz = TRUE)
   } else {
     as.character(x)
   }
-}
-# Fast NA check for lubridate intervals
-int_is_na <- function(x){
-  X <- interval_separate(x)
-  cheapr::row_all_na(
-    new_df(start = X[[1L]], end = X[[2L]])
-  )
-  # is.na(X[[1L]]) & is.na(X[[2L]])
 }
 time_as_number <- function(x){
   strip_attrs(unclass(x))
@@ -1659,4 +1651,15 @@ int_to_per <- function (start, end){
   per$month[wnegs] <- -per$month[wnegs]
   per$year[wnegs] <- -per$year[wnegs]
   per
+}
+
+# Convenience function to return base time unit of time variable
+get_time_unit <- function(x){
+  if (is_date(x)){
+    "days"
+  } else if (is_datetime(x)){
+   "seconds"
+  } else {
+    "numeric"
+  }
 }

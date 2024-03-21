@@ -65,6 +65,7 @@ time_gaps <- function(x, time_by = NULL,
                       g = NULL, use.g.names = TRUE,
                       time_type = getOption("timeplyr.time_type", "auto"),
                       check_time_regular = FALSE){
+  check_is_time_or_num(x)
   g <- GRP2(g)
   check_data_GRP_size(x, g)
   if (!is.null(g)){

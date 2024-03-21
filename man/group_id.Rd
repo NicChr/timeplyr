@@ -4,6 +4,7 @@
 \alias{group_id}
 \alias{add_group_id}
 \alias{row_id}
+\alias{row_id.GRP}
 \alias{add_row_id}
 \alias{group_order}
 \alias{add_group_order}
@@ -31,6 +32,8 @@ add_group_id(
 )
 
 row_id(data, ..., ascending = TRUE, .by = NULL, .cols = NULL)
+
+\method{row_id}{GRP}(data, ..., ascending = TRUE)
 
 add_row_id(data, ..., ascending = TRUE, .by = NULL, .cols = NULL, .name = NULL)
 

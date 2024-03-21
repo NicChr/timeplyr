@@ -355,6 +355,11 @@ row_id.data.frame <- function(data, ...,
 row_id.grouped_df <- row_id.data.frame
 #' @rdname group_id
 #' @export
+row_id.GRP <- function(data, ..., ascending = TRUE){
+  frowid(data, ascending = ascending)
+}
+#' @rdname group_id
+#' @export
 add_row_id <- function(data, ..., ascending = TRUE,
                        .by = NULL, .cols = NULL,
                        .name = NULL){
@@ -448,7 +453,7 @@ add_group_order <- function(data, ..., ascending = TRUE,
 qG2 <- function(x, sort = TRUE, ordered = FALSE, na.exclude = FALSE, ...){
   if (is_interval(x)){
     if (na.exclude){
-      which_not_na <- which_(int_is_na(x), invert = TRUE)
+      which_not_na <- which_(cheapr::is_na(x), invert = TRUE)
       out <- collapse::alloc(NA_integer_, length(x))
       qgroup <- group_id(x[which_not_na], order = sort, as_qg = TRUE)
       n_groups <- attr(qgroup, "N.groups")

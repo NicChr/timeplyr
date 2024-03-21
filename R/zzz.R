@@ -105,6 +105,7 @@ register_all_s3_methods <- function(){
   register_s3_method("dplyr", "dplyr_row_slice", "time_tbl_df")
   register_s3_method("dplyr", "dplyr_row_slice", "episodes_tbl_df")
   register_s3_method("dplyr", "dplyr_col_modify", "data.table")
+  register_s3_method("cheapr", "is_na", "Interval")
 }
 
 on_package_load <- function(pkg, expr){

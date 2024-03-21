@@ -55,10 +55,10 @@ testthat::test_that("Tests for time_countv2", {
   res4 <- time_countv2(flights2$time_hour,
                       time_by = "month",
                       from = from, to = to)
-  testthat::expect_equal(table(time_aggregate_left(flights2$time_hour,
+  testthat::expect_equal(table(time_aggregate(flights2$time_hour,
                                                    time_by = "month",
-                                                   start = rep_len(from, nrow(flights2)),
-                                                   end = rep_len(to, nrow(flights2)))),
+                                                   from = rep_len(from, nrow(flights2)),
+                                                   to = rep_len(to, nrow(flights2)))),
                            table(
                              time_summarisev(flights2$time_hour,
                                              time_by = "month",
