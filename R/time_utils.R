@@ -1507,7 +1507,7 @@ adj_dur_est <- function (est, start, end, per){
     # It was causing incorrect hourly time differences
     # Between 2 date-times after DST
 
-    # up_date[which] <- time_add2(up_date[which],
+    # up_date[which] <- time_add(up_date[which],
                                 period_to_list(
                                   multiply_single_unit_period_by_number(per[which], est[which])
                                   ))

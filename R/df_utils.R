@@ -204,21 +204,7 @@ list3 <- function(...){
 list_as_tbl <- function(x){
   df_as_tbl(list_as_df(x))
 }
-# List to data.table (NO COPY!)
-# list_to_data_table <- function(x){
-#   if (is_df(x)){
-#     N <- df_nrow(x)
-#   } else {
-#     N <- collapse::fnrow(x)
-#   }
-#   # Remove NULL items
-#   x <- list_rm_null(x)
-#   attributes(x) <- list(class = c("data.table", "data.frame"),
-#                         row.names = c(NA_integer_, -N),
-#                         names = as.character(names(x)))
-#   data.table::setDT(x)
-#   x
-# }
+
 # Create new df with no name checks or length checks
 # ..N is there purely to create an (n > 0) x 0 data frame
 new_df <- function(..., ..N = NULL, .recycle = FALSE){
@@ -309,19 +295,37 @@ df_as_tbl <- function(x){
   class(out) <- c("tbl_df", "tbl", "data.frame")
   out
 }
-# Initialise data frame with NA
+# Theoretically safe data frame initialisation
+# for all objs with a rep() and [ method
 df_init <- function(x, size = 1L){
-  nrows <- df_nrow(x)
-  if (df_ncol(x) == 0){
-    df_reconstruct(new_df(..N = size), x)
+  ncols <- df_ncol(x)
+  if (ncols == 0){
+    init_df <- new_df(..N = size)
   } else {
-    if (list_has_interval(x)){
-      vctrs::vec_init(x, n = size)
-    } else {
-      collapse::ss(x, i = collapse::alloc(nrows + 1L, size))
-    }
+    init_df <- list_as_df(
+      lapply(x, function(y) na_init(y, size))
+    )
   }
+  df_reconstruct(init_df, x)
 }
+# df_init <- function(x, size = 1L){
+#   template <- rep_len(NA_integer_, size)
+#   out <- new_list(length(x), template)
+#   for (i in seq_along(out)){
+#     if (isS4(x[[i]]) || !is.atomic(x[[i]])){
+#       out[[i]] <- na_init(x[[i]], size)
+#     } else {
+#       attributes(out[[i]]) <- attributes(x[[i]])
+#       class(out[[i]]) <- class(x[[i]])
+#     }
+#   }
+#   names(out) <- names(x)
+#   out <- list_as_df(out)
+#   if (length(out) == 0){
+#     attr(out, "row.names") <- .set_row_names(size)
+#   }
+#   out
+# }
 # Group IDs (same as dplyr::group_indices)
 df_group_id <- function(x){
   if (!inherits(x, "grouped_df") && !inherits(x, "data.frame")){
@@ -342,7 +346,6 @@ df_reorder <- function(data, g){
 }
 # Fast/efficient drop empty rows
 df_drop_empty <- function(data, .cols = names(data)){
-  # is_empty_row <- collapse::missing_cases(fselect(data, .cols = .cols), prop = 1)
   is_empty_row <- cheapr::row_all_na(fselect(data, .cols = .cols))
   which_not_empty <- which_(is_empty_row, invert = TRUE)
   if (length(which_not_empty) == df_nrow(data)){

@@ -7,7 +7,6 @@
 time_aggregate(
   x,
   time_by = NULL,
-  g = NULL,
   from = NULL,
   to = NULL,
   time_type = getOption("timeplyr.time_type", "auto"),
@@ -31,9 +30,6 @@ Must be one of the following:
 \item named list of length one, e.g. \code{list("days" = 7)}.
 \item Numeric vector, e.g. \code{time_by = 7}.
 }}
-
-\item{g}{Grouping object passed directly to \code{collapse::GRP()}.
-This can for example be a vector or data frame.}
 
 \item{from}{Start.}
 
@@ -75,15 +71,9 @@ distinct moving time range blocks of a specified time unit.
 The actual calculation is extremely simple and essentially requires
 a subtraction, a rounding and an addition.
 
-If for example \code{time_by = "week"} then all dates or datetimes
-will be shifted backwards (or forwards if direction is "r2l") to the
-nearest start of the week, where the start of week is based on \code{min(x)}.
-This is identical to building a weekly sequence and using this as
-breakpoints to cut \code{x}. No time expansion occurs so this is very efficient
-except when \code{periods} are used and there is a lot of data.
-In this case, provided the expansion is not too big,
-it may be more efficient to cut the data using the period sequence which can
-be achieved using \code{time_summarisev}.
+To perform a by-group time aggregation, simply supply
+\code{collapse::fmin(x, g = groups, TRA = "replace_fill")} as the
+\code{from} argument.
 }
 \examples{
 library(timeplyr)
@@ -111,8 +101,10 @@ sunique(time_aggregate(days, "month"))
 sunique(time_aggregate(days, "quarter"))
 
 # Very fast by group aggregation
+start <- collapse::fmin(flights$time_hour, g = flights$tailnum,
+                        TRA = "replace_fill")
 week_by_tailnum <- time_aggregate(flights$time_hour, time_by = ddays(7),
-                                  g = flights$tailnum)
+                                  from = start)
 # Confirm this has been done by group as each group will have a
 # Different aggregate start date
 flights \%>\%

@@ -123,11 +123,6 @@ duplicate_rows <- function(data, ..., .keep_all = FALSE,
   }
   df_reconstruct(out, data)
 }
-#' @rdname duplicate_rows
-#' @export
-fduplicates <- duplicate_rows
-#' @rdname duplicate_rows
-#' @export
 fduplicates2 <- function(data, ..., .keep_all = FALSE,
                          .both_ways = FALSE, .add_count = FALSE,
                          .drop_empty = FALSE, .by = NULL){

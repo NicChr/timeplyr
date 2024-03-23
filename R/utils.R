@@ -1023,7 +1023,9 @@ divide <- function(a, b){
 }
 # Initialise a single NA value of correct type
 na_init <- function(x, size = 1L){
-  rep_len(x[NA_integer_], size)
+  rep(x[NA_integer_], size)
+  # x[rep_len(NA_integer_, size)]
+  # rep_len(x[NA_integer_], size)
 }
 strip_attrs <- function(x){
   attributes(x) <- NULL

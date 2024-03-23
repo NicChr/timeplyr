@@ -12,8 +12,6 @@
 #' * lubridate duration or period object, e.g. `days(1)` or `ddays(1)`.
 #' * named list of length one, e.g. `list("days" = 7)`.
 #' * Numeric vector, e.g. `time_by = 7`.
-#' @param g Grouping object passed directly to `collapse::GRP()`.
-#' This can for example be a vector or data frame.
 #' @param from Start.
 #' @param to End.
 #' @param time_type If "auto", `periods` are used for
@@ -39,16 +37,9 @@
 #' The actual calculation is extremely simple and essentially requires
 #' a subtraction, a rounding and an addition.
 #'
-#'
-#' If for example `time_by = "week"` then all dates or datetimes
-#' will be shifted backwards (or forwards if direction is "r2l") to the
-#' nearest start of the week, where the start of week is based on `min(x)`.
-#' This is identical to building a weekly sequence and using this as
-#' breakpoints to cut `x`. No time expansion occurs so this is very efficient
-#' except when `periods` are used and there is a lot of data.
-#' In this case, provided the expansion is not too big,
-#' it may be more efficient to cut the data using the period sequence which can
-#' be achieved using `time_summarisev`.
+#' To perform a by-group time aggregation, simply supply
+#' `collapse::fmin(x, g = groups, TRA = "replace_fill")` as the
+#' `from` argument.
 #'
 #' @seealso [time_summarisev] [time_cut]
 #'
@@ -81,8 +72,10 @@
 #' sunique(time_aggregate(days, "quarter"))
 #'
 #' # Very fast by group aggregation
+#' start <- collapse::fmin(flights$time_hour, g = flights$tailnum,
+#'                         TRA = "replace_fill")
 #' week_by_tailnum <- time_aggregate(flights$time_hour, time_by = ddays(7),
-#'                                   g = flights$tailnum)
+#'                                   from = start)
 #' # Confirm this has been done by group as each group will have a
 #' # Different aggregate start date
 #' flights %>%
@@ -93,7 +86,7 @@
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #'}
 #' @export
-time_aggregate <- function(x, time_by = NULL, g = NULL,
+time_aggregate <- function(x, time_by = NULL,
                            from = NULL, to = NULL,
                            time_type = getOption("timeplyr.time_type", "auto"),
                            roll_month = getOption("timeplyr.roll_month", "preday"),
@@ -105,9 +98,11 @@ time_aggregate <- function(x, time_by = NULL, g = NULL,
   time_by <- time_by_get(x, time_by = time_by)
   ## This uses a breakpoints-cut method which is much more efficient
   ## when there are relatively small numbers of breaks and large data
-  if (time_type == "period" &&
-      time_by_unit(time_by) %!in_% c("seconds", "minutes", "hours") &&
-      is.null(g)){
+  if (time_by_unit(time_by) %!in_%
+      c("picoseconds", "nanoseconds", "microseconds",
+        "milliseconds", "seconds", "minutes", "hours") &&
+      length(from) <= 1 &&
+      length(to) <= 1){
     return(time_summarisev(
       x, time_by = time_by,
       from = from, to = to,
@@ -122,23 +117,23 @@ time_aggregate <- function(x, time_by = NULL, g = NULL,
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
   if (is.null(from)){
-    index <- gmin(x, g = g, na.rm = TRUE)
+    index <- gmin(x, na.rm = TRUE)
   } else {
     if (length(from) %!in_% c(1, length(x))){
       stop("length of from must be 1 or length(x)")
     }
     index <- time_cast(from, x)
-    x[x < index] <- NA
+    x[cheapr::which_(x < index)] <- NA
   }
   if (!is.null(to)){
     if (length(to) %!in_% c(1, length(x))){
       stop("length of to must be 1 or length(x)")
     }
     to <- time_cast(to, x)
-    x[x > to] <- NA
+    x[cheapr::which_(x > to)] <- NA
   }
   if (time_floor){
-    from <- time_floor2(from, time_by = time_by, week_start = week_start)
+    index <- time_floor2(index, time_by = time_by, week_start = week_start)
   }
   tdiff <- time_diff(index, x, time_by = time_by, time_type = time_type)
   time_to_add <- add_names(list(trunc2(tdiff) * num), units)

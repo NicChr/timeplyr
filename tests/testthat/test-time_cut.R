@@ -96,9 +96,7 @@ test_that("time cut", {
   expect_equal(time_cut(y, n = Inf, time_by = "weeks"),
                time_aggregate(y, time_by = "weeks"))
   expect_equal(
-    lubridate::as_date(
-      time_cut(y, n = Inf, time_by = "weeks", time_type = "duration")
-    ),
+    time_cut(y, n = Inf, time_by = "weeks", time_type = "duration"),
     time_aggregate(y, time_by = "weeks", time_type = "duration")
   )
   # expect_equal(levels(res2),

@@ -2,8 +2,6 @@
 % Please edit documentation in R/duplicate_rows.R
 \name{duplicate_rows}
 \alias{duplicate_rows}
-\alias{fduplicates}
-\alias{fduplicates2}
 \title{Find duplicate rows}
 \usage{
 duplicate_rows(
@@ -16,28 +14,6 @@ duplicate_rows(
   sort = FALSE,
   .by = NULL,
   .cols = NULL
-)
-
-fduplicates(
-  data,
-  ...,
-  .keep_all = FALSE,
-  .both_ways = FALSE,
-  .add_count = FALSE,
-  .drop_empty = FALSE,
-  sort = FALSE,
-  .by = NULL,
-  .cols = NULL
-)
-
-fduplicates2(
-  data,
-  ...,
-  .keep_all = FALSE,
-  .both_ways = FALSE,
-  .add_count = FALSE,
-  .drop_empty = FALSE,
-  .by = NULL
 )
 }
 \arguments{

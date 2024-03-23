@@ -157,7 +157,6 @@ time_by <- function(data, time, time_by_unit = NULL,
                                     time_by = time_by,
                                     from = fpluck(from_to_list, 1L),
                                     to = fpluck(from_to_list, 2L),
-                                    g = time_span_GRP,
                                     time_type = time_type,
                                     roll_month = roll_month,
                                     roll_dst = roll_dst,
@@ -188,7 +187,7 @@ time_by <- function(data, time, time_by_unit = NULL,
     num_gaps <- time_num_gaps(time_start,
                               time_by = time_by,
                               time_type = time_type,
-                              g = g, use.g.names = FALSE,
+                              g = time_span_GRP, use.g.names = FALSE,
                               check_time_regular = FALSE)
     time_span[["num_gaps"]] <- num_gaps
   }
