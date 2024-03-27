@@ -235,12 +235,7 @@ time_breaks <- function(x, n = 5, time_by = NULL,
   from <- time_cast(from, x)
   to <- time_cast(to, x)
   if (is.null(time_by)){
-    if (length(x) <= 1){
-      gcd_difference <- 1L
-    } else {
-      gcd_difference <- abs(gcd_diff(x))
-    }
-    gcd_difference[is.na(gcd_difference)] <- 1L
+    gcd_difference <- gcd_time_diff(x)
     time_rng_diff <- unclass(to) - unclass(from)
     # We shouldn't try to cut up the data using more breaks than this
     max_breaks <- (time_rng_diff %/% gcd_difference) + 1

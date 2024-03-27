@@ -514,7 +514,7 @@ SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP default_value) {
     return out;
   }
   case STRSXP: {
-    SEXP replace = Rf_asChar(default_value);
+    SEXP replace = Rf_protect(Rf_asChar(default_value));
     SEXP out = Rf_protect(Rf_allocVector(STRSXP, n));
     for (int j = 0; j < n; ++j) {
       SET_STRING_ELT(out, j, replace);
@@ -523,7 +523,7 @@ SEXP cpp_list_subset(SEXP x, SEXP ptype, SEXP i, SEXP default_value) {
         SET_STRING_ELT(out, j, STRING_ELT(p_x[j], k - 1));
       }
     }
-    Rf_unprotect(3);
+    Rf_unprotect(4);
     return out;
   }
   default: {

@@ -135,15 +135,23 @@ df_reconstruct <- function(data, template){
 }
 # Row slice
 df_row_slice <- function(data, i, reconstruct = TRUE){
-  if (is.logical(i)){
-    check_length(i, df_nrow(data))
-    i <- which_(i)
-  }
+  # if (is.logical(i)){
+  #   check_length(i, df_nrow(data))
+  #   i <- which_(i)
+  # }
+  # out <- list_as_df(
+  #   lapply(as.list(data), `[`, i)
+  # )
+  out <- cheapr::sset(data, i)
   if (reconstruct){
-    df_reconstruct(vctrs::vec_slice(safe_ungroup(data), i), data)
-  } else {
-    vctrs::vec_slice(data, i)
+    out <- df_reconstruct(out, data)
   }
+  out
+  # if (reconstruct){
+  #   df_reconstruct(vctrs::vec_slice(safe_ungroup(data), i), data)
+  # } else {
+  #   vctrs::vec_slice(data, i)
+  # }
 }
 df_rm_cols <- function(data, .cols){
   cols_to_remove <- col_select_names(data, .cols = .cols)
@@ -298,6 +306,7 @@ df_as_tbl <- function(x){
 # Theoretically safe data frame initialisation
 # for all objs with a rep() and [ method
 df_init <- function(x, size = 1L){
+  vctrs::vec_init(x, size)
   ncols <- df_ncol(x)
   if (ncols == 0){
     init_df <- new_df(..N = size)
@@ -308,23 +317,32 @@ df_init <- function(x, size = 1L){
   }
   df_reconstruct(init_df, x)
 }
-# df_init <- function(x, size = 1L){
+# df_init2 <- function(x, size = 1L){
+#   # template <- collapse::alloc(NA_integer_, size)
 #   template <- rep_len(NA_integer_, size)
 #   out <- new_list(length(x), template)
 #   for (i in seq_along(out)){
-#     if (isS4(x[[i]]) || !is.atomic(x[[i]])){
-#       out[[i]] <- na_init(x[[i]], size)
-#     } else {
+#     if (!is.object(x[[i]]) || inherits(x[[i]], c("Date", "POSIXct"))){
+#       out[[i]] <- cast2(out[[i]], x[[i]])
 #       attributes(out[[i]]) <- attributes(x[[i]])
 #       class(out[[i]]) <- class(x[[i]])
+#     } else {
+#       out[[i]] <- na_init(x[[i]], size)
 #     }
+#     # if (isS4(x[[i]]) || !is.atomic(x[[i]])){
+#     #   out[[i]] <- na_init(x[[i]], size)
+#     # } else {
+#     #   attributes(out[[i]]) <- attributes(x[[i]])
+#     #   class(out[[i]]) <- class(x[[i]])
+#     # }
 #   }
 #   names(out) <- names(x)
 #   out <- list_as_df(out)
-#   if (length(out) == 0){
-#     attr(out, "row.names") <- .set_row_names(size)
-#   }
-#   out
+#   df_reconstruct(out, x)
+#   # if (length(out) == 0){
+#   #   attr(out, "row.names") <- .set_row_names(size)
+#   # }
+#   # out
 # }
 # Group IDs (same as dplyr::group_indices)
 df_group_id <- function(x){

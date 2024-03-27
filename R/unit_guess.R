@@ -62,15 +62,20 @@ unit_guess <- function(x){
     num <- .subset2(time_unit_info, 1L)
     out <- list("unit" = unit,
                 "num" = num,
-                "scale" = 1L)
+                "scale" = 1L
+                # "type" = tolower(class(x)[[1]])
+                )
     # If numeric then just return this..
   } else if (is.numeric(x)){
     out <- list("unit" = "numeric",
                 "num" = x,
-                "scale" = 1L)
+                "scale" = 1L
+                # "type" = "auto"
+                )
   } else if (is.list(x)){
     # If it's a list, string match but no parse
     out <- unit_list_match(x)
+    # out[["type"]] <- "auto"
   } else {
     # Try matching first as it's faster
     unit <- unit_match(x)
@@ -92,6 +97,7 @@ unit_guess <- function(x){
                   "num" = num,
                   "scale" = scale)
     }
+    # out[["type"]] <- "auto"
   }
   out
 }

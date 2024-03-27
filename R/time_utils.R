@@ -180,7 +180,7 @@ gcd_time_diff <- function(x){
   } else {
     out <- abs(gcd_diff(x))
   }
-  out[is.na(out)] <- 1L
+  out[cheapr::which_na(out)] <- 1L
   out
 }
 time_granularity <- function(x, msg = TRUE){

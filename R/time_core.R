@@ -168,8 +168,7 @@ time_completev <- function(x, time_by = NULL, from = NULL, to = NULL,
                             roll_month = roll_month,
                             roll_dst = roll_dst)
   out <- time_cast(x, time_full)
-  # out <- c(x, time_full[which_(time_full %in% x, invert = TRUE)])
-  gaps <- time_full[cheapr::which_na(collapse::fmatch(time_full, out, overid = 2L))]
+  gaps <- cheapr::setdiff_(time_full, out)
   if (length(gaps) > 0){
     out <- c(out, gaps)
   }
@@ -300,7 +299,7 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
   out <- group_sizes(x, expand = TRUE)
   # (Optionally) complete time data
   if (complete){
-    time_missed <- time_breaks[cheapr::which_na(collapse::fmatch(time_breaks, x, overid = 2L))]
+    time_missed <- cheapr::setdiff_(time_breaks, x)
     if (length(time_missed) > 0L){
       x <- c(x, time_missed) # Complete time sequence
     }
