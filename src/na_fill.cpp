@@ -154,8 +154,7 @@ SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP o, SEXP sizes, double fill_limit) {
             oi = p_o[i] - 1;
             // Start of new group?
             if (i > (running_group_size - 1)){
-                ++j;
-                running_group_size += p_sizes[j];
+                running_group_size += p_sizes[++j];
                 first_non_na = false;
                 fill_count = 0;
             }
@@ -187,8 +186,7 @@ SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP o, SEXP sizes, double fill_limit) {
             oi = p_o[i] - 1;
             // Start of new group?
             if (i > (running_group_size - 1)){
-                ++j;
-                running_group_size += p_sizes[j];
+                running_group_size += p_sizes[++j];
                 first_non_na = false;
                 fill_count = 0;
             }
@@ -221,8 +219,7 @@ SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP o, SEXP sizes, double fill_limit) {
             oi = p_o[i] - 1;
             // Start of new group?
             if (i > (running_group_size - 1)){
-                ++j;
-                running_group_size += p_sizes[j];
+                running_group_size += p_sizes[++j];
                 first_non_na = false;
                 fill_count = 0;
             }

@@ -79,6 +79,7 @@ time_summarise <- function(data, time = NULL, ..., time_by = NULL,
   }
   df_reconstruct(out, data)
 }
+#' @export
 time_count <- function(data, time = NULL, ..., time_by = NULL,
                        from = NULL, to = NULL,
                        .name = "{.col}",
@@ -92,6 +93,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                        roll_month = getOption("timeplyr.roll_month", "preday"),
                        roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                        as_interval = getOption("timeplyr.use_intervals", FALSE)){
+  warning("'time_count is deprecated.\nUse 'time_by' and 'count' instead.")
   original_groups <- get_groups(data, {{ .by }})
   by_groups <- tidy_select_pos(data, {{ .by }})
   # Determine common bounds

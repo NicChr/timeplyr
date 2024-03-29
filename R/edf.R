@@ -63,7 +63,7 @@
 #'}
 #' @export
 edf <- function(x, g = NULL, wt = NULL){
-  n_na <- num_na(x)
+  n_na <- na_count(x)
   nx <- length(x)
   if (is.null(g)){
     x_order <- radix_order(x)

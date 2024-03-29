@@ -212,7 +212,7 @@ time_episodes <- function(data, time, time_by = NULL,
                             event[[1L]],
                           1L, 0L)
     ), event_id_nm))
-    if (num_na(fpluck(out, event_col)) != num_na(fpluck(out, time_col))){
+    if (na_count(fpluck(out, event_col)) != na_count(fpluck(out, time_col))){
       warning(paste0("There is a mismatch of NAs between ",
                      time_col, " and ",
                      event_col, ", please check."))

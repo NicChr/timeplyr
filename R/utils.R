@@ -1304,7 +1304,7 @@ gcd_diff <- function(x){
 which_ <- cheapr::which_
 which_in <- getFromNamespace("which_in", "cheapr")
 which_not_in <- getFromNamespace("which_not_in", "cheapr")
-num_na <- function(x){
+na_count <- function(x){
   cheapr::num_na(x, recursive = FALSE)
 }
 `%in_%` <- cheapr::`%in_%`
@@ -1318,3 +1318,4 @@ list_as_df <- getFromNamespace("list_as_df", "cheapr")
 inline_hist <- getFromNamespace("inline_hist", "cheapr")
 new_list <- cheapr::new_list
 window_sequence <- cheapr::window_sequence
+sset <- cheapr::sset

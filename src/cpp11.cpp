@@ -146,13 +146,6 @@ extern "C" SEXP _timeplyr_cpp_r_obj_address(SEXP x) {
   END_CPP11
 }
 // utils.cpp
-bool cpp_any_address_changed(SEXP x, SEXP y);
-extern "C" SEXP _timeplyr_cpp_any_address_changed(SEXP x, SEXP y) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(cpp_any_address_changed(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(y)));
-  END_CPP11
-}
-// utils.cpp
 SEXP cpp_bin(SEXP x, SEXP breaks, bool codes, bool right, bool include_lowest, bool include_oob);
 extern "C" SEXP _timeplyr_cpp_bin(SEXP x, SEXP breaks, SEXP codes, SEXP right, SEXP include_lowest, SEXP include_oob) {
   BEGIN_CPP11
@@ -212,7 +205,6 @@ extern "C" SEXP _timeplyr_cpp_which_first_gap(SEXP x, SEXP increment, SEXP left_
 extern "C" {
 static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_address_equal",        (DL_FUNC) &_timeplyr_cpp_address_equal,        2},
-    {"_timeplyr_cpp_any_address_changed",  (DL_FUNC) &_timeplyr_cpp_any_address_changed,  2},
     {"_timeplyr_cpp_bin",                  (DL_FUNC) &_timeplyr_cpp_bin,                  6},
     {"_timeplyr_cpp_bin_grouped",          (DL_FUNC) &_timeplyr_cpp_bin_grouped,          6},
     {"_timeplyr_cpp_consecutive_na_id",    (DL_FUNC) &_timeplyr_cpp_consecutive_na_id,    2},

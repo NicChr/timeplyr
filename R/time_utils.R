@@ -396,11 +396,11 @@ convert_common_dates <- function(x){
   } else if (is.character(x)){
     which_na <- cheapr::which_na(x)
     out <- lubridate::ymd(x, quiet = TRUE)
-    num_na <- num_na(out)
+    num_na <- na_count(out)
     if (num_na > length(which_na)){
       out <- lubridate::dmy(x, quiet = TRUE)
     }
-    num_na <- num_na(out)
+    num_na <- na_count(out)
     if (num_na > length(which_na)){
       out <- lubridate::Date(length(x))
     }
@@ -1538,7 +1538,7 @@ divide_interval_by_period2 <- function(start, end, per){
   timespans <- recycle(start, end, length = max_len)
   # Here we make sure to use rep method for lubridate periods
   timespans[[3]] <- rep_single_unit_period(per, length.out = max_len)
-  if (num_na(estimate) == 0) {
+  if (na_count(estimate) == 0) {
     adj_dur_est(estimate, timespans[[1]], timespans[[2]], timespans[[3]])
   } else {
     not_nas <- cheapr::which_not_na(estimate)

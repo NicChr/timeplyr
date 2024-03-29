@@ -84,7 +84,7 @@
 #' @export
 roll_na_fill <- function(x, g = NULL, fill_limit = Inf){
   check_length(fill_limit, 1)
-  if (num_na(x) %in% c(0L, cheapr::unlisted_length(x))){
+  if (cheapr::num_na(x, recursive = TRUE) %in% c(0L, cheapr::unlisted_length(x))){
     return(x)
   }
   order_and_counts <- group_order_and_counts(g)

@@ -135,23 +135,11 @@ df_reconstruct <- function(data, template){
 }
 # Row slice
 df_row_slice <- function(data, i, reconstruct = TRUE){
-  # if (is.logical(i)){
-  #   check_length(i, df_nrow(data))
-  #   i <- which_(i)
-  # }
-  # out <- list_as_df(
-  #   lapply(as.list(data), `[`, i)
-  # )
   out <- cheapr::sset(data, i)
   if (reconstruct){
     out <- df_reconstruct(out, data)
   }
   out
-  # if (reconstruct){
-  #   df_reconstruct(vctrs::vec_slice(safe_ungroup(data), i), data)
-  # } else {
-  #   vctrs::vec_slice(data, i)
-  # }
 }
 df_rm_cols <- function(data, .cols){
   cols_to_remove <- col_select_names(data, .cols = .cols)

@@ -241,34 +241,8 @@ SEXP cpp_df_group_indices(SEXP rows, int size) {
 SEXP cpp_r_obj_address(SEXP x) {
   static char buf[1000];
   snprintf(buf, 1000, "%p", (void*) x);
-  // return Rf_ScalarString(Rf_mkChar(buf));
-  SEXP out = Rf_protect(Rf_allocVector(STRSXP, 1));
-  SET_STRING_ELT(out, 0, Rf_mkChar(buf));
-  Rf_unprotect(1);
-  return out;
+  return Rf_ScalarString(Rf_mkChar(buf));
 }
-
-// Quick check to see that addresses between 2 equal length lists are the same
-
-[[cpp11::register]]
-bool cpp_any_address_changed(SEXP x, SEXP y) {
-  const SEXP* p_x = VECTOR_PTR_RO(x);
-  const SEXP* p_y = VECTOR_PTR_RO(y);
-  bool out = false;
-  int n1 = Rf_length(x);
-  int n2 = Rf_length(y);
-  if (n1 != n2){
-    Rf_error("x and y must be of the same length");
-  }
-  for (int i = 0; i < n1; ++i) {
-    if (STRING_ELT(cpp_r_obj_address(p_x[i]), 0) != STRING_ELT(cpp_r_obj_address(p_y[i]), 0)){
-      out = true;
-      break;
-    }
-  }
-  return out;
-}
-
 
 // Credits to R authors
 // Re-purposed .bincode
@@ -741,42 +715,3 @@ SEXP cpp_which_first_gap(SEXP x, int increment, bool left_to_right) {
     return out;
   }
 }
-
-// SEXP cpp_dt_unlock(SEXP x) {
-//   Rf_setAttrib(x, Rf_install(".data.table.locked"), R_NilValue);
-//   return x;
-// }
-
-// Checks that all row indices of 2 grouped data frames are the same
-
-// bool cpp_group_data_rows_equal(SEXP rows1, SEXP rows2) {
-//   bool out = true;
-//   int ng1 = Rf_length(rows1);
-//   int ng2 = Rf_length(rows2);
-//   if (ng1 != ng2){
-//     return false;
-//   }
-//   const SEXP *p_rows1 = VECTOR_PTR_RO(rows1);
-//   const SEXP *p_rows2 = VECTOR_PTR_RO(rows2);
-//   for (int i = 0; i < ng1; ++i){
-//     SEXP rows1_i = p_rows1[i];
-//     SEXP rows2_i = p_rows2[i];
-//     int n1 = Rf_length(rows1_i);
-//     int n2 = Rf_length(rows2_i);
-//     if (n1 != n2){
-//       out = false;
-//     }
-//     if (out == false){
-//       break;
-//     }
-//     int *p_rows1_i = INTEGER(rows1_i);
-//     int *p_rows2_i = INTEGER(rows2_i);
-//     for (int j = 0; j < n1; ++j){
-//       if (p_rows1_i[j] != p_rows2_i[j]){
-//         out = false;
-//         break;
-//       }
-//     }
-//   }
-//   return out;
-// }

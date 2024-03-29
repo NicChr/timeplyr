@@ -80,10 +80,6 @@ cpp_r_obj_address <- function(x) {
   .Call(`_timeplyr_cpp_r_obj_address`, x)
 }
 
-cpp_any_address_changed <- function(x, y) {
-  .Call(`_timeplyr_cpp_any_address_changed`, x, y)
-}
-
 cpp_bin <- function(x, breaks, codes, right, include_lowest, include_oob) {
   .Call(`_timeplyr_cpp_bin`, x, breaks, codes, right, include_lowest, include_oob)
 }
