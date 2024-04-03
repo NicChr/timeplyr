@@ -228,14 +228,15 @@ fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
   out1 <- fslice_head(out, n = n, prop = prop, .by = all_of(grp_nm1),
                       sort_groups = sort_groups)
   if (with_ties){
-    i <- out[[row_nm]][collapse::whichNA(collapse::fmatch(out[[grp_nm]], out1[[grp_nm]],
-                                                          overid = 2L), invert = TRUE)]
+    i <- out[[row_nm]][cheapr::which_not_na(
+      collapse::fmatch(out[[grp_nm]], out1[[grp_nm]], overid = 2L)
+    )]
   } else {
     i <- out1[[row_nm]]
   }
   if (na_rm){
     i2 <- out[[row_nm]][cheapr::which_na(out[[order_by_nm]])]
-    i <- setdiff(i, i2)
+    i <- cheapr::setdiff_(i, i2)
   }
   if (is.null(i)){
     i <- integer(0)
@@ -276,14 +277,15 @@ fslice_max <- function(data, order_by, ..., n, prop, .by = NULL,
   out1 <- fslice_head(out, n = n, prop = prop, .by = all_of(grp_nm1),
                       sort_groups = sort_groups)
   if (with_ties){
-    i <- out[[row_nm]][collapse::whichNA(collapse::fmatch(out[[grp_nm]], out1[[grp_nm]],
-                                                          overid = 2L), invert = TRUE)]
+    i <- out[[row_nm]][cheapr::which_not_na(
+      collapse::fmatch(out[[grp_nm]], out1[[grp_nm]], overid = 2L)
+    )]
   } else {
     i <- out1[[row_nm]]
   }
   if (na_rm){
     i2 <- out[[row_nm]][cheapr::which_na(out[[order_by_nm]])]
-    i <- setdiff(i, i2)
+    i <- cheapr::setdiff_(i, i2)
   }
   if (is.null(i)){
     i <- integer(0)
@@ -348,8 +350,8 @@ fslice_sample <- function(data, n, replace = FALSE, prop,
   }
   rows <- unlist(rows, use.names = FALSE, recursive = FALSE)
   if (length(rows) > 0L){
-    rows <- rows + rep.int(c(0L, cumsum(group_sizes)[-length(group_sizes)]),
-                           times = slice_sizes)
+      rows <- rows + rep.int(calc_sorted_group_starts(group_sizes, 0L),
+                             times = slice_sizes)
   }
   i <- unlist(slice_info[["rows"]], use.names = FALSE, recursive = FALSE)[rows]
   if (is.null(i)){

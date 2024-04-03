@@ -125,13 +125,13 @@ SEXP list_item_is_interval( SEXP l ) {
 // And this will return a vector of the start indices of each group (in sorted order)
 
 [[cpp11::register]]
-SEXP cpp_sorted_group_starts(SEXP group_sizes){
+SEXP cpp_sorted_group_starts(SEXP group_sizes, int init_loc = 1){
   int *p_gsizes = INTEGER(group_sizes);
   int n = Rf_length(group_sizes);
   SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
   int *p_out = INTEGER(out);
-  int init = 1;
-  p_out[0] = 1;
+  int init = init_loc;
+  p_out[0] = init;
   // cumsum over group_sizes[-length(group_sizes)]
   for (int i = 0; i < (n - 1); ++i){
     init += p_gsizes[i];
@@ -715,3 +715,58 @@ SEXP cpp_which_first_gap(SEXP x, int increment, bool left_to_right) {
     return out;
   }
 }
+
+// By-reference alternative to x <- ...
+// SEXP cpp_set_replace(SEXP x, SEXP with){
+//   R_xlen_t xn = Rf_xlength(x);
+//   R_xlen_t withn = Rf_xlength(with);
+//   if (xn != withn){
+//     Rf_error("length(x) must be equal to length(with) in cpp_set_replace");
+//   }
+//   SEXP x2 = Rf_protect(x);
+//   switch( TYPEOF(x) ) {
+//   case LGLSXP: {
+//     SEXP with2 = Rf_protect(Rf_coerceVector(with, LGLSXP));
+//     int *p_x = LOGICAL(x2);
+//     int *p_with = LOGICAL(with2);
+//     for (R_xlen_t i = 0; i < xn; ++i){
+//       p_x[i] = p_with[i];
+//     }
+//     Rf_unprotect(2);
+//     return x;
+//   }
+//   case INTSXP: {
+//     SEXP with2 = Rf_protect(Rf_coerceVector(with, INTSXP));
+//     int *p_x = INTEGER(x2);
+//     int *p_with = INTEGER(with2);
+//     for (R_xlen_t i = 0; i < xn; ++i){
+//       p_x[i] = p_with[i];
+//     }
+//     Rf_unprotect(2);
+//     return x;
+//   }
+//   case REALSXP: {
+//     SEXP with2 = Rf_protect(Rf_coerceVector(with, REALSXP));
+//     double *p_x = REAL(x2);
+//     double *p_with = REAL(with2);
+//     for (R_xlen_t i = 0; i < xn; ++i){
+//       p_x[i] = p_with[i];
+//     }
+//     Rf_unprotect(2);
+//     return x;
+//   }
+//   case STRSXP: {
+//     SEXP with2 = Rf_protect(Rf_coerceVector(with, STRSXP));
+//     SEXP *p_with = STRING_PTR(with2);
+//     for (R_xlen_t i = 0; i < xn; ++i){
+//       SET_STRING_ELT(x2, i, p_with[i]);
+//     }
+//     Rf_unprotect(2);
+//     return x;
+//   }
+//   default: {
+//     Rf_unprotect(1);
+//     Rf_error("%s cannot handle an object of type %s", __func__, Rf_type2char(TYPEOF(x)));
+//   }
+//   }
+// }

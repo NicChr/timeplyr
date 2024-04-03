@@ -161,11 +161,10 @@ group_id.default <- function(data, ..., order = TRUE,
             call = FALSE)
   out <- GRP_group_id(g)
   if (as_qg){
-    out <- group_id_to_qg(out,
-                          n_groups = GRP_n_groups(g),
-                          group_starts = GRP_starts(g),
-                          group_sizes = GRP_group_sizes(g),
-                          ordered = order)
+    out <- group_id_to_qg(out, n_groups = GRP_n_groups(g),
+                   group_starts = GRP_starts(g),
+                   group_sizes = GRP_group_sizes(g),
+                   ordered = order)
   }
   out
 }
@@ -177,9 +176,6 @@ group_id.factor <- function(data, ..., order = TRUE,
   if (order && ascending && !as_qg){
     out <- strip_attrs(out)
     out[cheapr::which_na(out)] <- length(levels(data)) + 1L
-    # if (anyNA(out)){
-    #   out[cpp_cheapr::which_na(out)] <- length(levels(data)) + 1L
-    # }
   } else {
     out <- group_id(out, order = order,
                     ascending = ascending, as_qg = as_qg)
@@ -355,8 +351,29 @@ row_id.data.frame <- function(data, ...,
 row_id.grouped_df <- row_id.data.frame
 #' @rdname group_id
 #' @export
-row_id.GRP <- function(data, ..., ascending = TRUE){
-  frowid(data, ascending = ascending)
+row_id.GRP <- function(data, ascending = TRUE, ...){
+  size <- GRP_data_size(data)
+  # If groups are sorted we can use sequence()
+  if (GRP_is_sorted(data)){
+    group_sizes <- GRP_group_sizes(data)
+    if (ascending){
+      start <- 1L
+      every <- 1L
+    } else {
+      start <- group_sizes
+      every <- -1L
+    }
+    out <- sequences(group_sizes, from = start, by = every)
+  } else {
+    if (!ascending){
+      o <- seq.int(length.out = size, from = size, by = -1L)
+      out <- collapse::fcumsum(seq_ones(size), g = data, na.rm = FALSE,
+                               o = o, check.o = FALSE)
+    } else {
+      out <- collapse::fcumsum(seq_ones(size), g = data, na.rm = FALSE)
+    }
+  }
+  out
 }
 #' @rdname group_id
 #' @export
@@ -453,16 +470,16 @@ add_group_order <- function(data, ..., ascending = TRUE,
 qG2 <- function(x, sort = TRUE, ordered = FALSE, na.exclude = FALSE, ...){
   if (is_interval(x)){
     if (na.exclude){
-      which_not_na <- which_(cheapr::is_na(x), invert = TRUE)
-      out <- collapse::alloc(NA_integer_, length(x))
+      which_not_na <- cheapr::which_not_na(x)
+      out <- rep_len(NA_integer_, length(x))
       qgroup <- group_id(x[which_not_na], order = sort, as_qg = TRUE)
       n_groups <- attr(qgroup, "N.groups")
       out[which_not_na] <- qg_to_integer(qgroup)
       if (ordered){
-        collapse::setattrib(out, list("N.groups" = n_groups,
-                                      "class" = c("qG", "ordered")))
+        set_add_attributes(out, list("N.groups" = n_groups,
+                                     "class" = c("qG", "ordered")))
       } else {
-        collapse::setattrib(out, list("N.groups" = n_groups,
+        set_add_attributes(out, list("N.groups" = n_groups,
                                       "class" = "qG"))
       }
     } else {
@@ -476,7 +493,7 @@ qG2 <- function(x, sort = TRUE, ordered = FALSE, na.exclude = FALSE, ...){
                         ordered = ordered,
                         na.exclude = na.exclude, ...)
     if (ordered){
-      class(out) <- c("qG", "ordered", setdiff(class(out), c("qG", "ordered")))
+      set_add_attr(out, "class", c("qG", "ordered", setdiff(class(out), c("qG", "ordered"))))
     }
   }
   out
@@ -498,29 +515,43 @@ group_id_to_qg <- function(x,
                            n_groups = NULL,
                            group_starts = NULL,
                            group_sizes = NULL,
-                           ordered = FALSE){
+                           ordered = FALSE,
+                           set = FALSE){
   if (is.null(n_groups)){
     n_groups <- collapse::fnunique(x)
   }
-  attr(x, "N.groups") <- n_groups
+  x <- add_attr(x, "N.groups", n_groups, set = set)
   if (!is.null(group_starts)){
-    attr(x, "starts") <- group_starts
+    x <- add_attr(x, "starts", group_starts, set = set)
   }
   if (!is.null(group_sizes)){
-    attr(x, "group.sizes") <- group_sizes
+    x <- add_attr(x, "group.sizes", group_sizes, set = set)
   }
   if (ordered){
-    class(x) <- c("qG", "ordered", "na.included")
+    x <- add_attr(x, "class", c("qG", "ordered", "na.included"), set = set)
   } else {
-    class(x) <- c("qG", "na.included")
+    x <- add_attr(x, "class", c("qG", "na.included"), set = set)
   }
   x
 }
 # Efficiently convert qG to integer
-qg_to_integer <- function(x){
-  strip_attrs(x)
+qg_to_integer <- function(x, set = FALSE){
+  strip_attrs(x, set = set)
 }
 # Cool alternative to qG() because S3 method for group_id() kicks in
 quick_group <- function(x, ..., order = TRUE, ascending = TRUE){
+  # if (na_exclude){
+  #   out <- rep_len(NA_integer_, vec_length(x))
+  #   not_na <- cheapr::which_not_na(x)
+  #   group_ids <- group_id(cheapr::sset(x, not_na), ..., order = order, as_qg = TRUE, ascending = ascending)
+  #   out[not_na] <- group_ids
+  #   out <- group_id_to_qg(out, n_groups = attr(group_ids, "N.groups"),
+  #                         # group_starts = attr(group_ids, "starts"),
+  #                         group_sizes = attr(group_ids, "group.sizes"))
+  #
+  # } else {
+  #   out <- group_id(x, ..., order = order, as_qg = TRUE, ascending = ascending)
+  # }
+  # out
   group_id(x, ..., order = order, as_qg = TRUE, ascending = ascending)
 }

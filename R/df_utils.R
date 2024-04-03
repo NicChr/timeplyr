@@ -294,7 +294,6 @@ df_as_tbl <- function(x){
 # Theoretically safe data frame initialisation
 # for all objs with a rep() and [ method
 df_init <- function(x, size = 1L){
-  vctrs::vec_init(x, size)
   ncols <- df_ncol(x)
   if (ncols == 0){
     init_df <- new_df(..N = size)
@@ -353,7 +352,7 @@ df_reorder <- function(data, g){
 # Fast/efficient drop empty rows
 df_drop_empty <- function(data, .cols = names(data)){
   is_empty_row <- cheapr::row_all_na(fselect(data, .cols = .cols))
-  which_not_empty <- which_(is_empty_row, invert = TRUE)
+  which_not_empty <- cheapr::which_(is_empty_row, invert = TRUE)
   if (length(which_not_empty) == df_nrow(data)){
     data
   } else {

@@ -33,7 +33,7 @@ add_group_id(
 
 row_id(data, ..., ascending = TRUE, .by = NULL, .cols = NULL)
 
-\method{row_id}{GRP}(data, ..., ascending = TRUE)
+\method{row_id}{GRP}(data, ascending = TRUE, ...)
 
 add_row_id(data, ..., ascending = TRUE, .by = NULL, .cols = NULL, .name = NULL)
 

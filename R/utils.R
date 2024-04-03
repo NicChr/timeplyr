@@ -1,5 +1,9 @@
 #' @noRd
 
+get_from_package <- function(x, package){
+  get(x, asNamespace(package), inherits = FALSE)
+}
+
 # Memory efficient n unique
 n_unique <- function(x, na.rm = FALSE){
   na_offset <- 0L
@@ -147,9 +151,9 @@ tidy_select_info <- function(data, ..., .cols = NULL){
        "renamed" = renamed)
 }
 
-mutate_cols <- getFromNamespace("mutate_cols", "dplyr")
-dplyr_quosures <- getFromNamespace("dplyr_quosures", "dplyr")
-compute_by <- getFromNamespace("compute_by", "dplyr")
+mutate_cols <- get_from_package("mutate_cols", "dplyr")
+dplyr_quosures <- get_from_package("dplyr_quosures", "dplyr")
+compute_by <- get_from_package("compute_by", "dplyr")
 
 mutate_summary_ungrouped <- function(.data, ...,
                                      .keep = c("all", "used", "unused", "none"),
@@ -617,19 +621,19 @@ sample2 <- function(x, size = length(x), replace = FALSE, prob = NULL){
 # double_lte <- cppdoubles::double_lte
 # double_gt <- cppdoubles::double_gt
 # double_lt <- cppdoubles::double_lt
-fcumsum <- getFromNamespace("fcumsum", "collapse")
-# set <- getFromNamespace("set", "data.table")
-fsum <- getFromNamespace("fsum", "collapse")
-fmin <- getFromNamespace("fmin", "collapse")
-fmax <- getFromNamespace("fmax", "collapse")
-fmean <- getFromNamespace("fmean", "collapse")
-fmode <- getFromNamespace("fmode", "collapse")
-fsd <- getFromNamespace("fsd", "collapse")
-fvar <- getFromNamespace("fvar", "collapse")
-fmedian <- getFromNamespace("fmedian", "collapse")
-ffirst <- getFromNamespace("ffirst", "collapse")
-flast <- getFromNamespace("flast", "collapse")
-fndistinct <- getFromNamespace("fndistinct", "collapse")
+fcumsum <- get_from_package("fcumsum", "collapse")
+# set <- get_from_package("set", "data.table")
+fsum <- get_from_package("fsum", "collapse")
+fmin <- get_from_package("fmin", "collapse")
+fmax <- get_from_package("fmax", "collapse")
+fmean <- get_from_package("fmean", "collapse")
+fmode <- get_from_package("fmode", "collapse")
+fsd <- get_from_package("fsd", "collapse")
+fvar <- get_from_package("fvar", "collapse")
+fmedian <- get_from_package("fmedian", "collapse")
+ffirst <- get_from_package("ffirst", "collapse")
+flast <- get_from_package("flast", "collapse")
+fndistinct <- get_from_package("fndistinct", "collapse")
 
 are_whole_numbers <- function(x){
   if (is.integer(x)){
@@ -1027,13 +1031,21 @@ na_init <- function(x, size = 1L){
   # x[rep_len(NA_integer_, size)]
   # rep_len(x[NA_integer_], size)
 }
-strip_attrs <- function(x){
-  attributes(x) <- NULL
-  x
+strip_attrs <- function(x, set = FALSE){
+  if (set){
+    set_rm_attributes(x)
+  } else {
+    attributes(x) <- NULL
+    x
+  }
 }
-strip_attr <- function(x, which){
-  attr(x, which) <- NULL
-  x
+strip_attr <- function(x, which, set = FALSE){
+  if (set){
+    set_rm_attr(x, which)
+  } else {
+    attr(x, which) <- NULL
+    x
+  }
 }
 is_integerable <- function(x){
   abs(x) <= .Machine$integer.max
@@ -1044,13 +1056,21 @@ all_integerable <- function(x, shift = 0){
     na.rm = TRUE
   )
 }
-add_attr <- function(x, which, value){
-  attr(x, which) <- value
-  x
+add_attr <- function(x, which, value, set = FALSE){
+  if (set){
+    set_add_attr(x, which, value)
+  } else {
+    attr(x, which) <- value
+    x
+  }
 }
-add_attrs <- function(x, value){
-  attributes(x) <- value
-  x
+add_attrs <- function(x, value, set = FALSE){
+  if (set){
+    set_add_attributes(x, value, add = FALSE)
+  } else {
+    attributes(x) <- value
+    x
+  }
 }
 add_names <- function(x, value){
   names(x) <- value
@@ -1175,7 +1195,7 @@ collapse_join <- function(x, y, on, how, sort = FALSE, ...){
 #   invisible(x)
 # }
 # Remove NULL list elements
-list_rm_null <- getFromNamespace("cpp_list_rm_null", "cheapr")
+list_rm_null <- get_from_package("cpp_list_rm_null", "cheapr")
 
 # nth element
 # returns empty vector if n > length(x)
@@ -1302,8 +1322,8 @@ gcd_diff <- function(x){
   cheapr::gcd(diff_(x), na_rm = TRUE)
 }
 which_ <- cheapr::which_
-which_in <- getFromNamespace("which_in", "cheapr")
-which_not_in <- getFromNamespace("which_not_in", "cheapr")
+which_in <- get_from_package("which_in", "cheapr")
+which_not_in <- get_from_package("which_not_in", "cheapr")
 na_count <- function(x){
   cheapr::num_na(x, recursive = FALSE)
 }
@@ -1313,9 +1333,13 @@ na_count <- function(x){
 sequences <- function(size, from = 1L, by = 1L, add_id = FALSE){
   time_cast(cheapr::sequence_(size, from, by, add_id), from)
 }
-df_select <- getFromNamespace("df_select", "cheapr")
-list_as_df <- getFromNamespace("list_as_df", "cheapr")
-inline_hist <- getFromNamespace("inline_hist", "cheapr")
+df_select <- get_from_package("df_select", "cheapr")
+list_as_df <- get_from_package("list_as_df", "cheapr")
+inline_hist <- get_from_package("inline_hist", "cheapr")
 new_list <- cheapr::new_list
 window_sequence <- cheapr::window_sequence
 sset <- cheapr::sset
+set_add_attr <- get_from_package("cpp_set_add_attr", "cheapr")
+set_add_attributes <- get_from_package("cpp_set_add_attributes", "cheapr")
+set_rm_attr <- get_from_package("cpp_set_rm_attr", "cheapr")
+set_rm_attributes <- get_from_package("cpp_set_rm_attributes", "cheapr")

@@ -79,7 +79,6 @@ time_summarise <- function(data, time = NULL, ..., time_by = NULL,
   }
   df_reconstruct(out, data)
 }
-#' @export
 time_count <- function(data, time = NULL, ..., time_by = NULL,
                        from = NULL, to = NULL,
                        .name = "{.col}",

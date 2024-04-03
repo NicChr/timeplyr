@@ -118,10 +118,10 @@ extern "C" SEXP _timeplyr_list_item_is_interval(SEXP l) {
   END_CPP11
 }
 // utils.cpp
-SEXP cpp_sorted_group_starts(SEXP group_sizes);
-extern "C" SEXP _timeplyr_cpp_sorted_group_starts(SEXP group_sizes) {
+SEXP cpp_sorted_group_starts(SEXP group_sizes, int init_loc);
+extern "C" SEXP _timeplyr_cpp_sorted_group_starts(SEXP group_sizes, SEXP init_loc) {
   BEGIN_CPP11
-    return cpp11::as_sexp(cpp_sorted_group_starts(cpp11::as_cpp<cpp11::decay_t<SEXP>>(group_sizes)));
+    return cpp11::as_sexp(cpp_sorted_group_starts(cpp11::as_cpp<cpp11::decay_t<SEXP>>(group_sizes), cpp11::as_cpp<cpp11::decay_t<int>>(init_loc)));
   END_CPP11
 }
 // utils.cpp
@@ -226,7 +226,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_roll_na_fill",         (DL_FUNC) &_timeplyr_cpp_roll_na_fill,         2},
     {"_timeplyr_cpp_roll_na_fill_grouped", (DL_FUNC) &_timeplyr_cpp_roll_na_fill_grouped, 4},
     {"_timeplyr_cpp_row_id",               (DL_FUNC) &_timeplyr_cpp_row_id,               3},
-    {"_timeplyr_cpp_sorted_group_starts",  (DL_FUNC) &_timeplyr_cpp_sorted_group_starts,  1},
+    {"_timeplyr_cpp_sorted_group_starts",  (DL_FUNC) &_timeplyr_cpp_sorted_group_starts,  2},
     {"_timeplyr_cpp_vector_width",         (DL_FUNC) &_timeplyr_cpp_vector_width,         1},
     {"_timeplyr_cpp_which_first_gap",      (DL_FUNC) &_timeplyr_cpp_which_first_gap,      3},
     {"_timeplyr_list_has_interval",        (DL_FUNC) &_timeplyr_list_has_interval,        1},

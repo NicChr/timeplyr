@@ -209,8 +209,8 @@ GRP_duplicated <- function(GRP, all = FALSE){
 GRP_which_duplicated <- function(GRP, all = FALSE){
   which_(GRP_duplicated(GRP, all))
 }
-calc_sorted_group_starts <- function(group_sizes){
-  cpp_sorted_group_starts(as.integer(group_sizes))
+calc_sorted_group_starts <- function(group_sizes, init_loc = 1L){
+  cpp_sorted_group_starts(as.integer(group_sizes), init_loc)
 }
 calc_sorted_group_ends <- function(group_sizes){
   collapse::fcumsum(group_sizes)

@@ -64,8 +64,8 @@ list_item_is_interval <- function(l) {
   .Call(`_timeplyr_list_item_is_interval`, l)
 }
 
-cpp_sorted_group_starts <- function(group_sizes) {
-  .Call(`_timeplyr_cpp_sorted_group_starts`, group_sizes)
+cpp_sorted_group_starts <- function(group_sizes, init_loc) {
+  .Call(`_timeplyr_cpp_sorted_group_starts`, group_sizes, init_loc)
 }
 
 roll_time_threshold <- function(x, threshold, switch_on_boundary) {
