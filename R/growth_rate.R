@@ -101,12 +101,15 @@
 #' @rdname growth_rate
 #' @export
 growth_rate <- function(x, na.rm = FALSE, log = FALSE, inf_fill = NULL){
-  if (na.rm){
-    x <- collapse::na_rm(x)
-  }
+  # if (na.rm){
+  #   x <- collapse::na_rm(x)
+  # }
   n <- length(x)
   x_n <- x[n]
   x_1 <- x[min(n, 1L)]
+  if (na.rm){
+    n <- n - cheapr::num_na(x, recursive = FALSE)
+  }
   if (isTRUE(x_n == 0 && x_1 == 0)) return(1)
   if (log){
     gr <- exp(( log(x_n) - log(x_1) ) / (n - 1))

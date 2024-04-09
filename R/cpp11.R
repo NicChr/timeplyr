@@ -36,6 +36,10 @@ cpp_roll_na_fill_grouped <- function(x, o, sizes, fill_limit) {
   .Call(`_timeplyr_cpp_roll_na_fill_grouped`, x, o, sizes, fill_limit)
 }
 
+cpp_roll_count_na <- function(x, window, invert, partial) {
+  .Call(`_timeplyr_cpp_roll_count_na`, x, window, invert, partial)
+}
+
 cpp_roll_growth_rate <- function(x, lag, log) {
   .Call(`_timeplyr_cpp_roll_growth_rate`, x, lag, log)
 }

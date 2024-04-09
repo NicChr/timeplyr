@@ -7,6 +7,7 @@ testthat::test_that("Normal cases", {
   x <- seq(0.5, 25, 0.5)
   y <- 2 * 1.075^(0:100)
   z <- c(1:3, NA, NA, 4, 5, 6, 7, 8, NA, 9, 10, NA)
+  zz <- c(z, 11)
   set.seed(98078123)
   a <- sample(c(0, 1), size = 50, replace = TRUE)
   testthat::expect_error(roll_growth_rate(x, window = 1:3))
@@ -21,8 +22,9 @@ testthat::test_that("Normal cases", {
   testthat::expect_equal(( 0.5 * (growth_rate(x))^(length(x) - 1) ),
                          25)
   testthat::expect_equal(growth_rate(z, na.rm = FALSE), NA_real_)
-  testthat::expect_equal(growth_rate(z, na.rm = TRUE),
-                         growth_rate(z[!is.na(z)]))
+  testthat::expect_equal(growth_rate(z, na.rm = TRUE), NA_real_)
+  testthat::expect_equal(growth_rate(zz, na.rm = TRUE),
+                         growth_rate(zz[!is.na(zz)]))
 
   # testthat::expect_warning(roll_growth_rate(y, na.rm = TRUE))
   # testthat::expect_warning(roll_growth_rate(y, na.rm = FALSE))

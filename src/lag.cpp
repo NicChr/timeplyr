@@ -7,93 +7,78 @@
 
 [[cpp11::register]]
 SEXP cpp_roll_lag(SEXP x, int k, SEXP fill) {
-    R_xlen_t size = cpp_vector_size(x);
-    int fill_size = Rf_length(fill);
-    int n_protections = 0;
-    if (fill_size > 1){
-        Rf_error("fill size must be NULL or length 1");
+  R_xlen_t size = cpp_vector_size(x);
+  int fill_size = Rf_length(fill);
+  int n_protections = 0;
+  if (fill_size > 1){
+    Rf_error("fill size must be NULL or length 1");
+  }
+  if (k < 0){
+    Rf_error("k must be a non-negative integer");
+  }
+  switch(TYPEOF(x)){
+  case LGLSXP:
+  case INTSXP: {
+    int fill_value = NA_INTEGER;
+    if (fill_size >= 1){
+      fill_value = Rf_asInteger(fill);
     }
-    if (k < 0){
-        Rf_error("k must be a non-negative integer");
+    SEXP out = Rf_protect(Rf_duplicate(x));
+    ++n_protections;
+    int *p_x = INTEGER(x);
+    int *p_out = INTEGER(out);
+    for (R_xlen_t i = 0; i < size; ++i) {
+      p_out[i] = i < k ? fill_value : p_x[i - k];
     }
-    switch(TYPEOF(x)){
-    case LGLSXP:
-    case INTSXP: {
-      int fill_value = NA_INTEGER;
-      if (fill_size >= 1){
-        fill_value = Rf_asInteger(fill);
-      }
-      SEXP out = Rf_protect(Rf_duplicate(x));
+    Rf_unprotect(n_protections);
+    return out;
+  }
+  case REALSXP: {
+    double fill_value = NA_REAL;
+    if (fill_size >= 1){
+      fill_value = Rf_asReal(fill);
+    }
+    SEXP out = Rf_protect(Rf_duplicate(x));
+    ++n_protections;
+    double *p_x = REAL(x);
+    double *p_out = REAL(out);
+    for (R_xlen_t i = 0; i < size; ++i) {
+      p_out[i] = i < k ? fill_value : p_x[i - k];
+    }
+    Rf_unprotect(n_protections);
+    return out;
+  }
+  case STRSXP: {
+    SEXP fill_char = fill_size >= 1 ? Rf_protect(Rf_asChar(fill)) : Rf_protect(NA_STRING);
+    ++n_protections;
+    SEXP out = Rf_protect(Rf_duplicate(x));
+    ++n_protections;
+    SEXP *p_x = STRING_PTR(x);;
+    for (R_xlen_t i = 0; i < size; ++i) {
+      SET_STRING_ELT(out, i, i < k ? fill_char : p_x[i - k]);
+    }
+    Rf_unprotect(n_protections);
+    return out;
+  }
+  case VECSXP: {
+    int num_col = Rf_length(x);
+    const SEXP *p_x = VECTOR_PTR_RO(x);
+    SEXP out = Rf_protect(Rf_allocVector(VECSXP, num_col));
+    ++n_protections;
+    SHALLOW_DUPLICATE_ATTRIB(out, x);
+    for (int i = 0; i < num_col; ++i){
+      SEXP list_item = Rf_protect(cpp_roll_lag(p_x[i], k, fill));
+      SET_VECTOR_ELT(out, i, list_item);
       ++n_protections;
-      int *p_x = INTEGER(x);
-      int *p_out = INTEGER(out);
-      for (R_xlen_t i = 0; i < size; ++i) {
-        if (i < k){
-          p_out[i] = fill_value;
-        } else {
-          p_out[i] = p_x[i - k];
-        }
-      }
-      Rf_unprotect(n_protections);
-      return out;
     }
-    case REALSXP: {
-      double fill_value = NA_REAL;
-      if (fill_size >= 1){
-        fill_value = Rf_asReal(fill);
-      }
-      SEXP out = Rf_protect(Rf_duplicate(x));
-      ++n_protections;
-      double *p_x = REAL(x);
-      double *p_out = REAL(out);
-      for (R_xlen_t i = 0; i < size; ++i) {
-        if (i < k){
-          p_out[i] = fill_value;
-        } else {
-          p_out[i] = p_x[i - k];
-        }
-      }
-      Rf_unprotect(n_protections);
-      return out;
-    }
-    case STRSXP: {
-      SEXP fill_sexp = Rf_protect(Rf_allocVector(STRSXP, 1));
-      ++n_protections;
-      if (fill_size >= 1){
-        SET_STRING_ELT(fill_sexp, 0, Rf_asChar(fill));
-      } else {
-        SET_STRING_ELT(fill_sexp, 0, NA_STRING);
-      }
-      SEXP out = Rf_protect(Rf_duplicate(x));
-      ++n_protections;
-      for (R_xlen_t i = 0; i < size; ++i) {
-        if (i < k){
-          SET_STRING_ELT(out, i, STRING_ELT(fill_sexp, 0));
-        } else {
-          SET_STRING_ELT(out, i, STRING_ELT(x, i - k));
-        }
-      }
-      Rf_unprotect(n_protections);
-      return out;
-    }
-    case VECSXP: {
-      int num_col = Rf_length(x);
-      const SEXP *p_x = VECTOR_PTR_RO(x);
-      SEXP out = Rf_protect(Rf_allocVector(VECSXP, num_col));
-      ++n_protections;
-      SHALLOW_DUPLICATE_ATTRIB(out, x);
-      for (int i = 0; i < num_col; ++i){
-        SET_VECTOR_ELT(out, i, Rf_protect(cpp_roll_lag(p_x[i], k, fill)));
-        ++n_protections;
-      }
-      Rf_unprotect(n_protections);
-      return out;
-    }
-    default: {
-      Rf_error("%s cannot handle an object of type %s", __func__, Rf_type2char(TYPEOF(x)));
-      break;
-    }
-    }
+    Rf_unprotect(n_protections);
+    return out;
+  }
+  default: {
+    Rf_error("%s cannot handle an object of type %s", __func__, Rf_type2char(TYPEOF(x)));
+    break;
+  }
+  }
 }
 
 [[cpp11::register]]
@@ -119,11 +104,7 @@ SEXP cpp_roll_lead(SEXP x, int k, SEXP fill) {
     int *p_x = INTEGER(x);
     int *p_out = INTEGER(out);
     for (R_xlen_t i = 0; i < size; ++i) {
-      if (i >= (size - k)){
-        p_out[i] = fill_value;
-      } else {
-        p_out[i] = p_x[i + k];
-      }
+      p_out[i] = (i >= (size - k)) ? fill_value : p_x[i + k];
     }
     Rf_unprotect(n_protections);
     return out;
@@ -138,31 +119,19 @@ SEXP cpp_roll_lead(SEXP x, int k, SEXP fill) {
     double *p_x = REAL(x);
     double *p_out = REAL(out);
     for (R_xlen_t i = 0; i < size; ++i) {
-      if (i >= (size - k)){
-        p_out[i] = fill_value;
-      } else {
-        p_out[i] = p_x[i + k];
-      }
+      p_out[i] = (i >= (size - k)) ? fill_value : p_x[i + k];
     }
     Rf_unprotect(n_protections);
     return out;
   }
   case STRSXP: {
-    SEXP fill_sexp = Rf_protect(Rf_allocVector(STRSXP, 1));
+    SEXP fill_char = fill_size >= 1 ? Rf_protect(Rf_asChar(fill)) : Rf_protect(NA_STRING);
     ++n_protections;
-    if (fill_size >= 1){
-      SET_STRING_ELT(fill_sexp, 0, Rf_asChar(fill));
-    } else {
-      SET_STRING_ELT(fill_sexp, 0, NA_STRING);
-    }
     SEXP out = Rf_protect(Rf_duplicate(x));
     ++n_protections;
+    SEXP *p_x = STRING_PTR(x);;
     for (R_xlen_t i = 0; i < size; ++i) {
-      if (i >= (size - k)){
-        SET_STRING_ELT(out, i, STRING_ELT(fill_sexp, 0));
-      } else {
-        SET_STRING_ELT(out, i, STRING_ELT(x, i + k));
-      }
+      SET_STRING_ELT(out, i, (i >= (size - k)) ? fill_char : p_x[i + k]);
     }
     Rf_unprotect(n_protections);
     return out;
@@ -174,8 +143,9 @@ SEXP cpp_roll_lead(SEXP x, int k, SEXP fill) {
     ++n_protections;
     SHALLOW_DUPLICATE_ATTRIB(out, x);
     for (int i = 0; i < num_col; ++i){
-      SET_VECTOR_ELT(out, i, Rf_protect(cpp_roll_lead(p_x[i], k, fill)));
+      SEXP list_item = Rf_protect(cpp_roll_lead(p_x[i], k, fill));
       ++n_protections;
+      SET_VECTOR_ELT(out, i, list_item);
     }
     Rf_unprotect(n_protections);
     return out;

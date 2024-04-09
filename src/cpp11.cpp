@@ -69,6 +69,13 @@ extern "C" SEXP _timeplyr_cpp_roll_na_fill_grouped(SEXP x, SEXP o, SEXP sizes, S
   END_CPP11
 }
 // roll.cpp
+SEXP cpp_roll_count_na(SEXP x, double window, bool invert, bool partial);
+extern "C" SEXP _timeplyr_cpp_roll_count_na(SEXP x, SEXP window, SEXP invert, SEXP partial) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_roll_count_na(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(window), cpp11::as_cpp<cpp11::decay_t<bool>>(invert), cpp11::as_cpp<cpp11::decay_t<bool>>(partial)));
+  END_CPP11
+}
+// roll.cpp
 SEXP cpp_roll_growth_rate(SEXP x, SEXP lag, bool log);
 extern "C" SEXP _timeplyr_cpp_roll_growth_rate(SEXP x, SEXP lag, SEXP log) {
   BEGIN_CPP11
@@ -216,6 +223,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_nrows",                (DL_FUNC) &_timeplyr_cpp_nrows,                1},
     {"_timeplyr_cpp_r_obj_address",        (DL_FUNC) &_timeplyr_cpp_r_obj_address,        1},
     {"_timeplyr_cpp_r_vector_size",        (DL_FUNC) &_timeplyr_cpp_r_vector_size,        1},
+    {"_timeplyr_cpp_roll_count_na",        (DL_FUNC) &_timeplyr_cpp_roll_count_na,        4},
     {"_timeplyr_cpp_roll_diff",            (DL_FUNC) &_timeplyr_cpp_roll_diff,            3},
     {"_timeplyr_cpp_roll_diff_grouped",    (DL_FUNC) &_timeplyr_cpp_roll_diff_grouped,    5},
     {"_timeplyr_cpp_roll_growth_rate",     (DL_FUNC) &_timeplyr_cpp_roll_growth_rate,     3},
