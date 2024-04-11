@@ -31,7 +31,7 @@ SEXP cpp_roll_count_na(SEXP x, double window, bool invert, bool partial){
       }
     }
     count += (p_x[k - 1] == NA_INTEGER);
-    p_out[k - 1] = count;
+    p_out[k - 1] = invert ? k - count : count;
     for (R_xlen_t i = k; i < n; ++i){
       count -= (p_x[i - k] == NA_INTEGER);
       count += (p_x[i] == NA_INTEGER);
@@ -53,7 +53,7 @@ SEXP cpp_roll_count_na(SEXP x, double window, bool invert, bool partial){
       }
     }
     count += (p_x[k - 1] != p_x[k - 1]);
-    p_out[k - 1] = count;
+    p_out[k - 1] = invert ? k - count : count;
     for (R_xlen_t i = k; i < n; ++i){
       count -= (p_x[i - k] != p_x[i - k]);
       count += (p_x[i] != p_x[i]);
@@ -75,7 +75,7 @@ SEXP cpp_roll_count_na(SEXP x, double window, bool invert, bool partial){
       }
     }
     count += (p_x[k - 1] == NA_STRING);
-    p_out[k - 1] = count;
+    p_out[k - 1] = invert ? k - count : count;
     for (R_xlen_t i = k; i < n; ++i){
       count -= (p_x[i - k] == NA_STRING);
       count += (p_x[i] == NA_STRING);
@@ -101,7 +101,7 @@ SEXP cpp_roll_count_na(SEXP x, double window, bool invert, bool partial){
       }
     }
     count += ( (p_x[k - 1].r != p_x[k - 1].r) || (p_x[k - 1].i != p_x[k - 1].i) );
-    p_out[k - 1] = count;
+    p_out[k - 1] = invert ? k - count : count;
     for (R_xlen_t i = k; i < n; ++i){
       count -= ((p_x[i - k].r != p_x[i - k].r) || (p_x[i - k].i != p_x[i - k].i));
       count += ((p_x[i].r != p_x[i].r) || (p_x[i].i != p_x[i].i));

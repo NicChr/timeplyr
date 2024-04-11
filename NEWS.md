@@ -1,5 +1,7 @@
 # timeplyr (Development version)
 
+* Removed some unnecessary arguments from `time_by`.
+
 * Deprecated most of the data frame specific `time_` functions, with the exception of
 `time_by`, `time_episodes`, `time_expand` and `time_complete`.
 
