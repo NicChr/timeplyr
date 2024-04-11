@@ -189,7 +189,7 @@ nrow(fdistinct(episodes, origin, dest)) # 55 origin-destinations
 # dry-periods
 episodes \%>\%
   ungroup() \%>\%
-  time_by(ep_start, time_by = "week", time_floor = TRUE,
+  time_by(ep_start, time_by = "week",
           .name = "ep_start") \%>\%
   count() \%>\%
   ggplot(aes(x = ep_start, y = n)) +

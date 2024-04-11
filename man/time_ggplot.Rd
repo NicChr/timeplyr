@@ -42,6 +42,7 @@ plot aggregate time-series data.
 library(dplyr)
 library(timeplyr)
 library(ggplot2)
+library(lubridate)
 \dontshow{
 .n_dt_threads <- data.table::getDTthreads()
 .n_collapse_threads <- collapse::get_collapse()$nthreads
@@ -72,19 +73,20 @@ ebola <- outbreaks::ebola_sim$linelist
 # We can build a helper to count and complete
 # Using the same time grid
 
-count_and_complete <- function(.data, time, .name, ...,
-                               time_by = NULL, time_floor = TRUE){
+count_and_complete <- function(.data, time, .name,
+                               from = NULL, ...,
+                               time_by = NULL){
   .data \%>\%
     time_by(!!dplyr::enquo(time), time_by = time_by,
-               time_floor = time_floor,
-               .name = .name) \%>\%
+               .name = .name, from = !!dplyr::enquo(from)) \%>\%
     dplyr::count(...) \%>\%
     dplyr::ungroup() \%>\%
     time_complete(.data[[.name]], ..., time_by = time_by,
-                  time_floor = time_floor, fill = list(n = 0))
+                  fill = list(n = 0))
 }
 ebola \%>\%
-  count_and_complete(date_of_onset, outcome, time_by = "week", .name = "date_of_onset") \%>\%
+  count_and_complete(date_of_onset, outcome, time_by = "week", .name = "date_of_onset",
+                     from = floor_date(min(date_of_onset), "week")) \%>\%
   time_ggplot(date_of_onset, n, geom = geom_blank) +
   geom_col(aes(fill = outcome))
 \dontshow{

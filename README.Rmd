@@ -120,15 +120,6 @@ flights %>%
   time_complete(time_hour)
 ```
 
-## `time_count()`
-
-### Count by any time unit
-
-```{r}
-flights %>%
-  time_count(date, time_by = "quarter")
-```
-
 ### We can also make use of timeplyr time intervals
 
 ```{r}
@@ -137,19 +128,18 @@ interval_count(quarters)
 
 # Or simply
 flights %>%
-  time_count(date, time_by = "quarter", as_interval = TRUE)
+  time_by(date, time_by = "quarter", as_interval = TRUE) %>%
+  count()
 ```
 
-#### Ensure full weeks/months/years by using `time_floor = TRUE`
+#### Ensure full weeks by setting from to the start of the week
 
 ```{r}
 start <- dmy("17-Jan-2013")
 flights %>%
-  time_count(date,
-             time_by = "week", from = start, time_floor = TRUE)
-flights %>%
-  time_count(date,
-             time_by = "month", from = start, time_floor = TRUE)
+  time_by(date, "week", 
+          from = floor_date(start, unit = "week")) %>%
+  count()
 ```
 
 #### Check for missing gaps in time
@@ -199,19 +189,10 @@ flights %>%
 The ability to create time sequences by group is 
 one of the most powerful features of timeplyr.
 
-## `time_summarise()`
-
-We can shortcut the time aggregation and then additional summary by 
-using `time_summarise()`.
-
 ```{r}
 flights %>%
-  time_summarise(date, # Time variable 
-                 across(c(arr_time, dep_time), # By-month summaries
-                        ~ mean(.x, na.rm = TRUE)),
-                 time_by = "month",   
-                 time_floor = TRUE, # Full months
-                 as_interval = TRUE) # Time interval
+  time_by(date, "month", as_interval = TRUE) %>%
+  summarise(across(c(arr_time, dep_time), ~ mean(.x, na.rm = TRUE)))
 ```
 
 # Grouped rolling time functions
@@ -234,7 +215,7 @@ eu_stock %>%
 ```{r}
 # Prerequisite: Create Time series with missing values
 x <- ts(c(NA, 3, 4, NA, 6, NA, NA, 8))
-g <- seq_id(c(3, 5)) # Two groups of size 3 + 5
+g <- cheapr::seq_id(c(3, 5)) # Two groups of size 3 + 5
 
 .roll_na_fill(x) # Simple locf fill
 roll_na_fill(x, fill_limit = 1) # Fill up to 1 NA
@@ -279,7 +260,7 @@ flight_201 <- flights %>%
   filter(flight %in% sample(flight, size = 1)) %>%
   arrange(time_hour)
 
-top_n_tbl(time_elapsed(flight_201$time_hour, "hours"))
+tail(sort(table(time_elapsed(flight_201$time_hour, "hours"))))
 ```
 
 Flight 201 seems to depart mostly consistently every 24 hours
@@ -317,14 +298,14 @@ resumes at 5am.
 
 ### Other convenience functions are included below
 
-## `add_calendar()`
+## `calendar()`
 
 #### Easily join common date information to your data
 
 ```{r}
 flights_calendar <- flights %>%
-  select(time_hour) %>%
-  add_calendar(time_hour)
+    select(time_hour) %>%
+    reframe(calendar(time_hour))
 ```
 
 Now that gaps in time have been filled and we have 
@@ -334,7 +315,7 @@ joined our date table, it is easy to count by any time dimension we like
 flights_calendar %>% 
   fcount(isoyear, isoweek)
 flights_calendar %>% 
-  fcount(isoweek = iso_week(time_hour))
+  fcount(isoweek = iso_week(time))
 flights_calendar %>% 
   fcount(month_l)
 ```
@@ -433,8 +414,9 @@ date_breaks <- time_breaks(dates, n = 12)
 time_breaks <- time_breaks(times, n = 12, time_floor = TRUE)
 
 weekly_data <- flights %>%
-  time_count(time = date, time_by = "week",
-             to = max(time_span(date, time_by = "week")))
+    time_by(time = date, time_by = "week",
+            to = max(time_span(date, time_by = "week"))) %>%
+    count()
 weekly_data %>%
   ggplot(aes(x = date, y = n)) + 
   geom_bar(stat = "identity", fill = "#0072B2") + 
@@ -445,131 +427,4 @@ flights %>%
   geom_bar(fill = "#0072B2") + 
   scale_x_datetime(breaks = time_breaks, labels = scales::label_date_short())
 ```
-
-## Efficient grouped functions
-
-## `group_collapse()`
-
-Collapse your data into unique groups with key information
-
-```{r}
-flights %>%
-  group_collapse(origin, dest)
-# Sorted (like dplyr::group_data())
-flights %>%
-  group_collapse(origin, dest, sort = TRUE)
-# By order of first appearance
-flights %>%
-  group_collapse(origin, dest, order = FALSE)
-```
-
-## `fcount()`/`fadd_count()`
-
-```{r}
-flights %>%
-  fgroup_by(origin, dest, tailnum) %>%
-  fcount(flight, carrier)
-flights %>%
-  fselect(origin, dest, tailnum, flight, carrier) %>%
-  fadd_count(across(all_of(c("flight", "carrier"))), 
-             .by = c(origin, dest, tailnum))
-  
-```
-
-## `group_id()`/`add_group_id()`
-
-This calculates sorted and non-sorted group IDs
-
-```{r}
-flights %>%
-  fgroup_by(origin, dest) %>%
-  group_id(order = FALSE) %>%
-  unique()
-flights %>%
-  fselect(origin, dest) %>%
-  add_group_id(.by = everything()) %>%
-  fdistinct(origin, dest, group_id)
-```
-
-## `fslice()`
-
-Fast row index slicing with lots of groups
-
-```{r}
-flights %>%
-  fgroup_by(origin, dest, tailnum) %>%
-  fslice(1:5)
-flights %>%
-  fgroup_by(origin, dest, tailnum) %>%
-  fslice_head(n = 5)
-# Use keep_order to retain the data input order
-flights %>%
-  fgroup_by(origin, dest, tailnum) %>%
-  fslice_tail(prop = 0.5, keep_order = TRUE)
-
-# Stratified sampling
-flights %>%
-    fselect(origin, dest) %>%
-    fgroup_by(origin, dest) %>%
-    add_row_id() %>%
-    fslice_sample(seed = 91239)
-```
-
-## `fdistinct()`
-
-Distinct rows
-
-```{r}
-flights %>%
-  fgroup_by(origin, dest, tailnum) %>%
-  fdistinct(year, month, day)
-```
-
-## `fduplicates()`
-
-Duplicate rows
-
-```{r}
-flights %>%
-  fgroup_by(origin, dest, tailnum) %>%
-  fduplicates(year, month, day)
-```
-
-## `row_id()`/`add_row_id()`
-
-Fast grouped row IDs
-
-```{r}
-iris <- as_tibble(iris)
-range(row_id(iris))
-iris %>%
-  add_row_id()
-iris %>% 
-  add_row_id(Species)
-```
-
-## `stat_summarise()` 
-
-Fast Grouped statistical functions
-
-```{r}
-# This is extremely fast and efficient, especially with lots of groups
-flights %>%
-  stat_summarise(arr_time, .by = origin, stat = c("n", "mean", "min", "max"))
-```
-
-## `q_summarise()`
-
-# Fast grouped quantiles
-
-```{r}
-flights %>%
-  q_summarise(arr_time, .by = tailnum)
-
-# Pivot longer for data wrangling or plotting
-flights %>%
-  q_summarise(arr_time, .by = origin, 
-              pivot = "long")
-```
-
 

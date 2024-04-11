@@ -27,24 +27,10 @@
 #' @param .add Should the time groups be added to existing groups?
 #' Default is `FALSE`.
 #' @param time_type If "auto", `periods` are used for
-#' the time expansion when days, weeks,
+#' the time aggregation when days, weeks,
 #' months or years are specified, and `durations`
 #' are used otherwise. If `durations`
-#' are used the output is always of class `POSIXt`.
-#' @param time_floor Should the start of each time sequence
-#' be floored to
-#' the nearest unit specified through the `time_by`
-#' argument? This is particularly useful for
-#' starting sequences at the beginning of a week
-#' or month for example.
-#' @param week_start day on which week starts following ISO conventions - 1
-#' means Monday (default), 7 means Sunday.
-#' This is only used when `time_floor = TRUE`.
-#' @param roll_month Control how impossible dates are handled when
-#' month or year arithmetic is involved.
-#' Options are "preday", "boundary", "postday", "full" and "NA".
-#' See `?timechange::time_add` for more details.
-#' @param roll_dst See `?timechange::time_add` for the full list of details.
+#' are used the output is always of class `POSIXct`.
 #' @param .time_by_group Should the time aggregations be built on a
 #' group-by-group basis (the default), or should the time variable be aggregated
 #' using the full data? If done by group, different groups may contain
@@ -80,7 +66,7 @@
 #' monthly_flights <- flights %>%
 #'   time_by(time_hour, "month")
 #' weekly_flights <- flights %>%
-#'   time_by(time_hour, "week", time_floor = TRUE)
+#'   time_by(time_hour, "week", from = floor_date(min(time_hour), "week"))
 #'
 #' monthly_flights %>%
 #'   count()
@@ -88,11 +74,11 @@
 #' weekly_flights %>%
 #'   summarise(n = n(), arr_delay = mean(arr_delay, na.rm = TRUE))
 #'
-#' # To aggregate multiple variables, use time_aggregate or time_summarisev
+#' # To aggregate multiple variables, use time_aggregate
 #'
 #' flights %>%
 #'   select(time_hour) %>%
-#'   mutate(across(everything(), \(x) time_summarisev(x, time_by = dweeks(1)))) %>%
+#'   mutate(across(everything(), \(x) time_aggregate(x, time_by = "weeks"))) %>%
 #'   count(time_hour)
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
@@ -105,10 +91,6 @@ time_by <- function(data, time, time_by_unit = NULL,
                     .name = "{.col}",
                     .add = FALSE,
                     time_type = getOption("timeplyr.time_type", "auto"),
-                    time_floor = FALSE,
-                    week_start = getOption("lubridate.week.start", 1),
-                    roll_month = getOption("timeplyr.roll_month", "preday"),
-                    roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                     as_interval = getOption("timeplyr.use_intervals", FALSE),
                     .time_by_group = TRUE){
   check_is_df(data)
@@ -158,10 +140,6 @@ time_by <- function(data, time, time_by_unit = NULL,
                                     from = fpluck(from_to_list, 1L),
                                     to = fpluck(from_to_list, 2L),
                                     time_type = time_type,
-                                    roll_month = roll_month,
-                                    roll_dst = roll_dst,
-                                    time_floor = time_floor,
-                                    week_start = week_start,
                                     as_interval = as_interval)
     if (as_interval){
       time_start <- interval_start(time_agg)
