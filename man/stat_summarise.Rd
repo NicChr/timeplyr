@@ -18,6 +18,7 @@ stat_summarise(
   q_probs = NULL,
   na.rm = TRUE,
   sort = df_group_by_order_default(data),
+  .count_name = NULL,
   .names = NULL,
   .by = NULL,
   .cols = NULL,
@@ -44,6 +45,8 @@ If supplied, \code{q_summarise()} is called and added to the result.}
 \item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
 
 \item{sort}{Should groups be sorted? Default is \code{TRUE}.}
+
+\item{.count_name}{Name of count column, default is "n".}
 
 \item{.names}{An optional glue specification passed to \code{stringr::glue()}.
 If \code{.names = NULL}, then when there is 1 variable, the function name

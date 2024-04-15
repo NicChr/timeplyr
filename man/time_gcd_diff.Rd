@@ -6,7 +6,7 @@
 \usage{
 time_gcd_diff(
   x,
-  time_by = 1,
+  time_by = NULL,
   time_type = getOption("timeplyr.time_type", "auto"),
   tol = sqrt(.Machine$double.eps)
 )
@@ -15,7 +15,7 @@ time_gcd_diff(
 \item{x}{Time variable. \cr
 Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, or \code{yearqtr}.}
 
-\item{time_by}{Time unit (default is 1). \cr
+\item{time_by}{Time unit. \cr
 Must be one of the following:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g
@@ -32,9 +32,7 @@ then arithmetic is used, e.g \code{time_by = 1}.
 durations are used if \code{x} is a datetime.
 Otherwise numeric differences are calculated.}
 
-\item{tol}{Tolerance of comparison. The time differences are rounded
-using \code{digits = ceiling(abs(log10(tol)))} to try and avoid
-precision issues.}
+\item{tol}{Numeric tolerance for gcd algorithm.}
 }
 \value{
 A list of length 1.
@@ -56,14 +54,11 @@ time_gcd_diff(1:10)
 time_gcd_diff(seq(0, 1, 0.2))
 
 time_gcd_diff(time_seq(today(), today() + 100, time_by = "3 days"))
-time_gcd_diff(time_seq(today(), today() + 100, time_by = "3 days"),
-              time_by = "days")
-
 time_gcd_diff(time_seq(now(), len = 10^2, time_by = "125 seconds"))
 
 # Monthly gcd using lubridate periods
 quarter_seq <- time_seq(today(), len = 24, time_by = months(4))
-time_gcd_diff(quarter_seq, time_by = months(1))
+time_gcd_diff(quarter_seq, time_by = months(1), time_type = "period")
 time_gcd_diff(quarter_seq, time_by = "months", time_type = "duration")
 
 # Detects monthly granularity

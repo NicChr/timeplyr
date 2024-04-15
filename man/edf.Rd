@@ -42,8 +42,9 @@ all.equal(edf(x), cume_dist(x))
 
 # Manual ECDF plot using only aggregate data
 y <- rnorm(100, 10)
-grid <- time_span(y, time_by = 0.1, time_floor = TRUE)
-counts <- time_countv(y, time_by = 0.1, time_floor = TRUE, complete = TRUE)$n
+start <- floor(min(y) / 0.1) * 0.1
+grid <- time_span(y, time_by = 0.1, from = start)
+counts <- time_countv(y, time_by = 0.1, from = start, complete = TRUE)$n
 edf <- edf(grid, wt = counts)
 # Trivial here as this is the same
 all.equal(unname(cumsum(counts)/sum(counts)), edf)

@@ -14,6 +14,7 @@
 #' If supplied, `q_summarise()` is called and added to the result.
 #' @param na.rm Should `NA` values be removed? Default is `TRUE`.
 #' @param sort Should groups be sorted? Default is `TRUE`.
+#' @param .count_name Name of count column, default is "n".
 #' @param .names An optional glue specification passed to `stringr::glue()`.
 #' If `.names = NULL`, then when there is 1 variable, the function name
 #' is used, i.e `.names = "{.fn}"`, when there are multiple variables and
@@ -75,6 +76,7 @@ stat_summarise <- function(data, ...,
                            stat = c("n", "nmiss", "ndistinct"),
                            q_probs = NULL,
                            na.rm = TRUE, sort = df_group_by_order_default(data),
+                           .count_name = NULL,
                            .names = NULL, .by = NULL, .cols = NULL,
                            inform_stats = TRUE,
                            as_tbl = FALSE){
@@ -120,7 +122,11 @@ stat_summarise <- function(data, ...,
   out <- df_as_dt(out, .copy = FALSE)
   n_nm <- character()
   if ("n" %in% stat){
-    n_nm <- new_n_var_nm(names(out))
+    if (is.null(.count_name)){
+      n_nm <- new_n_var_nm(names(out))
+    } else {
+      n_nm <- .count_name
+    }
     set_add_cols(out, add_names(list(fn(staging, g = g)), n_nm))
     data.table::setcolorder(out, c(group_vars, n_nm, non_group_dot_vars))
   }
