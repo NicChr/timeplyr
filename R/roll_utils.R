@@ -116,7 +116,7 @@ frollmean3 <- function(x, n, weights = NULL, ...){
 #   # na_id <- cpp_consecutive_na_id(x, TRUE)
 #   # i <- seq_len(vec_length(x)) - na_id
 #   # i[which_(i == 0L)] <- NA_integer_
-#   # vec_slice3(x, i)
+#   # cheapr::sset(x, i)
 #   # # x[seq_along(x) - na_id]
 # }
 # na_focb <- function(x){
@@ -127,7 +127,7 @@ frollmean3 <- function(x, n, weights = NULL, ...){
 #   # na_id <- cpp_consecutive_na_id(x, FALSE)
 #   # i <- seq_len(vec_length(x)) + na_id
 #   # i[which_(i == 0L)] <- NA_integer_
-#   # vec_slice3(x, i)
+#   # cheapr::sset(x, i)
 #   # # x[seq_along(x) + na_id]
 # }
 # Mostly base R rolling chop
@@ -150,7 +150,7 @@ frollmean3 <- function(x, n, weights = NULL, ...){
 #     }
 #   } else {
 #     for (i in seq_len(x_size)){
-#       out[[i]] <- vec_slice2(x, seq_len(.subset(sizes, i)) + (i - .subset(sizes, i)))
+#       out[[i]] <- cheapr::sset(x, seq_len(.subset(sizes, i)) + (i - .subset(sizes, i)))
 #     }
 #   }
 #   out

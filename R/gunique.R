@@ -24,7 +24,7 @@ gunique <- function(x, g = NULL, sort = FALSE, order = TRUE,
               return.groups = TRUE, call = FALSE,
               return.order = TRUE)
   }
-  vec_slice2(x, GRP_starts(g))
+  cheapr::sset(x, GRP_starts(g))
 }
 gduplicated <- function(x, g = NULL, order = TRUE, all = FALSE){
   # out_nms <- names(x)
@@ -82,7 +82,7 @@ gsort <- function(x, g = NULL, order = TRUE, use.g.names = TRUE){
   if (sorted){
     x
   } else {
-    vec_slice2(x, order)
+    cheapr::sset(x, order)
   }
 }
 gorder <- function(x, g = NULL, order = TRUE){

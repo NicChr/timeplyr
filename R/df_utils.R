@@ -219,9 +219,6 @@ new_df <- function(..., ..N = NULL, .recycle = FALSE){
   } else {
     row_names <- .set_row_names(..N)
   }
-  # if (is.null(attr(out, "names", TRUE))){
-  #   names(out) <- dot_nms(...)[cpp_list_which_not_null(list(...))]
-  # }
   attr(out, "names") <- as.character(attr(out, "names", TRUE))
   attr(out, "row.names") <- row_names
   class(out) <- "data.frame"

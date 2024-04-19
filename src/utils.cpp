@@ -1,6 +1,4 @@
 #include "timeplyr_cpp.h"
-#include <cpp11.hpp>
-#include <Rinternals.h>
 
 R_xlen_t cpp_vector_size(SEXP x){
   if (Rf_isFrame(x)){
@@ -393,6 +391,139 @@ SEXP cpp_bin(SEXP x, SEXP breaks, bool codes, bool right, bool include_lowest,
   }
   }
 }
+
+// SEXP cpp_right_open_bin(SEXP x, SEXP breaks, bool codes, bool include_highest, bool include_oob){
+//   int n = Rf_length(x);
+//   int lo;
+//   int hi;
+//   int nb = Rf_length(breaks);
+//   int nb1 = nb - 1;
+//   int cutpoint;
+//   switch(TYPEOF(x)){
+//   case INTSXP: {
+//     if (codes){
+//     SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
+//     Rf_protect(breaks = Rf_coerceVector(breaks, REALSXP));
+//     int *p_x = INTEGER(x);
+//     double *p_b = REAL(breaks);
+//     int *p_out = INTEGER(out);
+//     for (R_xlen_t i = 0; i < n; ++i) {
+//       p_out[i] = NA_INTEGER;
+//       // If not NA
+//       if (p_x[i] != NA_INTEGER) {
+//         lo = 0;
+//         hi = nb1;
+//         if ( (include_highest && !include_oob && p_x[i] == p_b[hi] ) || ( include_oob && p_x[i] > p_b[hi] ) ){
+//           p_out[i] = hi + 1;
+//         } else if (!(p_x[i] < p_b[lo] || p_x[i] > p_b[hi] ||
+//           (p_x[i] == p_b[hi] && !include_highest))){
+//           while (hi - lo >= 2) {
+//             cutpoint = (hi + lo)/2;
+//             if (p_x[i] > p_b[cutpoint] || (p_x[i] == p_b[cutpoint]))
+//               lo = cutpoint;
+//             else
+//               hi = cutpoint;
+//           }
+//           p_out[i] = lo + 1;
+//         }
+//       }
+//     }
+//     Rf_unprotect(2);
+//     return out;
+//   } else {
+//     SEXP out = Rf_protect(Rf_duplicate(x));
+//     Rf_protect(breaks = Rf_coerceVector(breaks, REALSXP));
+//     int *p_x = INTEGER(x);
+//     double *p_b = REAL(breaks);
+//     int *p_out = INTEGER(out);
+//     for (R_xlen_t i = 0; i < n; ++i) {
+//       p_out[i] = NA_INTEGER;
+//       // If not NA
+//       if (p_x[i] != NA_INTEGER) {
+//         lo = 0;
+//         hi = nb1;
+//         if ( (include_highest && !include_oob && p_x[i] == p_b[hi] ) || ( include_oob && p_x[i] > p_b[hi] ) ){
+//           p_out[i] = p_b[hi];
+//         } else if (!(p_x[i] < p_b[lo] || p_x[i] > p_b[hi] ||
+//           (p_x[i] == p_b[hi] && !include_highest))){
+//           while (hi - lo >= 2) {
+//             cutpoint = (hi + lo)/2;
+//             if (p_x[i] > p_b[cutpoint] || (p_x[i] == p_b[cutpoint]))
+//               lo = cutpoint;
+//             else
+//               hi = cutpoint;
+//           }
+//           p_out[i] = p_b[lo];
+//         }
+//       }
+//     }
+//     Rf_unprotect(2);
+//     return out;
+//   }
+//   }
+//   default: {
+//     if (codes){
+//     SEXP out = Rf_protect(Rf_allocVector(INTSXP, n));
+//     Rf_protect(breaks = Rf_coerceVector(breaks, REALSXP));
+//     double *p_x = REAL(x);
+//     double *p_b = REAL(breaks);
+//     int *p_out = INTEGER(out);
+//     for (R_xlen_t i = 0; i < n; ++i) {
+//       p_out[i] = NA_INTEGER;
+//       // If not NA
+//       if (p_x[i] == p_x[i]) {
+//         lo = 0;
+//         hi = nb1;
+//         if ( (include_highest && !include_oob && p_x[i] == p_b[hi] ) || ( include_oob && p_x[i] > p_b[hi] ) ){
+//           p_out[i] = hi + 1;
+//         } else if (!(p_x[i] < p_b[lo] || p_x[i] > p_b[hi] ||
+//           (p_x[i] == p_b[hi] && !include_highest))){
+//           while (hi - lo >= 2) {
+//             cutpoint = (hi + lo)/2;
+//             if (p_x[i] > p_b[cutpoint] || (p_x[i] == p_b[cutpoint]))
+//               lo = cutpoint;
+//             else
+//               hi = cutpoint;
+//           }
+//           p_out[i] = lo + 1;
+//         }
+//       }
+//     }
+//     Rf_unprotect(2);
+//     return out;
+//   } else {
+//     SEXP out = Rf_protect(Rf_duplicate(x));
+//     Rf_protect(breaks = Rf_coerceVector(breaks, REALSXP));
+//     double *p_x = REAL(x);
+//     double *p_b = REAL(breaks);
+//     double *p_out = REAL(out);
+//     for (R_xlen_t i = 0; i < n; ++i) {
+//       p_out[i] = NA_REAL;
+//       // If not NA
+//       if (p_x[i] == p_x[i]) {
+//         lo = 0;
+//         hi = nb1;
+//         if ( (include_highest && !include_oob && p_x[i] == p_b[hi] ) || ( include_oob && p_x[i] > p_b[hi] ) ){
+//           p_out[i] = p_b[hi];
+//         } else if (!(p_x[i] < p_b[lo] || p_x[i] > p_b[hi] ||
+//           (p_x[i] == p_b[hi] && !include_highest))){
+//           while (hi - lo >= 2) {
+//             cutpoint = (hi + lo)/2;
+//             if (p_x[i] > p_b[cutpoint] || (p_x[i] == p_b[cutpoint]))
+//               lo = cutpoint;
+//             else
+//               hi = cutpoint;
+//           }
+//           p_out[i] = p_b[lo];
+//         }
+//       }
+//     }
+//     Rf_unprotect(2);
+//     return out;
+//   }
+//   }
+//   }
+// }
 
 // This takes 2 lists, x containing a numeric vector
 // And y containing the sorted breaks

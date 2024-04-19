@@ -129,9 +129,6 @@ time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
     from <- time_floor2(from, time_by, week_start = week_start)
   }
   seq_sizes <- time_seq_sizes(from, to, time_by, time_type = time_type)
-  # if (collapse::allNA(seq_sizes)){
-  #   return(rep_len(na_init(x), length(from)))
-  # }
   out <- time_seq_v2(seq_sizes,
                      from = from,
                      time_by = time_by,
@@ -213,9 +210,7 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
                               roll_dst = roll_dst)
   x <- time_cast(x, time_breaks)
   to <- time_cast(to, x)
-  # Cut time
-  time_bins <- c(unclass(time_breaks), unclass(to))
-  out <- cut_time(x, breaks = time_bins, codes = FALSE)
+  out <- cut_time(x, breaks = c(unclass(time_breaks), unclass(to)), codes = FALSE)
   if (unique){
     out <- collapse::funique(out, sort = sort)
   }
@@ -229,34 +224,6 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
                             roll_dst = roll_dst)
   }
   out
-  # if (include_interval){
-  #   time_break_ind <- cut_time(x, breaks = time_bins, codes = TRUE)
-  #   # Time breaks subset on cut indices
-  #   out <- time_breaks[time_break_ind]
-  #   time_int <- tseq_interval(x = to, time_breaks)
-  #   time_int <- time_int[time_break_ind]
-  #   out <- new_tbl(x = out, interval = time_int)
-  #   # Unique and sorting
-  #   if (unique){
-  #     out <- fdistinct(out, .cols = "x", .keep_all = TRUE, sort = sort)
-  #   }
-  #   if (sort && !unique){
-  #     out <- farrange(out, .cols = "x")
-  #   }
-  #   if (!is_interval(time_int)){
-  #     attr(out[["interval"]], "start") <- out[["x"]]
-  #   }
-  # } else {
-  #   out <- cut_time(x, breaks = time_bins, codes = FALSE)
-  #   if (unique){
-  #     out <- collapse::funique(out, sort = sort)
-  #   } else {
-  #     if (sort){
-  #       out <- radix_sort(out)
-  #     }
-  #   }
-  # }
-  # out
 }
 #' @rdname time_core
 #' @export
@@ -292,9 +259,7 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
   to <- time_cast(to, x)
   out_len <- length(x)
   # Aggregate time/cut time
-  time_break_ind <- cut_time(x, breaks = c(time_breaks, to), codes = TRUE)
-  # Time breaks subset on cut indices
-  x <- time_breaks[time_break_ind]
+  x <- cut_time(x, breaks = c(unclass(time_breaks), unclass(to)), codes = FALSE)
   # Counts
   out <- group_sizes(x, expand = TRUE)
   # (Optionally) complete time data
@@ -319,39 +284,6 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
                                    roll_dst = roll_dst)
   }
   out
-  # if (include_interval){
-  #   time_seq_int <- tseq_interval(x = to, time_breaks)
-  #   time_int <- time_seq_int[time_break_ind]
-  #   if (complete && length(time_missed) > 0L){
-  #     time_int <- c(time_int, time_seq_int[which_(attr(time_seq_int, "start") %in%
-  #                                                      time_cast(time_missed, attr(time_seq_int, "start")))])
-  #   }
-  #   out <- new_tbl(x = x, interval = time_int, n = out)
-  #   if (unique){
-  #     out <- fdistinct(out, .cols = "x", .keep_all = TRUE, sort = sort)
-  #   }
-  #   if (sort && !unique){
-  #     out <- farrange(out, .cols = "x")
-  #   }
-  #   if (!is_interval(out[["interval"]])){
-  #     attr(out[["interval"]], "start") <- out[["x"]]
-  #   }
-  # } else {
-  #   if (unique || sort){
-  #     dt <- new_dt(x = x, n = out, .copy = TRUE)
-  #     if (unique){
-  #       dt <- collapse::funique(dt, cols = "x", sort = FALSE)
-  #     }
-  #     if (sort){
-  #       setorderv2(dt, cols = "x")
-  #     }
-  #     out <- df_as_tbl(dt)
-  #   }
-  # }
-  # if (!is_df(out)){
-  #   out <- new_tbl(x = x, n = out)
-  # }
-  # out
 }
 #' @rdname time_core
 #' @export

@@ -87,16 +87,6 @@ fselect.grouped_df <- function(data, ..., .cols = NULL){
   # class(out) <- c("grouped_df", "tbl_df", "tbl", "data.frame")
   out
 }
-# fselect.time_tbl_df <- function(data, ..., .cols = NULL){
-#   out <- data
-#   class(out) <- c("grouped_df", "tbl_df", "tbl", "data.frame")
-#   out <- fselect(out, ..., .cols = .cols)
-#   attr(out, "time_by") <- attr(data, "time_by")
-#   attr(out, "time") <- attr(data, "time")
-#   attr(out, "time_span") <- attr(data, "time_span")
-#   class(out) <- class(data)
-#   out
-# }
 #' @export
 fselect.data.table <- function(data, ..., .cols = NULL){
   pos <- tidy_select_pos(data, ..., .cols = .cols)

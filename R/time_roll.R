@@ -270,9 +270,6 @@ time_roll_mean <- function(x, window = Inf,
                            ...){
   check_is_time_or_num(time)
   check_time_not_missing(time)
-  # if (length(lag) != 1L){
-  #   stop("lag must be of length 1")
-  # }
   window <- time_by_get(time, time_by = window)
   time_num <- time_by_num(window)
   time_unit <- time_by_unit(window)
@@ -332,11 +329,6 @@ time_roll_mean <- function(x, window = Inf,
                                  codes = TRUE)
   adj_window[cheapr::which_na(adj_window)] <- 0L
   final_window <- naive_window - adj_window
-  # if (lag != 0){
-  #   x <- flag2(x, n = lag, g = sorted_g)
-  #   final_window <- flag2(final_window, n = lag, g = sorted_g)
-  #   weights <- flag2(weights, n = lag, g = sorted_g)
-  # }
   out <- frollmean3(x, n = final_window,
                     weights = weights,
                     adaptive = TRUE, align = "right",
@@ -414,8 +406,6 @@ time_roll_growth_rate <- function(x, window = Inf,
     sorted_g <- sorted_group_id_to_GRP(group_id,
                                        n_groups = n_groups,
                                        group_sizes = group_sizes)
-                                       # groups = GRP_groups(g),
-                                       # group.vars = GRP_group_vars(g))
   } else {
     sorted_g <- NULL
   }
@@ -641,7 +631,7 @@ time_roll_apply <- function(x, window = Inf, fun,
     out[[i]] <- fun(x[seq_len(.subset(sizes, i)) + (i - .subset(sizes, i))])
   }
   if (!partial){
-    which_zero <- collapse::whichv(sizes, 0L)
+    which_zero <- which_val(sizes, 0L)
     if (length(which_zero) > 0L){
       ptype <- out[[1L]][0L]
     }
@@ -658,35 +648,7 @@ time_roll_apply <- function(x, window = Inf, fun,
   if (unlist){
     out <- unlist(out, use.names = FALSE, recursive = FALSE)
   }
-  # out <- glast(out, g = group_id)
   out
-  # time_windows <- time_roll_window(x, window = window,
-  #                                  time = time,
-  #                                  g = g,
-  #                                  partial = partial,
-  #                                  close_left_boundary = close_left_boundary,
-  #                                  time_type = time_type,
-  #                                  roll_month = roll_month,
-  #                                  roll_dst = roll_dst)
-  # out <- lapply(time_windows, fun)
-  # if (!partial){
-  #   window_sizes <- collapse::vlengths(out, use.names = FALSE)
-  #   which_zero <- collapse::whichv(window_sizes, 0L)
-  #   if (length(which_zero) > 0L){
-  #     na_ptype <- out[[1L]][NA_integer_]
-  #   }
-  #   for (i in which_zero){
-  #     out[[i]] <- na_ptype
-  #   }
-  # }
-  # out <- vctrs::list_unchop(out)
-  # if (is.null(g)){
-  #   group_id <- group_id(time)
-  # } else {
-  #   group_id <- group_id(list(group_id(g), time))
-  # }
-  # out <- glast(out, g = group_id)
-  # out
 }
 
 # Rolling join 2nd version (latest working version)

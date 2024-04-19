@@ -1,6 +1,4 @@
 #include "timeplyr_cpp.h"
-#include <cpp11.hpp>
-#include <Rinternals.h>
 
 // Returns true if all numbers are whole numbers
 // otherwise false

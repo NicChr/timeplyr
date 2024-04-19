@@ -206,49 +206,7 @@ add_count_simple <- function(data, ..., wt = NULL, sort = FALSE,
   }
   df_reconstruct(out, data)
 }
-# Simpler variant (not as fast)
-# fcount2 <- function(data, ..., wt = NULL, sort = FALSE,
-#                     order = df_group_by_order_default(data),
-#                    name = NULL, .by = NULL, .cols = NULL){
-#   out <- fgroup_by(data, ..., .add = TRUE,
-#                    order = order, .cols = .cols,
-#                    .by = {{ .by }})
-#   if (!rlang::quo_is_null(enquo(wt))){
-#     out_info <- mutate_summary_ungrouped(out, !!enquo(wt))
-#     wt_var <- out_info[["cols"]]
-#     out <- df_add_cols(out, add_names(list(out_info[["data"]][[wt_var]]), wt_var))
-#   } else {
-#     wt_var <- character()
-#   }
-#   if (is.null(name)){
-#     name <- new_n_var_nm(out)
-#   }
-#   out <- df_count(out, wt = wt_var, name = name)
-#   if (sort){
-#     out <- farrange(out, desc(.data[[name]]))
-#   }
-#   df_reconstruct(out, data)
-# }
-# fcount3 <- function(data, ..., wt = NULL, sort = FALSE, order = TRUE,
-#                     name = NULL, .by = NULL, .cols = NULL){
-#   if (!rlang::quo_is_null(enquo(wt))){
-#     out_info <- mutate_summary_ungrouped(out, !!enquo(wt))
-#     wt_var <- out_info[["cols"]]
-#     out <- df_add_cols(out, add_names(list(out_info[["data"]][[wt_var]]), wt_var))
-#   } else {
-#     wt_var <- character()
-#     out <- group_collapse(data, ..., size = TRUE,
-#                           start = FALSE, end = FALSE,
-#                           loc = FALSE, sort = TRUE,
-#                           id = FALSE, order = order,
-#                           .cols = .cols, .by = {{ .by }})
-#   }
-#   if (is.null(name)){
-#     name <- new_n_var_nm(out)
-#   }
-#   out <- frename(out, .cols = add_names(".size", name))
-#   df_reconstruct(out, data)
-# }
+
 #' @rdname fcount
 #' @export
 fadd_count <- function(data, ..., wt = NULL, sort = FALSE,

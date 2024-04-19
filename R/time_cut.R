@@ -141,9 +141,6 @@ time_cut <- function(x, n = 5, time_by = NULL,
                      roll_month = getOption("timeplyr.roll_month", "preday"),
                      roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                      as_interval = getOption("timeplyr.use_intervals", FALSE)){
-  # if (as_interval && as_factor){
-  #   stop("Choose either as_interval or as_factor, not both")
-  # }
   if (is.null(to)){
     to <- collapse::fmax(x, na.rm = TRUE)
   }
@@ -157,9 +154,13 @@ time_cut <- function(x, n = 5, time_by = NULL,
   time_breaks <- breaks_list[["breaks"]]
   x <- time_cast(x, time_breaks)
   to <- time_cast(to, x)
-  out <- cut_time(x,
-                  breaks = c(unclass(time_breaks), unclass(to)),
-                  codes = FALSE)
+  out <- cut_time(time_cast(x, time_breaks), breaks = c(unclass(time_breaks), unclass(to)), codes = FALSE)
+  if (as_interval){
+    out <- time_by_interval(out, time_by = breaks_list[["time_by"]],
+                            time_type = time_type,
+                            roll_month = roll_month, roll_dst = roll_dst)
+  }
+  out
   # out <- cut_time(x,
   #                 breaks = c(unclass(time_breaks), unclass(to)),
   #                 codes = as_factor)
@@ -189,12 +190,6 @@ time_cut <- function(x, n = 5, time_by = NULL,
   #                           time_type = time_type,
   #                           roll_month = roll_month, roll_dst = roll_dst)
   # }
-  if (as_interval){
-    out <- time_by_interval(out, time_by = breaks_list[["time_by"]],
-                            time_type = time_type,
-                            roll_month = roll_month, roll_dst = roll_dst)
-  }
-  out
 }
 #' @rdname time_cut
 #' @export

@@ -95,7 +95,7 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
             call = FALSE,
             .drop = .drop)
   # starts <- GRP_starts(g)
-  # out <- vec_slice3(data, starts)
+  # out <- cheapr::sset(data, starts)
   # if (!is.list(data)){
   #   out <- new_df(x = out)
   # } else {

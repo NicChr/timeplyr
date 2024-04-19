@@ -1,6 +1,4 @@
 #include "timeplyr_cpp.h"
-#include <cpp11.hpp>
-#include <Rinternals.h>
 
 // Row numbers by group using order of groups and group sizes
 [[cpp11::register]]

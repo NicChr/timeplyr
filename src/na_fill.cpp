@@ -1,6 +1,4 @@
 #include "timeplyr_cpp.h"
-#include <cpp11.hpp>
-#include <Rinternals.h>
 
 // bool r_is_sorted(SEXP x) {
 //     cpp11::function r_is_unsorted = cpp11::package("base")["is.unsorted"];

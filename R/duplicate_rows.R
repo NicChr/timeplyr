@@ -123,68 +123,68 @@ duplicate_rows <- function(data, ..., .keep_all = FALSE,
   }
   df_reconstruct(out, data)
 }
-fduplicates2 <- function(data, ..., .keep_all = FALSE,
-                         .both_ways = FALSE, .add_count = FALSE,
-                         .drop_empty = FALSE, .by = NULL){
-  n_dots <- dots_length(...)
-  out <- safe_ungroup(data)
-  if (n_dots > 0){
-    out <- out %>%
-      dplyr::mutate(...)
-  }
-  group_info <- get_group_info(data, ...,
-                               type = "data-mask",
-                               .by = {{ .by }})
-  group_vars <- group_info[["dplyr_groups"]]
-  extra_groups <- group_info[["extra_groups"]]
-  all_groups <- group_info[["all_groups"]]
-  if (n_dots == 0){
-    dup_vars <- names(out)
-    out_vars <- dup_vars
-  } else {
-    dup_vars <- all_groups
-    if (.keep_all){
-      out_vars <- names(out)
-    } else {
-      out_vars <- dup_vars
-    }
-  }
-  dup_vars <- setdiff(dup_vars, group_vars)
-  # Group ID
-  grp_nm <- new_var_nm(names(out), ".group.id")
-  # Row ID (per group)
-  id_nm <- new_var_nm(names(out), ".id")
-  out <- out %>%
-    dplyr::select(all_of(out_vars)) %>%
-    dplyr::group_by(across(all_of(group_vars))) %>%
-    dplyr::mutate(!!grp_nm := dplyr::cur_group_id()) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(!!id_nm := dplyr::row_number(),
-                  .by = dplyr::all_of(grp_nm))
-  if (.add_count){
-    n_var <- new_n_var_nm(names(out))
-    out <- dplyr::add_count(out, across(all_of(c(grp_nm, dup_vars))), name = n_var)
-    out_vars <- c(out_vars, n_var)
-  }
-  # data with ID and dup cols
-  df_unique <- out %>%
-    dplyr::distinct(across(all_of(c(grp_nm, dup_vars))),
-                    .keep_all = TRUE)
-  # Duplicate rows
-  out2 <- out %>%
-    dplyr::anti_join(df_unique, by = c(grp_nm, id_nm))
-  # Remove empty rows (rows with all NA values)
-  if (.drop_empty){
-    out2 <- dplyr_drop_empty(out2, .cols = all_of(dup_vars))
-  }
-  # Keep duplicates including first instance of duplicated rows
-  if (.both_ways){
-    out2 <- dplyr::semi_join(out,
-                             dplyr::select(out2,
-                                           all_of(c(grp_nm, dup_vars))),
-                             by = c(grp_nm, dup_vars))
-  }
-  out2[[grp_nm]] <- NULL
-  out2[[id_nm]] <- NULL
-  df_reconstruct(out2, data)
-}
+# fduplicates2 <- function(data, ..., .keep_all = FALSE,
+#                          .both_ways = FALSE, .add_count = FALSE,
+#                          .drop_empty = FALSE, .by = NULL){
+#   n_dots <- dots_length(...)
+#   out <- safe_ungroup(data)
+#   if (n_dots > 0){
+#     out <- out %>%
+#       dplyr::mutate(...)
+#   }
+#   group_info <- get_group_info(data, ...,
+#                                type = "data-mask",
+#                                .by = {{ .by }})
+#   group_vars <- group_info[["dplyr_groups"]]
+#   extra_groups <- group_info[["extra_groups"]]
+#   all_groups <- group_info[["all_groups"]]
+#   if (n_dots == 0){
+#     dup_vars <- names(out)
+#     out_vars <- dup_vars
+#   } else {
+#     dup_vars <- all_groups
+#     if (.keep_all){
+#       out_vars <- names(out)
+#     } else {
+#       out_vars <- dup_vars
+#     }
+#   }
+#   dup_vars <- setdiff(dup_vars, group_vars)
+#   # Group ID
+#   grp_nm <- new_var_nm(names(out), ".group.id")
+#   # Row ID (per group)
+#   id_nm <- new_var_nm(names(out), ".id")
+#   out <- out %>%
+#     dplyr::select(all_of(out_vars)) %>%
+#     dplyr::group_by(across(all_of(group_vars))) %>%
+#     dplyr::mutate(!!grp_nm := dplyr::cur_group_id()) %>%
+#     dplyr::ungroup() %>%
+#     dplyr::mutate(!!id_nm := dplyr::row_number(),
+#                   .by = dplyr::all_of(grp_nm))
+#   if (.add_count){
+#     n_var <- new_n_var_nm(names(out))
+#     out <- dplyr::add_count(out, across(all_of(c(grp_nm, dup_vars))), name = n_var)
+#     out_vars <- c(out_vars, n_var)
+#   }
+#   # data with ID and dup cols
+#   df_unique <- out %>%
+#     dplyr::distinct(across(all_of(c(grp_nm, dup_vars))),
+#                     .keep_all = TRUE)
+#   # Duplicate rows
+#   out2 <- out %>%
+#     dplyr::anti_join(df_unique, by = c(grp_nm, id_nm))
+#   # Remove empty rows (rows with all NA values)
+#   if (.drop_empty){
+#     out2 <- dplyr_drop_empty(out2, .cols = all_of(dup_vars))
+#   }
+#   # Keep duplicates including first instance of duplicated rows
+#   if (.both_ways){
+#     out2 <- dplyr::semi_join(out,
+#                              dplyr::select(out2,
+#                                            all_of(c(grp_nm, dup_vars))),
+#                              by = c(grp_nm, dup_vars))
+#   }
+#   out2[[grp_nm]] <- NULL
+#   out2[[id_nm]] <- NULL
+#   df_reconstruct(out2, data)
+# }

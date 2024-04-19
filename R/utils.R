@@ -555,33 +555,14 @@ new_var_nm <- function(data, check = ".group.id"){
   }
   return(check)
 }
-# Recycle arguments
-recycle <- function (..., length = NULL, use.names = FALSE){
-  out <- list3(...)
-  lens <- cheapr::lengths_(out)
-  uniq_lens <- collapse::fnunique(lens)
-  if (is.null(length)) {
-    if (length(lens)){
-      recycle_length <- max(lens)
-    } else {
-      recycle_length <- 0L
-    }
-  } else {
-    recycle_length <- length
-  }
-  recycle_length <- recycle_length * (!collapse::anyv(lens, 0L))
-  recycle <- which_(lens != recycle_length)
-  out[recycle] <- lapply(out[recycle], function(x) rep_len(x, recycle_length))
-  if (use.names){
-    names(out) <- dot_nms(...)
-  }
-  out
-}
 set_recycle_args <- function(..., length = NULL, use.names = TRUE){
   if (identical(base::parent.frame(n = 1), base::globalenv())){
     stop("Users cannot use set_recycle_args from the global environment")
   }
-  recycled_list <- recycle(..., length = length, use.names = use.names)
+  recycled_list <- recycle(..., length = length)
+  if (use.names){
+    names(recycled_list) <- dot_nms(...)
+  }
   out_nms <- names(recycled_list)
   for (i in seq_along(recycled_list)){
     assign(out_nms[i], recycled_list[[i]], envir = parent.frame(n = 1))
@@ -597,7 +578,6 @@ radix_order <- function(x, na.last = TRUE, ...){
 }
 # Wrapper around order() to use radix sort
 radix_sort <- function(x, na.last = TRUE, ...){
-  # sort(x, na.last = na.last, ..., method = "radix")
   x[radix_order(x, na.last = na.last, ...)]
 }
 # Creates a sequence of ones.
@@ -616,11 +596,6 @@ sample2 <- function(x, size = length(x), replace = FALSE, prob = NULL){
   x[sample.int(length(x), size = size, replace = replace, prob = prob)]
 }
 
-# double_equal <- cppdoubles::double_equal
-# double_gte <- cppdoubles::double_gte
-# double_lte <- cppdoubles::double_lte
-# double_gt <- cppdoubles::double_gt
-# double_lt <- cppdoubles::double_lt
 fcumsum <- get_from_package("fcumsum", "collapse")
 # set <- get_from_package("set", "data.table")
 fsum <- get_from_package("fsum", "collapse")
@@ -642,32 +617,12 @@ are_whole_numbers <- function(x){
   abs(x - round(x)) < sqrt(.Machine$double.eps)
 }
 # Unique number from positive numbers
-pair_unique <- function(x, y){
-  ( ( (x + y + 1) * (x + y) ) / 2 ) + x
-}
-vec_slice2 <- function(x, i){
-  if (is_df(x)){
-    return(df_row_slice(x, i))
-  }
-  if (is_interval(x)){
-    if (is.logical(i)){
-      i <- which(i)
-    }
-    vctrs::vec_slice(x, i)
-  } else {
-    collapse::ss(x, i)
-  }
-}
-vec_slice3 <- function(x, i){
-  if (is.logical(i)){
-    i <- which_(i)
-  }
-  if (is_df(x)){
-    df_row_slice(x, i)
-  } else {
-    x[i]
-  }
-}
+# This was originally conceptualised as a way of turning the duration part of
+# lubridate intervals
+# into unique data points
+# pair_unique <- function(x, y){
+#   ( ( (x + y + 1) * (x + y) ) / 2 ) + x
+# }
 # Vctrs version of utils::head/tail
 vec_head <- function(x, n = 1L){
   check_length(n, 1L)
@@ -698,17 +653,6 @@ vec_length <- cpp_r_vector_size
 # Returns the width or ncol (if list or df)
 vec_width <- cpp_vector_width
 
-# Taken from utils package
-getFromNamespace <- function(x, ns, pos = -1, envir = as.environment(pos)){
-  if (missing(ns)) {
-    nm <- attr(envir, "name", exact = TRUE)
-    if (is.null(nm) || !startsWith(nm, "package:"))
-      stop("environment specified is not a package")
-    ns <- asNamespace(substring(nm, 9L))
-  }
-  else ns <- asNamespace(ns)
-  get(x, envir = ns, inherits = FALSE)
-}
 packageName <- function (env = parent.frame()){
   if (!is.environment(env))
     stop("'env' must be an environment")
@@ -1288,14 +1232,6 @@ list_subset <- function(x, i, default = NA, copy_attributes = FALSE){
   out
 }
 
-# Very fast and memory efficient setdiff and intersect
-fsetdiff <- function(x, y){
-  vec_slice3(x, which_not_in(x, y))
-}
-fintersect <- function(x, y){
-  vec_slice3(x, which_in(x, y))
-}
-
 # Apply a function using a LOCAL seed
 # This has the nice property that the seed that was previously
 # set is NOT interrupted
@@ -1324,6 +1260,8 @@ gcd_diff <- function(x){
 which_ <- cheapr::which_
 which_in <- get_from_package("which_in", "cheapr")
 which_not_in <- get_from_package("which_not_in", "cheapr")
+which_val <- get_from_package("which_val", "cheapr")
+recycle <- get_from_package("recycle", "cheapr")
 na_count <- function(x){
   cheapr::num_na(x, recursive = FALSE)
 }
