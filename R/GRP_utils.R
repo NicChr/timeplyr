@@ -352,16 +352,29 @@ GRP_order <- function(GRP){
 #   }
 #   out
 # }
-# Making this because of a bug when gsplit(NULL, GRP(x, sort = FALSE))
+
+# Alternative to gsplit(NULL, g)
 GRP_loc <- function(GRP, use.g.names = FALSE){
-  if (length(GRP_group_id(GRP)) == 0L){
-    if (use.g.names){
-      add_names(list(), character(0))
-    } else {
-      list()
-    }
+  if (!is.null(GRP[["order"]])){
+    out <- cpp_group_locs(GRP[["order"]], GRP[["group.sizes"]])
   } else {
-    collapse::gsplit(NULL, g = GRP, use.g.names = use.g.names)
+    o <- collapse::radixorderv(GRP_group_id(GRP), group.sizes = TRUE)
+    out <- cpp_group_locs(o, GRP[["group.sizes"]])
+    # Usual collapse way below
+    # collapse::gsplit(NULL, g = GRP, use.g.names = use.g.names)
+  }
+  if (use.g.names){
+    names(out) <- GRP_names(GRP)
+  }
+  out
+}
+
+group_locs <- function(x){
+  if (is_GRP(x)){
+   GRP_loc(x)
+  } else {
+   o <- radixorderv2(x, group.sizes = TRUE, starts = FALSE, sort = TRUE)
+   cpp_group_locs(o, attr(o, "group.sizes"))
   }
 }
 # GRP starts & ends from list of group locations

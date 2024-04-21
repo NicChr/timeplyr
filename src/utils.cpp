@@ -847,57 +847,32 @@ SEXP cpp_which_first_gap(SEXP x, int increment, bool left_to_right) {
   }
 }
 
-// By-reference alternative to x <- ...
-// SEXP cpp_set_replace(SEXP x, SEXP with){
-//   R_xlen_t xn = Rf_xlength(x);
-//   R_xlen_t withn = Rf_xlength(with);
-//   if (xn != withn){
-//     Rf_error("length(x) must be equal to length(with) in cpp_set_replace");
-//   }
-//   SEXP x2 = Rf_protect(x);
-//   switch( TYPEOF(x) ) {
-//   case LGLSXP: {
-//     SEXP with2 = Rf_protect(Rf_coerceVector(with, LGLSXP));
-//     int *p_x = LOGICAL(x2);
-//     int *p_with = LOGICAL(with2);
-//     for (R_xlen_t i = 0; i < xn; ++i){
-//       p_x[i] = p_with[i];
-//     }
-//     Rf_unprotect(2);
-//     return x;
-//   }
-//   case INTSXP: {
-//     SEXP with2 = Rf_protect(Rf_coerceVector(with, INTSXP));
-//     int *p_x = INTEGER(x2);
-//     int *p_with = INTEGER(with2);
-//     for (R_xlen_t i = 0; i < xn; ++i){
-//       p_x[i] = p_with[i];
-//     }
-//     Rf_unprotect(2);
-//     return x;
-//   }
-//   case REALSXP: {
-//     SEXP with2 = Rf_protect(Rf_coerceVector(with, REALSXP));
-//     double *p_x = REAL(x2);
-//     double *p_with = REAL(with2);
-//     for (R_xlen_t i = 0; i < xn; ++i){
-//       p_x[i] = p_with[i];
-//     }
-//     Rf_unprotect(2);
-//     return x;
-//   }
-//   case STRSXP: {
-//     SEXP with2 = Rf_protect(Rf_coerceVector(with, STRSXP));
-//     SEXP *p_with = STRING_PTR(with2);
-//     for (R_xlen_t i = 0; i < xn; ++i){
-//       SET_STRING_ELT(x2, i, p_with[i]);
-//     }
-//     Rf_unprotect(2);
-//     return x;
-//   }
-//   default: {
-//     Rf_unprotect(1);
-//     Rf_error("%s cannot handle an object of type %s", __func__, Rf_type2char(TYPEOF(x)));
-//   }
-//   }
-// }
+// Very fast placement of group locations into a list with each element as a separate group
+
+[[cpp11::register]]
+SEXP cpp_group_locs(SEXP order, SEXP group_sizes){
+  unsigned int n = Rf_length(order);
+  unsigned int n_groups = Rf_length(group_sizes);
+  int *p_o = INTEGER(order);
+  int *p_gs = INTEGER(group_sizes);
+  SEXP out = Rf_protect(Rf_allocVector(VECSXP, n_groups));
+  unsigned int k = 0;
+  for (unsigned int i = 0; i < n_groups; ++i){
+    unsigned int group_size = p_gs[i];
+    if ( (k + group_size) > n){
+      Rf_unprotect(1);
+      Rf_error("group sizes must sum to length(order)");
+    }
+    SEXP group_loc = Rf_protect(Rf_allocVector(INTSXP, group_size));
+    int* __restrict__ p_loc = INTEGER(group_loc);
+    memcpy(p_loc, &p_o[k], sizeof(*p_loc) * group_size);
+    k += group_size;
+    // for (unsigned int j = 0; j < group_size; ++j){
+    //   p_loc[j] = p_o[k++];
+    // }
+    SET_VECTOR_ELT(out, i, group_loc);
+    Rf_unprotect(1);
+  }
+  Rf_unprotect(1);
+  return out;
+}

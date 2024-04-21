@@ -102,7 +102,6 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
   #   out <- list_as_df(as.list(out))
   # }
   out <- list_as_df(as.list(GRP_groups(g)))
-  # out <- collapse::qDT(as.list(GRP_groups(g)))
   if (id){
     out[[".group"]] <- df_seq_along(out)
     # set_add_cols(out, list(.group = df_seq_along(out)))
@@ -111,29 +110,20 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
   if (include_loc){
     GRP_loc <- GRP_loc(g)
     out[[".loc"]] <- vctrs_new_list_of(GRP_loc, integer())
-    # set_add_cols(out, list(.loc = structure(GRP_loc,
-    #                                         ptype = integer(),
-    #                                         class = c("vctrs_list_of",
-    #                                                   "vctrs_vctr",
-    #                                                   "list"))))
   } else {
     GRP_loc <- NULL
   }
   if (start){
     out[[".start"]] <- GRP_starts(g)
-    # set_add_cols(out, list(.start = GRP_starts(g, loc = GRP_loc)))
   }
   if (end){
     out[[".end"]] <- GRP_ends(g, loc = GRP_loc)
-    # set_add_cols(out, list(.end = GRP_ends(g, loc = GRP_loc)))
   }
   if (!loc && include_loc){
     out[[".loc"]] <- NULL
-    # set_rm_cols(out, ".loc")
   }
   if (size){
     out[[".size"]] <- GRP_group_sizes(g)
-    # set_add_cols(out, list(.size = GRP_group_sizes(g)))
   }
   if (!sort && order){
     unsorted_i <- collapse::funique(GRP_group_id(g), sort = FALSE)
@@ -146,7 +136,7 @@ group_collapse.default <- function(data, ..., order = TRUE, sort = FALSE,
                                 c(".group", ".loc", ".start", ".end", ".size")]
     group_out <- fselect(out, .cols = group_names)
     is_factor <- vapply(group_out, is.factor, FALSE, USE.NAMES = FALSE)
-    non_factors <- fselect(group_out, .cols = which_(is_factor, invert = TRUE))
+    non_factors <- fselect(group_out, .cols = cheapr::which_(is_factor, invert = TRUE))
     if (any(is_factor)){
       factors <- fselect(group_out, .cols = which_(is_factor))
       group_data_size <- prod(

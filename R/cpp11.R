@@ -115,3 +115,7 @@ cpp_consecutive_na_id <- function(x, left_to_right) {
 cpp_which_first_gap <- function(x, increment, left_to_right) {
   .Call(`_timeplyr_cpp_which_first_gap`, x, increment, left_to_right)
 }
+
+cpp_group_locs <- function(order, group_sizes) {
+  .Call(`_timeplyr_cpp_group_locs`, order, group_sizes)
+}

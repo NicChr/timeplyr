@@ -208,6 +208,13 @@ extern "C" SEXP _timeplyr_cpp_which_first_gap(SEXP x, SEXP increment, SEXP left_
     return cpp11::as_sexp(cpp_which_first_gap(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<int>>(increment), cpp11::as_cpp<cpp11::decay_t<bool>>(left_to_right)));
   END_CPP11
 }
+// utils.cpp
+SEXP cpp_group_locs(SEXP order, SEXP group_sizes);
+extern "C" SEXP _timeplyr_cpp_group_locs(SEXP order, SEXP group_sizes) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_group_locs(cpp11::as_cpp<cpp11::decay_t<SEXP>>(order), cpp11::as_cpp<cpp11::decay_t<SEXP>>(group_sizes)));
+  END_CPP11
+}
 
 extern "C" {
 static const R_CallMethodDef CallEntries[] = {
@@ -217,6 +224,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_consecutive_na_id",    (DL_FUNC) &_timeplyr_cpp_consecutive_na_id,    2},
     {"_timeplyr_cpp_copy",                 (DL_FUNC) &_timeplyr_cpp_copy,                 1},
     {"_timeplyr_cpp_df_group_indices",     (DL_FUNC) &_timeplyr_cpp_df_group_indices,     2},
+    {"_timeplyr_cpp_group_locs",           (DL_FUNC) &_timeplyr_cpp_group_locs,           2},
     {"_timeplyr_cpp_is_whole_num",         (DL_FUNC) &_timeplyr_cpp_is_whole_num,         3},
     {"_timeplyr_cpp_list_subset",          (DL_FUNC) &_timeplyr_cpp_list_subset,          4},
     {"_timeplyr_cpp_list_which_not_null",  (DL_FUNC) &_timeplyr_cpp_list_which_not_null,  1},
