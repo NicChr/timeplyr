@@ -114,6 +114,11 @@ duplicate_rows <- function(data, ..., .keep_all = FALSE,
   }
   which_dup <- GRP_which_duplicated(groups, all = .both_ways)
   out <- df_row_slice(out, which_dup)
+  # Alternate way of sorting the duplicate rows
+  # Must specify order = FALSE in df_to_GRP()
+  # if (sort){
+  #   out <- df_row_slice(out, order(GRP_group_id(groups)[which_dup]))
+  # }
   if (sort){
     out <- farrange(out, .cols = dup_vars)
   }

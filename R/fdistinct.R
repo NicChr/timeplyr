@@ -69,7 +69,7 @@ fdistinct <- function(data, ..., .keep_all = FALSE,
   out <- fselect(out, .cols = out_vars)
   # Using sort algorithm but returning order-of-first appearance groups
   if (order && !sort){
-    unique_locs <- which_(frowid(fselect(out, .cols = dup_vars)) == 1L)
+    unique_locs <- which_val(frowid(fselect(out, .cols = dup_vars)), 1L)
     slice <- !(length(unique_locs) == df_nrow(out) && is_sorted(unique_locs))
   } else {
     if (order && sort){
