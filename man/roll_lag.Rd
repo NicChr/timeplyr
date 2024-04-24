@@ -4,8 +4,6 @@
 \alias{roll_lag}
 \alias{roll_diff}
 \alias{lag_seq}
-\alias{lag_}
-\alias{lead_}
 \alias{diff_}
 \title{Fast rolling grouped lags and differences}
 \usage{
@@ -14,10 +12,6 @@ roll_lag(x, n = 1L, g = NULL, fill = NULL)
 roll_diff(x, n = 1L, g = NULL, fill = NULL)
 
 lag_seq(size, n = 1L, partial = FALSE)
-
-lag_(x, n = 1L, fill = NA)
-
-lead_(x, n = 1L, fill = NA)
 
 diff_(x, n = 1L, fill = NA)
 }

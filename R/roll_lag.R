@@ -183,16 +183,6 @@ lag_seq <- function(size, n = 1L, partial = FALSE){
 }
 #' @rdname roll_lag
 #' @export
-lag_ <- function(x, n = 1L, fill = NA){
-  .Call(`_timeplyr_cpp_roll_lag`, x, n, fill)
-}
-#' @rdname roll_lag
-#' @export
-lead_ <- function(x, n = 1L, fill = NA){
-  .Call(`_timeplyr_cpp_roll_lead`, x, n, fill)
-}
-#' @rdname roll_lag
-#' @export
 diff_ <- function(x, n = 1L, fill = NA){
   .Call(`_timeplyr_cpp_roll_diff`, x, n, fill)
 }
