@@ -315,6 +315,7 @@ time_episodes <- function(data, time, time_by = NULL,
   class(out) <- c("episodes_tbl_df", class(out))
   out
 }
+#' @exportS3Method pillar::tbl_sum
 tbl_sum.episodes_tbl_df <- function(x, ...){
   # TO-DO: Add avg events per episode
   groups_header <- character()

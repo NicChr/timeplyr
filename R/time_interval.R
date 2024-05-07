@@ -126,12 +126,15 @@ new_time_interval <- function(start, end){
   class(out) <- c("time_interval", "vctrs_rcrd", "vctrs_vctr")
   out
 }
+#' @exportS3Method base::as.data.frame
 as.data.frame.time_interval <- function(x, ...){
   list_as_df(x)
 }
+#' @exportS3Method base::as.list
 as.list.time_interval <- function(x, ...){
   unclass(x)
 }
+#' @export
 `+.time_interval` <- function(e1, e2){
   start <- interval_start(e1)
   end <- interval_end(e1)
@@ -139,6 +142,7 @@ as.list.time_interval <- function(x, ...){
   end <- time_add2(end, e2)
   new_time_interval(start, end)
 }
+#' @export
 `-.time_interval` <- function(e1, e2){
   time_by <- time_by_list(e2)
   time_by <- add_names(
@@ -152,21 +156,24 @@ as.list.time_interval <- function(x, ...){
   end <- time_add2(end, time_by)
   new_time_interval(start, end)
 }
+#' @export
 `/.time_interval` <- function(e1, e2){
   time_diff(interval_start(e1), interval_end(e1), time_by = e2)
 }
-
+#' @exportS3Method base::xtfrm
 xtfrm.time_interval <- function(x){
   group_id(x, order = TRUE)
 }
+#' @exportS3Method base::sort
 sort.time_interval <- function(x, ...){
   o <- radixorderv2(unclass(x), ...)
   x[o]
 }
+#' @exportS3Method base::duplicated
 duplicated.time_interval <- function(x, ...){
   collapse::fduplicated(unclass(x), ...)
 }
-
+#' @exportS3Method base::as.character
 as.character.time_interval <- function(x,
                                        interval_style = getOption("timeplyr.interval_style", "full"),
                                        interval_sub_formatter = getOption("timeplyr.interval_sub_formatter", identity),
@@ -202,6 +209,7 @@ as.character.time_interval <- function(x,
     end
   }
 }
+#' @exportS3Method base::format
 format.time_interval <- function(x,
                                  interval_style = getOption("timeplyr.interval_style", "full"),
                                  interval_sub_formatter = getOption("timeplyr.interval_sub_formatter", identity),
@@ -210,9 +218,12 @@ format.time_interval <- function(x,
                       interval_style = interval_style,
                       interval_sub_formatter = interval_sub_formatter), ...)
 }
+#' @exportS3Method vctrs::vec_ptype_abbr
 vec_ptype_abbr.time_interval <- function(x, ...) "tm_intv"
+#' @exportS3Method vctrs::vec_ptype_full
 vec_ptype_full.time_interval <- function(x, ...) "time_interval"
 
+#' @exportS3Method base::print
 print.time_interval <- function(x, max = NULL, ...){
   out <- x
   N <- length(out)
@@ -233,12 +244,15 @@ print.time_interval <- function(x, max = NULL, ...){
   cat(additional_msg)
   invisible(x)
 }
+#' @exportS3Method base::as.Date
 as.Date.time_interval <- function(x, ...){
   as.Date(interval_start(x), ...)
 }
+#' @exportS3Method base::as.POSIXct
 as.POSIXct.time_interval <- function(x, ...){
   as.POSIXct(interval_start(x), ...)
 }
+#' @exportS3Method base::as.POSIXlt
 as.POSIXlt.time_interval <- function(x, ...){
   as.POSIXlt(interval_start(x), ...)
 }

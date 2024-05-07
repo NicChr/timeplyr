@@ -217,6 +217,7 @@ time_by_units <- function(x){
 time_by_units.time_tbl_df <- function(x){
   attr(x, "time_by")
 }
+#' @exportS3Method pillar::tbl_sum
 tbl_sum.time_tbl_df <- function(x, ...){
   n_groups <- df_nrow(group_data(x))
   group_vars <- group_vars(x)

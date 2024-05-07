@@ -496,15 +496,19 @@ unique_name_repair <- function(x, .sep = "..."){
   x[which_dup] <- paste0(x[which_dup], .sep, col_seq[which_dup])
   x
 }
+#' @exportS3Method dplyr::dplyr_reconstruct
 dplyr_reconstruct.time_tbl_df <- function(data, template){
   df_reconstruct(data, template)
 }
+#' @exportS3Method dplyr::dplyr_reconstruct
 dplyr_reconstruct.episodes_tbl_df <- function(data, template){
   df_reconstruct(data, template)
 }
+#' @exportS3Method dplyr::dplyr_row_slice
 dplyr_row_slice.time_tbl_df <- function(data, i, ..., .preserve = FALSE){
   df_row_slice(data, i)
 }
+#' @exportS3Method dplyr::dplyr_row_slice
 dplyr_row_slice.episodes_tbl_df <- function(data, i, ..., .preserve = FALSE){
   df_row_slice(data, i)
 }

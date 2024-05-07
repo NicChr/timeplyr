@@ -865,7 +865,7 @@ SEXP cpp_group_locs(SEXP order, SEXP group_sizes){
     }
     SEXP group_loc = Rf_protect(Rf_allocVector(INTSXP, group_size));
     int* __restrict__ p_loc = INTEGER(group_loc);
-    memcpy(p_loc, &p_o[k], sizeof(*p_loc) * group_size);
+    memcpy(p_loc, &p_o[k], sizeof(int) * group_size);
     k += group_size;
     // for (unsigned int j = 0; j < group_size; ++j){
     //   p_loc[j] = p_o[k++];

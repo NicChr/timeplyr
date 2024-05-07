@@ -108,6 +108,7 @@ roll_lag.data.frame <- function(x, n = 1L, g = NULL, fill = NULL){
   }
   out
 }
+#' @export
 roll_lag.vctrs_rcrd <- function(x, n = 1L, g = NULL, fill = NULL){
   out <- unclass(
     roll_lag(
@@ -168,6 +169,7 @@ roll_diff.data.frame <- function(x, n = 1L, g = NULL, fill = NULL){
   }
   out
 }
+#' @export
 roll_diff.vctrs_rcrd <- function(x, n = 1L, g = NULL, fill = NULL){
   roll_diff(list_as_df(x), n = n, g = g, fill = fill)
 }

@@ -65,6 +65,7 @@ set_rm_cols <- function(DT, cols = NULL){
 set_add_cols <- function(DT, cols = NULL){
   data.table::set(DT, j = names(cols), value = cols)
 }
+#' @exportS3Method dplyr::dplyr_col_modify
 dplyr_col_modify.data.table <- function(data, cols){
   cols <- vctrs::vec_recycle_common(!!!cols, .size = df_nrow(data))
   out <- as.list(vctrs::vec_data(data))

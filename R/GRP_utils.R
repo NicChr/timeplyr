@@ -245,15 +245,20 @@ GRP_starts <- function(GRP, use.g.names = FALSE){
   if (is.null(out)){
     GRP_sizes <- GRP_group_sizes(GRP)
     if (GRP_is_sorted(GRP)){
-      out <- calc_sorted_group_starts(GRP_sizes)
+      sorted_starts <- attr(GRP[["order"]], "starts")
+      if (!is.null(sorted_starts)){
+        out <- sorted_starts
+      } else {
+        out <- calc_sorted_group_starts(GRP_sizes)
+      }
       # For factors with 0 size, replace calculated group starts with 0
-      out[which_(GRP_sizes == 0L)] <- 0L
+      out[which_val(GRP_sizes, 0L)] <- 0L
     } else {
       o <- GRP_order(GRP)
       starts <- attr(o, "starts")
       if (collapse::anyv(GRP_sizes, 0L)){
         out <- integer(GRP_n_groups(GRP))
-        out[which_(GRP_sizes == 0L, invert = TRUE)] <- o[starts]
+        out[which_val(GRP_sizes, 0L, invert = TRUE)] <- o[starts]
       } else {
         out <- o[starts]
       }
@@ -274,7 +279,7 @@ GRP_ends <- function(GRP, use.g.names = FALSE,
   if (GRP_is_sorted(GRP)){
     out <- calc_sorted_group_ends(GRP_sizes)
     # For factors with 0 size, replace 0 with NA
-    out[which_(GRP_sizes == 0L)] <- 0L
+    out[which_val(GRP_sizes, 0L)] <- 0L
   } else {
     if (is.null(loc)){
       loc <- GRP_loc(GRP, use.g.names = FALSE)
@@ -357,14 +362,19 @@ GRP_order <- function(GRP){
 GRP_loc <- function(GRP, use.g.names = FALSE){
   if (!is.null(GRP[["order"]])){
     out <- cpp_group_locs(GRP[["order"]], GRP[["group.sizes"]])
+    if (use.g.names){
+      names(out) <- GRP_names(GRP)
+    }
+  } else if (length(GRP_group_id(GRP)) == 0L){
+    if (use.g.names){
+      out <- add_names(list(), character(0))
+    } else {
+      out <- list()
+    }
   } else {
-    o <- collapse::radixorderv(GRP_group_id(GRP), group.sizes = TRUE)
-    out <- cpp_group_locs(o, GRP[["group.sizes"]])
-    # Usual collapse way below
-    # collapse::gsplit(NULL, g = GRP, use.g.names = use.g.names)
-  }
-  if (use.g.names){
-    names(out) <- GRP_names(GRP)
+    # o <- collapse::radixorderv(GRP_group_id(GRP), group.sizes = TRUE)
+    # out <- cpp_group_locs(o, GRP[["group.sizes"]])
+    out <- collapse::gsplit(NULL, g = GRP, use.g.names = use.g.names)
   }
   out
 }

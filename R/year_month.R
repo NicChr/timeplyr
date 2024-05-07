@@ -80,6 +80,7 @@ new_year_month <- function(x){
   class(x) <- "year_month"
   x
 }
+#' @export
 `[.year_month` <- function(x, ..., drop = TRUE){
   cl <- oldClass(x)
   class(x) <- NULL
@@ -87,6 +88,7 @@ new_year_month <- function(x){
   class(val) <- cl
   val
 }
+#' @export
 `[[.year_month` <- function(x, ..., drop = TRUE){
   cl <- oldClass(x)
   class(x) <- NULL
@@ -94,6 +96,7 @@ new_year_month <- function(x){
   class(val) <- cl
   val
 }
+#' @export
 `+.year_month` <- function(e1, e2){
   out <- unclass(e1) + unclass(e2)
   both_year_month <- inherits(e1, "year_month") && inherits(e2, "year_month")
@@ -102,6 +105,7 @@ new_year_month <- function(x){
   }
   out
 }
+#' @export
 `-.year_month` <- function(e1, e2){
   out <- unclass(e1) - unclass(e2)
   both_year_month <- inherits(e1, "year_month") && inherits(e2, "year_month")
@@ -110,9 +114,11 @@ new_year_month <- function(x){
   }
   out
 }
+#' @exportS3Method base::c
 `c.year_month` <- function(...){
   new_year_month(do.call(c, lapply(list(...), unclass)))
 }
+#' @exportS3Method base::print
 print.year_month <- function(x, max = NULL, ...){
   z <- unclass(x)
   if (length(z) == 0){
@@ -137,6 +143,7 @@ print.year_month <- function(x, max = NULL, ...){
   }
   invisible(x)
 }
+#' @exportS3Method base::as.character
 as.character.year_month <- function(x, ...){
   x <- unclass(x)
   if (length(x) == 0){
@@ -148,6 +155,7 @@ as.character.year_month <- function(x, ...){
     stringr::str_c(y, mf, sep = " ")
   }
 }
+#' @exportS3Method base::format
 format.year_month <- function(x, ...){
   x <- unclass(x)
   if (length(x) == 0){
@@ -159,21 +167,25 @@ format.year_month <- function(x, ...){
     format(stringr::str_c(y, mf, sep = " "), ...)
   }
 }
+#' @exportS3Method base::unique
 unique.year_month <- function(x, incomparables = FALSE, ...){
   new_year_month(unique.default(x, incomparables = incomparables, ...))
 }
+#' @exportS3Method base::as.Date
 as.Date.year_month <- function(x, ...){
   x <- unclass(x)
   y <- x %/% 12L
   m <- (x %% 12L) + 1L
   lubridate::make_date(year = 1970L + y, month = m, day = 1L)
 }
+#' @exportS3Method base::as.POSIXct
 as.POSIXct.year_month <- function(x, tz = "", ...){
   x <- unclass(x)
   y <- x %/% 12L
   m <- (x %% 12L) + 1L
   lubridate::make_datetime(year = 1970L + y, month = m, day = 1L)
 }
+#' @exportS3Method base::as.POSIXlt
 as.POSIXlt.year_month <- function(x, tz = "", ...){
   as.POSIXlt(as.POSIXct(x, tz = tz))
 }
@@ -193,6 +205,7 @@ year_quarter_decimal <- function(x){
   q <- ( x * 4 ) - (1970 * 4)
   new_year_quarter(q)
 }
+#' @export
 `[.year_quarter` <- function(x, ..., drop = TRUE){
   cl <- oldClass(x)
   class(x) <- NULL
@@ -200,6 +213,7 @@ year_quarter_decimal <- function(x){
   class(val) <- cl
   val
 }
+#' @export
 `[[.year_quarter` <- function(x, ..., drop = TRUE){
   cl <- oldClass(x)
   class(x) <- NULL
@@ -207,6 +221,7 @@ year_quarter_decimal <- function(x){
   class(val) <- cl
   val
 }
+#' @export
 `+.year_quarter` <- function(e1, e2){
   out <- unclass(e1) + unclass(e2)
   both_year_quarter <- inherits(e1, "year_quarter") && inherits(e2, "year_quarter")
@@ -215,6 +230,7 @@ year_quarter_decimal <- function(x){
   }
   out
 }
+#' @export
 `-.year_quarter` <- function(e1, e2){
   out <- unclass(e1) - unclass(e2)
   both_year_quarter <- inherits(e1, "year_quarter") && inherits(e2, "year_quarter")
@@ -223,9 +239,11 @@ year_quarter_decimal <- function(x){
   }
   out
 }
+#' @exportS3Method base::c
 `c.year_quarter` <- function(...){
   new_year_quarter(do.call(c, lapply(list(...), unclass)))
 }
+#' @exportS3Method base::print
 print.year_quarter <- function(x, max = NULL, ...){
   z <- unclass(x)
   if (length(z) == 0){
@@ -250,6 +268,7 @@ print.year_quarter <- function(x, max = NULL, ...){
   }
   invisible(x)
 }
+#' @exportS3Method base::as.character
 as.character.year_quarter <- function(x, ...){
   x <- unclass(x)
   if (length(x) == 0){
@@ -261,6 +280,7 @@ as.character.year_quarter <- function(x, ...){
     stringr::str_c(y, qf, sep = " ")
   }
 }
+#' @exportS3Method base::format
 format.year_quarter <- function(x, ...){
   x <- unclass(x)
   if (length(x) == 0){
@@ -272,40 +292,49 @@ format.year_quarter <- function(x, ...){
     format(stringr::str_c(y, qf, sep = " "), ...)
   }
 }
+#' @exportS3Method base::unique
 unique.year_quarter <- function(x, incomparables = FALSE, ...){
   new_year_quarter(unique.default(x, incomparables = incomparables, ...))
 }
-
+#' @exportS3Method base::as.Date
 as.Date.year_quarter <- function(x, ...){
   x <- unclass(x)
   y <- 1970L + (x %/% 4L)
   m <- 3L * (x %% 4L) + 1L
   lubridate::make_date(year = y, month = m, day = 1L)
 }
+#' @exportS3Method base::as.POSIXct
 as.POSIXct.year_quarter <- function(x, tz = "", ...){
   x <- unclass(x)
   y <- 1970L + (x %/% 4L)
   m <- 3L * (x %% 4L) + 1L
   lubridate::make_datetime(year = y, month = m, day = 1L)
 }
+#' @exportS3Method base::as.POSIXlt
 as.POSIXlt.year_quarter <- function(x, tz = "", ...){
   as.POSIXlt(as.POSIXct(x, tz = tz))
 }
+#' @exportS3Method base::rep_len
 rep_len.year_month <- function(x, length.out){
   x[rep_len(seq_along(x), length.out = length.out)]
 }
+#' @exportS3Method base::rep.int
 rep.int.year_month <- function(x, ...){
   x[rep.int(seq_along(x), ...)]
 }
+#' @exportS3Method base::rep
 rep.year_month <- function(x, ...){
   x[rep(seq_along(x), ...)]
 }
+#' @exportS3Method base::rep_len
 rep_len.year_quarter <- function(x, length.out){
   x[rep_len(seq_along(x), length.out = length.out)]
 }
+#' @exportS3Method base::rep.int
 rep.int.year_quarter <- function(x, ...){
   x[rep.int(seq_along(x), ...)]
 }
+#' @exportS3Method base::rep
 rep.year_quarter <- function(x, ...){
   x[rep(seq_along(x), ...)]
 }

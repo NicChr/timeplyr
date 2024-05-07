@@ -84,7 +84,7 @@ fdistinct <- function(data, ..., .keep_all = FALSE,
     }
   }
   if (slice){
-    out <- df_row_slice(out, unique_locs, reconstruct = FALSE)
+    out <- cheapr::sset(out, unique_locs)
   }
   df_reconstruct(out, data)
 }
