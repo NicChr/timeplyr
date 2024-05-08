@@ -90,13 +90,13 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
     }
     if (na_skip){
       x_filled <- roll_na_fill(x, g = g)
-      x_lag <- flag2(x_filled, g = g)
+      x_lag <- roll_lag(x_filled, g = g)
       if (needs_fill){
         sorted_group_starts <- sorted_group_starts +
           fnmiss(x_lag, g = g, use.g.names = FALSE) - 1L
       }
     } else {
-      x_lag <- flag2(x, g = g)
+      x_lag <- roll_lag(x, g = g)
     }
     out <- time_diff(x_lag, x, time_by = time_by, time_type = time_type)
     if (needs_fill){

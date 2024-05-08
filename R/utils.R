@@ -649,9 +649,7 @@ vec_tail <- function(x, n = 1L){
 # They are treated as regular vectors
 
 # Returns the length or nrows (if list or df)
-vec_length <- cpp_r_vector_size
-# Returns the width or ncol (if list or df)
-vec_width <- cpp_vector_width
+vec_length <- get_from_package("cpp_vec_length", "cheapr")
 
 packageName <- function (env = parent.frame()){
   if (!is.environment(env))
@@ -1261,6 +1259,7 @@ which_ <- cheapr::which_
 which_in <- get_from_package("which_in", "cheapr")
 which_not_in <- get_from_package("which_not_in", "cheapr")
 which_val <- get_from_package("which_val", "cheapr")
+val_rm <- get_from_package("val_rm", "cheapr")
 recycle <- get_from_package("recycle", "cheapr")
 na_count <- function(x){
   cheapr::num_na(x, recursive = FALSE)

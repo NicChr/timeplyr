@@ -123,7 +123,7 @@ check_time_by_length_is_one <- function(time_by){
     stop("Please supply only one numeric value in time_by")
   }
 }
-time_by_pretty <- function(time_by){
+time_by_pretty <- function(time_by, sep = " "){
   time_by <- time_by_list(time_by)
   units <- names(time_by)
   if (time_by_length(time_by) > 1){
@@ -155,7 +155,7 @@ time_by_pretty <- function(time_by){
     if (isTRUE(num == 1)){
       paste0(plural_unit_to_single(units))
     } else {
-      paste0(pretty_num, " ", units)
+      paste0(pretty_num, sep, units)
     }
   }
 }
@@ -705,7 +705,7 @@ is_interval <- function(x){
 
 # Convert time sequence to interval
 tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
-  out <- time_interval2(seq, flag2(seq, n = -1, g = gseq))
+  out <- time_interval2(seq, roll_lag(seq, -1, g = gseq))
   to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
   end_points <- which_(is.na(out) & !is.na(seq))
   out[end_points] <- time_interval2(seq[end_points], to)
@@ -723,8 +723,9 @@ tseq_levels <- function(x, seq, gx = NULL, gseq = NULL, fmt = NULL){
   out <- stringr::str_c("[",
                         time_breaks_fmt,
                         ", ",
-                        flag2(time_breaks_fmt,
-                              g = gseq, n = max(-1L, -n)),
+                        roll_lag(time_breaks_fmt,
+                                 max(-1L, -n),
+                                 g = gseq),
                         ")")
   to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
   end_points <- which_(is.na(out) & !is.na(seq))

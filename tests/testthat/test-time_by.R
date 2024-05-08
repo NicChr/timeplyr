@@ -38,29 +38,29 @@ testthat::test_that("time_by", {
   testthat::expect_equal(time_by_units(flights_weekly),
                          list(weeks = 1))
   testthat::expect_equal(time_by_var(flights_weekly),
-                         "time_hour")
+                         "time_intv_week")
   testthat::expect_equal(time_by_units(flights_bi_weekly),
                          list(weeks = 2))
   testthat::expect_equal(time_by_var(flights_bi_weekly),
-                         "time_hour")
+                         "time_intv_2_weeks")
 
   testthat::expect_equal(
-    flights_weekly$time_hour,
+    flights_weekly$time_intv_week,
     time_summarisev(flights$time_hour, time_by = "week")
   )
   testthat::expect_equal(
-    flights_bi_weekly$time_hour,
+    flights_bi_weekly$time_intv_2_weeks,
     time_summarisev(flights$time_hour, time_by = "2 weeks")
   )
 
   testthat::expect_equal(
-    group_data(flights_weekly)$time_hour,
+    group_data(flights_weekly)$time_intv_week,
     time_summarisev(flights$time_hour,
                     time_by = "week",
                     sort = TRUE, unique = TRUE)
   )
   testthat::expect_equal(
-    group_data(flights_bi_weekly)$time_hour,
+    group_data(flights_bi_weekly)$time_intv_2_weeks,
     time_summarisev(flights$time_hour,
                     time_by = "2 weeks",
                     sort = TRUE, unique = TRUE)
@@ -69,15 +69,15 @@ testthat::test_that("time_by", {
   printed_out <- capture.output(print(flights_weekly))
   printed_out2 <- capture.output(print(flights_bi_weekly))
   testthat::expect_equal(gsub(" ", "", printed_out[1]),
-                         "#Atibble:336,776x19")
+                         "#Atibble:336,776x20")
   testthat::expect_equal(gsub(" ", "", printed_out[2]),
-                         "#Time:time_hour[53]")
+                         "#Time:time_intv_week[53]")
   testthat::expect_equal(gsub(" ", "", printed_out[3]),
                          "#By:week")
   testthat::expect_equal(gsub(" ", "", printed_out2[1]),
-                         "#Atibble:336,776x19")
+                         "#Atibble:336,776x20")
   testthat::expect_equal(gsub(" ", "", printed_out2[2]),
-                         "#Time:time_hour[27]")
+                         "#Time:time_intv_2_weeks[27]")
   testthat::expect_equal(gsub(" ", "", printed_out2[3]),
                          "#By:2weeks")
 })

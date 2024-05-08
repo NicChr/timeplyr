@@ -20,38 +20,6 @@ R_xlen_t cpp_vector_size(SEXP x){
   }
 }
 
-[[cpp11::register]]
-SEXP cpp_r_vector_size(SEXP x){
-  R_xlen_t size = cpp_vector_size(x);
-  return size > integer_max_ ? Rf_ScalarReal(size) : Rf_ScalarInteger(size);
-}
-
-[[cpp11::register]]
-int cpp_vector_width(SEXP x){
-  if (Rf_isFrame(x)){
-    return Rf_length(Rf_getAttrib(x, R_NamesSymbol));
-  } else if (Rf_isVectorList(x)){
-    if (Rf_inherits(x, "vctrs_rcrd")){
-      return Rf_length(x);
-    } else {
-      int n = Rf_length(x);
-      if (n == 0){
-        return 0;
-      } else {
-        const SEXP *p_x = VECTOR_PTR_RO(x);
-        R_xlen_t init = cpp_vector_size(p_x[0]);
-        for (int i = 1; i < n; ++i) {
-          if (cpp_vector_size(p_x[i]) != init){
-            Rf_error("All list elements must be of equal length");
-          }
-        }
-        return n;
-      }
-    }
-  } else {
-    return 0;
-  }
-}
 
 [[cpp11::register]]
 SEXP cpp_list_which_not_null(SEXP l) {

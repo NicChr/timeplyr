@@ -852,11 +852,8 @@ new_GRP <- function(N.groups = NULL,
 group_order_and_counts <- function(g = NULL){
   o <- radixorderv2(g, starts = FALSE, sort = FALSE, group.sizes = TRUE)
   if (is_GRP(g)){
-    sizes <- GRP_group_sizes(g)
     # Accounting for factors
-    if (collapse::anyv(sizes, 0L)){
-      sizes <- sizes[which_(sizes > 0L)]
-    }
+    sizes <- val_rm(GRP_group_sizes(g), 0L)
   } else {
     sizes <- attr(o, "group.sizes")
   }

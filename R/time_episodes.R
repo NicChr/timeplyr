@@ -265,7 +265,7 @@ time_episodes <- function(data, time, time_by = NULL,
   # Convert non-event dates to NA
   # So that they can be skipped/ignored
   if (length(event_col) > 0){
-    which_non_event <- which_(out[[event_id_nm]] == 0L)
+    which_non_event <- which_val(out[[event_id_nm]], 0L)
     event_dates <- out[[time_col]][which_non_event] # Save to re-add later
     data.table::set(out,
                     i = which_non_event,
@@ -360,7 +360,7 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
   if ("t_elapsed" %in% names(x) && "ep_id_new" %in% names(x)){
     counts <- fn(x[["ep_id_new"]], g = GRPS, use.g.names = FALSE)
     ## Elapsed time between events (weighted by group counts)
-    which_index <- which_(x[["ep_id_new"]] == 1L)
+    which_index <- which_val(x[["ep_id_new"]], 1L)
     elapsed <- x[["t_elapsed"]]
     elapsed[which_index] <- NA
     mean_elapsed <- collapse::fmean(elapsed, g = GRPS,

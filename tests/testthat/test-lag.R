@@ -16,11 +16,11 @@ testthat::test_that("Lags", {
   expect_identical(fdiff2(x, n = -1), as.integer(x - lead(x)))
   expect_identical(fdiff2(x, n = -3), as.integer(x - lead(x, 3)))
 
-  expect_identical(flag2(x, n = 1), as.integer(lag(x)))
-  expect_identical(flag2(x, n = 3), as.integer(lag(x, 3)))
-  expect_identical(flag2(x, n = 100), as.integer(lag(x, 100)))
-  expect_identical(flag2(x, n = -1), as.integer(lead(x)))
-  expect_identical(flag2(x, n = -3), as.integer(lead(x, 3)))
+  expect_identical(roll_lag(x, n = 1), as.integer(lag(x)))
+  expect_identical(roll_lag(x, n = 3), as.integer(lag(x, 3)))
+  expect_identical(roll_lag(x, n = 100), as.integer(lag(x, 100)))
+  expect_identical(roll_lag(x, n = -1), as.integer(lead(x)))
+  expect_identical(roll_lag(x, n = -3), as.integer(lead(x, 3)))
 
   expect_identical(fdiff2(y, n = 1), y - lag(y))
   expect_identical(fdiff2(y, n = 3), y - lag(y, 3))
@@ -28,11 +28,11 @@ testthat::test_that("Lags", {
   expect_identical(fdiff2(y, n = -1), y - lead(y))
   expect_identical(fdiff2(y, n = -3), y - lead(y, 3))
 
-  expect_identical(flag2(y, n = 1), lag(y))
-  expect_identical(flag2(y, n = 3), lag(y, 3))
-  expect_identical(flag2(y, n = 100), lag(y, 100))
-  expect_identical(flag2(y, n = -1), lead(y))
-  expect_identical(flag2(y, n = -3), lead(y, 3))
+  expect_identical(roll_lag(y, n = 1), lag(y))
+  expect_identical(roll_lag(y, n = 3), lag(y, 3))
+  expect_identical(roll_lag(y, n = 100), lag(y, 100))
+  expect_identical(roll_lag(y, n = -1), lead(y))
+  expect_identical(roll_lag(y, n = -3), lead(y, 3))
 
   expect_identical(fdiff2(z, n = 1), as.integer(z - lag(z)))
   expect_identical(fdiff2(z, n = 3), as.integer(z - lag(z, 3)))
@@ -40,11 +40,11 @@ testthat::test_that("Lags", {
   expect_identical(fdiff2(z, n = -1), as.integer(z - lead(z)))
   expect_identical(fdiff2(z, n = -3), as.integer(z - lead(z, 3)))
 
-  expect_identical(flag2(z, n = 1), lag(z))
-  expect_identical(flag2(z, n = 3), lag(z, 3))
-  expect_identical(flag2(z, n = 100), lag(z, 100))
-  expect_identical(flag2(z, n = -1), lead(z))
-  expect_identical(flag2(z, n = -3), lead(z, 3))
+  expect_identical(roll_lag(z, n = 1), lag(z))
+  expect_identical(roll_lag(z, n = 3), lag(z, 3))
+  expect_identical(roll_lag(z, n = 100), lag(z, 100))
+  expect_identical(roll_lag(z, n = -1), lead(z))
+  expect_identical(roll_lag(z, n = -3), lead(z, 3))
 })
 
 testthat::test_that("Grouped lags", {
@@ -92,26 +92,26 @@ testthat::test_that("Grouped lags", {
     )
   }
 
-  expect_identical(flag2(x, g = gx, n = 1), lag2(x, g = gx, n = 1))
-  expect_identical(flag2(x, g = gx, n = 3), lag2(x, g = gx, n = 3))
-  expect_identical(flag2(x, g = gx, n = 100), lag2(x, g = gx, n = 100))
-  expect_identical(flag2(x, g = gx, n = 300), lag2(x, g = gx, n = 300))
-  expect_identical(flag2(x, g = gx, n = -1), lead2(x, g = gx, n = 1))
-  expect_identical(flag2(x, g = gx, n = -3), lead2(x, g = gx, n = 3))
+  expect_identical(roll_lag(x, g = gx, n = 1), lag2(x, g = gx, n = 1))
+  expect_identical(roll_lag(x, g = gx, n = 3), lag2(x, g = gx, n = 3))
+  expect_identical(roll_lag(x, g = gx, n = 100), lag2(x, g = gx, n = 100))
+  expect_identical(roll_lag(x, g = gx, n = 300), lag2(x, g = gx, n = 300))
+  expect_identical(roll_lag(x, g = gx, n = -1), lead2(x, g = gx, n = 1))
+  expect_identical(roll_lag(x, g = gx, n = -3), lead2(x, g = gx, n = 3))
 
-  expect_equal(flag2(y, g = gy, n = 1), lag2(y, g = gy, n = 1))
-  expect_equal(flag2(y, g = gy, n = 3), lag2(y, g = gy, n = 3))
-  expect_equal(flag2(y, g = gy, n = 100), lag2(y, g = gy, n = 100))
-  expect_equal(flag2(y, g = gy, n = 300), lag2(y, g = gy, n = 300))
-  expect_equal(flag2(y, g = gy, n = -1), lead2(y, g = gy, n = 1))
-  expect_equal(flag2(y, g = gy, n = -3), lead2(y, g = gy, n = 3))
+  expect_equal(roll_lag(y, g = gy, n = 1), lag2(y, g = gy, n = 1))
+  expect_equal(roll_lag(y, g = gy, n = 3), lag2(y, g = gy, n = 3))
+  expect_equal(roll_lag(y, g = gy, n = 100), lag2(y, g = gy, n = 100))
+  expect_equal(roll_lag(y, g = gy, n = 300), lag2(y, g = gy, n = 300))
+  expect_equal(roll_lag(y, g = gy, n = -1), lead2(y, g = gy, n = 1))
+  expect_equal(roll_lag(y, g = gy, n = -3), lead2(y, g = gy, n = 3))
 
-  expect_equal(flag2(z, g = gz, n = 1), lag2(z, g = gz, n = 1))
-  expect_equal(flag2(z, g = gz, n = 3), lag2(z, g = gz, n = 3))
-  expect_equal(flag2(z, g = gz, n = 100), lag2(z, g = gz, n = 100))
-  expect_equal(flag2(z, g = gz, n = 300), lag2(z, g = gz, n = 300))
-  expect_equal(flag2(z, g = gz, n = -1), lead2(z, g = gz, n = 1))
-  expect_equal(flag2(z, g = gz, n = -3), lead2(z, g = gz, n = 3))
+  expect_equal(roll_lag(z, g = gz, n = 1), lag2(z, g = gz, n = 1))
+  expect_equal(roll_lag(z, g = gz, n = 3), lag2(z, g = gz, n = 3))
+  expect_equal(roll_lag(z, g = gz, n = 100), lag2(z, g = gz, n = 100))
+  expect_equal(roll_lag(z, g = gz, n = 300), lag2(z, g = gz, n = 300))
+  expect_equal(roll_lag(z, g = gz, n = -1), lead2(z, g = gz, n = 1))
+  expect_equal(roll_lag(z, g = gz, n = -3), lead2(z, g = gz, n = 3))
 
 
   expect_identical(fdiff2(x, g = gx, n = 1), diff3(x, g = gx, n = 1))
@@ -145,19 +145,19 @@ testthat::test_that("Grouped lags", {
   gy <- gy[gyo]
   z <- z[gzo]
   gz <- gz[gzo]
-  expect_equal(flag2(x, g = gx, n = 3, fill = 99),
+  expect_equal(roll_lag(x, g = gx, n = 3, fill = 99),
                collapse::flag(x, g = gx, n = 3, fill = 99))
-  expect_true(is.integer(flag2(x, g = gx, n = 3, fill = 99)))
-  expect_equal(flag2(y, g = gy, n = 3, fill = 99),
+  expect_true(is.integer(roll_lag(x, g = gx, n = 3, fill = 99)))
+  expect_equal(roll_lag(y, g = gy, n = 3, fill = 99),
                collapse::flag(y, g = gy, n = 3, fill = 99))
-  expect_equal(flag2(z, g = gz, n = 3, fill = TRUE),
+  expect_equal(roll_lag(z, g = gz, n = 3, fill = TRUE),
                collapse::flag(z, g = gz, n = 3, fill = TRUE))
 
-  expect_equal(flag2(x, g = gx, n = -3, fill = 99),
+  expect_equal(roll_lag(x, g = gx, n = -3, fill = 99),
                collapse::flag(x, g = gx, n = -3, fill = 99))
-  expect_true(is.integer(flag2(x, g = gx, n = -3, fill = 99)))
-  expect_equal(flag2(y, g = gy, n = -3, fill = 99),
+  expect_true(is.integer(roll_lag(x, g = gx, n = -3, fill = 99)))
+  expect_equal(roll_lag(y, g = gy, n = -3, fill = 99),
                collapse::flag(y, g = gy, n = -3, fill = 99))
-  expect_equal(flag2(z, g = gz, n = -3, fill = TRUE),
+  expect_equal(roll_lag(z, g = gz, n = -3, fill = TRUE),
                collapse::flag(z, g = gz, n = -3, fill = TRUE))
 })

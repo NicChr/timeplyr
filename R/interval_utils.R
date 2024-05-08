@@ -11,6 +11,9 @@
 interval_start <- function(x){
   UseMethod("interval_start")
 }
+# interval_start.default <- function(x){
+#   x
+# }
 #' @export
 interval_start.time_interval <- function(x){
   unclass(x)[["start"]]

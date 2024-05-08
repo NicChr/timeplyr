@@ -194,7 +194,7 @@ roll_growth <- function(x, window = 1,
   if (partial){
     window <- window_sequence(length(x), window, partial = TRUE)
     # Partial window is shifted according to lag value
-    window_lagged <- flag2(window, lag)
+    window_lagged <- roll_lag(window, lag)
     # Running mean with lagged partial window
     numerator <- roll(x = x, n = window_lagged, weights = weights,
                       align = "right",
@@ -203,21 +203,21 @@ roll_growth <- function(x, window = 1,
                              align = "right",
                              na.rm = na.rm, adaptive = TRUE, ...)
     # Lagged running mean as denominator
-    denominator <- flag2(roll(x = x, n = window, weights = weights,
+    denominator <- roll_lag(roll(x = x, n = window, weights = weights,
                               align = "right", na.rm = na.rm,
                               adaptive = TRUE, ...), lag)
-    offset_denominator <- flag2(roll(x = offset, n = window, weights = weights,
+    offset_denominator <- roll_lag(roll(x = offset, n = window, weights = weights,
                                      align = "right", na.rm = na.rm,
                                      adaptive = TRUE, ...), lag)
   } else {
     numerator <- roll(x = x, n = window, weights = weights,
                       align = "right", na.rm = na.rm,
                       adaptive = FALSE, ...)
-    denominator <- flag2(numerator, lag)
+    denominator <- roll_lag(numerator, lag)
     offset_numerator <- roll(x = offset, n = window, weights = weights,
                              align = "right", na.rm = na.rm,
                              adaptive = FALSE, ...)
-    offset_denominator <- flag2(offset_numerator, lag)
+    offset_denominator <- roll_lag(offset_numerator, lag)
   }
   if (log){
     if (!is.null(offset)){

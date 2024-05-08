@@ -32,12 +32,13 @@
 #'}
 #' @export
 iso_week <- function(x, year = TRUE, day = FALSE){
-  w <- lubridate::isoweek(x)
+  posix <- as.POSIXlt(x)
+  w <- lubridate::isoweek(posix)
   if (year){
-    y <- lubridate::isoyear(x)
+    y <- lubridate::isoyear(posix)
   }
   if (day){
-    d <- isoday(x)
+    d <- isoday(posix)
   }
   if (year && day){
     out <- sprintf("%.4d-W%02d-%d", y, w, d)

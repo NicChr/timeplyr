@@ -13,12 +13,10 @@ missing_dates <- function(x){
 #' @export
 missing_dates.default <- function(x){
   check_is_time(x)
-  d <- lubridate::floor_date(collapse::funique(x), unit = "days")
+  # d <- lubridate::floor_date(collapse::funique(x), unit = "days")
+  d <- lubridate::as_date(collapse::funique(x))
   d_seq <- time_expandv(d, time_by = list("days" = 1))
-  # lubridate::as_date(d_seq[which_(!d_seq %in% d)])
-  lubridate::as_date(
-    d_seq[collapse::whichNA(collapse::fmatch(d_seq, d, overid = 2L))]
-  )
+  cheapr::setdiff_(d_seq, d)
 }
 #' @export
 missing_dates.data.frame <- function(x){
@@ -35,9 +33,9 @@ n_missing_dates <- function(x){
 n_missing_dates.default <- function(x){
   check_is_time(x)
   time_num_gaps(
-    lubridate::floor_date(
-      collapse::funique(x), unit = "days"
-    ), time_by = list("days" = 1)
+    lubridate::as_date(
+      collapse::funique(x)
+      ), time_by = list("days" = 1)
   )
 }
 #' @export

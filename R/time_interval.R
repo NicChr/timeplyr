@@ -258,7 +258,7 @@ as.POSIXlt.time_interval <- function(x, ...){
 }
 is_nested_time_interval <- function(x){
   out <- FALSE
-  for (i in seq_len(vec_width(x))){
+  for (i in seq_along(unclass(x))){
     if (inherits(.subset2(x, i), "time_interval")){
       out <- TRUE
       break

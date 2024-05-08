@@ -177,7 +177,7 @@ roll_growth_rate <- function(x, window = Inf, g = NULL,
   x <- sorted_info[["x"]]
   lag_window <- cheapr::lag_sequence(group_sizes, k = window - 1, partial = partial)
   if (na.rm){
-    x_lagged <- roll_lag(x, lag_window)
+    x_lagged <- cheapr::lag2_(x, lag_window)
     lag_window <- cpp_roll_count_na(x, window, invert = TRUE, partial = partial) - 1L
     if (log){
       gr <- exp(( log(x) - log(x_lagged) ) / lag_window)

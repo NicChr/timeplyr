@@ -10,10 +10,10 @@
 time_by(
   data,
   time,
-  time_by_unit = NULL,
+  time_by = NULL,
   from = NULL,
   to = NULL,
-  .name = "{.col}",
+  .name = paste0("time_intv_", time_by_pretty(time_by, "_")),
   .add = FALSE,
   time_type = getOption("timeplyr.time_type", "auto"),
   as_interval = getOption("timeplyr.use_intervals", FALSE),
@@ -32,7 +32,7 @@ time_by_units(x)
 \item{time}{Time variable (\bold{data-masking}). \cr
 Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, or \code{yearqtr}.}
 
-\item{time_by_unit}{Time unit. \cr
+\item{time_by}{Time unit. \cr
 Must be one of the following:
 \itemize{
 \item string, specifying either the unit or the number and unit, e.g

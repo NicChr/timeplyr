@@ -49,9 +49,6 @@ Furthermore, a vector of lags can be supplied for a custom rolling lag.
 In this case, groups are ignored. \cr
 For time-based lags, see \link{time_lag}.
 
-\code{lag_}, \code{lead_} and \code{diff_} are wrappers around the 'c++' functions that offer
-very low overhead of ~1 microsecond and thus are primarily for programmers.
-
 \code{roll_diff()} silently returns \code{NA} when there is integer overflow.
 }
 \examples{

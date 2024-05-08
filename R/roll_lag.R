@@ -25,9 +25,6 @@
 #' In this case, groups are ignored. \cr
 #' For time-based lags, see [time_lag].
 #'
-#' `lag_`, `lead_` and `diff_` are wrappers around the 'c++' functions that offer
-#' very low overhead of ~1 microsecond and thus are primarily for programmers.
-#'
 #' `roll_diff()` silently returns `NA` when there is integer overflow.
 #'
 #' @returns
@@ -63,62 +60,15 @@
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
-#'}
-#' @rdname roll_lag
+#' }
 #' @export
 roll_lag <- function(x, n = 1L, g = NULL, fill = NULL){
-  UseMethod("roll_lag")
-}
-#' @export
-roll_lag.default <- function(x, n = 1L, g = NULL, fill = NULL){
-  if (!length(n) %in% c(1, length(x))){
-    stop("n must be of length 1 or length(x)")
-  }
-  if (length(n) == 1){
-    out <- flag2(x, n = n, g = g, fill = fill)
-  } else {
-    lagged_indices <- seq_along(x) - n
-    out <- x[lagged_indices]
-    if (!is.null(fill)){
-      check_length(fill, 1)
-      out[cheapr::which_na(lagged_indices)] <- cast2(fill, out)
-    }
-  }
-  out
-}
-#' @export
-roll_lag.data.frame <- function(x, n = 1L, g = NULL, fill = NULL){
-  N <- df_nrow(x)
-  if (!length(n) %in% c(1, N)){
-    stop("n must be of length 1 or nrow(x)")
-  }
-  row_seq <- seq_len(N)
-  if (length(n) == 1){
-    lag_s <- flag2(row_seq, n, g = g)
-  } else {
-    lag_s <- row_seq - n
-  }
-  out <- df_row_slice(x, lag_s)
-  if (!is.null(fill)){
-    check_length(fill, 1)
-    which_fill <- cheapr::which_na(lag_s)
-    for (i in seq_len(df_ncol(out))){
-      out[[i]][which_fill] <- cast2(fill, out[[i]])
-    }
-  }
-  out
-}
-#' @export
-roll_lag.vctrs_rcrd <- function(x, n = 1L, g = NULL, fill = NULL){
-  out <- unclass(
-    roll_lag(
-      list_as_df(x),
-      n = n, g = g, fill = fill
-    )
-  )
-  attr(out, "row.names") <- NULL
-  class(out) <- class(x)
-  out
+  # o <- radixorderv2(g, group.sizes = TRUE, sort = FALSE)
+  # lag2_(x, n, order = o, run_lengths = attr(o, "group.sizes"), fill = fill)
+  order_counts <- group_order_and_counts(g)
+  cheapr::lag2_(x, n, order = order_counts[["order"]],
+                run_lengths = order_counts[["sizes"]],
+                fill = fill, recursive = TRUE)
 }
 #' @rdname roll_lag
 #' @export
@@ -151,7 +101,7 @@ roll_diff.data.frame <- function(x, n = 1L, g = NULL, fill = NULL){
   }
   row_seq <- seq_len(N)
   if (length(n) == 1){
-    lag_s <- flag2(row_seq, n, g = g)
+    lag_s <- roll_lag(row_seq, n, g = g)
   } else {
     lag_s <- row_seq - n
   }

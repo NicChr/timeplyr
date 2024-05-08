@@ -360,10 +360,6 @@ df_drop_empty <- function(data, .cols = names(data)){
 dplyr_drop_empty <- function(data, .cols = dplyr::everything()){
   dplyr::filter(data, !dplyr::if_all(.cols = {{ .cols }}, .fns = is.na))
 }
-# roll_lag() can now do this
-df_lag <- function(x, n = 1L, g = NULL){
-  df_row_slice(x, flag2(df_seq_along(x), n = n, g = g))
-}
 
 # df_select <- function(x, .cols){
 #   out <- .subset(x, .cols)

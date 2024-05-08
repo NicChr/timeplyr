@@ -8,7 +8,7 @@
 #' @param data A data frame.
 #' @param time Time variable (\bold{data-masking}). \cr
 #' Can be a `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, or `yearqtr`.
-#' @param time_by_unit Time unit. \cr
+#' @param time_by Time unit. \cr
 #' Must be one of the following:
 #' * string, specifying either the unit or the number and unit, e.g
 #' `time_by = "days"` or `time_by = "2 weeks"`
@@ -86,9 +86,10 @@
 #'}
 #' @rdname time_by
 #' @export
-time_by <- function(data, time, time_by_unit = NULL,
+time_by <- function(data, time, time_by = NULL,
                     from = NULL, to = NULL,
-                    .name = "{.col}",
+                    # .name = "{.col}",
+                    .name = paste0("time_intv_", time_by_pretty(time_by, "_")),
                     .add = FALSE,
                     time_type = getOption("timeplyr.time_type", "auto"),
                     as_interval = getOption("timeplyr.use_intervals", FALSE),
@@ -117,7 +118,7 @@ time_by <- function(data, time, time_by_unit = NULL,
   out <- df_cbind(time_data, from_data, to_data)
   if (length(time_var) > 0L){
     check_is_time_or_num(out[[time_var]])
-    time_by <- time_by_get(out[[time_var]], time_by = time_by_unit,
+    time_by <- time_by_get(out[[time_var]], time_by = time_by,
                            quiet = TRUE)
     if (time_by_length(time_by) > 1){
       stop("Please supply only one numeric value in time_by")

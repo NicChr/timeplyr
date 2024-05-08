@@ -94,8 +94,13 @@ time_aggregate <- function(x, time_by = NULL,
                            time_floor = FALSE,
                            week_start = getOption("lubridate.week.start", 1),
                            as_interval = getOption("timeplyr.use_intervals", FALSE)){
+  # start <- interval_start(x)
+  # if (!is_time_or_num(start)){
+  #  stop("x must be a date, datetime, numeric or time_interval vector")
+  # }
   check_is_time_or_num(x)
-  time_by <- time_by_get(x, time_by = time_by)
+  start <- x
+  time_by <- time_by_get(start, time_by = time_by)
   ## This uses a breakpoints-cut method which is much more efficient
   ## when there are relatively small numbers of breaks and large data
   if (time_by_unit(time_by) %!in_%
@@ -104,7 +109,7 @@ time_aggregate <- function(x, time_by = NULL,
       length(from) <= 1 &&
       length(to) <= 1){
     return(time_summarisev(
-      x, time_by = time_by,
+      start, time_by = time_by,
       from = from, to = to,
       time_type = time_type,
       roll_month = roll_month,
@@ -117,25 +122,25 @@ time_aggregate <- function(x, time_by = NULL,
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)
   if (is.null(from)){
-    index <- gmin(x, na.rm = TRUE)
+    index <- gmin(start, na.rm = TRUE)
   } else {
-    if (length(from) %!in_% c(1, length(x))){
+    if (length(from) %!in_% c(1, length(start))){
       stop("length of from must be 1 or length(x)")
     }
-    index <- time_cast(from, x)
-    x[cheapr::which_(x < index)] <- NA
+    index <- time_cast(from, start)
+    start[cheapr::which_(start < index)] <- NA
   }
   if (!is.null(to)){
-    if (length(to) %!in_% c(1, length(x))){
+    if (length(to) %!in_% c(1, length(start))){
       stop("length of to must be 1 or length(x)")
     }
-    to <- time_cast(to, x)
-    x[cheapr::which_(x > to)] <- NA
+    to <- time_cast(to, start)
+    start[cheapr::which_(start > to)] <- NA
   }
   if (time_floor){
     index <- time_floor2(index, time_by = time_by, week_start = week_start)
   }
-  tdiff <- time_diff(index, x, time_by = time_by, time_type = time_type)
+  tdiff <- time_diff(index, start, time_by = time_by, time_type = time_type)
   time_to_add <- add_names(list(trunc2(tdiff) * num), units)
   out <- time_add2(index, time_by = time_to_add, time_type = time_type,
                    roll_month = roll_month, roll_dst = roll_dst)
