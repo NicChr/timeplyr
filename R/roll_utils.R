@@ -48,21 +48,21 @@
 #   }
 # }
 
-fdiff2 <- function(x, n = 1L, g = NULL, fill = NULL){
-  if (is.null(x)){
-    return(NULL)
-  }
-  check_length(n, 1)
-  n <- as.integer(n)
-  order_and_counts <- group_order_and_counts(g)
-  o <- order_and_counts[[1L]]
-  sizes <- order_and_counts[[2L]]
-  if (is.null(g)){
-    cpp_roll_diff(x, k = n, fill = fill)
-  } else {
-    cpp_roll_diff_grouped(x, k = n, fill = fill, o = o, sizes = sizes)
-  }
-}
+# fdiff2 <- function(x, n = 1L, g = NULL, fill = NULL){
+#   if (is.null(x)){
+#     return(NULL)
+#   }
+#   check_length(n, 1)
+#   n <- as.integer(n)
+#   order_and_counts <- group_order_and_counts(g)
+#   o <- order_and_counts[[1L]]
+#   sizes <- order_and_counts[[2L]]
+#   if (is.null(g)){
+#     cpp_roll_diff(x, k = n, fill = fill)
+#   } else {
+#     cpp_roll_diff_grouped(x, k = n, fill = fill, o = o, sizes = sizes)
+#   }
+# }
 
 # Vctrs style rolling chop
 roll_chop <- function(x, sizes = seq_ones(vec_length(x))){

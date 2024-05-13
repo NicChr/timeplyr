@@ -4,17 +4,24 @@
 #' Inspired by 'collapse', `roll_lag` and `roll_diff` operate similarly to
 #' `flag` and `fdiff`.
 #'
-#' @param x A vector.
-#' @param n Lag. Either length 1 or the same length as `x.`
-#' This can also be negative.
+#' @param x A vector or data frame.
+#' @param n Lag. This will be recycled to match the length of x and can be negative.
 #' @param g Grouping vector. This can be a vector, data frame or `GRP` object.
 #' @param fill Value to fill the first `n` elements.
-#' @param size Size of lag sequence.
-#' @param partial If `TRUE`, the sequence will increment from 0 up to the
-#' lag value. When calculating differences this can be useful,
-#' as passing this lag sequence to
-#' `roll_diff` will produce differences compared to the first value of `x`
-#' for the first `n` differences.
+#' @param differences Number indicating the number of times to recursively apply
+#' the differencing algorithm.
+#' @param ... Arguments passed onto appropriate method.
+#' @param order Optionally specify an ordering with which to
+#' apply the lags/differences.
+#' This is useful for example when applying lags chronologically
+#' using an unsorted time variable.
+#' @param run_lengths Optional integer vector of run lengths that defines
+#' the size of each lag run. For example, supplying `c(5, 5)` applies
+#' lags to the first 5 elements and then essentially resets the bounds and
+#' applies lags to the next 5 elements as if
+#' they were an entirely separate and standalone vector. \cr
+#' This is particularly useful in conjunction with the order argument to
+#' perform a by-group lag.
 #'
 #' @details
 #' While these may not be as fast the 'collapse' equivalents,
@@ -22,10 +29,10 @@
 #' A key difference between `roll_lag` and `flag` is that `g` does not need
 #' to be sorted for the result to be correct. \cr
 #' Furthermore, a vector of lags can be supplied for a custom rolling lag.
-#' In this case, groups are ignored. \cr
 #' For time-based lags, see [time_lag].
 #'
 #' `roll_diff()` silently returns `NA` when there is integer overflow.
+#' Both `roll_lag()` and `roll_diff()` apply recursively to list elements.
 #'
 #' @returns
 #' A vector the same length as `x`.
@@ -45,9 +52,9 @@
 #' roll_diff(x) # Lag diff
 #' roll_diff(x, -1) # Lead diff
 #'
-#' # Using lag_seq()
-#' roll_lag(x, lag_seq(length(x), 2))
-#' roll_diff(x, lag_seq(length(x), 5, partial = TRUE))
+#' # Using cheapr::lag_sequence()
+#' # Differences lagged at 5, first 5 differences are compared to x[1]
+#' roll_diff(x, cheapr::lag_sequence(length(x), 5, partial = TRUE))
 #'
 #' # Like diff() but x/y instead of x-y
 #' quotient <- function(x, n = 1L){
@@ -61,8 +68,14 @@
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #' }
+#' @rdname roll_lag
 #' @export
-roll_lag <- function(x, n = 1L, g = NULL, fill = NULL){
+roll_lag <- function(x, n = 1L, ...){
+  UseMethod("roll_lag")
+}
+#' @rdname roll_lag
+#' @export
+roll_lag.default <- function(x, n = 1L, g = NULL, fill = NULL, ...){
   # o <- radixorderv2(g, group.sizes = TRUE, sort = FALSE)
   # lag2_(x, n, order = o, run_lengths = attr(o, "group.sizes"), fill = fill)
   order_counts <- group_order_and_counts(g)
@@ -72,70 +85,20 @@ roll_lag <- function(x, n = 1L, g = NULL, fill = NULL){
 }
 #' @rdname roll_lag
 #' @export
-roll_diff <- function(x, n = 1L, g = NULL, fill = NULL){
+roll_diff <- function(x, n = 1L, ...){
   UseMethod("roll_diff")
 }
+#' @rdname roll_lag
 #' @export
-roll_diff.default <- function(x, n = 1L, g = NULL, fill = NULL){
-  if (!length(n) %in% c(1, length(x))){
-    stop("n must be of length 1 or length(x)")
-  }
-  if (length(n) == 1){
-    out <- fdiff2(x, n = n, g = g, fill = fill)
-  } else {
-    lagged_indices <- seq_along(x) - n
-    out <- unclass(x) - unclass(x)[lagged_indices]
-    out <- strip_attrs(out)
-    if (!is.null(fill)){
-      check_length(fill, 1)
-      out[cheapr::which_na(lagged_indices)] <- cast2(fill, out)
-    }
-  }
-  out
-}
-#' @export
-roll_diff.data.frame <- function(x, n = 1L, g = NULL, fill = NULL){
-  N <- df_nrow(x)
-  if (!length(n) %in% c(1, N)){
-    stop("n must be of length 1 or nrow(x)")
-  }
-  row_seq <- seq_len(N)
-  if (length(n) == 1){
-    lag_s <- roll_lag(row_seq, n, g = g)
-  } else {
-    lag_s <- row_seq - n
-  }
-  out <- x
-  for (i in seq_len(df_ncol(out))){
-    x_lag <- unclass(out[[i]])[lag_s]
-    out[[i]] <- unclass(out[[i]]) - x_lag
-  }
-  if (!is.null(fill)){
-    check_length(fill, 1)
-    which_fill <- cheapr::which_na(lag_s)
-    for (i in seq_len(df_ncol(out))){
-      out[[i]][which_fill] <- cast2(fill, out[[i]])
-    }
-  }
-  out
-}
-#' @export
-roll_diff.vctrs_rcrd <- function(x, n = 1L, g = NULL, fill = NULL){
-  roll_diff(list_as_df(x), n = n, g = g, fill = fill)
+roll_diff.default <- function(x, n = 1L, differences = 1L, g = NULL, fill = NULL, ...){
+  order_counts <- group_order_and_counts(g)
+  cpp_diff(x, n, order = order_counts[["order"]],
+           run_lengths = order_counts[["sizes"]],
+           fill = fill,
+           differences = differences)
 }
 #' @rdname roll_lag
 #' @export
-lag_seq <- function(size, n = 1L, partial = FALSE){
-  check_length(n, 1)
-  if (n >= 0){
-    cheapr::lag_sequence(as.integer(size), k = n, partial = partial)
-  } else {
-    -cheapr::lead_sequence(as.integer(size), k = -n, partial = partial)
-  }
+diff_ <- function(x, n = 1L, differences = 1L, order = NULL, run_lengths = NULL, fill = NA){
+  .Call(`_timeplyr_cpp_diff`, x, n, order, run_lengths, fill, differences)
 }
-#' @rdname roll_lag
-#' @export
-diff_ <- function(x, n = 1L, fill = NA){
-  .Call(`_timeplyr_cpp_roll_diff`, x, n, fill)
-}
-

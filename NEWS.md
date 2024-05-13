@@ -1,5 +1,12 @@
 # timeplyr (Development version)
 
+* `roll_diff` has been simplified and gains a new argument `differences` 
+to allow for recursive differencing.
+
+* `roll_lag` has been simplified. It internally utilises cheapr's `lag2_` with the recursive argument always set to `TRUE`.
+
+* `time_aggregate` no longer accepts a group `g` argument.
+
 * Removed some unnecessary arguments from `time_by`.
 
 * Deprecated most of the data frame specific `time_` functions, with the exception of
@@ -9,7 +16,7 @@
 
 * `time_aggregate` gains the `from`, `to`, `time_floor` and `week_start` arguments.
 
-* Removed much of the C++ functionality to the cheapr package, which is on CRAN.
+* Moved much of the C++ functionality to the cheapr package, which is on CRAN.
 
 * `roll_na_fill` can now also handle data frames.
 

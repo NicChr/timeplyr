@@ -1,5 +1,6 @@
 #include "timeplyr_cpp.h"
 
+[[cpp11::register]]
 R_xlen_t cpp_vector_size(SEXP x){
   if (Rf_isFrame(x)){
     return Rf_xlength(Rf_getAttrib(x, R_RowNamesSymbol));
@@ -8,9 +9,14 @@ R_xlen_t cpp_vector_size(SEXP x){
     if (Rf_inherits(x, "vctrs_rcrd")){
       return cpp_vector_size(VECTOR_ELT(x, 0));
     } else if (Rf_inherits(x, "POSIXlt")){
-      return Rf_xlength(VECTOR_ELT(x, 0));
+      const SEXP *p_x = VECTOR_PTR_RO(x);
+      R_xlen_t out = 0;
+      for (int i = 0; i != 10; ++i){
+        out = std::max(out, Rf_xlength(p_x[i]));
+      }
+      return out;
     } else if (Rf_isObject(x)){
-      return Rf_asReal(cpp11::package("base")["length"](x));
+      return Rf_asReal(base_r_length(x));
     } else {
       return Rf_xlength(x);
     }
@@ -843,4 +849,11 @@ SEXP cpp_group_locs(SEXP order, SEXP group_sizes){
   }
   Rf_unprotect(1);
   return out;
+}
+
+void cpp_copy_names(SEXP source, SEXP target){
+  SEXP source_nms = Rf_protect(Rf_getAttrib(source, R_NamesSymbol));
+  SEXP target_nms = Rf_protect(Rf_duplicate(source_nms));
+  Rf_setAttrib(target, R_NamesSymbol, target_nms);
+  Rf_unprotect(2);
 }

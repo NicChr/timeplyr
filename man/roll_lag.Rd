@@ -2,36 +2,48 @@
 % Please edit documentation in R/roll_lag.R
 \name{roll_lag}
 \alias{roll_lag}
+\alias{roll_lag.default}
 \alias{roll_diff}
-\alias{lag_seq}
+\alias{roll_diff.default}
 \alias{diff_}
 \title{Fast rolling grouped lags and differences}
 \usage{
-roll_lag(x, n = 1L, g = NULL, fill = NULL)
+roll_lag(x, n = 1L, ...)
 
-roll_diff(x, n = 1L, g = NULL, fill = NULL)
+\method{roll_lag}{default}(x, n = 1L, g = NULL, fill = NULL, ...)
 
-lag_seq(size, n = 1L, partial = FALSE)
+roll_diff(x, n = 1L, ...)
 
-diff_(x, n = 1L, fill = NA)
+\method{roll_diff}{default}(x, n = 1L, differences = 1L, g = NULL, fill = NULL, ...)
+
+diff_(x, n = 1L, differences = 1L, order = NULL, run_lengths = NULL, fill = NA)
 }
 \arguments{
-\item{x}{A vector.}
+\item{x}{A vector or data frame.}
 
-\item{n}{Lag. Either length 1 or the same length as \code{x.}
-This can also be negative.}
+\item{n}{Lag. This will be recycled to match the length of x and can be negative.}
+
+\item{...}{Arguments passed onto appropriate method.}
 
 \item{g}{Grouping vector. This can be a vector, data frame or \code{GRP} object.}
 
 \item{fill}{Value to fill the first \code{n} elements.}
 
-\item{size}{Size of lag sequence.}
+\item{differences}{Number indicating the number of times to recursively apply
+the differencing algorithm.}
 
-\item{partial}{If \code{TRUE}, the sequence will increment from 0 up to the
-lag value. When calculating differences this can be useful,
-as passing this lag sequence to
-\code{roll_diff} will produce differences compared to the first value of \code{x}
-for the first \code{n} differences.}
+\item{order}{Optionally specify an ordering with which to
+apply the lags/differences.
+This is useful for example when applying lags chronologically
+using an unsorted time variable.}
+
+\item{run_lengths}{Optional integer vector of run lengths that defines
+the size of each lag run. For example, supplying \code{c(5, 5)} applies
+lags to the first 5 elements and then essentially resets the bounds and
+applies lags to the next 5 elements as if
+they were an entirely separate and standalone vector. \cr
+This is particularly useful in conjunction with the order argument to
+perform a by-group lag.}
 }
 \value{
 A vector the same length as \code{x}.
@@ -46,10 +58,10 @@ they are adequately fast and efficient. \cr
 A key difference between \code{roll_lag} and \code{flag} is that \code{g} does not need
 to be sorted for the result to be correct. \cr
 Furthermore, a vector of lags can be supplied for a custom rolling lag.
-In this case, groups are ignored. \cr
 For time-based lags, see \link{time_lag}.
 
 \code{roll_diff()} silently returns \code{NA} when there is integer overflow.
+Both \code{roll_lag()} and \code{roll_diff()} apply recursively to list elements.
 }
 \examples{
 library(timeplyr)
@@ -66,9 +78,9 @@ roll_lag(x, -1) # Lead
 roll_diff(x) # Lag diff
 roll_diff(x, -1) # Lead diff
 
-# Using lag_seq()
-roll_lag(x, lag_seq(length(x), 2))
-roll_diff(x, lag_seq(length(x), 5, partial = TRUE))
+# Using cheapr::lag_sequence()
+# Differences lagged at 5, first 5 differences are compared to x[1]
+roll_diff(x, cheapr::lag_sequence(length(x), 5, partial = TRUE))
 
 # Like diff() but x/y instead of x-y
 quotient <- function(x, n = 1L){

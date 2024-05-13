@@ -149,8 +149,9 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
                   sep = " "))
   }
   # Remove outliers
-  out <- out[which_(data.table::between(get(delay_nm), min_delay, max_delay,
-                                 incbounds = TRUE, NAbounds = NA)), ]
+  out <- cheapr::sset(out,
+                      data.table::between(out[[delay_nm]], min_delay, max_delay,
+                                          incbounds = TRUE, NAbounds = NA))
   # Quantile summary
   iqr_p_missed <- setdiff(c(0.25, 0.75), probs)
   if (length(iqr_p_missed) > 0L){

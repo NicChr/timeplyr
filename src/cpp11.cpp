@@ -6,17 +6,10 @@
 #include <R_ext/Visibility.h>
 
 // diff.cpp
-SEXP cpp_roll_diff(SEXP x, int k, SEXP fill);
-extern "C" SEXP _timeplyr_cpp_roll_diff(SEXP x, SEXP k, SEXP fill) {
+SEXP cpp_diff(SEXP x, SEXP lag, SEXP order, SEXP run_lengths, SEXP fill, int differences);
+extern "C" SEXP _timeplyr_cpp_diff(SEXP x, SEXP lag, SEXP order, SEXP run_lengths, SEXP fill, SEXP differences) {
   BEGIN_CPP11
-    return cpp11::as_sexp(cpp_roll_diff(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<int>>(k), cpp11::as_cpp<cpp11::decay_t<SEXP>>(fill)));
-  END_CPP11
-}
-// diff.cpp
-SEXP cpp_roll_diff_grouped(SEXP x, int k, SEXP o, SEXP sizes, SEXP fill);
-extern "C" SEXP _timeplyr_cpp_roll_diff_grouped(SEXP x, SEXP k, SEXP o, SEXP sizes, SEXP fill) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(cpp_roll_diff_grouped(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<int>>(k), cpp11::as_cpp<cpp11::decay_t<SEXP>>(o), cpp11::as_cpp<cpp11::decay_t<SEXP>>(sizes), cpp11::as_cpp<cpp11::decay_t<SEXP>>(fill)));
+    return cpp11::as_sexp(cpp_diff(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(lag), cpp11::as_cpp<cpp11::decay_t<SEXP>>(order), cpp11::as_cpp<cpp11::decay_t<SEXP>>(run_lengths), cpp11::as_cpp<cpp11::decay_t<SEXP>>(fill), cpp11::as_cpp<cpp11::decay_t<int>>(differences)));
   END_CPP11
 }
 // is_whole_num.cpp
@@ -59,6 +52,13 @@ SEXP cpp_row_id(SEXP order, SEXP group_sizes, bool ascending);
 extern "C" SEXP _timeplyr_cpp_row_id(SEXP order, SEXP group_sizes, SEXP ascending) {
   BEGIN_CPP11
     return cpp11::as_sexp(cpp_row_id(cpp11::as_cpp<cpp11::decay_t<SEXP>>(order), cpp11::as_cpp<cpp11::decay_t<SEXP>>(group_sizes), cpp11::as_cpp<cpp11::decay_t<bool>>(ascending)));
+  END_CPP11
+}
+// utils.cpp
+R_xlen_t cpp_vector_size(SEXP x);
+extern "C" SEXP _timeplyr_cpp_vector_size(SEXP x) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_vector_size(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x)));
   END_CPP11
 }
 // utils.cpp
@@ -182,6 +182,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_consecutive_na_id",    (DL_FUNC) &_timeplyr_cpp_consecutive_na_id,    2},
     {"_timeplyr_cpp_copy",                 (DL_FUNC) &_timeplyr_cpp_copy,                 1},
     {"_timeplyr_cpp_df_group_indices",     (DL_FUNC) &_timeplyr_cpp_df_group_indices,     2},
+    {"_timeplyr_cpp_diff",                 (DL_FUNC) &_timeplyr_cpp_diff,                 6},
     {"_timeplyr_cpp_group_locs",           (DL_FUNC) &_timeplyr_cpp_group_locs,           2},
     {"_timeplyr_cpp_is_whole_num",         (DL_FUNC) &_timeplyr_cpp_is_whole_num,         3},
     {"_timeplyr_cpp_list_subset",          (DL_FUNC) &_timeplyr_cpp_list_subset,          4},
@@ -189,13 +190,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_nrows",                (DL_FUNC) &_timeplyr_cpp_nrows,                1},
     {"_timeplyr_cpp_r_obj_address",        (DL_FUNC) &_timeplyr_cpp_r_obj_address,        1},
     {"_timeplyr_cpp_roll_count_na",        (DL_FUNC) &_timeplyr_cpp_roll_count_na,        4},
-    {"_timeplyr_cpp_roll_diff",            (DL_FUNC) &_timeplyr_cpp_roll_diff,            3},
-    {"_timeplyr_cpp_roll_diff_grouped",    (DL_FUNC) &_timeplyr_cpp_roll_diff_grouped,    5},
     {"_timeplyr_cpp_roll_growth_rate",     (DL_FUNC) &_timeplyr_cpp_roll_growth_rate,     3},
     {"_timeplyr_cpp_roll_na_fill",         (DL_FUNC) &_timeplyr_cpp_roll_na_fill,         2},
     {"_timeplyr_cpp_roll_na_fill_grouped", (DL_FUNC) &_timeplyr_cpp_roll_na_fill_grouped, 4},
     {"_timeplyr_cpp_row_id",               (DL_FUNC) &_timeplyr_cpp_row_id,               3},
     {"_timeplyr_cpp_sorted_group_starts",  (DL_FUNC) &_timeplyr_cpp_sorted_group_starts,  2},
+    {"_timeplyr_cpp_vector_size",          (DL_FUNC) &_timeplyr_cpp_vector_size,          1},
     {"_timeplyr_cpp_which_first_gap",      (DL_FUNC) &_timeplyr_cpp_which_first_gap,      3},
     {"_timeplyr_list_has_interval",        (DL_FUNC) &_timeplyr_list_has_interval,        1},
     {"_timeplyr_list_item_is_interval",    (DL_FUNC) &_timeplyr_list_item_is_interval,    1},
