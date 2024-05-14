@@ -30,7 +30,9 @@ diff_(x, n = 1L, differences = 1L, order = NULL, run_lengths = NULL, fill = NA)
 \item{fill}{Value to fill the first \code{n} elements.}
 
 \item{differences}{Number indicating the number of times to recursively apply
-the differencing algorithm.}
+the differencing algorithm. If \code{length(n) == 1}, i.e the lag is a scalar integer,
+an optimised method is used which avoids recursion entirely.
+If \code{length(n) != 1} then simply recursion is used.}
 
 \item{order}{Optionally specify an ordering with which to
 apply the lags/differences.

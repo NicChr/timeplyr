@@ -9,7 +9,9 @@
 #' @param g Grouping vector. This can be a vector, data frame or `GRP` object.
 #' @param fill Value to fill the first `n` elements.
 #' @param differences Number indicating the number of times to recursively apply
-#' the differencing algorithm.
+#' the differencing algorithm. If `length(n) == 1`, i.e the lag is a scalar integer,
+#' an optimised method is used which avoids recursion entirely.
+#' If `length(n) != 1` then simply recursion is used.
 #' @param ... Arguments passed onto appropriate method.
 #' @param order Optionally specify an ordering with which to
 #' apply the lags/differences.
