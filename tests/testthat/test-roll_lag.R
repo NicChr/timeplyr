@@ -161,3 +161,202 @@ testthat::test_that("Grouped lags", {
   expect_equal(roll_lag(z, g = gz, n = -3, fill = TRUE),
                collapse::flag(z, g = gz, n = -3, fill = TRUE))
 })
+
+
+testthat::test_that("More complicated diff tests", {
+  x <- rnorm(10^3)
+  y <- as.integer(x)
+  z <- x > 0
+  o1 <- seq_along(x)
+  o2 <- rev(o1)
+  o3 <- sample.int(length(x))
+  rl1 <- length(x)
+  rl2 <- rep(50, 20)
+  lags <- sample(-3:3, length(x), TRUE)
+
+  my_diff <- function(x, ...){
+    x - cheapr::lag2_(x, ...)
+  }
+  my_diff2 <- function(x, ...){
+    out <- x - cheapr::lag2_(x, ...)
+    out - cheapr::lag2_(out, ...)
+  }
+  my_diff3 <- function(x, ...){
+    out <- x - cheapr::lag2_(x, ...)
+    out <- out - cheapr::lag2_(out, ...)
+    out - cheapr::lag2_(out, ...)
+  }
+
+  # Multiple lags
+  expect_equal(
+    lapply(-3:3, function(lag) diff_(x, lag)),
+    lapply(-3:3, function(lag) my_diff(x, lag))
+  )
+  expect_equal(
+    lapply(-3:3, function(lag) diff_(y, lag)),
+    lapply(-3:3, function(lag) my_diff(y, lag))
+  )
+  expect_equal(
+    lapply(-3:3, function(lag) diff_(z, lag)),
+    lapply(-3:3, function(lag) my_diff(z, lag))
+  )
+
+  # double differencing
+  expect_equal(
+    lapply(-3:3, function(lag) diff_(x, lag, differences = 2)),
+    lapply(-3:3, function(lag) my_diff2(x, lag))
+  )
+  expect_equal(
+    lapply(-3:3, function(lag) diff_(y, lag, differences = 2)),
+    lapply(-3:3, function(lag) my_diff2(y, lag))
+  )
+  expect_equal(
+    lapply(-3:3, function(lag) diff_(z, lag, differences = 2)),
+    lapply(-3:3, function(lag) my_diff2(z, lag))
+  )
+
+  # Triple differencing
+  expect_equal(
+    lapply(-3:3, function(lag) diff_(x, lag, differences = 3)),
+    lapply(-3:3, function(lag) my_diff3(x, lag))
+  )
+  expect_equal(
+    lapply(-3:3, function(lag) diff_(y, lag, differences = 3)),
+    lapply(-3:3, function(lag) my_diff3(y, lag))
+  )
+  expect_equal(
+    lapply(-3:3, function(lag) diff_(z, lag, differences = 3)),
+    lapply(-3:3, function(lag) my_diff3(z, lag))
+  )
+
+  # Custom vector of lags
+  expect_equal(diff_(x, lags), my_diff(x, lags))
+  expect_equal(diff_(y, lags), my_diff(y, lags))
+  expect_equal(diff_(z, lags), my_diff(z, lags))
+
+  # Vector of lags, double differencing
+  expect_equal(diff_(x, lags, differences = 2), my_diff2(x, lags))
+  expect_equal(diff_(y, lags, differences = 2), my_diff2(y, lags))
+  expect_equal(diff_(z, lags, differences = 2), my_diff2(z, lags))
+
+  # Custom order
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(x, order = o)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff(x, order = o))
+  )
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(y, order = o)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff(y, order = o))
+  )
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(z, order = o)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff(z, order = o))
+  )
+
+  # Custom order and negative lags
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(x, -3, order = o)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff(x, -3, order = o))
+  )
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(y, -3, order = o)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff(y, -3, order = o))
+  )
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(z, -3, order = o)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff(z, -3, order = o))
+  )
+
+  # Custom order and triple differencing
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(x, order = o, differences = 3)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff3(x, order = o))
+  )
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(y, order = o, differences = 3)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff3(y, order = o))
+  )
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(z, order = o, differences = 3)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff3(z, order = o))
+  )
+
+  # Custom order and run_lengths
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(x, order = o, run_lengths = rl2)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff(x, order = o, run_lengths = rl2))
+  )
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(z, order = o, run_lengths = rl2)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff(z, order = o, run_lengths = rl2))
+  )
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(z, order = o, run_lengths = rl2)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff(z, order = o, run_lengths = rl2))
+  )
+
+  # Custom order, negative lags and run_lengths
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(x, -2, order = o, run_lengths = rl2)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff(x, -2, order = o, run_lengths = rl2))
+  )
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(z, -2, order = o, run_lengths = rl2)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff(z, -2, order = o, run_lengths = rl2))
+  )
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(z, -2, order = o, run_lengths = rl2)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff(z, -2, order = o, run_lengths = rl2))
+  )
+
+  # Custom order, lag vector and run_lengths
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(x, lags, order = o, run_lengths = rl2)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff(x, lags, order = o, run_lengths = rl2))
+  )
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(z, lags, order = o, run_lengths = rl2)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff(z, lags, order = o, run_lengths = rl2))
+  )
+  expect_equal(
+    lapply(list(o1, o2, o3),
+           function(o) diff_(z, lags, order = o, run_lengths = rl2)),
+    lapply(list(o1, o2, o3),
+           function(o) my_diff(z, lags, order = o, run_lengths = rl2))
+  )
+})
+

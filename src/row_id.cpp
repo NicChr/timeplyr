@@ -18,7 +18,7 @@ SEXP cpp_row_id(SEXP order, SEXP group_sizes, bool ascending){
   if (ascending){
     int init = 0;
     for (int i = 0; i < n; ++i){
-      if ((i + 1) > running_group_size){
+      if (i >= running_group_size){
         init = 0;
         running_group_size += p_group_sizes[++j];
       }
@@ -27,7 +27,7 @@ SEXP cpp_row_id(SEXP order, SEXP group_sizes, bool ascending){
   } else {
     int init = running_group_size + 1;
     for (int i = 0; i < n; ++i){
-      if ((i + 1) > running_group_size){
+      if (i >= running_group_size){
         init = p_group_sizes[++j] + 1;
         running_group_size += p_group_sizes[j];
       }
