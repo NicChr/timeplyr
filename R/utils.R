@@ -869,35 +869,12 @@ na_fill <- function(x, n = NULL, prop = NULL){
   }
   x
 }
-sqrt_double_eps <- function(){
-  sqrt(.Machine$double.eps)
-}
 
 # Taken from base R to avoid needing R >= 4
 deparse1 <- function(expr, collapse = " ", width.cutoff = 500L, ...){
   paste(deparse(expr, width.cutoff, ...), collapse = collapse)
 }
-# Bin x by breaks for each group in g
-# Function that takes x (sorted by g) and
-# breaks (sorted by g and itself)
-# fbincode <- function(x, breaks, right = TRUE, include.lowest = FALSE,
-#                      gx = NULL, gbreaks = NULL){
-#   x_list <- gsplit2(x, g = gx)
-#   breaks_list <- gsplit2(breaks, g = gbreaks)
-#   out <- vector("list", length(x_list))
-#   for (i in seq_along(out)){
-#     out[[i]] <- .bincode(.subset2(x_list, i),
-#                          .subset2(breaks_list, i),
-#                          right = right,
-#                          include.lowest = include.lowest)
-#   }
-#   unlist(out, recursive = FALSE, use.names = FALSE)
-#   # Parallel options
-#   # out <- furrr::future_map2(x_list, breaks_list,
-#   #                           function(x, y) .bincode(x, y,
-#   #                                                   right = right,
-#   #                                                   include.lowest = include.lowest))
-# }
+
 bin_grouped <- function(x, breaks, gx = NULL, gbreaks = NULL, codes = TRUE,
                         right = TRUE,
                         include_lowest = FALSE,
@@ -911,30 +888,6 @@ bin_grouped <- function(x, breaks, gx = NULL, gbreaks = NULL, codes = TRUE,
   ptype <- if (codes) integer() else x[0L]
   vctrs::list_unchop(out, ptype = ptype)
 }
-# get_cores <- function(){
-#   out <- floor(parallel::detectCores() / 2)
-#   if (length(out) != 1 || !is.numeric(out) || is.na(out)){
-#     out <- 1
-#   }
-#   as.integer(out)
-# }
-# parallel_bincode <- function(x, breaks, right = TRUE, include.lowest = FALSE,
-#                              gx = NULL, gbreaks = NULL){
-#   n_cores <- get_cores()
-#   cluster <- parallel::makeCluster(n_cores)
-#   doParallel::registerDoParallel(cluster)
-#   x_list <- gsplit2(x, g = gx)
-#   breaks_list <- gsplit2(breaks, g = gbreaks)
-#   out <- foreach::`%dopar%`(foreach::foreach(i = seq_along(x_list)),
-#                             {
-#                               .bincode(.subset2(x_list, i),
-#                                        .subset2(breaks_list, i),
-#                                        right = right,
-#                                        include.lowest = include.lowest)
-#                             })
-#   parallel::stopCluster(cluster)
-#   unlist(out, recursive = FALSE, use.names = FALSE)
-# }
 # Is x numeric and not S4?
 is_s3_numeric <- function(x){
   typeof(x) %in% c("integer", "double") && !isS4(x)
@@ -1040,14 +993,7 @@ allv2 <- function(x, value){
   }
   collapse::allv(x, value)
 }
-# collapse::whichv but handles the case when both x and value are length zero
-# whichv2 <- function(x, value, invert = FALSE){
-#   if (!length(x) && !length(value)){
-#     integer()
-#   } else {
-#     collapse::whichv(x, value, invert)
-#   }
-# }
+
 # Build on top of any and all
 # Are none TRUE?
 none <- function(..., na.rm = FALSE){
@@ -1112,22 +1058,6 @@ collapse_join <- function(x, y, on, how, sort = FALSE, ...){
   fselect(out,
           .cols = c(names(x), intersect(setdiff(names(y), names(x)), names(out))))
 }
-# Use this as an automated tolerance estimate when dealing with small numbers
-# Doesn't handle small differences between large numbers though.
-# Experimental
-# get_tolerance <- function(x){
-#   min_tol <- .Machine$double.eps
-#   max_tol <- sqrt(min_tol)
-#   xmin <- collapse::fmin(abs(x[x != 0]))
-#   tol_est <- 10^(-ceiling(abs(log10(xmin))))
-#   max(tol_est, min_tol)
-#   min(max(tol_est, min_tol), max_tol)
-# }
-# rng_used <- function(expr){
-#   curr <- globalenv()$.Random.seed
-#   on.exit({print(paste("RNG USED:", !identical(curr, .Random.seed)))})
-#   invisible(eval(expr, envir = parent.frame(n = 1)))
-# }
 
 # Sort x with no copy
 # If y is supplied, sort x using y
@@ -1136,19 +1066,9 @@ collapse_join <- function(x, y, on, how, sort = FALSE, ...){
 #   data.table::setorderv(df, cols = names(df)[df_ncol(df)])
 #   invisible(x)
 # }
+
 # Remove NULL list elements
 list_rm_null <- get_from_package("cpp_list_rm_null", "cheapr")
-
-# nth element
-# returns empty vector if n > length(x)
-nth <- function(x, n){
-  N <- length(x)
-  if (n > N){
-    x[0L]
-  } else {
-    x[n]
-  }
-}
 
 # setdiff where x and y are unique vectors
 setdiff2 <- function(x, y){
@@ -1161,20 +1081,9 @@ intersect2 <- function(x, y){
   }
   c(x[match(x, y, 0L) > 0L], y[numeric()])
 }
-last_class <- function(x){
-  .subset2(class(x), length(class(x)))
-}
 trunc2 <- function(x){
   if (is.integer(x)) x else trunc(x)
 }
-# Truncate away from 0
-# atrunc <- function(x){
-#   if (is.integer(x)){
-#     x
-#   } else {
-#     ceiling(abs(x)) * sign(x)
-#   }
-# }
 round2 <- function(x, digits = 0){
   if (is.integer(x)) x else round(x, digits)
 }
@@ -1228,26 +1137,6 @@ list_subset <- function(x, i, default = NA, copy_attributes = FALSE){
     attributes(out) <- attributes(first_element)
   }
   out
-}
-
-# Apply a function using a LOCAL seed
-# This has the nice property that the seed that was previously
-# set is NOT interrupted
-# This function acts as a way of applying RNG functions
-# completely separately to the user environment,
-# without affecting the global seed
-with_local_seed <- function(expr, .seed = NULL, ...){
-  old <- globalenv()[[".Random.seed"]]
-  if (is.null(old)){
-    set.seed(NULL)
-    old <- globalenv()[[".Random.seed"]]
-  }
-  # Does user want to use local seed?
-  if (!is.null(.seed)){
-    set.seed(.seed, ...)
-  }
-  on.exit({assign(".Random.seed", old, envir = globalenv())})
-  eval(expr, envir = parent.frame())
 }
 
 # Cheapr functions --------------------------------------------------------
