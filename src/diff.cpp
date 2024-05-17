@@ -521,9 +521,69 @@ SEXP cpp_diff(SEXP x, SEXP lag, SEXP order, SEXP run_lengths, SEXP fill, int dif
       Rf_error("sum(run_lengths) must be equal to length(x)");
     }
     if (differences >= 2){
-      for (int l = 1; l < differences; ++l){
-        out = Rf_protect(cpp_diff(out, lag, order, run_lengths, fill, 1));
-        ++n_prot;
+      // Essentially.. If k is a scalar integer and not an integer vector
+      // We can do a much more efficient updating by reference algorithm
+      // Otherwise we use the less efficient but code-simpler recursion
+      if (recycle_lag){
+        for (int l = 1; l < differences; ++l){
+          out = Rf_protect(cpp_diff(out, lag, order, run_lengths, fill, 1));
+          ++n_prot;
+        }
+      } else {
+        k = lag1;
+        if (std::abs(k) >= 1){
+          R_xlen_t tempi;
+          SEXP tempv = Rf_protect(Rf_allocVector(CPLXSXP, 1));
+          ++n_prot;
+          SEXP lag_temp = Rf_protect(Rf_allocVector(CPLXSXP, std::abs(k)));
+          ++n_prot;
+          Rcomplex* __restrict__ p_lag = COMPLEX(lag_temp);
+          if (k >= 0){
+            for (int l = 1; l < differences; ++l){
+              run_end = 0; // Reset run_end;
+              for (R_xlen_t i = 0; i != rl_size; ++i){
+                run_start = run_end;
+                rl = has_rl ? p_rl[i] : size;
+                run_end += rl;
+                for (R_xlen_t j = run_start; j != run_end; ++j){
+                  oi = has_order ? p_o[j] - 1 : j;
+                  if ((j - run_start) >= k){
+                    tempi = ((j - k - run_start) % k);
+                    SET_COMPLEX_ELT(tempv, 0, p_lag[tempi]);
+                    SET_COMPLEX_ELT(lag_temp, tempi, p_out[oi]);
+                    p_out[oi].r = p_out[oi].r - COMPLEX(tempv)[0].r;
+                    p_out[oi].i = p_out[oi].i - COMPLEX(tempv)[0].i;
+                  } else {
+                    SET_COMPLEX_ELT(lag_temp, j - run_start, p_out[oi]);
+                    SET_COMPLEX_ELT(out, oi, fill_value);
+                  }
+                }
+              }
+            }
+          } else {
+            for (int l = 1; l < differences; ++l){
+              run_end = 0; // Reset run_end;
+              for (R_xlen_t i = 0; i != rl_size; ++i){
+                run_start = run_end;
+                rl = has_rl ? p_rl[i] : size;
+                run_end += rl;
+                for (R_xlen_t j = run_end - 1; j >= run_end + k; --j){
+                  oi = has_order ? p_o[j] - 1 : j;
+                  SET_COMPLEX_ELT(lag_temp, run_end - j - 1, p_out[oi]);
+                  SET_COMPLEX_ELT(out, oi, fill_value);
+                }
+                for (R_xlen_t j = run_end + k - 1; j >= run_start; --j) {
+                  oi = has_order ? p_o[j] - 1 : j;
+                  tempi = ( (run_end - (j - k) - 1) % k);
+                  SET_COMPLEX_ELT(tempv, 0, p_lag[tempi]);
+                  SET_COMPLEX_ELT(lag_temp, tempi, p_out[oi]);
+                  p_out[oi].r = p_out[oi].r - COMPLEX(tempv)[0].r;
+                  p_out[oi].i = p_out[oi].i - COMPLEX(tempv)[0].i;
+                }
+              }
+            }
+          }
+        }
       }
     }
     cpp_copy_names(x, out);
@@ -547,4 +607,3 @@ SEXP cpp_diff(SEXP x, SEXP lag, SEXP order, SEXP run_lengths, SEXP fill, int dif
   Rf_unprotect(n_prot);
   return out;
 }
-

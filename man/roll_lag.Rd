@@ -14,9 +14,16 @@ roll_lag(x, n = 1L, ...)
 
 roll_diff(x, n = 1L, ...)
 
-\method{roll_diff}{default}(x, n = 1L, differences = 1L, g = NULL, fill = NULL, ...)
+\method{roll_diff}{default}(x, n = 1L, g = NULL, fill = NULL, differences = 1L, ...)
 
-diff_(x, n = 1L, differences = 1L, order = NULL, run_lengths = NULL, fill = NA)
+diff_(
+  x,
+  n = 1L,
+  differences = 1L,
+  order = NULL,
+  run_lengths = NULL,
+  fill = NULL
+)
 }
 \arguments{
 \item{x}{A vector or data frame.}

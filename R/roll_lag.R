@@ -92,7 +92,7 @@ roll_diff <- function(x, n = 1L, ...){
 }
 #' @rdname roll_lag
 #' @export
-roll_diff.default <- function(x, n = 1L, differences = 1L, g = NULL, fill = NULL, ...){
+roll_diff.default <- function(x, n = 1L, g = NULL, fill = NULL, differences = 1L, ...){
   order_counts <- group_order_and_counts(g)
   cpp_diff(x, n, order = order_counts[["order"]],
            run_lengths = order_counts[["sizes"]],
@@ -101,6 +101,6 @@ roll_diff.default <- function(x, n = 1L, differences = 1L, g = NULL, fill = NULL
 }
 #' @rdname roll_lag
 #' @export
-diff_ <- function(x, n = 1L, differences = 1L, order = NULL, run_lengths = NULL, fill = NA){
+diff_ <- function(x, n = 1L, differences = 1L, order = NULL, run_lengths = NULL, fill = NULL){
   .Call(`_timeplyr_cpp_diff`, x, n, order, run_lengths, fill, differences)
 }

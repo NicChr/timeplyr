@@ -348,7 +348,7 @@ df_reorder <- function(data, g){
 }
 # Fast/efficient drop empty rows
 df_drop_empty <- function(data, .cols = names(data)){
-  is_empty_row <- cheapr::row_all_na(fselect(data, .cols = .cols))
+  is_empty_row <- cheapr::row_all_na(cheapr::sset(data, j = .cols))
   which_not_empty <- cheapr::which_(is_empty_row, invert = TRUE)
   if (length(which_not_empty) == df_nrow(data)){
     data
@@ -371,29 +371,9 @@ dplyr_drop_empty <- function(data, .cols = dplyr::everything()){
 df_add_cols <- function(data, cols){
   dplyr::dplyr_col_modify(data, cols)
 }
-# # Extremely simple count functions for grouped_df
-# df_count <- function(.data, name = "n", wt = character()){
-#   groups <- group_data(.data)
-#   if (length(wt) > 0){
-#     counts <- collapse::fsum(.data[[wt]], g = df_group_id(.data))
-#   } else {
-#     counts <- cheapr::lengths_(groups[[".rows"]])
-#   }
-#   out <- fselect(groups, .cols = setdiff2(names(groups), ".rows"))
-#   out[[name]] <- counts
-#   out <- df_reconstruct(out, safe_ungroup(.data))
-#   # if (inherits(.data, "grouped_df")){
-#   #   groups[[".rows"]] <- structure(as.list(df_seq_along(out)),
-#   #                                  ptype = integer(),
-#   #                                  class = c("vctrs_list_of",
-#   #                                            "vctrs_vctr",
-#   #                                            "list"))
-#   #   attr(out, "groups") <- groups
-#   #   class(out) <- class(.data)
-#   # }
-#   out
-# }
+
 # Extremely simple count functions for grouped_df
+
 df_count <- function(.data, name = "n", weights = NULL){
   groups <- group_data(.data)
   if (!is.null(weights)){

@@ -599,8 +599,14 @@ cut_time2 <- function(x, breaks, rightmost.closed = FALSE, left.open = FALSE){
 # .bincode but with extra features and limited to right-open intervals
 # It can return the breaks as well as the break locations (one or the other)
 # It can also include out-of-bounds values (like in findInterval)
+#
+# To-do:
 # It also always enforces right-open intervals, so the include.lowest argument
 # has been omitted
+# This hasn't been done because users can specify inclusive time end-points
+# Which makes everything complicated. A possible solution would be to
+# make the to argument exclusive and from inclusive. In practice this is messy.
+
 # include_oob is equivalent to c(breaks, Inf)
 # cpp_bin is basically .bincode with the extra features but isn't limited to
 # right-open intervals
