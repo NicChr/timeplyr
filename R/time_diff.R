@@ -72,7 +72,6 @@ time_diff <- function(x, y, time_by = 1L,
     if (!is.numeric(x)){
       x <- time_as_number(x)
     }
-    # out <- (y - x) / num
     out <- divide(y - x, num)
   } else {
     time_type <- match_time_type(time_type)
@@ -89,7 +88,6 @@ time_diff <- function(x, y, time_by = 1L,
       }
       by <- num
       out <- divide(time_as_number(y) - time_as_number(x), by)
-      # out <- (time_as_number(y) - time_as_number(x)) / by
       return(out)
     }
     if (time_type == "auto"){

@@ -103,7 +103,8 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
                         expand_type = c("nesting", "crossing"),
                         sort = TRUE,
                         keep_class = TRUE,
-                        roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                        roll_month = getOption("timeplyr.roll_month", "preday"),
+                        roll_dst = getOption("timeplyr.roll_dst", "boundary"),
                         log_limit = 8){
   check_is_df(data)
   expand_type <- rlang::arg_match(expand_type)

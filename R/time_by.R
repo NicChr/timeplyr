@@ -88,7 +88,6 @@
 #' @export
 time_by <- function(data, time, time_by = NULL,
                     from = NULL, to = NULL,
-                    # .name = "{.col}",
                     .name = paste0("time_intv_", time_by_pretty(time_by, "_")),
                     .add = FALSE,
                     time_type = getOption("timeplyr.time_type", "auto"),

@@ -113,7 +113,7 @@ duplicate_rows <- function(data, ..., .keep_all = FALSE,
     out[[n_var_nm]] <- group_sizes
   }
   which_dup <- GRP_which_duplicated(groups, all = .both_ways)
-  out <- df_row_slice(out, which_dup)
+  out <- cheapr::sset(out, which_dup)
   # Alternate way of sorting the duplicate rows
   # Must specify order = FALSE in df_to_GRP()
   # if (sort){

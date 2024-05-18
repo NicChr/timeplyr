@@ -206,8 +206,19 @@ GRP_duplicated <- function(GRP, all = FALSE){
   out
 }
 # Alternative that just returns dup indices
+# The commented-out code is simpler but which_val is more efficient
+# Especially with data that contains few duplicates
+# GRP_which_duplicated <- function(GRP, all = FALSE){
+#   which_(GRP_duplicated(GRP, all))
+# }
 GRP_which_duplicated <- function(GRP, all = FALSE){
-  which_(GRP_duplicated(GRP, all))
+  sizes <- GRP_group_sizes(GRP)
+  group_id <- GRP_group_id(GRP)
+  if (all){
+    cheapr::which_((sizes > 1L)[group_id])
+  } else {
+    which_val(frowid(GRP), 1L, invert = TRUE)
+  }
 }
 calc_sorted_group_starts <- function(group_sizes, init_loc = 1L){
   cpp_sorted_group_starts(as.integer(group_sizes), init_loc)

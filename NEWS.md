@@ -20,13 +20,7 @@ to allow for recursive differencing.
 
 * `roll_na_fill` can now also handle data frames.
 
-* `num_na` can now handle data frames that contain data frames or 
-vctrs 'rcrd' style lists.
-
 * `time_episodes` has a custom print method displaying key summary metrics.
-
-* New functions `gcd2` and `scm2` which are vectorised binary versions of 
-`gcd` and `scm` respectively.
 
 * New class `time_interval` to represent right-open time intervals. 
 
