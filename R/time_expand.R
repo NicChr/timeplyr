@@ -31,16 +31,12 @@
 #' @param sort Logical. If `TRUE` expanded/completed variables are sorted.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
-#' @param keep_class Logical. If `TRUE` then the class of the input data is retained.
-#' If `FALSE`, which is sometimes faster, a `data.table` is returned.
 #' @param fill A named list containing value-name pairs to fill the named implicit missing values.
 #' @param roll_month Control how impossible dates are handled when
 #' month or year arithmetic is involved.
 #' Options are "preday", "boundary", "postday", "full" and "NA".
 #' See `?timechange::time_add` for more details.
 #' @param roll_dst See `?timechange::time_add` for the full list of details.
-#' @param log_limit The maximum log10 number of rows that can be expanded.
-#' Anything exceeding this will throw an error.
 #'
 #' @details
 #' This works much the same as `tidyr::complete()`, except that
@@ -102,10 +98,8 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
                         week_start = getOption("lubridate.week.start", 1),
                         expand_type = c("nesting", "crossing"),
                         sort = TRUE,
-                        keep_class = TRUE,
                         roll_month = getOption("timeplyr.roll_month", "preday"),
-                        roll_dst = getOption("timeplyr.roll_dst", "boundary"),
-                        log_limit = 8){
+                        roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   check_is_df(data)
   expand_type <- rlang::arg_match(expand_type)
   group_vars <- get_groups(data, {{ .by }})
@@ -133,7 +127,6 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
   to_data <- fselect(to_data,
                      .cols = which_(match(names(to_data), names(time_data), 0L) == 0L))
   out <- df_cbind(time_data, from_data, to_data)
-  out <- df_as_dt(out, .copy = TRUE)
   if (length(time_var) > 0){
     time_type <- match_time_type(time_type)
     time_by <- time_by_get(out[[time_var]], time_by = time_by)
@@ -142,13 +135,15 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
     input_time_type <- time_type # Save original
     # Ordered group ID
     grp_nm <- new_var_nm(out, ".group.id")
-    data.table::set(out, j = grp_nm, value = group_ids)
+    out[[grp_nm]] <- group_ids
     from_nm <- new_var_nm(names(out), ".from")
     to_nm <- new_var_nm(c(names(out), from_nm), ".to")
-    out[, c(from_nm, to_nm) := get_from_to(out, time = time_var,
-                                           from = from_var,
-                                           to = to_var,
-                                           .by = all_of(grp_nm))]
+    from_to_list <- get_from_to(out, time = time_var,
+                                from = from_var,
+                                to = to_var,
+                                .by = all_of(grp_nm))
+    out[[from_nm]] <- from_to_list[[1]]
+    out[[to_nm]] <- from_to_list[[2]]
     # Unique groups
     time_tbl <- fdistinct(
       fselect(
@@ -157,90 +152,77 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
       .cols = grp_nm, .keep_all = TRUE
     )
     if (time_floor){
-      data.table::set(time_tbl,
-                      j = from_nm,
-                      value = time_floor2(fpluck(time_tbl, from_nm),
-                                          time_by, week_start = week_start))
+      time_tbl[[from_nm]] <- time_floor2(fpluck(time_tbl, from_nm),
+                                         time_by, week_start = week_start)
     }
     # Reverse by sign in case from > to
     by_nm <- new_var_nm(out, ".by")
-    data.table::set(time_tbl, j = by_nm, value = by_n)
-    time_tbl[, (by_nm) := data.table::fifelse(get(from_nm) > get(to_nm),
-                                              -1 * abs(get(by_nm)),
-                                              get(by_nm))]
+    by_n <- rep_len(by_n, nrow(time_tbl))
+    which_wrong_sign <- cheapr::which_(time_tbl[[from_nm]] > time_by[[to_nm]])
+    by_n[which_wrong_sign] <- -abs(by_n[which_wrong_sign])
+    time_tbl[[by_nm]] <- by_n
     # Determine size of sequences
     size_nm <- new_var_nm(out, ".size")
-    time_tbl[, (size_nm) := time_seq_sizes(get(from_nm),
-                                           get(to_nm),
-                                           time_by = add_names(list(get(by_nm)),
+    time_tbl[[size_nm]] <- time_seq_sizes(time_tbl[[from_nm]],
+                                          time_tbl[[to_nm]],
+                                          time_by = add_names(list(time_tbl[[by_nm]]),
                                                               by_unit),
-                                           time_type = time_type)]
-      expanded_nrow <- sum(time_tbl[[size_nm]])
-      expand_check(expanded_nrow, log_limit)
-      # Vectorised time sequence
-      time_seq <- time_seq_v2(time_tbl[[size_nm]],
-                              time_tbl[[from_nm]],
-                              time_by = add_names(list(time_tbl[[by_nm]]),
-                                                 by_unit),
-                              roll_month = roll_month,
-                              roll_dst = roll_dst,
-                              time_type = time_type)
-      time_seq_sizes <- time_tbl[[size_nm]]
-      set_rm_cols(time_tbl, c(from_nm, to_nm,
-                              size_nm,
-                              by_nm))
-      out <- df_rep(time_tbl, time_seq_sizes)
-      data.table::set(out, j = time_var, value = time_seq)
-      set_rm_cols(out, grp_nm)
-      if (dots_length(...) > 0){
-        expanded_df <- fexpand(data,
-                               ...,
-                               expand_type = expand_type,
-                               keep_class = FALSE,
-                               sort = FALSE, .by = {{ .by }},
-                               log_limit = log_limit)
-        expanded_nms <- names(expanded_df)
-        if (df_nrow(expanded_df) > 0L){
-          # If there are no common cols, just cross join them
-          if (length(intersect(group_vars, expanded_nms)) == 0L){
-            out_n <- df_nrow(out)
-            expanded_n <- df_nrow(expanded_df)
-            out <- df_rep_each(out, expanded_n)
-            for (i in seq_along(expanded_nms)){
-              out[, (expanded_nms[i]) := rep(expanded_df[[expanded_nms[i]]], out_n)]
-            }
-            # If data was grouped, we can do a full join on these variables
-          } else {
-            if (length(setdiff(expanded_nms, group_vars)) > 0L){
-              out <- dplyr::full_join(out, expanded_df, by = group_vars,
-                                      relationship = "many-to-many")
-              # out <- collapse_join(out, expanded_df,
-              #                      on = group_vars,
-              #                      how = "full",
-              #                      sort = FALSE)
-            }
+                                          time_type = time_type)
+    expanded_nrow <- sum(time_tbl[[size_nm]])
+    # Vectorised time sequence
+    time_seq <- time_seq_v2(time_tbl[[size_nm]],
+                            time_tbl[[from_nm]],
+                            time_by = add_names(list(time_tbl[[by_nm]]),
+                                                by_unit),
+                            roll_month = roll_month,
+                            roll_dst = roll_dst,
+                            time_type = time_type)
+    time_seq_sizes <- time_tbl[[size_nm]]
+    time_tbl <- df_rm_cols(time_tbl, c(from_nm, to_nm, size_nm, by_nm))
+    out <- df_rep(time_tbl, time_seq_sizes)
+    out[[time_var]] <- time_seq
+    out <- df_rm_cols(out, grp_nm)
+    if (dots_length(...) > 0){
+      expanded_df <- fexpand(data,
+                             ...,
+                             expand_type = expand_type,
+                             sort = FALSE, .by = {{ .by }})
+      expanded_nms <- names(expanded_df)
+      if (df_nrow(expanded_df) > 0L){
+        # If there are no common cols, just cross join them
+        if (length(intersect(group_vars, expanded_nms)) == 0L){
+          out_n <- df_nrow(out)
+          expanded_n <- df_nrow(expanded_df)
+          out <- df_rep_each(out, expanded_n)
+          for (i in seq_along(expanded_nms)){
+            out[[expanded_nms[i]]] <- rep(expanded_df[[expanded_nms[i]]], out_n)
+          }
+          # If data was grouped, we can do a full join on these variables
+        } else {
+          if (length(setdiff(expanded_nms, group_vars)) > 0L){
+            out <- dplyr::full_join(out, expanded_df, by = group_vars,
+                                    relationship = "many-to-many")
+            # out <- collapse_join(out, expanded_df,
+            #                      on = group_vars,
+            #                      how = "full",
+            #                      sort = FALSE)
           }
         }
       }
+    }
     if (sort){
       sort_nms <- c(group_vars, time_var,
-        setdiff(names(out),
-                c(group_vars, time_var)))
-      setorderv2(out, cols = sort_nms)
+                    setdiff(names(out),
+                            c(group_vars, time_var)))
+      out <- farrange(out, .cols = sort_nms)
     }
   } else {
     out <- fexpand(data,
                    ...,
                    expand_type = expand_type,
-                   keep_class = keep_class,
-                   sort = sort, .by = {{ .by }},
-                   log_limit = log_limit)
-    keep_class <- FALSE
+                   sort = sort, .by = {{ .by }})
   }
-  if (keep_class){
-    out <- df_reconstruct(out, data)
-  }
-  out
+  df_reconstruct(out, data)
 }
 #' @rdname time_expand
 #' @export
@@ -251,20 +233,17 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
                           week_start = getOption("lubridate.week.start", 1),
                           expand_type = c("nesting", "crossing"),
                           sort = TRUE,
-                          keep_class = TRUE,
                           fill = NA,
                           roll_month = getOption("timeplyr.roll_month", "preday"),
-                          roll_dst = getOption("timeplyr.roll_dst", "boundary"),
-                          log_limit = 8){
+                          roll_dst = getOption("timeplyr.roll_dst", "boundary")){
   check_is_df(data)
   expand_type <- rlang::arg_match(expand_type)
   time_type <- match_time_type(time_type)
   group_vars <- get_groups(data, {{ .by }})
-  out <- data
-  out_info <- mutate_summary_grouped(out, !!enquo(time), .by = {{ .by }})
+  out_info <- mutate_summary_grouped(data, !!enquo(time), .by = {{ .by }})
+  out <- out_info[["data"]]
   time_var <- out_info[["cols"]]
   check_length_lte(time_var, 1)
-  out <- df_as_dt(out_info[["data"]], .copy = FALSE)
   expanded_df <- time_expand(out,
                              ...,
                              time = across(all_of(time_var)),
@@ -276,48 +255,48 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
                              week_start = week_start,
                              sort = FALSE,
                              .by = all_of(group_vars),
-                             keep_class = FALSE,
                              expand_type = expand_type,
-                             roll_month = roll_month, roll_dst = roll_dst,
-                             log_limit = log_limit)
+                             roll_month = roll_month,
+                             roll_dst = roll_dst)
   # Full-join
-  if (df_nrow(expanded_df) > 0 && ncol(expanded_df) > 0){
+  if (df_nrow(expanded_df) > 0 && df_ncol(expanded_df) > 0){
     # Check to see if time has turned to POSIX
     if (length(time_var) > 0){
-      out[, (time_var) := time_cast(get(time_var), expanded_df[[time_var]])]
+      out[[time_var]] <- time_cast(out[[time_var]], expanded_df[[time_var]])
     }
-    pre_obj_addr <- cpp_r_obj_address(out)
-    out <- dplyr::full_join(out, expanded_df, by = names(expanded_df))
-    post_obj_addr <- cpp_r_obj_address(out)
+    # out <- dplyr::full_join(out, expanded_df, by = names(expanded_df))
+    extra <- cheapr::sset(expanded_df,
+                          which_not_in(expanded_df, cheapr::sset(out, j = names(expanded_df))))
+    extra <- df_cbind(
+      extra,
+      df_init(cheapr::sset(out, j = setdiff(names(out), names(expanded_df))),
+              df_nrow(extra))
+    )
+    out <- vctrs::vec_rbind(out, extra)
     # out <- collapse_join(out, expanded_df,
     #                      on = names(expanded_df),
     #                      how = "full",
     #                      sort = FALSE)
+    # if (any(cpp_address_equal(data, fselect(out, .cols = names(data))))){
     if (sort){
-      if (identical(pre_obj_addr, post_obj_addr)){
-        out <- farrange(out, .cols = c(group_vars, time_var,
-                                       setdiff(names(expanded_df),
-                                               c(group_vars, time_var))))
-      } else {
-        setorderv2(out, c(group_vars, time_var,
-                          setdiff(names(expanded_df),
-                                  c(group_vars, time_var))))
-      }
+      out <- farrange(out, .cols = c(group_vars, time_var,
+                                     setdiff(names(expanded_df),
+                                             c(group_vars, time_var))))
     }
   }
   # Replace NA with fill
   if (any(!is.na(fill))){
-    fill <- fill[!is.na(fill)]
+    fill <- cheapr::na_rm(fill)
     fill_nms <- names(fill)
     for (i in seq_along(fill)){
-      out[which_(is.na(get(fill_nms[[i]]))),
-          (fill_nms[[i]]) := fill[[i]]]
+      if (length(fill[[i]]) != 1){
+        stop("fill values must be of length 1")
+      }
+      out[[fill_nms[[i]]]][cheapr::which_na(out[[fill_nms[[i]]]])] <-
+        fill[[i]]
     }
   }
   out_vars <- c(names(data), setdiff(names(out), names(data)))
   out <- fselect(out, .cols = out_vars)
-  if (keep_class){
-    out <- df_reconstruct(out, data)
-  }
-  out
+  df_reconstruct(out, data)
 }

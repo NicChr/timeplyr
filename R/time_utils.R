@@ -159,19 +159,6 @@ time_by_pretty <- function(time_by, sep = " "){
     }
   }
 }
-# Creates interval even using num
-time_interval2 <- function(from, to){
-  if (is_time(from) && is_time(to)){
-    out <- lubridate::interval(from, to)
-  } else {
-    out <- time_diff(from, to, time_by = 1L)
-    if (length(from) < length(out)){
-      from <- rep_len(from, length(out))
-    }
-    # attr(out, "start") <- from
-  }
-  out
-}
 gcd_time_diff <- function(x){
   x <- collapse::funique(x)
   if (length(x) <= 1){
@@ -710,13 +697,13 @@ is_interval <- function(x){
 # }
 
 # Convert time sequence to interval
-tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
-  out <- time_interval2(seq, roll_lag(seq, -1, g = gseq))
-  to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
-  end_points <- which_(is.na(out) & !is.na(seq))
-  out[end_points] <- time_interval2(seq[end_points], to)
-  out
-}
+# tseq_interval <- function(x, seq, gx = NULL, gseq = NULL){
+#   out <- time_interval2(seq, roll_lag(seq, -1, g = gseq))
+#   to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
+#   end_points <- which_(is.na(out) & !is.na(seq))
+#   out[end_points] <- time_interval2(seq[end_points], to)
+#   out
+# }
 # Time cut levels from ascending time sequence
 tseq_levels <- function(x, seq, gx = NULL, gseq = NULL, fmt = NULL){
   if (is.null(fmt)){

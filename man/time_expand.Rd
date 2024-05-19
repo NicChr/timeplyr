@@ -18,10 +18,8 @@ time_expand(
   week_start = getOption("lubridate.week.start", 1),
   expand_type = c("nesting", "crossing"),
   sort = TRUE,
-  keep_class = TRUE,
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
-  log_limit = 8
+  roll_dst = getOption("timeplyr.roll_dst", "boundary")
 )
 
 time_complete(
@@ -37,11 +35,9 @@ time_complete(
   week_start = getOption("lubridate.week.start", 1),
   expand_type = c("nesting", "crossing"),
   sort = TRUE,
-  keep_class = TRUE,
   fill = NA,
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
-  log_limit = 8
+  roll_dst = getOption("timeplyr.roll_dst", "boundary")
 )
 }
 \arguments{
@@ -90,18 +86,12 @@ finds combinations already present in the data,
 
 \item{sort}{Logical. If \code{TRUE} expanded/completed variables are sorted.}
 
-\item{keep_class}{Logical. If \code{TRUE} then the class of the input data is retained.
-If \code{FALSE}, which is sometimes faster, a \code{data.table} is returned.}
-
 \item{roll_month}{Control how impossible dates are handled when
 month or year arithmetic is involved.
 Options are "preday", "boundary", "postday", "full" and "NA".
 See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
-
-\item{log_limit}{The maximum log10 number of rows that can be expanded.
-Anything exceeding this will throw an error.}
 
 \item{fill}{A named list containing value-name pairs to fill the named implicit missing values.}
 }

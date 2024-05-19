@@ -52,11 +52,6 @@
 #' The default is `FALSE`.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
-#' @param keep_class Logical.
-#' If `TRUE` then the class of the input data is retained.
-#' If `FALSE`, which is sometimes faster, a `data.table` is returned.
-#' @param log_limit The maximum log10 number of rows that can be expanded.
-#' Anything exceeding this will throw an error.
 #'
 #' @returns
 #' A `data.frame` of expanded groups.
@@ -90,9 +85,7 @@
 #' @export
 fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                     sort = FALSE,
-                    .by = NULL,
-                    keep_class = TRUE,
-                    log_limit = 8){
+                    .by = NULL){
   expand_type <- rlang::arg_match(expand_type)
   group_vars <- get_groups(data, {{ .by }})
   summarise_vars <- summarise_list(data, ...)
@@ -124,15 +117,13 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
        length(leftover_grp_nms) <= 1L &&
        expand_type == "crossing")){
     out <- nested_join(summarise_vars, N = df_nrow(data),
-                       sort = sort,
-                       log_limit = log_limit)
+                       sort = sort)
   } else {
     # Method for grouped data which performs a separate cross-join of
     # non-grouped variables for each group
     if (length(group_vars) > 0L && length(leftover_grp_nms) >= 2L){
       out1 <- nested_join(summarise_vars, N = df_nrow(data),
-                          sort = FALSE,
-                          log_limit = log_limit)
+                          sort = FALSE)
       # Add group ID
       grp_nm <- new_var_nm(out1, ".group.id")
       out1[, (grp_nm) := group_id(.SD, order = FALSE, .cols = names(.SD)),
@@ -156,7 +147,6 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
                                        use.g.names = FALSE, na.rm = FALSE)
       sizes <- rowProds(out_temp)
       expanded_nrow <- sum(sizes)
-      expand_check(expanded_nrow, log_limit)
       data.table::setkeyv(out1, cols = grp_nm)
       out2 <- out1[, lapply(.SD, function(x) list(collapse::funique(x))),
                    keyby = grp_nm,
@@ -195,24 +185,20 @@ fexpand <- function(data, ..., expand_type = c("crossing", "nesting"),
     # If no groups then cross-join everything
     else {
       out <- crossed_join(summarise_vars, sort = sort,
-                          unique = TRUE,
-                          log_limit = log_limit)
+                          unique = TRUE)
     }
   }
   out <- fselect(out, .cols = out_nms)
-  if (keep_class){
-    out <- df_reconstruct(out, data)
-  }
-  out
+  df_reconstruct(out, data)
 }
 # Nested join, recycling newly created variables with data variables
-nested_join <- function(X, sort = FALSE, log_limit = 8, N){
+nested_join <- function(X, sort = FALSE, N){
   X_nms <- names(X)
   if (length(X_nms) == 0L){
     X_nms <- rep_len("Var", length(X))
     X_nms <- paste0(X_nms, seq_len(length(X)))
   }
-  X_lens <- collapse::vlengths(X, use.names = FALSE)
+  X_lens <- cheapr::lengths_(X)
   # If N is not supplied, then calculate N iff all list lengths are equal
   if (missing(N)){
     N <- unique(X_lens)
@@ -231,10 +217,9 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
   X_other <- X[X_nms %in% other_nms]
   X_other <- lapply(X_other, function(x) collapse::funique(x, sort = FALSE))
   n_data <- max(n_data, 1L)
-  n_other <- prod(collapse::vlengths(X_other, use.names = FALSE))
+  n_other <- prod(cheapr::lengths_(X_other))
   n_other <- max(n_other, 1, na.rm = TRUE)
   expanded_n <- prod(c(n_data, n_other), na.rm = TRUE)
-  expand_check(expanded_n, log_limit)
   # Nested cross-join
   grp_seq <- seq_len(n_data)
   if (df_nrow(df) == 0L){
@@ -242,7 +227,7 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
   } else {
     out <- df_row_slice(df, rep(grp_seq, each = n_other))
     if (length(X_other) > 0L){
-      rep_times <- df_nrow(out) / collapse::vlengths(X_other, use.names = FALSE)
+      rep_times <- df_nrow(out) / cheapr::lengths_(X_other)
       for (i in seq_along(X_other)){
         data.table::set(out, j = other_nms[i],
                         value = rep(X_other[[i]], rep_times[i]))
@@ -258,33 +243,33 @@ nested_join <- function(X, sort = FALSE, log_limit = 8, N){
 #' @export
 fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
                       sort = FALSE, .by = NULL,
-                      keep_class = TRUE, fill = NA,
-                      log_limit = 8){
+                      fill = NA){
   expand_type <- rlang::arg_match(expand_type)
   group_vars <- get_groups(data, {{ .by }})
   expanded_df <- fexpand(data,
                          ...,
                          sort = FALSE, .by = {{ .by }},
-                         expand_type = expand_type,
-                         keep_class = FALSE,
-                         log_limit = log_limit)
-  out <- df_as_dt(data, .copy = FALSE)
+                         expand_type = expand_type)
   fill_na <- any(!is.na(fill))
+  out <- data
   # Full-join
   if (df_nrow(expanded_df) > 0 && df_ncol(expanded_df) > 0){
-    pre_obj_addr <- cpp_r_obj_address(out)
-    out <- dplyr::full_join(out, expanded_df, by = names(expanded_df))
-    post_obj_addr <- cpp_r_obj_address(out)
+    extra <- cheapr::sset(expanded_df,
+                          which_not_in(expanded_df, cheapr::sset(out, j = names(expanded_df))))
+    extra <- df_cbind(
+      extra,
+      df_init(cheapr::sset(out, j = setdiff(names(out), names(expanded_df))),
+              df_nrow(extra))
+    )
+    out <- vctrs::vec_rbind(out, extra)
+    # out <- dplyr::full_join(out, expanded_df, by = names(expanded_df))
     # out <- collapse_join(out, expanded_df,
     #                      on = names(expanded_df),
     #                      how = "full",
-    #                      sort = sort)
+    #                      sort = FALSE)
     if (sort){
-      if (identical(pre_obj_addr, post_obj_addr)){
-        out <- farrange(out, .cols = names(expanded_df))
-      } else {
-        setorderv2(out, names(expanded_df))
-      }
+      out <- farrange(out, .cols = c(group_vars,
+                                     setdiff(names(expanded_df), group_vars)))
     }
   }
   # Replace NA with fill
@@ -292,18 +277,16 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
     fill <- fill[!is.na(fill)]
     fill_nms <- names(fill)
     for (i in seq_along(fill)){
-      out[which_(is.na(get(fill_nms[[i]]))),
-          (fill_nms[[i]]) := fill[[i]]]
+      if (length(fill[[i]]) != 1){
+        stop("fill values must be of length 1")
+      }
+      out[[fill_nms[[i]]]][cheapr::which_na(out[[fill_nms[[i]]]])] <-
+        fill[[i]]
     }
   }
-  out_order <- c(names(data),
-                 setdiff(names(out),
-                         names(data)))
+  out_order <- c(names(data), setdiff(names(out), names(data)))
   out <- fselect(out, .cols = out_order)
-  if (keep_class){
-    out <- df_reconstruct(out, data)
-  }
-  out
+  df_reconstruct(out, data)
 }
 expand_check <- function(N, log_limit){
   if (log10(N) >= log_limit || N > .Machine$integer.max){

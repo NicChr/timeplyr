@@ -10,9 +10,7 @@ fexpand(
   ...,
   expand_type = c("crossing", "nesting"),
   sort = FALSE,
-  .by = NULL,
-  keep_class = TRUE,
-  log_limit = 8
+  .by = NULL
 )
 
 fcomplete(
@@ -21,9 +19,7 @@ fcomplete(
   expand_type = c("crossing", "nesting"),
   sort = FALSE,
   .by = NULL,
-  keep_class = TRUE,
-  fill = NA,
-  log_limit = 8
+  fill = NA
 )
 }
 \arguments{
@@ -43,13 +39,6 @@ The default is \code{FALSE}.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
-
-\item{keep_class}{Logical.
-If \code{TRUE} then the class of the input data is retained.
-If \code{FALSE}, which is sometimes faster, a \code{data.table} is returned.}
-
-\item{log_limit}{The maximum log10 number of rows that can be expanded.
-Anything exceeding this will throw an error.}
 
 \item{fill}{A named list containing value-name pairs
 to fill the named implicit missing values.}

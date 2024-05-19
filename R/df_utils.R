@@ -93,39 +93,48 @@ df_reconstruct <- function(data, template){
     }
     return(out)
   }
-  if (inherits(template, "grouped_df") &&
-      # If groups are equal and address of datasets is the same
-      # Then it's likely we don't need to recalculate groups
-      !(cpp_r_obj_address(data) == cpp_r_obj_address(template) &&
-        groups_equal(data, template))){
+  if (inherits(template, "grouped_df")){
     template_groups <- setdiff2(names(template_attrs[["groups"]]), ".rows")
-    data_groups <- setdiff2(names(attr(data, "groups")), ".rows")
-    out_groups <- intersect2(template_groups, names(data))
-    if (length(out_groups) == 0L){
-      template_attrs[["class"]] <- setdiff2(template_attrs[["class"]], "grouped_df")
-      template_attrs[["groups"]] <- NULL
-    } else {
-      drop_by_default <- df_group_by_drop_default(template)
-      order <- df_group_by_order_default(template)
-      sorted <- attr(template_attrs[["groups"]], "sorted")
-      groups <- group_collapse(safe_ungroup(data),
-                               .cols = out_groups,
-                               sort = TRUE,
-                               order = order,
-                               id = FALSE, start = FALSE,
-                               end = FALSE, size = FALSE,
-                               loc = TRUE,
-                               .drop = drop_by_default)
-      groups <- frename(groups, .cols = c(".rows" = ".loc"))
-      attributes(groups[[".rows"]]) <- attributes(template_attrs[["groups"]][[".rows"]])
-      for (a in setdiff2(names(attributes(groups)),
-                        c("row.names", "class", "names"))){
-        attr(groups, a) <- NULL
+
+    # If groups in template are all in data AND
+    # the data relating to groups in template
+    # are identical to those in data, then no need to recalculate
+
+    groups_are_identical <-
+      all(template_groups %in% names(data)) &&
+      identical(
+        strip_attrs(as.list(cheapr::sset(data, j = template_groups))),
+        strip_attrs(as.list(cheapr::sset(template, j = template_groups)))
+      )
+
+    if (!groups_are_identical){
+      out_groups <- intersect2(template_groups, names(data))
+      if (length(out_groups) == 0L){
+        template_attrs[["class"]] <- setdiff2(template_attrs[["class"]], "grouped_df")
+        template_attrs[["groups"]] <- NULL
+      } else {
+        drop_by_default <- df_group_by_drop_default(template)
+        order <- df_group_by_order_default(template)
+        sorted <- attr(template_attrs[["groups"]], "sorted")
+        groups <- group_collapse(safe_ungroup(data),
+                                 .cols = out_groups,
+                                 sort = TRUE,
+                                 order = order,
+                                 id = FALSE, start = FALSE,
+                                 end = FALSE, size = FALSE,
+                                 loc = TRUE,
+                                 .drop = drop_by_default)
+        groups <- frename(groups, .cols = c(".rows" = ".loc"))
+        attributes(groups[[".rows"]]) <- attributes(template_attrs[["groups"]][[".rows"]])
+        for (a in setdiff2(names(attributes(groups)),
+                           c("row.names", "class", "names"))){
+          attr(groups, a) <- NULL
+        }
+        attr(groups, "sorted") <- sorted
+        class(groups) <- c("tbl_df", "tbl", "data.frame")
+        attr(groups, ".drop") <- drop_by_default
+        template_attrs[["groups"]] <- groups
       }
-      attr(groups, "sorted") <- sorted
-      class(groups) <- c("tbl_df", "tbl", "data.frame")
-      attr(groups, ".drop") <- drop_by_default
-      template_attrs[["groups"]] <- groups
     }
   }
   template_attrs[["names"]] <- names(data)

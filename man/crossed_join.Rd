@@ -9,8 +9,7 @@ crossed_join(
   sort = FALSE,
   unique = TRUE,
   as_dt = TRUE,
-  strings_as_factors = FALSE,
-  log_limit = 8
+  strings_as_factors = FALSE
 )
 }
 \arguments{
@@ -27,9 +26,6 @@ By default this is \code{TRUE}. If \code{FALSE} a list is returned.}
 \item{strings_as_factors}{Should strings be converted to factors before
 expansion? The default is \code{FALSE} but setting to \code{TRUE} can offer
 a significant speed improvement.}
-
-\item{log_limit}{The maximum log10 limit for expanded number of rows.
-Anything >= this results in an error.}
 }
 \value{
 A data.table or list object.

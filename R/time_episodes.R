@@ -212,6 +212,7 @@ time_episodes <- function(data, time, time_by = NULL,
                             event[[1L]],
                           1L, 0L)
     ), event_id_nm))
+    # if (count_val(cheapr::row_na_counts(fselect(out, .cols = c(time_col, event_col))), 1) > 0){
     if (na_count(fpluck(out, event_col)) != na_count(fpluck(out, time_col))){
       warning(paste0("There is a mismatch of NAs between ",
                      time_col, " and ",
@@ -237,11 +238,12 @@ time_episodes <- function(data, time, time_by = NULL,
   group_sizes <- attr(out[[grp_nm]], "group.sizes")
 
   # Remove qG class
-  set_add_cols(out, add_names(
-    list(
-      unclass(out[[grp_nm]])
-    ), grp_nm
-  ))
+  strip_attrs(out[[grp_nm]], set = TRUE)
+  # set_add_cols(out, add_names(
+  #   list(
+  #     unclass(out[[grp_nm]])
+  #   ), grp_nm
+  # ))
   # Group by group vars + time
   grp_nm2 <- new_var_nm(out, ".group")
   set_add_cols(out, add_names(list(
@@ -311,7 +313,6 @@ time_episodes <- function(data, time, time_by = NULL,
   threshold <- time_by
   threshold[[1L]] <- time_by_num(time_by) * window
   out <- structure(out, time = time_col, time_by = time_by, threshold = threshold)
-                   # by_groups = setdiff(group_vars, group_vars(data)))
   class(out) <- c("episodes_tbl_df", class(out))
   out
 }

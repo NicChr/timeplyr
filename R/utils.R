@@ -1169,3 +1169,30 @@ set_add_attr <- get_from_package("cpp_set_add_attr", "cheapr")
 set_add_attributes <- get_from_package("cpp_set_add_attributes", "cheapr")
 set_rm_attr <- get_from_package("cpp_set_rm_attr", "cheapr")
 set_rm_attributes <- get_from_package("cpp_set_rm_attributes", "cheapr")
+
+# A work in progress..
+# collapse_full_join <- function(x, y, on = intersect(names(x), names(y))){
+#   x1 <- fselect(x, .cols = on)
+#   y1 <- fselect(y, .cols = on)
+#
+#   extra_cols <- setdiff(names(y), names(x))
+#
+#   common_left_ids <- which_in(x1, y1)
+#   common_right_ids <- which_in(y1, x1)
+#   extra_left_ids <- which_not_in(x1, y1)
+#   extra_right_ids <- which_not_in(y1, x1)
+#
+#   common_left <- sset(x, common_left_ids)
+#   common_right <- sset(sset(y, j = extra_cols), common_right_ids)
+#   n_extra_rows <- abs(nrow(common_left) - nrow(common_right))
+#   if (nrow(common_left) < nrow(common_right)){
+#     common_left <- bind_rows(common_left,
+#                              df_init(common_left, n_extra_rows))
+#   } else if (nrow(common_left) > nrow(common_right)){
+#     common_right <- bind_rows(common_right,
+#                              df_init(common_right, n_extra_rows))
+#   }
+#   common <- df_cbind(common_left, common_right)
+#   # common
+#   dplyr::bind_rows(common, sset(x, extra_left_ids), sset(y, extra_right_ids))
+# }
