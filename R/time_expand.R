@@ -265,14 +265,17 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
       out[[time_var]] <- time_cast(out[[time_var]], expanded_df[[time_var]])
     }
     # out <- dplyr::full_join(out, expanded_df, by = names(expanded_df))
-    extra <- cheapr::sset(expanded_df,
-                          which_not_in(expanded_df, cheapr::sset(out, j = names(expanded_df))))
-    extra <- df_cbind(
-      extra,
-      df_init(cheapr::sset(out, j = setdiff(names(out), names(expanded_df))),
-              df_nrow(extra))
-    )
-    out <- vctrs::vec_rbind(out, extra)
+    # extra <- cheapr::sset(expanded_df,
+    #                       which_not_in(expanded_df, cheapr::sset(out, j = names(expanded_df))))
+    extra <- cheapr::setdiff_(expanded_df, cheapr::sset(out, j = names(expanded_df)))
+    if (df_nrow(extra) > 0){
+      extra <- df_cbind(
+        extra,
+        df_init(cheapr::sset(out, j = setdiff(names(out), names(expanded_df))),
+                df_nrow(extra))
+      )
+      out <- vctrs::vec_rbind(out, extra)
+    }
     # out <- collapse_join(out, expanded_df,
     #                      on = names(expanded_df),
     #                      how = "full",

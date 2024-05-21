@@ -415,7 +415,8 @@ time_breaks <- time_breaks(times, n = 12, time_floor = TRUE)
 
 weekly_data <- flights %>%
     time_by(time = date, time_by = "week",
-            to = max(time_span(date, time_by = "week"))) %>%
+            to = max(time_span(date, time_by = "week")),
+            .name = "date") %>%
     count()
 weekly_data %>%
   ggplot(aes(x = date, y = n)) + 

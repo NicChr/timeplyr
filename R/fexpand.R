@@ -254,14 +254,18 @@ fcomplete <- function(data, ..., expand_type = c("crossing", "nesting"),
   out <- data
   # Full-join
   if (df_nrow(expanded_df) > 0 && df_ncol(expanded_df) > 0){
-    extra <- cheapr::sset(expanded_df,
-                          which_not_in(expanded_df, cheapr::sset(out, j = names(expanded_df))))
-    extra <- df_cbind(
-      extra,
-      df_init(cheapr::sset(out, j = setdiff(names(out), names(expanded_df))),
-              df_nrow(extra))
+    extra <- cheapr::setdiff_(
+      expanded_df,
+      cheapr::sset(out, j = names(expanded_df))
     )
-    out <- vctrs::vec_rbind(out, extra)
+    if (df_nrow(extra) > 0){
+      extra <- df_cbind(
+        extra,
+        df_init(cheapr::sset(out, j = setdiff(names(out), names(expanded_df))),
+                df_nrow(extra))
+      )
+      out <- vctrs::vec_rbind(out, extra)
+    }
     # out <- dplyr::full_join(out, expanded_df, by = names(expanded_df))
     # out <- collapse_join(out, expanded_df,
     #                      on = names(expanded_df),

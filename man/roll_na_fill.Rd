@@ -57,7 +57,7 @@ x[sample.int(10^5, 10^4)] <- NA
 
 dt <- data.table(x, groups)
 
-roll_na_fill(x, groups)
+filled <- roll_na_fill(x, groups)
 \donttest{
 library(zoo)
 

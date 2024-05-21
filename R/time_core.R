@@ -74,7 +74,7 @@
 #' time_span_size(x) - length(unique(x))
 #'
 #' # Time sequence that spans the data
-#' time_span(x) # Automatically detects hour granularity
+#' length(time_span(x)) # Automatically detects hour granularity
 #' time_span(x, time_by = "month")
 #' time_span(x, time_by = list("quarters" = 1),
 #'              to = today(),

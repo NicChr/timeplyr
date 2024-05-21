@@ -45,7 +45,7 @@
 #'
 #' dt <- data.table(x, groups)
 #'
-#' roll_na_fill(x, groups)
+#' filled <- roll_na_fill(x, groups)
 #' \donttest{
 #' library(zoo)
 #'

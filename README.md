@@ -45,10 +45,10 @@ library(timeplyr)
 ``` r
 library(tidyverse)
 #> ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-#> ✔ dplyr     1.1.4     ✔ readr     2.1.4
+#> ✔ dplyr     1.1.4     ✔ readr     2.1.5
 #> ✔ forcats   1.0.0     ✔ stringr   1.5.1
-#> ✔ ggplot2   3.5.0     ✔ tibble    3.2.1
-#> ✔ lubridate 1.9.3     ✔ tidyr     1.3.0
+#> ✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+#> ✔ lubridate 1.9.3     ✔ tidyr     1.3.1
 #> ✔ purrr     1.0.2     
 #> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 #> ✖ dplyr::desc()   masks timeplyr::desc()
@@ -103,22 +103,22 @@ flights_monthly <- flights %>%
   time_by(date, "month")
 
 flights_monthly
-#> # A tibble: 336,776 x 2
-#> # Time:     date [12]
+#> # A tibble: 336,776 x 3
+#> # Time:     time_intv_month [12]
 #> # By:       month
 #> # Span:     2013-01-01 - 2013-12-31
-#>    date       arr_delay
-#>    <date>         <dbl>
-#>  1 2013-01-01        11
-#>  2 2013-01-01        20
-#>  3 2013-01-01        33
-#>  4 2013-01-01       -18
-#>  5 2013-01-01       -25
-#>  6 2013-01-01        12
-#>  7 2013-01-01        19
-#>  8 2013-01-01       -14
-#>  9 2013-01-01        -8
-#> 10 2013-01-01         8
+#>    date       arr_delay time_intv_month
+#>    <date>         <dbl> <date>         
+#>  1 2013-01-01        11 2013-01-01     
+#>  2 2013-01-01        20 2013-01-01     
+#>  3 2013-01-01        33 2013-01-01     
+#>  4 2013-01-01       -18 2013-01-01     
+#>  5 2013-01-01       -25 2013-01-01     
+#>  6 2013-01-01        12 2013-01-01     
+#>  7 2013-01-01        19 2013-01-01     
+#>  8 2013-01-01       -14 2013-01-01     
+#>  9 2013-01-01        -8 2013-01-01     
+#> 10 2013-01-01         8 2013-01-01     
 #> # ℹ 336,766 more rows
 ```
 
@@ -130,20 +130,20 @@ flights_monthly %>%
   summarise(n = n(),
             mean_arr_delay = mean(arr_delay, na.rm = TRUE))
 #> # A tibble: 12 × 3
-#>    date           n mean_arr_delay
-#>    <date>     <int>          <dbl>
-#>  1 2013-01-01 27004          6.13 
-#>  2 2013-02-01 24951          5.61 
-#>  3 2013-03-01 28834          5.81 
-#>  4 2013-04-01 28330         11.2  
-#>  5 2013-05-01 28796          3.52 
-#>  6 2013-06-01 28243         16.5  
-#>  7 2013-07-01 29425         16.7  
-#>  8 2013-08-01 29327          6.04 
-#>  9 2013-09-01 27574         -4.02 
-#> 10 2013-10-01 28889         -0.167
-#> 11 2013-11-01 27268          0.461
-#> 12 2013-12-01 28135         14.9
+#>    time_intv_month     n mean_arr_delay
+#>    <date>          <int>          <dbl>
+#>  1 2013-01-01      27004          6.13 
+#>  2 2013-02-01      24951          5.61 
+#>  3 2013-03-01      28834          5.81 
+#>  4 2013-04-01      28330         11.2  
+#>  5 2013-05-01      28796          3.52 
+#>  6 2013-06-01      28243         16.5  
+#>  7 2013-07-01      29425         16.7  
+#>  8 2013-08-01      29327          6.04 
+#>  9 2013-09-01      27574         -4.02 
+#> 10 2013-10-01      28889         -0.167
+#> 11 2013-11-01      27268          0.461
+#> 12 2013-12-01      28135         14.9
 ```
 
 If the time unit is left unspecified, the `time` functions try to find
@@ -152,8 +152,8 @@ the highest time unit possible.
 ``` r
 flights %>%
   time_by(time_hour)
-#> # A tibble: 336,776 x 20
-#> # Time:     time_hour [6,936]
+#> # A tibble: 336,776 x 21
+#> # Time:     time_intv_hour [6,936]
 #> # By:       hour
 #> # Span:     2013-01-01 05:00:00 - 2013-12-31 23:00:00
 #>     year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
@@ -169,9 +169,10 @@ flights %>%
 #>  9  2013     1     1      557            600        -3      838            846
 #> 10  2013     1     1      558            600        -2      753            745
 #> # ℹ 336,766 more rows
-#> # ℹ 12 more variables: arr_delay <dbl>, carrier <chr>, flight <int>,
+#> # ℹ 13 more variables: arr_delay <dbl>, carrier <chr>, flight <int>,
 #> #   tailnum <chr>, origin <chr>, dest <chr>, air_time <dbl>, distance <dbl>,
-#> #   hour <dbl>, minute <dbl>, time_hour <dttm>, date <date>
+#> #   hour <dbl>, minute <dbl>, time_hour <dttm>, date <date>,
+#> #   time_intv_hour <dttm>
 ```
 
 ## `time_complete()`
@@ -217,10 +218,10 @@ flights %>%
   time_by(date, time_by = "quarter", as_interval = TRUE) %>%
   count()
 #> # A tibble: 4 x 2
-#> # Time:     date [4]
+#> # Time:     time_intv_3_months [4]
 #> # By:       3 months
 #> # Span:     2013-01-01 - 2013-12-31
-#>                       date     n
+#>         time_intv_3_months     n
 #>                  <tm_intv> <int>
 #> 1 [2013-01-01, 2013-04-01) 80789
 #> 2 [2013-04-01, 2013-07-01) 85369
@@ -228,29 +229,30 @@ flights %>%
 #> 4 [2013-10-01, 2014-01-01) 84292
 ```
 
-#### Ensure full weeks/months/years by using `time_floor = TRUE`
+#### Ensure full weeks by setting from to the start of the week
 
 ``` r
 start <- dmy("17-Jan-2013")
 flights %>%
-  time_by(date, "week", from = start, time_floor = TRUE) %>%
+  time_by(date, "week", 
+          from = floor_date(start, unit = "week")) %>%
   count()
 #> # A tibble: 52 x 2
-#> # Time:     date [52]
+#> # Time:     time_intv_week [52]
 #> # By:       week
-#> # Span:     2013-01-14 - 2013-12-31
-#>    date           n
-#>    <date>     <int>
-#>  1 2013-01-14  3311
-#>  2 2013-01-21  6049
-#>  3 2013-01-28  6063
-#>  4 2013-02-04  6104
-#>  5 2013-02-11  6236
-#>  6 2013-02-18  6381
-#>  7 2013-02-25  6444
-#>  8 2013-03-04  6546
-#>  9 2013-03-11  6555
-#> 10 2013-03-18  6547
+#> # Span:     2013-01-13 - 2013-12-31
+#>    time_intv_week     n
+#>    <date>         <int>
+#>  1 2013-01-13      6076
+#>  2 2013-01-20      6012
+#>  3 2013-01-27      6072
+#>  4 2013-02-03      6089
+#>  5 2013-02-10      6217
+#>  6 2013-02-17      6349
+#>  7 2013-02-24      6411
+#>  8 2013-03-03      6551
+#>  9 2013-03-10      6556
+#> 10 2013-03-17      6549
 #> # ℹ 42 more rows
 ```
 
@@ -339,10 +341,10 @@ powerful features of timeplyr.
 
 ``` r
 flights %>%
-  time_by(date, "month", time_floor = TRUE, as_interval = TRUE) %>%
+  time_by(date, "month", as_interval = TRUE) %>%
   summarise(across(c(arr_time, dep_time), ~ mean(.x, na.rm = TRUE)))
 #> # A tibble: 12 × 3
-#>                        date arr_time dep_time
+#>             time_intv_month arr_time dep_time
 #>                   <tm_intv>    <dbl>    <dbl>
 #>  1 [2013-01-01, 2013-02-01)    1523.    1347.
 #>  2 [2013-02-01, 2013-03-01)    1522.    1348.
@@ -411,7 +413,7 @@ inspired by the excellent ‘zoo’ and ‘tsibble’ packages.
 ``` r
 today <- today()
 year_month(today)
-#> [1] "2024 Apr"
+#> [1] "2024 May"
 ```
 
 The underlying data for a `year_month` is the number of months since 1
@@ -428,9 +430,9 @@ To create a sequence of ‘year_months’, one can use base arithmetic
 
 ``` r
 year_month(today) + 0:12
-#>  [1] "2024 Apr" "2024 May" "2024 Jun" "2024 Jul" "2024 Aug" "2024 Sep"
-#>  [7] "2024 Oct" "2024 Nov" "2024 Dec" "2025 Jan" "2025 Feb" "2025 Mar"
-#> [13] "2025 Apr"
+#>  [1] "2024 May" "2024 Jun" "2024 Jul" "2024 Aug" "2024 Sep" "2024 Oct"
+#>  [7] "2024 Nov" "2024 Dec" "2025 Jan" "2025 Feb" "2025 Mar" "2025 Apr"
+#> [13] "2025 May"
 year_quarter(today) + 0:4
 #> [1] "2024 Q2" "2024 Q3" "2024 Q4" "2025 Q1" "2025 Q2"
 ```
@@ -696,11 +698,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2024-W15"
+#> [1] "2024-W21"
 iso_week(today(), day = TRUE)
-#> [1] "2024-W15-4"
+#> [1] "2024-W21-1"
 iso_week(today(), year = FALSE)
-#> [1] "W15"
+#> [1] "W21"
 ```
 
 ## `time_cut()`
@@ -716,7 +718,8 @@ time_breaks <- time_breaks(times, n = 12, time_floor = TRUE)
 
 weekly_data <- flights %>%
     time_by(time = date, time_by = "week",
-            to = max(time_span(date, time_by = "week"))) %>%
+            to = max(time_span(date, time_by = "week")),
+            .name = "date") %>%
     count()
 weekly_data %>%
   ggplot(aes(x = date, y = n)) + 
