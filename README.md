@@ -700,7 +700,7 @@ Simple function to get formatted ISO weeks.
 iso_week(today())
 #> [1] "2024-W21"
 iso_week(today(), day = TRUE)
-#> [1] "2024-W21-1"
+#> [1] "2024-W21-3"
 iso_week(today(), year = FALSE)
 #> [1] "W21"
 ```
