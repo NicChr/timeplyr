@@ -1,3 +1,5 @@
+# timeplyr (Development version)
+
 # timeplyr 0.8.0
 
 * `roll_diff` has been simplified and gains a new argument `differences` 
