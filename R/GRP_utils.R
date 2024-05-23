@@ -587,6 +587,7 @@ df_to_GRP <- function(data, .cols = character(0),
 #   }
 #   out
 # }
+#' @exportS3Method collapse::GRP
 GRP.Interval <- function(X, ...){
   x <- X
   X <- interval_separate(x)
@@ -596,7 +597,8 @@ GRP.Interval <- function(X, ...){
   }
   out
 }
-GRP.time_interval<- function(X, ...){
+#' @exportS3Method collapse::GRP
+GRP.time_interval <- function(X, ...){
   x <- X
   X <- as.list(x)
   out <- collapse::GRP(X, ...)
@@ -605,6 +607,7 @@ GRP.time_interval<- function(X, ...){
   }
   out
 }
+#' @exportS3Method collapse::GRP
 GRP.NULL <- function(X, ...){
   NULL
 }

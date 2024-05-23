@@ -74,8 +74,10 @@ time_seq_fill <- function(x, time_by = NULL,
   na_count <- cpp_consecutive_na_id(x, TRUE)
 
   # These should all be equal to 1
-  seq_diff <- (elapsed - roll_lag(na_count, fill = 0L))
-  is_regular <- all(abs(seq_diff - 1) < sqrt(.Machine$double.eps), na.rm = TRUE)
+  na_count <- cheapr::lag_(na_count, fill = 0L, set = TRUE)
+  elapsed <- cheapr::set_subtract(elapsed, na_count)
+  is_regular <- all(cheapr::set_abs(cheapr::set_subtract(elapsed, 1)) <
+                      sqrt(.Machine$double.eps), na.rm = TRUE)
   if (!is_regular){
     stop("x must be a regular sequence with no duplicates or implicit gaps in time.")
   }
