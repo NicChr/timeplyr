@@ -1,5 +1,9 @@
 # timeplyr (Development version)
 
+* Fixed a regression where `time_complete` didn't accept a grouped_df.
+
+* Users should now be able to replace values of a `time_interval` in the usual way.
+
 # timeplyr 0.8.0
 
 * `roll_diff` has been simplified and gains a new argument `differences` 
