@@ -6,7 +6,7 @@ time_summarise <- function(data, time = NULL, ..., time_by = NULL,
                            time_floor = FALSE,
                            week_start = getOption("lubridate.week.start", 1),
                            roll_month = getOption("timeplyr.roll_month", "preday"),
-                           roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                           roll_dst = getOption("timeplyr.roll_dst", "NA"),
                            as_interval = getOption("timeplyr.use_intervals", FALSE),
                            sort = TRUE){
   check_is_df(data)
@@ -89,7 +89,7 @@ time_distinct <- function(data, time = NULL, ..., time_by = NULL,
                           time_floor = FALSE,
                           week_start = getOption("lubridate.week.start", 1),
                           roll_month = getOption("timeplyr.roll_month", "preday"),
-                          roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                          roll_dst = getOption("timeplyr.roll_dst", "NA"),
                           as_interval = getOption("timeplyr.use_intervals", FALSE),
                           sort = FALSE){
   check_is_df(data)
@@ -170,7 +170,7 @@ time_mutate <- function(data, time = NULL, ..., time_by = NULL,
                         time_floor = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
                         roll_month = getOption("timeplyr.roll_month", "preday"),
-                        roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                        roll_dst = getOption("timeplyr.roll_dst", "NA"),
                         as_interval = getOption("timeplyr.use_intervals", FALSE)){
   check_is_df(data)
   has_groups <- length(group_vars(data)) > 0

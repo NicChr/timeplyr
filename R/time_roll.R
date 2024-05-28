@@ -163,7 +163,7 @@ time_roll_sum <- function(x, window = Inf,
                           na.rm = TRUE,
                           time_type = getOption("timeplyr.time_type", "auto"),
                           roll_month = getOption("timeplyr.roll_month", "preday"),
-                          roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                          roll_dst = getOption("timeplyr.roll_dst", "NA"),
                           ...){
   check_is_time_or_num(time)
   check_time_not_missing(time)
@@ -267,7 +267,7 @@ time_roll_mean <- function(x, window = Inf,
                            na.rm = TRUE,
                            time_type = getOption("timeplyr.time_type", "auto"),
                            roll_month = getOption("timeplyr.roll_month", "preday"),
-                           roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                           roll_dst = getOption("timeplyr.roll_dst", "NA"),
                            ...){
   check_is_time_or_num(time)
   check_time_not_missing(time)
@@ -363,7 +363,7 @@ time_roll_growth_rate <- function(x, window = Inf,
                                   na.rm = TRUE,
                                   time_type = getOption("timeplyr.time_type", "auto"),
                                   roll_month = getOption("timeplyr.roll_month", "preday"),
-                                  roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                                  roll_dst = getOption("timeplyr.roll_dst", "NA")){
   check_time_not_missing(time)
   check_is_time_or_num(time)
   window <- time_by_get(time, time_by = window)
@@ -518,7 +518,7 @@ time_roll_window_size <- function(time, window = Inf,
                                   close_left_boundary = FALSE,
                                   time_type = getOption("timeplyr.time_type", "auto"),
                                   roll_month = getOption("timeplyr.roll_month", "preday"),
-                                  roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                                  roll_dst = getOption("timeplyr.roll_dst", "NA")){
   check_is_time_or_num(time)
   check_time_not_missing(time)
   window <- time_by_list(window)
@@ -595,7 +595,7 @@ time_roll_window <- function(x, window = Inf, time = seq_along(x),
                              close_left_boundary = FALSE,
                              time_type = getOption("timeplyr.time_type", "auto"),
                              roll_month = getOption("timeplyr.roll_month", "preday"),
-                             roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                             roll_dst = getOption("timeplyr.roll_dst", "NA")){
   window_widths <- time_roll_window_size(time, window = window,
                                          g = g,
                                          partial = partial,
@@ -617,7 +617,7 @@ time_roll_apply <- function(x, window = Inf, fun,
                             close_left_boundary = FALSE,
                             time_type = getOption("timeplyr.time_type", "auto"),
                             roll_month = getOption("timeplyr.roll_month", "preday"),
-                            roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                            roll_dst = getOption("timeplyr.roll_dst", "NA")){
   stopifnot(is.function(fun))
   sizes <- time_roll_window_size(time,
                                  window = window,
@@ -663,7 +663,7 @@ time_roll_apply <- function(x, window = Inf, fun,
 #                           close_left_boundary = FALSE,
 #                           na.rm = TRUE,
 #                           time_type = getOption("timeplyr.time_type", "auto"),
-#                           roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+#                           roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "NA"),
 #                           ...){
 #   check_is_time_or_num(time)
 #   check_time_not_missing(time)

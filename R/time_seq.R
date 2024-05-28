@@ -135,7 +135,7 @@ time_seq <- function(from, to, time_by, length.out = NULL,
                      week_start = getOption("lubridate.week.start", 1),
                      time_floor = FALSE,
                      roll_month = getOption("timeplyr.roll_month", "preday"),
-                     roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                     roll_dst = getOption("timeplyr.roll_dst", "NA")){
   missing_from <- missing(from)
   missing_to <- missing(to)
   missing_by <- missing(time_by)
@@ -307,7 +307,7 @@ time_seq_sizes <- function(from, to, time_by,
 time_seq_v <- function(from, to, time_by,
                        time_type = getOption("timeplyr.time_type", "auto"),
                        roll_month = getOption("timeplyr.roll_month", "preday"),
-                       roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                       roll_dst = getOption("timeplyr.roll_dst", "NA"),
                        time_floor = FALSE,
                        week_start = getOption("lubridate.week.start", 1)){
   time_by <- time_by_list(time_by)
@@ -336,7 +336,7 @@ time_seq_v2 <- function(sizes, from, time_by,
                         time_floor = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
                         roll_month = getOption("timeplyr.roll_month", "preday"),
-                        roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                        roll_dst = getOption("timeplyr.roll_dst", "NA")){
   time_by <- time_by_list(time_by)
   units <- time_by_unit(time_by)
   num <- time_by_num(time_by)
@@ -404,7 +404,7 @@ duration_seq2 <- function(from, to, duration){
 # of a specified length and unit increment
 period_seq <- function(from, length, unit, num = 1,
                        roll_month = getOption("timeplyr.roll_month", "preday"),
-                       roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                       roll_dst = getOption("timeplyr.roll_dst", "NA")){
   if (length(from) == 0L){
     length <- 0L
   }
@@ -464,7 +464,7 @@ date_seq_v2 <- function(sizes, from, units = c("days", "weeks"), num = 1L){
 # their sequences are repeated at the end.
 period_seq_v <- function(from, to, units, num = 1,
                          roll_month = getOption("timeplyr.roll_month", "preday"),
-                         roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                         roll_dst = getOption("timeplyr.roll_dst", "NA")){
   units <- rlang::arg_match0(units, .period_units)
   if (length(to) == 0L){
     return(vec_head(from, n = 0L))
@@ -481,7 +481,7 @@ period_seq_v <- function(from, to, units, num = 1,
 # If you have the sequence sizes pre-calculated, you can use this
 period_seq_v2 <- function(sizes, from, units, num = 1L,
                           roll_month = getOption("timeplyr.roll_month", "preday"),
-                          roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                          roll_dst = getOption("timeplyr.roll_dst", "NA")){
   units <- rlang::arg_match0(units, .period_units)
   out_len <- sum(sizes)
   unit <- plural_unit_to_single(units)
@@ -542,7 +542,7 @@ period_seq_v2 <- function(sizes, from, units, num = 1L,
 }
 # Period sequence vectorised over from, to and num
 # period_seq_v3 <- function(from, to, units, num = 1,
-#                          roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+#                          roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "NA")){
 #   units <- match.arg(units, .period_units)
 #   seq_len <- time_seq_len(from, to, by = add_names(list(num), units),
 #                           seq_type = "period")

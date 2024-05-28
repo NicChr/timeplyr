@@ -760,7 +760,7 @@ C_time_add <- get("C_time_add", asNamespace("timechange"), inherits = FALSE)
 time_add2 <- function(x, time_by,
                       time_type = getOption("timeplyr.time_type", "auto"),
                       roll_month = getOption("timeplyr.roll_month", "preday"),
-                      roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                      roll_dst = getOption("timeplyr.roll_dst", "NA")){
   time_by <- time_by_list(time_by)
   time_num <- time_by_num(time_by)
   time_unit <- time_by_unit(time_by)
@@ -877,7 +877,7 @@ time_aggregate_left <- function(x, time_by, g = NULL,
                                 week_start = getOption("lubridate.week.start", 1),
                                 time_type = getOption("timeplyr.time_type", "auto"),
                                 roll_month = getOption("timeplyr.roll_month", "preday"),
-                                roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                                roll_dst = getOption("timeplyr.roll_dst", "NA"),
                                 as_interval = getOption("timeplyr.use_intervals", FALSE)){
   time_by <- time_by_list(time_by)
   num <- time_by_num(time_by)
@@ -926,7 +926,7 @@ time_aggregate_left <- function(x, time_by, g = NULL,
 #                                  week_start = getOption("lubridate.week.start", 1),
 #                                  time_type = getOption("timeplyr.time_type", "auto"),
 #                                  roll_month = getOption("timeplyr.roll_month", "preday"),
-#                                  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+#                                  roll_dst = getOption("timeplyr.roll_dst", "NA"),
 #                                  as_int = TRUE){
 #   time_by <- time_by_list(time_by)
 #   num <- time_by_num(time_by)
@@ -992,7 +992,7 @@ time_int_rm_attrs <- function(x){
 #                                   week_start = getOption("lubridate.week.start", 1),
 #                                   time_type = getOption("timeplyr.time_type", "auto"),
 #                                   roll_month = getOption("timeplyr.roll_month", "preday"),
-#                                   roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+#                                   roll_dst = getOption("timeplyr.roll_dst", "NA"),
 #                                   as_int = TRUE){
 #   time_by <- time_by_list(time_by)
 #   num <- time_by_num(time_by)
@@ -1082,7 +1082,7 @@ time_int_rm_attrs <- function(x){
 #                                   time_floor = FALSE,
 #                                   week_start = getOption("lubridate.week.start", 1),
 #                                   roll_month = getOption("timeplyr.roll_month", "preday"),
-#                                   roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+#                                   roll_dst = getOption("timeplyr.roll_dst", "NA"),
 #                                   as_int = TRUE){
 #   check_is_time_or_num(x)
 #   time_by <- time_by_list(time_by)
@@ -1339,7 +1339,7 @@ adj_dur_est <- function (est, start, end, per){
                        multiply_single_unit_period_by_number(per, est),
                        time_type = "period",
                        ### NOT SURE ABOUT THE BELOW roll_dst LINE
-                       roll_dst = "xfirst")
+                       roll_dst = "NA")
   # up_date2 <- up_date
   while (length(which <- which_(up_date < end))) {
     # up_date2 <- up_date

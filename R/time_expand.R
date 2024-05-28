@@ -99,7 +99,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
                         expand_type = c("nesting", "crossing"),
                         sort = TRUE,
                         roll_month = getOption("timeplyr.roll_month", "preday"),
-                        roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                        roll_dst = getOption("timeplyr.roll_dst", "NA")){
   check_is_df(data)
   expand_type <- rlang::arg_match(expand_type)
   group_vars <- get_groups(data, {{ .by }})
@@ -235,7 +235,7 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
                           sort = TRUE,
                           fill = NA,
                           roll_month = getOption("timeplyr.roll_month", "preday"),
-                          roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                          roll_dst = getOption("timeplyr.roll_dst", "NA")){
   check_is_df(data)
   expand_type <- rlang::arg_match(expand_type)
   time_type <- match_time_type(time_type)
@@ -254,7 +254,7 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
                              time_floor = time_floor,
                              week_start = week_start,
                              sort = FALSE,
-                             .by = all_of(group_vars),
+                             .by = {{ .by }},
                              expand_type = expand_type,
                              roll_month = roll_month,
                              roll_dst = roll_dst)

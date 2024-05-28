@@ -120,7 +120,7 @@
   # .initial_options <- options()
   options("timeplyr.time_type" = getOption("timeplyr.time_type", "auto"),
           "timeplyr.roll_month" = getOption("timeplyr.roll_month", "preday"),
-          "timeplyr.roll_dst" = getOption("timeplyr.roll_dst", "boundary"),
+          "timeplyr.roll_dst" = getOption("timeplyr.roll_dst", "NA"),
           "timeplyr.interval_style" = getOption("timeplyr.interval_style", "full"),
           "timeplyr.interval_sub_formatter" = getOption("timeplyr.interval_sub_formatter", identity),
           "timeplyr.use_intervals" = getOption("timeplyr.use_intervals", FALSE))

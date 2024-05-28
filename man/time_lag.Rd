@@ -11,7 +11,7 @@ time_lag(
   g = NULL,
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary")
+  roll_dst = getOption("timeplyr.roll_dst", "NA")
 )
 }
 \arguments{

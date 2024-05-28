@@ -16,7 +16,7 @@ time_seq(
   week_start = getOption("lubridate.week.start", 1),
   time_floor = FALSE,
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary")
+  roll_dst = getOption("timeplyr.roll_dst", "NA")
 )
 
 time_seq_sizes(
@@ -32,7 +32,7 @@ time_seq_v(
   time_by,
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+  roll_dst = getOption("timeplyr.roll_dst", "NA"),
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1)
 )
@@ -45,7 +45,7 @@ time_seq_v2(
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary")
+  roll_dst = getOption("timeplyr.roll_dst", "NA")
 )
 }
 \arguments{

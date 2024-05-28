@@ -1170,6 +1170,16 @@ set_add_attributes <- get_from_package("cpp_set_add_attributes", "cheapr")
 set_rm_attr <- get_from_package("cpp_set_rm_attr", "cheapr")
 set_rm_attributes <- get_from_package("cpp_set_rm_attributes", "cheapr")
 
+arithmetic_mean <- function(x, weights = NULL, na.rm = TRUE, ...){
+  collapse::fmean(x, w = weights, na.rm = na.rm, ...)
+}
+geometric_mean <- function(x, weights = NULL, na.rm = TRUE, ...){
+  exp(arithmetic_mean(log(x), weights = weights, na.rm = na.rm, ...))
+}
+harmonic_mean <- function(x, weights = NULL, na.rm = TRUE, ...){
+  1 / arithmetic_mean(1/x, weights = weights, na.rm = na.rm, ...)
+}
+
 # A work in progress..
 # collapse_full_join <- function(x, y, on = intersect(names(x), names(y))){
 #   x1 <- fselect(x, .cols = on)

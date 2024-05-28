@@ -51,7 +51,7 @@ time_lag <- function(x, k = 1L,
                      g = NULL,
                      time_type = getOption("timeplyr.time_type", "auto"),
                      roll_month = getOption("timeplyr.roll_month", "preday"),
-                     roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                     roll_dst = getOption("timeplyr.roll_dst", "NA")){
   k <- time_by_list(k)
   time_num <- time_by_num(k)
   time_by_unit <- time_by_unit(k)

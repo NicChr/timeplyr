@@ -21,7 +21,7 @@ time_count(
   week_start = getOption("lubridate.week.start", 1),
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+  roll_dst = getOption("timeplyr.roll_dst", "NA"),
   as_interval = getOption("timeplyr.use_intervals", FALSE)
 )
 }

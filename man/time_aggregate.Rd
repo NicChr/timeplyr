@@ -11,7 +11,7 @@ time_aggregate(
   to = NULL,
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+  roll_dst = getOption("timeplyr.roll_dst", "NA"),
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
   as_interval = getOption("timeplyr.use_intervals", FALSE)

@@ -59,10 +59,10 @@ time_id <- function(x, time_by = NULL, g = NULL, na_skip = TRUE,
   time_by <- time_by_get(x, time_by)
   check_length(shift, 1)
   out <- time_elapsed(x, time_by = time_by, g = g,
-                          na_skip = na_skip,
-                          time_type = time_type,
-                          rolling = FALSE)
-  as.integer(round2(out, digits = 9)) + shift
+                      na_skip = na_skip, time_type = time_type,
+                      rolling = FALSE)
+  out <- as.integer(round2(out, digits = 9))
+  cheapr::set_add(out, as.integer(shift))
   # Make sure we don't lose precision when converting to integer
   # out <- trunc(elapsed)
   # elapsed_rounded <- round(elapsed)

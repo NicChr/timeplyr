@@ -20,7 +20,7 @@ time_roll_sum(
   na.rm = TRUE,
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+  roll_dst = getOption("timeplyr.roll_dst", "NA"),
   ...
 )
 
@@ -35,7 +35,7 @@ time_roll_mean(
   na.rm = TRUE,
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+  roll_dst = getOption("timeplyr.roll_dst", "NA"),
   ...
 )
 
@@ -50,7 +50,7 @@ time_roll_growth_rate(
   na.rm = TRUE,
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary")
+  roll_dst = getOption("timeplyr.roll_dst", "NA")
 )
 
 time_roll_window_size(
@@ -61,7 +61,7 @@ time_roll_window_size(
   close_left_boundary = FALSE,
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary")
+  roll_dst = getOption("timeplyr.roll_dst", "NA")
 )
 
 time_roll_window(
@@ -73,7 +73,7 @@ time_roll_window(
   close_left_boundary = FALSE,
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary")
+  roll_dst = getOption("timeplyr.roll_dst", "NA")
 )
 
 time_roll_apply(
@@ -87,7 +87,7 @@ time_roll_apply(
   close_left_boundary = FALSE,
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary")
+  roll_dst = getOption("timeplyr.roll_dst", "NA")
 )
 }
 \arguments{

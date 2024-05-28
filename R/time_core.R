@@ -105,7 +105,7 @@ time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
                          time_floor = FALSE,
                          week_start = getOption("lubridate.week.start", 1),
                          roll_month = getOption("timeplyr.roll_month", "preday"),
-                         roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                         roll_dst = getOption("timeplyr.roll_dst", "NA")){
   check_is_time_or_num(x)
   check_length_lte(from, 1)
   check_length_lte(to, 1)
@@ -156,7 +156,7 @@ time_completev <- function(x, time_by = NULL, from = NULL, to = NULL,
                            time_floor = FALSE,
                            week_start = getOption("lubridate.week.start", 1),
                            roll_month = getOption("timeplyr.roll_month", "preday"),
-                           roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                           roll_dst = getOption("timeplyr.roll_dst", "NA")){
   time_full <- time_expandv(x, time_by = time_by,
                             from = from, to = to,
                             time_type = time_type,
@@ -182,7 +182,7 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
                             time_floor = FALSE,
                             week_start = getOption("lubridate.week.start", 1),
                             roll_month = getOption("timeplyr.roll_month", "preday"),
-                            roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                            roll_dst = getOption("timeplyr.roll_dst", "NA"),
                             as_interval = getOption("timeplyr.use_intervals", FALSE)){
   check_is_time_or_num(x)
   check_length_lte(from, 1)
@@ -234,7 +234,7 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
                         time_floor = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
                         roll_month = getOption("timeplyr.roll_month", "preday"),
-                        roll_dst = getOption("timeplyr.roll_dst", "boundary"),
+                        roll_dst = getOption("timeplyr.roll_dst", "NA"),
                         as_interval = getOption("timeplyr.use_intervals", FALSE)){
   check_is_time_or_num(x)
   time_by <- time_by_get(x, time_by = time_by)
@@ -329,7 +329,7 @@ time_by_interval <- function(x, time_by = NULL,
                              # bound_range = FALSE,
                              time_type = getOption("timeplyr.time_type", "auto"),
                              roll_month = getOption("timeplyr.roll_month", "preday"),
-                             roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                             roll_dst = getOption("timeplyr.roll_dst", "NA")){
   time_by <- time_by_get(x, time_by = time_by)
   check_time_by_length_is_one(time_by)
   direction <- time_by_sign(time_by)

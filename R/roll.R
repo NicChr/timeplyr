@@ -139,9 +139,9 @@ roll_geometric_mean <- function(x, window = Inf, g = NULL, partial = TRUE,
   out <- roll_mean(log(x), window = window, g = g, partial = partial,
                    weights = weights, na.rm = na.rm, ...)
   if (is.list(out)){
-    lapply(out, exp)
+    lapply(out, cheapr::set_exp)
   } else {
-    exp(out)
+    cheapr::set_exp(out)
   }
 }
 #' @rdname roll_sum
@@ -151,9 +151,10 @@ roll_harmonic_mean <- function(x, window = Inf, g = NULL, partial = TRUE,
   out <- roll_mean(1 / x, window = window, g = g, partial = partial,
                    weights = weights, na.rm = na.rm, ...)
   if (is.list(out)){
-    lapply(out, function(x) 1 / x)
+    lapply(out, function(x) cheapr::set_pow(x, -1))
   } else {
-    1 / out
+    cheapr::set_pow(out, -1)
+    # 1 / out
   }
 
 }

@@ -1,7 +1,7 @@
 time_seq_fill <- function(x, time_by = NULL,
                           time_type = getOption("timeplyr.time_type", "auto"),
                           roll_month = getOption("timeplyr.roll_month", "preday"),
-                          roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                          roll_dst = getOption("timeplyr.roll_dst", "NA")){
   check_is_time_or_num(x)
   time_by <- time_by_get(x, time_by)
   check_time_by_length_is_one(time_by)
@@ -75,9 +75,8 @@ time_seq_fill <- function(x, time_by = NULL,
 
   # These should all be equal to 1
   na_count <- cheapr::lag_(na_count, fill = 0L, set = TRUE)
-  elapsed <- cheapr::set_subtract(elapsed, na_count)
-  is_regular <- all(cheapr::set_abs(cheapr::set_subtract(elapsed, 1)) <
-                      sqrt(.Machine$double.eps), na.rm = TRUE)
+  seq_diff <- elapsed - na_count
+  is_regular <- all(abs(seq_diff - 1L) < sqrt(.Machine$double.eps), na.rm = TRUE)
   if (!is_regular){
     stop("x must be a regular sequence with no duplicates or implicit gaps in time.")
   }

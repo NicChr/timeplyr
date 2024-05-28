@@ -222,6 +222,8 @@ format.time_interval <- function(x,
 vec_ptype_abbr.time_interval <- function(x, ...) "tm_intv"
 #' @exportS3Method vctrs::vec_ptype_full
 vec_ptype_full.time_interval <- function(x, ...) "time_interval"
+#' @exportS3Method vctrs::vec_cast
+vec_cast.time_interval.time_interval <- function(x, to, ...) x
 
 #' @exportS3Method base::print
 print.time_interval <- function(x, max = NULL, ...){

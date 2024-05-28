@@ -19,7 +19,7 @@ time_expand(
   expand_type = c("nesting", "crossing"),
   sort = TRUE,
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary")
+  roll_dst = getOption("timeplyr.roll_dst", "NA")
 )
 
 time_complete(
@@ -37,7 +37,7 @@ time_complete(
   sort = TRUE,
   fill = NA,
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "boundary")
+  roll_dst = getOption("timeplyr.roll_dst", "NA")
 )
 }
 \arguments{
