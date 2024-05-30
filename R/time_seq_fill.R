@@ -8,19 +8,20 @@ time_seq_fill <- function(x, time_by = NULL,
   # If the sequence starts/ends with NA, we need to work with everything but these
   # first/last NA values
   which_na <- cheapr::which_na(x)
-  if (length(which_na) == length(x)){
+  num_na <- length(which_na)
+  if (num_na == length(x)){
     warning("all values of x are NA, cannot fill the explicit missing values")
     return(x)
   }
-  if (length(which_na) > 0 && which_na[1] == 1){
+  if (num_na > 0 && which_na[1] == 1){
     which_last_missing_value_from_left <- cpp_which_first_gap(which_na, 1L, TRUE)
     if (length(which_last_missing_value_from_left) == 0){
-      which_last_missing_value_from_left <- length(which_na)
+      which_last_missing_value_from_left <- num_na
     }
   } else {
     which_last_missing_value_from_left <- integer()
   }
-  if (length(which_na) > 0 && which_na[length(which_na)] == length(x)){
+  if (num_na > 0 && which_na[num_na] == length(x)){
     which_last_missing_value_from_right <- cpp_which_first_gap(which_na, 1L, FALSE)
     if (length(which_last_missing_value_from_right) == 0){
       which_last_missing_value_from_right <- 1L
@@ -37,7 +38,7 @@ time_seq_fill <- function(x, time_by = NULL,
   if (length(which_last_missing_value_from_right) == 0){
     n_last_nas <- 0L
   } else {
-    n_last_nas <- length(which_na) - which_last_missing_value_from_right + 1L
+    n_last_nas <- num_na - which_last_missing_value_from_right + 1L
   }
   if (n_first_nas == 0){
     start <- vec_head(x)
@@ -71,17 +72,29 @@ time_seq_fill <- function(x, time_by = NULL,
                           time_by = time_by,
                           time_type = time_type,
                           na_skip = TRUE)
-  na_count <- cpp_consecutive_na_id(x, TRUE)
+  seq_diff <- elapsed
+  if (num_na > 0){
+    na_count <- cpp_consecutive_na_id(x, TRUE)
 
-  # These should all be equal to 1
-  na_count <- cheapr::lag_(na_count, fill = 0L, set = TRUE)
-  seq_diff <- elapsed - na_count
+    # Lag na_count without taking a copy
+    na_count <- cheapr::lag_(na_count, fill = 0L, set = TRUE)
+
+    # Adjust elapsed time between non-NA values
+    # by the amount of NA values between them
+    # e.g. if there are 2 NA values between a pair of values then
+    # We subtract 2 from the elapsed time between this pair
+    seq_diff <- seq_diff - na_count
+  }
   is_regular <- all(abs(seq_diff - 1L) < sqrt(.Machine$double.eps), na.rm = TRUE)
   if (!is_regular){
     stop("x must be a regular sequence with no duplicates or implicit gaps in time.")
   }
-  time_seq_v(start, end, time_by = time_by,
-             time_type = time_type,
-             roll_month = roll_month,
-             roll_dst = roll_dst)
+  if (num_na > 0){
+    time_seq_v(start, end, time_by = time_by,
+               time_type = time_type,
+               roll_month = roll_month,
+               roll_dst = roll_dst)
+  } else {
+    x
+  }
 }
