@@ -21,6 +21,7 @@ Imports:
     lubridate (>= 1.9.0),
     pillar (>= 1.7.0),
     rlang (>= 1.0.0),
+    scales,
     stringr (>= 1.4.0),
     tidyselect (>= 1.2.0),
     timechange (>= 0.2.0),

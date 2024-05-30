@@ -103,6 +103,8 @@ time_aggregate <- function(x, time_by = NULL,
   time_by <- time_by_get(start, time_by = time_by)
   ## This uses a breakpoints-cut method which is much more efficient
   ## when there are relatively small numbers of breaks and large data
+  ## Also, timechange natively handles the case when dates are updated
+  ## using seconds to other dates without final output being a datetime
   if (time_by_unit(time_by) %!in_%
       c("picoseconds", "nanoseconds", "microseconds",
         "milliseconds", "seconds", "minutes", "hours") &&

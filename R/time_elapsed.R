@@ -107,7 +107,7 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
       }
     }
   } else {
-    g <- GRP2(g, sort = FALSE, return.groups = FALSE, return.order = FALSE)
+    g <- GRP2(g, sort = TRUE, return.groups = FALSE, return.order = FALSE)
     # Index time
     first_time <- gfirst(x, g = g, na.rm = na_skip)
     out <- time_diff(first_time, x, time_by = time_by, time_type = time_type)

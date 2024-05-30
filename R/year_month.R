@@ -72,8 +72,13 @@ YM <- function(length = 0L){
 #' @rdname year_month
 #' @export
 year_month_decimal <- function(x){
-  m <- ( x * 12 ) - (1970 * 12)
+  m <- as.integer(( x * 12 ) - (1970 * 12))
   new_year_month(m)
+}
+#' @rdname year_month
+#' @export
+decimal_year_month <- function(x){
+  ( unclass(x) + (1970L * 12L) ) / 12L
 }
 new_year_month <- function(x){
   check_is_num(x)
@@ -179,14 +184,14 @@ as.Date.year_month <- function(x, ...){
   lubridate::make_date(year = 1970L + y, month = m, day = 1L)
 }
 #' @exportS3Method base::as.POSIXct
-as.POSIXct.year_month <- function(x, tz = "", ...){
+as.POSIXct.year_month <- function(x, tz = "UTC", ...){
   x <- unclass(x)
   y <- x %/% 12L
   m <- (x %% 12L) + 1L
-  lubridate::make_datetime(year = 1970L + y, month = m, day = 1L)
+  lubridate::make_datetime(year = 1970L + y, month = m, day = 1L, tz = tz)
 }
 #' @exportS3Method base::as.POSIXlt
-as.POSIXlt.year_month <- function(x, tz = "", ...){
+as.POSIXlt.year_month <- function(x, tz = "UTC", ...){
   as.POSIXlt(as.POSIXct(x, tz = tz))
 }
 new_year_quarter <- function(x){
@@ -202,8 +207,13 @@ YQ <- function(length = 0L){
 #' @rdname year_month
 #' @export
 year_quarter_decimal <- function(x){
-  q <- ( x * 4 ) - (1970 * 4)
+  q <- as.integer(( x * 4 ) - (1970 * 4))
   new_year_quarter(q)
+}
+#' @rdname year_month
+#' @export
+decimal_year_quarter <- function(x){
+  ( unclass(x) + (1970L * 4L) ) / 4L
 }
 #' @export
 `[.year_quarter` <- function(x, ..., drop = TRUE){
@@ -304,14 +314,14 @@ as.Date.year_quarter <- function(x, ...){
   lubridate::make_date(year = y, month = m, day = 1L)
 }
 #' @exportS3Method base::as.POSIXct
-as.POSIXct.year_quarter <- function(x, tz = "", ...){
+as.POSIXct.year_quarter <- function(x, tz = "UTC", ...){
   x <- unclass(x)
   y <- 1970L + (x %/% 4L)
   m <- 3L * (x %% 4L) + 1L
-  lubridate::make_datetime(year = y, month = m, day = 1L)
+  lubridate::make_datetime(year = y, month = m, day = 1L, tz = tz)
 }
 #' @exportS3Method base::as.POSIXlt
-as.POSIXlt.year_quarter <- function(x, tz = "", ...){
+as.POSIXlt.year_quarter <- function(x, tz = "UTC", ...){
   as.POSIXlt(as.POSIXct(x, tz = tz))
 }
 #' @exportS3Method base::rep_len

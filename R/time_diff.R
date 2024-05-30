@@ -57,7 +57,7 @@
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
-#'}
+#' }
 #' @export
 time_diff <- function(x, y, time_by = 1L,
                       time_type = getOption("timeplyr.time_type", "auto")){

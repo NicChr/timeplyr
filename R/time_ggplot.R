@@ -92,10 +92,10 @@ time_ggplot <- function(data, time, value, group = NULL,
                              n = 7, time_floor = TRUE)
   if (is_datetime(fpluck(data, time))){
     x_scale <- ggplot2::scale_x_datetime(breaks = time_breaks,
-                                         labels = label_date_short())
+                                         labels = scales::label_date_short())
   } else if (is_date(fpluck(data, time))){
     x_scale <- ggplot2::scale_x_date(breaks = time_breaks,
-                                     labels = label_date_short())
+                                     labels = scales::label_date_short())
   } else {
     x_scale <- ggplot2::scale_x_continuous(breaks = time_breaks)
   }
