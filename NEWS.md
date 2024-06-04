@@ -1,5 +1,7 @@
 # timeplyr (Development version)
 
+* Fixed a regression where some methods stopped being exported.
+
 * Fixed a regression where `time_complete` didn't accept a grouped_df.
 
 * Users should now be able to replace values of a `time_interval` in the usual way.

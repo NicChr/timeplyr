@@ -413,7 +413,7 @@ inspired by the excellent ‘zoo’ and ‘tsibble’ packages.
 ``` r
 today <- today()
 year_month(today)
-#> [1] "2024 May"
+#> [1] "2024 Jun"
 ```
 
 The underlying data for a `year_month` is the number of months since 1
@@ -430,9 +430,9 @@ To create a sequence of ‘year_months’, one can use base arithmetic
 
 ``` r
 year_month(today) + 0:12
-#>  [1] "2024 May" "2024 Jun" "2024 Jul" "2024 Aug" "2024 Sep" "2024 Oct"
-#>  [7] "2024 Nov" "2024 Dec" "2025 Jan" "2025 Feb" "2025 Mar" "2025 Apr"
-#> [13] "2025 May"
+#>  [1] "2024 Jun" "2024 Jul" "2024 Aug" "2024 Sep" "2024 Oct" "2024 Nov"
+#>  [7] "2024 Dec" "2025 Jan" "2025 Feb" "2025 Mar" "2025 Apr" "2025 May"
+#> [13] "2025 Jun"
 year_quarter(today) + 0:4
 #> [1] "2024 Q2" "2024 Q3" "2024 Q4" "2025 Q1" "2025 Q2"
 ```
@@ -698,11 +698,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2024-W21"
+#> [1] "2024-W23"
 iso_week(today(), day = TRUE)
-#> [1] "2024-W21-3"
+#> [1] "2024-W23-2"
 iso_week(today(), year = FALSE)
-#> [1] "W21"
+#> [1] "W23"
 ```
 
 ## `time_cut()`
