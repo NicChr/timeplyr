@@ -1,6 +1,4 @@
-* Updated to version 0.8.0
-
-* Have fixed the issues listed at https://cran.r-project.org/web/checks/check_results_timeplyr.html
+* Updated to version 0.8.1
 
 * Checked and passed using rhub v2.0.0 in the following environments:
 
