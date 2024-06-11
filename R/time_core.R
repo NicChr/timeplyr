@@ -325,6 +325,32 @@ time_span_size <- function(x, time_by = NULL, from = NULL, to = NULL,
   }
   out
 }
+# time_cut_width <- function(x, width = time_gcd_diff(x), from = NULL){
+#   check_is_time_or_num(x)
+#   time_by <- time_by_get(x, width)
+#   if (length(from) <= 1 &&
+#       time_span_size(x, time_by, from = from) <= 5e05){
+#     return(time_summarisev(
+#       x, time_by = time_by, from = from,
+#       as_interval = TRUE
+#     ))
+#   }
+#   num <- time_by_num(time_by)
+#   units <- time_by_unit(time_by)
+#   if (is.null(from)){
+#     index <- gmin(x, na.rm = TRUE)
+#   } else {
+#     if (length(from) %!in_% c(1, length(x))){
+#       stop("length of from must be 1 or length(x)")
+#     }
+#     index <- time_cast(from, x)
+#     x[cheapr::which_(x < index)] <- NA
+#   }
+#   tdiff <- time_diff(index, x, time_by = time_by)
+#   time_to_add <- add_names(list(trunc2(tdiff) * num), units)
+#   out <- time_add2(index, time_by = time_to_add)
+#   time_by_interval(out, time_by = time_by)
+# }
 time_by_interval <- function(x, time_by = NULL,
                              # bound_range = FALSE,
                              time_type = getOption("timeplyr.time_type", "auto"),

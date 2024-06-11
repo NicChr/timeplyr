@@ -7,6 +7,7 @@ ffilter <- function(data, ..., .by = NULL){
   if (df_ncol(filter_df) < 1){
     data
   } else {
+    stopifnot(all(vapply(filter_df, is.logical, FALSE)))
     df_row_slice(data, Reduce(`&`, filter_df))
   }
 }

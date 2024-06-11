@@ -14,7 +14,7 @@ An object of class \code{character} of length 14.
 stat_summarise(
   data,
   ...,
-  stat = c("n", "nmiss", "ndistinct"),
+  stat = .stat_fns[1:3],
   q_probs = NULL,
   na.rm = TRUE,
   sort = df_group_by_order_default(data),

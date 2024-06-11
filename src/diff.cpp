@@ -23,8 +23,175 @@ int lgl_diff(int x, int y){
   }
 }
 
+// Simple diff function
+// SEXP cpp_diff_simple(SEXP x, int k, SEXP fill){
+//   R_xlen_t n = Rf_xlength(x);
+//   R_xlen_t fill_size = Rf_xlength(fill);
+//   int n_prot = 0;
+//   if (fill_size > 1){
+//     Rf_error("fill size must be NULL or length 1");
+//   }
+//   SEXP out;
+//   switch(TYPEOF(x)){
+//   case NILSXP: {
+//     out = Rf_protect(R_NilValue);
+//     ++n_prot;
+//     break;
+//   }
+//   case LGLSXP: {
+//     int *p_x = LOGICAL(x);
+//     int fill_value = NA_INTEGER;
+//     if (fill_size >= 1){
+//       fill_value = Rf_asInteger(fill);
+//     }
+//     out = Rf_protect(Rf_allocVector(INTSXP, n));
+//     ++n_prot;
+//     int *p_out = INTEGER(out);
+//     if (k >= 0){
+//       for (R_xlen_t i = 0; i != n; ++i){
+//         if (i >= k){
+//           p_out[i] = lgl_diff(p_x[i - k], p_x[i]);
+//         } else {
+//           p_out[i] = fill_value;
+//         }
+//       }
+//     } else {
+//       for (R_xlen_t i = 0; i != n; ++i){
+//         if ((i - n) < k){
+//           p_out[i] = lgl_diff(p_x[i - k], p_x[i]);
+//         } else {
+//           p_out[i] = fill_value;
+//         }
+//       }
+//     }
+//     cpp_copy_names(x, out);
+//     break;
+//   }
+//   case INTSXP: {
+//     int *p_x = INTEGER(x);
+//     int fill_value = NA_INTEGER;
+//     if (fill_size >= 1){
+//       fill_value = Rf_asInteger(fill);
+//     }
+//     out = Rf_protect(Rf_allocVector(INTSXP, n));
+//     ++n_prot;
+//     int *p_out = INTEGER(out);
+//     if (k >= 0){
+//       for (R_xlen_t i = 0; i != n; ++i){
+//         if (i >= k){
+//           p_out[i] = int_diff(p_x[i - k], p_x[i]);
+//         } else {
+//           p_out[i] = fill_value;
+//         }
+//       }
+//     } else {
+//       for (R_xlen_t i = 0; i != n; ++i){
+//         if ((i - n) < k){
+//           p_out[i] = int_diff(p_x[i - k], p_x[i]);
+//         } else {
+//           p_out[i] = fill_value;
+//         }
+//       }
+//     }
+//     cpp_copy_names(x, out);
+//     break;
+//   }
+//   case REALSXP: {
+//     double *p_x = REAL(x);
+//     double fill_value = NA_REAL;
+//     if (fill_size >= 1){
+//       fill_value = Rf_asReal(fill);
+//     }
+//     out = Rf_protect(Rf_allocVector(REALSXP, n));
+//     ++n_prot;
+//     double *p_out = REAL(out);
+//     if (k >= 0){
+//       for (R_xlen_t i = 0; i != n; ++i){
+//         if (i >= k){
+//           p_out[i] = p_x[i] - p_x[i - k];
+//         } else {
+//           p_out[i] = fill_value;
+//         }
+//       }
+//     } else {
+//       for (R_xlen_t i = 0; i != n; ++i){
+//         if ((i - n) < k){
+//           p_out[i] = p_x[i] - p_x[i - k];
+//         } else {
+//           p_out[i] = fill_value;
+//         }
+//       }
+//     }
+//     cpp_copy_names(x, out);
+//     break;
+//   }
+//   case CPLXSXP: {
+//     Rcomplex x_val;
+//     Rcomplex x_lag;
+//     Rcomplex *p_x = COMPLEX(x);
+//     SEXP fill_sexp = Rf_protect(Rf_allocVector(CPLXSXP, 1));
+//     ++n_prot;
+//     Rcomplex *p_fill = COMPLEX(fill_sexp);
+//     p_fill[0].i = NA_REAL;
+//     p_fill[0].r = NA_REAL;
+//     Rcomplex fill_value = fill_size >= 1 ? Rf_asComplex(fill) : COMPLEX(fill_sexp)[0];
+//     out = Rf_protect(Rf_allocVector(CPLXSXP, n));
+//     ++n_prot;
+//     Rcomplex *p_out = COMPLEX(out);
+//
+//     if (k >= 0){
+//       for (R_xlen_t i = 0; i != n; ++i){
+//         if (i >= k){
+//           x_lag = p_x[i - k];
+//           x_val = p_x[i];
+//           p_out[i].r = x_val.r - x_lag.r;
+//           p_out[i].i = x_val.i - x_lag.i;
+//         } else {
+//           SET_COMPLEX_ELT(out, i, fill_value);
+//         }
+//       }
+//     } else {
+//       for (R_xlen_t i = 0; i != n; ++i){
+//         if ((i - n) < k){
+//           x_lag = p_x[i - k];
+//           x_val = p_x[i];
+//           p_out[i].r = x_val.r - x_lag.r;
+//           p_out[i].i = x_val.i - x_lag.i;
+//         } else {
+//           SET_COMPLEX_ELT(out, i, fill_value);
+//         }
+//       }
+//     }
+//     cpp_copy_names(x, out);
+//     break;
+//   }
+//   case VECSXP: {
+//     const SEXP *p_x = VECTOR_PTR_RO(x);
+//     out = Rf_protect(Rf_allocVector(VECSXP, n));
+//     ++n_prot;
+//     SHALLOW_DUPLICATE_ATTRIB(out, x);
+//     for (R_xlen_t i = 0; i < n; ++i){
+//       SET_VECTOR_ELT(out, i, cpp_diff_simple(p_x[i], k, fill));
+//     }
+//     break;
+//   }
+//   default: {
+//     Rf_unprotect(n_prot);
+//     Rf_error("%s cannot handle an object of type %s", __func__, Rf_type2char(TYPEOF(x)));
+//   }
+//   }
+//   Rf_unprotect(n_prot);
+//   return out;
+// }
+
 [[cpp11::register]]
 SEXP cpp_diff(SEXP x, SEXP lag, SEXP order, SEXP run_lengths, SEXP fill, int differences){
+  // if (Rf_xlength(lag) == 1 &&
+  //     Rf_isNull(order) &&
+  //     Rf_isNull(run_lengths) &&
+  //     differences == 1){
+  //   return cpp_diff_simple(x, Rf_asInteger(lag), fill);
+  // }
   R_xlen_t size = Rf_xlength(x);
   R_xlen_t o_size = Rf_length(order); // order must be int vector
   R_xlen_t rl_size = Rf_xlength(run_lengths);

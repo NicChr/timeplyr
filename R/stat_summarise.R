@@ -73,7 +73,7 @@
 #' @rdname stat_summarise
 #' @export
 stat_summarise <- function(data, ...,
-                           stat = c("n", "nmiss", "ndistinct"),
+                           stat =.stat_fns[1:3],
                            q_probs = NULL,
                            na.rm = TRUE, sort = df_group_by_order_default(data),
                            .count_name = NULL,

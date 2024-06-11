@@ -3,16 +3,17 @@ time_seq_fill <- function(x, time_by = NULL,
                           roll_month = getOption("timeplyr.roll_month", "preday"),
                           roll_dst = getOption("timeplyr.roll_dst", "NA")){
   check_is_time_or_num(x)
+  if (cheapr::all_na(x)){
+    warning("all values of x are NA, cannot fill the explicit missing values")
+    return(x)
+  }
   time_by <- time_by_get(x, time_by)
   check_time_by_length_is_one(time_by)
   # If the sequence starts/ends with NA, we need to work with everything but these
   # first/last NA values
+  # if (num_na == length(x)){
   which_na <- cheapr::which_na(x)
   num_na <- length(which_na)
-  if (num_na == length(x)){
-    warning("all values of x are NA, cannot fill the explicit missing values")
-    return(x)
-  }
   if (num_na > 0 && which_na[1] == 1){
     which_last_missing_value_from_left <- cpp_which_first_gap(which_na, 1L, TRUE)
     if (length(which_last_missing_value_from_left) == 0){
