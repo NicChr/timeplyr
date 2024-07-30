@@ -325,7 +325,7 @@ time_span_size <- function(x, time_by = NULL, from = NULL, to = NULL,
   }
   out
 }
-# time_cut_width <- function(x, width = time_gcd_diff(x), from = NULL){
+# time_group <- function(x, width = time_gcd_diff(x), from = NULL){
 #   check_is_time_or_num(x)
 #   time_by <- time_by_get(x, width)
 #   if (length(from) <= 1 &&

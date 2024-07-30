@@ -72,7 +72,7 @@ YM <- function(length = 0L){
 #' @rdname year_month
 #' @export
 year_month_decimal <- function(x){
-  m <- as.integer(( x * 12 ) - (1970 * 12))
+  m <- as.integer(round(( x * 12 ) - (1970 * 12)))
   new_year_month(m)
 }
 #' @rdname year_month
@@ -82,6 +82,7 @@ decimal_year_month <- function(x){
 }
 new_year_month <- function(x){
   check_is_num(x)
+  x <- as.integer(x)
   class(x) <- "year_month"
   x
 }
@@ -196,6 +197,7 @@ as.POSIXlt.year_month <- function(x, tz = "UTC", ...){
 }
 new_year_quarter <- function(x){
   check_is_num(x)
+  x <- as.integer(x)
   class(x) <- "year_quarter"
   x
 }
@@ -207,7 +209,7 @@ YQ <- function(length = 0L){
 #' @rdname year_month
 #' @export
 year_quarter_decimal <- function(x){
-  q <- as.integer(( x * 4 ) - (1970 * 4))
+  q <- as.integer(round(( x * 4 ) - (1970 * 4)))
   new_year_quarter(q)
 }
 #' @rdname year_month

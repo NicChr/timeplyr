@@ -294,7 +294,7 @@ SEXP cpp_diff(SEXP x, SEXP lag, SEXP order, SEXP run_lengths, SEXP fill, int dif
           oi = j;
         }
         // Costly to use % if we don't need to
-        k = recycle_lag ? p_lag[j % lag_size] : lag1;
+        k = recycle_lag ? p_lag[oi % lag_size] : lag1;
         if ( (k >= 0 && ((j - run_start) >= k) ) ||
              ( k < 0 && ((j - run_end) < k))){
           p_out[oi] = lgl_diff(p_x[has_order ? p_o[j - k] - 1 : j - k], p_x[oi]);
@@ -415,7 +415,7 @@ SEXP cpp_diff(SEXP x, SEXP lag, SEXP order, SEXP run_lengths, SEXP fill, int dif
           oi = j;
         }
         // Costly to use % if we don't need to
-        k = recycle_lag ? p_lag[j % lag_size] : lag1;
+        k = recycle_lag ? p_lag[oi % lag_size] : lag1;
         if ( (k >= 0 && ((j - run_start) >= k) ) ||
              ( k < 0 && ((j - run_end) < k))){
           p_out[oi] = int_diff(p_x[has_order ? p_o[j - k] - 1 : j - k], p_x[oi]);
@@ -536,7 +536,7 @@ SEXP cpp_diff(SEXP x, SEXP lag, SEXP order, SEXP run_lengths, SEXP fill, int dif
           oi = j;
         }
         // Costly to use % if we don't need to
-        k = recycle_lag ? p_lag[j % lag_size] : lag1;
+        k = recycle_lag ? p_lag[oi % lag_size] : lag1;
         if ( (k >= 0 && ((j - run_start) >= k) ) ||
              ( k < 0 && ((j - run_end) < k))){
           p_out[oi] = p_x[oi] - p_x[has_order ? p_o[j - k] - 1 : j - k];
@@ -661,7 +661,7 @@ SEXP cpp_diff(SEXP x, SEXP lag, SEXP order, SEXP run_lengths, SEXP fill, int dif
           oi = j;
         }
         // Costly to use % if we don't need to
-        k = recycle_lag ? p_lag[j % lag_size] : lag1;
+        k = recycle_lag ? p_lag[oi % lag_size] : lag1;
         if (k >= 0){
           if ((j - run_start) >= k){
             x_lag = p_x[has_order ? p_o[j - k] - 1 : j - k];

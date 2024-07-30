@@ -6,7 +6,7 @@
 \usage{
 time_gcd_diff(
   x,
-  time_by = NULL,
+  time_by = 1,
   time_type = getOption("timeplyr.time_type", "auto"),
   tol = sqrt(.Machine$double.eps)
 )

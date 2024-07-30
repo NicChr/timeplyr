@@ -48,7 +48,7 @@
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #'}
 #' @export
-time_gcd_diff <- function(x, time_by = NULL,
+time_gcd_diff <- function(x, time_by = 1,
                           time_type = getOption("timeplyr.time_type", "auto"),
                           tol = sqrt(.Machine$double.eps)){
    if (tby_missing <- is.null(time_by)){
@@ -77,6 +77,36 @@ time_gcd_diff <- function(x, time_by = NULL,
   gcd <- cheapr::gcd(tdiff, tol = tol, na_rm = TRUE, round = FALSE)
   add_names(list(time_by_num(time_by) * gcd), time_unit)
 }
+
+# More accurate version?
+# time_gcd_diff2 <- function(x, tol = sqrt(.Machine$double.eps)){
+#   x <- collapse::funique(x, sort = FALSE)
+#   if (is_time(x)){
+#     unit <- get_time_unit(x)
+#     for (per in c("years", "months", "weeks")){
+#       tdiff <- time_elapsed(x, rolling = FALSE, time_by = per, na_skip = TRUE)
+#       is_whole_num <- is_whole_number(tdiff, na.rm = TRUE)
+#       if (is_whole_num){
+#         unit <- per
+#         break
+#       }
+#     }
+#     if (!is_whole_num){
+#       tdiff <- time_elapsed(x, rolling = TRUE, time_by = unit, na_skip = TRUE)
+#     } else {
+#       tdiff <- roll_diff(tdiff, fill = 0)
+#     }
+#   } else {
+#     unit <- "numeric"
+#     tdiff <- time_elapsed(x, rolling = TRUE,
+#                           time_by = 1L,
+#                           time_type = time_type,
+#                           g = NULL,
+#                           na_skip = TRUE)
+#   }
+#   gcd <- cheapr::gcd(tdiff, tol = tol, na_rm = TRUE, round = FALSE)
+#   add_names(list(gcd), unit)
+# }
 
 # Previous method
 # time_gcd_diff2 <- function(x, time_by = 1,

@@ -137,7 +137,7 @@ SEXP cpp_roll_growth_rate(SEXP x, SEXP lag, bool log){
     for (R_xlen_t i = 0; i < n; ++i){
       if (p_lag[i] == NA_INTEGER){
         p_out[i] = NA_REAL;
-      } else if (p_lag[i] == 0.0){
+      } else if (p_lag[i] == 0){
         p_out[i] = 1.0;
       } else {
         p_out[i] = std::exp( ( std::log(p_x[i]) - std::log(p_x[i - p_lag[i]]) ) / p_lag[i]);
