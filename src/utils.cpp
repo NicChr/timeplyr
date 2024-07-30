@@ -712,7 +712,7 @@ SEXP cpp_consecutive_na_id(SEXP x, bool left_to_right){
     break;
   }
   case STRSXP: {
-    SEXP *p_x = STRING_PTR(x);
+    const SEXP *p_x = STRING_PTR_RO(x);
     if (left_to_right){
       for (R_xlen_t i = 0; i < n; ++i){
         is_na = (p_x[i] == NA_STRING);

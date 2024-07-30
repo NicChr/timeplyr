@@ -62,7 +62,7 @@ SEXP cpp_roll_count_na(SEXP x, double window, bool invert, bool partial){
     break;
   }
   case STRSXP: {
-    SEXP *p_x = STRING_PTR(x);
+    const SEXP *p_x = STRING_PTR_RO(x);
     if (partial){
       for (int i = 0; i < k - 1; ++i){
         count += (p_x[i] == NA_STRING);

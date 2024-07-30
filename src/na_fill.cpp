@@ -72,7 +72,7 @@ SEXP cpp_roll_na_fill(SEXP x, double fill_limit) {
     ++n_prot;
     out = Rf_protect(Rf_duplicate(x));
     ++n_prot;
-    SEXP *p_out = STRING_PTR(out);
+    const SEXP *p_out = STRING_PTR_RO(out);
     for (R_xlen_t i = 0; i < size; ++i) {
       is_na = (p_out[i] == NA_STRING);
       if (!first_non_na && !is_na){
@@ -210,7 +210,7 @@ SEXP cpp_roll_na_fill_grouped(SEXP x, SEXP o, SEXP sizes, double fill_limit) {
     ++n_prot;
     out = Rf_protect(Rf_duplicate(x));
     ++n_prot;
-    SEXP *p_out = STRING_PTR(out);
+    const SEXP *p_out = STRING_PTR_RO(out);
     for (int i = 0; i < size; ++i) {
       oi = p_o[i] - 1;
       // Start of new group?
