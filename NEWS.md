@@ -1,5 +1,10 @@
 # timeplyr (Development version)
 
+* Creating 'year_months' and 'year_quarters' from numeric vectors now always coerces them to integer internally.
+
+* Fixed a small bug in `roll_diff` where the order vector was not being 
+used in the case when a vector of lags is supplied.
+
 # timeplyr 0.8.1
 
 * Fixed a regression where some methods stopped being exported.
