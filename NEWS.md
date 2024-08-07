@@ -1,3 +1,5 @@
+# timeplyr (Development version)
+
 # timeplyr 0.8.2
 
 * Creating 'year_months' and 'year_quarters' from numeric vectors now always coerces them to integer internally.
