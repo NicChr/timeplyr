@@ -1,4 +1,6 @@
-* Updated to version 0.8.1
+* Updated to version 0.8.2
+
+Fixed tests that cheapr update broke and other bug fixes.
 
 * Checked and passed using rhub v2.0.0 in the following environments:
 

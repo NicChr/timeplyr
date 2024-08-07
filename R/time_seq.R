@@ -60,8 +60,6 @@
 #' `time_seq_v` returns time sequences. \cr
 #' `time_seq_v2` also returns time sequences.
 #'
-#' @seealso [seq_id] [time_seq_id]
-#'
 #' @examples
 #' library(timeplyr)
 #' library(lubridate)

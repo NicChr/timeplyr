@@ -190,6 +190,3 @@ data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)
 }
 }
-\seealso{
-\link{seq_id} \link{time_seq_id}
-}
