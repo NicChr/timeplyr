@@ -170,7 +170,7 @@ time_completev <- function(x, time_by = NULL, from = NULL, to = NULL,
     out <- c(out, gaps)
   }
   if (sort){
-    out <- conditional_sort(out)
+    out <- sort(out)
   }
   out
 }

@@ -31,7 +31,6 @@
 #' A key difference between `roll_lag` and `flag` is that `g` does not need
 #' to be sorted for the result to be correct. \cr
 #' Furthermore, a vector of lags can be supplied for a custom rolling lag.
-#' For time-based lags, see [time_lag].
 #'
 #' `roll_diff()` silently returns `NA` when there is integer overflow.
 #' Both `roll_lag()` and `roll_diff()` apply recursively to list elements.
@@ -78,13 +77,43 @@ roll_lag <- function(x, n = 1L, ...){
 #' @rdname roll_lag
 #' @export
 roll_lag.default <- function(x, n = 1L, g = NULL, fill = NULL, ...){
-  # o <- radixorderv2(g, group.sizes = TRUE, sort = FALSE)
-  # lag2_(x, n, order = o, run_lengths = attr(o, "group.sizes"), fill = fill)
   order_counts <- group_order_and_counts(g)
-  cheapr::lag2_(x, n, order = order_counts[["order"]],
-                run_lengths = order_counts[["sizes"]],
-                fill = fill, recursive = TRUE)
+  o <- order_counts[["order"]]
+  rl <- order_counts[["sizes"]]
+  if (is.null(o) && is.null(rl) && length(n) == 1L){
+    cheapr::lag_(x, n, fill = fill, recursive = TRUE)
+  } else {
+    cheapr::lag2_(x, n, order = o, run_lengths = rl,
+                  fill = fill, recursive = TRUE)
+  }
 }
+#' @rdname roll_lag
+#' @export
+roll_lag.ts <- function(x, n = 1L, g = NULL, fill = NULL, ...){
+  ncols <- ncol(x)
+  nrows <- nrow(x)
+  if (is.array(x) && ncols > 1){
+    group_sizes <- rep(nrows, ncols)
+    col_groups <- cheapr::seq_id(group_sizes)
+    if (is.null(g)){
+      # Take advantage of the fact that seq_id() produces sorted group IDs
+      g <- sorted_group_id_to_GRP(col_groups, n_groups = ncols, group_sizes = group_sizes,
+                                  group.starts = FALSE)
+    } else {
+      user_groups <- rep(group_id(g, .cols = seq_along(g)), ncols)
+      g <- GRP2(list3(col_groups, user_groups))
+    }
+    out <- roll_lag(unclass(x), n = n, g = g, fill = fill, ...)
+  } else {
+    out <- NextMethod("roll_lag")
+  }
+  attributes(out) <- attributes(x)
+  out
+}
+#' @rdname roll_lag
+#' @export
+roll_lag.zoo <- roll_lag.ts
+
 #' @rdname roll_lag
 #' @export
 roll_diff <- function(x, n = 1L, ...){
@@ -99,6 +128,71 @@ roll_diff.default <- function(x, n = 1L, g = NULL, fill = NULL, differences = 1L
         fill = fill,
         differences = differences)
 }
+#' @rdname roll_lag
+#' @export
+roll_diff.ts <- function(x, n = 1L, g = NULL, fill = NULL, differences = 1L, ...){
+  ncols <- ncol(x)
+  nrows <- nrow(x)
+  if (is.array(x) && ncols > 1){
+
+    ## Method 1 - Not very efficient
+    # out <- x
+    # for (j in seq_len(ncol(x))){
+    #   out[, j] <- roll_diff(unclass(out[, j]), n = n, g = g,
+    #                         fill = fill, differences = differences, ...)
+    # }
+
+    ## Method 2 - Okay
+    # ncols <- ncol(x)
+    # nrows <- nrow(x)
+    # out <- numeric(ncols * nrows)
+    # for (j in seq_len(ncols)){
+    #   out[ (1 + (nrows * (j - 1))):(nrows + (nrows * (j - 1)))] <- roll_diff(
+    #     unclass(x)[, j],
+    #     n = n, g = g,
+    #     fill = fill, differences = differences, ...
+    #   )
+    # }
+    # attributes(out) <- attributes(x)
+
+    ## Method 3 - Much better
+    # ncols <- ncol(x)
+    # diff_list <- cheapr::new_list(ncols)
+    # for (j in seq_len(ncols)){
+    #   diff_list[[j]] <- roll_diff(
+    #     unclass(x)[, j],
+    #     n = n, g = g,
+    #     fill = fill, differences = differences, ...
+    #   )
+    # }
+    # out <- do.call(c, diff_list)
+    # attributes(out) <- attributes(x)
+
+    ## Method 4 - Taking advantage of the fact that each col is a new 'group'
+    ncols <- ncol(x)
+    nrows <- nrow(x)
+    group_sizes <- rep(nrows, ncols)
+    col_groups <- cheapr::seq_id(group_sizes)
+    if (is.null(g)){
+      # Take advantage of the fact that seq_id() produces sorted group IDs
+      g <- sorted_group_id_to_GRP(col_groups, n_groups = ncols, group_sizes = group_sizes,
+                                  group.starts = FALSE)
+    } else {
+      user_groups <- rep(group_id(g, .cols = seq_along(g)), ncols)
+      g <- GRP2(list3(col_groups, user_groups))
+    }
+    out <- roll_diff(unclass(x), n = n, g = g,
+                     fill = fill, differences = differences, ...)
+  } else {
+    out <- NextMethod("roll_diff")
+  }
+  attributes(out) <- attributes(x)
+  out
+}
+#' @rdname roll_lag
+#' @export
+roll_diff.zoo <- roll_diff.ts
+
 #' @rdname roll_lag
 #' @export
 diff_ <- function(x, n = 1L, differences = 1L, order = NULL, run_lengths = NULL, fill = NULL){

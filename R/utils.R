@@ -559,7 +559,7 @@ set_recycle_args <- function(..., length = NULL, use.names = TRUE){
   if (identical(base::parent.frame(n = 1), base::globalenv())){
     stop("Users cannot use set_recycle_args from the global environment")
   }
-  recycled_list <- recycle(..., length = length)
+  recycled_list <- cheapr::recycle(..., length = length)
   if (use.names){
     names(recycled_list) <- dot_nms(...)
   }
@@ -791,13 +791,6 @@ quo_summarise_info <- function(quos, data){
   list(quo_nms = quo_nms,
        quo_text = unname(quo_text),
        is_identity = is_identity)
-}
-conditional_sort <- function(x){
-  if (is_sorted(x)){
-    x
-  } else {
-    radix_sort(x)
-  }
 }
 # Check if signs are all equal
 # Special function to handle -0 selection
@@ -1149,7 +1142,6 @@ which_in <- get_from_package("which_in", "cheapr")
 which_not_in <- get_from_package("which_not_in", "cheapr")
 which_val <- get_from_package("which_val", "cheapr")
 val_rm <- get_from_package("val_rm", "cheapr")
-recycle <- get_from_package("recycle", "cheapr")
 na_count <- function(x){
   cheapr::num_na(x, recursive = FALSE)
 }

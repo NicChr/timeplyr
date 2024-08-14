@@ -214,7 +214,7 @@ list_as_tbl <- function(x){
 # ..N is there purely to create an (n > 0) x 0 data frame
 new_df <- function(..., ..N = NULL, .recycle = FALSE){
   if (.recycle){
-    out <- recycle(...)
+    out <- cheapr::recycle(...)
   } else {
     out <- list3(...)
   }

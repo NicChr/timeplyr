@@ -51,7 +51,7 @@ time_period <- function(years = 0L,
   ### Recycle
 
   if (all(period_lengths > 0L)){
-    out[!is_missing] <- do.call(recycle, args[!is_missing])
+    out[!is_missing] <- do.call(cheapr::recycle, args[!is_missing])
 
     # Fill all rows with NA if any of them contain NA
 

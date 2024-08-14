@@ -3,8 +3,12 @@
 \name{roll_lag}
 \alias{roll_lag}
 \alias{roll_lag.default}
+\alias{roll_lag.ts}
+\alias{roll_lag.zoo}
 \alias{roll_diff}
 \alias{roll_diff.default}
+\alias{roll_diff.ts}
+\alias{roll_diff.zoo}
 \alias{diff_}
 \title{Fast rolling grouped lags and differences}
 \usage{
@@ -12,9 +16,17 @@ roll_lag(x, n = 1L, ...)
 
 \method{roll_lag}{default}(x, n = 1L, g = NULL, fill = NULL, ...)
 
+\method{roll_lag}{ts}(x, n = 1L, g = NULL, fill = NULL, ...)
+
+\method{roll_lag}{zoo}(x, n = 1L, g = NULL, fill = NULL, ...)
+
 roll_diff(x, n = 1L, ...)
 
 \method{roll_diff}{default}(x, n = 1L, g = NULL, fill = NULL, differences = 1L, ...)
+
+\method{roll_diff}{ts}(x, n = 1L, g = NULL, fill = NULL, differences = 1L, ...)
+
+\method{roll_diff}{zoo}(x, n = 1L, g = NULL, fill = NULL, differences = 1L, ...)
 
 diff_(
   x,
@@ -67,7 +79,6 @@ they are adequately fast and efficient. \cr
 A key difference between \code{roll_lag} and \code{flag} is that \code{g} does not need
 to be sorted for the result to be correct. \cr
 Furthermore, a vector of lags can be supplied for a custom rolling lag.
-For time-based lags, see \link{time_lag}.
 
 \code{roll_diff()} silently returns \code{NA} when there is integer overflow.
 Both \code{roll_lag()} and \code{roll_diff()} apply recursively to list elements.

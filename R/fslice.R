@@ -149,7 +149,7 @@ fslice <- function(data, ..., .by = NULL,
     }
   }
   if (keep_order){
-    i <- conditional_sort(i)
+    i <- sort(i)
   }
   df_row_slice(data, i)
 }
@@ -178,7 +178,7 @@ fslice_head <- function(data, ..., n, prop, .by = NULL,
     }
   }
   if (keep_order){
-    i <- conditional_sort(i)
+    i <- sort(i)
   }
   df_row_slice(data, i)
 }
@@ -205,7 +205,7 @@ fslice_tail <- function(data, ..., n, prop, .by = NULL,
     }
   }
   if (keep_order){
-    i <- conditional_sort(i)
+    i <- sort(i)
   }
   df_row_slice(data, i)
 }
@@ -254,7 +254,7 @@ fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
     i <- integer(0)
   }
   if (keep_order){
-    i <- conditional_sort(i)
+    i <- sort(i)
   }
   df_row_slice(data, i)
 }
@@ -303,7 +303,7 @@ fslice_max <- function(data, order_by, ..., n, prop, .by = NULL,
     i <- integer(0)
   }
   if (keep_order){
-    i <- conditional_sort(i)
+    i <- sort(i)
   }
   df_row_slice(data, i)
 }
@@ -370,7 +370,7 @@ fslice_sample <- function(data, n, replace = FALSE, prop,
     i <- integer()
   }
   if (keep_order){
-    i <- conditional_sort(i)
+    i <- sort(i)
   }
   df_row_slice(data, i)
 }

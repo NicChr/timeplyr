@@ -118,7 +118,7 @@ time_interval_list <- function(start, end){
   )){
     stop("start must be finite")
   }
-  recycle(start = start, end = end)
+  cheapr::recycle(start = start, end = end)
 }
 # Like time_interval() but no checks or recycling
 new_time_interval <- function(start, end){
