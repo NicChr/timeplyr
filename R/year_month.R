@@ -122,7 +122,8 @@ new_year_month <- function(x){
 }
 #' @exportS3Method base::c
 `c.year_month` <- function(...){
-  new_year_month(do.call(c, lapply(list(...), unclass)))
+  new_year_month(NextMethod("c"))
+  # new_year_month(do.call(c, lapply(list(...), unclass)))
 }
 #' @exportS3Method base::print
 print.year_month <- function(x, max = NULL, ...){
@@ -253,7 +254,8 @@ decimal_year_quarter <- function(x){
 }
 #' @exportS3Method base::c
 `c.year_quarter` <- function(...){
-  new_year_quarter(do.call(c, lapply(list(...), unclass)))
+  new_year_quarter(NextMethod("c"))
+  # new_year_quarter(do.call(c, lapply(list(...), unclass)))
 }
 #' @exportS3Method base::print
 print.year_quarter <- function(x, max = NULL, ...){
@@ -342,6 +344,15 @@ rep.year_quarter <- function(x, ...){
   class(val) <- cl
   val
 }
+
+is_year_month <- function(x){
+  inherits(x, "year_month")
+}
+
+is_year_quarter <- function(x){
+  inherits(x, "year_quarter")
+}
+
 .months <- c("Jan", "Feb", "Mar",
              "Apr", "May", "Jun",
              "Jul", "Aug", "Sep",

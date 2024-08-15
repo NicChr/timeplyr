@@ -83,19 +83,24 @@ time_ggplot <- function(data, time, value, group = NULL,
   time <- names(time)
   value <- names(value)
   group <- names(group)
+  time_var <- data[[time]]
   # Must be date, datetime or number
-  if (!is_time_or_num(fpluck(data, time))){
+  if (!is_time_or_num(time_var)){
     stop("time must be a date, datetime or numeric variable")
   }
   # Pretty x-axis breaks
-  time_breaks <- time_breaks(fpluck(data, time),
+  time_breaks <- time_breaks(time_var,
                              n = 7, time_floor = TRUE)
-  if (is_datetime(fpluck(data, time))){
+  if (is_datetime(time_var)){
     x_scale <- ggplot2::scale_x_datetime(breaks = time_breaks,
                                          labels = scales::label_date_short())
-  } else if (is_date(fpluck(data, time))){
+  } else if (is_date(time_var)){
     x_scale <- ggplot2::scale_x_date(breaks = time_breaks,
                                      labels = scales::label_date_short())
+  } else if (is_year_month(time_var)){
+    x_scale <- scale_x_year_month(breaks = time_breaks)
+  } else if (is_year_quarter(time_var)){
+    x_scale <- scale_x_year_quarter(breaks = time_breaks)
   } else {
     x_scale <- ggplot2::scale_x_continuous(breaks = time_breaks)
   }
@@ -108,7 +113,7 @@ time_ggplot <- function(data, time, value, group = NULL,
       )
     )
     names(group_col) <- group_nm
-    data <- dplyr::dplyr_col_modify(data, cols = group_col)
+    data <- df_add_cols(data, cols = group_col)
   } else {
     group_nm <- group
   }
