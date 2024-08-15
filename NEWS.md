@@ -1,6 +1,6 @@
 # timeplyr (Development version)
 
-# timeplyr 0.8.2
+* New `roll_lag` and `roll_diff` methods for time-series objects.
 
 * Creating 'year_months' and 'year_quarters' from numeric vectors now always coerces them to integer internally.
 
