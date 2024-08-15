@@ -15,6 +15,7 @@ collapse::set_collapse(nthreads = 1L)
 # }
 
 testthat::test_that("time_by", {
+  options(timeplyr.use_intervals = FALSE)
   flights <- nycflights13::flights
   start <- lubridate::ymd_hms("2013-03-16 11:43:48",
                                tz = "Europe/London")
@@ -80,4 +81,5 @@ testthat::test_that("time_by", {
                          "#Time:time_intv_2_weeks[27]")
   testthat::expect_equal(gsub(" ", "", printed_out2[3]),
                          "#By:2weeks")
+  reset_timeplyr_options()
 })

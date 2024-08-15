@@ -58,7 +58,8 @@
 #'                                time_by = NULL){
 #'   .data %>%
 #'     time_by(!!dplyr::enquo(time), time_by = time_by,
-#'                .name = .name, from = !!dplyr::enquo(from)) %>%
+#'                .name = .name, from = !!dplyr::enquo(from),
+#'             as_interval = FALSE) %>%
 #'     dplyr::count(...) %>%
 #'     dplyr::ungroup() %>%
 #'     time_complete(.data[[.name]], ..., time_by = time_by,

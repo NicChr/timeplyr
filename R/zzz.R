@@ -123,7 +123,7 @@
           "timeplyr.roll_dst" = getOption("timeplyr.roll_dst", "NA"),
           "timeplyr.interval_style" = getOption("timeplyr.interval_style", "full"),
           "timeplyr.interval_sub_formatter" = getOption("timeplyr.interval_sub_formatter", identity),
-          "timeplyr.use_intervals" = getOption("timeplyr.use_intervals", FALSE))
+          "timeplyr.use_intervals" = getOption("timeplyr.use_intervals", TRUE))
 }
 .onUnload <- function(libname, pkgname){
   options(timeplyr.time_type = NULL,

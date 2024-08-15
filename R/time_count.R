@@ -31,7 +31,7 @@ time_count <- function(data, time = NULL, ..., time_by = NULL,
                        time_type = getOption("timeplyr.time_type", "auto"),
                        roll_month = getOption("timeplyr.roll_month", "preday"),
                        roll_dst = getOption("timeplyr.roll_dst", "NA"),
-                       as_interval = getOption("timeplyr.use_intervals", FALSE)){
+                       as_interval = getOption("timeplyr.use_intervals", TRUE)){
   warning("'time_count is deprecated.\nUse 'time_by' and 'count' instead.")
   original_groups <- get_groups(data, {{ .by }})
   by_groups <- tidy_select_pos(data, {{ .by }})

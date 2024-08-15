@@ -190,7 +190,7 @@ nrow(fdistinct(episodes, origin, dest)) # 55 origin-destinations
 episodes \%>\%
   ungroup() \%>\%
   time_by(ep_start, time_by = "week",
-          .name = "ep_start") \%>\%
+          .name = "ep_start", as_interval = FALSE) \%>\%
   count() \%>\%
   ggplot(aes(x = ep_start, y = n)) +
   geom_bar(stat = "identity")

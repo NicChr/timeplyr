@@ -1,8 +1,11 @@
 #' Cut dates and datetimes into regularly spaced date or datetime intervals
 #'
 #' @description
-#' `time_breaks` and `time_cut()` are very useful for
-#' plotting with dates and date-times as the breaks are of regular width.
+#' Useful functions especially for when plotting time-series.
+#' `time_cut` makes approximately `n` groups of equal time range.
+#' It prioritises the highest time unit possible, making axes look
+#' less cluttered and thus prettier. `time_breaks` returns only the breaks.
+#' `time_cut_width` cuts the time vector into groups of equal width, e.g. a day.
 #'
 #' @details
 #' To retrieve regular time breaks that simply spans the range of `x`,
@@ -67,8 +70,10 @@
 #'
 #' @returns
 #' `time_breaks` returns a vector of breaks. \cr
-#' `time_cut` returns either a `factor`, `time_interval` or a vector the
-#' same class as `x`.
+#' `time_cut` returns either a vector or `time_interval`. \cr
+#' `time_cut_width` cuts the time vector into groups of equal width, e.g. a day,
+#' and returns the same object as `time_cut`. This is analogous to
+#' `ggplot2::cut_width` but the intervals are all right-open.
 #'
 #' @examples
 #' library(timeplyr)
@@ -140,7 +145,7 @@ time_cut <- function(x, n = 5, time_by = NULL,
                      time_type = getOption("timeplyr.time_type", "auto"),
                      roll_month = getOption("timeplyr.roll_month", "preday"),
                      roll_dst = getOption("timeplyr.roll_dst", "NA"),
-                     as_interval = getOption("timeplyr.use_intervals", FALSE)){
+                     as_interval = getOption("timeplyr.use_intervals", TRUE)){
   if (is.null(to)){
     to <- collapse::fmax(x, na.rm = TRUE)
   }
@@ -160,36 +165,10 @@ time_cut <- function(x, n = 5, time_by = NULL,
                             time_type = time_type,
                             roll_month = roll_month, roll_dst = roll_dst)
   }
+  # time_labels <- tseq_levels(x = to, time_breaks, fmt = NULL)
+  # levels(out) <- time_labels
+  # class(out) <- c("ordered", "factor")
   out
-  # out <- cut_time(x,
-  #                 breaks = c(unclass(time_breaks), unclass(to)),
-  #                 codes = as_factor)
-  # if (as_factor){
-  #   time_labels <- as.character(
-  #     time_by_interval(time_breaks,
-  #                      time_by = breaks_list[["time_by"]],
-  #                      time_type = time_type,
-  #                      roll_month = roll_month,
-  #                      roll_dst = roll_dst)
-  #   )
-  #   # time_labels <- tseq_levels(x = to, time_breaks, fmt = fmt)
-  #   levels(out) <- time_labels
-  #   class(out) <- c("ordered", "factor")
-  # }
-  ##### NEAR-FUTURE TO-DO FOR ME:
-  # 1. Uncomment the below else clause
-  # 2. Remove the as_interval clause
-  # 3. Remove the as_interval argument of the function
-  # else {
-  #   out <- time_by_interval(out, time_by = breaks_list[["time_by"]],
-  #                           time_type = time_type,
-  #                           roll_month = roll_month, roll_dst = roll_dst)
-  # }
-  # if (as_interval){
-  #   out <- time_by_interval(out, time_by = breaks_list[["time_by"]],
-  #                           time_type = time_type,
-  #                           roll_month = roll_month, roll_dst = roll_dst)
-  # }
 }
 #' @rdname time_cut
 #' @export
@@ -208,6 +187,38 @@ time_breaks <- function(x, n = 5, time_by = NULL,
                       roll_month = roll_month,
                       roll_dst = roll_dst)
   out[["breaks"]]
+}
+#' @rdname time_cut
+#' @export
+time_cut_width <- function(x, time_by = NULL,
+                           from = NULL, as_interval = getOption("timeplyr.use_intervals", TRUE)){
+  check_is_time_or_num(x)
+  time_by <- time_by_get(x, time_by)
+  if (length(from) <= 1 &&
+      time_span_size(x, time_by, from = from) <= 5e05){
+    return(time_summarisev(
+      x, time_by = time_by, from = from,
+      as_interval = as_interval
+    ))
+  }
+  num <- time_by_num(time_by)
+  units <- time_by_unit(time_by)
+  if (is.null(from)){
+    index <- gmin(x, na.rm = TRUE)
+  } else {
+    if (length(from) %!in_% c(1, length(x))){
+      stop("length of from must be 1 or length(x)")
+    }
+    index <- time_cast(from, x)
+    x[cheapr::which_(x < index)] <- NA
+  }
+  tdiff <- time_diff(index, x, time_by = time_by)
+  time_to_add <- add_names(list(trunc2(tdiff) * num), units)
+  out <- time_add2(index, time_by = time_to_add)
+  if (as_interval){
+   out <- time_by_interval(out, time_by = time_by)
+  }
+  out
 }
 .time_breaks <- function(x, n = 5, time_by = NULL,
                          from = NULL, to = NULL,

@@ -32,5 +32,5 @@ reset_timeplyr_options <- function(){
           "timeplyr.roll_dst" = "boundary",
           "timeplyr.interval_style" = "full",
           "timeplyr.interval_sub_formatter" = identity,
-          "timeplyr.use_intervals" = FALSE)
+          "timeplyr.use_intervals" = TRUE)
 }

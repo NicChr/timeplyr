@@ -62,7 +62,7 @@ time_summarisev(
   week_start = getOption("lubridate.week.start", 1),
   roll_month = getOption("timeplyr.roll_month", "preday"),
   roll_dst = getOption("timeplyr.roll_dst", "NA"),
-  as_interval = getOption("timeplyr.use_intervals", FALSE)
+  as_interval = getOption("timeplyr.use_intervals", TRUE)
 )
 
 time_countv(
@@ -78,7 +78,7 @@ time_countv(
   week_start = getOption("lubridate.week.start", 1),
   roll_month = getOption("timeplyr.roll_month", "preday"),
   roll_dst = getOption("timeplyr.roll_dst", "NA"),
-  as_interval = getOption("timeplyr.use_intervals", FALSE)
+  as_interval = getOption("timeplyr.use_intervals", TRUE)
 )
 
 time_span_size(

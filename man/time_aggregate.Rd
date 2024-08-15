@@ -14,7 +14,7 @@ time_aggregate(
   roll_dst = getOption("timeplyr.roll_dst", "NA"),
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
-  as_interval = getOption("timeplyr.use_intervals", FALSE)
+  as_interval = getOption("timeplyr.use_intervals", TRUE)
 )
 }
 \arguments{
@@ -103,13 +103,10 @@ sunique(time_aggregate(days, "quarter"))
 # Very fast by group aggregation
 start <- collapse::fmin(flights$time_hour, g = flights$tailnum,
                         TRA = "replace_fill")
-week_by_tailnum <- time_aggregate(flights$time_hour, time_by = ddays(7),
-                                  from = start)
-# Confirm this has been done by group as each group will have a
-# Different aggregate start date
 flights \%>\%
-  stat_summarise(week_by_tailnum, .by = tailnum, stat = "min",
-                 sort = FALSE)
+  mutate(start = collapse::fmin(time_hour, g = list(origin, dest), TRA = "replace_fill")) \%>\%
+  mutate(week = time_aggregate(time_hour, dweeks(1), from = start)) \%>\%
+  select(origin, dest, time_hour, week)
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

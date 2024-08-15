@@ -853,7 +853,7 @@ time_aggregate_left <- function(x, time_by, g = NULL,
                                 time_type = getOption("timeplyr.time_type", "auto"),
                                 roll_month = getOption("timeplyr.roll_month", "preday"),
                                 roll_dst = getOption("timeplyr.roll_dst", "NA"),
-                                as_interval = getOption("timeplyr.use_intervals", FALSE)){
+                                as_interval = getOption("timeplyr.use_intervals", TRUE)){
   time_by <- time_by_list(time_by)
   num <- time_by_num(time_by)
   units <- time_by_unit(time_by)

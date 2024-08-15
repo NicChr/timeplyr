@@ -48,7 +48,7 @@
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #'}
 #' @export
-time_gcd_diff <- function(x, time_by = 1,
+time_gcd_diff <- function(x, time_by = 1L,
                           time_type = getOption("timeplyr.time_type", "auto"),
                           tol = sqrt(.Machine$double.eps)){
    if (tby_missing <- is.null(time_by)){

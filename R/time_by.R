@@ -91,7 +91,7 @@ time_by <- function(data, time, time_by = NULL,
                     .name = paste0("time_intv_", time_by_pretty(time_by, "_")),
                     .add = FALSE,
                     time_type = getOption("timeplyr.time_type", "auto"),
-                    as_interval = getOption("timeplyr.use_intervals", FALSE),
+                    as_interval = getOption("timeplyr.use_intervals", TRUE),
                     .time_by_group = TRUE){
   check_is_df(data)
   data_nms <- names(data)

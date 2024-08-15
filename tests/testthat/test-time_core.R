@@ -9,6 +9,8 @@ time_countv2 <- function(..., use.names = TRUE, complete = TRUE){
   out
 }
 
+options(timeplyr.use_intervals = FALSE)
+
 testthat::test_that("Tests for time_countv2", {
   flights2 <- nycflights13::flights
   flights2 <- flights2 %>%
@@ -267,3 +269,4 @@ testthat::test_that("Tests for time_summarisev", {
 
 })
 
+reset_timeplyr_options()

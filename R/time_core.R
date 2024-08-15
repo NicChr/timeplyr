@@ -183,7 +183,7 @@ time_summarisev <- function(x, time_by = NULL, from = NULL, to = NULL,
                             week_start = getOption("lubridate.week.start", 1),
                             roll_month = getOption("timeplyr.roll_month", "preday"),
                             roll_dst = getOption("timeplyr.roll_dst", "NA"),
-                            as_interval = getOption("timeplyr.use_intervals", FALSE)){
+                            as_interval = getOption("timeplyr.use_intervals", TRUE)){
   check_is_time_or_num(x)
   check_length_lte(from, 1)
   check_length_lte(to, 1)
@@ -235,7 +235,7 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
                         week_start = getOption("lubridate.week.start", 1),
                         roll_month = getOption("timeplyr.roll_month", "preday"),
                         roll_dst = getOption("timeplyr.roll_dst", "NA"),
-                        as_interval = getOption("timeplyr.use_intervals", FALSE)){
+                        as_interval = getOption("timeplyr.use_intervals", TRUE)){
   check_is_time_or_num(x)
   time_by <- time_by_get(x, time_by = time_by)
   if (is.null(from)){
