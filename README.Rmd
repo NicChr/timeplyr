@@ -419,7 +419,7 @@ weekly_data <- flights %>%
             .name = "date") %>%
     count()
 weekly_data %>%
-  ggplot(aes(x = date, y = n)) + 
+  ggplot(aes(x = interval_start(date), y = n)) + 
   geom_bar(stat = "identity", fill = "#0072B2") + 
   scale_x_date(breaks = date_breaks, labels = scales::label_date_short())
 
