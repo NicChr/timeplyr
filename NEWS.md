@@ -1,4 +1,4 @@
-# timeplyr (Development version)
+# timeplyr 0.8.2
 
 * time_intervals are now used by default. Use the 'timeplyr.use_intervals' option
 to control this behaviour globally.
