@@ -3,7 +3,7 @@
 \name{asc}
 \alias{asc}
 \alias{desc}
-\title{Helpers to sort variables in ascending or descending order}
+\title{These functions have been superseded by fastplyr functions}
 \usage{
 asc(x)
 
@@ -14,26 +14,13 @@ desc(x)
 }
 \value{
 A numeric vector that can be ordered in ascending or descending order. \cr
-Useful in \code{dplyr::arrange()} or \code{farrange()}.
+Useful in \code{dplyr::arrange()} or \code{fastplyr::f_arrange()}.
 }
 \description{
-An alternative to \code{dplyr::desc()} which is much faster
-for character vectors and factors.
-}
-\examples{
-library(dplyr)
-library(timeplyr)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
-starwars \%>\%
-  fdistinct(mass) \%>\%
-  farrange(desc(mass))
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}}
+
+These functions can now be found in fastplyr. \cr
+They are no longer recommended in this package and thus have been both
+deprecated and superseded.
 }

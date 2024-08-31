@@ -2,7 +2,7 @@
 % Please edit documentation in R/crossed_join.R
 \name{crossed_join}
 \alias{crossed_join}
-\title{A \code{do.call()} and \code{data.table::CJ()} method}
+\title{These functions have been superseded by fastplyr functions}
 \usage{
 crossed_join(
   X,
@@ -31,28 +31,12 @@ a significant speed improvement.}
 A data.table or list object.
 }
 \description{
-This function operates like \code{do.call(CJ, ...)} and accepts
-a list or data.frame as an argument. \cr
-It has less overhead for small joins, especially when \code{unique = FALSE} and
-\code{as_dt = FALSE}. \cr
-\code{NA}s are by default sorted last.
-}
-\details{
-An important note is that currently \code{NA}s
-are sorted last and therefore a key is not set.
-}
-\examples{
-library(timeplyr)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
-crossed_join(list(1:3, -2:2))
-crossed_join(iris)
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}}
+
+These functions can now be found in fastplyr. \cr
+They are no longer recommended in this package and thus have been both
+deprecated and superseded.
+
+Use \code{do.call(fastplyr::crossing, data)} to replicate \code{crossed_join(data)}.
 }

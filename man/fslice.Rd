@@ -7,7 +7,7 @@
 \alias{fslice_min}
 \alias{fslice_max}
 \alias{fslice_sample}
-\title{Faster \code{dplyr::slice()}}
+\title{These functions have been superseded by fastplyr functions}
 \usage{
 fslice(data, ..., .by = NULL, keep_order = FALSE, sort_groups = TRUE)
 
@@ -111,59 +111,10 @@ If left \code{NULL} (the default), then the seed is never modified.}
 A \code{data.frame} of specified rows.
 }
 \description{
-When there are lots of groups, the \code{fslice()} functions are much faster.
-}
-\details{
-\code{fslice()} and friends allow for more flexibility in how you order the by-group slicing. \cr
-Furthermore, you can control whether the returned data frame is sliced in
-the order of the supplied row indices, or whether the
-original order is retained (like \code{dplyr::filter()}).
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}}
 
-In \code{fslice()}, when \code{length(n) == 1}, an optimised method is implemented
-that internally uses \code{list_subset()}, a fast function for extracting
-single elements from single-level lists that contain vectors of the same
-type, e.g. integer.
-
-\code{fslice_head()} and \code{fslice_tail()} are very fast with large numbers of groups.
-
-\code{fslice_sample()} is arguably more intuitive as it by default
-resamples each entire group without replacement, without having to specify a
-maximum group size like in \code{dplyr::slice_sample()}.
-}
-\examples{
-library(timeplyr)
-library(dplyr)
-library(nycflights13)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
-flights <- flights \%>\%
-  group_by(origin, dest)
-
-# First row repeated for each group
-flights \%>\%
-  fslice(1, 1)
-# First row per group
-flights \%>\%
-  fslice_head(n = 1)
-# Last row per group
-flights \%>\%
-  fslice_tail(n = 1)
-# Earliest flight per group
-flights \%>\%
-  fslice_min(time_hour, with_ties = FALSE)
-# Last flight per group
-flights \%>\%
-  fslice_max(time_hour, with_ties = FALSE)
-# Random sample without replacement by group
-# (or stratified random sampling)
-flights \%>\%
-  fslice_sample()
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
+These functions can now be found in fastplyr. \cr
+They are no longer recommended in this package and thus have been both
+deprecated and superseded.
 }

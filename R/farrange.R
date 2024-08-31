@@ -1,11 +1,12 @@
-#' A `collapse` version of `dplyr::arrange()`
+#' These functions have been superseded by fastplyr functions
 #'
 #' @description
-#' This is a fast and near-identical alternative to `dplyr::arrange()`
-#' using the `collapse` package.
+#' `r lifecycle::badge("deprecated")`
+#' `r lifecycle::badge("superseded")`
 #'
-#' `desc()` is like `dplyr::desc()` but works faster when
-#' called directly on vectors. \cr
+#' These functions can now be found in fastplyr. \cr
+#' They are no longer recommended in this package and thus have been both
+#' deprecated and superseded.
 #'
 #' @param data A data frame.
 #' @param ... Variables to arrange by.
@@ -17,53 +18,21 @@
 #' a named character vector or numeric vector.
 #' If speed is an expensive resource, it is recommended to use this.
 #'
-#' @details
-#' `farrange()` is inspired by `collapse::roworder()` but also supports
-#' `dplyr` style `data-masking` which makes it a
-#' closer replacement to `dplyr::arrange()`.
-#'
-#' You can use `desc()` interchangeably with `dplyr` and `timeplyr`. \cr
-#' `arrange(iris, desc(Species))` uses `dplyr`'s version. \cr
-#' `farrange(iris, desc(Species))` uses `timeplyr`'s version.
-#'
-#' `farrange()` is faster when there are many groups or a large number of
-#' rows.
-#'
 #' @returns
 #' A sorted `data.frame`.
 #'
 #' @export
 farrange <- function(data, ..., .by = NULL, .by_group = FALSE,
                      .cols = NULL){
-  group_info <- tidy_group_info(if (.by_group){
-    data
-  } else {
-    safe_ungroup(data)
-  }, ..., .by = {{ .by }},
-  .cols = .cols,
-  ungroup = TRUE,
-  rename = FALSE)
-  dot_vars <- fpluck(group_info, "extra_groups")
-  all_vars <- fpluck(group_info, "all_groups")
-  if (length(all_vars) == 0L){
-    return(data)
-  }
-  if (.by_group){
-    order_vars <- all_vars
-  } else {
-    order_vars <- dot_vars
-  }
-  out_order <- radixorderv2(
-    fselect(
-      fpluck(group_info, "data"), .cols = order_vars
-    ),
-    decreasing = FALSE, na.last = TRUE, starts = FALSE,
-    group.sizes = FALSE, sort = TRUE
+  lifecycle::deprecate_warn(
+    when = "0.8.2",
+    what = "farrange()",
+    with = "fastplyr::f_arrange()"
   )
-  sorted <- attr(out_order, "sorted")
-  if (isTRUE(sorted)){
-    data
-  } else {
-    df_row_slice(data, out_order)
-  }
+  fastplyr::f_arrange(
+    data, ...,
+    .by_group = .by_group,
+    .by = {{ .by }},
+    .cols = .cols
+  )
 }

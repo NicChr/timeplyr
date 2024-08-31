@@ -183,7 +183,7 @@ events
 
 episodes <- events \%>\%
   filter(ep_id_new > 1)
-nrow(fdistinct(episodes, origin, dest)) # 55 origin-destinations
+nrow(fastplyr::f_distinct(episodes, origin, dest)) # 55 origin-destinations
 
 # As expected summer months saw the least number of
 # dry-periods

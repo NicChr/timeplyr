@@ -139,7 +139,7 @@ time_gcd_diff <- function(x, time_by = 1L,
 #       abs(tdiff), digits = log10_tol
 #     )
 #   )
-#   tdiff <- tdiff[which_(double_gt(tdiff, 0, tol = tol))]
+#   tdiff <- tdiff[which(double_gt(tdiff, 0, tol = tol))]
 #   if (length(tdiff) == 1 && tdiff == Inf){
 #     return(10^(-log10_tol))
 #   }

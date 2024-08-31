@@ -29,9 +29,9 @@ testthat::test_that("Normal cases", {
   # testthat::expect_warning(roll_growth_rate(y, na.rm = TRUE))
   # testthat::expect_warning(roll_growth_rate(y, na.rm = FALSE))
   testthat::expect_equal(roll_growth_rate(y, window = 1),
-                         seq_ones(length(y)))
+                         rep_len(1L, length(y)))
   testthat::expect_equal(roll_growth_rate(y, window = 1, partial = FALSE),
-                         seq_ones(length(y)))
+                         rep_len(1L, length(y)))
   testthat::expect_equal(roll_growth_rate(y, window = 2),
                          c(1, rep_len(1.075, length(y) - 1)))
   testthat::expect_equal(roll_growth_rate(y, window = 2, partial = FALSE),

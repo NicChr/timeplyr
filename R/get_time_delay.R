@@ -119,20 +119,24 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
   check_length(end, 1)
   start_time <- origin
   end_time <- end
-  origin_df <- safe_ungroup(origin_info[["data"]])
-  end_df <- fselect(safe_ungroup(end_info[["data"]]), .cols = end)
-  out <- df_as_dt(df_cbind(origin_df, end_df))
-  grp_nm <- new_var_nm(out, ".group.id")
-  set_add_cols(out, add_names(list(group_id(data, .by = {{ .by }})), grp_nm))
+  origin_df <- df_ungroup(origin_info[["data"]])
+  end_df <- fastplyr::f_select(df_ungroup(end_info[["data"]]), .cols = end)
+  out <- df_as_dt(fastplyr::f_bind_cols(origin_df, end_df))
+  grp_nm <- unique_col_name(out, ".group.id")
+  set_add_cols(out, add_names(list(
+    fastplyr::add_group_id(data, .by = {{ .by }}, .name = grp_nm)[[grp_nm]]
+    ), grp_nm))
   set_rm_cols(out, setdiff(names(out),
                            c(grp_nm, group_vars, start_time, end_time)))
-  grp_df <- fdistinct(fselect(out, .cols = c(grp_nm, group_vars)),
-                      .cols = grp_nm,
-                      .keep_all = TRUE)
+  grp_df <- fastplyr::f_distinct(
+    fastplyr::f_select(out, .cols = c(grp_nm, group_vars)),
+    .cols = grp_nm,
+    .keep_all = TRUE
+  )
   time_by <- time_by_list(time_by)
   by_unit <- time_by_unit(time_by)
   by_n <- time_by_num(time_by)
-  delay_nm <- new_var_nm(out, "delay")
+  delay_nm <- unique_col_name(out, "delay")
   set_add_cols(out, add_names(
     list(
       time_diff(out[[start_time]],
@@ -178,7 +182,7 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
   }
   setorderv2(delay_summary, cols = grp_nm)
   set_rm_cols(delay_summary, c(grp_nm, iqr_p_missed))
-  delay_summary <- fselect(delay_summary, .cols = c(group_vars, "n", "min",
+  delay_summary <- fastplyr::f_select(delay_summary, .cols = c(group_vars, "n", "min",
                                                     "max", "mean", "sd",
                                                     q_nms, "iqr", "se"))
   # Create delay table
@@ -193,7 +197,7 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
                          edf = numeric())
   } else {
     delay_tbl <- out %>%
-      fcount(across(all_of(c(grp_nm, group_vars))),
+      fastplyr::f_count(across(all_of(c(grp_nm, group_vars))),
              across(all_of(delay_nm), ceiling),
              name = "n")
     delay_tbl[, ("cumulative") := collapse::fcumsum(get("n"),
@@ -214,10 +218,10 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
                                      "n", "cumulative", "edf")))
   }
   set_rm_cols(out, grp_nm)
-  out <- fselect(out, .cols = c(group_vars, setdiff(names(out), group_vars)))
-  out <- df_reconstruct(out, data)
-  delay_summary <- df_reconstruct(delay_summary, data)
-  delay_tbl <- df_reconstruct(delay_tbl, data)
+  out <- fastplyr::f_select(out, .cols = c(group_vars, setdiff(names(out), group_vars)))
+  out <- reconstruct(data, out)
+  delay_summary <- reconstruct(data, delay_summary)
+  delay_tbl <- reconstruct(data, delay_tbl)
   # Delay values
   delay_list <- list("data" = out,
                      "units" = by_unit,

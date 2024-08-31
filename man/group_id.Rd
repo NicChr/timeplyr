@@ -4,11 +4,10 @@
 \alias{group_id}
 \alias{add_group_id}
 \alias{row_id}
-\alias{row_id.GRP}
 \alias{add_row_id}
 \alias{group_order}
 \alias{add_group_order}
-\title{Fast group IDs}
+\title{These functions have been superseded by fastplyr functions}
 \usage{
 group_id(
   data,
@@ -32,8 +31,6 @@ add_group_id(
 )
 
 row_id(data, ..., ascending = TRUE, .by = NULL, .cols = NULL)
-
-\method{row_id}{GRP}(data, ascending = TRUE, ...)
 
 add_row_id(data, ..., ascending = TRUE, .by = NULL, .cols = NULL, .name = NULL)
 
@@ -97,106 +94,10 @@ and if one already exists, a unique name will be used.}
 An integer vector.
 }
 \description{
-These are tidy-based functions for calculating group IDs, row IDs and
-group orders. \cr
-\itemize{
-\item \code{group_id()} returns an integer vector of group IDs the same size as the data.
-\item \code{row_id()} returns an integer vector of row IDs.
-\item \code{group_order()} returns the order of the groups.
-}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}}
 
-The \code{add_} variants add a column of group IDs/row IDs/group orders.
-}
-\details{
-It's important to note for data frames, these functions by default assume
-no groups unless you supply them.
-
-This means that when no groups are supplied:
-\itemize{
-\item \code{group_id(iris)} returns a vector of ones
-\item \code{row_id(iris)} returns the plain row id numbers
-\item \code{group_order(iris) == row_id(iris)}.
-}
-
-One can specify groups in the second argument like so:
-\itemize{
-\item \code{group_id(iris, Species)}
-\item \code{row_id(iris, across(all_of("Species")))}
-\item \code{group_order(iris, across(where(is.numeric), desc))}
-}
-
-If you want \code{group_id} to always use all the columns of a data frame
-for grouping
-while simultaneously utilising the \code{group_id} methods, one can use the below
-function.
-
-\preformatted{
-group_id2 <- function(data, ...){
- group_id(data, ..., .cols = names(data))
-}
-}
-}
-\examples{
-library(timeplyr)
-library(dplyr)
-library(ggplot2)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
-group_id(iris) # No groups
-group_id(iris, Species) # Species groups
-row_id(iris) # Plain row IDs
-row_id(iris, Species) # Row IDs by group
-# Order of Species + descending Petal.Width
-group_order(iris, Species, desc(Petal.Width))
-# Same as
-order(iris$Species, -xtfrm(iris$Petal.Width))
-
-# Tidy data-masking/tidyselect can be used
-group_id(iris, across(where(is.numeric))) # Groups across numeric values
-# Alternatively using tidyselect
-group_id(iris, .by = where(is.numeric))
-
-# Group IDs using a mixtured order
-group_id(iris, desc(Species), Sepal.Length, desc(Petal.Width))
-
-# add_ helpers
-iris \%>\%
-  distinct(Species) \%>\%
-  add_group_id(Species)
-iris \%>\%
-  add_row_id(Species) \%>\%
-  pull(row_id)
-
-# Usage in data.table
-library(data.table)
-iris_dt <- as.data.table(iris)
-iris_dt[, group_id := group_id(.SD, .cols = names(.SD)),
-        .SDcols = "Species"]
-
-# Or if you're using this often you can write a wrapper
-set_add_group_id <- function(x, ..., .name = "group_id"){
-  id <- group_id(x, ...)
-  data.table::set(x, j = .name, value = id)
-}
-set_add_group_id(iris_dt, desc(Species))[]
-
-mm_mpg <- mpg \%>\%
-  select(manufacturer, model) \%>\%
-  arrange(desc(pick(everything())))
-
-# Sorted/non-sorted groups
-mm_mpg \%>\%
-  add_group_id(across(everything()),
-               .name = "sorted_id", order = TRUE) \%>\%
-  add_group_id(manufacturer, model,
-               .name = "not_sorted_id", order = FALSE) \%>\%
-  distinct()
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
+These functions can now be found in fastplyr. \cr
+They are no longer recommended in this package and thus have been both
+deprecated and superseded.
 }

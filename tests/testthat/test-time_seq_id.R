@@ -26,7 +26,7 @@ testthat::test_that("Time sequence IDs", {
   # testthat::expect_error(time_seq_id(df$x, time_by = 0.1))
   # testthat::expect_error(time_seq_id(df$x, g = df$g, time_by = 0.1))
 
-  df <- farrange(df, .cols = "x")
+  df <- fastplyr::f_arrange(df, .cols = "x")
   tol <- sqrt(.Machine$double.eps)
   testthat::expect_equal(
     time_seq_id(df$x),

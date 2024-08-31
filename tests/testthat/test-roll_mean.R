@@ -134,7 +134,7 @@ testthat::test_that("Expected outputs", {
 #
 #
 # flights2 <- nycflights13::flights %>%
-#   farrange(time_hour)
+#   fastplyr::f_arrange(time_hour)
 #
 # t <- flights2$time_hour
 # x <- rnorm(length(t))
@@ -144,14 +144,14 @@ testthat::test_that("Expected outputs", {
 # all.equal(z2, z3)
 #
 # z1 <- flights2 %>%
-#   # farrange(origin, dest, time_hour) %>%
+#   # fastplyr::f_arrange(origin, dest, time_hour) %>%
 #   fgroup_by(origin, dest) %>%
 #   dplyr::mutate(mean = slider::slide_index_mean(arr_delay, i = time_hour,
 #                                                   before = lubridate::dhours(2.5),
 #                                                   na_rm = TRUE)) %>%
 #   dplyr::pull(mean)
 # z2 <- flights2 %>%
-#   add_group_id(origin, dest) %>%
+#   fastplyr::add_group_id(origin, dest) %>%
 #   dplyr::mutate(mean = time_roll_mean(arr_delay, time = time_hour,
 #                                       lubridate::dhours(2.5),
 #                                       close_left_boundary = TRUE,

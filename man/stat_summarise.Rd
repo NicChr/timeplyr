@@ -4,10 +4,8 @@
 \name{stat_summarise}
 \alias{stat_summarise}
 \alias{.stat_fns}
-\title{Fast grouped statistical summary for data frames.}
+\title{These functions have been superseded by fastplyr functions}
 \format{
-\code{.stat_fns}
-
 An object of class \code{character} of length 14.
 }
 \usage{
@@ -71,43 +69,11 @@ at the start of each session? Default is \code{TRUE}.}
 A summary \code{data.table} containing the summary values for each group.
 }
 \description{
-\code{collapse} and \code{data.table} are used for the calculations.
-}
-\details{
-\code{stat_summarise()} can apply multiple functions to multiple variables.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}}
 
-\code{stat_summarise()} is equivalent to \cr
-\code{data \%>\% group_by(...) \%>\% summarise(across(..., list(...)))} \cr
-but is faster and more efficient and accepts limited statistical functions.
-}
-\examples{
-library(timeplyr)
-library(dplyr)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
-stat_df <- iris \%>\%
-  stat_summarise(Sepal.Length, .by = Species)
-# Join quantile info too
-q_df <- iris \%>\%
-  q_summarise(Sepal.Length, .by = Species)
-summary_df <- left_join(stat_df, q_df, by = "Species")
-summary_df
-
-# Multiple cols
-iris \%>\%
-  group_by(Species) \%>\%
-  stat_summarise(across(contains("Width")),
-            stat = c("min", "max", "mean", "sd"))
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
-}
-\seealso{
-\link{q_summarise}
+These functions can now be found in fastplyr. \cr
+They are no longer recommended in this package and thus have been both
+deprecated and superseded.
 }
 \keyword{datasets}

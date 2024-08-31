@@ -16,8 +16,8 @@ time_expand(
   time_type = getOption("timeplyr.time_type", "auto"),
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
-  expand_type = c("nesting", "crossing"),
   sort = TRUE,
+  expand_type = NULL,
   roll_month = getOption("timeplyr.roll_month", "preday"),
   roll_dst = getOption("timeplyr.roll_dst", "NA")
 )
@@ -33,7 +33,7 @@ time_complete(
   time_type = getOption("timeplyr.time_type", "auto"),
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1),
-  expand_type = c("nesting", "crossing"),
+  expand_type = NULL,
   sort = TRUE,
   fill = NA,
   roll_month = getOption("timeplyr.roll_month", "preday"),
@@ -80,11 +80,10 @@ starting sequences at the beginning of a week or month for example.}
 means Monday (default), 7 means Sunday.
 This is only used when \code{floor_date = TRUE}.}
 
-\item{expand_type}{Type of time expansion to use where "nesting"
-finds combinations already present in the data,
-"crossing" finds all combinations of values in the group variables.}
-
 \item{sort}{Logical. If \code{TRUE} expanded/completed variables are sorted.}
+
+\item{expand_type}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+Use \code{fastplyr::crossing()} and \code{fastplyr::nesting()}.}
 
 \item{roll_month}{Control how impossible dates are handled when
 month or year arithmetic is involved.
@@ -107,11 +106,6 @@ you can supply an additional \code{time} argument to allow for filling in time g
 expansion of time, as well as aggregating time to a higher unit.
 \code{lubridate} is used for handling time, while \code{data.table} and \code{collapse} are used for
 the data frame expansion.
-
-At the moment, within group combinations are ignored. This means when \code{expand_type = nesting},
-existing combinations of supplied groups across the entire dataset are used, and
-when \code{expand_type = crossing}, all possible combinations of supplied groups across the \bold{entire}
-dataset are used as well.
 }
 \examples{
 library(timeplyr)
@@ -129,7 +123,7 @@ x <- flights$time_hour
 time_num_gaps(x) # Missing hours
 
 flights_count <- flights \%>\%
-  fcount(time_hour)
+  fastplyr::f_count(time_hour)
 
 # Fill in missing hours
 flights_count \%>\%

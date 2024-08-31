@@ -200,7 +200,7 @@ identical(y[!y \%in\% x], time_gaps(x))
 time_summarisev(y, time_by = "quarter")
 time_summarisev(y, time_by = "quarter", unique = TRUE)
 flights \%>\%
-  fcount(quarter = time_summarisev(time_hour, "quarter"))
+  fastplyr::f_count(quarter = time_summarisev(time_hour, "quarter"))
 # Alternatively
 time_countv(flights$time_hour, time_by = "quarter")
 # If you want the above as an atomic vector just use tibble::deframe

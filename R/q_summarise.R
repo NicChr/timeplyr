@@ -87,11 +87,11 @@ q_summarise <- function(data, ...,
   n_groups <- GRP_n_groups(groups)
   group_starts <- GRP_starts(groups)
   # Select necessary columns
-  out <- fselect(
+  out <- fastplyr::f_select(
     out, .cols = c(group_vars, non_group_dot_vars)
   )
   out <- df_as_dt(out, .copy = FALSE)
-  group_id_nm <- new_var_nm(out, "group_id")
+  group_id_nm <- unique_col_name(out, "group_id")
   set_add_cols(out, add_names(list(GRP_group_id(groups)), group_id_nm))
   # When there's no groups, collapse likes a NULL g object (usually)
   if (length(group_vars) == 0){
@@ -187,7 +187,7 @@ q_summarise <- function(data, ...,
   } else {
     if (isTRUE(is.null(data.table::key(q_df)) ||
                any(data.table::key(q_df) != group_id_nm))){
-      q_df <- farrange(q_df, .cols = group_id_nm)
+      q_df <- fastplyr::f_arrange(q_df, .cols = group_id_nm)
     }
     out_nms <- c(group_vars,
                  setdiff(names(q_df),
@@ -197,7 +197,7 @@ q_summarise <- function(data, ...,
     # Remove temporary group ID
     set_rm_cols(q_df, cols = group_id_nm)
   }
-  fselect(q_df, .cols = out_nms)[]
+  fastplyr::f_select(q_df, .cols = out_nms)[]
 }
 
 # Older working version that uses data.table as well
@@ -234,11 +234,11 @@ q_summarise <- function(data, ...,
 #   n_groups <- GRP_n_groups(groups)
 #   group_starts <- GRP_starts(groups)
 #   # Select necessary columns
-#   out <- fselect(
+#   out <- fastplyr::f_select(
 #     out, .cols = c(group_vars, non_group_dot_vars)
 #   )
 #   out <- as_DT(out)
-#   group_id_nm <- new_var_nm(out, "group_id")
+#   group_id_nm <- unique_col_name(out, "group_id")
 #   out[, (group_id_nm) := GRP_group_id(groups)]
 #   # When there's no groups, collapse likes a NULL g object (usually)
 #   if (length(group_vars) == 0){
@@ -258,7 +258,7 @@ q_summarise <- function(data, ...,
 #     }
 #   } else {
 #     # Lookup table using group ID as key
-#     group_lookup <- fselect(q_df, .cols = c(group_id_nm, group_vars))
+#     group_lookup <- fastplyr::f_select(q_df, .cols = c(group_id_nm, group_vars))
 #     # Faster to just use this when there are small numbers of groups
 #     if (n_groups < 1e05){
 #       q_df <- out[, lapply(.SD, function(x) collapse::fquantile(x,
@@ -276,7 +276,7 @@ q_summarise <- function(data, ...,
 #       if (length(group_vars) > 0L){
 #         data.table::set(q_df,
 #                         j = group_vars,
-#                         value = df_rep_each(fselect(group_lookup,
+#                         value = df_rep_each(fastplyr::f_select(group_lookup,
 #                                                     .cols = group_vars),
 #                                             length(probs)))
 #       }
@@ -345,7 +345,7 @@ q_summarise <- function(data, ...,
 #       #                           formula = cast_formula,
 #       #                           value.var = dot_vars)
 #       if (length(group_vars) > 0L){
-#         q_df[, (group_vars) := fselect(group_lookup, .cols =
+#         q_df[, (group_vars) := fastplyr::f_select(group_lookup, .cols =
 #                                          setdiff(names(group_lookup),
 #                                                  group_id_nm))]
 #       }
@@ -355,7 +355,7 @@ q_summarise <- function(data, ...,
 #     } else {
 #       if (isTRUE(is.null(data.table::key(q_df)) ||
 #                   any(data.table::key(q_df) != group_id_nm))){
-#         q_df <- farrange(q_df, .cols = group_id_nm)
+#         q_df <- fastplyr::f_arrange(q_df, .cols = group_id_nm)
 #       }
 #       out_nms <- c(group_vars,
 #                    setdiff(names(q_df),
@@ -367,7 +367,7 @@ q_summarise <- function(data, ...,
 #     data.table::set(q_df,
 #                     j = group_id_nm,
 #                     value = NULL)
-#     q_df <- fselect(q_df, .cols = out_nms)
+#     q_df <- fastplyr::f_select(q_df, .cols = out_nms)
 #   }
 #   q_df[]
 # }

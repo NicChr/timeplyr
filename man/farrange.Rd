@@ -2,7 +2,7 @@
 % Please edit documentation in R/farrange.R
 \name{farrange}
 \alias{farrange}
-\title{A \code{collapse} version of \code{dplyr::arrange()}}
+\title{These functions have been superseded by fastplyr functions}
 \usage{
 farrange(data, ..., .by = NULL, .by_group = FALSE, .cols = NULL)
 }
@@ -25,21 +25,10 @@ If speed is an expensive resource, it is recommended to use this.}
 A sorted \code{data.frame}.
 }
 \description{
-This is a fast and near-identical alternative to \code{dplyr::arrange()}
-using the \code{collapse} package.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}}
 
-\code{desc()} is like \code{dplyr::desc()} but works faster when
-called directly on vectors. \cr
-}
-\details{
-\code{farrange()} is inspired by \code{collapse::roworder()} but also supports
-\code{dplyr} style \code{data-masking} which makes it a
-closer replacement to \code{dplyr::arrange()}.
-
-You can use \code{desc()} interchangeably with \code{dplyr} and \code{timeplyr}. \cr
-\code{arrange(iris, desc(Species))} uses \code{dplyr}'s version. \cr
-\code{farrange(iris, desc(Species))} uses \code{timeplyr}'s version.
-
-\code{farrange()} is faster when there are many groups or a large number of
-rows.
+These functions can now be found in fastplyr. \cr
+They are no longer recommended in this package and thus have been both
+deprecated and superseded.
 }

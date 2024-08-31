@@ -1,10 +1,14 @@
-#' A `do.call()` and `data.table::CJ()` method
+#' These functions have been superseded by fastplyr functions
 #'
-#' @description This function operates like `do.call(CJ, ...)` and accepts
-#' a list or data.frame as an argument. \cr
-#' It has less overhead for small joins, especially when `unique = FALSE` and
-#' `as_dt = FALSE`. \cr
-#' `NA`s are by default sorted last.
+#' @description
+#' `r lifecycle::badge("deprecated")`
+#' `r lifecycle::badge("superseded")`
+#'
+#' These functions can now be found in fastplyr. \cr
+#' They are no longer recommended in this package and thus have been both
+#' deprecated and superseded.
+#'
+#' Use `do.call(fastplyr::crossing, data)` to replicate `crossed_join(data)`.
 #'
 #' @param X A list or data frame.
 #' @param sort Should the expansion be sorted? By default it is `FALSE`.
@@ -16,26 +20,9 @@
 #' expansion? The default is `FALSE` but setting to `TRUE` can offer
 #' a significant speed improvement.
 #'
-#' @details An important note is that currently `NA`s
-#' are sorted last and therefore a key is not set.
 #'
 #' @returns
 #' A data.table or list object.
-#'
-#' @examples
-#' library(timeplyr)
-#' \dontshow{
-#' .n_dt_threads <- data.table::getDTthreads()
-#' .n_collapse_threads <- collapse::get_collapse()$nthreads
-#' data.table::setDTthreads(threads = 2L)
-#' collapse::set_collapse(nthreads = 1L)
-#' }
-#' crossed_join(list(1:3, -2:2))
-#' crossed_join(iris)
-#' \dontshow{
-#' data.table::setDTthreads(threads = .n_dt_threads)
-#' collapse::set_collapse(nthreads = .n_collapse_threads)
-#'}
 #' @export
 crossed_join <- function(X, sort = FALSE, unique = TRUE,
                          as_dt = TRUE,
@@ -48,7 +35,7 @@ crossed_join <- function(X, sort = FALSE, unique = TRUE,
   }
   expanded_n <- prod(cheapr::lengths_(X))
   if (strings_as_factors){
-    which_chr <- which_(vapply(X, is.character, FALSE, USE.NAMES = FALSE))
+    which_chr <- which(vapply(X, is.character, FALSE, USE.NAMES = FALSE))
     X[which_chr] <- lapply(X[which_chr],
                            function(x) cheapr::factor_(x, order = FALSE))
   }

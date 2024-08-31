@@ -43,9 +43,9 @@ interval_count <- function(x){
 #' @export
 interval_count.time_interval <- function(x){
   new_tbl(interval = x) %>%
-    fcount(.cols = 1L, order = TRUE)
+    fastplyr::f_count(.cols = 1L, order = TRUE)
   # intervals <- as.data.frame(x)
-  # fcount(intervals, .cols = 1:2, order = TRUE)
+  # fastplyr::f_count(intervals, .cols = 1:2, order = TRUE)
 }
 #' @rdname interval_utils
 #' @export
@@ -70,18 +70,4 @@ interval_length.time_interval <- function(x, ...){
   end <- interval_end(x)
   time_diff(start, end, ...)
 }
-# interval_overlaps.time_interval <- function(x, na_rm = TRUE){
-#   interval_tbl <- as.data.frame(x)
-#   interval_dt <- df_as_dt(interval_tbl, .copy = FALSE)
-#   group_id <- group2(x, starts = TRUE)
-#   # set_add_cols(interval_dt, add_names(
-#   #   list(group2(x, starts = TRUE)),
-#   #   ".group.id"
-#   # ))
-#   unique_dt <- interval_dt[attr(group_id, "starts")]
-#   joined_dt <- dplyr::cross_join(unique_dt, unique_dt)
-#
-#   setkeyv2(unique_dt, c("start", "end"))
-#   data.table::foverlaps(unique_dt, unique_dt)
-# }
 

@@ -1,7 +1,12 @@
-#' Fast grouped statistical summary for data frames.
+#' These functions have been superseded by fastplyr functions
 #'
 #' @description
-#' `collapse` and `data.table` are used for the calculations.
+#' `r lifecycle::badge("deprecated")`
+#' `r lifecycle::badge("superseded")`
+#'
+#' These functions can now be found in fastplyr. \cr
+#' They are no longer recommended in this package and thus have been both
+#' deprecated and superseded.
 #'
 #' @param data A data frame.
 #' @param ... Variables to apply the statistical functions to.
@@ -33,43 +38,6 @@
 #' @returns
 #' A summary `data.table` containing the summary values for each group.
 #'
-#' @details
-#' `stat_summarise()` can apply multiple functions to multiple variables.
-#'
-#' `stat_summarise()` is equivalent to \cr
-#' `data %>% group_by(...) %>% summarise(across(..., list(...)))` \cr
-#' but is faster and more efficient and accepts limited statistical functions.
-#'
-#' @seealso [q_summarise]
-#'
-#' @format `.stat_fns`
-#'
-#' @examples
-#' library(timeplyr)
-#' library(dplyr)
-#' \dontshow{
-#' .n_dt_threads <- data.table::getDTthreads()
-#' .n_collapse_threads <- collapse::get_collapse()$nthreads
-#' data.table::setDTthreads(threads = 2L)
-#' collapse::set_collapse(nthreads = 1L)
-#' }
-#' stat_df <- iris %>%
-#'   stat_summarise(Sepal.Length, .by = Species)
-#' # Join quantile info too
-#' q_df <- iris %>%
-#'   q_summarise(Sepal.Length, .by = Species)
-#' summary_df <- left_join(stat_df, q_df, by = "Species")
-#' summary_df
-#'
-#' # Multiple cols
-#' iris %>%
-#'   group_by(Species) %>%
-#'   stat_summarise(across(contains("Width")),
-#'             stat = c("min", "max", "mean", "sd"))
-#' \dontshow{
-#' data.table::setDTthreads(threads = .n_dt_threads)
-#' collapse::set_collapse(nthreads = .n_collapse_threads)
-#'}
 #' @rdname stat_summarise
 #' @export
 stat_summarise <- function(data, ...,
@@ -109,7 +77,7 @@ stat_summarise <- function(data, ...,
   gstarts <- GRP_starts(g)
   # Distinct groups
   out <- df_row_slice(
-    fselect(
+    fastplyr::f_select(
       staging, .cols = c(group_vars, non_group_dot_vars)
     ), gstarts
   )
@@ -123,7 +91,7 @@ stat_summarise <- function(data, ...,
   n_nm <- character()
   if ("n" %in% stat){
     if (is.null(.count_name)){
-      n_nm <- new_n_var_nm(names(out))
+      n_nm <- unique_count_col(names(out))
     } else {
       n_nm <- .count_name
     }
@@ -161,7 +129,7 @@ stat_summarise <- function(data, ...,
   set_rm_cols(out, setdiff(non_group_dot_vars, var_nms))
   not_groups <- match(var_nms, group_vars, 0L) == 0L
   output_nms <- c(group_vars, n_nm, add_names(var_nms[not_groups], out_nms[not_groups]))
-  out <- fselect(out, .cols = output_nms)
+  out <- fastplyr::f_select(out, .cols = output_nms)
   # Add quantiles if requested
   if (!is.null(q_probs)){
     q_summary <- q_summarise(staging, across(all_of(dot_vars)),
@@ -176,7 +144,7 @@ stat_summarise <- function(data, ...,
     add_cols <- setdiff(names(q_summary),
                         group_vars)
     if (length(add_cols) > 0){
-      set_add_cols(out, fselect(q_summary, .cols = add_cols))
+      set_add_cols(out, fastplyr::f_select(q_summary, .cols = add_cols))
     }
   }
   if (as_tbl){

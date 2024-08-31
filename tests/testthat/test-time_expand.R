@@ -5,75 +5,56 @@ collapse::set_collapse(nthreads = 1L)
 
 test_that("time expand", {
   df <- nycflights13::flights %>%
-    fcount(dest, origin, time_hour, tailnum, carrier, flight)
+    fastplyr::f_count(dest, origin, time_hour, tailnum, carrier, flight)
   df2 <- df %>%
-    fcount(dest, origin, time_hour)
+    fastplyr::f_count(dest, origin, time_hour)
 
 # Time expand -------------------------------------------------------------
 
-  # expect_error(df %>%
-  #                          time_expand(across(dplyr::everything()),
-  #                                      expand_type = "crossing"))
-  # expect_error(df %>%
-  #                          time_expand(across(dplyr::everything()),
-  #                                      expand_type = "nesting",
-  #                                      1:10^6,
-  #                                      log_limit = 7))
-  # expect_equal(
-  #   df %>%
-  #     time_expand(time = NULL, across(all_of(c("dest", "tailnum", "origin"))),
-  #                 expand_type = "crossing",
-  #                 keep_class = FALSE),
-  #   df %>%
-  #     fexpand(across(all_of(c("dest", "tailnum", "origin"))),
-  #             sort = TRUE, keep_class = FALSE)
-  # )
   expect_equal(
     df %>%
-      time_expand(time = NULL, across(all_of(c("dest", "tailnum", "origin"))),
-                  expand_type = "nesting",
-                  sort = FALSE),
+      time_expand(time = NULL, fastplyr::nesting(dest, tailnum, origin), sort = FALSE),
     df %>%
-      fdistinct(across(all_of(c("dest", "tailnum", "origin"))))
+      fastplyr::f_distinct(across(all_of(c("dest", "tailnum", "origin"))))
   )
   expect_equal(
     df2 %>%
       time_expand(time = time_hour),
     df2 %>%
-      fdistinct(time_hour) %>%
-      fcomplete(time_hour = time_span(time_hour, time_by = "hour"),
+      fastplyr::f_distinct(time_hour) %>%
+      fastplyr::f_complete(time_hour = time_span(time_hour, time_by = "hour"),
                 sort = TRUE)
   )
   expect_equal(
     df2 %>%
       time_expand(time = time_hour, time_by = "week"),
     df2 %>%
-      fdistinct(time_hour) %>%
-      fcomplete(time_hour = time_span(time_hour, time_by = "hour"),
+      fastplyr::f_distinct(time_hour) %>%
+      fastplyr::f_complete(time_hour = time_span(time_hour, time_by = "hour"),
                 sort = TRUE) %>%
       dplyr::reframe(time_hour = cut_time2(time_hour,
                                            time_span(time_hour, time_by = "week"))) %>%
-      fdistinct()
+      fastplyr::f_distinct()
   )
   expect_equal(
     df2 %>%
       time_expand(time = time_hour, time_by = "week",
                   time_floor = TRUE),
     df2 %>%
-      fdistinct(time_hour) %>%
-      fcomplete(time_hour = time_span(time_hour, time_by = "hour"),
+      fastplyr::f_distinct(time_hour) %>%
+      fastplyr::f_complete(time_hour = time_span(time_hour, time_by = "hour"),
                 sort = TRUE) %>%
       dplyr::reframe(time_hour = cut_time2(time_hour,
                                            time_span(time_hour, time_by = "week",
                                                      time_floor = TRUE))) %>%
-      fdistinct()
+      fastplyr::f_distinct()
   )
 
   # With groups..
   expect_equal(
     df2 %>%
-      time_expand(time = time_hour, origin, dest, time_by = "week",
-                  time_floor = TRUE),
+      time_expand(time = time_hour, fastplyr::nesting(origin, dest),
+                  time_by = "week", time_floor = TRUE),
     df2 %>%
       tidyr::expand(time_hour = time_span(time_hour, time_by = "week",
                                           time_floor = TRUE),
@@ -81,9 +62,8 @@ test_that("time expand", {
   )
   expect_equal(
     df2 %>%
-      time_expand(time = time_hour, origin, dest, time_by = "week",
-                  expand_type = "crossing",
-                  time_floor = TRUE),
+      time_expand(time = time_hour, fastplyr::crossing(origin, dest),
+                  time_by = "week", time_floor = TRUE),
     df2 %>%
       tidyr::expand(time_hour = time_span(time_hour, time_by = "week",
                                           time_floor = TRUE),
@@ -101,7 +81,7 @@ test_that("time expand", {
       tidyr::expand(time_hour = time_span(date,
                                           time_by = "2 week",
                                           time_floor = TRUE)) %>%
-      safe_ungroup()
+      df_ungroup()
   )
   expect_equal(
     df2 %>%
@@ -129,8 +109,7 @@ test_that("time expand", {
   )
   expect_equal(
     df2 %>%
-      time_expand(time = time_hour, origin, dest, time_by = "week",
-                  expand_type = "crossing",
+      time_expand(time = time_hour, fastplyr::crossing(origin, dest), time_by = "week",
                   from = lubridate::dmy(17022013),
                   to = lubridate::dmy_hms(19092013063123),
                   time_floor = FALSE),
@@ -143,8 +122,7 @@ test_that("time expand", {
   )
   expect_equal(
     df2 %>%
-      time_expand(time = time_hour, origin, dest, time_by = "week",
-                  expand_type = "nesting",
+      time_expand(time = time_hour, fastplyr::nesting(origin, dest), time_by = "week",
                   from = lubridate::dmy(17022013),
                   to = lubridate::dmy_hms(19092013063123),
                   time_floor = FALSE),
@@ -160,18 +138,18 @@ test_that("time expand", {
     dplyr::group_by(origin, dest, tailnum) %>%
     time_expand(time = date, time_by = "week",
                 time_type = "auto") %>%
-    add_group_id() %>%
-    safe_ungroup() %>%
+    fastplyr::add_group_id() %>%
+    df_ungroup() %>%
     dplyr::mutate(min = gmin(date, g = group_id),
                   max = gmax(date, g = group_id)) %>%
-    fdistinct(origin, dest, tailnum, min, max)
+    fastplyr::f_distinct(origin, dest, tailnum, min, max)
   base_res <- df %>%
     dplyr::mutate(date = lubridate::as_date(time_hour)) %>%
-    add_group_id(origin, dest, tailnum) %>%
+    fastplyr::add_group_id(origin, dest, tailnum) %>%
     dplyr::arrange(group_id) %>%
     dplyr::mutate(min = gmin(date, g = group_id),
                   max = gmax(date, g = group_id)) %>%
-    fdistinct(origin, dest, tailnum, min, max)
+    fastplyr::f_distinct(origin, dest, tailnum, min, max)
 
   expect_equal(grouped_res %>%
                                dplyr::select(-max),
@@ -186,48 +164,43 @@ test_that("time expand", {
 
   expect_equal(
     df %>%
-      time_complete(time = NULL, across(all_of(c("dest", "origin"))),
-                  expand_type = "crossing", sort = FALSE),
+      time_complete(time = NULL, fastplyr::crossing(dest, origin), sort = FALSE),
     df %>%
-      fcomplete(across(all_of(c("dest", "origin"))),
-                sort = FALSE)
+      fastplyr::f_complete(dest, origin, sort = FALSE)
   )
   expect_equal(
     df %>%
-      time_complete(time = NULL, across(all_of(c("dest",  "origin"))),
-                    expand_type = "crossing", sort = TRUE),
+      time_complete(time = NULL, dest, origin, sort = TRUE),
     df %>%
-      fcomplete(across(all_of(c("dest", "origin"))),
-                sort = TRUE)
+      fastplyr::f_complete(dest, origin, sort = TRUE)
   )
   expect_equal(
     df %>%
-      time_complete(time = NULL,
-                    across(all_of(c("dest", "origin"))),
-                  expand_type = "nesting",
-                  sort = FALSE),
+      time_complete(time = NULL, fastplyr::nesting(dest, origin), sort = FALSE),
     df %>%
-      fdistinct()
+      fastplyr::f_distinct()
   )
   expect_equal(
     df2 %>%
       time_complete(time = time_hour, sort = TRUE),
     df2 %>%
-      fcomplete(time_hour = time_span(time_hour, time_by = "hour"),
-                sort = TRUE)
+      fastplyr::f_complete(
+        time_hour = time_span(time_hour, time_by = "hour"),
+        sort = TRUE
+      )
   )
   expect_equal(
     df2 %>%
       time_complete(time = time_hour, time_by = "week"),
     df2 %>%
-      fcomplete(time_hour = time_span(time_hour, time_by = "week"),
-                sort = TRUE)
+      fastplyr::f_complete(time_hour = time_span(time_hour, time_by = "week"),
+                           sort = TRUE)
   )
   # With groups..
   expect_equal(
     df2 %>%
-      time_complete(time = time_hour, origin, dest, time_by = "week",
-                  time_floor = TRUE),
+      time_complete(time = time_hour, fastplyr::nesting(origin, dest),
+                    time_by = "week", time_floor = TRUE),
     df2 %>%
       tidyr::complete(time_hour = time_span(time_hour, time_by = "week",
                                           time_floor = TRUE),

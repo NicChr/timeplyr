@@ -25,11 +25,11 @@ testthat::test_that("time_by", {
       time_by(time_hour, time_by = "3 days",
               from = start, to = end,
               time_type = "period") %>%
-      fcount()
+      fastplyr::f_count()
   )
   expect_snapshot(
     flights %>%
-      fslice(0) %>%
+      fastplyr::f_slice(0) %>%
       time_by(time_hour)
   )
   flights_weekly <- flights %>%

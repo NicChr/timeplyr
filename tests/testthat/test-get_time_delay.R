@@ -133,32 +133,32 @@ testthat::test_that("time delay", {
   testthat::expect_equal(res1$delay, df1 %>%
                            dplyr::mutate(delay = ceiling(delay),
                                          edf = dplyr::cume_dist(delay)) %>%
-                           fcount(delay, edf) %>%
+                           fastplyr::f_count(delay, edf) %>%
                            dplyr::mutate(cumulative = cumsum(n)) %>%
                            dplyr::select(delay, n, cumulative, edf))
   testthat::expect_equal(res2$delay, df2 %>%
                            dplyr::mutate(delay = ceiling(delay),
                                          edf = dplyr::cume_dist(delay)) %>%
-                           fcount(delay, edf) %>%
+                           fastplyr::f_count(delay, edf) %>%
                            dplyr::mutate(cumulative = cumsum(n)) %>%
                            dplyr::select(hospital, delay, n, cumulative, edf))
   testthat::expect_equal(res3$delay, df3 %>%
                            dplyr::mutate(delay = ceiling(delay),
                                          edf = dplyr::cume_dist(delay)) %>%
-                           fcount(delay, edf) %>%
+                           fastplyr::f_count(delay, edf) %>%
                            dplyr::mutate(cumulative = cumsum(n)) %>%
                            dplyr::select(delay, n, cumulative, edf))
   testthat::expect_equal(res4$delay, df4 %>%
                            dplyr::mutate(delay = ceiling(delay),
                                          edf = dplyr::cume_dist(delay)) %>%
-                           fcount(delay, edf) %>%
+                           fastplyr::f_count(delay, edf) %>%
                            dplyr::mutate(cumulative = cumsum(n)) %>%
                            dplyr::select(delay, n, cumulative, edf))
 
   testthat::expect_equal(res1$plot$data,
                          df1)
   testthat::expect_equal(res2$plot$data,
-                         add_group_id(df2, .name = ".group"))
+                         fastplyr::add_group_id(df2, .name = ".group"))
   testthat::expect_equal(res3$plot$data,
                          df3)
   testthat::expect_equal(res4$plot$data,

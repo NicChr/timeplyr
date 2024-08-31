@@ -21,7 +21,7 @@ missing_dates.default <- function(x){
 #' @export
 missing_dates.data.frame <- function(x){
   time_vars <- which(vapply(x, is_time, FALSE))
-  lapply(fselect(x, .cols = time_vars), missing_dates)
+  lapply(fastplyr::f_select(x, .cols = time_vars), missing_dates)
 
 }
 #' @rdname missing_dates
@@ -41,5 +41,5 @@ n_missing_dates.default <- function(x){
 #' @export
 n_missing_dates.data.frame <- function(x){
   time_vars <- which(vapply(x, is_time, FALSE))
-  lapply(fselect(x, .cols = time_vars), n_missing_dates)
+  lapply(fastplyr::f_select(x, .cols = time_vars), n_missing_dates)
 }

@@ -3,36 +3,19 @@
 \name{fexpand}
 \alias{fexpand}
 \alias{fcomplete}
-\title{Fast versions of \code{tidyr::expand()} and \code{tidyr::complete()}.}
+\title{These functions have been superseded by fastplyr functions}
 \usage{
-fexpand(
-  data,
-  ...,
-  expand_type = c("crossing", "nesting"),
-  sort = FALSE,
-  .by = NULL
-)
+fexpand(data, ..., expand_type = NULL, sort = FALSE, .by = NULL)
 
-fcomplete(
-  data,
-  ...,
-  expand_type = c("crossing", "nesting"),
-  sort = FALSE,
-  .by = NULL,
-  fill = NA
-)
+fcomplete(data, ..., expand_type = NULL, sort = FALSE, .by = NULL, fill = NA)
 }
 \arguments{
-\item{data}{A data frame}
+\item{data}{A data frame.}
 
-\item{...}{Variables to expand}
+\item{...}{Variables to expand.}
 
-\item{expand_type}{Type of expansion to use where "nesting"
-finds combinations already present in the data
-(exactly the same as using \code{distinct()} but \code{fexpand()}
-allows new variables to be created on the fly
-and columns are sorted in the order given.
-"crossing" finds all combinations of values in the group variables.}
+\item{expand_type}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+Use \code{fastplyr::crossing()} and \code{fastplyr::nesting()}.}
 
 \item{sort}{Logical. If \code{TRUE} expanded/completed variables are sorted.
 The default is \code{FALSE}.}
@@ -47,70 +30,10 @@ to fill the named implicit missing values.}
 A \code{data.frame} of expanded groups.
 }
 \description{
-Fast versions of \code{tidyr::expand()} and \code{tidyr::complete()}.
-}
-\details{
-For un-grouped data \code{fexpand()} is similar in speed to \code{tidyr::expand()}.
-When the data contain many groups, \code{fexpand()} is much much faster (see examples).
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}}
 
-The 2 main differences between \code{fexpand()} and \code{tidyr::expand()} are that:
-\itemize{
-\item tidyr style helpers like \code{nesting()} and \code{crossing()} are ignored.
-The type of expansion used is controlled through \code{expand_type} and applies to
-all supplied variables.
-\item Expressions are first calculated on the entire ungrouped dataset before being
-expanded but within-group expansions will work on variables that already exist
-in the dataset.
-For example, \code{iris \%>\% group_by(Species) \%>\% fexpand(Sepal.Length, Sepal.Width)}
-will perform a grouped expansion but
-\code{iris \%>\% group_by(Species) \%>\% fexpand(range(Sepal.Length))}
-will not.
-}
-
-For efficiency, when supplying groups, expansion is done on a by-group basis only if
-there are 2 or more variables that aren't part of the grouping.
-The reason is that a by-group calculation does not need to be done with 1 expansion variable
-as all combinations across groups already exist against that 1 variable.
-When \code{expand_type = "nesting"} groups are ignored for speed purposes as the result is the same.
-
-An advantage of \code{fexpand()} is that it returns a data frame with the same class
-as the input. It also uses \code{data.table} for memory efficiency and \code{collapse} for speed.
-
-A future development for \code{fcomplete()} would be to only fill values of variables that
-correspond only to both additional completed rows and rows that match the expanded rows, are
-filled in. For example,
-\code{iris \%>\% mutate(test = NA_real_) \%>\% complete(Sepal.Length = 0:100, fill = list(test = 0))}
-fills in all \code{NA} values of test, whereas
-\code{iris \%>\% mutate(test = NA_real_) \%>\% fcomplete(Sepal.Length = 0:100, fill = list(test = 0))}
-should only fill in values of test that correspond to Sepal.Length values of \code{0:100}.
-
-An additional note to add when \code{expand_type = "nesting"} is that if one of the
-supplied variables in \code{...} does not exist in the data, but can be recycled
-to the length of the data, then it is added and treated as a data variable.
-}
-\examples{
-library(timeplyr)
-library(dplyr)
-library(lubridate)
-library(nycflights13)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
-flights \%>\%
-  fexpand(origin, dest)
-flights \%>\%
-  fexpand(origin, dest, sort = FALSE)
-
-# Grouped expansions example
-# 1 extra group (carrier) this is very quick
-flights \%>\%
-  group_by(origin, dest, tailnum) \%>\%
-  fexpand(carrier)
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
+These functions can now be found in fastplyr. \cr
+They are no longer recommended in this package and thus have been both
+deprecated and superseded.
 }

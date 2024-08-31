@@ -151,7 +151,7 @@
 #'
 #' episodes <- events %>%
 #'   filter(ep_id_new > 1)
-#' nrow(fdistinct(episodes, origin, dest)) # 55 origin-destinations
+#' nrow(fastplyr::f_distinct(episodes, origin, dest)) # 55 origin-destinations
 #'
 #' # As expected summer months saw the least number of
 #' # dry-periods
@@ -185,7 +185,7 @@ time_episodes <- function(data, time, time_by = NULL,
   }
   start_nms <- names(data)
   time_quo <- enquo(time)
-  data <- fgroup_by(data, .by = {{ .by }}, order = TRUE, .add = TRUE)
+  data <- fastplyr::f_group_by(data, .by = {{ .by }}, order = TRUE, .add = TRUE)
   group_vars <- get_groups(data)
   time_col <- tidy_select_names(data, !!time_quo)
   out <- data
@@ -206,20 +206,20 @@ time_episodes <- function(data, time, time_by = NULL,
       stop(paste0("Column `", event_col, "` doesn't exist"))
     }
     # Add event identifier col
-    event_id_nm <- new_var_nm(out, ".event.id")
+    event_id_nm <- unique_col_name(out, ".event.id")
     out <- df_add_cols(out, add_names(list(
       data.table::fifelse(fpluck(out, event_col) %in%
                             event[[1L]],
                           1L, 0L)
     ), event_id_nm))
-    # if (count_val(cheapr::row_na_counts(fselect(out, .cols = c(time_col, event_col))), 1) > 0){
+    # if (count_val(cheapr::row_na_counts(fastplyr::f_select(out, .cols = c(time_col, event_col))), 1) > 0){
     if (na_count(fpluck(out, event_col)) != na_count(fpluck(out, time_col))){
       warning(paste0("There is a mismatch of NAs between ",
                      time_col, " and ",
                      event_col, ", please check."))
     }
   }
-  out <- fselect(out, .cols = c(group_vars, time_col,
+  out <- fastplyr::f_select(out, .cols = c(group_vars, time_col,
                                  event_col, event_id_nm))
   # Make a copy
   out <- df_as_dt(out)
@@ -228,10 +228,10 @@ time_episodes <- function(data, time, time_by = NULL,
   }
   time_by <- time_by_get(fpluck(out, time_col), time_by = time_by)
   # Create group ID variable
-  grp_nm <- new_var_nm(data_nms, ".group")
+  grp_nm <- unique_col_name(data_nms, ".group")
   set_add_cols(out, add_names(
     list(
-      group_id(data, as_qg = TRUE, order = TRUE)
+      old_group_id(data, as_qg = TRUE, order = TRUE)
     ), grp_nm
   ))
   n_groups <- attr(out[[grp_nm]], "N.groups")
@@ -245,13 +245,13 @@ time_episodes <- function(data, time, time_by = NULL,
   #   ), grp_nm
   # ))
   # Group by group vars + time
-  grp_nm2 <- new_var_nm(out, ".group")
+  grp_nm2 <- unique_col_name(out, ".group")
   set_add_cols(out, add_names(list(
-    group_id(out, .cols = c(grp_nm, time_col), order = TRUE)
+    old_group_id(out, .cols = c(grp_nm, time_col), order = TRUE)
   ), grp_nm2))
   data_is_sorted <- is_sorted(out[[grp_nm2]])
   # Add row ID
-  row_id_nm <- new_var_nm(out, ".row_id")
+  row_id_nm <- unique_col_name(out, ".row_id")
   set_add_cols(out, add_names(list(df_seq_along(out)), row_id_nm))
   # Add second group ID
   # If data is already sorted correctly, no need to sort it
@@ -302,14 +302,14 @@ time_episodes <- function(data, time, time_by = NULL,
   set_rm_cols(out, row_id_nm)
   if (.add){
     # Simply bind the cols together
-    out <- df_cbind(data, fselect(out, .cols = new_cols))
+    out <- fastplyr::f_bind_cols(data, fastplyr::f_select(out, .cols = new_cols))
   } else {
     # Only keep the key variables
     out_nms <- c(group_vars, time_col, event_col, new_cols)
     # Set the column order
-    out <- fselect(out, .cols = out_nms)
+    out <- fastplyr::f_select(out, .cols = out_nms)
   }
-  out <- df_reconstruct(out, data)
+  out <- reconstruct(data, out)
   threshold <- time_by
   threshold[[1L]] <- time_by_num(time_by) * window
   out <- structure(out, time = time_col, time_by = time_by, threshold = threshold)
@@ -440,7 +440,7 @@ set_calc_episodes <- function(data,
                         switch_on_boundary = switch_on_boundary,
                         na_skip = TRUE)
   ))
-  g3 <- collapse::GRP(fselect(data, .cols = c(gid, "ep_id")))
+  g3 <- collapse::GRP(fastplyr::f_select(data, .cols = c(gid, "ep_id")))
   g3_starts <- GRP_starts(g3)
   set_add_cols(data, list(ep_id_new = 0L))
   data.table::set(data,
@@ -448,7 +448,7 @@ set_calc_episodes <- function(data,
                   j = "ep_id_new",
                   value = fpluck(data, "ep_id")[g3_starts])
   data.table::set(data,
-                  i = cheapr::which_na(fpluck(data, "ep_id")),
+                  i = which_na(fpluck(data, "ep_id")),
                   j = "ep_id_new",
                   value = NA_integer_)
   # Add episode start dates

@@ -285,7 +285,7 @@ time_seq_sizes <- function(from, to, time_by,
   set_time_cast(from, to)
   tdiff <- time_diff(from, to, time_by = time_by,
                      time_type = time_type)
-  tdiff[which_(from == to)] <- 0L
+  tdiff[which(from == to)] <- 0L
   tdiff_rng <- collapse::frange(tdiff, na.rm = TRUE)
   if (isTRUE(any(tdiff_rng < 0))){
     stop("At least 1 sequence length is negative, please check the time_by unit increments")
@@ -515,7 +515,7 @@ period_seq_v2 <- function(sizes, from, units, num = 1L,
   by <- collapse::gsplit(num, g = g, use.g.names = FALSE)
   # Repeat these by the group counts
   group_counts <- period_df[["n"]]
-  which_n_gt_1 <- which_(group_counts > 1L)
+  which_n_gt_1 <- which(group_counts > 1L)
   for (ind in which_n_gt_1){
     by[ind][[1L]] <- rep.int(.subset2(by, ind),
                              .subset2(group_counts, ind))
@@ -538,35 +538,3 @@ period_seq_v2 <- function(sizes, from, units, num = 1L,
   }
   out[out_order]
 }
-# Period sequence vectorised over from, to and num
-# period_seq_v3 <- function(from, to, units, num = 1,
-#                          roll_month = getOption("timeplyr.roll_month", "preday"), roll_dst = getOption("timeplyr.roll_dst", "NA")){
-#   units <- match.arg(units, .period_units)
-#   seq_len <- time_seq_len(from, to, by = add_names(list(num), units),
-#                           seq_type = "period")
-#   out_len <- sum(seq_len)
-#   unit <- substr(units, 1L, nchar(units) -1L)
-#   g_len <- length(seq_len)
-#   g_seq <- seq_len(g_len)
-#   # # Recycle
-#   from <- rep_len(from, g_len)
-#   num <- rep_len(num, g_len)
-#   # # Expand
-#   g <- rep(g_seq, times = seq_len)
-#   num <- rep(num, times = seq_len)
-#   # Arithmetic
-#   g_add <- collapse::fcumsum(seq_ones(out_len),
-#                              check.o = FALSE,
-#                              na.rm = FALSE,
-#                              g = g) - 1
-#   num <- (g_add * num)
-#   # Split these by group
-#   by <- collapse::gsplit(num, g = g, use.g.names = FALSE)
-#   period_dt <- data.table::data.table(g = g_seq, from = from, by = by,
-#                                       key = "g")
-#   period_dt[, list("time" = time_add(get("from"),
-#                                      periods = add_names(as.list(get("by")), unit),
-#                                      roll_month = roll_month,
-#                                      roll_dst = roll_dst)),
-#             keyby = "g"][["time"]]
-# }

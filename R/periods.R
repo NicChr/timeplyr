@@ -4,7 +4,7 @@ lubridate_period <- function(...){
   periods <- unclass(time_period(...))
   # lubridate::period() propagates NA values across all periods
   if (cheapr::num_na(periods, recursive = TRUE) > 0){
-    which_na_fill <- cheapr::which_(cheapr::row_any_na(list_as_df(periods)))
+    which_na_fill <- which(cheapr::row_any_na(list_as_df(periods)))
     for (i in seq_along(periods)){
       periods[[i]][which_na_fill] <- NA
     }

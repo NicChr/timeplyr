@@ -2,7 +2,7 @@
 
     Code
       df %>% time_episodes(time, time_by = 1, window = 3, .add = FALSE,
-        switch_on_boundary = TRUE) %>% farrange(time)
+        switch_on_boundary = TRUE) %>% fastplyr::f_arrange(time)
     Output
       # A tibble:        15 x 5
       # Episodes:        N: 5, Median: 5, Mean: 5 ▁▁▁▇▁▁▁
@@ -30,7 +30,7 @@
 
     Code
       df %>% time_episodes(time, time_by = 1, window = 3, .add = TRUE,
-        switch_on_boundary = FALSE) %>% farrange(time)
+        switch_on_boundary = FALSE) %>% fastplyr::f_arrange(time)
     Output
       # A tibble:        15 x 6
       # Episodes:        N: 3, Median: 3, Mean: 3 ▁▁▁▇▁▁▁
@@ -58,7 +58,8 @@
 
     Code
       df %>% time_episodes(time, time_by = 1, window = 3, .add = TRUE,
-        switch_on_boundary = TRUE, event = list(event = "e")) %>% farrange(time)
+        switch_on_boundary = TRUE, event = list(event = "e")) %>% fastplyr::f_arrange(
+        time)
     Output
       # A tibble:        15 x 6
       # Episodes:        N: 4, Median: 4, Mean: 4 ▁▁▁▇▁▁▁
@@ -86,7 +87,8 @@
 
     Code
       df %>% time_episodes(time, time_by = 3, window = 1, .add = FALSE,
-        switch_on_boundary = FALSE, event = list(event = "e")) %>% farrange(time)
+        switch_on_boundary = FALSE, event = list(event = "e")) %>% fastplyr::f_arrange(
+        time)
     Output
       # A tibble:        15 x 6
       # Episodes:        N: 3, Median: 3, Mean: 3 ▁▁▁▇▁▁▁
@@ -114,7 +116,7 @@
 
     Code
       df %>% time_episodes(time, time_by = "days", window = 5, .add = FALSE,
-        roll_episode = FALSE, switch_on_boundary = TRUE) %>% farrange(time)
+        roll_episode = FALSE, switch_on_boundary = TRUE) %>% fastplyr::f_arrange(time)
     Output
       # A tibble:        15 x 5
       # Episodes:        N: 6, Median: 6, Mean: 6 ▁▁▁▇▁▁▁
@@ -142,7 +144,8 @@
 
     Code
       df %>% time_episodes(time, time_by = "5 days", window = 1, .add = FALSE,
-        roll_episode = FALSE, switch_on_boundary = FALSE) %>% farrange(time)
+        roll_episode = FALSE, switch_on_boundary = FALSE) %>% fastplyr::f_arrange(
+        time)
     Output
       # A tibble:        15 x 5
       # Episodes:        N: 4, Median: 4, Mean: 4 ▁▁▁▇▁▁▁

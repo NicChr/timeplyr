@@ -89,7 +89,7 @@
 #' time_summarisev(y, time_by = "quarter")
 #' time_summarisev(y, time_by = "quarter", unique = TRUE)
 #' flights %>%
-#'   fcount(quarter = time_summarisev(time_hour, "quarter"))
+#'   fastplyr::f_count(quarter = time_summarisev(time_hour, "quarter"))
 #' # Alternatively
 #' time_countv(flights$time_hour, time_by = "quarter")
 #' # If you want the above as an atomic vector just use tibble::deframe
@@ -272,10 +272,10 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
   }
   out <- new_tbl(x = x, n = out)
   if (unique){
-    out <- fdistinct(out, .cols = "x", sort = sort, .keep_all = TRUE)
+    out <- fastplyr::f_distinct(out, .cols = "x", sort = sort, .keep_all = TRUE)
   }
   if (sort && !unique){
-    out <- farrange(out, .cols = "x")
+    out <- fastplyr::f_arrange(out, .cols = "x")
   }
   if (as_interval){
     out[["x"]] <- time_by_interval(out[["x"]], time_by = time_by,
@@ -344,7 +344,7 @@ time_span_size <- function(x, time_by = NULL, from = NULL, to = NULL,
 #       stop("length of from must be 1 or length(x)")
 #     }
 #     index <- time_cast(from, x)
-#     x[cheapr::which_(x < index)] <- NA
+#     x[which(x < index)] <- NA
 #   }
 #   tdiff <- time_diff(index, x, time_by = time_by)
 #   time_to_add <- add_names(list(trunc2(tdiff) * num), units)
@@ -370,7 +370,7 @@ time_by_interval <- function(x, time_by = NULL,
   out <- time_interval(start, end)
   # if (bound_range){
   #   right_bound <- time_cast(collapse::fmax(x, na.rm = TRUE), end)
-  #   which_closed <- which_(cppdoubles::double_gt(unclass(end), unclass(right_bound)))
+  #   which_closed <- which(cppdoubles::double_gt(unclass(end), unclass(right_bound)))
   #   # end[which_closed] <- right_bound
   #   out[which_closed] <- time_interval(start[which_closed],
   #                                      time_add2(right_bound,

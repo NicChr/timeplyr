@@ -96,7 +96,7 @@ time_by <- function(data, time, time_by = NULL,
   check_is_df(data)
   data_nms <- names(data)
   group_vars <- group_vars(data)
-  out <- safe_ungroup(data)
+  out <- df_ungroup(data)
   time_info <- mutate_summary_ungrouped(out, !!enquo(time))
   from_info <- mutate_summary_ungrouped(out, !!enquo(from), .keep = "none")
   to_info <- mutate_summary_ungrouped(out, !!enquo(to), .keep = "none")
@@ -112,9 +112,9 @@ time_by <- function(data, time, time_by = NULL,
   col_seq <- seq_along(names(time_data))
   from_data <- from_info[["data"]]
   to_data <- to_info[["data"]]
-  from_data <- fselect(from_data, .cols = which_(names(from_data) %in% names(time_data), invert = TRUE))
-  to_data <- fselect(to_data, .cols = which_(names(to_data) %in% names(time_data), invert = TRUE))
-  out <- df_cbind(time_data, from_data, to_data)
+  from_data <- fastplyr::f_select(from_data, .cols = which(names(from_data) %in% names(time_data), invert = TRUE))
+  to_data <- fastplyr::f_select(to_data, .cols = which(names(to_data) %in% names(time_data), invert = TRUE))
+  out <- fastplyr::f_bind_cols(time_data, from_data, to_data)
   if (length(time_var) > 0L){
     check_is_time_or_num(out[[time_var]])
     time_by <- time_by_get(out[[time_var]], time_by = time_by,
@@ -126,7 +126,7 @@ time_by <- function(data, time, time_by = NULL,
       g <- NULL
       time_span_groups <- character(0)
     } else {
-      g <- fselect(out, .cols = group_vars)
+      g <- fastplyr::f_select(out, .cols = group_vars)
       time_span_groups <- group_vars
     }
     time_span_GRP <- df_to_GRP(out, .cols = time_span_groups,
@@ -173,7 +173,7 @@ time_by <- function(data, time, time_by = NULL,
   if (.add){
     groups <- c(group_vars, time_var)
   }
-  out <- fgroup_by(out, .cols = groups)
+  out <- fastplyr::f_group_by(out, .cols = groups)
   if (isTRUE(is.na(match(from_var, data_nms)))){
     out <- df_rm_cols(out, from_var)
   }
@@ -230,10 +230,10 @@ tbl_sum.time_tbl_df <- function(x, ...){
                   collapse::fmax(time_span[["end"]], na.rm = TRUE))
   if (length(non_time_group_vars) > 0L){
     n_non_time_groups <- df_n_distinct(
-      fselect(group_data(x),
+      fastplyr::f_select(group_data(x),
               .cols = non_time_group_vars)
     )
-    n_time_groups <- n_unique(time)
+    n_time_groups <- collapse::fnunique(time)
     groups_header <- c("Groups" =
                          paste0(paste(non_time_group_vars, collapse = ", "),
                                 " [",

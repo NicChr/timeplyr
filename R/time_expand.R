@@ -15,9 +15,8 @@
 #' then arithmetic is used, e.g `time_by = 1`.
 #' @param from Time series start date.
 #' @param to Time series end date.
-#' @param expand_type Type of time expansion to use where "nesting"
-#' finds combinations already present in the data,
-#' "crossing" finds all combinations of values in the group variables.
+#' @param expand_type `r lifecycle::badge("deprecated")`
+#' Use `fastplyr::crossing()` and `fastplyr::nesting()`.
 #' @param time_type If "auto", `periods` are used for
 #' the time expansion when days, weeks, months or years are specified,
 #' and `durations` are used otherwise.
@@ -45,11 +44,6 @@
 #' `lubridate` is used for handling time, while `data.table` and `collapse` are used for
 #' the data frame expansion.
 #'
-#' At the moment, within group combinations are ignored. This means when `expand_type = nesting`,
-#' existing combinations of supplied groups across the entire dataset are used, and
-#' when `expand_type = crossing`, all possible combinations of supplied groups across the \bold{entire}
-#' dataset are used as well.
-#'
 #' @returns
 #' A `data.frame` of expanded time by or across groups.
 #'
@@ -69,7 +63,7 @@
 #' time_num_gaps(x) # Missing hours
 #'
 #' flights_count <- flights %>%
-#'   fcount(time_hour)
+#'   fastplyr::f_count(time_hour)
 #'
 #' # Fill in missing hours
 #' flights_count %>%
@@ -96,16 +90,21 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
                         time_type = getOption("timeplyr.time_type", "auto"),
                         time_floor = FALSE,
                         week_start = getOption("lubridate.week.start", 1),
-                        expand_type = c("nesting", "crossing"),
                         sort = TRUE,
+                        expand_type = NULL,
                         roll_month = getOption("timeplyr.roll_month", "preday"),
                         roll_dst = getOption("timeplyr.roll_dst", "NA")){
+  if (!is.null(expand_type)){
+    lifecycle::deprecate_soft(
+      "0.8.2",
+      "time_expand(expand_type)"
+    )
+  }
   check_is_df(data)
-  expand_type <- rlang::arg_match(expand_type)
   group_vars <- get_groups(data, {{ .by }})
   temp_data <- data
   if (length(group_vars(data)) == 0){
-    temp_data <- fgroup_by(temp_data, .by = {{ .by }}, order = FALSE)
+    temp_data <- fastplyr::f_group_by(temp_data, .by = {{ .by }}, order = FALSE)
   }
   group_ids <- df_group_id(temp_data)
   time_info <- mutate_summary_grouped(temp_data, !!enquo(time), .keep = "none")
@@ -119,14 +118,14 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
   check_length_lte(to_var, 1)
 
   # Remove duplicate cols
-  time_data <- safe_ungroup(time_info[["data"]])
-  from_data <- safe_ungroup(from_info[["data"]])
-  to_data <- safe_ungroup(to_info[["data"]])
-  from_data <- fselect(from_data,
-                       .cols = which_(match(names(from_data), names(time_data), 0L) == 0L))
-  to_data <- fselect(to_data,
-                     .cols = which_(match(names(to_data), names(time_data), 0L) == 0L))
-  out <- df_cbind(time_data, from_data, to_data)
+  time_data <- df_ungroup(time_info[["data"]])
+  from_data <- df_ungroup(from_info[["data"]])
+  to_data <- df_ungroup(to_info[["data"]])
+  from_data <- fastplyr::f_select(from_data,
+                       .cols = which(match(names(from_data), names(time_data), 0L) == 0L))
+  to_data <- fastplyr::f_select(to_data,
+                     .cols = which(match(names(to_data), names(time_data), 0L) == 0L))
+  out <- fastplyr::f_bind_cols(time_data, from_data, to_data)
   if (length(time_var) > 0){
     time_type <- match_time_type(time_type)
     time_by <- time_by_get(out[[time_var]], time_by = time_by)
@@ -134,10 +133,10 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
     by_n <- time_by[[1L]]
     input_time_type <- time_type # Save original
     # Ordered group ID
-    grp_nm <- new_var_nm(out, ".group.id")
+    grp_nm <- unique_col_name(out, ".group.id")
     out[[grp_nm]] <- group_ids
-    from_nm <- new_var_nm(names(out), ".from")
-    to_nm <- new_var_nm(c(names(out), from_nm), ".to")
+    from_nm <- unique_col_name(names(out), ".from")
+    to_nm <- unique_col_name(c(names(out), from_nm), ".to")
     from_to_list <- get_from_to(out, time = time_var,
                                 from = from_var,
                                 to = to_var,
@@ -145,8 +144,8 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
     out[[from_nm]] <- from_to_list[[1]]
     out[[to_nm]] <- from_to_list[[2]]
     # Unique groups
-    time_tbl <- fdistinct(
-      fselect(
+    time_tbl <- fastplyr::f_distinct(
+      fastplyr::f_select(
         out, .cols = c(group_vars, grp_nm, from_nm, to_nm)
       ),
       .cols = grp_nm, .keep_all = TRUE
@@ -156,13 +155,13 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
                                          time_by, week_start = week_start)
     }
     # Reverse by sign in case from > to
-    by_nm <- new_var_nm(out, ".by")
+    by_nm <- unique_col_name(out, ".by")
     by_n <- rep_len(by_n, nrow(time_tbl))
-    which_wrong_sign <- cheapr::which_(time_tbl[[from_nm]] > time_by[[to_nm]])
+    which_wrong_sign <- which(time_tbl[[from_nm]] > time_by[[to_nm]])
     by_n[which_wrong_sign] <- -abs(by_n[which_wrong_sign])
     time_tbl[[by_nm]] <- by_n
     # Determine size of sequences
-    size_nm <- new_var_nm(out, ".size")
+    size_nm <- unique_col_name(out, ".size")
     time_tbl[[size_nm]] <- time_seq_sizes(time_tbl[[from_nm]],
                                           time_tbl[[to_nm]],
                                           time_by = add_names(list(time_tbl[[by_nm]]),
@@ -183,10 +182,8 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
     out[[time_var]] <- time_seq
     out <- df_rm_cols(out, grp_nm)
     if (dots_length(...) > 0){
-      expanded_df <- fexpand(data,
-                             ...,
-                             expand_type = expand_type,
-                             sort = FALSE, .by = {{ .by }})
+        expanded_df <- fastplyr::f_expand(data, ...,
+                                          sort = FALSE, .by = {{ .by }})
       expanded_nms <- names(expanded_df)
       if (df_nrow(expanded_df) > 0L){
         # If there are no common cols, just cross join them
@@ -200,12 +197,13 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
           # If data was grouped, we can do a full join on these variables
         } else {
           if (length(setdiff(expanded_nms, group_vars)) > 0L){
-            out <- dplyr::full_join(out, expanded_df, by = group_vars,
-                                    relationship = "many-to-many")
-            # out <- collapse_join(out, expanded_df,
-            #                      on = group_vars,
-            #                      how = "full",
-            #                      sort = FALSE)
+            # out <- dplyr::full_join(out, expanded_df, by = group_vars,
+            #                         relationship = "many-to-many")
+            out <- collapse_join(out, expanded_df,
+                                 on = group_vars,
+                                 how = "full",
+                                 sort = FALSE,
+                                 multiple = TRUE)
           }
         }
       }
@@ -214,15 +212,12 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
       sort_nms <- c(group_vars, time_var,
                     setdiff(names(out),
                             c(group_vars, time_var)))
-      out <- farrange(out, .cols = sort_nms)
+      out <- fastplyr::f_arrange(out, .cols = sort_nms)
     }
   } else {
-    out <- fexpand(data,
-                   ...,
-                   expand_type = expand_type,
-                   sort = sort, .by = {{ .by }})
+      out <- fastplyr::f_expand(data, ..., sort = sort, .by = {{ .by }})
   }
-  df_reconstruct(out, data)
+  reconstruct(data, out)
 }
 #' @rdname time_expand
 #' @export
@@ -231,13 +226,18 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
                           time_type = getOption("timeplyr.time_type", "auto"),
                           time_floor = FALSE,
                           week_start = getOption("lubridate.week.start", 1),
-                          expand_type = c("nesting", "crossing"),
+                          expand_type = NULL,
                           sort = TRUE,
                           fill = NA,
                           roll_month = getOption("timeplyr.roll_month", "preday"),
                           roll_dst = getOption("timeplyr.roll_dst", "NA")){
+  if (!is.null(expand_type)){
+    lifecycle::deprecate_soft(
+      "0.8.2",
+      "time_complete(expand_type)"
+    )
+  }
   check_is_df(data)
-  expand_type <- rlang::arg_match(expand_type)
   time_type <- match_time_type(time_type)
   group_vars <- get_groups(data, {{ .by }})
   out_info <- mutate_summary_grouped(data, !!enquo(time), .by = {{ .by }})
@@ -255,7 +255,6 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
                              week_start = week_start,
                              sort = FALSE,
                              .by = {{ .by }},
-                             expand_type = expand_type,
                              roll_month = roll_month,
                              roll_dst = roll_dst)
   # Full-join
@@ -264,25 +263,17 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
     if (length(time_var) > 0){
       out[[time_var]] <- time_cast(out[[time_var]], expanded_df[[time_var]])
     }
-    # out <- dplyr::full_join(out, expanded_df, by = names(expanded_df))
-    # extra <- cheapr::sset(expanded_df,
-    #                       which_not_in(expanded_df, cheapr::sset(out, j = names(expanded_df))))
     extra <- cheapr::setdiff_(expanded_df, cheapr::sset(out, j = names(expanded_df)))
     if (df_nrow(extra) > 0){
-      extra <- df_cbind(
+      extra <- fastplyr::f_bind_cols(
         extra,
         df_init(cheapr::sset(out, j = setdiff(names(out), names(expanded_df))),
                 df_nrow(extra))
       )
-      out <- vctrs::vec_rbind(out, extra)
+      out <- fastplyr::f_bind_rows(out, extra)
     }
-    # out <- collapse_join(out, expanded_df,
-    #                      on = names(expanded_df),
-    #                      how = "full",
-    #                      sort = FALSE)
-    # if (any(cpp_address_equal(data, fselect(out, .cols = names(data))))){
     if (sort){
-      out <- farrange(out, .cols = c(group_vars, time_var,
+      out <- fastplyr::f_arrange(out, .cols = c(group_vars, time_var,
                                      setdiff(names(expanded_df),
                                              c(group_vars, time_var))))
     }
@@ -295,11 +286,11 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
       if (length(fill[[i]]) != 1){
         stop("fill values must be of length 1")
       }
-      out[[fill_nms[[i]]]][cheapr::which_na(out[[fill_nms[[i]]]])] <-
+      out[[fill_nms[[i]]]][which_na(out[[fill_nms[[i]]]])] <-
         fill[[i]]
     }
   }
   out_vars <- c(names(data), setdiff(names(out), names(data)))
-  out <- fselect(out, .cols = out_vars)
-  df_reconstruct(out, data)
+  out <- fastplyr::f_select(out, .cols = out_vars)
+  reconstruct(data, out)
 }

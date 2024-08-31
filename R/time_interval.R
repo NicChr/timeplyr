@@ -192,12 +192,12 @@ as.character.time_interval <- function(x,
     start <- as.character(start)
     end <- as.character(end)
   }
-  which_na <- cheapr::which_na(x)
+  which_na <- which_na(x)
   if (int_fmt == "full"){
     out <- paste0("[", start, ", ", end, ")")
-    which_closed <- which_(start == end)
+    which_closed <- which(start == end)
     out[which_closed] <- paste0("[", start[which_closed], ", ", end[which_closed], "]")
-    # which_left_open <- which_(start > end)
+    # which_left_open <- which(start > end)
     # out[which_left_open] <- paste0("(", start[which_left_open], "--", end[which_left_open], "]")
     out[which_na] <- NA_character_
     out

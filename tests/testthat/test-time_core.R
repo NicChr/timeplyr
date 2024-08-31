@@ -29,12 +29,12 @@ testthat::test_that("Tests for time_countv2", {
     dplyr::mutate(n1 = time_countv2(time_hour, time_by = "hour",
                                    sort = FALSE, unique = FALSE, use.names = FALSE,
                                    complete = FALSE)[["n"]]) %>%
-    fadd_count(time_hour, name = "n2") %>%
+    fastplyr::f_add_count(time_hour, name = "n2") %>%
     dplyr::select(dplyr::all_of(c("time_hour", "n1", "n2"))) %>%
     dplyr::distinct() %>%
     dplyr::arrange(time_hour) %>%
     dplyr::mutate(diff = abs(n1 - n2)) %>%
-    fcount(diff)
+    fastplyr::f_count(diff)
   testthat::expect_identical(res1, dplyr::tibble(diff = 0L,
                                                  n = 6936L))
 
@@ -42,7 +42,7 @@ testthat::test_that("Tests for time_countv2", {
 
   testthat::expect_equal(res2,
                              flights2 %>%
-                               fcount(time_hour) %>%
+                               fastplyr::f_count(time_hour) %>%
                                time_complete(time = time_hour,
                                              fill = list(n = 0)) %>%
                                dplyr::pull(n))
@@ -50,7 +50,7 @@ testthat::test_that("Tests for time_countv2", {
                       from = from, to = to)
   testthat::expect_equal(res2,
                              flights2 %>%
-                               fcount(time_hour) %>%
+                               fastplyr::f_count(time_hour) %>%
                                time_complete(time = time_hour,
                                              fill = list(n = 0)) %>%
                                dplyr::pull(n))
@@ -79,7 +79,7 @@ testthat::test_that("Tests for time_countv2", {
                                                         lubridate::with_tz(to, tz = "America/New_York"))) %>%
                            dplyr::mutate(time = cut_time2(time_hour,
                                                           c(tbreaks, time_cast(to, time_hour) + 1))) %>%
-                           fcount(time) %>%
+                           fastplyr::f_count(time) %>%
                            dplyr::pull(n) %>%
                            add_names(tbreaks))
 
@@ -108,13 +108,13 @@ testthat::test_that("Tests for time_countv2", {
                            dplyr::mutate(x = cut_time2(time_hour,
                                                        time_span(time_hour, time_by = "month",
                                                                  from = from, to = to))) %>%
-                           fcount(x) %>%
+                           fastplyr::f_count(x) %>%
                            dplyr::mutate(x = time_aggregate(x, time_by = "month", as_interval = TRUE)) %>%
                            dplyr::select(x, n))
   # res9a <- time_countv2(flights2$time_hour,
   #                      time_by = "hour", include_interval = TRUE)
   # res9b <- flights2 %>%
-  #   fcount(x = time_hour) %>%
+  #   fastplyr::f_count(x = time_hour) %>%
   #   time_complete(time = x, time_by = "hour",
   #                 fill = list(n = 0L),
   #                 sort = TRUE) %>%

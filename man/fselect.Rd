@@ -3,7 +3,7 @@
 \name{fselect}
 \alias{fselect}
 \alias{frename}
-\title{Fast \code{dplyr::select()}/\code{dplyr::rename()}}
+\title{These functions have been superseded by fastplyr functions}
 \usage{
 fselect(data, ..., .cols = NULL)
 
@@ -24,31 +24,10 @@ If speed is an expensive resource, it is recommended to use this.}
 A \code{data.frame} of selected columns.
 }
 \description{
-\code{fselect()} operates the exact same way as \code{dplyr::select()} and
-can be used naturally with \code{tidy-select} helpers.
-It uses collapse to perform the actual selecting of variables and is
-considerably faster than dplyr for selecting exact columns,
-and even more so when supplying the \code{.cols} argument.
-}
-\examples{
-library(timeplyr)
-library(dplyr)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
-df <- slice_head(iris, n = 5)
-fselect(df, Species, SL = Sepal.Length)
-fselect(df, .cols = c("Species", "Sepal.Length"))
-fselect(df, all_of(c("Species", "Sepal.Length")))
-fselect(df, 5, 1)
-fselect(df, .cols = c(5, 1))
-df \%>\%
-  fselect(where(is.numeric))
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}}
+
+These functions can now be found in fastplyr. \cr
+They are no longer recommended in this package and thus have been both
+deprecated and superseded.
 }

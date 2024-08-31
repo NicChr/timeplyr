@@ -40,7 +40,7 @@ roll_apply <- function(x, fun, window = cheapr::window_sequence(length(x), Inf),
   check_length(window, length(x))
   x_size <- length(x)
   out <- new_list(x_size, default)
-  which_gt_zero <- which_(window > 0)
+  which_gt_zero <- which(window > 0)
   if (align == "right"){
     for (i in which_gt_zero){
       start <- i - .subset2(window, i) + 1L

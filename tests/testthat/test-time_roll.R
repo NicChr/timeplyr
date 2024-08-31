@@ -67,7 +67,7 @@ test_that("time_roll", {
     # By group
 
     flights2 <- nycflights13::flights %>%
-      farrange(time_hour)
+      fastplyr::f_arrange(time_hour)
 
     t <- flights2$time_hour
     x <- rnorm(length(t))
@@ -75,7 +75,7 @@ test_that("time_roll", {
     expect_snapshot(smr(z2))
 
     z2 <- flights2 %>%
-      add_group_id(origin, dest) %>%
+      fastplyr::add_group_id(origin, dest) %>%
       dplyr::mutate(mean = time_roll_mean(arr_delay, time = time_hour,
                                           lubridate::dhours(2.5),
                                           close_left_boundary = TRUE,

@@ -6,10 +6,10 @@ collapse::set_collapse(nthreads = 1L)
 testthat::test_that("Testing time episodes", {
   flights <- dplyr::select(nycflights13::flights, origin, dest, time_hour)
 
-  flights[["id"]] <- row_id(flights)
+  flights <- fastplyr::add_row_id(flights, .name = "id")
 
   na_ids <- flights %>%
-    fslice_sample(n = (5 * 10^4), seed = 98712412) %>%
+    fastplyr::f_slice_sample(n = (5 * 10^4), seed = 98712412) %>%
     dplyr::pull(id)
 
   flights <- flights %>%
@@ -17,8 +17,8 @@ testthat::test_that("Testing time episodes", {
                                              lubridate::NA_POSIXct_, time_hour))
 
   flights <- flights %>%
-    add_group_id(.name = "id1") %>%
-    add_group_id(origin, dest,
+    fastplyr::add_group_id(.name = "id1") %>%
+    fastplyr::add_group_id(origin, dest,
                  .name = "id2")
   testthat::expect_error(time_episodes(flights))
   testthat::expect_error(time_episodes(flights, window = 100))
@@ -410,7 +410,7 @@ testthat::test_that("Testing time episodes", {
                                              window = 7) %>%
                                suppressMessages() %>%
                                dplyr::as_tibble() %>%
-                               fcount(ep_id, ep_id_new))
+                               fastplyr::f_count(ep_id, ep_id_new))
   testthat::expect_identical(
     base1,
     flights %>%
@@ -420,41 +420,41 @@ testthat::test_that("Testing time episodes", {
                     window = 7,
                     event = list(event = 1)) %>%
       dplyr::as_tibble() %>%
-      fcount(ep_id, ep_id_new)
+      fastplyr::f_count(ep_id, ep_id_new)
   )
   testthat::expect_identical(flights %>%
                                time_episodes(.by = id2, time = time_hour,
                                              time_by = list("hours" = 18.5),
                                              window = 2) %>%
                                dplyr::as_tibble() %>%
-                               fcount(ep_id, ep_id_new),
+                               fastplyr::f_count(ep_id, ep_id_new),
                              flights %>%
                                time_episodes(.by = id2, time = time_hour,
                                              time_by = "4 hours",
                                              window = 9.25) %>%
                                dplyr::as_tibble() %>%
-                               fcount(ep_id, ep_id_new))
+                               fastplyr::f_count(ep_id, ep_id_new))
   testthat::expect_identical(base1,
                              flights %>%
                                time_episodes(.by = id1, time = time_hour,
                                              time_by = "hour",
                                              window = 7) %>%
                                dplyr::as_tibble() %>%
-                               fcount(ep_id, ep_id_new))
+                               fastplyr::f_count(ep_id, ep_id_new))
   testthat::expect_identical(base2,
                              flights %>%
                                time_episodes(.by = id2, time = time_hour,
                                              time_by = "hour",
                                              window = 240) %>%
                                dplyr::as_tibble() %>%
-                               fcount(ep_id, ep_id_new))
+                               fastplyr::f_count(ep_id, ep_id_new))
   testthat::expect_identical(base3,
                              flights %>%
                                time_episodes(.by = id1, time = time_hour,
                                              time_by = "hour",
                                              window = 7) %>%
                                dplyr::as_tibble() %>%
-                               fcount(id1, ep_id,
+                               fastplyr::f_count(id1, ep_id,
                                                ep_id_new, ep_start))
   testthat::expect_identical(base4,
                              flights %>%
@@ -462,7 +462,7 @@ testthat::test_that("Testing time episodes", {
                                              time_by = "hour",
                                              window = 240) %>%
                                dplyr::as_tibble() %>%
-                               fcount(id2, ep_id,
+                               fastplyr::f_count(id2, ep_id,
                                       ep_id_new, ep_start))
   testthat::expect_identical(base1,
                              flights %>%
@@ -471,7 +471,7 @@ testthat::test_that("Testing time episodes", {
                                              window = 7,
                                              .add = TRUE) %>%
                                dplyr::as_tibble() %>%
-                               fcount(ep_id, ep_id_new))
+                               fastplyr::f_count(ep_id, ep_id_new))
   testthat::expect_identical(base2,
                              flights %>%
                                time_episodes(.by = id2, time = time_hour,
@@ -479,7 +479,7 @@ testthat::test_that("Testing time episodes", {
                                              window = 240,
                                              .add = TRUE) %>%
                                dplyr::as_tibble() %>%
-                               fcount(ep_id, ep_id_new))
+                               fastplyr::f_count(ep_id, ep_id_new))
   testthat::expect_identical(base3,
                              flights %>%
                                time_episodes(.by = id1, time = time_hour,
@@ -487,7 +487,7 @@ testthat::test_that("Testing time episodes", {
                                              window = 7,
                                              .add = TRUE) %>%
                                dplyr::as_tibble() %>%
-                               fcount(id1, ep_id,
+                               fastplyr::f_count(id1, ep_id,
                                       ep_id_new, ep_start))
   testthat::expect_identical(base4,
                              flights %>%
@@ -496,7 +496,7 @@ testthat::test_that("Testing time episodes", {
                                              window = 240,
                                              .add = TRUE) %>%
                                dplyr::as_tibble() %>%
-                               fcount(id2, ep_id,
+                               fastplyr::f_count(id2, ep_id,
                                       ep_id_new, ep_start))
   # Grouped
   testthat::expect_identical(base1,
@@ -506,7 +506,7 @@ testthat::test_that("Testing time episodes", {
                                              window = 7,
                                              .add = TRUE) %>%
                                dplyr::as_tibble() %>%
-                               fcount(ep_id, ep_id_new))
+                               fastplyr::f_count(ep_id, ep_id_new))
   testthat::expect_identical(base2,
                              flights %>%
                                time_episodes(.by = id2, time = time_hour,
@@ -514,7 +514,7 @@ testthat::test_that("Testing time episodes", {
                                              window = 240,
                                              .add = TRUE) %>%
                                dplyr::as_tibble() %>%
-                               fcount(ep_id, ep_id_new))
+                               fastplyr::f_count(ep_id, ep_id_new))
   testthat::expect_identical(base3,
                              flights %>%
                                time_episodes(.by = id1, time = time_hour,
@@ -522,7 +522,7 @@ testthat::test_that("Testing time episodes", {
                                              window = 7,
                                              .add = TRUE) %>%
                                dplyr::as_tibble() %>%
-                               fcount(id1, ep_id,
+                               fastplyr::f_count(id1, ep_id,
                                       ep_id_new, ep_start))
   testthat::expect_identical(base4,
                              flights %>%
@@ -531,7 +531,7 @@ testthat::test_that("Testing time episodes", {
                                              window = 240,
                                              .add = TRUE) %>%
                                dplyr::as_tibble() %>%
-                               fcount(id2, ep_id,
+                               fastplyr::f_count(id2, ep_id,
                                       ep_id_new, ep_start))
 
   # Check that the order hasn't changed
@@ -564,7 +564,7 @@ testthat::test_that("Testing time episodes", {
                                              .add = TRUE) %>%
                                dplyr::pull(id))
   testthat::expect_identical(flights %>%
-                               fslice(0) %>%
+                               fastplyr::f_slice(0) %>%
                                time_episodes(.by = id2, time = time_hour,
                                              time_by = "hour",
                                              window = 240) %>%
@@ -584,10 +584,10 @@ testthat::test_that("Testing time episodes", {
   df <- cheapr::enframe_(x)
 
   df <- df %>%
-    farrange(name, value) %>%
+    fastplyr::f_arrange(name, value) %>%
     dplyr::mutate(telapsed1 = time_elapsed(value, time_by = 1, rolling = TRUE, g = name),
                   telapsed2 = time_elapsed(value, time_by = 1, rolling = FALSE, g = name)) %>%
-    fgroup_by(name)
+    fastplyr::f_group_by(name)
 
   # Rolling
   # When window = 100
@@ -598,7 +598,7 @@ testthat::test_that("Testing time episodes", {
     df %>%
       time_episodes(value, roll_episode = TRUE, window = 100, .add = TRUE) %>%
       dplyr::as_tibble() %>%
-      fcount(res1 == ep_id_new),
+      fastplyr::f_count(res1 == ep_id_new),
     list_as_tbl(list("res1 == ep_id_new" = c(TRUE, NA),
                         "n" = c(13L, 7L)))
   )
@@ -614,7 +614,7 @@ testthat::test_that("Testing time episodes", {
       time_episodes(value, roll_episode = FALSE, window = 200,
                     .add = TRUE) %>%
       dplyr::as_tibble() %>%
-      fcount(res2 == ep_id_new),
+      fastplyr::f_count(res2 == ep_id_new),
     list_as_tbl(list("res2 == ep_id_new" = c(TRUE, NA),
                         "n" = c(13L, 7L)))
   )
@@ -630,7 +630,7 @@ test_that("Simple episodic tests", {
       time_episodes(time, time_by = 1, window = 3, .add = FALSE,
                     # t >= threshold
                     switch_on_boundary = TRUE) %>%
-      farrange(time)
+      fastplyr::f_arrange(time)
   })
 
   expect_snapshot({
@@ -638,7 +638,7 @@ test_that("Simple episodic tests", {
       time_episodes(time, time_by = 1, window = 3, .add = TRUE,
                     # t > threshold
                     switch_on_boundary = FALSE) %>%
-      farrange(time)
+      fastplyr::f_arrange(time)
   })
 
   expect_snapshot({
@@ -646,7 +646,7 @@ test_that("Simple episodic tests", {
       time_episodes(time, time_by = 1, window = 3, .add = TRUE,
                     switch_on_boundary = TRUE,
                     event = list(event = "e")) %>%
-      farrange(time)
+      fastplyr::f_arrange(time)
   })
 
   expect_snapshot({
@@ -654,7 +654,7 @@ test_that("Simple episodic tests", {
       time_episodes(time, time_by = 3, window = 1, .add = FALSE,
                     switch_on_boundary = FALSE,
                     event = list(event = "e")) %>%
-      farrange(time)
+      fastplyr::f_arrange(time)
   })
   # Cumulative time ---------------------------------------------------------
   expect_snapshot({
@@ -662,7 +662,7 @@ test_that("Simple episodic tests", {
       time_episodes(time, time_by = "days", window = 5, .add = FALSE,
                     roll_episode = FALSE,
                     switch_on_boundary = TRUE) %>%
-      farrange(time)
+      fastplyr::f_arrange(time)
   })
 
   expect_snapshot({
@@ -670,7 +670,7 @@ test_that("Simple episodic tests", {
       time_episodes(time, time_by = "5 days", window = 1, .add = FALSE,
                     roll_episode = FALSE,
                     switch_on_boundary = FALSE) %>%
-      farrange(time)
+      fastplyr::f_arrange(time)
   })
 
 })

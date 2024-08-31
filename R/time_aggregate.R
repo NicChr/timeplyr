@@ -127,14 +127,14 @@ time_aggregate <- function(x, time_by = NULL,
       stop("length of from must be 1 or length(x)")
     }
     index <- time_cast(from, start)
-    start[cheapr::which_(start < index)] <- NA
+    start[which(start < index)] <- NA
   }
   if (!is.null(to)){
     if (length(to) %!in_% c(1, length(start))){
       stop("length of to must be 1 or length(x)")
     }
     to <- time_cast(to, start)
-    start[cheapr::which_(start > to)] <- NA
+    start[which(start > to)] <- NA
   }
   if (time_floor){
     index <- time_floor2(index, time_by = time_by, week_start = week_start)

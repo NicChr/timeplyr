@@ -108,7 +108,7 @@ time_seq_id <- function(x, time_by = NULL, threshold = 1,
       over_threshold <- cppdoubles::double_gt(telapsed, threshold)
     }
   } else {
-    dt <- new_dt(x = telapsed, group_id = group_id(g), .copy = FALSE)
+    dt <- new_dt(x = telapsed, group_id = fastplyr::group_id(g), .copy = FALSE)
     group_id_col <- names(dt)[names(dt) == "group_id"]
     dt[, ("over") :=
          lapply(

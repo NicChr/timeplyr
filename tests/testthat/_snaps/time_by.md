@@ -2,7 +2,7 @@
 
     Code
       flights %>% time_by(time_hour, time_by = "3 days", from = start, to = end,
-        time_type = "period") %>% fcount()
+        time_type = "period") %>% fastplyr::f_count()
     Output
       # A tibble: 5 x 2
       # Time:     time_intv_3_days [5]
@@ -19,7 +19,7 @@
 ---
 
     Code
-      flights %>% fslice(0) %>% time_by(time_hour)
+      flights %>% fastplyr::f_slice(0) %>% time_by(time_hour)
     Output
       # A tibble: 0 x 20
       # Time:     time_intv_second [0]

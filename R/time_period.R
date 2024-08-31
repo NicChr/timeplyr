@@ -55,7 +55,7 @@ time_period <- function(years = 0L,
 
     # Fill all rows with NA if any of them contain NA
 
-    # which_na_fill <- cheapr::which_(cheapr::row_any_na(list_as_df(out[!is_missing])))
+    # which_na_fill <- which(cheapr::row_any_na(list_as_df(out[!is_missing])))
 
 
 
@@ -138,7 +138,7 @@ format.time_period <- function(x, ...){
       fmts[i] <- "%.0f"
     }
   }
-  keep <- which_(keep)
+  keep <- which(keep)
   time_list <- periods[keep]
   fmts <- fmts[keep]
   # sprintf() formats

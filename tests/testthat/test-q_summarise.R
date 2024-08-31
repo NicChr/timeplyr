@@ -40,7 +40,7 @@ testthat::test_that("grouped quantile tests", {
                                             unname(stats::quantile(arr_delay, na.rm = TRUE,
                                                                    probs = seq(0, 1, 0.25))),
                                           .by = origin) %>%
-                           transmute2(origin, .quantile = rep(q_nms, 3),
+                           dplyr::transmute(origin, .quantile = rep(q_nms, 3),
                                      arr_delay),
                          flights %>%
                            q_summarise(arr_delay, pivot = "long", .by = origin,
@@ -53,7 +53,7 @@ testthat::test_that("grouped quantile tests", {
                                             unname(stats::quantile(arr_delay, na.rm = TRUE,
                                                                    probs = seq(0, 1, 0.25))),
                                           .by = origin) %>%
-                           transmute2(origin, .quantile = rep(q_nms, 3),
+                           dplyr::transmute(origin, .quantile = rep(q_nms, 3),
                                       arr_delay) %>%
                            tidyr::pivot_wider(names_from = .quantile,
                                               values_from = arr_delay),
@@ -65,7 +65,7 @@ testthat::test_that("grouped quantile tests", {
   )
   testthat::expect_equal(
     flights %>%
-      fslice(0) %>%
+      fastplyr::f_slice(0) %>%
       q_summarise(arr_delay),
     data.table::data.table(p0 = numeric(0),
                            p25 = numeric(0),
@@ -75,7 +75,7 @@ testthat::test_that("grouped quantile tests", {
   )
   testthat::expect_equal(
     flights %>%
-      fslice(0) %>%
+      fastplyr::f_slice(0) %>%
       q_summarise(arr_delay, pivot = "long"),
     data.table::data.table(.quantile = factor(levels = q_nms),
                            arr_delay = numeric())

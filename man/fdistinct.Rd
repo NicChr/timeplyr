@@ -2,7 +2,7 @@
 % Please edit documentation in R/fdistinct.R
 \name{fdistinct}
 \alias{fdistinct}
-\title{Find distinct rows}
+\title{These functions have been superseded by fastplyr functions}
 \usage{
 fdistinct(
   data,
@@ -40,28 +40,10 @@ If speed is an expensive resource, it is recommended to use this.}
 A \code{data.frame} of distinct groups.
 }
 \description{
-Like \code{dplyr::distinct()} but faster when lots of
-groups are involved.
-}
-\examples{
-library(dplyr)
-library(timeplyr)
-library(ggplot2)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
-mpg \%>\%
-  distinct(manufacturer)
-mpg \%>\%
-  fdistinct(manufacturer)
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
-}
-\seealso{
-\link{group_collapse} \link{duplicate_rows}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}}
+
+These functions can now be found in fastplyr. \cr
+They are no longer recommended in this package and thus have been both
+deprecated and superseded.
 }

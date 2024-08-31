@@ -87,7 +87,7 @@ edf <- function(x, g = NULL, wt = NULL){
         wt <- wt[x_order]
         if (n_na > 0) wt <- wt[seq_len(nx - n_na)]
       }
-      g <- group2(x, group.sizes = TRUE)
+      g <- group2(x)
       times <- attr(g, "group.sizes")
       # times <- collapse::GRPN(g, expand = FALSE)
       grpn <- collapse::fsum(wt, g = g, use.g.names = FALSE)
@@ -101,20 +101,20 @@ edf <- function(x, g = NULL, wt = NULL){
   } else {
     # Create group IDs
     df <- new_dt(x = x, g = g, wt = wt, .recycle = TRUE)
-    df[, ("g") := group_id(.SD, order = FALSE, .cols = names(.SD)),
+    df[, ("g") := old_group_id(.SD, order = FALSE, .cols = names(.SD)),
        .SDcols = "g"]
-    df[, ("g1") := group_id(.SD, order = TRUE, .cols = names(.SD)),
+    df[, ("g1") := old_group_id(.SD, order = TRUE, .cols = names(.SD)),
        .SDcols = "x"]
-    df[, ("g3") := group_id(.SD, order = TRUE, .cols = names(.SD)),
+    df[, ("g3") := old_group_id(.SD, order = TRUE, .cols = names(.SD)),
        .SDcols = c("g", "g1")]
     # Original order
     df[, ("id") := seq_len(.N)]
     # Order if NAs are shifted to the end
     is_na <- is.na(x)
-    which_na <- which_(is_na)
+    which_na <- which(is_na)
     df[which_na, ("id") := NA_integer_]
     if (n_na > 0){
-      df <- df[which_(is_na, invert = TRUE)]
+      df <- df[which(is_na, invert = TRUE)]
     }
     # Sort data in ascending order
     data.table::setorderv(df, cols = "g3")

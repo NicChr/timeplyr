@@ -2,7 +2,7 @@
 % Please edit documentation in R/group_collapse.R
 \name{group_collapse}
 \alias{group_collapse}
-\title{Key group information}
+\title{These functions have been superseded by fastplyr functions}
 \usage{
 group_collapse(
   data,
@@ -59,47 +59,10 @@ If speed is an expensive resource, it is recommended to use this.}
 A \code{tibble} of unique groups and an integer ID uniquely identifying each group.
 }
 \description{
-Key group information
-}
-\details{
-\code{group_collapse()} is similar to \code{dplyr::group_data()} but differs in 3 key regards:
-\itemize{
-\item The output tries to convey as much information about the groups as possible.
-By default, like \code{dplyr}, the groups are ordered, but unlike \code{dplyr} they are not
-sorted, which conveys information on order-of-first-appearance in the data.
-In addition to group locations, group sizes and start indices are returned.
-\item There is more flexibility in specifying how the groups are ordered and/or sorted.
-\item \code{collapse} is used to obtain the grouping structure, which is very fast.
-}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}}
 
-There are 3 ways to specify the groups:
-\itemize{
-\item Using \code{...} which utilises \code{tidy} \code{data-masking}.
-\item Using \code{.by} which utilises \code{tidyselect}.
-\item Using \code{.cols} which accepts a named character/integer vector.
-}
-}
-\examples{
-library(timeplyr)
-library(dplyr)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
-iris <- dplyr::as_tibble(iris)
-group_collapse(iris) # No groups
-group_collapse(iris, Species) # Species groups
-
-iris \%>\%
-  group_by(Species) \%>\%
-  group_collapse() # Same thing
-
-# Group entire data frame
-group_collapse(iris, .by = everything())
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
+These functions can now be found in fastplyr. \cr
+They are no longer recommended in this package and thus have been both
+deprecated and superseded.
 }

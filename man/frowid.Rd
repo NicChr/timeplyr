@@ -2,7 +2,7 @@
 % Please edit documentation in R/frowid.R
 \name{frowid}
 \alias{frowid}
-\title{Fast grouped row numbers}
+\title{These functions have been superseded by fastplyr functions}
 \usage{
 frowid(x, ascending = TRUE)
 }
@@ -17,43 +17,16 @@ decreasing order.}
 An integer vector of row IDs.
 }
 \description{
-Very fast row numbers by group.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}}
+
+These functions can now be found in fastplyr. \cr
+They are no longer recommended in this package and thus have been both
+deprecated and superseded.
 }
 \details{
 \code{frowid()} is like \code{data.table::rowid()} but uses
 an alternative method for calculating row numbers.
 When \code{x} is a collapse \code{GRP} object, it is considerably faster.
 It is also faster for character vectors.
-}
-\examples{
-library(timeplyr)
-library(dplyr)
-library(data.table)
-library(nycflights13)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
-# Simple row numbers
-head(row_id(flights))
-# Row numbers by origin
-head(frowid(flights$origin))
-head(row_id(flights, origin))
-
-# Fast duplicate rows
-head(frowid(flights) > 1)
-
-# With data frames, better to use row_id()
-flights \%>\%
-  add_row_id() \%>\% # Plain row ids
-  add_row_id(origin, dest, .name = "grouped_row_id") # Row IDs by group
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
-}
-\seealso{
-\link{row_id} \link{add_row_id}
 }

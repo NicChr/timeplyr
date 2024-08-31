@@ -12,7 +12,7 @@ time_seq_fill <- function(x, time_by = NULL,
   # If the sequence starts/ends with NA, we need to work with everything but these
   # first/last NA values
   # if (num_na == length(x)){
-  which_na <- cheapr::which_na(x)
+  which_na <- which_na(x)
   num_na <- length(which_na)
   if (num_na > 0 && which_na[1] == 1){
     which_last_missing_value_from_left <- cpp_which_first_gap(which_na, 1L, TRUE)

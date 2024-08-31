@@ -1,4 +1,12 @@
-#' Find duplicate rows
+#' These functions have been superseded by fastplyr functions
+#'
+#' @description
+#' `r lifecycle::badge("deprecated")`
+#' `r lifecycle::badge("superseded")`
+#'
+#' These functions can now be found in fastplyr. \cr
+#' They are no longer recommended in this package and thus have been both
+#' deprecated and superseded.
 #'
 #' @param data A data frame.
 #' @param ... Variables used to find duplicate rows.
@@ -26,170 +34,25 @@
 #' @returns
 #' A `data.frame` of duplicate rows.
 #'
-#' @details
-#' This function works like `dplyr::distinct()` in its handling of
-#' arguments and data-masking but returns duplicate rows.
-#' In certain situations in can be much faster than `data %>% group_by() %>% filter(n() > 1)`
-#' when there are many groups.
-#' `fduplicates2()` returns the same output but uses a different
-#' method which utilises joins and is written almost entirely using dplyr.
-#'
-#' @seealso [fcount] [group_collapse] [fdistinct]
-#'
-#' @examples
-#' library(dplyr)
-#' library(timeplyr)
-#' library(ggplot2)
-#' \dontshow{
-#' .n_dt_threads <- data.table::getDTthreads()
-#' .n_collapse_threads <- collapse::get_collapse()$nthreads
-#' data.table::setDTthreads(threads = 2L)
-#' collapse::set_collapse(nthreads = 1L)
-#' }
-#' # Duplicates across all columns
-#' diamonds %>%
-#'   duplicate_rows()
-#' # Alternatively with row ids
-#' diamonds %>%
-#'   filter(frowid(.) > 1)
-#' # Diamonds with the same dimensions
-#' diamonds %>%
-#'   duplicate_rows(x, y, z)
-#' # Can use tidyverse select notation
-#' diamonds %>%
-#'   duplicate_rows(across(where(is.factor)), .keep_all = FALSE)
-#' # Similar to janitor::get_dupes()
-#' diamonds %>%
-#'   duplicate_rows(.add_count = TRUE)
-#' # Keep the first instance of each duplicate row
-#' diamonds %>%
-#'   duplicate_rows(.both_ways = TRUE)
-#' # Same as the below
-#' diamonds %>%
-#'   fadd_count(across(everything())) %>%
-#'   filter(n > 1)
-#' \dontshow{
-#' data.table::setDTthreads(threads = .n_dt_threads)
-#' collapse::set_collapse(nthreads = .n_collapse_threads)
-#'}
 #' @rdname duplicate_rows
 #' @export
 duplicate_rows <- function(data, ..., .keep_all = FALSE,
                            .both_ways = FALSE, .add_count = FALSE,
                            .drop_empty = FALSE, sort = FALSE,
                            .by = NULL, .cols = NULL){
-  n_dots <- dots_length(...)
-  group_info <- tidy_group_info(data, ..., .by = {{ .by }},
-                                .cols = .cols,
-                                ungroup = TRUE,
-                                rename = TRUE)
-  all_groups <- group_info[["all_groups"]]
-  out <- group_info[["data"]]
-  out_nms <- names(out)
-  # If no variables selected then all variables used
-  if (n_dots == 0 && is.null(.cols)){
-    dup_vars <- out_nms
-    out_vars <- dup_vars
-  } else {
-    dup_vars <- all_groups
-    if (.keep_all){
-      out_vars <- out_nms
-    } else {
-      out_vars <- dup_vars
-    }
-  }
-  if (length(group_info[["extra_groups"]]) == 0L && !group_info[["groups_changed"]]){
-    out <- data
-  }
-  out <- fselect(out, .cols = out_vars)
-  # Groups
-  groups <- df_to_GRP(out, .cols = dup_vars,
-                      return.order = FALSE,
-                      return.groups = FALSE,
-                      order = FALSE)
-  if (.add_count){
-    group_sizes <- GRP_expanded_group_sizes(groups)
-    n_var_nm <- new_n_var_nm(out)
-    out[[n_var_nm]] <- group_sizes
-  }
-  which_dup <- GRP_which_duplicated(groups, all = .both_ways)
-  out <- cheapr::sset(out, which_dup)
-  # Alternate way of sorting the duplicate rows
-  # Must specify order = FALSE in df_to_GRP()
-  # if (sort){
-  #   out <- df_row_slice(out, order(GRP_group_id(groups)[which_dup]))
-  # }
-  if (sort){
-    out <- farrange(out, .cols = dup_vars)
-  }
-  # Remove empty rows (rows with all NA values)
-  if (.drop_empty){
-    out <- df_drop_empty(out, .cols = dup_vars)
-  }
-  df_reconstruct(out, data)
+  lifecycle::deprecate_warn(
+    when = "0.8.2",
+    what = "duplicate_rows()",
+    with = "fastplyr::f_duplicates()"
+  )
+  fastplyr::f_duplicates(
+    data, ...,
+    .keep_all = .keep_all,
+    .both_ways = .both_ways,
+    .add_count = .add_count,
+    .drop_empty = .drop_empty,
+    sort = sort,
+    .by = {{ .by }},
+    .cols = .cols
+  )
 }
-# fduplicates2 <- function(data, ..., .keep_all = FALSE,
-#                          .both_ways = FALSE, .add_count = FALSE,
-#                          .drop_empty = FALSE, .by = NULL){
-#   n_dots <- dots_length(...)
-#   out <- safe_ungroup(data)
-#   if (n_dots > 0){
-#     out <- out %>%
-#       dplyr::mutate(...)
-#   }
-#   group_info <- get_group_info(data, ...,
-#                                type = "data-mask",
-#                                .by = {{ .by }})
-#   group_vars <- group_info[["dplyr_groups"]]
-#   extra_groups <- group_info[["extra_groups"]]
-#   all_groups <- group_info[["all_groups"]]
-#   if (n_dots == 0){
-#     dup_vars <- names(out)
-#     out_vars <- dup_vars
-#   } else {
-#     dup_vars <- all_groups
-#     if (.keep_all){
-#       out_vars <- names(out)
-#     } else {
-#       out_vars <- dup_vars
-#     }
-#   }
-#   dup_vars <- setdiff(dup_vars, group_vars)
-#   # Group ID
-#   grp_nm <- new_var_nm(names(out), ".group.id")
-#   # Row ID (per group)
-#   id_nm <- new_var_nm(names(out), ".id")
-#   out <- out %>%
-#     dplyr::select(all_of(out_vars)) %>%
-#     dplyr::group_by(across(all_of(group_vars))) %>%
-#     dplyr::mutate(!!grp_nm := dplyr::cur_group_id()) %>%
-#     dplyr::ungroup() %>%
-#     dplyr::mutate(!!id_nm := dplyr::row_number(),
-#                   .by = dplyr::all_of(grp_nm))
-#   if (.add_count){
-#     n_var <- new_n_var_nm(names(out))
-#     out <- dplyr::add_count(out, across(all_of(c(grp_nm, dup_vars))), name = n_var)
-#     out_vars <- c(out_vars, n_var)
-#   }
-#   # data with ID and dup cols
-#   df_unique <- out %>%
-#     dplyr::distinct(across(all_of(c(grp_nm, dup_vars))),
-#                     .keep_all = TRUE)
-#   # Duplicate rows
-#   out2 <- out %>%
-#     dplyr::anti_join(df_unique, by = c(grp_nm, id_nm))
-#   # Remove empty rows (rows with all NA values)
-#   if (.drop_empty){
-#     out2 <- dplyr_drop_empty(out2, .cols = all_of(dup_vars))
-#   }
-#   # Keep duplicates including first instance of duplicated rows
-#   if (.both_ways){
-#     out2 <- dplyr::semi_join(out,
-#                              dplyr::select(out2,
-#                                            all_of(c(grp_nm, dup_vars))),
-#                              by = c(grp_nm, dup_vars))
-#   }
-#   out2[[grp_nm]] <- NULL
-#   out2[[id_nm]] <- NULL
-#   df_reconstruct(out2, data)
-# }

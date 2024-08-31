@@ -3,7 +3,7 @@
 \name{fcount}
 \alias{fcount}
 \alias{fadd_count}
-\title{A fast replacement to dplyr::count()}
+\title{These functions have been superseded by fastplyr functions}
 \usage{
 fcount(
   data,
@@ -64,52 +64,10 @@ If speed is an expensive resource, it is recommended to use this.}
 A \code{data.frame} of frequency counts by group.
 }
 \description{
-Near-identical alternative to \code{dplyr::count()}.
-}
-\details{
-This is a fast and near-identical alternative to dplyr::count() using the \code{collapse} package.
-Unlike \code{collapse::fcount()}, this works very similarly to \code{dplyr::count()}.
-The only main difference is that anything supplied to \code{wt}
-is recycled and added as a data variable.
-Other than that everything works exactly as the dplyr equivalent.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}}
 
-\code{fcount()} and \code{fadd_count()} can be up to >100x faster than the dplyr equivalents.
-}
-\examples{
-library(timeplyr)
-library(dplyr)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
-iris \%>\%
-  fcount()
-iris \%>\%
-  fadd_count(name = "count") \%>\%
-  fslice_head(n = 10)
-iris \%>\%
-  group_by(Species) \%>\%
-  fcount()
-iris \%>\%
-  fcount(Species)
-iris \%>\%
-  fcount(across(where(is.numeric), mean))
-
-### Sorting behaviour
-
-# Sorted by group
-starwars \%>\%
-  fcount(hair_color)
-# Sorted by frequency
-starwars \%>\%
-  fcount(hair_color, sort = TRUE)
-# Groups sorted by order of first appearance (faster)
-starwars \%>\%
-  fcount(hair_color, order = FALSE)
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
+These functions can now be found in fastplyr. \cr
+They are no longer recommended in this package and thus have been both
+deprecated and superseded.
 }

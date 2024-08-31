@@ -2,7 +2,7 @@
 % Please edit documentation in R/duplicate_rows.R
 \name{duplicate_rows}
 \alias{duplicate_rows}
-\title{Find duplicate rows}
+\title{These functions have been superseded by fastplyr functions}
 \usage{
 duplicate_rows(
   data,
@@ -52,53 +52,10 @@ If speed is an expensive resource, it is recommended to use this.}
 A \code{data.frame} of duplicate rows.
 }
 \description{
-Find duplicate rows
-}
-\details{
-This function works like \code{dplyr::distinct()} in its handling of
-arguments and data-masking but returns duplicate rows.
-In certain situations in can be much faster than \code{data \%>\% group_by() \%>\% filter(n() > 1)}
-when there are many groups.
-\code{fduplicates2()} returns the same output but uses a different
-method which utilises joins and is written almost entirely using dplyr.
-}
-\examples{
-library(dplyr)
-library(timeplyr)
-library(ggplot2)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
-# Duplicates across all columns
-diamonds \%>\%
-  duplicate_rows()
-# Alternatively with row ids
-diamonds \%>\%
-  filter(frowid(.) > 1)
-# Diamonds with the same dimensions
-diamonds \%>\%
-  duplicate_rows(x, y, z)
-# Can use tidyverse select notation
-diamonds \%>\%
-  duplicate_rows(across(where(is.factor)), .keep_all = FALSE)
-# Similar to janitor::get_dupes()
-diamonds \%>\%
-  duplicate_rows(.add_count = TRUE)
-# Keep the first instance of each duplicate row
-diamonds \%>\%
-  duplicate_rows(.both_ways = TRUE)
-# Same as the below
-diamonds \%>\%
-  fadd_count(across(everything())) \%>\%
-  filter(n > 1)
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
-}
-\seealso{
-\link{fcount} \link{group_collapse} \link{fdistinct}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}}
+
+These functions can now be found in fastplyr. \cr
+They are no longer recommended in this package and thus have been both
+deprecated and superseded.
 }

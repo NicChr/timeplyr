@@ -107,10 +107,10 @@ time_ggplot <- function(data, time, value, group = NULL,
   }
   # Concatenate group names together
   if (length(group) > 1L){
-    group_nm <- new_var_nm(data, "group")
+    group_nm <- unique_col_name(data, "group")
     group_col <- list(
       df_paste_names(
-        fselect(safe_ungroup(data), .cols = group)
+        fastplyr::f_select(df_ungroup(data), .cols = group)
       )
     )
     names(group_col) <- group_nm
@@ -128,7 +128,7 @@ time_ggplot <- function(data, time, value, group = NULL,
   if (length(group) > 0L){
     if (facet){
       # Add a new col every 6 rows
-      facet_ncol <- (n_unique(fpluck(data, group_nm)) %/% 6) + 1
+      facet_ncol <- (collapse::fnunique(fpluck(data, group_nm)) %/% 6) + 1
       out <- out +
         do.call(geom, extra_gg_args) +
         ggplot2::facet_wrap(group, ncol = facet_ncol,

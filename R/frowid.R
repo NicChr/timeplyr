@@ -1,7 +1,12 @@
-#' Fast grouped row numbers
+#' These functions have been superseded by fastplyr functions
 #'
 #' @description
-#' Very fast row numbers by group.
+#' `r lifecycle::badge("deprecated")`
+#' `r lifecycle::badge("superseded")`
+#'
+#' These functions can now be found in fastplyr. \cr
+#' They are no longer recommended in this package and thus have been both
+#' deprecated and superseded.
 #'
 #' @param x A vector, data frame or `GRP` object.
 #' @param ascending When `ascending = TRUE` the row IDs are in
@@ -17,42 +22,13 @@
 #' @returns
 #' An integer vector of row IDs.
 #'
-#' @seealso [row_id] [add_row_id]
-#'
-#' @examples
-#' library(timeplyr)
-#' library(dplyr)
-#' library(data.table)
-#' library(nycflights13)
-#' \dontshow{
-#' .n_dt_threads <- data.table::getDTthreads()
-#' .n_collapse_threads <- collapse::get_collapse()$nthreads
-#' data.table::setDTthreads(threads = 2L)
-#' collapse::set_collapse(nthreads = 1L)
-#' }
-#' # Simple row numbers
-#' head(row_id(flights))
-#' # Row numbers by origin
-#' head(frowid(flights$origin))
-#' head(row_id(flights, origin))
-#'
-#' # Fast duplicate rows
-#' head(frowid(flights) > 1)
-#'
-#' # With data frames, better to use row_id()
-#' flights %>%
-#'   add_row_id() %>% # Plain row ids
-#'   add_row_id(origin, dest, .name = "grouped_row_id") # Row IDs by group
-#' \dontshow{
-#' data.table::setDTthreads(threads = .n_dt_threads)
-#' collapse::set_collapse(nthreads = .n_collapse_threads)
-#'}
 #' @rdname frowid
 #' @export
 frowid <- function(x, ascending = TRUE){
-  if (is_GRP(x)){
-    GRP_row_id(x, ascending = ascending)
-  } else {
-    grouped_row_id(x, ascending = ascending)
-  }
+  lifecycle::deprecate_warn(
+    when = "0.8.2",
+    what = "frowid()",
+    with = "fastplyr::row_id()"
+  )
+  fastplyr::row_id(x, ascending = ascending)
 }
