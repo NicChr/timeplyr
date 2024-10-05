@@ -41,7 +41,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE,
                    order = df_group_by_order_default(data),
                    name = NULL, .by = NULL, .cols = NULL){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "fcount()",
     with = "fastplyr::f_count()"
   )
@@ -60,7 +60,7 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE,
                        order = df_group_by_order_default(data),
                        name = NULL, .by = NULL, .cols = NULL){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "fadd_count()",
     with = "fastplyr::f_add_count()"
   )

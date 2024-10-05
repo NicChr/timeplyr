@@ -598,9 +598,9 @@ cut_time2 <- function(x, breaks, rightmost.closed = FALSE, left.open = FALSE){
 # cpp_bin is basically .bincode with the extra features but isn't limited to
 # right-open intervals
 cut_time <- function(x, breaks, include_oob = FALSE, codes = FALSE, include_lowest = TRUE){
-  cpp_bin(x, breaks, codes = codes, right = FALSE,
-          include_oob = include_oob,
-          include_lowest = include_lowest)
+  cheapr::bin(x, breaks, codes = codes, left_closed = TRUE,
+              include_oob = include_oob,
+              include_endpoint = include_lowest)
 }# cut_time3 <- function(x, breaks, include_oob = FALSE, codes = FALSE,
 #                       include_highest = TRUE){
 #   cpp_right_open_bin(x, breaks, codes = codes,

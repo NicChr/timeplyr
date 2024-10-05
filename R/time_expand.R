@@ -197,13 +197,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
           # If data was grouped, we can do a full join on these variables
         } else {
           if (length(setdiff(expanded_nms, group_vars)) > 0L){
-            # out <- dplyr::full_join(out, expanded_df, by = group_vars,
-            #                         relationship = "many-to-many")
-            out <- collapse_join(out, expanded_df,
-                                 on = group_vars,
-                                 how = "full",
-                                 sort = FALSE,
-                                 multiple = TRUE)
+            out <- fastplyr::f_full_join(out, expanded_df, by = group_vars)
           }
         }
       }

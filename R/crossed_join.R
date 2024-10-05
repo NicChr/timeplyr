@@ -27,6 +27,11 @@
 crossed_join <- function(X, sort = FALSE, unique = TRUE,
                          as_dt = TRUE,
                          strings_as_factors = FALSE){
+  lifecycle::deprecate_warn(
+    when = "0.9.0",
+    what = "crossed_join()",
+    with = "'do.call(fastplyr::crossing, X)'()"
+  )
   x_nms <- names(X)
   if (unique){
     X <- lapply(X, function(x) collapse::funique(x, sort = sort))

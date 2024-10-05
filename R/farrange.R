@@ -25,7 +25,7 @@
 farrange <- function(data, ..., .by = NULL, .by_group = FALSE,
                      .cols = NULL){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "farrange()",
     with = "fastplyr::f_arrange()"
   )

@@ -23,7 +23,7 @@ asc <- function(x){
 #' @export
 desc <- function(x){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "desc()",
     with = "fastplyr::desc()"
   )

@@ -48,9 +48,14 @@ stat_summarise <- function(data, ...,
                            .names = NULL, .by = NULL, .cols = NULL,
                            inform_stats = TRUE,
                            as_tbl = FALSE){
-  if (inform_stats){
-    inform_available_stats()
-  }
+  lifecycle::deprecate_warn(
+    when = "0.9.0",
+    what = "stat_summarise()",
+    with = "fastplyr::f_summarise()"
+  )
+  # if (inform_stats){
+  #   inform_available_stats()
+  # }
   funs <- .stat_fns
   if (!is.character(stat)){
     stop("stat must be a character vector")

@@ -22,7 +22,7 @@ test_that("time_roll", {
                    na.rm = TRUE)
     expect_snapshot(smr(mu1))
     mu2 <- time_roll_mean(x, g = g, window = 5,
-                   time = frowid(g),
+                   time = fastplyr::row_id(g),
                    close_left_boundary = TRUE,
                    partial = FALSE,
                    na.rm = TRUE)

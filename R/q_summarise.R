@@ -63,6 +63,11 @@ q_summarise <- function(data, ...,
                         pivot = c("wide", "long"),
                         na.rm = TRUE, sort = df_group_by_order_default(data),
                         .by = NULL, .cols = NULL){
+  lifecycle::deprecate_warn(
+    when = "0.9.0",
+    what = "q_summarise()",
+    with = "fastplyr::tidy_quantiles()"
+  )
   pivot <- rlang::arg_match0(pivot, c("wide", "long"))
   wide <- pivot == "wide"
   group_info <- tidy_group_info(data, ..., .by = {{ .by }},

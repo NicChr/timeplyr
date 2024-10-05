@@ -56,7 +56,7 @@ group_id <- function(data, ...,
                      .by = NULL, .cols = NULL,
                      as_qg = FALSE){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "group_id()",
     with = "fastplyr::group_id()"
   )
@@ -74,7 +74,7 @@ add_group_id <- function(data, ...,
                          .name = NULL,
                          as_qg = FALSE){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "add_group_id()",
     with = "fastplyr::add_group_id()"
   )
@@ -93,7 +93,7 @@ add_group_id <- function(data, ...,
 row_id <- function(data, ..., ascending = TRUE,
                    .by = NULL, .cols = NULL){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "row_id()",
     with = "fastplyr::row_id()"
   )
@@ -105,7 +105,7 @@ add_row_id <- function(data, ..., ascending = TRUE,
                        .by = NULL, .cols = NULL,
                        .name = NULL){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "add_row_id()",
     with = "fastplyr::add_row_id()"
   )

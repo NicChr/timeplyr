@@ -45,7 +45,7 @@ group_collapse <- function(data, ..., order = TRUE, sort = FALSE,
                            start = TRUE, end = TRUE,
                            .drop = df_group_by_drop_default(data)){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "group_collapse()",
     details = "group_collapse has been deprecated and there is no alternative at the moment"
   )

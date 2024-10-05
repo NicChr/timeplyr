@@ -31,7 +31,7 @@ fdistinct <- function(data, ..., .keep_all = FALSE,
                        sort = FALSE, order = sort,
                       .by = NULL, .cols = NULL){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "fdistinct()",
     with = "fastplyr::f_distinct()"
   )

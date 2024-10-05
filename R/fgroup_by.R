@@ -31,7 +31,7 @@ fgroup_by <- function(data, ..., .add = FALSE,
                       .by = NULL, .cols = NULL,
                       .drop = df_group_by_drop_default(data)){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "fgroup_by()",
     with = "fastplyr::f_group_by()"
   )

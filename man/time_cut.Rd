@@ -3,7 +3,6 @@
 \name{time_cut}
 \alias{time_cut}
 \alias{time_breaks}
-\alias{time_cut_width}
 \title{Cut dates and datetimes into regularly spaced date or datetime intervals}
 \usage{
 time_cut(
@@ -31,13 +30,6 @@ time_breaks(
   time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
   roll_dst = getOption("timeplyr.roll_dst", "NA")
-)
-
-time_cut_width(
-  x,
-  time_by = NULL,
-  from = NULL,
-  as_interval = getOption("timeplyr.use_intervals", TRUE)
 )
 }
 \arguments{
@@ -88,16 +80,12 @@ This can be controlled globally through \code{options(timeplyr.use_intervals)}.}
 \value{
 \code{time_breaks} returns a vector of breaks. \cr
 \code{time_cut} returns either a vector or \code{time_interval}. \cr
-\code{time_cut_width} cuts the time vector into groups of equal width, e.g. a day,
-and returns the same object as \code{time_cut}. This is analogous to
-\code{ggplot2::cut_width} but the intervals are all right-open.
 }
 \description{
 Useful functions especially for when plotting time-series.
 \code{time_cut} makes approximately \code{n} groups of equal time range.
 It prioritises the highest time unit possible, making axes look
 less cluttered and thus prettier. \code{time_breaks} returns only the breaks.
-\code{time_cut_width} cuts the time vector into groups of equal width, e.g. a day.
 }
 \details{
 To retrieve regular time breaks that simply spans the range of \code{x},

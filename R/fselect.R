@@ -22,7 +22,7 @@
 #' @export
 fselect <- function(data, ..., .cols = NULL){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "fselect()",
     with = "fastplyr::f_select()"
   )
@@ -32,7 +32,7 @@ fselect <- function(data, ..., .cols = NULL){
 #' @export
 frename <- function(data, ..., .cols = NULL){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "frename()",
     with = "fastplyr::f_rename()"
   )

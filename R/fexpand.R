@@ -28,7 +28,7 @@ fexpand <- function(data, ..., expand_type = NULL,
                     sort = FALSE,
                     .by = NULL){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "fexpand()",
     with = "fastplyr::f_expand()"
   )
@@ -46,7 +46,7 @@ fcomplete <- function(data, ..., expand_type = NULL,
                       sort = FALSE, .by = NULL,
                       fill = NA){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "fcomplete()",
     with = "fastplyr::f_complete()"
   )

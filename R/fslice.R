@@ -41,7 +41,7 @@
 fslice <- function(data, ..., .by = NULL,
                    keep_order = FALSE, sort_groups = TRUE){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "fslice()",
     with = "fastplyr::f_slice()"
   )
@@ -55,7 +55,7 @@ fslice <- function(data, ..., .by = NULL,
 fslice_head <- function(data, ..., n, prop, .by = NULL,
                         keep_order = FALSE, sort_groups = TRUE){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "fslice_head()",
     with = "fastplyr::f_slice_head()"
   )
@@ -71,7 +71,7 @@ fslice_head <- function(data, ..., n, prop, .by = NULL,
 fslice_tail <- function(data, ..., n, prop, .by = NULL,
                         keep_order = FALSE, sort_groups = TRUE){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "fslice_tail()",
     with = "fastplyr::f_slice_tail()"
   )
@@ -88,7 +88,7 @@ fslice_min <- function(data, order_by, ..., n, prop, .by = NULL,
                        with_ties = TRUE, na_rm = FALSE,
                        keep_order = FALSE, sort_groups = TRUE){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "fslice_min()",
     with = "fastplyr::f_slice_min()"
   )
@@ -107,7 +107,7 @@ fslice_max <- function(data, order_by, ..., n, prop, .by = NULL,
                        with_ties = TRUE, na_rm = FALSE,
                        keep_order = FALSE, sort_groups = TRUE){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "fslice_max()",
     with = "fastplyr::f_slice_max()"
   )
@@ -127,7 +127,7 @@ fslice_sample <- function(data, n, replace = FALSE, prop,
                           keep_order = FALSE, sort_groups = TRUE,
                           weights = NULL, seed = NULL){
   lifecycle::deprecate_warn(
-    when = "0.8.2",
+    when = "0.9.0",
     what = "fslice_sample()",
     with = "fastplyr::f_slice_sample()"
   )

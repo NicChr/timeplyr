@@ -77,10 +77,9 @@ calendar <- function(x, label = TRUE,
     second <- NULL
     out_nms <- setdiff(out_nms, c("hour", "minute", "second"))
   }
-  add_names(
-    new_tbl(x, year, quarter, month, month_l, week, day,
-            yday, isoyear, isoweek, isoday, epiyear, epiweek, wday, wday_l,
-            hour, minute, second),
-    out_nms
+  fastplyr::new_tbl(
+    x, year, quarter, month, month_l, week, day,
+    yday, isoyear, isoweek, isoday, epiyear, epiweek, wday, wday_l,
+    hour, minute, second
   )
 }

@@ -19,7 +19,6 @@ df_rep <- get_from_package("df_rep", "fastplyr")
 df_rep_each <- get_from_package("df_rep_each", "fastplyr")
 df_nrow <- get_from_package("df_nrow", "fastplyr")
 df_ungroup <- get_from_package("df_ungroup", "fastplyr")
-df_n_distinct <- get_from_package("df_n_distinct", "fastplyr")
 df_init <- get_from_package("df_init", "fastplyr")
 df_paste_names <- get_from_package("df_paste_names", "fastplyr")
 df_group_by_drop_default <- get_from_package("df_group_by_drop_default", "fastplyr")
@@ -55,30 +54,8 @@ list_as_tbl <- function(x){
 
 # Create new df with no name checks or length checks
 # ..N is there purely to create an (n > 0) x 0 data frame
-new_df <- function(..., ..N = NULL, .recycle = FALSE){
-  if (.recycle){
-    out <- cheapr::recycle(...)
-  } else {
-    out <- list3(...)
-  }
-  if (is.null(..N)){
-    if (length(out) == 0L){
-      row_names <- integer()
-    } else {
-      N <- length(.subset2(out, 1L))
-      row_names <- c(NA_integer_, -N)
-    }
-  } else {
-    row_names <- .set_row_names(..N)
-  }
-  attr(out, "names") <- as.character(attr(out, "names", TRUE))
-  attr(out, "row.names") <- row_names
-  class(out) <- "data.frame"
-  out
-}
-new_tbl <- function(..., ..N = NULL, .recycle = FALSE){
-  df_as_tbl(new_df(..., ..N = ..N, .recycle = .recycle))
-}
+new_df <- cheapr::new_df
+new_tbl <- fastplyr::new_tbl
 
 df_as_df <- function(x){
   list_as_df(x)
@@ -110,4 +87,11 @@ dplyr_row_slice.time_tbl_df <- function(data, i, ..., .preserve = FALSE){
 #' @exportS3Method dplyr::dplyr_row_slice
 dplyr_row_slice.episodes_tbl_df <- function(data, i, ..., .preserve = FALSE){
   df_row_slice(data, i)
+}
+
+df_n_distinct <- function(data){
+  GRP_n_groups(
+    df_to_GRP(data, .cols = names(data),
+              return.groups = FALSE, return.order = FALSE)
+  )
 }
