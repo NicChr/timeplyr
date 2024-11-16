@@ -4,6 +4,8 @@
 [![R-CMD-check](https://github.com/NicChr/timeplyr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/NicChr/timeplyr/actions/workflows/R-CMD-check.yaml)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/timeplyr)](https://CRAN.R-project.org/package=timeplyr)
+[![Codecov test
+coverage](https://codecov.io/gh/NicChr/timeplyr/graph/badge.svg)](https://app.codecov.io/gh/NicChr/timeplyr)
 <!-- badges: end -->
 
 # timeplyr
@@ -55,9 +57,6 @@ library(tidyverse)
 #> ✖ dplyr::filter() masks stats::filter()
 #> ✖ dplyr::lag()    masks stats::lag()
 #> ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
-```
-
-``` r
 eu_stock <- EuStockMarkets %>%
   ts_as_tibble()
 eu_stock
@@ -215,9 +214,6 @@ interval_count(quarters)
 #> 2 [2013-04-01, 2013-07-01) 85369
 #> 3 [2013-07-01, 2013-10-01) 86326
 #> 4 [2013-10-01, 2014-01-01) 84292
-```
-
-``` r
 
 # Or simply
 flights %>%
@@ -280,30 +276,16 @@ To check for regularity use `time_is_regular`
 hours <- sort(flights$time_hour)
 time_is_regular(hours, time_by = "hours")
 #> [1] TRUE
-```
-
-``` r
 time_is_regular(hours, time_by = "hours", allow_gaps = FALSE)
 #> [1] FALSE
-```
-
-``` r
 time_is_regular(hours, time_by = "hours", allow_dups = FALSE)
 #> [1] FALSE
-```
-
-``` r
 
 # By-group
 time_num_gaps(flights$time_hour, g = flights$origin, time_by = "hours")
-#>  EWR  JFK  LGA 
-#> 2489 1820 2468
-```
-
-``` r
+#> [1] 2489 1820 2468
 time_is_regular(flights$time_hour, g = flights$origin, time_by = "hours")
-#>   EWR   JFK   LGA 
-#> FALSE FALSE FALSE
+#> [1] FALSE FALSE FALSE
 ```
 
 ## `time_expand()`
@@ -408,18 +390,12 @@ g <- cheapr::seq_id(c(3, 5)) # Two groups of size 3 + 5
 #> End = 8 
 #> Frequency = 1 
 #> [1] NA  3  4  4  6  6  6  8
-```
-
-``` r
 roll_na_fill(x, fill_limit = 1) # Fill up to 1 NA
 #> Time Series:
 #> Start = 1 
 #> End = 8 
 #> Frequency = 1 
 #> [1] NA  3  4  4  6  6 NA  8
-```
-
-``` r
 
 roll_na_fill(x, g = g) # Very efficient on large data too
 #> Time Series:
@@ -437,7 +413,7 @@ inspired by the excellent ‘zoo’ and ‘tsibble’ packages.
 ``` r
 today <- today()
 year_month(today)
-#> [1] "2024 Aug"
+#> [1] "2024 Nov"
 ```
 
 The underlying data for a `year_month` is the number of months since 1
@@ -446,9 +422,6 @@ January 1970 (epoch).
 ``` r
 unclass(year_month("1970-01-01"))
 #> [1] 0
-```
-
-``` r
 unclass(year_month("1971-01-01"))
 #> [1] 12
 ```
@@ -457,14 +430,11 @@ To create a sequence of ‘year_months’, one can use base arithmetic
 
 ``` r
 year_month(today) + 0:12
-#>  [1] "2024 Aug" "2024 Sep" "2024 Oct" "2024 Nov" "2024 Dec" "2025 Jan"
-#>  [7] "2025 Feb" "2025 Mar" "2025 Apr" "2025 May" "2025 Jun" "2025 Jul"
-#> [13] "2025 Aug"
-```
-
-``` r
+#>  [1] "2024 Nov" "2024 Dec" "2025 Jan" "2025 Feb" "2025 Mar" "2025 Apr"
+#>  [7] "2025 May" "2025 Jun" "2025 Jul" "2025 Aug" "2025 Sep" "2025 Oct"
+#> [13] "2025 Nov"
 year_quarter(today) + 0:4
-#> [1] "2024 Q3" "2024 Q4" "2025 Q1" "2025 Q2" "2025 Q3"
+#> [1] "2024 Q4" "2025 Q1" "2025 Q2" "2025 Q3" "2025 Q4"
 ```
 
 ## `time_elapsed()`
@@ -496,9 +466,6 @@ all_flights <- flights %>%
 all_flights <- all_flights %>%
   mutate(elapsed = time_elapsed(time_hour, g = flight, fill = 0))
 #> Assuming a time granularity of 1 hour(s)
-```
-
-``` r
 
 # Flight numbers with largest relative deviation in time between flights
 all_flights %>%
@@ -573,9 +540,6 @@ flights_calendar %>%
 #>  9    2013       9  6444
 #> 10    2013      10  6546
 #> # ℹ 43 more rows
-```
-
-``` r
 flights_calendar %>% 
   fcount(isoweek = iso_week(time))
 #> # A tibble: 53 × 2
@@ -592,9 +556,6 @@ flights_calendar %>%
 #>  9 2013-W09  6444
 #> 10 2013-W10  6546
 #> # ℹ 43 more rows
-```
-
-``` r
 flights_calendar %>% 
   fcount(month_l)
 #> # A tibble: 12 × 2
@@ -647,9 +608,6 @@ seq(start, end, by = "month") # Base R version
 #>  [1] "2020-01-31" "2020-03-02" "2020-03-31" "2020-05-01" "2020-05-31"
 #>  [6] "2020-07-01" "2020-07-31" "2020-08-31" "2020-10-01" "2020-10-31"
 #> [11] "2020-12-01" "2020-12-31" "2021-01-31"
-```
-
-``` r
 time_seq(start, end, time_by = "month") # lubridate version
 #>  [1] "2020-01-31" "2020-02-29" "2020-03-31" "2020-04-30" "2020-05-31"
 #>  [6] "2020-06-30" "2020-07-31" "2020-08-31" "2020-09-30" "2020-10-31"
@@ -684,9 +642,6 @@ time_seq_v(from = start,
 #> [11] "2020-11-30" "2020-12-31" "2021-01-31" "2020-01-31" "2020-03-31"
 #> [16] "2020-05-31" "2020-07-31" "2020-09-30" "2020-11-30" "2021-01-31"
 #> [21] "2020-01-31" "2020-04-30" "2020-07-31" "2020-10-31" "2021-01-31"
-```
-
-``` r
 # Equivalent to 
 c(time_seq(start, end, time_by = "month"),
   time_seq(start, end, time_by = "2 months"),
@@ -707,9 +662,6 @@ seq_lengths <- time_seq_sizes(start, start + days(c(1, 10, 20)),
                               time_by = list("days" = c(1, 5, 10)))
 seq_lengths
 #> [1] 2 3 3
-```
-
-``` r
 
 # Use time_seq_v2() if you know the sequence lengths
 seqs <- time_seq_v2(seq_lengths, start, time_by = list("days" = c(1, 5, 10)))
@@ -725,16 +677,10 @@ time_seq(start, end, time_by = "month", roll_month = "postday") # roll impossibl
 #>  [1] "2020-01-31" "2020-03-01" "2020-03-31" "2020-05-01" "2020-05-31"
 #>  [6] "2020-07-01" "2020-07-31" "2020-08-31" "2020-10-01" "2020-10-31"
 #> [11] "2020-12-01" "2020-12-31" "2021-01-31"
-```
-
-``` r
 time_seq(start, end, time_by = "month", roll_month = "NA") # no roll
 #>  [1] "2020-01-31" NA           "2020-03-31" NA           "2020-05-31"
 #>  [6] NA           "2020-07-31" "2020-08-31" NA           "2020-10-31"
 #> [11] NA           "2020-12-31" "2021-01-31"
-```
-
-``` r
 
 time_seq(start, end, time_by = dmonths(1)) # lubridate version with durations
 #>  [1] "2020-01-31 00:00:00 UTC" "2020-03-01 10:30:00 UTC"
@@ -752,17 +698,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2024-W33"
-```
-
-``` r
+#> [1] "2024-W46"
 iso_week(today(), day = TRUE)
-#> [1] "2024-W33-6"
-```
-
-``` r
+#> [1] "2024-W46-6"
 iso_week(today(), year = FALSE)
-#> [1] "W33"
+#> [1] "W46"
 ```
 
 ## `time_cut()`
