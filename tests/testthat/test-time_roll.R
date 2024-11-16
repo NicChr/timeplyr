@@ -5,7 +5,7 @@ collapse::set_collapse(nthreads = 1L)
 
 test_that("time_roll", {
   max_print <- getOption("max.print", 1000L)
-  options(max.print = 5)
+  options(max.print = 50)
   smr <- function(x){
     x <- x[!is.na(x)]
     c(var(x), mean(x), sd(x), stats::quantile(x, names = FALSE,
