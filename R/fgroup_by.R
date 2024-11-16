@@ -39,7 +39,7 @@ fgroup_by <- function(data, ..., .add = FALSE,
     data, ...,
     .add = .add,
     .drop = .drop,
-    order = order,
+    .order = order,
     .by = {{ .by }},
     .cols = .cols
   )

@@ -272,7 +272,7 @@ time_countv <- function(x, time_by = NULL, from = NULL, to = NULL,
   }
   out <- new_tbl(x = x, n = out)
   if (unique){
-    out <- fastplyr::f_distinct(out, .cols = "x", sort = sort, .keep_all = TRUE)
+    out <- fastplyr::f_distinct(out, .cols = "x", .sort = sort, .keep_all = TRUE)
   }
   if (sort && !unique){
     out <- fastplyr::f_arrange(out, .cols = "x")

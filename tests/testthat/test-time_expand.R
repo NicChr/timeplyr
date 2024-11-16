@@ -23,7 +23,7 @@ test_that("time expand", {
     df2 %>%
       fastplyr::f_distinct(time_hour) %>%
       fastplyr::f_complete(time_hour = time_span(time_hour, time_by = "hour"),
-                sort = TRUE)
+                .sort = TRUE)
   )
   expect_equal(
     df2 %>%
@@ -31,7 +31,7 @@ test_that("time expand", {
     df2 %>%
       fastplyr::f_distinct(time_hour) %>%
       fastplyr::f_complete(time_hour = time_span(time_hour, time_by = "hour"),
-                sort = TRUE) %>%
+                .sort = TRUE) %>%
       dplyr::reframe(time_hour = cut_time2(time_hour,
                                            time_span(time_hour, time_by = "week"))) %>%
       fastplyr::f_distinct()
@@ -43,7 +43,7 @@ test_that("time expand", {
     df2 %>%
       fastplyr::f_distinct(time_hour) %>%
       fastplyr::f_complete(time_hour = time_span(time_hour, time_by = "hour"),
-                sort = TRUE) %>%
+                .sort = TRUE) %>%
       dplyr::reframe(time_hour = cut_time2(time_hour,
                                            time_span(time_hour, time_by = "week",
                                                      time_floor = TRUE))) %>%
@@ -166,13 +166,13 @@ test_that("time expand", {
     df %>%
       time_complete(time = NULL, fastplyr::crossing(dest, origin), sort = FALSE),
     df %>%
-      fastplyr::f_complete(dest, origin, sort = FALSE)
+      fastplyr::f_complete(dest, origin, .sort = FALSE)
   )
   expect_equal(
     df %>%
       time_complete(time = NULL, dest, origin, sort = TRUE),
     df %>%
-      fastplyr::f_complete(dest, origin, sort = TRUE)
+      fastplyr::f_complete(dest, origin, .sort = TRUE)
   )
   expect_equal(
     df %>%
@@ -186,7 +186,7 @@ test_that("time expand", {
     df2 %>%
       fastplyr::f_complete(
         time_hour = time_span(time_hour, time_by = "hour"),
-        sort = TRUE
+        .sort = TRUE
       )
   )
   expect_equal(
@@ -194,7 +194,7 @@ test_that("time expand", {
       time_complete(time = time_hour, time_by = "week"),
     df2 %>%
       fastplyr::f_complete(time_hour = time_span(time_hour, time_by = "week"),
-                           sort = TRUE)
+                           .sort = TRUE)
   )
   # With groups..
   expect_equal(

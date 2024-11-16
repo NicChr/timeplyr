@@ -102,8 +102,8 @@ sort_data_by_GRP <- function(x, g, sorted_group_starts = TRUE){
   group_order <- GRP_order(g)
   groups_are_sorted <- isTRUE(attr(group_order, "sorted"))
   if (!groups_are_sorted){
-    x <- cheapr::sset(x, group_order)
-    group_id <- cheapr::sset(group_id, group_order)
+    x <- sset(x, group_order)
+    group_id <- sset(group_id, group_order)
   }
   if (sorted_group_starts){
     if (groups_are_sorted){
@@ -137,7 +137,7 @@ greorder2 <- function(x, g, ...){
     return(x)
   }
   if (is.list(x)){
-    cheapr::sset(
+    sset(
       x,
       collapse::greorder(
         seq_len(NROW(x)), g = g, ...

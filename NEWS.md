@@ -1,5 +1,12 @@
 # timeplyr (Development version)
 
+* It is likely that in the near future, objects of class 'time_interval' will
+be re-imagined to be more efficient fixed-width intervals with a different 
+data structure.
+
+* Many functions that were not time-related have now been deprecated, most
+having been migrated over to the 'fastplyr' package.
+
 # timeplyr 0.8.2
 
 * time_intervals are now used by default. Use the 'timeplyr.use_intervals' option

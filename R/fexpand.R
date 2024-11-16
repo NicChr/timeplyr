@@ -34,11 +34,11 @@ fexpand <- function(data, ..., expand_type = NULL,
   )
   if (!is.null(expand_type)){
     lifecycle::deprecate_soft(
-      "0.8.2",
+      "0.9.0",
       "time_expand(expand_type)"
     )
   }
-  fastplyr::f_expand(data, ..., sort = sort, .by = {{ .by }})
+  fastplyr::f_expand(data, ..., .sort = sort, .by = {{ .by }})
 }
 #' @rdname fexpand
 #' @export
@@ -56,5 +56,5 @@ fcomplete <- function(data, ..., expand_type = NULL,
       "time_expand(expand_type)"
     )
   }
-  fastplyr::f_complete(data, ..., sort = sort, .by = {{ .by }})
+  fastplyr::f_complete(data, ..., .sort = sort, .by = {{ .by }})
 }

@@ -1,4 +1,4 @@
-#include "timeplyr_cpp.h"
+#include "timeplyr.h"
 
 // Returns true if all numbers are whole numbers
 // otherwise false

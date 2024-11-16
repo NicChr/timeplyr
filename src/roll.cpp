@@ -1,6 +1,4 @@
-#include "timeplyr_cpp.h"
-#include <cpp11.hpp>
-#include <Rinternals.h>
+#include "timeplyr.h"
 
 [[cpp11::register]]
 SEXP cpp_roll_count_na(SEXP x, double window, bool invert, bool partial){

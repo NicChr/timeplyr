@@ -6,7 +6,7 @@
 #   if (is.null(x)){
 #     return(NULL)
 #   }
-#   n <- as.integer(sign(n) * min(vec_length(x), abs(n)))
+#   n <- as.integer(sign(n) * min(cheapr::vector_length(x), abs(n)))
 #   sorted_group_info <- sort_data_by_GRP(x, g = g, sorted_group_starts = FALSE)
 #   g <- sorted_group_info[["GRP"]]
 #   sorted_g <- sorted_group_info[["sorted_GRP"]]
@@ -65,8 +65,8 @@
 # }
 
 # Vctrs style rolling chop
-roll_chop <- function(x, sizes = rep_len(1L, vec_length(x))){
-  x_size <- vec_length(x)
+roll_chop <- function(x, sizes = rep_len(1L, cheapr::vector_length(x))){
+  x_size <- cheapr::vector_length(x)
   out_length <- length(sizes)
   if (x_size != length(sizes)){
     stop("length of x must equal length of sizes")
@@ -114,9 +114,9 @@ frollmean3 <- function(x, n, weights = NULL, ...){
 #   i[which(i == 0L)] <- NA_integer_
 #   x[i]
 #   # na_id <- cpp_consecutive_na_id(x, TRUE)
-#   # i <- seq_len(vec_length(x)) - na_id
+#   # i <- seq_len(cheapr::vector_length(x)) - na_id
 #   # i[which(i == 0L)] <- NA_integer_
-#   # cheapr::sset(x, i)
+#   # sset(x, i)
 #   # # x[seq_along(x) - na_id]
 # }
 # na_focb <- function(x){
@@ -125,14 +125,14 @@ frollmean3 <- function(x, n, weights = NULL, ...){
 #   i[which(i == 0L)] <- NA_integer_
 #   x[i]
 #   # na_id <- cpp_consecutive_na_id(x, FALSE)
-#   # i <- seq_len(vec_length(x)) + na_id
+#   # i <- seq_len(cheapr::vector_length(x)) + na_id
 #   # i[which(i == 0L)] <- NA_integer_
-#   # cheapr::sset(x, i)
+#   # sset(x, i)
 #   # # x[seq_along(x) + na_id]
 # }
 # Mostly base R rolling chop
-# roll_chop3 <- function(x, sizes = collapse::alloc(1L, vec_length(x))){
-#   x_size <- vec_length(x)
+# roll_chop3 <- function(x, sizes = collapse::alloc(1L, cheapr::vector_length(x))){
+#   x_size <- cheapr::vector_length(x)
 #   out_length <- length(sizes)
 #   if (x_size != length(sizes)){
 #     stop("length of x must equal length of sizes")
@@ -150,7 +150,7 @@ frollmean3 <- function(x, n, weights = NULL, ...){
 #     }
 #   } else {
 #     for (i in seq_len(x_size)){
-#       out[[i]] <- cheapr::sset(x, seq_len(.subset(sizes, i)) + (i - .subset(sizes, i)))
+#       out[[i]] <- sset(x, seq_len(.subset(sizes, i)) + (i - .subset(sizes, i)))
 #     }
 #   }
 #   out

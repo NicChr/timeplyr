@@ -146,14 +146,14 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
     ),
     delay_nm
   ))
-  n_miss_delays <- na_count(out[[delay_nm]])
+  n_miss_delays <- cheapr::na_count(out[[delay_nm]])
   if (n_miss_delays > 0){
     warning(paste(n_miss_delays, "missing observations will be
                   removed before calculation.",
                   sep = " "))
   }
   # Remove outliers
-  out <- cheapr::sset(out,
+  out <- sset(out,
                       data.table::between(out[[delay_nm]], min_delay, max_delay,
                                           incbounds = TRUE, NAbounds = NA))
   # Quantile summary

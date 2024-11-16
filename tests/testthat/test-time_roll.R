@@ -47,7 +47,7 @@ test_that("time_roll", {
     # With NA -----------------------------------------------------------------
 
 
-    x <- na_fill(x, prop = 0.3)
+    x <- cheapr::na_insert(x, prop = 0.3)
     z1 <- time_roll_mean(x, time = t, days(11), close_left_boundary = TRUE)
     expect_snapshot(smr(z1))
     # With gaps ---------------------------------------------------------------

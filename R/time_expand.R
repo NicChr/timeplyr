@@ -96,7 +96,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
                         roll_dst = getOption("timeplyr.roll_dst", "NA")){
   if (!is.null(expand_type)){
     lifecycle::deprecate_soft(
-      "0.8.2",
+      "0.9.0",
       "time_expand(expand_type)"
     )
   }
@@ -104,7 +104,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
   group_vars <- get_groups(data, {{ .by }})
   temp_data <- data
   if (length(group_vars(data)) == 0){
-    temp_data <- fastplyr::f_group_by(temp_data, .by = {{ .by }}, order = FALSE)
+    temp_data <- fastplyr::f_group_by(temp_data, .by = {{ .by }}, .order = FALSE)
   }
   group_ids <- df_group_id(temp_data)
   time_info <- mutate_summary_grouped(temp_data, !!enquo(time), .keep = "none")
@@ -183,7 +183,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
     out <- df_rm_cols(out, grp_nm)
     if (dots_length(...) > 0){
         expanded_df <- fastplyr::f_expand(data, ...,
-                                          sort = FALSE, .by = {{ .by }})
+                                          .sort = FALSE, .by = {{ .by }})
       expanded_nms <- names(expanded_df)
       if (df_nrow(expanded_df) > 0L){
         # If there are no common cols, just cross join them
@@ -209,7 +209,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
       out <- fastplyr::f_arrange(out, .cols = sort_nms)
     }
   } else {
-      out <- fastplyr::f_expand(data, ..., sort = sort, .by = {{ .by }})
+      out <- fastplyr::f_expand(data, ..., .sort = sort, .by = {{ .by }})
   }
   reconstruct(data, out)
 }
@@ -227,7 +227,7 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
                           roll_dst = getOption("timeplyr.roll_dst", "NA")){
   if (!is.null(expand_type)){
     lifecycle::deprecate_soft(
-      "0.8.2",
+      "0.9.0",
       "time_complete(expand_type)"
     )
   }
@@ -257,11 +257,11 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
     if (length(time_var) > 0){
       out[[time_var]] <- time_cast(out[[time_var]], expanded_df[[time_var]])
     }
-    extra <- cheapr::setdiff_(expanded_df, cheapr::sset(out, j = names(expanded_df)))
+    extra <- cheapr::setdiff_(expanded_df, sset(out, j = names(expanded_df)))
     if (df_nrow(extra) > 0){
       extra <- fastplyr::f_bind_cols(
         extra,
-        df_init(cheapr::sset(out, j = setdiff(names(out), names(expanded_df))),
+        df_init(sset(out, j = setdiff(names(out), names(expanded_df))),
                 df_nrow(extra))
       )
       out <- fastplyr::f_bind_rows(out, extra)

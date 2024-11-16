@@ -20,7 +20,7 @@ new_dt <- function(..., .copy = TRUE, .recycle = FALSE){
 df_as_dt <- function(x, .copy = TRUE){
   out <- x
   if (.copy){
-    out <- cpp_copy(out)
+    out <- r_copy(out)
   }
   # Prefer collapse::qDT() to data.table::setalloccol()
   # Because the latter destroys time intervals

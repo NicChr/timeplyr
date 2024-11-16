@@ -45,8 +45,7 @@ fslice <- function(data, ..., .by = NULL,
     what = "fslice()",
     with = "fastplyr::f_slice()"
   )
-  dots <- c(...)
-  fastplyr::f_slice(data, i = dots,
+  fastplyr::f_slice(data, i = c(...),
                     .by = {{ .by }},
                     keep_order = keep_order)
 }

@@ -92,9 +92,7 @@ time_gaps <- function(x, time_by = NULL,
   time_full_tbl <- cheapr::enframe_(time_seq,
                                     name = "group",
                                     value = "time")
-  out_tbl <- collapse_join(time_full_tbl, time_tbl,
-                           on = names(time_tbl),
-                           how = "anti")
+  out_tbl <- fastplyr::f_anti_join(time_full_tbl, time_tbl, by = names(time_tbl))
   if (!use.g.names){
     out_tbl <- fastplyr::f_select(out_tbl, .cols = "time")
   }

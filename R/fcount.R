@@ -48,7 +48,7 @@ fcount <- function(data, ..., wt = NULL, sort = FALSE,
   fastplyr::f_count(
     data, ..., wt = {{ wt }},
     sort = sort,
-    order = order,
+    .order = order,
     .by = {{ .by }},
     .cols = .cols
   )
@@ -67,7 +67,7 @@ fadd_count <- function(data, ..., wt = NULL, sort = FALSE,
   fastplyr::f_add_count(
     data, ..., wt = {{ wt }},
     sort = sort,
-    order = order,
+    .order = order,
     .by = {{ .by }},
     .cols = .cols,
     name = name

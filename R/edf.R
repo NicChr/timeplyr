@@ -64,7 +64,7 @@
 #'}
 #' @export
 edf <- function(x, g = NULL, wt = NULL){
-  n_na <- na_count(x)
+  n_na <- cheapr::na_count(x)
   nx <- length(x)
   if (is.null(g)){
     x_order <- radix_order(x)

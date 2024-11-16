@@ -324,11 +324,11 @@ convert_common_dates <- function(x){
   } else if (is.character(x)){
     which_na <- which_na(x)
     out <- lubridate::ymd(x, quiet = TRUE)
-    num_na <- na_count(out)
+    num_na <- cheapr::na_count(out)
     if (num_na > length(which_na)){
       out <- lubridate::dmy(x, quiet = TRUE)
     }
-    num_na <- na_count(out)
+    num_na <- cheapr::na_count(out)
     if (num_na > length(which_na)){
       out <- lubridate::Date(length(x))
     }
@@ -538,8 +538,8 @@ set_time_cast <- function(x, y){
     stop("Users cannot use set_time_cast from the global environment")
   }
   if (!identical(class(x), class(y))){
-    x_nm <- simple_deparse(substitute(x))
-    y_nm <- simple_deparse(substitute(y))
+    x_nm <- deparse2(substitute(x))
+    y_nm <- deparse2(substitute(y))
     assign(x_nm, time_cast(x, y), envir = parent.frame(n = 1))
     assign(y_nm, time_cast(y, x), envir = parent.frame(n = 1))
   }
@@ -583,36 +583,13 @@ cut_time2 <- function(x, breaks, rightmost.closed = FALSE, left.open = FALSE){
              all.inside = FALSE)
   ]
 }
-# .bincode but with extra features and limited to right-open intervals
-# It can return the breaks as well as the break locations (one or the other)
-# It can also include out-of-bounds values (like in findInterval)
-#
-# To-do:
-# It also always enforces right-open intervals, so the include.lowest argument
-# has been omitted
-# This hasn't been done because users can specify inclusive time end-points
-# Which makes everything complicated. A possible solution would be to
-# make the to argument exclusive and from inclusive. In practice this is messy.
 
-# include_oob is equivalent to c(breaks, Inf)
-# cpp_bin is basically .bincode with the extra features but isn't limited to
-# right-open intervals
 cut_time <- function(x, breaks, include_oob = FALSE, codes = FALSE, include_lowest = TRUE){
   cheapr::bin(x, breaks, codes = codes, left_closed = TRUE,
               include_oob = include_oob,
               include_endpoint = include_lowest)
-}# cut_time3 <- function(x, breaks, include_oob = FALSE, codes = FALSE,
-#                       include_highest = TRUE){
-#   cpp_right_open_bin(x, breaks, codes = codes,
-#                      include_oob = include_oob,
-#                      include_highest = include_highest)
-# }
-# cut_time3 <- function(x, breaks, include_oob = FALSE, codes = FALSE,
-#                       highest_in_new_interval = FALSE){
-#   cpp_right_open_bin(x, breaks, codes = codes,
-#                      include_oob = include_oob,
-#                      highest_in_new_interval = highest_in_new_interval)
-# }
+}
+
 # Check for date sequences that should not be coerced to datetimes
 is_special_case_days <- function(from, to, unit, num, time_type){
   time_type == "auto" &&
@@ -1357,7 +1334,7 @@ divide_interval_by_period2 <- function(start, end, per){
   timespans <- cheapr::recycle(start = start, end = end, length = max_len)
   # Here we make sure to use rep method for lubridate periods
   timespans[[3]] <- rep_single_unit_period(per, length.out = max_len)
-  if (na_count(estimate) == 0) {
+  if (cheapr::na_count(estimate) == 0) {
     adj_dur_est(estimate, timespans[[1]], timespans[[2]], timespans[[3]])
   } else {
     not_nas <- which_not_na(estimate)

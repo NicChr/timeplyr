@@ -185,7 +185,7 @@ time_episodes <- function(data, time, time_by = NULL,
   }
   start_nms <- names(data)
   time_quo <- enquo(time)
-  data <- fastplyr::f_group_by(data, .by = {{ .by }}, order = TRUE, .add = TRUE)
+  data <- fastplyr::f_group_by(data, .by = {{ .by }}, .order = TRUE, .add = TRUE)
   group_vars <- get_groups(data)
   time_col <- tidy_select_names(data, !!time_quo)
   out <- data
@@ -213,7 +213,7 @@ time_episodes <- function(data, time, time_by = NULL,
                           1L, 0L)
     ), event_id_nm))
     # if (count_val(cheapr::row_na_counts(fastplyr::f_select(out, .cols = c(time_col, event_col))), 1) > 0){
-    if (na_count(fpluck(out, event_col)) != na_count(fpluck(out, time_col))){
+    if (cheapr::na_count(fpluck(out, event_col)) != cheapr::na_count(fpluck(out, time_col))){
       warning(paste0("There is a mismatch of NAs between ",
                      time_col, " and ",
                      event_col, ", please check."))
@@ -359,14 +359,10 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
     )
   }
   if ("t_elapsed" %in% names(x) && "ep_id_new" %in% names(x)){
-    counts <- fn(x[["ep_id_new"]], g = GRPS, use.g.names = FALSE)
-    ## Elapsed time between events (weighted by group counts)
     which_index <- which_val(x[["ep_id_new"]], 1L)
     elapsed <- x[["t_elapsed"]]
     elapsed[which_index] <- NA
-    mean_elapsed <- collapse::fmean(elapsed, g = GRPS,
-                                    use.g.names = FALSE, na.rm = TRUE)
-    pooled_elapsed <- arithmetic_mean(mean_elapsed, weights = counts)
+    pooled_elapsed <- mean(elapsed, na.rm = TRUE)
     if (length(pooled_elapsed) == 0){
       pooled_string <- "NaN"
       } else {

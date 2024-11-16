@@ -1,4 +1,4 @@
-#include "timeplyr_cpp.h"
+#include "timeplyr.h"
 
 [[cpp11::register]]
 SEXP cpp_roll_na_fill(SEXP x, double fill_limit) {

@@ -10,8 +10,8 @@ testthat::test_that("NA fill", {
   groups <- sample(words, size = 10^5, replace = TRUE)
   groups2 <- sample(words, size = 10^5, replace = TRUE)
   x <- sample.int(10^2, 10^5, TRUE)
-  y <- na_fill(rnorm(10^5), prop = 3/5)
-  z <- na_fill(groups2, prop = 3/5)
+  y <- cheapr::na_insert(rnorm(10^5), prop = 3/5)
+  z <- cheapr::na_insert(groups2, prop = 3/5)
   x[sample.int(10^5, 10^4)] <- NA
 
   df <- new_tbl(x = x, y = y, z = z, groups = groups, groups2 = groups2)
@@ -109,7 +109,7 @@ testthat::test_that("extra tests", {
   set.seed(43)
   x <- sample.int(10, 10^3, T)
   g <- sample.int(3, 10^3, T)
-  x <- na_fill(x, prop = 1/3)
+  x <- cheapr::na_insert(x, prop = 1/3)
 
   res1 <- roll_na_fill(x, g = g)
   res2 <- dplyr::pull(

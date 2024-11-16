@@ -53,9 +53,9 @@ testthat::test_that("Grouped lags", {
   y <- round(rnorm(100), 2)
   z <- as.logical(sample.int(2, 100, TRUE) - 1L)
 
-  x <- na_fill(x, prop = 1/4)
-  y <- na_fill(y, prop = 1/3)
-  z <- na_fill(z, prop = 1/5)
+  x <- cheapr::na_insert(x, prop = 1/4)
+  y <- cheapr::na_insert(y, prop = 1/3)
+  z <- cheapr::na_insert(z, prop = 1/5)
 
   gx <- sample.int(5, length(x), TRUE)
   gy <- sample.int(5, length(y), TRUE) - 3L

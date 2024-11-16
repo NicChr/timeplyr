@@ -61,7 +61,7 @@ group_id <- function(data, ...,
     with = "fastplyr::group_id()"
   )
   fastplyr::group_id(
-    data, order = order,
+    data, .order = order,
     ascending = ascending, as_qg = as_qg
   )
 }
@@ -80,8 +80,8 @@ add_group_id <- function(data, ...,
   )
   fastplyr::add_group_id(
     data, ...,
-    order = order,
-    ascending = ascending,
+    .order = order,
+    .ascending = ascending,
     as_qg = as_qg,
     .by = {{ .by }},
     .cols = .cols,
@@ -111,7 +111,7 @@ add_row_id <- function(data, ..., ascending = TRUE,
   )
   fastplyr::add_row_id(
     data, ...,
-    ascending = ascending,
+    .ascending = ascending,
     .by = {{ .by }},
     .cols = .cols,
     .name = .name
@@ -195,8 +195,8 @@ old_group_id <- function(data, ...,
                          as_qg = FALSE){
   fastplyr::add_group_id(
     data, ...,
-    order = order,
-    ascending = ascending,
+    .order = order,
+    .ascending = ascending,
     .by = {{ .by }},
     .cols = .cols,
     .name = ".internal.temp.group.id",

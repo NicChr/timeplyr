@@ -1,4 +1,4 @@
-#include "timeplyr_cpp.h"
+#include "timeplyr.h"
 
 // Integer difference accounting for overflow
 int int_diff(int x, int y){
