@@ -421,3 +421,38 @@ tidy_group_info <- get_from_package("tidy_group_info", "fastplyr")
 col_select_names <- get_from_package("col_select_names", "fastplyr")
 tidy_select_names <- get_from_package("tidy_select_names", "fastplyr")
 tidy_select_pos <- get_from_package("tidy_select_pos", "fastplyr")
+cpp_set_list_element <- get_from_package("cpp_set_list_element", "fastplyr")
+
+# A `data.table::setorder()` that works for any data frame
+df_set_order <- function(x, .cols = names(x), .order = 1L){
+
+  ## Make sure this only works for data frames of simple vectors
+
+  group_vars <- group_vars(x)
+
+  y <- cheapr::new_list(length(names(x)))
+  names(y) <- names(x)
+  for (i in seq_along(y)){
+    cpp_set_list_element(y, i, x[[i]])
+  }
+
+  # setDT() creates a sort of shallow copy
+  # so we can't directly use it on x
+  data.table::setDT(y)
+  data.table::setorderv(y, cols = col_select_names(x, .cols), na.last = TRUE, order = .order)
+
+  # Add cols back to x by reference
+  # This ensures materialised ALTREP objects in y
+  # are definitely copied back to x
+
+  for (i in seq_along(y)){
+    cpp_set_list_element(x, i, y[[i]])
+  }
+  if (length(group_vars) > 0){
+    # Add re-calculated group data
+    groups <- group_data(fastplyr::f_group_by(fastplyr::f_ungroup(x), .cols = group_vars))
+    set_add_attr(x, "groups", groups)
+  } else {
+    x
+  }
+}

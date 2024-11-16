@@ -18,7 +18,7 @@ df_rm_cols <- get_from_package("df_rm_cols", "fastplyr")
 df_rep <- get_from_package("df_rep", "fastplyr")
 df_rep_each <- get_from_package("df_rep_each", "fastplyr")
 df_nrow <- get_from_package("df_nrow", "fastplyr")
-df_ungroup <- get_from_package("df_ungroup", "fastplyr")
+df_ungroup <- fastplyr::f_ungroup
 df_init <- get_from_package("df_init", "fastplyr")
 df_paste_names <- get_from_package("df_paste_names", "fastplyr")
 df_group_by_drop_default <- get_from_package("df_group_by_drop_default", "fastplyr")
