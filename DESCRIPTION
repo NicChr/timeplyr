@@ -14,7 +14,7 @@ Depends:
 Imports:
     cheapr (>= 0.9.91),
     collapse (>= 2.0.0),
-    cppdoubles,
+    cppdoubles (>= 0.3.0),
     data.table (>= 1.14.8),
     dplyr (>= 1.1.0),
     fastplyr (>= 0.4.0),
