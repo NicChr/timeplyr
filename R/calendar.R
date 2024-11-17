@@ -41,31 +41,31 @@ calendar <- function(x, label = TRUE,
   dates <- convert_common_dates(x)
   time_info <- as.POSIXlt(dates)
   year <- time_info$year + 1900L
-  quarter <- as.integer(lubridate::quarter(time_info,
-                                           type = "quarter",
-                                           fiscal_start = fiscal_start))
+  quarter <- (( (time_info$mon %/% 3L) + (as.integer(fiscal_start) - 1L) ) %% 4L) + 1L
   month <- time_info$mon + 1L
-  week <- as.integer(lubridate::week(time_info))
   day <- time_info$mday
   yday <- time_info$yday
+  week <- ( (yday %/% 7L) + 1L )
   isoyear <- as.integer(lubridate::isoyear(time_info))
   isoweek <- as.integer(lubridate::isoweek(time_info))
-  isoday <- isoday(time_info)
+  isoday <- cheapr::val_replace(time_info$wday, 0L, 7L)
   epiyear <- as.integer(lubridate::epiyear(time_info))
   epiweek <- as.integer(lubridate::epiweek(time_info))
-  wday <- as.integer(lubridate::wday(time_info, week_start = week_start))
-  out_nms <- c(name, "year", "quarter", "month",
-               "month_l", "week", "day", "yday", "isoyear",
-               "isoweek", "isoday", "epiyear", "epiweek",
-               "wday", "wday_l",
-               "hour", "minute", "second")
+  wday <- cheapr::val_replace((time_info$wday - (as.integer(week_start) - 1L)) %% 7L, 0L, 7L)
   if (label){
-    wday_l <- lubridate::wday(time_info, week_start = week_start, label = TRUE)
-    month_l <- lubridate::month(time_info, label = TRUE, abbr = TRUE)
+    days <- c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+    days <- days[cheapr::val_replace((1:7 + (week_start)) %% 7L, 0L, 7L)]
+
+    wday_l <- as.integer(wday)
+    attr(wday_l, "levels") <- days
+    class(wday_l) <- c("ordered", "factor")
+
+    month_l <- as.integer(time_info$mon + 1L)
+    attr(month_l, "levels") <- .months
+    class(month_l) <- c("ordered", "factor")
   } else {
     wday_l <- NULL
     month_l <- NULL
-    out_nms <- setdiff(out_nms, c("wday_l", "month_l"))
   }
   if (is_datetime(dates)){
     hour <- time_info$hour
@@ -75,7 +75,6 @@ calendar <- function(x, label = TRUE,
     hour <- NULL
     minute <- NULL
     second <- NULL
-    out_nms <- setdiff(out_nms, c("hour", "minute", "second"))
   }
   out <- fastplyr::new_tbl(
     x, year, quarter, month, month_l, week, day,

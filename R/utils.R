@@ -11,6 +11,7 @@ dots_length <- function(...){
 dot_nms <- get_from_package("expr_names", "cheapr")
 deparse2 <- get_from_package("deparse2", "cheapr")
 r_copy <- get_from_package("r_copy", "cheapr")
+cpp_loc_set_replace <- get_from_package("cpp_loc_set_replace", "cheapr")
 
 set_recycle_args <- function(..., length = NULL, use.names = TRUE){
   if (identical(base::parent.frame(n = 1), base::globalenv())){
@@ -322,14 +323,6 @@ tsp <- function(x){
   attr(x, "tsp")
 }
 
-# Sort x with no copy
-# If y is supplied, sort x using y
-# set_order <- function(x, y = NULL){
-#   df <- collapse::qDT(list3(x = x, y = y))
-#   data.table::setorderv(df, cols = names(df)[df_ncol(df)])
-#   invisible(x)
-# }
-
 # setdiff where x and y are unique vectors
 setdiff2 <- function(x, y){
   x[match(x, y, 0L) == 0L]
@@ -423,36 +416,3 @@ tidy_select_names <- get_from_package("tidy_select_names", "fastplyr")
 tidy_select_pos <- get_from_package("tidy_select_pos", "fastplyr")
 cpp_set_list_element <- get_from_package("cpp_set_list_element", "fastplyr")
 
-# A `data.table::setorder()` that works for any data frame
-df_set_order <- function(x, .cols = names(x), .order = 1L){
-
-  ## Make sure this only works for data frames of simple vectors
-
-  group_vars <- group_vars(x)
-
-  y <- cheapr::new_list(length(names(x)))
-  names(y) <- names(x)
-  for (i in seq_along(y)){
-    cpp_set_list_element(y, i, x[[i]])
-  }
-
-  # setDT() creates a sort of shallow copy
-  # so we can't directly use it on x
-  data.table::setDT(y)
-  data.table::setorderv(y, cols = col_select_names(x, .cols), na.last = TRUE, order = .order)
-
-  # Add cols back to x by reference
-  # This ensures materialised ALTREP objects in y
-  # are definitely copied back to x
-
-  for (i in seq_along(y)){
-    cpp_set_list_element(x, i, y[[i]])
-  }
-  if (length(group_vars) > 0){
-    # Add re-calculated group data
-    groups <- group_data(fastplyr::f_group_by(fastplyr::f_ungroup(x), .cols = group_vars))
-    set_add_attr(x, "groups", groups)
-  } else {
-    x
-  }
-}

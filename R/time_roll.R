@@ -634,7 +634,7 @@ time_roll_apply <- function(x, window = Inf, fun,
     out[[i]] <- fun(x[seq_len(.subset(sizes, i)) + (i - .subset(sizes, i))])
   }
   if (!partial){
-    which_zero <- which_val(sizes, 0L)
+    which_zero <- cheapr::val_find(sizes, 0L)
     if (length(which_zero) > 0L){
       ptype <- out[[1L]][0L]
     }

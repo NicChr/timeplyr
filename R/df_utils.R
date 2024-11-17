@@ -95,3 +95,37 @@ df_n_distinct <- function(data){
               return.groups = FALSE, return.order = FALSE)
   )
 }
+
+# A `data.table::setorder()` that works for any data frame
+df_set_order <- function(x, .cols = names(x), .order = 1L){
+
+  ## Make sure this only works for data frames of simple vectors
+
+  group_vars <- group_vars(x)
+
+  temp_list <- cheapr::new_list(length(names(x)))
+  names(temp_list) <- names(x)
+  for (i in seq_along(temp_list)){
+    cpp_set_list_element(temp_list, i, x[[i]])
+  }
+
+  # setDT() creates a sort of shallow copy
+  # so we can't directly use it on x
+  data.table::setDT(temp_list)
+  data.table::setorderv(temp_list, cols = col_select_names(x, .cols), na.last = TRUE, order = .order)
+
+  # Add cols back to x by reference
+  # This ensures materialised ALTREP objects in temp_list
+  # are definitely copied back to x
+
+  for (i in seq_along(temp_list)){
+    cpp_set_list_element(x, i, temp_list[[i]])
+  }
+  if (length(group_vars) > 0){
+    # Add re-calculated group data
+    groups <- group_data(fastplyr::f_group_by(fastplyr::f_ungroup(x), .cols = group_vars))
+    set_add_attr(x, "groups", groups)
+  } else {
+    x
+  }
+}
