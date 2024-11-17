@@ -6,7 +6,7 @@
     Output
       # A tibble:        15 x 5
       # Episodes:        N: 5, Median: 5, Mean: 5 ▁▁▇▁▁▁▁
-      # Time b/w events: Pooled mean: ~1.86 numeric units
+      # Time b/w events: Mean: ~1.86 numeric units
       # Threshold:       3 numeric units
          time       t_elapsed ep_start   ep_id ep_id_new
          <date>         <dbl> <date>     <int>     <int>
@@ -34,7 +34,7 @@
     Output
       # A tibble:        15 x 6
       # Episodes:        N: 3, Median: 3, Mean: 3 ▁▁▇▁▁▁▁
-      # Time b/w events: Pooled mean: ~1.86 numeric units
+      # Time b/w events: Mean: ~1.86 numeric units
       # Threshold:       3 numeric units
          time       event t_elapsed ep_start   ep_id ep_id_new
          <date>     <chr>     <dbl> <date>     <int>     <int>
@@ -63,7 +63,7 @@
     Output
       # A tibble:        15 x 6
       # Episodes:        N: 4, Median: 4, Mean: 4 ▁▁▇▁▁▁▁
-      # Time b/w events: Pooled mean: 3 numeric units
+      # Time b/w events: Mean: 3 numeric units
       # Threshold:       3 numeric units
          time       event t_elapsed ep_start   ep_id ep_id_new
          <date>     <chr>     <dbl> <date>     <int>     <int>
@@ -92,7 +92,7 @@
     Output
       # A tibble:        15 x 6
       # Episodes:        N: 3, Median: 3, Mean: 3 ▁▁▇▁▁▁▁
-      # Time b/w events: Pooled mean: 3 numeric units
+      # Time b/w events: Mean: 3 numeric units
       # Threshold:       3 numeric units
          time       event t_elapsed ep_start   ep_id ep_id_new
          <date>     <chr>     <dbl> <date>     <int>     <int>
@@ -120,7 +120,7 @@
     Output
       # A tibble:        15 x 5
       # Episodes:        N: 6, Median: 6, Mean: 6 ▁▁▇▁▁▁▁
-      # Time b/w events: Pooled mean: ~1.92 weeks
+      # Time b/w events: Mean: ~1.92 weeks
       # Threshold:       5 days
          time       t_elapsed ep_start   ep_id ep_id_new
          <date>         <int> <date>     <int>     <int>
@@ -149,7 +149,7 @@
     Output
       # A tibble:        15 x 5
       # Episodes:        N: 4, Median: 4, Mean: 4 ▁▁▇▁▁▁▁
-      # Time b/w events: Pooled mean: ~1.92 weeks
+      # Time b/w events: Mean: ~1.92 weeks
       # Threshold:       5 days
          time       t_elapsed ep_start   ep_id ep_id_new
          <date>         <dbl> <date>     <int>     <int>

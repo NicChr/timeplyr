@@ -102,7 +102,7 @@ testthat::test_that("Time elapsed", {
                  na_skip = FALSE),
     df %>%
       dplyr::mutate(t = x2 - dplyr::first(x2),
-                    # t = dplyr::if_else(dplyr::row_number() == 1L, 0, t),
+                    # t = cheapr::cheapr_if_else(dplyr::row_number() == 1L, 0, t),
                     .by = g) %>%
       dplyr::pull(t)
   )
@@ -114,7 +114,7 @@ testthat::test_that("Time elapsed", {
                  na_skip = TRUE),
     df %>%
       dplyr::mutate(t = x2 - dplyr::first(x2, na_rm = TRUE),
-                    # t = dplyr::if_else(dplyr::row_number() == 1L, 0, t),
+                    # t = cheapr::cheapr_if_else(dplyr::row_number() == 1L, 0, t),
                     .by = g) %>%
       dplyr::pull(t)
   )

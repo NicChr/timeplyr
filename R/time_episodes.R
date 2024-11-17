@@ -173,9 +173,12 @@ time_episodes <- function(data, time, time_by = NULL,
   data <- fastplyr::f_group_by(data, .by = {{ .by }}, .order = TRUE, .add = TRUE)
   group_vars <- get_groups(data)
   time_col <- tidy_select_names(data, !!time_quo)
-  out <- data
+  if (length(time_col) == 0){
+    stop("Please supply date or datetime for episode calculation")
+  }
+  temp <- df_ungroup(data)
   # Data names after data-masking
-  data_nms <- names(out)
+  data_nms <- names(temp)
   if (is.null(event)){
     event_col <- character(0)
     event_id_nm <- character(0)
@@ -191,75 +194,73 @@ time_episodes <- function(data, time, time_by = NULL,
       stop(paste0("Column `", event_col, "` doesn't exist"))
     }
     # Add event identifier col
-    event_id_nm <- unique_col_name(out, ".event.id")
-    out <- df_add_cols(
-      out, add_names(list(
+    event_id_nm <- unique_col_name(temp, ".event.id")
+    temp <- df_add_cols(
+      temp, add_names(list(
         cheapr::cheapr_if_else(
-          fpluck(out, event_col) %in_% event[[1L]], 1L, 0L
+          fpluck(temp, event_col) %in_% event[[1L]], 1L, 0L
         )
       ), event_id_nm)
     )
-    if (cheapr::na_count(fpluck(out, event_col)) != cheapr::na_count(fpluck(out, time_col))){
+    if (cheapr::na_count(fpluck(temp, event_col)) != cheapr::na_count(fpluck(temp, time_col))){
       warning(paste0("There is a mismatch of NAs between ",
                      time_col, " and ",
                      event_col, ", please check."))
     }
   }
-  out <- fastplyr::f_select(out, .cols = c(group_vars, time_col,
-                                 event_col, event_id_nm))
-  # Make a copy
-  out <- r_copy(df_ungroup(out))
-  if (length(time_col) == 0){
-    stop("Please supply date or datetime for episode calculation")
-  }
-  time_by <- time_by_get(fpluck(out, time_col), time_by = time_by)
+  groups <- fastplyr::f_select(temp, .cols = group_vars)
+  events <- fastplyr::f_select(temp, .cols = event_col)
+  temp <- fastplyr::f_select(temp, .cols = c(group_vars, time_col,
+                                           event_col, event_id_nm))
+  time_by <- time_by_get(fpluck(temp, time_col), time_by = time_by)
   # Create group ID variable
   grp_nm <- unique_col_name(data_nms, ".group")
-  out <- df_add_cols(out, add_names(
+  temp <- df_add_cols(temp, add_names(
     list(
       old_group_id(data, as_qg = TRUE, order = TRUE)
     ), grp_nm
   ))
-  n_groups <- attr(out[[grp_nm]], "N.groups")
-  group_sizes <- attr(out[[grp_nm]], "group.sizes")
+  n_groups <- attr(temp[[grp_nm]], "N.groups")
+  group_sizes <- attr(temp[[grp_nm]], "group.sizes")
 
   # Remove qG class
-  strip_attrs(out[[grp_nm]], set = TRUE)
+  strip_attrs(temp[[grp_nm]], set = TRUE)
   # Group by group vars + time
-  grp_nm2 <- unique_col_name(out, ".group")
-  out <- df_add_cols(out, add_names(list(
-    old_group_id(out, .cols = c(grp_nm, time_col), order = TRUE)
+  grp_nm2 <- unique_col_name(temp, ".group")
+  temp <- df_add_cols(temp, add_names(list(
+    old_group_id(temp, .cols = c(grp_nm, time_col), order = TRUE)
   ), grp_nm2))
-  data_is_sorted <- is_sorted(out[[grp_nm2]])
+  data_is_sorted <- is_sorted(temp[[grp_nm2]])
   # Add row ID
-  row_id_nm <- unique_col_name(out, ".row_id")
-  out <- fastplyr::add_row_id(out, .name = row_id_nm)
-  # Add second group ID
+  row_id_nm <- unique_col_name(temp, ".row_id")
+  temp <- fastplyr::add_row_id(temp, .name = row_id_nm)
+
+  temp <- fastplyr::f_select(temp, .cols = c(grp_nm, grp_nm2, row_id_nm, time_col, event_id_nm))
+
   # If data is already sorted correctly, no need to sort it
   if (!data_is_sorted){
-    df_set_order(out, grp_nm2)
+    df_set_order(temp, grp_nm2)
   }
   # # Group info
   # Since group IDs are sorted at this point
   # We use our very fast internal group ID to GRP conversion
-  g <- sorted_group_id_to_GRP(out[[grp_nm]],
+  g <- sorted_group_id_to_GRP(temp[[grp_nm]],
                               n_groups = n_groups,
                               group_sizes = group_sizes)
   # Convert non-event dates to NA
   # So that they can be skipped/ignored
   if (length(event_col) > 0){
-    which_non_event <- cheapr::val_find(out[[event_id_nm]], 0L)
-    event_dates <- out[[time_col]][which_non_event] # Save to re-add later
+    which_non_event <- cheapr::val_find(temp[[event_id_nm]], 0L)
+    event_dates <- temp[[time_col]][which_non_event] # Save to re-add later
     cpp_loc_set_replace(
-      out[[time_col]],
+      temp[[time_col]],
       which_non_event,
-      na_init(out[[time_col]])
+      na_init(temp[[time_col]])
     )
   }
   ### Episode calculation ###
-  # Calculation by reference (data.table set notation)
-  out <- calc_episodes(
-    out, time = time_col,
+  temp <- calc_episodes(
+    temp, time = time_col,
     time_by = time_by,
     time_type = time_type,
     switch_on_boundary = switch_on_boundary,
@@ -271,22 +272,23 @@ time_episodes <- function(data, time, time_by = NULL,
   )
   # Re-add dates that were modified
   if (length(event_col) > 0){
-    cpp_loc_set_replace(out[[time_col]], which_non_event, event_dates)
+    cpp_loc_set_replace(temp[[time_col]], which_non_event, event_dates)
   }
   # Newly added episodic columns
   new_cols <- c("t_elapsed", "ep_start", "ep_id", "ep_id_new")
-  out <- df_rm_cols(out, c(grp_nm, grp_nm2, event_id_nm))
+  temp <- df_rm_cols(temp, c(grp_nm, grp_nm2, event_id_nm))
   # Sort by initial order
   if (!data_is_sorted){
-    df_set_order(out, row_id_nm)
+    df_set_order(temp, row_id_nm)
   }
-  out <- df_rm_cols(out, row_id_nm)
+  temp <- df_rm_cols(temp, row_id_nm)
   if (.add){
     # Simply bind the cols together
-    out <- fastplyr::f_bind_cols(data, fastplyr::f_select(out, .cols = new_cols))
+    out <- fastplyr::f_bind_cols(data, fastplyr::f_select(temp, .cols = new_cols))
   } else {
     # Only keep the key variables
     out_nms <- c(group_vars, time_col, event_col, new_cols)
+    out <- fastplyr::f_bind_cols(groups, temp, events)
     # Set the column order
     out <- fastplyr::f_select(out, .cols = out_nms)
   }
@@ -344,7 +346,7 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
     which_index <- cheapr::val_find(x[["ep_id_new"]], 1L)
     elapsed <- x[["t_elapsed"]]
     elapsed[which_index] <- NA
-    pooled_elapsed <- mean(elapsed, na.rm = TRUE)
+    pooled_elapsed <- collapse::fmean(elapsed, na.rm = TRUE)
     if (length(pooled_elapsed) == 0){
       pooled_string <- "NaN"
       } else {
@@ -361,7 +363,7 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
       }
     elapsed_header <- c(
       "Time b/w events" = paste0(
-        "Pooled mean: ",
+        "Mean: ",
         pooled_string
       )
     )
