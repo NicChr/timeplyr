@@ -1,6 +1,6 @@
 # timeplyr 0.9.0
 
-### Upcoming changes
+### Upcoming breaking changes
 
 * It is likely that in the near future, objects of class 'time_interval' will
 be re-imagined to be more efficient fixed-width intervals with a different 
@@ -10,6 +10,12 @@ such as for example a vector of intervals that span a week or a month.
 A more efficient data structure for this might be to floor the object to the
 start of its respective interval and to simply 
 add an attribute that details the width of the interval.
+
+* The `to` argument that allows for aggregating date and date-time variables
+to a specified time is currently inclusive and will be changed 
+to be non-inclusive in the near-future. This is because 
+intervals in timeplyr are left-closed right-open intervals and so the `to` 
+argument should reflect this.
 
 ### Breaking changes
 
