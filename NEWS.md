@@ -1,8 +1,17 @@
 # timeplyr 0.9.0
 
+### Upcoming changes
+
 * It is likely that in the near future, objects of class 'time_interval' will
 be re-imagined to be more efficient fixed-width intervals with a different 
-data structure.
+data structure. Currently the data structure is a length-two list containing 
+start and end times. Most intervals in timeplyr are fixed-width intervals, 
+such as for example a vector of intervals that span a week or a month. 
+A more efficient data structure for this might be to floor the object to the
+start of its respective interval and to simply 
+add an attribute that details the width of the interval.
+
+### Breaking changes
 
 * Many functions that were not time-related have now been deprecated, most
 having been migrated over to the 'fastplyr' package.
