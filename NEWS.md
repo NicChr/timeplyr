@@ -1,4 +1,4 @@
-# timeplyr (Development version)
+# timeplyr 0.9.0
 
 * It is likely that in the near future, objects of class 'time_interval' will
 be re-imagined to be more efficient fixed-width intervals with a different 

@@ -1,6 +1,6 @@
 Package: timeplyr
 Title: Fast Tidy Tools for Date and Date-Time Manipulation
-Version: 0.8.2.9000
+Version: 0.9.0
 Authors@R: 
     person("Nick", "Christofides", , "nick.christofides.r@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-9743-7342"))
@@ -14,7 +14,7 @@ Depends:
 Imports:
     cheapr (>= 0.9.91),
     collapse (>= 2.0.0),
-    cppdoubles (>= 0.3.0),
+    cppdoubles (>= 0.2.0),
     data.table (>= 1.14.8),
     dplyr (>= 1.1.0),
     fastplyr (>= 0.4.0),

@@ -495,15 +495,6 @@ as_datetime2 <- function(x){
   }
 }
 
-# This makes sure start is always <= upper bound
-bound_start <- function(x, bound){
-  pmin(time_cast(x, bound), bound, na.rm = TRUE)
-}
-# This makes sure end is always >= lower bound
-bound_end <- function(x, bound){
-  pmax(time_cast(x, bound), bound, na.rm = TRUE)
-}
-
 fcut_ind <- function(x, breaks, rightmost.closed = FALSE,
                      left.open = FALSE, all.inside = FALSE){
   breaksi <- findInterval(x,
@@ -593,31 +584,6 @@ is_interval <- function(x){
     inherits(x, "time_interval")
 }
 
-# Time cut levels from ascending time sequence
-tseq_levels <- function(x, seq, gx = NULL, gseq = NULL, fmt = NULL){
-  if (is.null(fmt)){
-    fmt_f <- time_as_character
-  } else {
-    fmt_f <- function(x, ...) format(x, format = fmt, ...)
-  }
-  n <- length(x)
-  time_breaks_fmt <- fmt_f(seq)
-  out <- stringr::str_c("[",
-                        time_breaks_fmt,
-                        ", ",
-                        roll_lag(time_breaks_fmt,
-                                 max(-1L, -n),
-                                 g = gseq),
-                        ")")
-  to <- collapse::fmax(x, g = gx, use.g.names = FALSE, na.rm = TRUE)
-  end_points <- which(is.na(out) & !is.na(seq))
-  out[end_points] <- stringr::str_c("[",
-                                    time_breaks_fmt[end_points],
-                                    ", ",
-                                    fmt_f(to),
-                                    "]")
-  out
-}
 # Internal helper to process from/to args
 get_from_to <- function(data, ..., time, from = NULL, to = NULL,
                         .by = NULL){
@@ -726,55 +692,6 @@ time_as_character <- function(x){
 }
 time_as_number <- function(x){
   strip_attrs(unclass(x))
-}
-# Important that this holds:
-# length(x) == length(start) == length(end)
-time_aggregate_left <- function(x, time_by, g = NULL,
-                                start = NULL, end = NULL,
-                                time_floor = FALSE,
-                                week_start = getOption("lubridate.week.start", 1),
-                                time_type = getOption("timeplyr.time_type", "auto"),
-                                roll_month = getOption("timeplyr.roll_month", "preday"),
-                                roll_dst = getOption("timeplyr.roll_dst", "NA"),
-                                as_interval = getOption("timeplyr.use_intervals", TRUE)){
-  time_by <- time_by_list(time_by)
-  num <- time_by_num(time_by)
-  units <- time_by_unit(time_by)
-  time_na <- na_init(x)
-  g <- GRP2(g, return.groups = FALSE)
-  if (!is.null(start)){
-    if (length(start) != length(x)){
-      stop("start must be the same length as x")
-    }
-    start <- time_cast(start, x)
-    x[which(x < start)] <- time_na
-  } else {
-    start <- gmin(x, g = g, na.rm = TRUE)
-  }
-  if (!is.null(end)){
-    if (length(end) != length(x)){
-      stop("end must be the same length as x")
-    }
-    end <- time_cast(end, x)
-    x[which(x > end)] <- time_na
-  } else {
-    end <- gmax(x, g = g, na.rm = TRUE)
-  }
-  if (time_floor){
-    start <- time_floor2(start, time_by = time_by,
-                         week_start = week_start)
-  }
-  tdiff <- time_diff(start, x, time_by = time_by, time_type = time_type)
-  time_to_add <- add_names(list(trunc2(tdiff) * num), units)
-  out <- time_add2(start, time_by = time_to_add, time_type = time_type,
-                   roll_month = roll_month, roll_dst = roll_dst)
-  if (as_interval){
-    out <- time_by_interval(out, time_by = time_by,
-                            time_type = time_type,
-                            roll_month = roll_month,
-                            roll_dst = roll_dst)
-  }
-  out
 }
 time_int_end <- function(x){
   attr(x, "end")

@@ -1,6 +1,4 @@
-* Updated to version 0.8.2
-
-Fixed tests that cheapr update broke and other bug fixes.
+* Updated to version 0.9.0
 
 * Checked and passed using rhub v2.0.0 in the following environments:
 
@@ -15,7 +13,6 @@ Additionally checked on win-builder.r-project.org:
 
 - windows (R-devel)
 - windows (R-release)
-- windows (R-old release)
 
 and R-CMD-check github actions:
 
