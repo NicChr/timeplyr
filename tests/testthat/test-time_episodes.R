@@ -9,7 +9,8 @@ test_that("Testing time episodes", {
   flights <- fastplyr::add_row_id(flights, .name = "id")
 
   na_ids <- flights %>%
-    fastplyr::f_slice_sample(n = (5 * 10^4), seed = 98712412) %>%
+    fastplyr::f_slice_sample(n = (5 * 10^4)) %>%
+    cheapr::with_local_seed(.seed = 98712412) %>%
     dplyr::pull(id)
 
   flights <- flights %>%

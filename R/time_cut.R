@@ -74,6 +74,7 @@
 #' @examples
 #' library(timeplyr)
 #' library(fastplyr)
+#' library(cheapr)
 #' library(lubridate)
 #' library(ggplot2)
 #' library(dplyr)
@@ -86,7 +87,8 @@
 #' time_cut(1:10, n = 5)
 #' # Easily create custom time breaks
 #' df <- nycflights13::flights %>%
-#'   f_slice_sample(n = 10, seed = 8192821) %>%
+#'   f_slice_sample(n = 10) %>%
+#'   with_local_seed(.seed = 8192821) %>%
 #'   select(time_hour) %>%
 #'   fastplyr::f_arrange(time_hour) %>%
 #'   mutate(date = as_date(time_hour))

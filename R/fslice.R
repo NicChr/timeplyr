@@ -130,12 +130,23 @@ fslice_sample <- function(data, n, replace = FALSE, prop,
     what = "fslice_sample()",
     with = "fastplyr::f_slice_sample()"
   )
-  fastplyr::f_slice_sample(
-    data, replace = replace,
-    n = n, prop = prop,
-    .by = {{ .by }},
-    keep_order = keep_order,
-    weights = {{ weights }},
-    seed = seed
-  )
+  if (is.null(seed)){
+    fastplyr::f_slice_sample(
+      data, replace = replace,
+      n = n, prop = prop,
+      .by = {{ .by }},
+      keep_order = keep_order,
+      weights = {{ weights }}
+    )
+  } else {
+    cheapr::with_local_seed({
+      fastplyr::f_slice_sample(
+        data, replace = replace,
+        n = n, prop = prop,
+        .by = {{ .by }},
+        keep_order = keep_order,
+        weights = {{ weights }}
+      )
+    }, .seed = seed)
+  }
 }
