@@ -66,7 +66,7 @@ time_gaps <- function(x, time_by = NULL,
                       time_type = getOption("timeplyr.time_type", "auto"),
                       check_time_regular = FALSE){
   check_is_time_or_num(x)
-  g <- GRP2(g)
+  g <- GRP2(g, return.groups = use.g.names)
   check_data_GRP_size(x, g)
   if (!is.null(g)){
     names(x) <- GRP_names(g, expand = TRUE)
@@ -110,7 +110,7 @@ time_num_gaps <- function(x, time_by = NULL,
   if (length(x) == 0L){
     return(0L)
   }
-  g <- GRP2(g)
+  g <- GRP2(g, return.groups = use.g.names)
   check_data_GRP_size(x, g)
   tby <- time_by_get(x, time_by = time_by)
   if (check_time_regular){
@@ -152,5 +152,5 @@ time_has_gaps <- function(x, time_by = NULL,
                 g = g, use.g.names = use.g.names,
                 na.rm = na.rm,
                 time_type = time_type,
-                check_time_regular = check_time_regular) > 0
+                check_time_regular = check_time_regular) > 0L
 }
