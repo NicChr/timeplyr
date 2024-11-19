@@ -2,6 +2,9 @@
 
 ### Upcoming breaking changes
 
+* All of the tidy functions like `fslice` that are not time-related will be
+removed in the next release. These can now be found in fastplyr.
+
 * It is likely that in the near future, objects of class 'time_interval' will
 be re-imagined to be more efficient fixed-width intervals with a different 
 data structure. Currently the data structure is a length-two list containing 
