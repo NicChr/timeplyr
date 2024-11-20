@@ -13,6 +13,7 @@ Additionally checked on win-builder.r-project.org:
 
 - windows (R-devel)
 - windows (R-release)
+- windows (R-oldrelease)
 
 and R-CMD-check github actions:
 
