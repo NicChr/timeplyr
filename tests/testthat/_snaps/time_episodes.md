@@ -5,7 +5,7 @@
         switch_on_boundary = TRUE) %>% fastplyr::f_arrange(time)
     Output
       # A tibble:        15 x 5
-      # Episodes:        N: 5, Median: 5, Mean: 5 ▁▁▇▁▁▁▁
+      # Episodes:        N: 5, Median: 5, Mean: 5 ▁▁▁▇▁▁▁
       # Time b/w events: Mean: ~1.86 numeric units
       # Threshold:       3 numeric units
          time       t_elapsed ep_start   ep_id ep_id_new
@@ -33,7 +33,7 @@
         switch_on_boundary = FALSE) %>% fastplyr::f_arrange(time)
     Output
       # A tibble:        15 x 6
-      # Episodes:        N: 3, Median: 3, Mean: 3 ▁▁▇▁▁▁▁
+      # Episodes:        N: 3, Median: 3, Mean: 3 ▁▁▁▇▁▁▁
       # Time b/w events: Mean: ~1.86 numeric units
       # Threshold:       3 numeric units
          time       event t_elapsed ep_start   ep_id ep_id_new
@@ -62,7 +62,7 @@
         time)
     Output
       # A tibble:        15 x 6
-      # Episodes:        N: 4, Median: 4, Mean: 4 ▁▁▇▁▁▁▁
+      # Episodes:        N: 4, Median: 4, Mean: 4 ▁▁▁▇▁▁▁
       # Time b/w events: Mean: 3 numeric units
       # Threshold:       3 numeric units
          time       event t_elapsed ep_start   ep_id ep_id_new
@@ -91,7 +91,7 @@
         time)
     Output
       # A tibble:        15 x 6
-      # Episodes:        N: 3, Median: 3, Mean: 3 ▁▁▇▁▁▁▁
+      # Episodes:        N: 3, Median: 3, Mean: 3 ▁▁▁▇▁▁▁
       # Time b/w events: Mean: 3 numeric units
       # Threshold:       3 numeric units
          time       event t_elapsed ep_start   ep_id ep_id_new
@@ -119,7 +119,7 @@
         roll_episode = FALSE, switch_on_boundary = TRUE) %>% fastplyr::f_arrange(time)
     Output
       # A tibble:        15 x 5
-      # Episodes:        N: 6, Median: 6, Mean: 6 ▁▁▇▁▁▁▁
+      # Episodes:        N: 6, Median: 6, Mean: 6 ▁▁▁▇▁▁▁
       # Time b/w events: Mean: ~1.92 weeks
       # Threshold:       5 days
          time       t_elapsed ep_start   ep_id ep_id_new
@@ -148,7 +148,7 @@
         time)
     Output
       # A tibble:        15 x 5
-      # Episodes:        N: 4, Median: 4, Mean: 4 ▁▁▇▁▁▁▁
+      # Episodes:        N: 4, Median: 4, Mean: 4 ▁▁▁▇▁▁▁
       # Time b/w events: Mean: ~1.92 weeks
       # Threshold:       5 days
          time       t_elapsed ep_start   ep_id ep_id_new

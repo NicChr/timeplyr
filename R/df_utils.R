@@ -37,35 +37,14 @@ is_df <- function(x){
 
 check_is_df <- function(x){
   if (!is_df(x)){
-    stop(paste(deparse1(substitute(x)), "must be a data.frame"))
+    stop(paste(deparse2(substitute(x)), "must be a data.frame"))
   }
-}
-# list() that removes NULL elements
-list3 <- function(...){
-  list_rm_null(list(...))
-}
-# list to tibble/DT
-# No checks are done so use with caution
-# Cannot contain duplicate names
-# or different length list elements
-list_as_tbl <- function(x){
-  df_as_tbl(list_as_df(x))
 }
 
 # Create new df with no name checks or length checks
 # ..N is there purely to create an (n > 0) x 0 data frame
 new_df <- cheapr::new_df
 new_tbl <- fastplyr::new_tbl
-
-df_as_df <- function(x){
-  list_as_df(x)
-}
-# Faster as_tibble
-df_as_tbl <- function(x){
-  out <- list_as_df(x)
-  class(out) <- c("tbl_df", "tbl", "data.frame")
-  out
-}
 
 # Reorder data frame to original order after having sorted it using a GRP
 df_reorder <- function(data, g){

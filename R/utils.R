@@ -206,12 +206,12 @@ bin_grouped <- function(x, breaks, gx = NULL, gbreaks = NULL, codes = TRUE,
 
 check_is_num <- function(x){
   if (!is.numeric(x)){
-    stop(paste(deparse1(substitute(x)), "must be numeric"))
+    stop(paste(deparse2(substitute(x)), "must be numeric"))
   }
 }
 check_is_double <- function(x){
   if (!is.double(x)){
-    stop(paste(deparse1(substitute(x)), "must be a double"))
+    stop(paste(deparse2(substitute(x)), "must be a double"))
   }
 }
 # TRUE when x is sorted and contains no NA
@@ -220,7 +220,7 @@ is_sorted <- function(x){
 }
 check_sorted <- function(x){
   if (!is_sorted(x)){
-    stop(paste(deparse1(substitute(x)), "must be in ascending order"))
+    stop(paste(deparse2(substitute(x)), "must be in ascending order"))
   }
 }
 # Retains integer class of a if b is 1 and a is integer
@@ -284,17 +284,17 @@ add_names <- function(x, value){
 }
 check_is_list <- function(x){
   if (!is.list(x)){
-    stop(paste(deparse1(substitute(x)), "must be a list"))
+    stop(paste(deparse2(substitute(x)), "must be a list"))
   }
 }
 check_length <- function(x, size){
   if (length(x) != size){
-    stop(paste(deparse1(substitute(x)), "must be of length", size))
+    stop(paste(deparse2(substitute(x)), "must be of length", size))
   }
 }
 check_length_lte <- function(x, size){
   if (!(length(x) <= size)){
-    stop(paste(deparse1(substitute(x)), "must have length <=", size))
+    stop(paste(deparse2(substitute(x)), "must have length <=", size))
   }
 }
 # collapse allv and allna with extra length check
@@ -357,17 +357,14 @@ which_not_na <- get_from_package("which_not_na", "cheapr")
 list_rm_null <- get_from_package("cpp_list_rm_null", "cheapr")
 which_in <- get_from_package("which_in", "cheapr")
 which_not_in <- get_from_package("which_not_in", "cheapr")
-which_val <- get_from_package("which_val", "cheapr")
-val_rm <- get_from_package("val_rm", "cheapr")
 `%in_%` <- cheapr::`%in_%`
 `%!in_%` <- cheapr::`%!in_%`
 
 sequences <- function(size, from = 1L, by = 1L, add_id = FALSE){
   time_cast(cheapr::sequence_(size, from, by, add_id), from)
 }
-df_select <- get_from_package("df_select", "cheapr")
 list_as_df <- get_from_package("list_as_df", "cheapr")
-inline_hist <- get_from_package("inline_hist", "cheapr")
+# inline_hist <- get_from_package("inline_hist", "cheapr")
 new_list <- cheapr::new_list
 window_sequence <- cheapr::window_sequence
 sset <- cheapr::sset
@@ -415,4 +412,37 @@ col_select_names <- get_from_package("col_select_names", "fastplyr")
 tidy_select_names <- get_from_package("tidy_select_names", "fastplyr")
 tidy_select_pos <- get_from_package("tidy_select_pos", "fastplyr")
 cpp_set_list_element <- get_from_package("cpp_set_list_element", "fastplyr")
+list_as_tbl <- get_from_package("list_as_tbl", "fastplyr")
 
+
+# Temporary code, will update with cheapr:::inline_hist later
+spark_bar <- function (x){
+  bars <- intToUtf8(c(9601L, 9602L, 9603L, 9605L, 9606L, 9607L),
+                    multiple = TRUE)
+  bar_codes <- cheapr::bin(
+    x, seq.int(0, to = 1, length.out = length(bars) + 1L),
+    left_closed = TRUE, include_oob = TRUE, include_endpoint = TRUE
+  )
+  bar_codes[bar_codes == 0L] <- NA_integer_
+  out <- bars[bar_codes]
+  paste0(out, collapse = "")
+}
+
+inline_hist <- function (x, n_bins = 5L){
+  if (length(x) < 1L) {
+    return(" ")
+  }
+  if (is.infinite(max(abs(collapse::frange(x, na.rm = TRUE))))) {
+    x[cheapr::which_(is.infinite(x))] <- NA
+  }
+  if (cheapr::all_na(x)) {
+    return(" ")
+  }
+  if (allv2(cheapr::na_rm(x), 0)) {
+    x <- x + 1
+  }
+  hist_dt <- tabulate(cheapr::cut_numeric(x, n_bins, right = TRUE, labels = FALSE),
+                      nbins = n_bins)
+  hist_dt <- hist_dt / max(hist_dt)
+  spark_bar(hist_dt)
+}

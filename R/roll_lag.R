@@ -101,7 +101,7 @@ roll_lag.ts <- function(x, n = 1L, g = NULL, fill = NULL, ...){
                                   group.starts = FALSE)
     } else {
       user_groups <- rep(group_id(g, .cols = seq_along(g)), ncols)
-      g <- GRP2(list3(col_groups, user_groups))
+      g <- GRP2(list_rm_null(list(col_groups, user_groups)))
     }
     # out <- roll_lag(strip_attrs(x), n = n, g = g, fill = fill, ...)
     # attributes(out) <- attributes(x)
@@ -191,7 +191,7 @@ roll_diff.ts <- function(x, n = 1L, g = NULL, fill = NULL, differences = 1L, ...
                                   group.starts = FALSE)
     } else {
       user_groups <- rep(group_id(g, .cols = seq_along(g)), ncols)
-      g <- GRP2(list3(col_groups, user_groups))
+      g <- GRP2(list_rm_null(list(col_groups, user_groups)))
     }
     # out <- roll_diff(unclass(x), n = n, g = g,
     #                  fill = fill, differences = differences, ...)

@@ -704,25 +704,25 @@ time_int_rm_attrs <- function(x){
 
 check_is_date <- function(x){
   if (!is_date(x)){
-    stop(paste(deparse1(substitute(x)),
+    stop(paste(deparse2(substitute(x)),
                "must be a date"))
   }
 }
 check_is_datetime <- function(x){
   if (!is_datetime(x)){
-    stop(paste(deparse1(substitute(x)),
+    stop(paste(deparse2(substitute(x)),
                "must be a datetime"))
   }
 }
 check_is_time <- function(x){
   if (!is_time(x)){
-    stop(paste(deparse1(substitute(x)),
+    stop(paste(deparse2(substitute(x)),
                 "must be a date or datetime"))
   }
 }
 check_is_time_or_num <- function(x){
   if (!is_time_or_num(x)){
-    stop(paste(deparse1(substitute(x)),
+    stop(paste(deparse2(substitute(x)),
                "must be a date, datetime, or numeric vector"))
   }
 }

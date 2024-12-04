@@ -121,13 +121,12 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
   end_time <- end
   origin_df <- df_ungroup(origin_info[["data"]])
   end_df <- fastplyr::f_select(df_ungroup(end_info[["data"]]), .cols = end)
-  out <- df_as_dt(fastplyr::f_bind_cols(origin_df, end_df))
+  out <- fastplyr::f_bind_cols(origin_df, end_df)
   grp_nm <- unique_col_name(out, ".group.id")
-  set_add_cols(out, add_names(list(
+  out <- df_add_cols(out, add_names(list(
     fastplyr::add_group_id(data, .by = {{ .by }}, .name = grp_nm)[[grp_nm]]
     ), grp_nm))
-  set_rm_cols(out, setdiff(names(out),
-                           c(grp_nm, group_vars, start_time, end_time)))
+  out <- df_rm_cols(out, setdiff(names(out), c(grp_nm, group_vars, start_time, end_time)))
   grp_df <- fastplyr::f_distinct(
     fastplyr::f_select(out, .cols = c(grp_nm, group_vars)),
     .cols = grp_nm,
@@ -137,7 +136,7 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
   by_unit <- time_by_unit(time_by)
   by_n <- time_by_num(time_by)
   delay_nm <- unique_col_name(out, "delay")
-  set_add_cols(out, add_names(
+  out <- df_add_cols(out, add_names(
     list(
       time_diff(out[[start_time]],
                 out[[end_time]],
@@ -153,9 +152,8 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
                   sep = " "))
   }
   # Remove outliers
-  out <- sset(out,
-                      data.table::between(out[[delay_nm]], min_delay, max_delay,
-                                          incbounds = TRUE, NAbounds = NA))
+  out <- sset(out, data.table::between(out[[delay_nm]], min_delay, max_delay,
+                                       incbounds = TRUE, NAbounds = NA))
   # Quantile summary
   iqr_p_missed <- setdiff(c(0.25, 0.75), probs)
   if (length(iqr_p_missed) > 0L){
@@ -163,70 +161,86 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
       probs <- c(probs, iqr_p)
     }
   }
-  q_prcnts <- round(probs * 100)
-  q_nms <- paste0(rep_len("p", length(probs)), q_prcnts)
-  # Descriptive statistical summary
-  delay_summary <- stat_summarise(out, .cols = delay_nm,
-                                  .by = all_of(grp_nm),
-                                  stat = c("n", "min", "max",
-                                           "mean", "sd"),
-                                  sort = FALSE,
-                                  q_probs = probs,
-                                  inform_stats = FALSE)
-  delay_summary[, ("se") := get("sd")/sqrt(get("n"))]
-  delay_summary[, ("iqr") := get("p75") - get("p25")]
+  sd <- stats::sd
+  summary_stats_df <- fastplyr::f_summarise(
+    out,
+    n = dplyr::n(),
+    dplyr::across(
+      dplyr::all_of(delay_nm),
+      list(min, max, mean, sd)
+    ),
+    .order = FALSE,
+    .by = dplyr::all_of(grp_nm)
+  )
+
+  quantiles_df <- fastplyr::tidy_quantiles(
+    out, .cols = delay_nm,
+    .order = FALSE,
+    .by = dplyr::all_of(grp_nm),
+    pivot = "wide",
+    probs = c(0.05, 0.25, 0.5, 0.75, 0.95)
+  )
+
+  summary_stats_df <- fastplyr::f_bind_cols(
+    summary_stats_df,
+    dplyr::select(quantiles_df, -dplyr::all_of(grp_nm))
+  )
+
+  summary_stats_df[["iqr"]] <- summary_stats_df[["p75"]] - summary_stats_df[["p25"]]
+  summary_stats_df[["se"]] <- summary_stats_df[["sd"]] / sqrt(summary_stats_df[["n"]])
+
   if (length(group_vars) > 0L){
-    # Left-join
-    delay_summary[grp_df, (group_vars) := mget(group_vars),
-                  on = grp_nm, allow.cartesian = FALSE]
+    summary_stats_df <- fastplyr::f_left_join(
+      grp_df, summary_stats_df, by = grp_nm
+    )
+
   }
-  setorderv2(delay_summary, cols = grp_nm)
-  set_rm_cols(delay_summary, c(grp_nm, iqr_p_missed))
-  delay_summary <- fastplyr::f_select(delay_summary, .cols = c(group_vars, "n", "min",
-                                                    "max", "mean", "sd",
-                                                    q_nms, "iqr", "se"))
+  summary_stats_df <- fastplyr::f_arrange(summary_stats_df, .cols = grp_nm)
+  summary_stats_df <- df_rm_cols(summary_stats_df, c(grp_nm, iqr_p_missed))
   # Create delay table
   min_delay <- max(min(out[[delay_nm]]), min_delay)
   min_delay <- min_delay[!is.infinite(min_delay)]
   max_delay <- min(max(out[[delay_nm]]), max_delay)
   max_delay <- max_delay[!is.infinite(max_delay)]
   if (length(min_delay) == 0 || length(max_delay) == 0){
-    delay_tbl <- new_tbl(delay = numeric(),
-                         n = integer(),
-                         cumulative = integer(),
-                         edf = numeric())
+    delay_tbl <- fastplyr::new_tbl(
+      delay = numeric(),
+      n = integer(),
+      cumulative = integer(),
+      edf = numeric()
+    )
   } else {
     delay_tbl <- out %>%
       fastplyr::f_count(across(all_of(c(grp_nm, group_vars))),
              across(all_of(delay_nm), ceiling),
              name = "n")
-    delay_tbl[, ("cumulative") := collapse::fcumsum(get("n"),
-                                                    g = get(grp_nm),
-                                                    na.rm = TRUE)]
-    # delay_tbl[, ("edf") :=
-    #             get("cumulative") / sum(get("n")), by = grp_nm]
-    delay_tbl[, ("edf") :=
-                get("cumulative") / gsum(get("n"),
-                                         g = get(grp_nm),
-                                         na.rm = FALSE,
-                                         fill = TRUE)]
-    # delay_tbl[, ("edf") := edf(get(delay_nm),
-    #                            g = get(grp_nm),
-    #                            wt = get("n"))]
-    set_rm_cols(delay_tbl, setdiff(names(delay_tbl),
+
+    delay_tbl[["cumulative"]] <- collapse::fcumsum(
+      delay_tbl[["n"]],
+      g = delay_tbl[[grp_nm]],
+      na.rm = TRUE
+    )
+    delay_tbl[["edf"]] <- delay_tbl[["cumulative"]] /
+      gsum(
+        delay_tbl[["n"]],
+        g = delay_tbl[[grp_nm]],
+        na.rm = FALSE,
+        fill = TRUE
+      )
+    delay_tbl <- df_rm_cols(delay_tbl, setdiff(names(delay_tbl),
                                    c(group_vars, delay_nm,
                                      "n", "cumulative", "edf")))
   }
-  set_rm_cols(out, grp_nm)
+  out <- df_rm_cols(out, grp_nm)
   out <- fastplyr::f_select(out, .cols = c(group_vars, setdiff(names(out), group_vars)))
   out <- reconstruct(data, out)
-  delay_summary <- reconstruct(data, delay_summary)
+  delay_summary <- reconstruct(data, summary_stats_df)
   delay_tbl <- reconstruct(data, delay_tbl)
   # Delay values
   delay_list <- list("data" = out,
                      "units" = by_unit,
                      "num" = by_n,
-                     "summary" = delay_summary,
+                     "summary" = summary_stats_df,
                      "delay" = delay_tbl)
   if (include_plot){
     x_scales <- match.arg(x_scales, c("fixed", "free_x"))

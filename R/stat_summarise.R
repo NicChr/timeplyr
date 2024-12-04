@@ -153,7 +153,7 @@ stat_summarise <- function(data, ...,
     }
   }
   if (as_tbl){
-    out <- df_as_tbl(out)
+    out <- fastplyr::as_tbl(out)
   }
   out
 }

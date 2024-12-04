@@ -182,7 +182,7 @@ roll_growth_rate <- function(x, window = Inf, g = NULL,
     lag_window <- cpp_roll_count_na(x, window, invert = TRUE, partial = partial) - 1L
     if (log){
       gr <- exp(( log(x) - log(x_lagged) ) / lag_window)
-      gr[which_val(lag_window, 0L)] <- 1
+      gr[cheapr::val_find(lag_window, 0L)] <- 1
     } else {
       gr <- ( (x / x_lagged) ^ (1 / lag_window) )
       gr[which(x == 0 & x_lagged == 0)] <- 1

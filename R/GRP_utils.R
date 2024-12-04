@@ -151,7 +151,7 @@ greorder2 <- function(x, g, ...){
 group_order_and_counts <- function(g = NULL){
   o <- radixorderv2(g, starts = FALSE, sort = FALSE, group.sizes = TRUE)
   if (is_GRP(g)) {
-    sizes <- val_rm(GRP_group_sizes(g), 0L)
+    sizes <- cheapr::val_rm(GRP_group_sizes(g), 0L)
   }
   else {
     sizes <- attr(o, "group.sizes")
