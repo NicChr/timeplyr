@@ -27,7 +27,7 @@ having been migrated over to the 'fastplyr' package.
 
 ### Bug fixes
 
-* A C bug that in rare cases would case R to crash has been fixed.
+* A C bug that in rare cases would cause R to crash has been fixed.
 
 # timeplyr 0.8.2
 

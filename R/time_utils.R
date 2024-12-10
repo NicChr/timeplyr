@@ -160,7 +160,6 @@ time_by_pretty <- function(time_by, sep = " "){
   }
 }
 gcd_time_diff <- function(x){
-  x <- collapse::funique(x)
   if (length(x) <= 1){
     out <- 1L
   } else {
