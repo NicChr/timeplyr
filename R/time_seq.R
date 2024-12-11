@@ -73,11 +73,11 @@
 #' today <- today()
 #' now <- now()
 #'
-#' time_seq(today, today + years(1), time_by = "day")
+#' time_seq(today, today + months(1), time_by = "day")
 #' time_seq(today, length.out = 10, time_by = "day")
 #' time_seq(today, length.out = 10, time_by = "hour")
 #'
-#' time_seq(today, today + years(1), time_by = list("days" = 1)) # Alternative
+#' time_seq(today, today + months(1), time_by = list("days" = 1)) # Alternative
 #' time_seq(today, today + years(1), time_by = "week")
 #' time_seq(today, today + years(1), time_by = "fortnight")
 #' time_seq(today, today + years(1), time_by = "year")
