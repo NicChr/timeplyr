@@ -21,41 +21,6 @@
 #' @returns
 #' A `data.table` containing the quantile values for each group.
 #'
-#' @seealso [stat_summarise]
-#'
-#' @examples
-#' library(timeplyr)
-#' library(dplyr)
-#' \dontshow{
-#' .n_dt_threads <- data.table::getDTthreads()
-#' .n_collapse_threads <- collapse::get_collapse()$nthreads
-#' data.table::setDTthreads(threads = 2L)
-#' collapse::set_collapse(nthreads = 1L)
-#' }
-#' # Standard quantiles
-#' iris %>%
-#'   q_summarise(Sepal.Length)
-#' # Quantiles by species
-#' iris %>%
-#'   q_summarise(Sepal.Length, .by = Species)
-#' # Quantiles by species across multiple columns
-#' iris %>%
-#'   q_summarise(Sepal.Length, Sepal.Width,
-#'             probs = c(0, 1),
-#'             .by = Species)
-#' # Long format if one desires, useful for ggplot2
-#' iris %>%
-#'   q_summarise(Sepal.Length, pivot = "long",
-#'             .by = Species)
-#' # Example with lots of groups
-#' set.seed(20230606)
-#' df <- data.frame(x = rnorm(10^5),
-#'                  g = sample.int(10^5, replace = TRUE))
-#' q_summarise(df, x, .by = g, sort = FALSE)
-#' \dontshow{
-#' data.table::setDTthreads(threads = .n_dt_threads)
-#' collapse::set_collapse(nthreads = .n_collapse_threads)
-#'}
 #' @export
 q_summarise <- function(data, ...,
                         probs = seq(0, 1, 0.25),

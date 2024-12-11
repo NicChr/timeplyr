@@ -60,15 +60,13 @@
 #'
 #' # Grouped example
 #' set.seed(99)
-#' # ~ 100k groups, 1m rows
-#' x <- sample(time_seq_v2(20, today(), "day"), 10^6, TRUE)
-#' g <- sample.int(10^5, 10^6, TRUE)
+#' g <- sample.int(3, 25, TRUE)
 #'
 #' time_elapsed(x, time_by = "day", g = g)
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
-#'}
+#' }
 #' @export
 time_elapsed <- function(x, time_by = NULL, g = NULL,
                          time_type = getOption("timeplyr.time_type", "auto"),

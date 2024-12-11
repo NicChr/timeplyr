@@ -85,8 +85,8 @@
 #' time_seq(today, today + years(100), time_by = "decade")
 #'
 #' # Datetimes
-#' time_seq(now, now + years(1), time_by = "12 hours")
-#' time_seq(now, now + years(1), time_by = "day")
+#' time_seq(now, now + weeks(1), time_by = "12 hours")
+#' time_seq(now, now + weeks(1), time_by = "day")
 #' time_seq(now, now + years(1), time_by = "week")
 #' time_seq(now, now + years(1), time_by = "fortnight")
 #' time_seq(now, now + years(1), time_by = "year")

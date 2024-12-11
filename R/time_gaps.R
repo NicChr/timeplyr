@@ -48,7 +48,7 @@
 #' missing_dates(flights$time_hour)
 #' time_has_gaps(flights$time_hour)
 #' time_num_gaps(flights$time_hour)
-#' time_gaps(flights$time_hour)
+#' length(time_gaps(flights$time_hour))
 #' time_num_gaps(flights$time_hour, g = flights$origin)
 #'
 #' # Number of missing hours by origin and dest
