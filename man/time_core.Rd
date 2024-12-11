@@ -197,8 +197,12 @@ y <- time_completev(x, time_by = "hour")
 identical(y[!y \%in\% x], time_gaps(x))
 
 # Summarise time using time_summarisev
-time_summarisev(y, time_by = "quarter")
+quarters <- time_summarisev(y, time_by = "quarter")
+interval_count(quarters)
+
+# Unique quarters
 time_summarisev(y, time_by = "quarter", unique = TRUE)
+
 flights \%>\%
   fastplyr::f_count(quarter = time_summarisev(time_hour, "quarter"))
 # Alternatively

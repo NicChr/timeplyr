@@ -86,8 +86,12 @@
 #' identical(y[!y %in% x], time_gaps(x))
 #'
 #' # Summarise time using time_summarisev
-#' time_summarisev(y, time_by = "quarter")
+#' quarters <- time_summarisev(y, time_by = "quarter")
+#' interval_count(quarters)
+#'
+#' # Unique quarters
 #' time_summarisev(y, time_by = "quarter", unique = TRUE)
+#'
 #' flights %>%
 #'   fastplyr::f_count(quarter = time_summarisev(time_hour, "quarter"))
 #' # Alternatively
@@ -96,7 +100,7 @@
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
-#'}
+#' }
 #' @rdname time_core
 #' @export
 time_expandv <- function(x, time_by = NULL, from = NULL, to = NULL,
