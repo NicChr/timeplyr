@@ -488,6 +488,7 @@ C_time_add <- get("C_time_add", asNamespace("timechange"), inherits = FALSE)
 time_add <- function(x, timespan,
                      roll_month = getOption("timeplyr.roll_month", "preday"),
                      roll_dst = getOption("timeplyr.roll_dst", "NA")){
+
   span <- timespan(timespan)
   num <- timespan_num(span)
   unit <- timespan_unit(span)
@@ -500,8 +501,33 @@ time_add <- function(x, timespan,
       x + duration_unit(unit)(num)
     } else {
       unit <- plural_unit_to_single(unit)
-      timechange::time_add(x, periods = add_names(list(num), unit),
-                           roll_month = roll_month, roll_dst = roll_dst)
+      timechange::time_add(
+        x, periods = add_names(list(num), unit),
+        roll_month = roll_month, roll_dst = roll_dst
+      )
+    }
+  }
+}
+time_subtract <- function(x, timespan,
+                     roll_month = getOption("timeplyr.roll_month", "preday"),
+                     roll_dst = getOption("timeplyr.roll_dst", "NA")){
+
+  span <- timespan(timespan)
+  num <- timespan_num(span)
+  unit <- timespan_unit(span)
+
+  if (is.na(unit)){
+    x - num
+  } else {
+    # If timespan is less than a day
+    if (is_duration_unit(unit)){
+      x - duration_unit(unit)(num)
+    } else {
+      unit <- plural_unit_to_single(unit)
+      timechange::time_subtract(
+        x, periods = add_names(list(num), unit),
+        roll_month = roll_month, roll_dst = roll_dst
+      )
     }
   }
 }

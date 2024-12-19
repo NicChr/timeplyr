@@ -24,26 +24,16 @@ time_summarisev(
   from = NULL,
   to = NULL,
   sort = FALSE,
-  unique = FALSE,
-  roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "NA"),
-  as_interval = getOption("timeplyr.use_intervals", TRUE)
+  unique = FALSE
 )
 
 time_countv(
   x,
-  time_by = NULL,
+  timespan = NULL,
   from = NULL,
   to = NULL,
   sort = TRUE,
-  unique = TRUE,
-  complete = FALSE,
-  time_type = getOption("timeplyr.time_type", "auto"),
-  time_floor = FALSE,
-  week_start = getOption("lubridate.week.start", 1),
-  roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "NA"),
-  as_interval = getOption("timeplyr.use_intervals", TRUE)
+  unique = TRUE
 )
 
 time_span_size(
@@ -92,13 +82,11 @@ See \code{?timechange::time_add} for more details.}
 \item{unique}{Should the result be unique or match the length of the vector?
 Default is \code{TRUE}.}
 
-\item{as_interval}{Should result be a \code{time_interval}?
-Default is \code{FALSE}. \cr
-This can be controlled globally through \code{options(timeplyr.use_intervals)}.}
+\item{g}{Grouping object passed directly to \code{collapse::GRP()}.
+This can for example be a vector or data frame.}
 
-\item{complete}{Logical. If \code{TRUE} implicit gaps in time are filled
-before counting and after time aggregation (controlled using \code{time_by}).
-The default is \code{FALSE}.}
+\item{use.g.names}{Should the result include group names?
+Default is \code{TRUE}.}
 
 \item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks, months or years are specified,
@@ -113,11 +101,13 @@ beginning of a week or month for example.}
 means Monday (default), 7 means Sunday.
 This is only used when \code{time_floor = TRUE}.}
 
-\item{g}{Grouping object passed directly to \code{collapse::GRP()}.
-This can for example be a vector or data frame.}
+\item{complete}{Logical. If \code{TRUE} implicit gaps in time are filled
+before counting and after time aggregation (controlled using \code{time_by}).
+The default is \code{FALSE}.}
 
-\item{use.g.names}{Should the result include group names?
-Default is \code{TRUE}.}
+\item{as_interval}{Should result be a \code{time_interval}?
+Default is \code{FALSE}. \cr
+This can be controlled globally through \code{options(timeplyr.use_intervals)}.}
 }
 \value{
 Vectors (typically the same class as \code{x}) of varying lengths depending

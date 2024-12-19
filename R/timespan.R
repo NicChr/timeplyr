@@ -33,6 +33,10 @@ timespan.NULL <- function(units, num = 1L, ...){
   new_timespan("unit" = NA_character_, "num" = num)
 }
 #' @export
+timespan.logical <- function(units, num = 1L, ...){
+  timespan(as.integer(units), num, ...)
+}
+#' @export
 timespan.numeric <- function(units, num = 1L, ...){
   new_timespan("unit" = NA_character_, "num" = units * num)
 }
@@ -97,6 +101,11 @@ print.timespan <- function(x, ...){
   print(num)
   invisible(x)
 }
+#' @export
+length.timespan <- function(x){
+  length(.subset2(x, "num"))
+}
+
 
 period_timespan <- function(years = 0L,
                             months = 0L,

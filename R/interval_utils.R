@@ -17,7 +17,7 @@ rm_intv_class <- function(x){
 }
 #' @export
 interval_start.time_interval <- function(x){
-  rm_intv_class(x)
+  strip_attr(rm_intv_class(x), "timespan")
 }
 #' @export
 interval_start.Interval <- function(x){
@@ -39,7 +39,7 @@ interval_end <- function(x){
 }
 #' @export
 interval_end.time_interval <- function(x){
-  rm_intv_class(time_add(interval_start(x), interval_width(x)))
+ strip_attr(rm_intv_class(time_add(interval_start(x), interval_width(x))), "timespan")
 
 }
 #' @export

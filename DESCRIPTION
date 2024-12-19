@@ -13,6 +13,7 @@ Depends:
     R (>= 3.5.0)
 Imports:
     cheapr (>= 0.9.91),
+    cli, 
     collapse (>= 2.0.0),
     cppdoubles (>= 0.2.0),
     data.table (>= 1.14.8),

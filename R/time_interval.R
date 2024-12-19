@@ -96,7 +96,16 @@
 #' @rdname time_interval
 #' @export
 time_interval <- function(start = integer(), width = time_resolution(start)){
+
   timespan <- timespan(width)
+
+  if (length(timespan) > 1){
+    cli::cli_abort("{.arg num} must be a length-1 timespan")
+  }
+
+  if (isTRUE(any(num <= 0, na.rm = TRUE))){
+    cli::cli_abort("{.arg width} must be a positive-valued timespan")
+  }
 
   # Basically if width is unitless (e.g. width = 10)
   # Then we use the unit of the time resolution
@@ -157,6 +166,11 @@ new_time_interval <- function(start, timespan){
   start <- interval_start(e1)
   new_time_interval(time_add(start, timespan(e2)), interval_width(e1))
 }
+#' @export
+`-.time_interval` <- function(e1, e2){
+  start <- interval_start(e1)
+  new_time_interval(time_subtract(start, timespan(e2)), interval_width(e1))
+}
 # `-.time_interval` <- function(e1, e2){
 #   time_by <- time_by_list(e2)
 #   time_by <- add_names(
@@ -183,49 +197,20 @@ new_time_interval <- function(start, timespan){
 # duplicated.time_interval <- function(x, ...){
 #   collapse::fduplicated(unclass(x), ...)
 # }
-# as.character.time_interval <- function(x,
-#                                        interval_style = getOption("timeplyr.interval_style", "full"),
-#                                        interval_sub_formatter = getOption("timeplyr.interval_sub_formatter", identity),
-#                                        ...){
-#   if (is.null(interval_style)){
-#     int_fmt <- "full"
-#   } else {
-#     int_fmt <- rlang::arg_match0(interval_style, c("full", "start", "end"))
-#   }
-#   start <- interval_start(x)
-#   end <- interval_end(x)
-#   if (!is.null(interval_sub_formatter)){
-#     start <- interval_sub_formatter(start)
-#     end <- interval_sub_formatter(end)
-#   } else {
-#     start <- as.character(start)
-#     end <- as.character(end)
-#   }
-#   which_na <- which_na(x)
-#   if (int_fmt == "full"){
-#     out <- paste0("[", start, ", ", end, ")")
-#     which_closed <- which(start == end)
-#     out[which_closed] <- paste0("[", start[which_closed], ", ", end[which_closed], "]")
-#     # which_left_open <- which(start > end)
-#     # out[which_left_open] <- paste0("(", start[which_left_open], "--", end[which_left_open], "]")
-#     out[which_na] <- NA_character_
-#     out
-#   } else if (int_fmt == "start"){
-#     start[which_na] <- NA_character_
-#     start
-#   } else {
-#     end[which_na] <- NA_character_
-#     end
-#   }
-# }
-# format.time_interval <- function(x,
-#                                  interval_style = getOption("timeplyr.interval_style", "full"),
-#                                  interval_sub_formatter = getOption("timeplyr.interval_sub_formatter", identity),
-#                                  ...){
-#   format(as.character(x,
-#                       interval_style = interval_style,
-#                       interval_sub_formatter = interval_sub_formatter), ...)
-# }
+#' @export
+format.time_interval <- function(x, ...){
+  start <- interval_start(x)
+  end <- interval_end(x)
+  out <- stringr::str_c("[", start, ", ", end, ")")
+  names(out) <- names(x)
+  out
+}
+#' @export
+as.character.time_interval <- function(x, ...){
+  start <- interval_start(x)
+  end <- interval_end(x)
+  stringr::str_c("[", start, ", ", end, ")")
+}
 #' @export
 print.time_interval <- function(x, max = NULL, ...){
   out <- x
@@ -242,20 +227,33 @@ print.time_interval <- function(x, max = NULL, ...){
   } else {
     additional_msg <- character()
   }
-  start <-  strip_attr(rm_intv_class(out), "timespan")
+  # start <- interval_start(out)
+  # end <- interval_end(out)
   timespan <- interval_width(x)
   unit <- timespan_unit(timespan)
   num <- timespan_num(timespan)
 
-  cat(
-    "<time_interval> / ",
-    "Width: ",
-    paste0(unit, " (", num, ")\n")
-  )
-  if (length(start)){
-    print(start)
+  # intv <- stringr::str_c("[", start, ", ", end, ")")
+  if (timespan_has_unit(timespan)){
+    cat(
+      "<time_interval> /",
+      "Width:",
+      paste0(unit, " (", num, ")\n")
+    )
+  } else {
+    cat(
+      "<time_interval> /",
+      "Width:", num, "\n"
+    )
   }
-  # cat(paste0("<", "Timespan:", timespan_unit(timespan), ">"), timespan_num(timespan), sep = "\n")
+  if (length(start) == 0){
+    print(paste0("time_interval(width = ",
+                 "timespan(", ifelse(is.na(unit), "NULL", unit), ", ", num, ")", "))"),
+          quote = FALSE)
+  } else {
+    print(format(out), max = max, quote = FALSE, ...)
+    # print(intv, quote = FALSE)
+  }
   cat(additional_msg)
   invisible(x)
 }
