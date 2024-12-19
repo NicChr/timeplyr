@@ -59,43 +59,24 @@
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #' }
 #' @export
-time_diff <- function(x, y, time_by = 1L,
-                      time_type = getOption("timeplyr.time_type", "auto")){
-  tby <- time_by_list(time_by)
-  units <- time_by_unit(tby)
-  num <- time_by_num(tby)
-  if (time_by_is_num(tby)){
+time_diff <- function(x, y, time_by = 1L){
+  span <- timespan(time_by)
+  units <- timespan_unit(span)
+  num <- timespan_num(span)
+
+  if (!timespan_has_unit(span)){
     set_time_cast(y, x)
     if (!is.numeric(y)){
-      y <- time_as_number(y)
+      y <- unclass(y)
     }
     if (!is.numeric(x)){
-      x <- time_as_number(x)
+      x <- unclass(x)
     }
     out <- divide(y - x, num)
   } else {
-    time_type <- match_time_type(time_type)
-    # Common but special case where from/to are whole days
-    # and time_type is "auto"
-    is_special_case_days <- is_special_case_days(from = x,
-                                                 to = y,
-                                                 unit = units,
-                                                 num = num,
-                                                 time_type = time_type)
-    if (is_special_case_days){
-      if (units == "weeks"){
-        num <- num * 7L
-      }
-      by <- num
-      out <- divide(time_as_number(y) - time_as_number(x), by)
-      return(out)
-    }
-    if (time_type == "auto"){
-      time_type <- guess_seq_type(units)
-    }
     x <- as_datetime2(x)
     y <- as_datetime2(y)
-    if (time_type == "period"){
+    if (!is_duration_unit(units)){
       # Use distinct start/end pairs (intervals)
       # Instead of all of them because it's usually more efficient
       interval_tbl <- new_df(x = x, y = y, num = num, .recycle = TRUE)
@@ -121,9 +102,9 @@ time_diff <- function(x, y, time_by = 1L,
         out <- out[interval_groups]
       }
     } else {
-      x <- time_as_number(x)
-      y <- time_as_number(y)
-      by <- unit_to_seconds(tby)
+      x <- unclass(x)
+      y <- unclass(y)
+      by <- unit_to_seconds(span)
       out <- (y - x) / by
     }
   }

@@ -4,12 +4,7 @@
 \alias{time_diff}
 \title{Time differences by any time unit}
 \usage{
-time_diff(
-  x,
-  y,
-  time_by = 1L,
-  time_type = getOption("timeplyr.time_type", "auto")
-)
+time_diff(x, y, time_by = 1L)
 }
 \arguments{
 \item{x}{Start date or datetime.}

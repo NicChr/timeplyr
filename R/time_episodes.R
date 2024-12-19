@@ -299,7 +299,7 @@ time_episodes <- function(data, time, time_by = NULL,
   }
   out <- reconstruct(data, out)
   threshold <- time_by
-  threshold[[1L]] <- time_by_num(time_by) * window
+  threshold[[1L]] <- timespan_num(time_by) * window
   out <- structure(out, time = time_col, time_by = time_by, threshold = threshold)
   class(out) <- c("episodes_tbl_df", class(out))
   out
@@ -357,8 +357,8 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
       } else {
         pretty_mean <- add_names(
           list(
-            pooled_elapsed * time_by_num(attr(x, "time_by"))
-          ), time_by_unit(attr(x, "time_by"))
+            pooled_elapsed * timespan_num(attr(x, "time_by"))
+          ), timespan_unit(attr(x, "time_by"))
         )
         if (is.null(names(pretty_mean))){
           pooled_string <- "NA"
@@ -401,8 +401,8 @@ calc_episodes <- function(data,
   N <- df_nrow(data)
   lag <- min(N, 1L) # Bound lag to >= 0
   time_na <- na_init(data[[time]]) # time NA with correct class
-  time_num <- time_by_num(time_by)
-  time_unit <- time_by_unit(time_by)
+  time_num <- timespan_num(time_by)
+  time_unit <- timespan_unit(time_by)
   # Time elapsed
   data <- df_add_cols(
     data, list(

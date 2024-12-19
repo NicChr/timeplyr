@@ -171,8 +171,8 @@ time_roll_sum <- function(x, window = Inf,
   #   stop("lag must be of length 1")
   # }
   window <- time_by_get(time, time_by = window)
-  time_num <- time_by_num(window)
-  time_unit <- time_by_unit(window)
+  time_num <- timespan_num(window)
+  time_unit <- timespan_unit(window)
   time_subtract <- add_names(list(-time_num), time_unit)
   unit_time_by <- add_names(list(1), time_unit)
   window_size <- time_num
@@ -272,8 +272,8 @@ time_roll_mean <- function(x, window = Inf,
   check_is_time_or_num(time)
   check_time_not_missing(time)
   window <- time_by_get(time, time_by = window)
-  time_num <- time_by_num(window)
-  time_unit <- time_by_unit(window)
+  time_num <- timespan_num(window)
+  time_unit <- timespan_unit(window)
   time_subtract <- add_names(list(-time_num), time_unit)
   unit_time_by <- add_names(list(1), time_unit)
   window_size <- time_num
@@ -367,8 +367,8 @@ time_roll_growth_rate <- function(x, window = Inf,
   check_time_not_missing(time)
   check_is_time_or_num(time)
   window <- time_by_get(time, time_by = window)
-  time_num <- time_by_num(window)
-  time_unit <- time_by_unit(window)
+  time_num <- timespan_num(window)
+  time_unit <- timespan_unit(window)
   time_subtract <- add_names(list(-time_num), time_unit)
   unit_time_by <- add_names(list(1), time_unit)
   window_size <- time_num
@@ -447,9 +447,9 @@ time_roll_growth_rate <- function(x, window = Inf,
                       "",
                       "For example:",
                       paste0("time_step = list(",
-                             time_by_unit(time_step),
+                             timespan_unit(time_step),
                              " = ",
-                             time_by_num(time_step),
+                             timespan_num(time_step),
                              ")")),
                       use_cli_format = TRUE)
       } else {
@@ -458,9 +458,9 @@ time_roll_growth_rate <- function(x, window = Inf,
                       "",
                     "For example:",
                     paste0("time_step = list(",
-                           time_by_unit(time_step),
+                           timespan_unit(time_step),
                            " = ",
-                           time_by_num(time_step),
+                           timespan_num(time_step),
                            ")")),
                     use_cli_format = TRUE)
       }
@@ -523,8 +523,8 @@ time_roll_window_size <- function(time, window = Inf,
   check_time_not_missing(time)
   window <- time_by_list(window)
   check_time_by_length_is_one(window)
-  time_num <- time_by_num(window)
-  time_unit <- time_by_unit(window)
+  time_num <- timespan_num(window)
+  time_unit <- timespan_unit(window)
   time_subtract <- add_names(list(-time_num), time_unit)
   unit_time_by <- add_names(list(1), time_unit)
   g <- GRP2(g, return.groups = FALSE)
@@ -668,8 +668,8 @@ time_roll_apply <- function(x, window = Inf, fun,
 #   check_is_time_or_num(time)
 #   check_time_not_missing(time)
 #   window <- time_by_get(time, time_by = window)
-#   time_num <- time_by_num(window)
-#   time_unit <- time_by_unit(window)
+#   time_num <- timespan_num(window)
+#   time_unit <- timespan_unit(window)
 #   time_subtract <- add_names(list(-time_num), time_unit)
 #   unit_time_by <- add_names(list(1), time_unit)
 #   window_size <- time_num

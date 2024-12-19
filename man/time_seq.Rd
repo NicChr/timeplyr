@@ -12,38 +12,24 @@ time_seq(
   to,
   time_by,
   length.out = NULL,
-  time_type = getOption("timeplyr.time_type", "auto"),
-  week_start = getOption("lubridate.week.start", 1),
-  time_floor = FALSE,
   roll_month = getOption("timeplyr.roll_month", "preday"),
   roll_dst = getOption("timeplyr.roll_dst", "NA")
 )
 
-time_seq_sizes(
-  from,
-  to,
-  time_by,
-  time_type = getOption("timeplyr.time_type", "auto")
-)
+time_seq_sizes(from, to, time_by)
 
 time_seq_v(
   from,
   to,
   time_by,
-  time_type = getOption("timeplyr.time_type", "auto"),
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "NA"),
-  time_floor = FALSE,
-  week_start = getOption("lubridate.week.start", 1)
+  roll_dst = getOption("timeplyr.roll_dst", "NA")
 )
 
 time_seq_v2(
   sizes,
   from,
   time_by,
-  time_type = getOption("timeplyr.time_type", "auto"),
-  time_floor = FALSE,
-  week_start = getOption("lubridate.week.start", 1),
   roll_month = getOption("timeplyr.roll_month", "preday"),
   roll_dst = getOption("timeplyr.roll_dst", "NA")
 )
@@ -68,22 +54,6 @@ then arithmetic is used, e.g \code{time_by = 1}.
 
 \item{length.out}{Length of the sequence.}
 
-\item{time_type}{If "auto", \code{periods} are used for
-the time expansion when days, weeks,
-months or years are specified, and \code{durations}
-are used otherwise. If \code{durations}
-are used the output is always of class \code{POSIXt}.}
-
-\item{week_start}{day on which week starts following ISO conventions - 1
-means Monday (default), 7 means Sunday.
-This is only used when \code{time_floor = TRUE}.}
-
-\item{time_floor}{Should \code{from} be floored to
-the nearest unit specified through the \code{time_by}
-argument? This is particularly useful for
-starting sequences at the beginning of a week
-or month for example.}
-
 \item{roll_month}{Control how impossible dates are handled when
 month or year arithmetic is involved.
 Options are "preday", "boundary", "postday", "full" and "NA".
@@ -92,6 +62,16 @@ See \code{?timechange::time_add} for more details.}
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
 
 \item{sizes}{Time sequence sizes.}
+
+\item{time_floor}{Should \code{from} be floored to
+the nearest unit specified through the \code{time_by}
+argument? This is particularly useful for
+starting sequences at the beginning of a week
+or month for example.}
+
+\item{week_start}{day on which week starts following ISO conventions - 1
+means Monday (default), 7 means Sunday.
+This is only used when \code{time_floor = TRUE}.}
 }
 \value{
 \code{time_seq} returns a time sequence. \cr

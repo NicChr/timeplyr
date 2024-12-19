@@ -133,8 +133,8 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
     .keep_all = TRUE
   )
   time_by <- time_by_list(time_by)
-  by_unit <- time_by_unit(time_by)
-  by_n <- time_by_num(time_by)
+  by_unit <- timespan_unit(time_by)
+  by_n <- timespan_num(time_by)
   delay_nm <- unique_col_name(out, "delay")
   out <- df_add_cols(out, add_names(
     list(

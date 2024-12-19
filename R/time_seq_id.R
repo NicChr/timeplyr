@@ -87,7 +87,7 @@ time_seq_id <- function(x, time_by = NULL, threshold = 1,
   check_is_time_or_num(x)
   g <- GRP2(g)
   time_by <- time_by_get(x, time_by = time_by)
-  time_num <- time_by_num(time_by)
+  time_num <- timespan_num(time_by)
   if (is_whole_number(threshold)){
     threshold <- as.integer(threshold)
   }

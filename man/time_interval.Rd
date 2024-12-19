@@ -3,22 +3,31 @@
 \name{time_interval}
 \alias{time_interval}
 \alias{is_time_interval}
+\alias{[.time_interval}
+\alias{rep.time_interval}
+\alias{rep_len.time_interval}
 \title{S3-based Time Intervals (Currently very experimental and so subject to change)}
 \usage{
-time_interval(start = integer(), end = integer())
+time_interval(start = integer(), width = time_resolution(start))
 
 is_time_interval(x)
+
+\method{[}{time_interval}(x, ..., drop = TRUE)
+
+\method{rep}{time_interval}(x, ...)
+
+rep_len.time_interval(x, ...)
 }
 \arguments{
 \item{start}{Start time. \cr
 Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, \code{yearqtr},
 \code{year_month} or \code{year_quarter}.}
 
+\item{x}{A 'time_interval'.}
+
 \item{end}{End time. \cr
 Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, \code{yearqtr},
 \code{year_month} or \code{year_quarter}.}
-
-\item{x}{A 'time_interval'.}
 }
 \value{
 An object of class \code{time_interval}. \cr

@@ -42,11 +42,6 @@
 #' @param week_start day on which week starts following ISO conventions - 1
 #' means Monday (default), 7 means Sunday.
 #' This is only used when `time_floor = TRUE`.
-#' @param time_type If "auto", `periods` are used for
-#' the time expansion when days, weeks,
-#' months or years are specified, and `durations`
-#' are used otherwise. If `durations`
-#' are used the output is always of class `POSIXt`.
 #' @param roll_month Control how impossible dates are handled when
 #' month or year arithmetic is involved.
 #' Options are "preday", "boundary", "postday", "full" and "NA".
@@ -129,9 +124,6 @@
 #' @rdname time_seq
 #' @export
 time_seq <- function(from, to, time_by, length.out = NULL,
-                     time_type = getOption("timeplyr.time_type", "auto"),
-                     week_start = getOption("lubridate.week.start", 1),
-                     time_floor = FALSE,
                      roll_month = getOption("timeplyr.roll_month", "preday"),
                      roll_dst = getOption("timeplyr.roll_dst", "NA")){
   missing_from <- missing(from)
@@ -279,12 +271,10 @@ time_seq <- function(from, to, time_by, length.out = NULL,
 }
 #' @rdname time_seq
 #' @export
-time_seq_sizes <- function(from, to, time_by,
-                           time_type = getOption("timeplyr.time_type", "auto")){
-  time_by <- time_by_list(time_by)
+time_seq_sizes <- function(from, to, time_by){
+  time_by <- timespan(time_by)
   set_time_cast(from, to)
-  tdiff <- time_diff(from, to, time_by = time_by,
-                     time_type = time_type)
+  tdiff <- time_diff(from, to, time_by = time_by)
   tdiff[which(from == to)] <- 0L
   tdiff_rng <- collapse::frange(tdiff, na.rm = TRUE)
   if (isTRUE(any(tdiff_rng < 0))){
@@ -303,25 +293,16 @@ time_seq_sizes <- function(from, to, time_by,
 #' @rdname time_seq
 #' @export
 time_seq_v <- function(from, to, time_by,
-                       time_type = getOption("timeplyr.time_type", "auto"),
                        roll_month = getOption("timeplyr.roll_month", "preday"),
-                       roll_dst = getOption("timeplyr.roll_dst", "NA"),
-                       time_floor = FALSE,
-                       week_start = getOption("lubridate.week.start", 1)){
-  time_by <- time_by_list(time_by)
-  units <- time_by_unit(time_by)
-  num <- time_by_num(time_by)
+                       roll_dst = getOption("timeplyr.roll_dst", "NA")){
+  time_by <- timespan(time_by)
+  units <- timespan_unit(time_by)
+  num <- timespan_num(time_by)
   set_time_cast(from, to)
-  if (time_floor){
-    from <- time_floor2(from, time_by = time_by, week_start = week_start)
-  }
   seq_sizes <- time_seq_sizes(from = from, to = to,
-                              time_by = time_by,
-                              time_type = time_type)
+                              time_by = time_by)
   time_seq_v2(seq_sizes, from = from,
               time_by = time_by,
-              time_type = time_type,
-              time_floor = FALSE,
               roll_month = roll_month,
               roll_dst = roll_dst)
 }
@@ -330,26 +311,17 @@ time_seq_v <- function(from, to, time_by,
 #' @rdname time_seq
 #' @export
 time_seq_v2 <- function(sizes, from, time_by,
-                        time_type = getOption("timeplyr.time_type", "auto"),
-                        time_floor = FALSE,
-                        week_start = getOption("lubridate.week.start", 1),
                         roll_month = getOption("timeplyr.roll_month", "preday"),
                         roll_dst = getOption("timeplyr.roll_dst", "NA")){
-  time_by <- time_by_list(time_by)
-  units <- time_by_unit(time_by)
-  num <- time_by_num(time_by)
-  if (time_floor){
-    from <- time_floor2(from, time_by, week_start = week_start)
-  }
-  if (time_by_is_num(time_by)){
+  time_by <- timespan(time_by)
+  units <- timespan_unit(time_by)
+  num <- timespan_num(time_by)
+  if (!timespan_has_unit(time_by)){
     out <- sequences(sizes, from = from, by = num)
   } else {
-    time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
-    is_special_case_days <- time_type == "auto" &&
-      units %in% c("days", "weeks") &&
+    is_special_case_days <- units %in% c("days", "weeks") &&
       is_date(from) &&
       is_whole_number(num)
-    if (time_type == "auto") time_type <- guess_seq_type(units)
     if (is_special_case_days){
       out <- date_seq_v2(sizes, from = from, units = units, num = num)
     } else if (time_type == "period"){
@@ -413,15 +385,14 @@ period_seq <- function(from, length, unit, num = 1,
   if (length == 0L){
     from <- from[0L]
   }
-  time_add(from, periods = add_names(list(num * int_seq),
+  tiemchange::time_add(from, periods = add_names(list(num * int_seq),
                                                        unit),
                        roll_month = roll_month, roll_dst = roll_dst)
 }
 # Duration sequence vectorised over from, to and num
 duration_seq_v <- function(from, to, units, num = 1){
   time_by <- add_names(list(num), units)
-  seq_sizes <- time_seq_sizes(from, to, time_by = time_by,
-                              time_type = "duration")
+  seq_sizes <- time_seq_sizes(from, to, time_by = time_by)
   duration_seq_v2(seq_sizes, from = from, units = units, num = num)
 }
 # Alternate version of duration_seq_v with sizes arg instead of to
@@ -432,7 +403,7 @@ duration_seq_v2 <- function(sizes, from, units, num = 1){
   time_by <- add_names(list(num), units)
   num_seconds <- unit_to_seconds(time_by)
   time_seq <- cheapr::sequence_(sizes,
-                                from = time_as_number(from),
+                                from = unclass(from),
                                 by = num_seconds)
   .POSIXct(time_seq, lubridate::tz(from))
   # time_cast(time_seq, from)
@@ -467,8 +438,7 @@ period_seq_v <- function(from, to, units, num = 1,
   if (length(to) == 0L){
     return(vec_head(from, n = 0L))
   }
-  seq_sizes <- time_seq_sizes(from, to, time_by = add_names(list(num), units),
-                              time_type = "period")
+  seq_sizes <- time_seq_sizes(from, to, time_by = add_names(list(num), units))
   period_seq_v2(sizes = seq_sizes,
                 from = from, units = units,
                 num = num,

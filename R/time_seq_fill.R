@@ -46,9 +46,9 @@ time_seq_fill <- function(x, time_by = NULL,
   } else {
     time_add <- add_names(
       list(
-        -(time_by_num(time_by) * n_first_nas)
+        -(timespan_num(time_by) * n_first_nas)
       ),
-      time_by_unit(time_by)
+      timespan_unit(time_by)
     )
     start <- time_add2(x[n_first_nas + 1L], time_add,
                        time_type = time_type,
@@ -60,9 +60,9 @@ time_seq_fill <- function(x, time_by = NULL,
   } else {
     time_add <- add_names(
       list(
-        (time_by_num(time_by) * n_last_nas)
+        (timespan_num(time_by) * n_last_nas)
       ),
-      time_by_unit(time_by)
+      timespan_unit(time_by)
     )
     end <- time_add2(x[length(x) - n_last_nas], time_add,
                      time_type = time_type,

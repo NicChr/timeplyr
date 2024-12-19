@@ -187,36 +187,18 @@ time_breaks <- function(x, n = 5, time_by = NULL,
                       roll_dst = roll_dst)
   out[["breaks"]]
 }
-# time_cut_width <- function(x, time_by = NULL,
-#                            from = NULL, as_interval = getOption("timeplyr.use_intervals", TRUE)){
-#   check_is_time_or_num(x)
-#   time_by <- time_by_get(x, time_by)
-#   if (length(from) <= 1 &&
-#       time_span_size(x, time_by, from = from) <= 5e05){
-#     return(time_summarisev(
-#       x, time_by = time_by, from = from,
-#       as_interval = as_interval
-#     ))
-#   }
-#   num <- time_by_num(time_by)
-#   units <- time_by_unit(time_by)
-#   if (is.null(from)){
-#     index <- gmin(x, na.rm = TRUE)
-#   } else {
-#     if (length(from) %!in_% c(1, length(x))){
-#       stop("length of from must be 1 or length(x)")
-#     }
-#     index <- time_cast(from, x)
-#     x[which(x < index)] <- NA
-#   }
-#   tdiff <- time_diff(index, x, time_by = time_by)
-#   time_to_add <- add_names(list(trunc2(tdiff) * num), units)
-#   out <- time_add2(index, time_by = time_to_add)
-#   if (as_interval){
-#    out <- time_by_interval(out, time_by = time_by)
-#   }
-#   out
-# }
+time_cut_width <- function(x, width = time_granularity(x)){
+  check_is_time_or_num(x)
+  width <- get_time_granularity(x, width)
+  num <- timespan_num(width)
+  units <- timespan_unit(width)
+  index <- gmin(x, na.rm = TRUE)
+  tdiff <- time_diff(index, x, time_by = width)
+  time_to_add <- width
+  time_to_add[["num"]] <- trunc2(tdiff) * num
+  out <- time_add(index, timespan = time_to_add)
+  time_interval(out, width)
+}
 .time_breaks <- function(x, n = 5, time_by = NULL,
                          from = NULL, to = NULL,
                          time_floor = FALSE,

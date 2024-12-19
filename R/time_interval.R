@@ -95,137 +95,138 @@
 #'}
 #' @rdname time_interval
 #' @export
-time_interval <- function(start = integer(), end = integer()){
-  if (is_time_interval(start) || is_time_interval(end)){
-    stop("nested time intervals are currently not supported")
+time_interval <- function(start = integer(), width = time_resolution(start)){
+  timespan <- timespan(width)
+
+  # Basically if width is unitless (e.g. width = 10)
+  # Then we use the unit of the time resolution
+  if (!timespan_has_unit(timespan)){
+    resolution <- time_resolution(start)
+    timespan[["unit"]] <- timespan_unit(resolution)
   }
-  out <- time_interval_list(start, end)
-  class(out) <- c("time_interval", "vctrs_rcrd", "vctrs_vctr")
-  invisible(vctrs::field) # Just in case accessing namespace is necessary
-  out
-  # vctrs::new_rcrd(out, class = "time_interval")
+  new_time_interval(start, timespan)
 }
 #' @rdname time_interval
 #' @export
 is_time_interval <- function(x){
   inherits(x, "time_interval")
 }
-time_interval_list <- function(start, end){
-  set_time_cast(start, end)
-  if (typeof(start) == "double" && (
-    collapse::anyv(start, Inf) ||
-    collapse::anyv(start, -Inf)
-  )){
-    stop("start must be finite")
-  }
-  cheapr::recycle(start = start, end = end)
-}
 # Like time_interval() but no checks or recycling
-new_time_interval <- function(start, end){
-  out <- list(start = start, end = end)
-  class(out) <- c("time_interval", "vctrs_rcrd", "vctrs_vctr")
+new_time_interval <- function(start, timespan){
+  out <- start
+  attr(out, "timespan") <- timespan
+  class(out) <- c("time_interval", oldClass(start))
   out
 }
-#' @exportS3Method base::as.data.frame
-as.data.frame.time_interval <- function(x, ...){
-  list_as_df(x)
+#' @rdname time_interval
+#' @export
+`[.time_interval` <- function(x, ..., drop = TRUE){
+  cl <- oldClass(x)
+  span <- interval_width(x)
+  class(x) <- NULL
+  val <- NextMethod("[")
+  class(val) <- cl
+  attr(val, "timespan") <- span
+  val
 }
-#' @exportS3Method base::as.list
-as.list.time_interval <- function(x, ...){
-  unclass(x)
+#' @rdname time_interval
+#' @export
+`rep.time_interval` <- function(x, ...){
+  cl <- oldClass(x)
+  span <- interval_width(x)
+  class(x) <- NULL
+  val <- NextMethod("rep")
+  class(val) <- cl
+  attr(val, "timespan") <- span
+  val
 }
+#' @rdname time_interval
+#' @export
+`rep_len.time_interval` <- function(x, ...){
+  cl <- oldClass(x)
+  span <- interval_width(x)
+  class(x) <- NULL
+  val <- NextMethod("rep_len")
+  class(val) <- cl
+  attr(val, "timespan") <- span
+  val
+}
+
 #' @export
 `+.time_interval` <- function(e1, e2){
   start <- interval_start(e1)
-  end <- interval_end(e1)
-  start <- time_add2(start, e2)
-  end <- time_add2(end, e2)
-  new_time_interval(start, end)
+  new_time_interval(time_add(start, timespan(e2)), interval_width(e1))
 }
+# `-.time_interval` <- function(e1, e2){
+#   time_by <- time_by_list(e2)
+#   time_by <- add_names(
+#     list(-timespan_num(time_by)
+#     ),
+#     timespan_unit(time_by)
+#   )
+#   start <- interval_start(e1)
+#   end <- interval_end(e1)
+#   start <- time_add2(start, time_by)
+#   end <- time_add2(end, time_by)
+#   new_time_interval(start, end)
+# }
+# `/.time_interval` <- function(e1, e2){
+#   time_diff(interval_start(e1), interval_end(e1), time_by = e2)
+# }
+# xtfrm.time_interval <- function(x){
+#   group_id(x, order = TRUE)
+# }
+# sort.time_interval <- function(x, ...){
+#   o <- radixorderv2(unclass(x), ...)
+#   x[o]
+# }
+# duplicated.time_interval <- function(x, ...){
+#   collapse::fduplicated(unclass(x), ...)
+# }
+# as.character.time_interval <- function(x,
+#                                        interval_style = getOption("timeplyr.interval_style", "full"),
+#                                        interval_sub_formatter = getOption("timeplyr.interval_sub_formatter", identity),
+#                                        ...){
+#   if (is.null(interval_style)){
+#     int_fmt <- "full"
+#   } else {
+#     int_fmt <- rlang::arg_match0(interval_style, c("full", "start", "end"))
+#   }
+#   start <- interval_start(x)
+#   end <- interval_end(x)
+#   if (!is.null(interval_sub_formatter)){
+#     start <- interval_sub_formatter(start)
+#     end <- interval_sub_formatter(end)
+#   } else {
+#     start <- as.character(start)
+#     end <- as.character(end)
+#   }
+#   which_na <- which_na(x)
+#   if (int_fmt == "full"){
+#     out <- paste0("[", start, ", ", end, ")")
+#     which_closed <- which(start == end)
+#     out[which_closed] <- paste0("[", start[which_closed], ", ", end[which_closed], "]")
+#     # which_left_open <- which(start > end)
+#     # out[which_left_open] <- paste0("(", start[which_left_open], "--", end[which_left_open], "]")
+#     out[which_na] <- NA_character_
+#     out
+#   } else if (int_fmt == "start"){
+#     start[which_na] <- NA_character_
+#     start
+#   } else {
+#     end[which_na] <- NA_character_
+#     end
+#   }
+# }
+# format.time_interval <- function(x,
+#                                  interval_style = getOption("timeplyr.interval_style", "full"),
+#                                  interval_sub_formatter = getOption("timeplyr.interval_sub_formatter", identity),
+#                                  ...){
+#   format(as.character(x,
+#                       interval_style = interval_style,
+#                       interval_sub_formatter = interval_sub_formatter), ...)
+# }
 #' @export
-`-.time_interval` <- function(e1, e2){
-  time_by <- time_by_list(e2)
-  time_by <- add_names(
-    list(-time_by_num(time_by)
-    ),
-    time_by_unit(time_by)
-  )
-  start <- interval_start(e1)
-  end <- interval_end(e1)
-  start <- time_add2(start, time_by)
-  end <- time_add2(end, time_by)
-  new_time_interval(start, end)
-}
-#' @export
-`/.time_interval` <- function(e1, e2){
-  time_diff(interval_start(e1), interval_end(e1), time_by = e2)
-}
-#' @exportS3Method base::xtfrm
-xtfrm.time_interval <- function(x){
-  group_id(x, order = TRUE)
-}
-#' @exportS3Method base::sort
-sort.time_interval <- function(x, ...){
-  o <- radixorderv2(unclass(x), ...)
-  x[o]
-}
-#' @exportS3Method base::duplicated
-duplicated.time_interval <- function(x, ...){
-  collapse::fduplicated(unclass(x), ...)
-}
-#' @exportS3Method base::as.character
-as.character.time_interval <- function(x,
-                                       interval_style = getOption("timeplyr.interval_style", "full"),
-                                       interval_sub_formatter = getOption("timeplyr.interval_sub_formatter", identity),
-                                       ...){
-  if (is.null(interval_style)){
-    int_fmt <- "full"
-  } else {
-    int_fmt <- rlang::arg_match0(interval_style, c("full", "start", "end"))
-  }
-  start <- interval_start(x)
-  end <- interval_end(x)
-  if (!is.null(interval_sub_formatter)){
-    start <- interval_sub_formatter(start)
-    end <- interval_sub_formatter(end)
-  } else {
-    start <- as.character(start)
-    end <- as.character(end)
-  }
-  which_na <- which_na(x)
-  if (int_fmt == "full"){
-    out <- paste0("[", start, ", ", end, ")")
-    which_closed <- which(start == end)
-    out[which_closed] <- paste0("[", start[which_closed], ", ", end[which_closed], "]")
-    # which_left_open <- which(start > end)
-    # out[which_left_open] <- paste0("(", start[which_left_open], "--", end[which_left_open], "]")
-    out[which_na] <- NA_character_
-    out
-  } else if (int_fmt == "start"){
-    start[which_na] <- NA_character_
-    start
-  } else {
-    end[which_na] <- NA_character_
-    end
-  }
-}
-#' @exportS3Method base::format
-format.time_interval <- function(x,
-                                 interval_style = getOption("timeplyr.interval_style", "full"),
-                                 interval_sub_formatter = getOption("timeplyr.interval_sub_formatter", identity),
-                                 ...){
-  format(as.character(x,
-                      interval_style = interval_style,
-                      interval_sub_formatter = interval_sub_formatter), ...)
-}
-#' @exportS3Method vctrs::vec_ptype_abbr
-vec_ptype_abbr.time_interval <- function(x, ...) "tm_intv"
-#' @exportS3Method vctrs::vec_ptype_full
-vec_ptype_full.time_interval <- function(x, ...) "time_interval"
-#' @exportS3Method vctrs::vec_cast
-vec_cast.time_interval.time_interval <- function(x, to, ...) x
-
-#' @exportS3Method base::print
 print.time_interval <- function(x, max = NULL, ...){
   out <- x
   N <- length(out)
@@ -241,30 +242,39 @@ print.time_interval <- function(x, max = NULL, ...){
   } else {
     additional_msg <- character()
   }
-  vctrs::obj_print_header(x)
-  vctrs::obj_print_data(out)
+  start <-  strip_attr(rm_intv_class(out), "timespan")
+  timespan <- interval_width(x)
+  unit <- timespan_unit(timespan)
+  num <- timespan_num(timespan)
+
+  cat(
+    "<time_interval> / ",
+    "Width: ",
+    paste0(unit, " (", num, ")\n")
+  )
+  if (length(start)){
+    print(start)
+  }
+  # cat(paste0("<", "Timespan:", timespan_unit(timespan), ">"), timespan_num(timespan), sep = "\n")
   cat(additional_msg)
   invisible(x)
 }
-#' @exportS3Method base::as.Date
-as.Date.time_interval <- function(x, ...){
-  as.Date(interval_start(x), ...)
-}
-#' @exportS3Method base::as.POSIXct
-as.POSIXct.time_interval <- function(x, ...){
-  as.POSIXct(interval_start(x), ...)
-}
-#' @exportS3Method base::as.POSIXlt
-as.POSIXlt.time_interval <- function(x, ...){
-  as.POSIXlt(interval_start(x), ...)
-}
-is_nested_time_interval <- function(x){
-  out <- FALSE
-  for (i in seq_along(unclass(x))){
-    if (inherits(.subset2(x, i), "time_interval")){
-      out <- TRUE
-      break
-    }
-  }
-  out
-}
+# as.Date.time_interval <- function(x, ...){
+#   as.Date(interval_start(x), ...)
+# }
+# as.POSIXct.time_interval <- function(x, ...){
+#   as.POSIXct(interval_start(x), ...)
+# }
+# as.POSIXlt.time_interval <- function(x, ...){
+#   as.POSIXlt(interval_start(x), ...)
+# }
+# is_nested_time_interval <- function(x){
+#   out <- FALSE
+#   for (i in seq_along(unclass(x))){
+#     if (inherits(.subset2(x, i), "time_interval")){
+#       out <- TRUE
+#       break
+#     }
+#   }
+#   out
+# }

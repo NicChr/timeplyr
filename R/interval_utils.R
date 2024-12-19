@@ -11,16 +11,26 @@
 interval_start <- function(x){
   UseMethod("interval_start")
 }
-# interval_start.default <- function(x){
-#   x
-# }
+rm_intv_class <- function(x){
+  class(x) <- cheapr::val_rm(class(x), "time_interval")
+  x
+}
 #' @export
 interval_start.time_interval <- function(x){
-  unclass(x)[["start"]]
+  rm_intv_class(x)
 }
 #' @export
 interval_start.Interval <- function(x){
   attr(x, "start", TRUE)
+}
+#' @rdname interval_utils
+#' @export
+interval_width <- function(x){
+  UseMethod("interval_width")
+}
+#' @export
+interval_width.time_interval <- function(x){
+  attr(x, "timespan")
 }
 #' @rdname interval_utils
 #' @export
@@ -29,7 +39,8 @@ interval_end <- function(x){
 }
 #' @export
 interval_end.time_interval <- function(x){
-  unclass(x)[["end"]]
+  rm_intv_class(time_add(interval_start(x), interval_width(x)))
+
 }
 #' @export
 interval_end.Interval <- function(x){
@@ -44,30 +55,5 @@ interval_count <- function(x){
 interval_count.time_interval <- function(x){
   new_tbl(interval = x) %>%
     fastplyr::f_count(.cols = 1L, .order = TRUE)
-  # intervals <- as.data.frame(x)
-  # fastplyr::f_count(intervals, .cols = 1:2, order = TRUE)
-}
-#' @rdname interval_utils
-#' @export
-interval_range <- function(x, na_rm = TRUE){
-  UseMethod("interval_range")
-}
-#' @export
-interval_range.time_interval <- function(x, na_rm = TRUE){
-  start <- interval_start(x)
-  end <- interval_end(x)
-  new_time_interval(collapse::fmin(start, na.rm = na_rm),
-                    collapse::fmax(end, na.rm = na_rm))
-}
-#' @rdname interval_utils
-#' @export
-interval_length <- function(x, ...){
-  UseMethod("interval_length")
-}
-#' @export
-interval_length.time_interval <- function(x, ...){
-  start <- interval_start(x)
-  end <- interval_end(x)
-  time_diff(start, end, ...)
 }
 

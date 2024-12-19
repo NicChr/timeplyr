@@ -102,7 +102,7 @@ time_aggregate <- function(x, time_by = NULL,
   ## when there are relatively small numbers of breaks and large data
   ## Also, timechange natively handles the case when dates are updated
   ## using seconds to other dates without final output being a datetime
-  if (time_by_unit(time_by) %!in_%
+  if (timespan_unit(time_by) %!in_%
       c("picoseconds", "nanoseconds", "microseconds",
         "milliseconds", "seconds", "minutes", "hours") &&
       length(from) <= 1 &&
@@ -118,8 +118,8 @@ time_aggregate <- function(x, time_by = NULL,
       as_interval = as_interval
     ))
   }
-  num <- time_by_num(time_by)
-  units <- time_by_unit(time_by)
+  num <- timespan_num(time_by)
+  units <- timespan_unit(time_by)
   if (is.null(from)){
     index <- gmin(start, na.rm = TRUE)
   } else {

@@ -14,45 +14,9 @@
 #' @returns
 #' A list of length 3, including the unit, number and scale.
 #'
-#' @examples
-#' library(timeplyr)
-#' \dontshow{
-#' .n_dt_threads <- data.table::getDTthreads()
-#' .n_collapse_threads <- collapse::get_collapse()$nthreads
-#' data.table::setDTthreads(threads = 2L)
-#' collapse::set_collapse(nthreads = 1L)
-#' }
-#' # Single units
-#' unit_guess("days")
-#' unit_guess("hours")
-#'
-#' # Multi-units
-#' unit_guess("7 days")
-#' unit_guess("0.5 hours")
-#'
-#' # Negative units
-#' unit_guess("-7 days")
-#' unit_guess("-.12 days")
-#'
-#' # Exotic units
-#' unit_guess("fortnights")
-#' unit_guess("decades")
-#' .extra_time_units
-#'
-#' # list input is accepted
-#' unit_guess(list("months" = 12))
-#' # With a list, a vector of numbers is accepted
-#' unit_guess(list("months" = 1:10))
-#' unit_guess(list("days" = -10:10 %% 7))
-#'
-#' # Numbers also accepted
-#' unit_guess(100)
-#' \dontshow{
-#' data.table::setDTthreads(threads = .n_dt_threads)
-#' collapse::set_collapse(nthreads = .n_collapse_threads)
-#'}
 #' @export
 unit_guess <- function(x){
+  .Deprecated("timespan")
   if (inherits(x, c("Duration", "Period"))){
     time_unit_info <- time_unit_info(x)
     if (length(time_unit_info) > 1L){
@@ -60,22 +24,13 @@ unit_guess <- function(x){
     }
     unit <- paste0(names(time_unit_info), "s")
     num <- .subset2(time_unit_info, 1L)
-    out <- list("unit" = unit,
-                "num" = num,
-                "scale" = 1L
-                # "type" = tolower(class(x)[[1]])
-                )
+    out <- list("unit" = unit, "num" = num)
     # If numeric then just return this..
   } else if (is.numeric(x)){
-    out <- list("unit" = "numeric",
-                "num" = x,
-                "scale" = 1L
-                # "type" = "auto"
-                )
+    out <- list("unit" = "numeric", "num" = x)
   } else if (is.list(x)){
     # If it's a list, string match but no parse
     out <- unit_list_match(x)
-    # out[["type"]] <- "auto"
   } else {
     # Try matching first as it's faster
     unit <- unit_match(x)
@@ -92,12 +47,9 @@ unit_guess <- function(x){
         scale <- .subset2(exotic_info, "scale")
         unit <- .subset2(exotic_info, "unit")
       }
-      # num <- num * scale
-      out <- list("unit" = unit,
-                  "num" = num,
-                  "scale" = scale)
+      out <- list("unit" = unit, "num" = num * scale)
     }
-    # out[["type"]] <- "auto"
   }
   out
 }
+

@@ -2,21 +2,18 @@
 % Please edit documentation in R/interval_utils.R
 \name{interval_start}
 \alias{interval_start}
+\alias{interval_width}
 \alias{interval_end}
 \alias{interval_count}
-\alias{interval_range}
-\alias{interval_length}
 \title{Time interval utilities}
 \usage{
 interval_start(x)
 
+interval_width(x)
+
 interval_end(x)
 
 interval_count(x)
-
-interval_range(x, na_rm = TRUE)
-
-interval_length(x, ...)
 }
 \arguments{
 \item{x}{A 'time_interval'.}
