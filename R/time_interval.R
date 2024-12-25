@@ -92,7 +92,7 @@
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
-#'}
+#' }
 #' @rdname time_interval
 #' @export
 time_interval <- function(start = integer(), width = time_resolution(start)){
@@ -103,7 +103,7 @@ time_interval <- function(start = integer(), width = time_resolution(start)){
     cli::cli_abort("{.arg num} must be a length-1 timespan")
   }
 
-  if (isTRUE(any(num <= 0, na.rm = TRUE))){
+  if (isTRUE(any(timespan_num(timespan) <= 0, na.rm = TRUE))){
     cli::cli_abort("{.arg width} must be a positive-valued timespan")
   }
 
@@ -164,39 +164,15 @@ new_time_interval <- function(start, timespan){
 #' @export
 `+.time_interval` <- function(e1, e2){
   start <- interval_start(e1)
-  new_time_interval(time_add(start, timespan(e2)), interval_width(e1))
+  width <- interval_width(e1)
+  new_time_interval(time_add(start, timespan(e2)), width)
 }
 #' @export
 `-.time_interval` <- function(e1, e2){
   start <- interval_start(e1)
-  new_time_interval(time_subtract(start, timespan(e2)), interval_width(e1))
+  width <- interval_width(e1)
+  new_time_interval(time_subtract(start, timespan(e2)), width)
 }
-# `-.time_interval` <- function(e1, e2){
-#   time_by <- time_by_list(e2)
-#   time_by <- add_names(
-#     list(-timespan_num(time_by)
-#     ),
-#     timespan_unit(time_by)
-#   )
-#   start <- interval_start(e1)
-#   end <- interval_end(e1)
-#   start <- time_add2(start, time_by)
-#   end <- time_add2(end, time_by)
-#   new_time_interval(start, end)
-# }
-# `/.time_interval` <- function(e1, e2){
-#   time_diff(interval_start(e1), interval_end(e1), time_by = e2)
-# }
-# xtfrm.time_interval <- function(x){
-#   group_id(x, order = TRUE)
-# }
-# sort.time_interval <- function(x, ...){
-#   o <- radixorderv2(unclass(x), ...)
-#   x[o]
-# }
-# duplicated.time_interval <- function(x, ...){
-#   collapse::fduplicated(unclass(x), ...)
-# }
 #' @export
 format.time_interval <- function(x, ...){
   start <- interval_start(x)
@@ -257,22 +233,3 @@ print.time_interval <- function(x, max = NULL, ...){
   cat(additional_msg)
   invisible(x)
 }
-# as.Date.time_interval <- function(x, ...){
-#   as.Date(interval_start(x), ...)
-# }
-# as.POSIXct.time_interval <- function(x, ...){
-#   as.POSIXct(interval_start(x), ...)
-# }
-# as.POSIXlt.time_interval <- function(x, ...){
-#   as.POSIXlt(interval_start(x), ...)
-# }
-# is_nested_time_interval <- function(x){
-#   out <- FALSE
-#   for (i in seq_along(unclass(x))){
-#     if (inherits(.subset2(x, i), "time_interval")){
-#       out <- TRUE
-#       break
-#     }
-#   }
-#   out
-# }

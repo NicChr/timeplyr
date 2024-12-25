@@ -190,6 +190,29 @@ new_period_timespan <- function(years = 0L,
   # class(out) <- c("period", "timespan", "vctrs_rcrd", "vctrs_vctr")
   out
 }
+time_unit_abbr <- function(x){
+
+  check_timespan(x)
+
+  abbrs <- c(
+    seconds = "s",
+    minutes = "m",
+    hours = "h",
+    days  = "D",
+    weeks = "W",
+    months = "M",
+    years = "Y"
+  )
+
+  units <- names(abbrs)
+
+  unit <- timespan_unit(x)
+  num <- timespan_num(x)
+  abbr <- unname(abbrs)[match(unit, units)]
+
+  paste0(num, abbr)
+
+}
 # print.timespan <- function(x, max = NULL, ...){
 #   out <- x
 #   N <- length(out)
