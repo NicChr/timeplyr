@@ -47,48 +47,23 @@
 #' }
 #' x <- 1:10
 #' int <- time_interval(x, 100)
-#' options(timeplyr.interval_style = "full")
 #' int
 #'
-#' # Displaying the start or end values of the intervals
-#' format(int, "start")
-#' format(int, "end")
-#'
 #' month_start <- floor_date(today(), unit = "months")
-#' month_int <- time_interval(month_start, month_start + months(1))
+#' month_int <- time_interval(month_start, "month")
 #' month_int
-#' # Custom format function for start and end dates
-#' format(month_int, interval_sub_formatter =
-#'          function(x) format(x, format = "%Y/%B"))
-#' format(month_int, interval_style = "start",
-#'        interval_sub_formatter = function(x) format(x, format = "%Y/%B"))
 #'
-#' # Advanced formatting
-#'
-#' # As shown above, we can specify formatting functions for the dates
-#' # in our intervals
-#' # Sometimes it's useful to set a default function
-#'
-#' options(timeplyr.interval_sub_formatter =
-#'           function(x) format(x, format = "%b %Y"))
-#' month_int
+#' interval_start(month_int)
+#' interval_end(month_int)
 #'
 #' # Divide an interval into different time units
-#' time_interval(today(), today() + years(0:10)) / "years"
-#' time_interval(today(), today() + dyears(0:10)) / ddays(365.25)
-#' time_interval(today(), today() + years(0:10)) / "months"
-#' time_interval(today(), today() + years(0:10)) / "weeks"
-#' time_interval(today(), today() + years(0:10)) / "7 days"
-#' time_interval(today(), today() + years(0:10)) / "24 hours"
-#' time_interval(today(), today() + years(0:10)) / "minutes"
-#' time_interval(today(), today() + years(0:10)) / "seconds"
-#' time_interval(today(), today() + years(0:10)) / "milliseconds"
+#' time_interval(today(), years(10)) / timespan("year")
 #'
 #' # Cutting Sepal Length into blocks of width 1
-#' int <- time_aggregate(iris$Sepal.Length, time_by = 1, as_interval = TRUE)
+#' int <- time_cut_width(iris$Sepal.Length, 1)
 #' int %>%
-#'   interval_count()
-#' reset_timeplyr_options()
+#'   as_tbl() |>
+#'   count(value)
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
@@ -120,11 +95,18 @@ time_interval <- function(start = integer(), width = time_resolution(start)){
 is_time_interval <- function(x){
   inherits(x, "time_interval")
 }
+check_time_interval <- function(x){
+  if (!is_time_interval(x)){
+    cli::cli_abort("{.arg x} must be a {.cls time_interval}")
+  }
+}
 # Like time_interval() but no checks or recycling
 new_time_interval <- function(start, timespan){
   out <- start
   attr(out, "timespan") <- timespan
   class(out) <- c("time_interval", oldClass(start))
+  # class(out) <- c(paste0(timespan_abbr(timespan), "_intv"),
+  #                 "time_interval", oldClass(start))
   out
 }
 #' @rdname time_interval
@@ -140,52 +122,103 @@ new_time_interval <- function(start, timespan){
 }
 #' @rdname time_interval
 #' @export
-`rep.time_interval` <- function(x, ...){
-  cl <- oldClass(x)
-  span <- interval_width(x)
-  class(x) <- NULL
-  val <- NextMethod("rep")
-  class(val) <- cl
-  attr(val, "timespan") <- span
-  val
+c.time_interval <- function(...){
+  dots <- list(...)
+  int <- dots[[1L]]
+  cl <- oldClass(int)
+  span <- interval_width(int)
+  for (i in seq_along(dots)){
+    dot <- dots[[i]]
+    if (!is_time_interval(dot)){
+      cli::cli_abort("Cannot combine {.cls time_interval} with {.cls {class(dot)}}")
+    }
+    dots[[i]] <- rm_intv_class(dot)
+    if (!identical(span, interval_width(dot))){
+     cli::cli_abort(c(
+     " " = "{.cls time_interval} {i} with width {interval_width(dot)}",
+     "must match the width of",
+     " " = "{.cls time_interval} { i - 1 } with width {span}"))
+    }
+  }
+  out <- do.call(c, dots, envir = parent.frame())
+  class(out) <- cl
+  attr(out, "timespan") <- span
+  out
 }
 #' @rdname time_interval
 #' @export
-`rep_len.time_interval` <- function(x, ...){
-  cl <- oldClass(x)
-  span <- interval_width(x)
-  class(x) <- NULL
-  val <- NextMethod("rep_len")
-  class(val) <- cl
-  attr(val, "timespan") <- span
-  val
+unique.time_interval <- function(x, incomparables = FALSE, ...){
+  new_time_interval(
+    unique(rm_intv_class(x), incomparables = incomparables, ...),
+    interval_width(x)
+  )
+}
+#' @rdname time_interval
+#' @export
+rep.time_interval <- function(x, ...){
+  new_time_interval(
+    rep(rm_intv_class(x), ...),
+    interval_width(x)
+  )
+}
+#' @rdname time_interval
+#' @export
+rep_len.time_interval <- function(x, ...){
+  new_time_interval(
+    rep_len(rm_intv_class(x), ...),
+    interval_width(x)
+  )
 }
 
 #' @export
-`+.time_interval` <- function(e1, e2){
-  start <- interval_start(e1)
-  width <- interval_width(e1)
-  new_time_interval(time_add(start, timespan(e2)), width)
+Ops.time_interval <- function(e1, e2){
+  switch(.Generic,
+         `+` = {
+           start <- interval_start(e1)
+           width <- interval_width(e1)
+           span <- timespan(e2)
+           new_time_interval(time_add(start, span), width)
+         },
+         `-` = {
+           start <- interval_start(e1)
+           width <- interval_width(e1)
+           span <- timespan(e2)
+           new_time_interval(time_subtract(start, span), width)
+         },
+         `/` = {
+           start <- interval_start(e1)
+           span <- timespan(e2)
+           end <- interval_end(e1)
+           time_diff(start, end, time_by = span)
+           }, NextMethod(.Generic))
 }
-#' @export
-`-.time_interval` <- function(e1, e2){
-  start <- interval_start(e1)
-  width <- interval_width(e1)
-  new_time_interval(time_subtract(start, timespan(e2)), width)
-}
+
 #' @export
 format.time_interval <- function(x, ...){
   start <- interval_start(x)
-  end <- interval_end(x)
-  out <- stringr::str_c("[", start, ", ", end, ")")
+  width <- interval_width(x)
+  if (timespan_has_unit(width)){
+    width_abbr <- timespan_abbr(width, short = TRUE)
+    out <- stringr::str_c("[", start, ", +", width_abbr, ")")
+  } else {
+    end <- interval_end(x)
+    out <- stringr::str_c("[", start, ", ", end, ")")
+  }
   names(out) <- names(x)
   out
 }
 #' @export
 as.character.time_interval <- function(x, ...){
   start <- interval_start(x)
-  end <- interval_end(x)
-  stringr::str_c("[", start, ", ", end, ")")
+  width <- interval_width(x)
+  if (timespan_has_unit(width)){
+    width_abbr <- timespan_abbr(width, short = TRUE)
+    out <- stringr::str_c("[", start, ", +", width_abbr, ")")
+  } else {
+    end <- interval_end(x)
+    out <- stringr::str_c("[", start, ", ", end, ")")
+  }
+  out
 }
 #' @export
 print.time_interval <- function(x, max = NULL, ...){
@@ -203,33 +236,40 @@ print.time_interval <- function(x, max = NULL, ...){
   } else {
     additional_msg <- character()
   }
-  # start <- interval_start(out)
-  # end <- interval_end(out)
   timespan <- interval_width(x)
   unit <- timespan_unit(timespan)
   num <- timespan_num(timespan)
 
-  # intv <- stringr::str_c("[", start, ", ", end, ")")
-  if (timespan_has_unit(timespan)){
-    cat(
-      "<time_interval> /",
-      "Width:",
-      paste0(unit, " (", num, ")\n")
-    )
-  } else {
-    cat(
-      "<time_interval> /",
-      "Width:", num, "\n"
-    )
-  }
-  if (length(start) == 0){
+  cat(intv_span_abbr(x), sep = "\n")
+  if (N == 0){
+    unit <- cheapr::na_replace(unit, "NULL")
+    if (timespan_has_unit(timespan)){
+      unit <- paste0("'", unit, "'")
+    }
     print(paste0("time_interval(width = ",
-                 "timespan(", ifelse(is.na(unit), "NULL", unit), ", ", num, ")", "))"),
+                 "timespan(", unit, ", ", num, ")", "))"),
           quote = FALSE)
   } else {
     print(format(out), max = max, quote = FALSE, ...)
-    # print(intv, quote = FALSE)
   }
   cat(additional_msg)
   invisible(x)
+}
+
+intv_span_abbr <- function(x){
+  check_time_interval(x)
+
+  width <- interval_width(x)
+  unit <- timespan_unit(width)
+  num <- timespan_num(width)
+
+  paste0(
+    "<time_interval> [width:",
+    timespan_abbr(width, short = TRUE), "]"
+  )
+
+  # paste(
+  #   "<time_interval> /",
+  #   "Width:", timespan_abbr(width)
+  # )
 }

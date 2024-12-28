@@ -4,6 +4,8 @@
 \alias{time_interval}
 \alias{is_time_interval}
 \alias{[.time_interval}
+\alias{c.time_interval}
+\alias{unique.time_interval}
 \alias{rep.time_interval}
 \alias{rep_len.time_interval}
 \title{S3-based Time Intervals (Currently very experimental and so subject to change)}
@@ -13,6 +15,10 @@ time_interval(start = integer(), width = time_resolution(start))
 is_time_interval(x)
 
 \method{[}{time_interval}(x, ..., drop = TRUE)
+
+\method{c}{time_interval}(...)
+
+\method{unique}{time_interval}(x, incomparables = FALSE, ...)
 
 \method{rep}{time_interval}(x, ...)
 
@@ -66,48 +72,23 @@ collapse::set_collapse(nthreads = 1L)
 }
 x <- 1:10
 int <- time_interval(x, 100)
-options(timeplyr.interval_style = "full")
 int
 
-# Displaying the start or end values of the intervals
-format(int, "start")
-format(int, "end")
-
 month_start <- floor_date(today(), unit = "months")
-month_int <- time_interval(month_start, month_start + months(1))
+month_int <- time_interval(month_start, "month")
 month_int
-# Custom format function for start and end dates
-format(month_int, interval_sub_formatter =
-         function(x) format(x, format = "\%Y/\%B"))
-format(month_int, interval_style = "start",
-       interval_sub_formatter = function(x) format(x, format = "\%Y/\%B"))
 
-# Advanced formatting
-
-# As shown above, we can specify formatting functions for the dates
-# in our intervals
-# Sometimes it's useful to set a default function
-
-options(timeplyr.interval_sub_formatter =
-          function(x) format(x, format = "\%b \%Y"))
-month_int
+interval_start(month_int)
+interval_end(month_int)
 
 # Divide an interval into different time units
-time_interval(today(), today() + years(0:10)) / "years"
-time_interval(today(), today() + dyears(0:10)) / ddays(365.25)
-time_interval(today(), today() + years(0:10)) / "months"
-time_interval(today(), today() + years(0:10)) / "weeks"
-time_interval(today(), today() + years(0:10)) / "7 days"
-time_interval(today(), today() + years(0:10)) / "24 hours"
-time_interval(today(), today() + years(0:10)) / "minutes"
-time_interval(today(), today() + years(0:10)) / "seconds"
-time_interval(today(), today() + years(0:10)) / "milliseconds"
+time_interval(today(), years(10)) / timespan("year")
 
 # Cutting Sepal Length into blocks of width 1
-int <- time_aggregate(iris$Sepal.Length, time_by = 1, as_interval = TRUE)
+int <- time_cut_width(iris$Sepal.Length, 1)
 int \%>\%
-  interval_count()
-reset_timeplyr_options()
+  as_tbl() |>
+  count(value)
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

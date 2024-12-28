@@ -24,6 +24,23 @@ timespan_num <- function(x){
 timespan_has_unit <- function(x){
   !is.na(timespan_unit(x))
 }
+
+#' Timespans
+#'
+#' @returns
+#' A [timespan] object.
+#'
+#' @examples
+#' library(timeplyr)
+#'
+#' timespan("week")
+#' timespan("day")
+#' timespan("decade")
+#'
+#' # Multiple units of time
+#'
+#' timespan("10 weeks")
+#' timespan("1.5 hours")
 #' @export
 timespan <- function(units, num = 1L, ...){
   UseMethod("timespan")
@@ -88,15 +105,21 @@ timespan.timespan <- function(units, num = 1L, ...){
 }
 
 #' @export
+format.timespan <- function(x, short = TRUE, ...){
+  timespan_abbr(x, short = short)
+}
+#' @export
+as.character.timespan <- function(x, short = TRUE, ...){
+  timespan_abbr(x, short = short)
+}
+
+#' @export
 print.timespan <- function(x, ...){
   unit <- timespan_unit(x)
   num <- timespan_num(x)
   if (is.null(unit) || is.na(unit) || unit == "numeric" || !nzchar(unit)){
     unit <- ""
   }
-  # cat(paste0("<", "Timespan:", unit, ">\n", num))
-  # cat(paste0("<", "Timespan:", unit, ">"), num, sep = "\n")
-  # cat(paste0("<", "Timespan:", unit, ">"), num, sep = " ")
   cat(paste0("<", "Timespan:", unit, ">\n"))
   print(num)
   invisible(x)
@@ -190,49 +213,62 @@ new_period_timespan <- function(years = 0L,
   # class(out) <- c("period", "timespan", "vctrs_rcrd", "vctrs_vctr")
   out
 }
-time_unit_abbr <- function(x){
+timespan_abbr <- function(x, short = FALSE){
 
-  check_timespan(x)
+  x <- timespan(x)
 
-  abbrs <- c(
-    seconds = "s",
-    minutes = "m",
-    hours = "h",
-    days  = "D",
-    weeks = "W",
-    months = "M",
-    years = "Y"
-  )
+  if (short){
+    abbrs <- c(
+      picoseconds = "ps",
+      nanoseconds = "ns",
+      microseconds = "\u03Bcs",
+      milliseconds = "ms",
+      seconds = "s",
+      minutes = "m",
+      hours = "h",
+      days  = "D",
+      weeks = "W",
+      months = "M",
+      years = "Y"
+    )
+    sep <- ""
+  } else {
+    abbrs <- c(
+      picoseconds = "picosecs",
+      nanoseconds = "nanosecs",
+      microseconds = "microsecs",
+      milliseconds = "millisecs",
+      seconds = "secs",
+      minutes = "mins",
+      hours = "hours",
+      days  = "days",
+      weeks = "weeks",
+      months = "months",
+      years = "years"
+    )
+    sep <- " "
+  }
 
   units <- names(abbrs)
 
   unit <- timespan_unit(x)
   num <- timespan_num(x)
-  abbr <- unname(abbrs)[match(unit, units)]
+  if (timespan_has_unit(x)){
+    abbr <- unname(abbrs)[match(unit, units)]
+    if (!short && num == 1){
+      num <- ""
+      abbr <- plural_unit_to_single(abbr)
+      sep <- ""
+    }
+  } else {
+    abbr <- ""
+    sep <- ""
+  }
 
-  paste0(num, abbr)
+  paste(num, abbr, sep = sep)
 
 }
-# print.timespan <- function(x, max = NULL, ...){
-#   out <- x
-#   N <- length(out)
-#   if (is.null(max)){
-#     max <- getOption("max.print", 9999L)
-#   }
-#   max <- min(max, N)
-#   if (max < N){
-#     i <- seq_len(max)
-#     out <- out[i]
-#     additional_msg <- paste(" [ reached 'max' / getOption(\"max.print\") -- omitted",
-#                             N - max, "entries ]\n")
-#   } else {
-#     additional_msg <- character()
-#   }
-#   vctrs::obj_print_header(x)
-#   vctrs::obj_print_data(out)
-#   cat(additional_msg)
-#   invisible(x)
-# }
+
 # format.timespan <- function(x, ...){
 #   periods <- unclass(x)
 #   abbrs <- c("y", "m", "w", "d", "H", "M", "S")
@@ -281,6 +317,22 @@ time_unit_abbr <- function(x){
 #   out
 # }
 
-# is_timespan <- function(x){
-#   inherits(x, "timespan")
+# Ops.timespan <- function(e1, e2){
+#   if (is_timespan(e1) && is_timespan(e2)){
+#     cli::cli_abort("Cannot use ops between two timespans")
+#   }
+#   if (is_timespan(e1)){
+#     if (timespan_has_unit(e1)){
+#       e1 <- period_unit(timespan_unit(e1))(timespan_num(e1))
+#     } else {
+#       e1 <- timespan_num(e1)
+#     }
+#   } else {
+#     if (timespan_has_unit(e2)){
+#       e2 <- period_unit(timespan_unit(e2))(timespan_num(e2))
+#     } else {
+#       e2 <- timespan_num(e2)
+#     }
+#   }
+#   NextMethod(.Generic)
 # }

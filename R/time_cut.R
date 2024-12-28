@@ -187,16 +187,15 @@ time_breaks <- function(x, n = 5, time_by = NULL,
                       roll_dst = roll_dst)
   out[["breaks"]]
 }
-time_cut_width <- function(x, width = time_granularity(x)){
+time_cut_width <- function(x, width = time_granularity(x), from = min(x)){
   check_is_time_or_num(x)
   width <- get_time_granularity(x, width)
   num <- timespan_num(width)
   units <- timespan_unit(width)
-  index <- gmin(x, na.rm = TRUE)
-  tdiff <- time_diff(index, x, time_by = width)
+  tdiff <- time_diff(from, x, time_by = width)
   time_to_add <- width
   time_to_add[["num"]] <- trunc2(tdiff) * num
-  out <- time_add(index, timespan = time_to_add)
+  out <- time_add(from, timespan = time_to_add)
   time_interval(out, width)
 }
 .time_breaks <- function(x, n = 5, time_by = NULL,

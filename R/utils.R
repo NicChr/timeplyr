@@ -413,6 +413,7 @@ tidy_select_names <- get_from_package("tidy_select_names", "fastplyr")
 tidy_select_pos <- get_from_package("tidy_select_pos", "fastplyr")
 cpp_set_list_element <- get_from_package("cpp_set_list_element", "fastplyr")
 list_as_tbl <- get_from_package("list_as_tbl", "fastplyr")
+across_col_names <- get_from_package("across_col_names", "fastplyr")
 
 
 # Temporary code, will update with cheapr:::inline_hist later
