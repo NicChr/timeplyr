@@ -24,11 +24,11 @@ time_resolution.numeric <- function(x, ...){
 }
 #' @export
 time_resolution.Date <- function(x, ...){
-  new_timespan("days", 1L)
+  new_timespan("days", `storage.mode<-`(1L, storage.mode(x)))
 }
 #' @export
 time_resolution.POSIXt <- function(x, ...){
-  new_timespan("seconds", 1L)
+  new_timespan("seconds", `storage.mode<-`(1L, storage.mode(x)))
 }
 #' @export
 time_resolution.year_month <- function(x, ...){

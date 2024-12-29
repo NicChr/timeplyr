@@ -2,51 +2,15 @@
 % Please edit documentation in R/time_core.R
 \name{time_grid}
 \alias{time_grid}
-\alias{time_completev}
-\alias{time_summarisev}
-\alias{time_countv}
-\alias{time_span_size}
+\alias{time_complete}
+\alias{time_grid_size}
 \title{Vector date and datetime functions}
 \usage{
-time_grid(x, timespan = NULL, from = NULL, to = NULL)
+time_grid(x, timespan = time_granularity(x), from = NULL, to = NULL)
 
-time_completev(
-  x,
-  time_by = NULL,
-  sort = TRUE,
-  roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "NA")
-)
+time_complete(x, timespan = time_granularity(x), sort = TRUE)
 
-time_summarisev(
-  x,
-  timespan = NULL,
-  from = NULL,
-  to = NULL,
-  sort = FALSE,
-  unique = FALSE
-)
-
-time_countv(
-  x,
-  timespan = NULL,
-  from = NULL,
-  to = NULL,
-  sort = TRUE,
-  unique = TRUE
-)
-
-time_span_size(
-  x,
-  time_by = NULL,
-  from = NULL,
-  to = NULL,
-  g = NULL,
-  use.g.names = TRUE,
-  time_type = getOption("timeplyr.time_type", "auto"),
-  time_floor = FALSE,
-  week_start = getOption("lubridate.week.start", 1)
-)
+time_grid_size(x, timespan = time_granularity(x), from = NULL, to = NULL)
 }
 \arguments{
 \item{x}{Time variable. \cr
@@ -56,6 +20,8 @@ Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearm
 \item{from}{Time series start date.}
 
 \item{to}{Time series end date.}
+
+\item{sort}{Should the output be sorted? Default is \code{TRUE}.}
 
 \item{time_by}{Time unit. \cr
 Must be one of the following:
@@ -70,22 +36,7 @@ e.g. \code{list("days" = 1:10)}.
 then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
-\item{sort}{Should the output be sorted? Default is \code{TRUE}.}
-
-\item{roll_month}{Control how impossible dates are handled when
-month or year arithmetic is involved.
-Options are "preday", "boundary", "postday", "full" and "NA".
-See \code{?timechange::time_add} for more details.}
-
-\item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
-
 \item{unique}{Should the result be unique or match the length of the vector?
-Default is \code{TRUE}.}
-
-\item{g}{Grouping object passed directly to \code{collapse::GRP()}.
-This can for example be a vector or data frame.}
-
-\item{use.g.names}{Should the result include group names?
 Default is \code{TRUE}.}
 
 \item{time_type}{If "auto", \code{periods} are used for
@@ -101,9 +52,22 @@ beginning of a week or month for example.}
 means Monday (default), 7 means Sunday.
 This is only used when \code{time_floor = TRUE}.}
 
+\item{roll_month}{Control how impossible dates are handled when
+month or year arithmetic is involved.
+Options are "preday", "boundary", "postday", "full" and "NA".
+See \code{?timechange::time_add} for more details.}
+
+\item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
+
 \item{complete}{Logical. If \code{TRUE} implicit gaps in time are filled
 before counting and after time aggregation (controlled using \code{time_by}).
 The default is \code{FALSE}.}
+
+\item{g}{Grouping object passed directly to \code{collapse::GRP()}.
+This can for example be a vector or data frame.}
+
+\item{use.g.names}{Should the result include group names?
+Default is \code{TRUE}.}
 
 \item{as_interval}{Should result be a \code{time_interval}?
 Default is \code{FALSE}. \cr
@@ -137,7 +101,7 @@ x <- unique(flights$time_hour)
 time_num_gaps(x)
 
 # Same as above
-time_span_size(x) - length(unique(x))
+time_grid_size(x) - length(unique(x))
 
 # Time sequence that spans the data
 length(time_span(x)) # Automatically detects hour granularity

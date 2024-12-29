@@ -391,12 +391,6 @@ as_datetime2 <- function(x){
   }
 }
 
-cut_time <- function(x, breaks, include_oob = FALSE, codes = FALSE, include_lowest = FALSE){
-  cheapr::bin(x, breaks, codes = codes, left_closed = TRUE,
-              include_oob = include_oob,
-              include_endpoint = include_lowest)
-}
-
 # Check for date sequences that should not be coerced to datetimes
 is_special_case_days <- function(from, to, unit, num){
     unit %in% c("days", "weeks") &&
@@ -587,34 +581,26 @@ time_as_character <- function(x){
     as.character(x)
   }
 }
-time_int_rm_attrs <- function(x){
-  attr(x, "end") <- NULL
-  attr(x, "direction") <- NULL
-  x
-}
 
 check_is_date <- function(x){
   if (!is_date(x)){
-    stop(paste(deparse2(substitute(x)),
-               "must be a date"))
+    cli::cli_abort("{.arg x} must be a date")
   }
 }
 check_is_datetime <- function(x){
   if (!is_datetime(x)){
-    stop(paste(deparse2(substitute(x)),
-               "must be a datetime"))
+    cli::cli_abort("{.arg x} must be a datetime")
   }
 }
 check_is_time <- function(x){
   if (!is_time(x)){
-    stop(paste(deparse2(substitute(x)),
-                "must be a date or datetime"))
+    cli::cli_abort("{.arg x} must be a date or datetime")
   }
 }
 check_is_time_or_num <- function(x){
   if (!is_time_or_num(x)){
-    stop(paste(deparse2(substitute(x)),
-               "must be a date, datetime, or numeric vector"))
+    cli::cli_abort(c("{.arg x} must be one of the following classes:",
+                   paste(time_classes, collapse = ", ")))
   }
 }
 # Turn date storage into integer

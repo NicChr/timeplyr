@@ -52,14 +52,13 @@
 #' @seealso [time_elapsed] [time_seq_id]
 #'
 #' @export
-time_id <- function(x, time_by = NULL, g = NULL, na_skip = TRUE,
-                    time_type = getOption("timeplyr.time_type", "auto"),
-                    shift = 1L){
+time_id <- function(x, timespan = time_granularity(x), g = NULL,
+                    na_skip = TRUE, shift = 1L){
   check_is_time_or_num(x)
-  time_by <- time_by_get(x, time_by)
+  timespan <- timespan(timespan)
   check_length(shift, 1)
-  out <- time_elapsed(x, time_by = time_by, g = g,
-                      na_skip = na_skip, time_type = time_type,
+  out <- time_elapsed(x, timespan, g = g,
+                      na_skip = na_skip,
                       rolling = FALSE)
   out <- as.integer(round2(out, digits = 9))
   cheapr::set_add(out, as.integer(shift))

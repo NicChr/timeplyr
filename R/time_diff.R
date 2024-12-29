@@ -59,8 +59,8 @@
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #' }
 #' @export
-time_diff <- function(x, y, time_by = 1L){
-  span <- timespan(time_by)
+time_diff <- function(x, y, timespan = 1L){
+  span <- timespan(timespan)
   units <- timespan_unit(span)
   num <- timespan_num(span)
 
@@ -108,5 +108,5 @@ time_diff <- function(x, y, time_by = 1L){
       out <- (y - x) / by
     }
   }
-  out
+  strip_attrs(out)
 }

@@ -7,7 +7,7 @@ new_timespan <- function(units, num = 1L){
 is_timespan <- function(x){
   inherits(x, "timespan")
 }
-check_timespan <- function(x){
+check_is_timespan <- function(x){
   if (!is_timespan(x)){
     cli::cli_abort(c(
       "{.var x} must be a timespan",

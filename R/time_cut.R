@@ -55,17 +55,6 @@
 #' @param week_start day on which week starts following ISO conventions - 1
 #' means Monday (default), 7 means Sunday.
 #' This is only used when `time_floor = TRUE`.
-#' @param time_type If "auto", `periods` are used for
-#' the time expansion when days, weeks, months or years are specified,
-#' and `durations` are used otherwise.
-#' @param roll_month Control how impossible dates are handled when
-#' month or year arithmetic is involved.
-#' Options are "preday", "boundary", "postday", "full" and "NA".
-#' See `?timechange::time_add` for more details.
-#' @param roll_dst See `?timechange::time_add` for the full list of details.
-#' @param as_interval Should result be a `time_interval`?
-#' Default is `FALSE`. \cr
-#' This can be controlled globally through `options(timeplyr.use_intervals)`.
 #'
 #' @returns
 #' `time_breaks` returns a vector of breaks. \cr
@@ -137,79 +126,66 @@
 #'}
 #' @rdname time_cut
 #' @export
-time_cut <- function(x, n = 5, time_by = NULL,
+time_cut <- function(x, n = 5, timespan = NULL,
                      from = NULL, to = NULL,
                      time_floor = FALSE,
-                     week_start = getOption("lubridate.week.start", 1),
-                     time_type = getOption("timeplyr.time_type", "auto"),
-                     roll_month = getOption("timeplyr.roll_month", "preday"),
-                     roll_dst = getOption("timeplyr.roll_dst", "NA"),
-                     as_interval = getOption("timeplyr.use_intervals", TRUE)){
-  if (is.null(to)){
-    to <- collapse::fmax(x, na.rm = TRUE)
+                     week_start = getOption("lubridate.week.start", 1)){
+  if (!is.null(to)){
+    to <- time_cast(to, x)
+    x[x >= to] <- NA
   }
-  breaks_list <- .time_breaks(x = x, n = n, time_by = time_by,
+  breaks_list <- .time_breaks(x = x, n = n, timespan = timespan,
                               from = from, to = to,
                               time_floor = time_floor,
-                              week_start = week_start,
-                              time_type = time_type,
-                              roll_month = roll_month,
-                              roll_dst = roll_dst)
+                              week_start = week_start)
   time_breaks <- breaks_list[["breaks"]]
+  timespan <- breaks_list[["timespan"]]
   x <- time_cast(x, time_breaks)
-  to <- time_cast(to, x)
-  out <- cut_time(x, breaks = c(unclass(time_breaks), unclass(to)), codes = FALSE)
-  if (as_interval){
-    out <- time_by_interval(out, time_by = breaks_list[["time_by"]],
-                            time_type = time_type,
-                            roll_month = roll_month, roll_dst = roll_dst)
-  }
-  # time_labels <- tseq_levels(x = to, time_breaks, fmt = NULL)
-  # levels(out) <- time_labels
-  # class(out) <- c("ordered", "factor")
-  out
+  out <- cut_time(
+    x, breaks = time_breaks, codes = FALSE,
+    include_oob = TRUE
+  )
+  time_interval(out, timespan)
 }
 #' @rdname time_cut
 #' @export
-time_breaks <- function(x, n = 5, time_by = NULL,
+time_breaks <- function(x, n = 5, timespan = NULL,
                         from = NULL, to = NULL,
                         time_floor = FALSE,
-                        week_start = getOption("lubridate.week.start", 1),
-                        time_type = getOption("timeplyr.time_type", "auto"),
-                        roll_month = getOption("timeplyr.roll_month", "preday"),
-                        roll_dst = getOption("timeplyr.roll_dst", "NA")){
-  out <- .time_breaks(x, n = n, time_by = time_by,
+                        week_start = getOption("lubridate.week.start", 1)){
+  out <- .time_breaks(x, n = n, timespan = timespan,
                       from = from, to = to,
                       time_floor = time_floor,
-                      week_start = week_start,
-                      time_type = time_type,
-                      roll_month = roll_month,
-                      roll_dst = roll_dst)
+                      week_start = week_start)
   out[["breaks"]]
 }
-time_cut_width <- function(x, width = time_granularity(x), from = min(x)){
+time_cut_width <- function(x, width = time_granularity(x), from = NULL, to = NULL){
   check_is_time_or_num(x)
+
+  if (is.null(from)){
+    from <- collapse::fmin(x, na.rm = TRUE)
+  }
+  if (!is.null(to)){
+    to <- time_cast(to, x)
+    x[x >= to] <- NA
+  }
   width <- get_time_granularity(x, width)
   num <- timespan_num(width)
   units <- timespan_unit(width)
-  tdiff <- time_diff(from, x, time_by = width)
+  tdiff <- time_diff(from, x, width)
   time_to_add <- width
   time_to_add[["num"]] <- trunc2(tdiff) * num
   out <- time_add(from, timespan = time_to_add)
   time_interval(out, width)
 }
-.time_breaks <- function(x, n = 5, time_by = NULL,
+.time_breaks <- function(x, n = 5, timespan = NULL,
                          from = NULL, to = NULL,
                          time_floor = FALSE,
-                         week_start = getOption("lubridate.week.start", 1),
-                         time_type = getOption("timeplyr.time_type", "auto"),
-                         roll_month = getOption("timeplyr.roll_month", "preday"),
-                         roll_dst = getOption("timeplyr.roll_dst", "boundary")){
+                         week_start = getOption("lubridate.week.start", 1)){
   check_is_time_or_num(x)
   check_is_num(n)
   stopifnot(n >= 1)
   check_length(n, 1L)
-  time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
   if (is.null(from)){
     from <- collapse::fmin(x, na.rm = TRUE)
   }
@@ -218,7 +194,7 @@ time_cut_width <- function(x, width = time_granularity(x), from = min(x)){
   }
   from <- time_cast(from, x)
   to <- time_cast(to, x)
-  if (is.null(time_by)){
+  if (is.null(timespan)){
     gcd_difference <- gcd_time_diff(x)
     time_rng_diff <- unclass(to) - unclass(from)
     # We shouldn't try to cut up the data using more breaks than this
@@ -233,11 +209,9 @@ time_cut_width <- function(x, width = time_granularity(x), from = min(x)){
       } else {
         date_units <- c("days", "weeks", "months", "years")
         units_to_try <- date_units
-        time_types <- rep_len("period", length(date_units))
         if (is_datetime(x)){
           datetime_units <- setdiff(.duration_units, date_units)
           units_to_try <- c(datetime_units, date_units)
-          time_types <- c(rep_len("duration", length(datetime_units)), time_types)
         }
         units_to_try <- rev(units_to_try)
         interval_width <- rep_len(1L, length(units_to_try))
@@ -253,17 +227,17 @@ time_cut_width <- function(x, width = time_granularity(x), from = min(x)){
       if (is_whole_number(interval_width)){
         interval_width <- as.integer(interval_width)
       }
-      units_to_try <- rep_len("numeric", max(length(interval_width), 1))
+      units_to_try <- rep_len(NA_character_, max(length(interval_width), 1))
     }
     i <- 0L
     start <- from
     while(i < length(units_to_try)){
       i <- i + 1L
-      tby <- add_names(list(interval_width[i]), units_to_try[i])
+      tby <- new_timespan(units_to_try[i], interval_width[i])
       if (time_floor){
-        start <- time_floor2(from, time_by = tby, week_start = week_start)
+        start <- time_floor(from, tby, week_start = week_start)
       }
-      n_breaks <- time_seq_sizes(start, to, time_by = tby, time_type = time_type)
+      n_breaks <- time_seq_sizes(start, to, tby)
       if (length(n_breaks) == 0){
         n_breaks <- 0
       }
@@ -277,36 +251,31 @@ time_cut_width <- function(x, width = time_granularity(x), from = min(x)){
     unit_multiplier <- 1L
     scale <- 1L
     num <- interval_width[i]
-    if (time_type == "auto"){
-      time_type <- guess_seq_type(unit)
-    }
   } else {
-    unit_info <- unit_guess(time_by)
-    unit <- unit_info[["unit"]]
-    scale <- unit_info[["scale"]]
-    num <- unit_info[["num"]]
+    tby <- timespan(timespan)
+    unit <- timespan_unit(tby)
+    num <- timespan_num(tby)
     by <- unit
-    tby <- add_names(list(num * 1L * scale), unit)
     if (time_floor){
-      from <- time_floor2(from, time_by = tby, week_start = week_start)
+      from <- time_floor(from, tby, week_start = week_start)
     }
-    n_breaks <- time_seq_sizes(from, to, time_by = tby, time_type = time_type)
+    n_breaks <- time_seq_sizes(from, to, tby)
     unit_multiplier <- 1L
   }
   if (n_breaks > n){
     unit_multiplier <- ceiling(n_breaks / n)
   }
-  time_increment <- add_names(list(num * scale * unit_multiplier), unit)
-  breaks <- time_seq_v(from, to,
-                       time_by = time_increment,
-                       time_floor = FALSE,
-                       week_start = week_start,
-                       time_type = time_type,
-                       roll_month = roll_month,
-                       roll_dst = roll_dst)
+  time_increment <- new_timespan(unit, num * scale * unit_multiplier)
+  breaks <- time_seq_v(from, to, time_increment)
   list(
     breaks = breaks,
-    time_by = time_increment,
-    time_type = time_type
+    timespan = time_increment
   )
+}
+
+# Low-level binning function for right-open intervals only
+cut_time <- function(x, breaks, include_oob = TRUE, codes = FALSE){
+  cheapr::bin(x, breaks, codes = codes, left_closed = TRUE,
+              include_oob = include_oob,
+              include_endpoint = FALSE)
 }

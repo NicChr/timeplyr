@@ -6,9 +6,8 @@
 \usage{
 time_elapsed(
   x,
-  time_by = NULL,
+  timespan = time_resolution(x),
   g = NULL,
-  time_type = getOption("timeplyr.time_type", "auto"),
   rolling = TRUE,
   fill = NA,
   na_skip = TRUE
@@ -17,6 +16,19 @@ time_elapsed(
 \arguments{
 \item{x}{Time variable. \cr
 Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, or \code{yearqtr}.}
+
+\item{g}{Object to be used for grouping \code{x}, passed onto \code{collapse::GRP()}.}
+
+\item{rolling}{If \code{TRUE} (the default) then lagged
+time differences are calculated on a rolling basis,
+essentially like \code{diff()}. \cr
+If \code{FALSE} then time differences compared to the index (first) time
+are calculated.}
+
+\item{fill}{When \code{rolling = TRUE}, this is the value that fills
+the first elapsed time. The default is \code{NA}.}
+
+\item{na_skip}{Should \code{NA} values be skipped? Default is \code{TRUE}.}
 
 \item{time_by}{Must be one of the three:
 \itemize{
@@ -30,22 +42,9 @@ e.g. \code{list("days" = 1:10)}.
 then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
-\item{g}{Object to be used for grouping \code{x}, passed onto \code{collapse::GRP()}.}
-
 \item{time_type}{Time type, either "auto", "duration" or "period".
 With larger data, it is recommended to use \code{time_type = "duration"} for
 speed and efficiency.}
-
-\item{rolling}{If \code{TRUE} (the default) then lagged
-time differences are calculated on a rolling basis,
-essentially like \code{diff()}. \cr
-If \code{FALSE} then time differences compared to the index (first) time
-are calculated.}
-
-\item{fill}{When \code{rolling = TRUE}, this is the value that fills
-the first elapsed time. The default is \code{NA}.}
-
-\item{na_skip}{Should \code{NA} values be skipped? Default is \code{TRUE}.}
 }
 \value{
 A numeric vector the same length as \code{x}.

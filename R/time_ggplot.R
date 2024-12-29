@@ -85,13 +85,8 @@ time_ggplot <- function(data, time, value, group = NULL,
   value <- names(value)
   group <- names(group)
   time_var <- data[[time]]
-  # Must be date, datetime or number
-  if (!is_time_or_num(time_var)){
-    stop("time must be a date, datetime or numeric variable")
-  }
   # Pretty x-axis breaks
-  time_breaks <- time_breaks(time_var,
-                             n = 7, time_floor = TRUE)
+  time_breaks <- time_breaks(time_var, n = 7, time_floor = TRUE)
   if (is_datetime(time_var)){
     x_scale <- ggplot2::scale_x_datetime(breaks = time_breaks,
                                          labels = scales::label_date_short())

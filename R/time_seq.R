@@ -274,7 +274,7 @@ time_seq <- function(from, to, time_by, length.out = NULL,
 time_seq_sizes <- function(from, to, time_by){
   time_by <- timespan(time_by)
   set_time_cast(from, to)
-  tdiff <- time_diff(from, to, time_by = time_by)
+  tdiff <- time_diff(from, to, time_by)
   tdiff[which(from == to)] <- 0L
   tdiff_rng <- collapse::frange(tdiff, na.rm = TRUE)
   if (isTRUE(any(tdiff_rng < 0))){
@@ -299,8 +299,7 @@ time_seq_v <- function(from, to, time_by,
   units <- timespan_unit(time_by)
   num <- timespan_num(time_by)
   set_time_cast(from, to)
-  seq_sizes <- time_seq_sizes(from = from, to = to,
-                              time_by = time_by)
+  seq_sizes <- time_seq_sizes(from = from, to = to, time_by)
   time_seq_v2(seq_sizes, from = from,
               time_by = time_by,
               roll_month = roll_month,
@@ -316,6 +315,7 @@ time_seq_v2 <- function(sizes, from, time_by,
   time_by <- timespan(time_by)
   units <- timespan_unit(time_by)
   num <- timespan_num(time_by)
+
   if (!timespan_has_unit(time_by)){
     out <- sequences(sizes, from = from, by = num)
   } else {
@@ -324,12 +324,11 @@ time_seq_v2 <- function(sizes, from, time_by,
       is_whole_number(num)
     if (is_special_case_days){
       out <- date_seq_v2(sizes, from = from, units = units, num = num)
-    } else if (time_type == "period"){
+    } else if (is_duration_unit(units)){
+      out <- duration_seq_v2(sizes, from = from, units = units, num = num)
+    } else {
       out <- period_seq_v2(sizes, from = from, units = units, num = num,
                            roll_month = roll_month, roll_dst = roll_dst)
-
-    } else {
-      out <- duration_seq_v2(sizes, from = from, units = units, num = num)
     }
   }
   out
@@ -385,9 +384,11 @@ period_seq <- function(from, length, unit, num = 1,
   if (length == 0L){
     from <- from[0L]
   }
-  tiemchange::time_add(from, periods = add_names(list(num * int_seq),
-                                                       unit),
-                       roll_month = roll_month, roll_dst = roll_dst)
+  timechange::time_add(
+    from,
+    periods = add_names(list(num * int_seq), unit),
+    roll_month = roll_month, roll_dst = roll_dst
+  )
 }
 # Duration sequence vectorised over from, to and num
 duration_seq_v <- function(from, to, units, num = 1){

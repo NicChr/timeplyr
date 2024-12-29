@@ -100,6 +100,13 @@ vec_tail <- function(x, n = 1L){
   sset(x, seq.int(from = N - size + 1L, by = 1L, length.out = size))
 }
 
+# first <- function(x){
+#   cheapr::sset(x, 1:0)
+# }
+# last <- function(x){
+#   cheapr::sset(x, cheapr::vector_length(x))
+# }
+
 packageName <- function (env = parent.frame()){
   if (!is.environment(env))
     stop("'env' must be an environment")
@@ -157,10 +164,6 @@ fpluck <- function(x, .cols = NULL, .default = NULL){
   .subset2(x, icol)
 }
 
-# round down to nearest n
-floor_nearest_n <- function(x, n){
-  floor(x / n) * n
-}
 # Round up to nearest n
 ceiling_nearest_n <- function(x, n){
   ceiling(x / n) * n
@@ -169,10 +172,6 @@ ceiling_nearest_n <- function(x, n){
 log10_divisibility <- function(x){
   x[x == 0] <- 1
   floor(log10(abs(x)))
-}
-# Sensible rounding
-pretty_floor <- function(x){
-  floor_nearest_n(x, n = 10^(log10_divisibility(x)))
 }
 pretty_ceiling <- function(x){
   ceiling_nearest_n(x, n = 10^(log10_divisibility(x)))
@@ -323,10 +322,6 @@ tsp <- function(x){
   attr(x, "tsp")
 }
 
-# setdiff where x and y are unique vectors
-setdiff2 <- function(x, y){
-  x[match(x, y, 0L) == 0L]
-}
 intersect2 <- function(x, y){
   if (is.null(x) || is.null(y)){
     return(NULL)

@@ -85,21 +85,9 @@
 #'}
 #' @rdname time_expand
 #' @export
-time_expand <- function(data, time = NULL, ..., .by = NULL,
-                        time_by = NULL, from = NULL, to = NULL,
-                        time_type = getOption("timeplyr.time_type", "auto"),
-                        time_floor = FALSE,
-                        week_start = getOption("lubridate.week.start", 1),
-                        sort = TRUE,
-                        expand_type = NULL,
-                        roll_month = getOption("timeplyr.roll_month", "preday"),
-                        roll_dst = getOption("timeplyr.roll_dst", "NA")){
-  if (!is.null(expand_type)){
-    lifecycle::deprecate_soft(
-      "0.9.0",
-      "time_expand(expand_type)"
-    )
-  }
+expand.time_tbl <- function(data, ...,
+                            time_by = NULL, from = NULL, to = NULL,
+                            sort = TRUE){
   check_is_df(data)
   group_vars <- get_groups(data, {{ .by }})
   temp_data <- data
@@ -215,22 +203,11 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
 }
 #' @rdname time_expand
 #' @export
-time_complete <- function(data, time = NULL, ..., .by = NULL,
-                          time_by = NULL, from = NULL, to = NULL,
-                          time_type = getOption("timeplyr.time_type", "auto"),
-                          time_floor = FALSE,
-                          week_start = getOption("lubridate.week.start", 1),
-                          expand_type = NULL,
-                          sort = TRUE,
-                          fill = NA,
-                          roll_month = getOption("timeplyr.roll_month", "preday"),
-                          roll_dst = getOption("timeplyr.roll_dst", "NA")){
-  if (!is.null(expand_type)){
-    lifecycle::deprecate_soft(
-      "0.9.0",
-      "time_complete(expand_type)"
-    )
-  }
+complete.time_tbl <- function(data, ..., .by = NULL,
+                              time_by = NULL, from = NULL, to = NULL,
+                              expand_type = NULL,
+                              sort = TRUE,
+                              fill = NA){
   check_is_df(data)
   time_type <- match_time_type(time_type)
   group_vars <- get_groups(data, {{ .by }})

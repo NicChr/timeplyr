@@ -78,11 +78,7 @@ time_by <- function(data, time, width = NULL,
   col_seq <- seq_along(names(out))
   if (length(time_var) > 0L){
     check_is_time_or_num(out[[time_var]])
-    if (is.null(width)){
-      width <- time_granularity(out[[time_var]])
-    } else {
-      width <- timespan(width)
-    }
+    width <- get_time_granularity(out[[time_var]], width)
     if (!.add || !.time_by_group || length(group_vars) == 0L){
       g <- NULL
       time_span_groups <- character(0)

@@ -68,13 +68,11 @@
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #' }
 #' @export
-time_elapsed <- function(x, time_by = NULL, g = NULL,
-                         time_type = getOption("timeplyr.time_type", "auto"),
+time_elapsed <- function(x, timespan = time_resolution(x), g = NULL,
                          rolling = TRUE, fill = NA,
                          na_skip = TRUE){
   check_is_time_or_num(x)
-  time_by <- time_by_get(x, time_by = time_by)
-  check_time_by_length_is_one(time_by)
+  timespan <- timespan(timespan)
   check_length(fill, 1)
   needs_fill <- !is.na(fill)
   has_groups <- !is.null(g)
@@ -96,7 +94,7 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
     } else {
       x_lag <- roll_lag(x, g = g)
     }
-    out <- time_diff(x_lag, x, time_by = time_by, time_type = time_type)
+    out <- time_diff(x_lag, x, timespan)
     if (needs_fill){
       if (has_groups){
         out[o[sorted_group_starts]] <- fill
@@ -108,7 +106,7 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
     g <- GRP2(g, sort = TRUE, return.groups = FALSE, return.order = FALSE)
     # Index time
     first_time <- gfirst(x, g = g, na.rm = na_skip)
-    out <- time_diff(first_time, x, time_by = time_by, time_type = time_type)
+    out <- time_diff(first_time, x, timespan)
   }
   out
 }

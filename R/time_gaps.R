@@ -128,7 +128,7 @@ time_num_gaps <- function(x, time_by = NULL,
   #                                 time_by = tby,
   #                                 time_type = time_type)
   n_unique <- collapse::fndistinct(x, g = g, use.g.names = FALSE)
-  full_seq_size <- time_span_size(x, time_by = tby,
+  full_seq_size <- time_grid_size(x, time_by = tby,
                                   time_type = time_type,
                                   g = g, use.g.names = FALSE)
   out <- full_seq_size - n_unique

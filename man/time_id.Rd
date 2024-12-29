@@ -6,16 +6,25 @@
 \usage{
 time_id(
   x,
-  time_by = NULL,
+  timespan = time_granularity(x),
   g = NULL,
   na_skip = TRUE,
-  time_type = getOption("timeplyr.time_type", "auto"),
   shift = 1L
 )
 }
 \arguments{
 \item{x}{Time variable. \cr
 Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, or \code{yearqtr}.}
+
+\item{g}{Object used for grouping x.
+This can for example be a vector or data frame.
+\code{g} is passed directly to \code{collapse::GRP()}.}
+
+\item{na_skip}{Should \code{NA} values be skipped? Default is \code{TRUE}.}
+
+\item{shift}{Value used to shift the time IDs. Typically this is 1 to ensure the
+IDs start at 1 but can be 0 or even negative if for example
+your time values are going backwards in time.}
 
 \item{time_by}{Time unit. \cr
 This signifies the granularity of the time data with which to measure gaps
@@ -34,19 +43,9 @@ e.g. \code{list("days" = 1:10)}.
 then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
-\item{g}{Object used for grouping x.
-This can for example be a vector or data frame.
-\code{g} is passed directly to \code{collapse::GRP()}.}
-
-\item{na_skip}{Should \code{NA} values be skipped? Default is \code{TRUE}.}
-
 \item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks, months or years are specified,
 and \code{durations} are used otherwise.}
-
-\item{shift}{Value used to shift the time IDs. Typically this is 1 to ensure the
-IDs start at 1 but can be 0 or even negative if for example
-your time values are going backwards in time.}
 }
 \value{
 An integer vector the same length as \code{x}.

@@ -8,28 +8,21 @@
 time_cut(
   x,
   n = 5,
-  time_by = NULL,
+  timespan = NULL,
   from = NULL,
   to = NULL,
   time_floor = FALSE,
-  week_start = getOption("lubridate.week.start", 1),
-  time_type = getOption("timeplyr.time_type", "auto"),
-  roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "NA"),
-  as_interval = getOption("timeplyr.use_intervals", TRUE)
+  week_start = getOption("lubridate.week.start", 1)
 )
 
 time_breaks(
   x,
   n = 5,
-  time_by = NULL,
+  timespan = NULL,
   from = NULL,
   to = NULL,
   time_floor = FALSE,
-  week_start = getOption("lubridate.week.start", 1),
-  time_type = getOption("timeplyr.time_type", "auto"),
-  roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "NA")
+  week_start = getOption("lubridate.week.start", 1)
 )
 }
 \arguments{
@@ -37,6 +30,17 @@ time_breaks(
 Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, or \code{yearqtr}.}
 
 \item{n}{Number of breaks.}
+
+\item{from}{Time series start date.}
+
+\item{to}{Time series end date.}
+
+\item{time_floor}{Logical. Should the initial date/datetime be
+floored before building the sequence?}
+
+\item{week_start}{day on which week starts following ISO conventions - 1
+means Monday (default), 7 means Sunday.
+This is only used when \code{time_floor = TRUE}.}
 
 \item{time_by}{Time unit. \cr
 Must be one of the three:
@@ -50,32 +54,6 @@ e.g. \code{list("days" = 1:10)}.
 \item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
 then arithmetic is used, e.g \code{time_by = 1}.
 }}
-
-\item{from}{Time series start date.}
-
-\item{to}{Time series end date.}
-
-\item{time_floor}{Logical. Should the initial date/datetime be
-floored before building the sequence?}
-
-\item{week_start}{day on which week starts following ISO conventions - 1
-means Monday (default), 7 means Sunday.
-This is only used when \code{time_floor = TRUE}.}
-
-\item{time_type}{If "auto", \code{periods} are used for
-the time expansion when days, weeks, months or years are specified,
-and \code{durations} are used otherwise.}
-
-\item{roll_month}{Control how impossible dates are handled when
-month or year arithmetic is involved.
-Options are "preday", "boundary", "postday", "full" and "NA".
-See \code{?timechange::time_add} for more details.}
-
-\item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
-
-\item{as_interval}{Should result be a \code{time_interval}?
-Default is \code{FALSE}. \cr
-This can be controlled globally through \code{options(timeplyr.use_intervals)}.}
 }
 \value{
 \code{time_breaks} returns a vector of breaks. \cr

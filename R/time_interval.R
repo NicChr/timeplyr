@@ -95,7 +95,7 @@ time_interval <- function(start = integer(), width = time_resolution(start)){
 is_time_interval <- function(x){
   inherits(x, "time_interval")
 }
-check_time_interval <- function(x){
+check_is_time_interval <- function(x){
   if (!is_time_interval(x)){
     cli::cli_abort("{.arg x} must be a {.cls time_interval}")
   }
@@ -257,7 +257,7 @@ print.time_interval <- function(x, max = NULL, ...){
 }
 
 intv_span_abbr <- function(x){
-  check_time_interval(x)
+  check_is_time_interval(x)
 
   width <- interval_width(x)
   unit <- timespan_unit(width)
