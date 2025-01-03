@@ -9,81 +9,81 @@
 #' @returns
 #' A [timespan] object.
 #'
-#' @rdname time_resolution
+#' @rdname resolution
 #' @export
-time_resolution <- function(x, ...){
-  UseMethod("time_resolution")
+resolution <- function(x, ...){
+  UseMethod("resolution")
 }
 #' @export
-time_resolution.integer <- function(x, ...){
+resolution.integer <- function(x, ...){
   new_timespan(NA_character_, 1L)
 }
 #' @export
-time_resolution.numeric <- function(x, ...){
+resolution.numeric <- function(x, ...){
   new_timespan(NA_character_, 1)
 }
 #' @export
-time_resolution.Date <- function(x, ...){
+resolution.Date <- function(x, ...){
   new_timespan("days", `storage.mode<-`(1L, storage.mode(x)))
 }
 #' @export
-time_resolution.POSIXt <- function(x, ...){
+resolution.POSIXt <- function(x, ...){
   new_timespan("seconds", `storage.mode<-`(1L, storage.mode(x)))
 }
 #' @export
-time_resolution.year_month <- function(x, ...){
+resolution.year_month <- function(x, ...){
   new_timespan(NA_character_, 1L)
 }
 #' @export
-time_resolution.year_quarter <- function(x, ...){
+resolution.year_quarter <- function(x, ...){
   new_timespan(NA_character_, 1L)
 }
 #' @export
-time_resolution.yearmon <- function(x, ...){
+resolution.yearmon <- function(x, ...){
   new_timespan(NA_character_, 1/12)
 }
 #' @export
-time_resolution.yearqtr <- function(x, ...){
+resolution.yearqtr <- function(x, ...){
   new_timespan(NA_character_, 1/4)
 }
 
-#' @rdname time_resolution
+#' @rdname resolution
 #' @export
-time_granularity <- function(x, ...){
-  UseMethod("time_granularity")
+granularity <- function(x, ...){
+  UseMethod("granularity")
 }
 #' @export
-time_granularity.numeric <- function(x, ...){
+granularity.numeric <- function(x, ...){
   gcd_diff <- gcd_time_diff(unclass(x))
   new_timespan(NA_character_, gcd_diff)
 }
 #' @export
-time_granularity.Date <- function(x, ...){
+granularity.Date <- function(x, ...){
   gcd_diff <- gcd_time_diff(unclass(x))
   new_timespan("days", gcd_diff)
 }
 #' @export
-time_granularity.POSIXt <- function(x, ...){
+granularity.POSIXt <- function(x, ...){
   gcd_diff <- gcd_time_diff(unclass(x))
   new_timespan("seconds", gcd_diff)
 }
 #' @export
-time_granularity.year_month <- function(x, ...){
+granularity.year_month <- function(x, ...){
   gcd_diff <- gcd_time_diff(unclass(x))
   new_timespan(NA_character_, gcd_diff)
 }
 #' @export
-time_granularity.year_quarter <- function(x, ...){
+granularity.year_quarter <- function(x, ...){
   gcd_diff <- gcd_time_diff(unclass(x))
   new_timespan(NA_character_, gcd_diff)
 }
 #' @export
-time_granularity.yearmon <- function(x, ...){
+granularity.yearmon <- function(x, ...){
   gcd_diff <- gcd_time_diff(unclass(x))
   new_timespan(NA_character_, gcd_diff)
 }
 #' @export
-time_granularity.yearqtr <- function(x, ...){
+granularity.yearqtr <- function(x, ...){
   gcd_diff <- gcd_time_diff(unclass(x))
   new_timespan(NA_character_, gcd_diff)
 }

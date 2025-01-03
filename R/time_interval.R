@@ -70,7 +70,7 @@
 #' }
 #' @rdname time_interval
 #' @export
-time_interval <- function(start = integer(), width = time_resolution(start)){
+time_interval <- function(start = integer(), width = resolution(start)){
 
   timespan <- timespan(width)
 
@@ -85,7 +85,7 @@ time_interval <- function(start = integer(), width = time_resolution(start)){
   # Basically if width is unitless (e.g. width = 10)
   # Then we use the unit of the time resolution
   if (!timespan_has_unit(timespan)){
-    resolution <- time_resolution(start)
+    resolution <- resolution(start)
     timespan[["unit"]] <- timespan_unit(resolution)
   }
   new_time_interval(start, timespan)
@@ -272,4 +272,11 @@ intv_span_abbr <- function(x){
   #   "<time_interval> /",
   #   "Width:", timespan_abbr(width)
   # )
+}
+
+#' @importFrom pillar pillar_shaft
+#' @export
+pillar_shaft.time_interval <- function(x, ...) {
+  out <- as.character(x)
+  pillar::new_pillar_shaft_simple(out, align = "left")
 }

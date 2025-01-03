@@ -123,12 +123,12 @@
 #'}
 #' @rdname time_seq
 #' @export
-time_seq <- function(from, to, time_by, length.out = NULL,
+time_seq <- function(from, to, timespan, length.out = NULL,
                      roll_month = getOption("timeplyr.roll_month", "preday"),
                      roll_dst = getOption("timeplyr.roll_dst", "NA")){
   missing_from <- missing(from)
   missing_to <- missing(to)
-  missing_by <- missing(time_by)
+  missing_by <- missing(timespan)
   missing_len <- is.null(length.out)
   if (!missing_len && !sign(length.out) >= 0){
     stop("length.out must be positive")
@@ -157,27 +157,24 @@ time_seq <- function(from, to, time_by, length.out = NULL,
   }
   # Unit parsing
   if (!missing_by){
-    unit_info <- unit_guess(time_by)
-    by_n <- unit_info[["num"]] * unit_info[["scale"]]
-    by_unit <- unit_info[["unit"]]
-    tby <- add_names(list(by_n), by_unit)
-    time_by_is_num <- time_by_is_num(tby)
+    unit_info <- timespan(timespan)
+    by_n <- timespan_num(unit_info)
+    by_unit <- timespan_unit(unit_info)
+    tby <- unit_info
+    has_unit <- timespan_has_unit(unit_info)
   } else {
-    time_by_is_num <- FALSE
+    has_unit <- FALSE
   }
-  if (time_by_is_num || (missing_by &&
+  if (!has_unit || (missing_by &&
                          (!missing_from && !is_time(from) ||
                           !missing_to && !is_time(to)))){
     args <- as.list(match.call())[-1]
-    args <- args[names(args) %in% c("from", "to", "time_by", "length.out")]
+    args <- args[names(args) %in% c("from", "to", "timespan", "length.out")]
     if (!missing_from){
      args[["from"]] <- from
     }
     if (!missing_to){
       args[["to"]] <- to
-    }
-    if (!missing_from && time_floor){
-      args[["from"]] <- time_floor(from, time_by)
     }
     if (!missing_by){
       time_by <- unlist(unname(time_by), recursive = FALSE, use.names = FALSE)
@@ -190,12 +187,6 @@ time_seq <- function(from, to, time_by, length.out = NULL,
     out <- do.call(seq, args, envir = parent.frame())
 
   } else {
-    time_type <- rlang::arg_match0(time_type, c("auto", "duration", "period"))
-    input_time_type <- time_type
-    # Guess seq type
-    if (time_type == "auto" && !missing_by){
-      time_type <- guess_seq_type(by_unit)
-    }
     # From, to, length, no time_by
     if (from_and_to && missing_by && !missing_len){
       time_unit <- time_by_calc(from, to, length = length.out, time_type = time_type)
@@ -204,9 +195,6 @@ time_seq <- function(from, to, time_by, length.out = NULL,
       by_n <- unname(unit_info)[[1L]]
       by_unit <- paste0(names(unit_info), "s")
       tby <- add_names(list(by_n), by_unit)
-      if (time_floor){
-        warning("Ambiguous how to floor from. Please supply the time_by argument.")
-      }
       # From, to, time_by, no length
     }
     if (from_and_to && !missing_by && missing_len){
@@ -271,10 +259,10 @@ time_seq <- function(from, to, time_by, length.out = NULL,
 }
 #' @rdname time_seq
 #' @export
-time_seq_sizes <- function(from, to, time_by){
-  time_by <- timespan(time_by)
+time_seq_sizes <- function(from, to, timespan){
+  timespan <- timespan(timespan)
   set_time_cast(from, to)
-  tdiff <- time_diff(from, to, time_by)
+  tdiff <- time_diff(from, to, timespan)
   tdiff[which(from == to)] <- 0L
   tdiff_rng <- collapse::frange(tdiff, na.rm = TRUE)
   if (isTRUE(any(tdiff_rng < 0))){
@@ -292,16 +280,15 @@ time_seq_sizes <- function(from, to, time_by){
 }
 #' @rdname time_seq
 #' @export
-time_seq_v <- function(from, to, time_by,
+time_seq_v <- function(from, to, timespan,
                        roll_month = getOption("timeplyr.roll_month", "preday"),
                        roll_dst = getOption("timeplyr.roll_dst", "NA")){
-  time_by <- timespan(time_by)
-  units <- timespan_unit(time_by)
-  num <- timespan_num(time_by)
+  timespan <- timespan(timespan)
+  units <- timespan_unit(timespan)
+  num <- timespan_num(timespan)
   set_time_cast(from, to)
-  seq_sizes <- time_seq_sizes(from = from, to = to, time_by)
-  time_seq_v2(seq_sizes, from = from,
-              time_by = time_by,
+  seq_sizes <- time_seq_sizes(from = from, to = to, timespan)
+  time_seq_v2(seq_sizes, from = from, timespan,
               roll_month = roll_month,
               roll_dst = roll_dst)
 }
@@ -309,14 +296,14 @@ time_seq_v <- function(from, to, time_by,
 # Like base::sequence()
 #' @rdname time_seq
 #' @export
-time_seq_v2 <- function(sizes, from, time_by,
+time_seq_v2 <- function(sizes, from, timespan,
                         roll_month = getOption("timeplyr.roll_month", "preday"),
                         roll_dst = getOption("timeplyr.roll_dst", "NA")){
-  time_by <- timespan(time_by)
-  units <- timespan_unit(time_by)
-  num <- timespan_num(time_by)
+  timespan <- timespan(timespan)
+  units <- timespan_unit(timespan)
+  num <- timespan_num(timespan)
 
-  if (!timespan_has_unit(time_by)){
+  if (!timespan_has_unit(timespan)){
     out <- sequences(sizes, from = from, by = num)
   } else {
     is_special_case_days <- units %in% c("days", "weeks") &&
@@ -401,8 +388,8 @@ duration_seq_v <- function(from, to, units, num = 1){
 duration_seq_v2 <- function(sizes, from, units, num = 1){
   units <- rlang::arg_match0(units, .duration_units)
   from <- as_datetime2(from)
-  time_by <- add_names(list(num), units)
-  num_seconds <- unit_to_seconds(time_by)
+  timespan <- timespan(units, num)
+  num_seconds <- unit_to_seconds(timespan)
   time_seq <- cheapr::sequence_(sizes,
                                 from = unclass(from),
                                 by = num_seconds)

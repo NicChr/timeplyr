@@ -6,37 +6,39 @@
 \alias{time_has_gaps}
 \title{Gaps in a regular time sequence}
 \usage{
-time_gaps(
-  x,
-  time_by = NULL,
-  g = NULL,
-  use.g.names = TRUE,
-  time_type = getOption("timeplyr.time_type", "auto"),
-  check_time_regular = FALSE
-)
+time_gaps(x, g = NULL, use.g.names = TRUE, check_time_regular = FALSE)
 
 time_num_gaps(
   x,
-  time_by = NULL,
+  timespan = time_granularity(x),
   g = NULL,
   use.g.names = TRUE,
   na.rm = TRUE,
-  time_type = getOption("timeplyr.time_type", "auto"),
   check_time_regular = FALSE
 )
 
 time_has_gaps(
   x,
-  time_by = NULL,
   g = NULL,
   use.g.names = TRUE,
   na.rm = TRUE,
-  time_type = getOption("timeplyr.time_type", "auto"),
   check_time_regular = FALSE
 )
 }
 \arguments{
 \item{x}{A date, datetime or numeric vector.}
+
+\item{g}{Grouping object passed directly to \code{collapse::GRP()}.
+This can for example be a vector or data frame.}
+
+\item{use.g.names}{Should the result include group names?
+Default is \code{TRUE}.}
+
+\item{check_time_regular}{Should the time vector be
+checked to see if it is regular (with or without gaps)?
+Default is \code{FALSE}.}
+
+\item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
 
 \item{time_by}{Time unit. \cr
 Must be one of the three:
@@ -51,21 +53,9 @@ e.g. \code{list("days" = 1:10)}.
 then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
-\item{g}{Grouping object passed directly to \code{collapse::GRP()}.
-This can for example be a vector or data frame.}
-
-\item{use.g.names}{Should the result include group names?
-Default is \code{TRUE}.}
-
 \item{time_type}{Time type, either "auto", "duration" or "period".
 With larger data, it is recommended to use \code{time_type = "duration"} for
 speed and efficiency.}
-
-\item{check_time_regular}{Should the time vector be
-checked to see if it is regular (with or without gaps)?
-Default is \code{FALSE}.}
-
-\item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
 }
 \value{
 \code{time_gaps} returns a vector of time gaps. \cr

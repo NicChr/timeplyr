@@ -52,7 +52,7 @@
 #' @seealso [time_elapsed] [time_seq_id]
 #'
 #' @export
-time_id <- function(x, timespan = time_granularity(x), g = NULL,
+time_id <- function(x, timespan = granularity(x), g = NULL,
                     na_skip = TRUE, shift = 1L){
   check_is_time_or_num(x)
   timespan <- timespan(timespan)

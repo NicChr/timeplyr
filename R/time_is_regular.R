@@ -82,12 +82,11 @@
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #'}
 #' @export
-time_is_regular <- function(x, time_by = NULL,
+time_is_regular <- function(x, timespan = granularity(x),
                             g = NULL, use.g.names = TRUE,
                             na.rm = TRUE,
-                            time_type = getOption("timeplyr.time_type", "auto"),
-                            allow_gaps = TRUE,
-                            allow_dups = TRUE){
+                            allow_gaps = FALSE,
+                            allow_dups = FALSE){
   check_is_time_or_num(x)
   if (length(x) == 0L){
     return(TRUE)
@@ -100,9 +99,9 @@ time_is_regular <- function(x, time_by = NULL,
   } else {
     n_groups <- min(1L, length(x))
   }
-  time_by <- time_by_get(x, time_by = time_by)
-  telapsed <- time_elapsed(x, time_by = time_by, g = g,
-                           time_type = time_type, rolling = FALSE,
+  timespan <- timespan(timespan)
+  telapsed <- time_elapsed(x, timespan, g = g,
+                           rolling = FALSE,
                            na_skip = na.rm,
                            fill = 0)
   if (na.rm){

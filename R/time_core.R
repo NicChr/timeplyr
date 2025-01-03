@@ -103,7 +103,8 @@
 #' }
 #' @rdname time_core
 #' @export
-time_grid <- function(x, timespan = time_granularity(x), from = NULL, to = NULL){
+time_grid <- function(x, timespan = granularity(x),
+                      from = NULL, to = NULL){
   check_is_time_or_num(x)
   check_length_lte(from, 1)
   check_length_lte(to, 1)
@@ -131,7 +132,7 @@ time_grid <- function(x, timespan = time_granularity(x), from = NULL, to = NULL)
 }
 #' @rdname time_core
 #' @export
-time_complete <- function(x, timespan = time_granularity(x), sort = TRUE){
+time_complete <- function(x, timespan = granularity(x), sort = TRUE){
   time_full <- time_grid(x, timespan)
   out <- time_cast(x, time_full)
   gaps <- cheapr::setdiff_(time_full, out)
@@ -145,7 +146,7 @@ time_complete <- function(x, timespan = time_granularity(x), sort = TRUE){
 }
 #' @rdname time_core
 #' @export
-time_grid_size <- function(x, timespan = time_granularity(x),
+time_grid_size <- function(x, timespan = granularity(x),
                            from = NULL, to = NULL){
   check_is_time_or_num(x)
   check_length_lte(from, 1)
@@ -167,4 +168,61 @@ time_grid_size <- function(x, timespan = time_granularity(x),
   from <- time_cast(from, x)
   to <- time_cast(to, x)
   time_seq_sizes(from, to, timespan)
+}
+time_expandv <- function(x, timespan = granularity(x),
+                         from = NULL, to = NULL,
+                         g = NULL, use.g.names = TRUE){
+  check_is_time_or_num(x)
+  check_length_lte(from, 1)
+  check_length_lte(to, 1)
+  timespan <- timespan(timespan)
+  g <- GRP2(g)
+  check_data_GRP_size(x, g)
+  has_groups <- !is.null(g)
+  if (is.null(from)){
+    from <- collapse::fmin(x, g = g, use.g.names = FALSE, na.rm = TRUE)
+  }
+  if (is.null(to)){
+    to <- collapse::fmax(x, g = g, use.g.names = FALSE, na.rm = TRUE)
+  }
+  # Make sure from/to are datetimes if x is datetime
+  from <- time_cast(from, x)
+  to <- time_cast(to, x)
+  seq_sizes <- time_seq_sizes(from, to, timespan)
+  out <- time_seq_v2(seq_sizes, from = from, timespan)
+  if (has_groups && use.g.names){
+    group_names <- GRP_names(g)
+    if (!is.null(group_names)){
+      names(out) <- rep.int(group_names, times = seq_sizes)
+    }
+  }
+  out
+}
+time_expanded_sizes <- function(x, timespan = granularity(x),
+                                from = NULL, to = NULL,
+                                g = NULL, use.g.names = TRUE){
+  check_is_time_or_num(x)
+  check_length_lte(from, 1)
+  check_length_lte(to, 1)
+  timespan <- timespan(timespan)
+  g <- GRP2(g)
+  check_data_GRP_size(x, g)
+  has_groups <- is.null(g)
+  if (is.null(from)){
+    from <- collapse::fmin(x, g = g, use.g.names = FALSE, na.rm = TRUE)
+  }
+  if (is.null(to)){
+    to <- collapse::fmax(x, g = g, use.g.names = FALSE, na.rm = TRUE)
+  }
+  # Make sure from/to are datetimes if x is datetime
+  from <- time_cast(from, x)
+  to <- time_cast(to, x)
+  out <- time_seq_sizes(from = from, to = to, timespan)
+  if (has_groups && use.g.names){
+    group_names <- GRP_names(g)
+    if (!is.null(group_names)){
+      names(out) <- group_names
+    }
+  }
+  out
 }

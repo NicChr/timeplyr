@@ -74,9 +74,9 @@ unit_parse <- function(x){
   }
   list("unit" = unit, "num" = num * scale)
 }
-get_time_granularity <- function(x, timespan = NULL, quiet = FALSE){
+get_granularity <- function(x, timespan = NULL, quiet = FALSE){
   if (is.null(timespan)){
-    time_granularity(x)
+    granularity(x)
   } else {
     timespan(timespan)
   }
@@ -922,7 +922,7 @@ int_to_per <- function (start, end){
 }
 
 # Convenience function to return base time unit of time variable
-# Useless now, use `time_resolution()`
+# Useless now, use `resolution()`
 get_time_unit <- function(x){
   if (is_date(x)){
     "days"

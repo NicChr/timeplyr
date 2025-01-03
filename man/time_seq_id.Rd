@@ -6,34 +6,16 @@
 \usage{
 time_seq_id(
   x,
-  time_by = NULL,
+  timespan = time_granularity(x),
   threshold = 1,
   g = NULL,
   na_skip = TRUE,
   rolling = TRUE,
-  switch_on_boundary = FALSE,
-  time_type = getOption("timeplyr.time_type", "auto")
+  switch_on_boundary = FALSE
 )
 }
 \arguments{
 \item{x}{Date, datetime or numeric vector.}
-
-\item{time_by}{Time unit. \cr
-This signifies the granularity of the time data with which to measure gaps
-in the sequence.
-If your data is daily for example, supply \code{time_by = "days"}.
-If weekly, supply \code{time_by = "week"}.
-Must be one of the three:
-\itemize{
-\item string, specifying either the unit or the number and unit, e.g
-\code{time_by = "days"} or \code{time_by = "2 weeks"}
-\item named list of length one, the unit being the name, and
-the number the value of the list, e.g. \code{list("days" = 7)}.
-For the vectorized time functions, you can supply multiple values,
-e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{time_by = 1}.
-}}
 
 \item{threshold}{Threshold such that when the time elapsed
 exceeds this, the sequence ID is incremented by 1.
@@ -59,6 +41,23 @@ a new ID is created, the clock "resets" and we start counting from that point.}
 The default is \code{FALSE}. For example, if \code{time_by = "days"} and
 \code{switch_on_boundary = FALSE}, \code{>} 1 day must have passed, otherwise
 \code{>=} 1 day must have passed.}
+
+\item{time_by}{Time unit. \cr
+This signifies the granularity of the time data with which to measure gaps
+in the sequence.
+If your data is daily for example, supply \code{time_by = "days"}.
+If weekly, supply \code{time_by = "week"}.
+Must be one of the three:
+\itemize{
+\item string, specifying either the unit or the number and unit, e.g
+\code{time_by = "days"} or \code{time_by = "2 weeks"}
+\item named list of length one, the unit being the name, and
+the number the value of the list, e.g. \code{list("days" = 7)}.
+For the vectorized time functions, you can supply multiple values,
+e.g. \code{list("days" = 1:10)}.
+\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
+then arithmetic is used, e.g \code{time_by = 1}.
+}}
 
 \item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks, months or years are specified,

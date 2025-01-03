@@ -6,18 +6,32 @@
 \usage{
 time_is_regular(
   x,
-  time_by = NULL,
+  timespan = time_granularity(x),
   g = NULL,
   use.g.names = TRUE,
   na.rm = TRUE,
-  time_type = getOption("timeplyr.time_type", "auto"),
-  allow_gaps = TRUE,
-  allow_dups = TRUE
+  allow_gaps = FALSE,
+  allow_dups = FALSE
 )
 }
 \arguments{
 \item{x}{A vector. Can be a
 \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, or \code{yearqtr}.}
+
+\item{g}{Grouping object passed directly to \code{collapse::GRP()}.
+This can for example be a vector or data frame. \cr
+Note that when \code{g} is supplied the output is a logical with length
+matching the number of unique groups.}
+
+\item{use.g.names}{Should the result include group names?
+Default is \code{TRUE}.}
+
+\item{na.rm}{Should \code{NA} values be removed before calculation?
+Default is \code{TRUE}.}
+
+\item{allow_gaps}{Should gaps be allowed? Default is \code{TRUE}.}
+
+\item{allow_dups}{Should duplicates be allowed? Default is \code{TRUE}.}
 
 \item{time_by}{Time unit. \cr
 Must be one of the three:
@@ -32,26 +46,11 @@ e.g. \code{list("days" = 1:10)}.
 then arithmetic is used, e.g \code{time_by = 1}.
 }}
 
-\item{g}{Grouping object passed directly to \code{collapse::GRP()}.
-This can for example be a vector or data frame. \cr
-Note that when \code{g} is supplied the output is a logical with length
-matching the number of unique groups.}
-
-\item{use.g.names}{Should the result include group names?
-Default is \code{TRUE}.}
-
-\item{na.rm}{Should \code{NA} values be removed before calculation?
-Default is \code{TRUE}.}
-
 \item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks,
 months or years are specified, and \code{durations}
 are used otherwise. If \code{durations}
 are used the output is always of class \code{POSIXt}.}
-
-\item{allow_gaps}{Should gaps be allowed? Default is \code{TRUE}.}
-
-\item{allow_dups}{Should duplicates be allowed? Default is \code{TRUE}.}
 }
 \value{
 A logical vector the same length as the number of supplied groups.

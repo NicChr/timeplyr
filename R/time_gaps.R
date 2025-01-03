@@ -61,9 +61,7 @@
 #'}
 #' @rdname time_gaps
 #' @export
-time_gaps <- function(x, time_by = NULL,
-                      g = NULL, use.g.names = TRUE,
-                      time_type = getOption("timeplyr.time_type", "auto"),
+time_gaps <- function(x, g = NULL, use.g.names = TRUE,
                       check_time_regular = FALSE){
   check_is_time_or_num(x)
   g <- GRP2(g, return.groups = use.g.names)
@@ -71,66 +69,47 @@ time_gaps <- function(x, time_by = NULL,
   if (!is.null(g)){
     names(x) <- GRP_names(g, expand = TRUE)
   }
-  time_by <- time_by_get(x, time_by = time_by)
-  time_seq <- time_expandv(x, time_by = time_by,
-                           g = g, use.g.names = TRUE,
-                           time_type = time_type)
+  timespan <- granularity(x)
+  time_seq <- time_expandv(x, timespan, g = g, use.g.names = TRUE)
   x <- time_cast(x, time_seq)
   if (check_time_regular){
-    is_regular <- time_is_regular(x, time_by = time_by,
-                                  g = g, use.g.names = FALSE,
-                                  time_type = time_type)
+    is_regular <- time_is_regular(x, timespan,
+                                  g = g, use.g.names = FALSE)
     if (collapse::anyv(is_regular, FALSE)){
-      stop("x is not regular given the chosen time unit")
+      cli::cli_abort("{.arg x} is not regular given the chosen time unit")
     }
   }
-  time_tbl <- cheapr::enframe_(x,
-                               name = "group",
-                               value = "time")
-  time_not_na <- which_not_na(time_tbl[["time"]])
+  time_tbl <- fastplyr::f_enframe(x, name = "group", value = "time")
+  time_not_na <- cheapr::val_find(time_tbl[["time"]], NA, invert = TRUE)
   time_tbl <- df_row_slice(time_tbl, time_not_na)
-  time_full_tbl <- cheapr::enframe_(time_seq,
-                                    name = "group",
-                                    value = "time")
+  time_full_tbl <- fastplyr::f_enframe(time_seq, name = "group", value = "time")
   out_tbl <- fastplyr::f_anti_join(time_full_tbl, time_tbl, by = names(time_tbl))
   if (!use.g.names){
     out_tbl <- fastplyr::f_select(out_tbl, .cols = "time")
   }
-  cheapr::deframe_(out_tbl)
+  fastplyr::f_deframe(out_tbl)
 }
 #' @rdname time_gaps
 #' @export
-time_num_gaps <- function(x, time_by = NULL,
+time_num_gaps <- function(x, timespan = granularity(x),
                           g = NULL, use.g.names = TRUE,
                           na.rm = TRUE,
-                          time_type = getOption("timeplyr.time_type", "auto"),
                           check_time_regular = FALSE){
   check_is_time_or_num(x)
-  time_type <- match_time_type(time_type)
   if (length(x) == 0L){
     return(0L)
   }
   g <- GRP2(g, return.groups = use.g.names)
   check_data_GRP_size(x, g)
-  tby <- time_by_get(x, time_by = time_by)
+  tby <- granularity(x)
   if (check_time_regular){
-    is_regular <- time_is_regular(x, g = g, time_by = tby,
-                                  use.g.names = FALSE,
-                                  time_type = time_type)
+    is_regular <- time_is_regular(x, tby, g = g, use.g.names = FALSE)
     if (collapse::anyv(is_regular, FALSE)){
-      stop("x is not regular given the chosen time unit")
+      cli::cli_abort("{.arg x} is not regular given the chosen time unit")
     }
   }
-  # start <- collapse::fmin(x, g = g, na.rm = na.rm, use.g.names = FALSE)
-  # end <- collapse::fmax(x, g = g, na.rm = na.rm, use.g.names = FALSE)
-  # full_seq_size <- time_seq_sizes(start,
-  #                                 end,
-  #                                 time_by = tby,
-  #                                 time_type = time_type)
   n_unique <- collapse::fndistinct(x, g = g, use.g.names = FALSE)
-  full_seq_size <- time_grid_size(x, time_by = tby,
-                                  time_type = time_type,
-                                  g = g, use.g.names = FALSE)
+  full_seq_size <- time_expanded_sizes(x, tby, g = g, use.g.names = FALSE)
   out <- full_seq_size - n_unique
   if (!na.rm){
     nmiss <- fnmiss(x, g = g, use.g.names = FALSE)
@@ -143,14 +122,9 @@ time_num_gaps <- function(x, time_by = NULL,
 }
 #' @rdname time_gaps
 #' @export
-time_has_gaps <- function(x, time_by = NULL,
-                          g = NULL, use.g.names = TRUE,
-                          na.rm = TRUE,
-                          time_type = getOption("timeplyr.time_type", "auto"),
-                          check_time_regular = FALSE){
-  time_num_gaps(x, time_by = time_by,
-                g = g, use.g.names = use.g.names,
+time_has_gaps <- function(x, g = NULL, use.g.names = TRUE,
+                          na.rm = TRUE, check_time_regular = FALSE){
+  time_num_gaps(x, g = g, use.g.names = use.g.names,
                 na.rm = na.rm,
-                time_type = time_type,
                 check_time_regular = check_time_regular) > 0L
 }

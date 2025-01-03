@@ -56,4 +56,8 @@ interval_count.time_interval <- function(x){
   new_tbl(interval = x) %>%
     fastplyr::f_count(.cols = 1L, .order = TRUE)
 }
+interval_range <- function(x){
+  rng <- collapse::frange(x, na.rm = TRUE)
+  c(rm_intv_class(rng[1]), interval_end(rng[2]))
+}
 

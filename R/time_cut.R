@@ -159,7 +159,7 @@ time_breaks <- function(x, n = 5, timespan = NULL,
                       week_start = week_start)
   out[["breaks"]]
 }
-time_cut_width <- function(x, width = time_granularity(x), from = NULL, to = NULL){
+time_cut_width <- function(x, width = granularity(x), from = NULL, to = NULL){
   check_is_time_or_num(x)
 
   if (is.null(from)){
@@ -169,7 +169,7 @@ time_cut_width <- function(x, width = time_granularity(x), from = NULL, to = NUL
     to <- time_cast(to, x)
     x[x >= to] <- NA
   }
-  width <- get_time_granularity(x, width)
+  width <- get_granularity(x, width)
   num <- timespan_num(width)
   units <- timespan_unit(width)
   tdiff <- time_diff(from, x, width)

@@ -78,7 +78,7 @@ time_by <- function(data, time, width = NULL,
   col_seq <- seq_along(names(out))
   if (length(time_var) > 0L){
     check_is_time_or_num(out[[time_var]])
-    width <- get_time_granularity(out[[time_var]], width)
+    width <- get_granularity(out[[time_var]], width)
     if (!.add || !.time_by_group || length(group_vars) == 0L){
       g <- NULL
       time_span_groups <- character(0)
@@ -93,18 +93,17 @@ time_by <- function(data, time, width = NULL,
     time_agg <- time_cut_width(out[[time_var]], width, from = from)
     time_var <- across_col_names(time_var, .fns = "", .names = .name)
     out <- df_add_cols(out, add_names(list(time_agg), time_var))
-    # time_span <- GRP_group_data(time_span_GRP)
-    # if (df_nrow(time_span) == 0L && df_nrow(data) > 0L){
-    #   time_span <- df_init(time_span, 1L)
-    # }
-    # time_span$start <- time_span_start
-    # time_span$end <- time_span_end
-    # num_gaps <- time_num_gaps(time_start,
-    #                           time_by = time_by,
-    #                           time_type = time_type,
-    #                           g = time_span_GRP, use.g.names = FALSE,
-    #                           check_time_regular = FALSE)
-    # time_span[["num_gaps"]] <- num_gaps
+    time_span <- GRP_group_data(time_span_GRP)
+    if (df_nrow(time_span) == 0L && df_nrow(data) > 0L){
+      time_span <- df_init(time_span, 1L)
+    }
+    time_range <- interval_range(time_agg)
+    time_span$start <- time_range[1]
+    time_span$end <- time_range[2]
+    num_gaps <- time_num_gaps(rm_intv_class(time_agg), width,
+                              g = time_span_GRP, use.g.names = FALSE,
+                              check_time_regular = FALSE)
+    time_span[["num_gaps"]] <- num_gaps
   }
   groups <- time_var
   if (.add){

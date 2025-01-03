@@ -80,14 +80,13 @@
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #'}
 #' @export
-time_seq_id <- function(x, time_by = NULL, threshold = 1,
-                        g = NULL, na_skip = TRUE,
-                        rolling = TRUE, switch_on_boundary = FALSE,
-                        time_type = getOption("timeplyr.time_type", "auto")){
+time_seq_id <- function(x, timespan = granularity(x),
+                        threshold = 1, g = NULL, na_skip = TRUE,
+                        rolling = TRUE, switch_on_boundary = FALSE){
   check_is_time_or_num(x)
   g <- GRP2(g)
-  time_by <- time_by_get(x, time_by = time_by)
-  time_num <- timespan_num(time_by)
+  timespan <- timespan(timespan)
+  time_num <- timespan_num(timespan)
   if (is_whole_number(threshold)){
     threshold <- as.integer(threshold)
   }
@@ -98,9 +97,9 @@ time_seq_id <- function(x, time_by = NULL, threshold = 1,
     fill <- -Inf
   }
   # Elapsed time
-  telapsed <- time_elapsed(x, time_by = time_by, g = g,
-                           time_type = time_type, rolling = rolling,
-                           na_skip = na_skip, fill = fill)
+  telapsed <- time_elapsed(x, timespan, g = g,
+                           rolling = rolling, na_skip = na_skip,
+                           fill = fill)
   if (rolling){
     if (switch_on_boundary){
       over_threshold <- cppdoubles::double_gte(telapsed, threshold)
