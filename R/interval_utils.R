@@ -17,7 +17,9 @@ rm_intv_class <- function(x){
 }
 #' @export
 interval_start.time_interval <- function(x){
-  strip_attr(rm_intv_class(x), "timespan")
+  out <- rm_intv_class(x)
+  class(out) <- attr(x, "oldClass")
+  out
 }
 #' @export
 interval_start.Interval <- function(x){
@@ -58,6 +60,6 @@ interval_count.time_interval <- function(x){
 }
 interval_range <- function(x){
   rng <- collapse::frange(x, na.rm = TRUE)
-  c(rm_intv_class(rng[1]), interval_end(rng[2]))
+  c(interval_start(rng[1]), interval_end(rng[2]))
 }
 

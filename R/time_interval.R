@@ -104,7 +104,8 @@ check_is_time_interval <- function(x){
 new_time_interval <- function(start, timespan){
   out <- start
   attr(out, "timespan") <- timespan
-  class(out) <- c("time_interval", oldClass(start))
+  attr(out, "oldClass") <- oldClass(start)
+  class(out) <- "time_interval"
   # class(out) <- c(paste0(timespan_abbr(timespan), "_intv"),
   #                 "time_interval", oldClass(start))
   out
@@ -114,11 +115,12 @@ new_time_interval <- function(start, timespan){
 `[.time_interval` <- function(x, ..., drop = TRUE){
   cl <- oldClass(x)
   span <- interval_width(x)
-  class(x) <- NULL
-  val <- NextMethod("[")
-  class(val) <- cl
-  attr(val, "timespan") <- span
-  val
+  class(x) <- attr(x, "oldClass")
+  out <- NextMethod("[")
+  class(out) <- cl
+  attr(out, "timespan") <- span
+  attr(out, "oldClass") <- attr(x, "oldClass")
+  out
 }
 #' @rdname time_interval
 #' @export
@@ -132,7 +134,7 @@ c.time_interval <- function(...){
     if (!is_time_interval(dot)){
       cli::cli_abort("Cannot combine {.cls time_interval} with {.cls {class(dot)}}")
     }
-    dots[[i]] <- rm_intv_class(dot)
+    dots[[i]] <- interval_start(dot)
     if (!identical(span, interval_width(dot))){
      cli::cli_abort(c(
      " " = "{.cls time_interval} {i} with width {interval_width(dot)}",
@@ -141,15 +143,16 @@ c.time_interval <- function(...){
     }
   }
   out <- do.call(c, dots, envir = parent.frame())
-  class(out) <- cl
   attr(out, "timespan") <- span
+  attr(out, "oldClass") <- oldClass(out)
+  class(out) <- cl
   out
 }
 #' @rdname time_interval
 #' @export
 unique.time_interval <- function(x, incomparables = FALSE, ...){
   new_time_interval(
-    unique(rm_intv_class(x), incomparables = incomparables, ...),
+    collapse::funique(interval_start(x), incomparables = incomparables, ...),
     interval_width(x)
   )
 }
@@ -157,7 +160,7 @@ unique.time_interval <- function(x, incomparables = FALSE, ...){
 #' @export
 rep.time_interval <- function(x, ...){
   new_time_interval(
-    rep(rm_intv_class(x), ...),
+    rep(interval_start(x), ...),
     interval_width(x)
   )
 }
@@ -165,7 +168,7 @@ rep.time_interval <- function(x, ...){
 #' @export
 rep_len.time_interval <- function(x, ...){
   new_time_interval(
-    rep_len(rm_intv_class(x), ...),
+    rep_len(interval_start(x), ...),
     interval_width(x)
   )
 }
@@ -221,6 +224,22 @@ as.character.time_interval <- function(x, ...){
   out
 }
 #' @export
+as.Date.time_interval <- function(x, ...){
+  as.Date(interval_start(x))
+}
+#' @export
+as.POSIXct.time_interval <- function(x, ...){
+  as.POSIXct(interval_start(x))
+}
+#' @export
+as.POSIXlt.time_interval <- function(x, ...){
+  as.POSIXlt(interval_start(x))
+}
+#' @export
+is.numeric.time_interval <- function(x){
+  FALSE
+}
+#' @export
 print.time_interval <- function(x, max = NULL, ...){
   out <- x
   N <- length(out)
@@ -240,16 +259,14 @@ print.time_interval <- function(x, max = NULL, ...){
   unit <- timespan_unit(timespan)
   num <- timespan_num(timespan)
 
-  cat(intv_span_abbr(x), sep = "\n")
   if (N == 0){
-    unit <- cheapr::na_replace(unit, "NULL")
-    if (timespan_has_unit(timespan)){
-      unit <- paste0("'", unit, "'")
-    }
-    print(paste0("time_interval(width = ",
-                 "timespan(", unit, ", ", num, ")", "))"),
-          quote = FALSE)
+    cli::cli_text(
+      "A ", "{.cls time_interval} of length 0
+      and width
+      {cli::col_red(timespan_abbr(timespan, short = TRUE))}"
+    )
   } else {
+    cli::cli_text(intv_span_abbr_cli(x))
     print(format(out), max = max, quote = FALSE, ...)
   }
   cat(additional_msg)
@@ -272,6 +289,18 @@ intv_span_abbr <- function(x){
   #   "<time_interval> /",
   #   "Width:", timespan_abbr(width)
   # )
+}
+intv_span_abbr_cli <- function(x){
+  check_is_time_interval(x)
+
+  width <- interval_width(x)
+  unit <- timespan_unit(width)
+  num <- timespan_num(width)
+
+  paste0(
+    "<time_interval> [width:",
+    cli::col_red(timespan_abbr(width, short = TRUE)), "]"
+  )
 }
 
 #' @importFrom pillar pillar_shaft
