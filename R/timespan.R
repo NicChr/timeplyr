@@ -59,19 +59,25 @@ timespan.numeric <- function(units, num = 1L, ...){
 }
 #' @export
 timespan.Duration <- function(units, num = 1L, ...){
-  time_unit_info <- time_unit_info(units)
-  unit <- paste0(names(time_unit_info), "s")
-  num <- time_unit_info[[1L]] * num
-  new_timespan(unit, num)
+  new_timespan("seconds", as.double(unclass(units)) * num)
 }
 #' @export
 timespan.Period <- function(units, num = 1L, ...){
-  time_unit_info <- time_unit_info(units)
-  if (length(time_unit_info) > 1L){
-    stop("Multiple period units are currently not supported.")
+  out <- attributes(unclass(units))
+  seconds <- lubridate::second(units)
+  out[["second"]] <- seconds
+  sum_rng <- lapply(out, function(x) sum(abs(collapse::frange(x, na.rm = TRUE))))
+  keep <- vapply(sum_rng, function(x) isTRUE(cppdoubles::double_gt(x, 0)), FALSE)
+  if (sum(keep) > 1L){
+    cli::cli_abort("Multiple period units are currently not supported")
   }
-  unit <- paste0(names(time_unit_info), "s")
-  num <- time_unit_info[[1L]] * num
+  if (sum(keep) == 0){
+    period <- out["second"]
+  } else {
+    period <- out[keep]
+  }
+  unit <- paste0(names(period), "s")
+  num <- period[[1L]] * num
   new_timespan(unit, num)
 }
 
@@ -267,6 +273,15 @@ timespan_abbr <- function(x, short = FALSE){
 
   paste(num, abbr, sep = sep)
 
+}
+
+#' @export
+as.double.timespan <- function(x, ...){
+  as.double(timespan_num(x))
+}
+#' @export
+as.integer.timespan <- function(x, ...){
+  as.integer(timespan_num(x))
 }
 
 # format.timespan <- function(x, ...){

@@ -2,24 +2,15 @@
 % Please edit documentation in R/time_by.R
 \name{time_by}
 \alias{time_by}
-\alias{time_by_span}
-\alias{time_by_var}
-\alias{time_by_units}
 \title{Group by a time variable at a higher time unit}
 \usage{
-time_by(data, time, width = NULL, .name = NULL, .add = FALSE)
-
-time_by_span(x)
-
-time_by_var(x)
-
-time_by_units(x)
+time_by(data, time, width = NULL, .name = NULL, .add = TRUE)
 }
 \arguments{
 \item{data}{A data frame.}
 
 \item{time}{Time variable (\bold{data-masking}). \cr
-Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, or \code{yearqtr}.}
+E.g., a \code{Date}, \code{POSIXt}, \code{numeric} or any time variable.}
 
 \item{width}{A \link{timespan}.}
 
@@ -28,7 +19,7 @@ which can be used to concatenate
 strings to the time column name or replace it.}
 
 \item{.add}{Should the time groups be added to existing groups?
-Default is \code{FALSE}.}
+Default is \code{TRUE}.}
 
 \item{x}{A \code{time_tbl_df}.}
 }
@@ -44,41 +35,29 @@ It can be used exactly like \code{dplyr::group_by}.
 \examples{
 library(dplyr)
 library(timeplyr)
+library(fastplyr)
 library(nycflights13)
 library(lubridate)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
 
 # Basic usage
 hourly_flights <- flights \%>\%
   time_by(time_hour) # Detects time granularity
 
 hourly_flights
-time_by_span(hourly_flights)
 
 monthly_flights <- flights \%>\%
   time_by(time_hour, "month")
 weekly_flights <- flights \%>\%
-  time_by(time_hour, "week", from = floor_date(min(time_hour), "week"))
+  time_by(time_hour, "week")
 
 monthly_flights \%>\%
-  count()
+  f_count()
 
 weekly_flights \%>\%
-  summarise(n = n(), arr_delay = mean(arr_delay, na.rm = TRUE))
+  f_summarise(n = n(), arr_delay = mean(arr_delay, na.rm = TRUE))
 
 # To aggregate multiple variables, use time_aggregate
 
 flights \%>\%
-  select(time_hour) \%>\%
-  mutate(across(everything(), \(x) time_aggregate(x, time_by = "weeks"))) \%>\%
-  count(time_hour)
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
+  f_count(week = time_cut_width(time_hour, months(3)))
 }

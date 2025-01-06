@@ -6,7 +6,7 @@
 \usage{
 time_seq_id(
   x,
-  timespan = time_granularity(x),
+  timespan = granularity(x),
   threshold = 1,
   g = NULL,
   na_skip = TRUE,

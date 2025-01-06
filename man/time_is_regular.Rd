@@ -6,7 +6,7 @@
 \usage{
 time_is_regular(
   x,
-  timespan = time_granularity(x),
+  timespan = granularity(x),
   g = NULL,
   use.g.names = TRUE,
   na.rm = TRUE,

@@ -92,7 +92,7 @@ time_is_regular <- function(x, timespan = granularity(x),
     return(TRUE)
   }
   x <- unname(x)
-  g <- GRP2(g)
+  g <- GRP2(g, return.groups = use.g.names)
   check_data_GRP_size(x, g)
   if (!is.null(g)){
     n_groups <- GRP_n_groups(g)
@@ -135,7 +135,7 @@ time_is_regular <- function(x, timespan = granularity(x),
     if (na.rm){
       gduplicated <- gduplicated & !is.na(x)
     }
-    has_dups <- any(gduplicated)
+    has_dups <- gany(gduplicated, g = g)
     out <- out & !has_dups
   }
   if (use.g.names){

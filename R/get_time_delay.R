@@ -96,8 +96,7 @@
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #'}
 #' @export
-get_time_delay <- function(data, origin, end, time_by = 1L,
-                           time_type = getOption("timeplyr.time_type", "auto"),
+get_time_delay <- function(data, origin, end, timespan = 1L,
                            min_delay = -Inf, max_delay = Inf,
                            probs = c(0.25, 0.5, 0.75, 0.95),
                            .by = NULL,
@@ -132,16 +131,14 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
     .cols = grp_nm,
     .keep_all = TRUE
   )
-  time_by <- time_by_list(time_by)
-  by_unit <- timespan_unit(time_by)
-  by_n <- timespan_num(time_by)
+  timespan <- timespan(timespan)
+  by_unit <- timespan_unit(timespan)
+  by_n <- timespan_num(timespan)
   delay_nm <- unique_col_name(out, "delay")
   out <- df_add_cols(out, add_names(
     list(
       time_diff(out[[start_time]],
-                out[[end_time]],
-                time_by = time_by,
-                time_type = time_type)
+                out[[end_time]], timespan)
     ),
     delay_nm
   ))
@@ -246,7 +243,7 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
     x_scales <- match.arg(x_scales, c("fixed", "free_x"))
     # Control x-axis plot text
     if (by_n != 1){
-      if (by_unit == "numeric"){
+      if (!timespan_has_unit(timespan)){
         plot_unit_text <- paste0("/", by_n)
       }
       else {
@@ -254,7 +251,7 @@ get_time_delay <- function(data, origin, end, time_by = 1L,
       }
     }
     else {
-      if (by_unit == "numeric"){
+      if (!timespan_has_unit(timespan)){
         plot_unit_text <- ""
       }
       else {

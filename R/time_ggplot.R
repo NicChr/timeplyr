@@ -94,11 +94,11 @@ time_ggplot <- function(data, time, value, group = NULL,
     x_scale <- ggplot2::scale_x_date(breaks = time_breaks,
                                      labels = scales::label_date_short())
   } else if (is_year_month(time_var)){
-    x_scale <- scale_x_year_month(breaks = time_breaks)
+    x_scale <- scale_x_year_month(breaks = function(x) get_breaks(as.double(x)))
   } else if (is_year_quarter(time_var)){
-    x_scale <- scale_x_year_quarter(breaks = time_breaks)
+    x_scale <- scale_x_year_quarter(breaks = function(x) get_breaks(as.double(x)))
   } else {
-    x_scale <- ggplot2::scale_x_continuous(breaks = time_breaks)
+    x_scale <- ggplot2::scale_x_continuous(breaks = function(x) get_breaks(as.double(x)))
   }
   # Concatenate group names together
   if (length(group) > 1L){

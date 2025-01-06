@@ -6,7 +6,7 @@
 \usage{
 time_elapsed(
   x,
-  timespan = time_resolution(x),
+  timespan = resolution(x),
   g = NULL,
   rolling = TRUE,
   fill = NA,

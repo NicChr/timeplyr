@@ -6,11 +6,17 @@
 \alias{time_has_gaps}
 \title{Gaps in a regular time sequence}
 \usage{
-time_gaps(x, g = NULL, use.g.names = TRUE, check_time_regular = FALSE)
+time_gaps(
+  x,
+  timespan = granularity(x),
+  g = NULL,
+  use.g.names = TRUE,
+  check_time_regular = FALSE
+)
 
 time_num_gaps(
   x,
-  timespan = time_granularity(x),
+  timespan = granularity(x),
   g = NULL,
   use.g.names = TRUE,
   na.rm = TRUE,
@@ -19,6 +25,7 @@ time_num_gaps(
 
 time_has_gaps(
   x,
+  timespan = granularity(x),
   g = NULL,
   use.g.names = TRUE,
   na.rm = TRUE,

@@ -10,7 +10,7 @@
 \alias{rep_len.time_interval}
 \title{S3-based Time Intervals (Currently very experimental and so subject to change)}
 \usage{
-time_interval(start = integer(), width = time_resolution(start))
+time_interval(start = integer(), width = resolution(start))
 
 is_time_interval(x)
 

@@ -61,7 +61,8 @@
 #'}
 #' @rdname time_gaps
 #' @export
-time_gaps <- function(x, g = NULL, use.g.names = TRUE,
+time_gaps <- function(x, timespan = granularity(x),
+                      g = NULL, use.g.names = TRUE,
                       check_time_regular = FALSE){
   check_is_time_or_num(x)
   g <- GRP2(g, return.groups = use.g.names)
@@ -69,7 +70,7 @@ time_gaps <- function(x, g = NULL, use.g.names = TRUE,
   if (!is.null(g)){
     names(x) <- GRP_names(g, expand = TRUE)
   }
-  timespan <- granularity(x)
+  timespan <- timespan(timespan)
   time_seq <- time_expandv(x, timespan, g = g, use.g.names = TRUE)
   x <- time_cast(x, time_seq)
   if (check_time_regular){
@@ -101,7 +102,7 @@ time_num_gaps <- function(x, timespan = granularity(x),
   }
   g <- GRP2(g, return.groups = use.g.names)
   check_data_GRP_size(x, g)
-  tby <- granularity(x)
+  tby <- timespan(timespan)
   if (check_time_regular){
     is_regular <- time_is_regular(x, tby, g = g, use.g.names = FALSE)
     if (collapse::anyv(is_regular, FALSE)){
@@ -122,9 +123,10 @@ time_num_gaps <- function(x, timespan = granularity(x),
 }
 #' @rdname time_gaps
 #' @export
-time_has_gaps <- function(x, g = NULL, use.g.names = TRUE,
+time_has_gaps <- function(x, timespan = granularity(x),
+                          g = NULL, use.g.names = TRUE,
                           na.rm = TRUE, check_time_regular = FALSE){
-  time_num_gaps(x, g = g, use.g.names = use.g.names,
+  time_num_gaps(x, timespan, g = g, use.g.names = use.g.names,
                 na.rm = na.rm,
                 check_time_regular = check_time_regular) > 0L
 }

@@ -8,63 +8,19 @@
 #' @param x Time variable. \cr
 #' Can be a `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, `yearqtr`,
 #' `year_month` or `year_quarter`.
-#' @param time_by Time unit. \cr
-#' Must be one of the following:
-#' * string, specifying either the unit or the number and unit, e.g
-#' `time_by = "days"` or `time_by = "2 weeks"`
-#' * named list of length one, the unit being the name, and
-#' the number the value of the list, e.g. `list("days" = 7)`.
-#' For the vectorized time functions, you can supply multiple values,
-#' e.g. `list("days" = 1:10)`.
-#' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-#' then arithmetic is used, e.g `time_by = 1`.
-#' @param from Time series start date.
-#' @param to Time series end date.
-#' @param unique Should the result be unique or match the length of the vector?
-#' Default is `TRUE`.
-#' @param sort Should the output be sorted? Default is `TRUE`.
-#' @param time_type If "auto", `periods` are used for
-#' the time expansion when days, weeks, months or years are specified,
-#' and `durations` are used otherwise.
-#' @param time_floor Should `from` be floored to the nearest unit specified
-#' through the `time_by` argument?
-#' This is particularly useful for starting sequences at the
-#' beginning of a week or month for example.
-#' @param week_start day on which week starts following ISO conventions - 1
-#' means Monday (default), 7 means Sunday.
-#' This is only used when `time_floor = TRUE`.
-#' @param roll_month Control how impossible dates are handled when
-#' month or year arithmetic is involved.
-#' Options are "preday", "boundary", "postday", "full" and "NA".
-#' See `?timechange::time_add` for more details.
-#' @param roll_dst See `?timechange::time_add` for the full list of details.
-#' @param complete Logical. If `TRUE` implicit gaps in time are filled
-#' before counting and after time aggregation (controlled using `time_by`).
-#' The default is `FALSE`.
-#' @param g Grouping object passed directly to `collapse::GRP()`.
-#' This can for example be a vector or data frame.
-#' @param use.g.names Should the result include group names?
-#' Default is `TRUE`.
-#' @param as_interval Should result be a `time_interval`?
-#' Default is `FALSE`. \cr
-#' This can be controlled globally through `options(timeplyr.use_intervals)`.
+#' @param timespan [timespan]
+#' @param from Start time.
+#' @param to End time.
 #'
 #' @returns
 #' Vectors (typically the same class as `x`) of varying lengths depending
 #' on the arguments supplied.
-#' `time_countv()` returns a `tibble`.
 #'
 #' @examples
 #' library(timeplyr)
 #' library(dplyr)
 #' library(lubridate)
 #' library(nycflights13)
-#' \dontshow{
-#' .n_dt_threads <- data.table::getDTthreads()
-#' .n_collapse_threads <- collapse::get_collapse()$nthreads
-#' data.table::setDTthreads(threads = 2L)
-#' collapse::set_collapse(nthreads = 1L)
-#' }
 #' x <- unique(flights$time_hour)
 #'
 #' # Number of missing hours
@@ -74,33 +30,18 @@
 #' time_grid_size(x) - length(unique(x))
 #'
 #' # Time sequence that spans the data
-#' length(time_span(x)) # Automatically detects hour granularity
-#' time_span(x, time_by = "month")
-#' time_span(x, time_by = list("quarters" = 1),
-#'              to = today(),
-#'              # Floor start of sequence to nearest month
-#'              time_floor = TRUE)
+#' length(time_grid(x)) # Automatically detects hour granularity
+#' time_grid(x, "month")
+#' time_grid(x, from = floor_date(min(x), "month"), to = today(),
+#'           timespan = timespan("month"))
 #'
-#' # Complete missing gaps in time using time_completev
-#' y <- time_completev(x, time_by = "hour")
+#' # Complete missing gaps in time using time_complete
+#' y <- time_complete(x, "hour")
 #' identical(y[!y %in% x], time_gaps(x))
 #'
-#' # Summarise time using time_summarisev
-#' quarters <- time_summarisev(y, time_by = "quarter")
+#' # Summarise time into higher intervals
+#' quarters <- time_cut_width(y, "quarter")
 #' interval_count(quarters)
-#'
-#' # Unique quarters
-#' time_summarisev(y, time_by = "quarter", unique = TRUE)
-#'
-#' flights %>%
-#'   fastplyr::f_count(quarter = time_summarisev(time_hour, "quarter"))
-#' # Alternatively
-#' time_countv(flights$time_hour, time_by = "quarter")
-#' # If you want the above as an atomic vector just use tibble::deframe
-#' \dontshow{
-#' data.table::setDTthreads(threads = .n_dt_threads)
-#' collapse::set_collapse(nthreads = .n_collapse_threads)
-#' }
 #' @rdname time_core
 #' @export
 time_grid <- function(x, timespan = granularity(x),
@@ -128,19 +69,16 @@ time_grid <- function(x, timespan = granularity(x),
   seq_sizes <- time_seq_sizes(from, to, timespan)
   time_seq_v2(seq_sizes,
               from = from,
-              time_by = timespan)
+              timespan)
 }
 #' @rdname time_core
 #' @export
-time_complete <- function(x, timespan = granularity(x), sort = TRUE){
+time_complete <- function(x, timespan = granularity(x)){
   time_full <- time_grid(x, timespan)
   out <- time_cast(x, time_full)
   gaps <- cheapr::setdiff_(time_full, out)
   if (length(gaps) > 0){
     out <- c(out, gaps)
-  }
-  if (sort){
-    out <- sort(out)
   }
   out
 }

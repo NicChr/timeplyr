@@ -20,6 +20,7 @@
 #' @importFrom dplyr .data
 #' @importFrom dplyr across
 #' @importFrom dplyr all_of
+#' @importFrom rlang %||%
 #' @importFrom rlang enquo
 #' @importFrom rlang enquos
 #' @importFrom pillar tbl_sum

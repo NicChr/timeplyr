@@ -4,7 +4,8 @@
 #' Useful functions especially for when plotting time-series.
 #' `time_cut` makes approximately `n` groups of equal time range.
 #' It prioritises the highest time unit possible, making axes look
-#' less cluttered and thus prettier. `time_breaks` returns only the breaks.
+#' less cluttered and thus prettier.
+#' `time_breaks` returns only the breaks.
 #'
 #' @details
 #' To retrieve regular time breaks that simply spans the range of `x`,
@@ -23,33 +24,8 @@
 #' * The left value of the leftmost interval is always `min(x)`.
 #' * Up to `n` breaks are created, i.e `<= n` breaks. This is to prioritise
 #'   pretty breaks.
-#'
-#' `time_cut` is a generalisation of `time_summarisev` such that the
-#' below identity should always hold:
-#' \preformatted{
-#'  identical(time_cut(x, n = Inf, as_factor = FALSE), time_summarisev(x))
-#' }
-#' Or also:
-#' \preformatted{
-#'  breaks <- time_breaks(x, n = Inf)
-#'  identical(breaks[unclass(time_cut(x, n = Inf))], time_summarisev(x))
-#' }
-#'
-#' @param x Time variable. \cr
-#' Can be a `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, or `yearqtr`.
+#' @inheritParams time_grid
 #' @param n Number of breaks.
-#' @param time_by Time unit. \cr
-#' Must be one of the three:
-#' * string, specifying either the unit or the number and unit, e.g
-#' `time_by = "days"` or `time_by = "2 weeks"`
-#' * named list of length one, the unit being the name, and
-#' the number the value of the list, e.g. `list("days" = 7)`.
-#' For the vectorized time functions, you can supply multiple values,
-#' e.g. `list("days" = 1:10)`.
-#' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-#' then arithmetic is used, e.g `time_by = 1`.
-#' @param from Time series start date.
-#' @param to Time series end date.
 #' @param time_floor Logical. Should the initial date/datetime be
 #' floored before building the sequence?
 #' @param week_start day on which week starts following ISO conventions - 1
@@ -67,12 +43,6 @@
 #' library(lubridate)
 #' library(ggplot2)
 #' library(dplyr)
-#' \dontshow{
-#' .n_dt_threads <- data.table::getDTthreads()
-#' .n_collapse_threads <- collapse::get_collapse()$nthreads
-#' data.table::setDTthreads(threads = 2L)
-#' collapse::set_collapse(nthreads = 1L)
-#' }
 #' time_cut(1:10, n = 5)
 #' # Easily create custom time breaks
 #' df <- nycflights13::flights %>%
@@ -84,16 +54,12 @@
 #'
 #' # time_cut() and time_breaks() automatically find a
 #' # suitable way to cut the data
-#' options(timeplyr.use_intervals = TRUE)
 #' time_cut(df$date)
 #' # Works with datetimes as well
-#' time_cut(df$time_hour, n = 5) # <= 5 breaks
-#' # Custom formatting
-#' options(timeplyr.interval_sub_formatter =
-#'           function(x) format(x, format = "%Y %b"))
-#' time_cut(df$date, time_by = "month")
+#' time_cut(df$time_hour, n = 5) # ~5 breaks
+#' time_cut(df$date, timespan = "month")
 #' # Just the breaks
-#' time_breaks(df$date, n = 5, time_by = "month")
+#' time_breaks(df$date, n = 5, timespan = "month")
 #'
 #' cut_dates <- time_cut(df$date)
 #' date_breaks <- time_breaks(df$date)
@@ -101,7 +67,7 @@
 #' # WHen n = Inf and as_factor = FALSE, it should be equivalent to using
 #' # time_aggregate or time_summarisev
 #' identical(time_cut(df$date, n = Inf, time_by = "month"),
-#'           time_summarisev(df$date, time_by = "month"))
+#'           time_cut_width(df$date, time_by = "month"))
 #' identical(time_summarisev(df$date, time_by = "month"),
 #'           time_aggregate(df$date, time_by = "month"))
 #'
@@ -112,24 +78,44 @@
 #'                               time_floor = TRUE)
 #' weekly_labels <- format(weekly_breaks, "%b-%d")
 #' df %>%
-#'   time_by(date, time_by = "week", .name = "date") %>%
+#'   time_by(date, "week", .name = "date") %>%
 #'   count() %>%
 #'   mutate(date = interval_start(date)) %>%
 #'   ggplot(aes(x = date, y = n)) +
 #'   geom_bar(stat = "identity") +
 #'   scale_x_date(breaks = weekly_breaks,
 #'                labels = weekly_labels)
-#' reset_timeplyr_options()
-#' \dontshow{
-#' data.table::setDTthreads(threads = .n_dt_threads)
-#' collapse::set_collapse(nthreads = .n_collapse_threads)
-#'}
 #' @rdname time_cut
 #' @export
 time_cut <- function(x, n = 5, timespan = NULL,
                      from = NULL, to = NULL,
                      time_floor = FALSE,
                      week_start = getOption("lubridate.week.start", 1)){
+  lifecycle::deprecate_soft("0.9.9", "time_cut()", "time_cut_n()")
+  if (!is.null(to)){
+    to <- time_cast(to, x)
+    x[x >= to] <- NA
+  }
+  breaks_list <- .time_breaks(x = x, n = n, timespan = timespan,
+                              from = from, to = to,
+                              time_floor = time_floor,
+                              week_start = week_start)
+  time_breaks <- breaks_list[["breaks"]]
+  timespan <- breaks_list[["timespan"]]
+  x <- time_cast(x, time_breaks)
+  out <- cut_time(
+    x, breaks = time_breaks, codes = FALSE,
+    include_oob = TRUE
+  )
+  time_interval(out, timespan)
+}
+#' @rdname time_cut
+#' @export
+time_cut_n <- function(x, n = 5, timespan = NULL,
+                     from = NULL, to = NULL,
+                     time_floor = FALSE,
+                     week_start = getOption("lubridate.week.start", 1)){
+
   if (!is.null(to)){
     to <- time_cast(to, x)
     x[x >= to] <- NA
@@ -159,7 +145,8 @@ time_breaks <- function(x, n = 5, timespan = NULL,
                       week_start = week_start)
   out[["breaks"]]
 }
-time_cut_width <- function(x, width = granularity(x), from = NULL, to = NULL){
+time_cut_width <- function(x, timespan = granularity(x),
+                           from = NULL, to = NULL){
   check_is_time_or_num(x)
 
   if (is.null(from)){
@@ -169,7 +156,7 @@ time_cut_width <- function(x, width = granularity(x), from = NULL, to = NULL){
     to <- time_cast(to, x)
     x[x >= to] <- NA
   }
-  width <- get_granularity(x, width)
+  width <- get_granularity(x, timespan)
   num <- timespan_num(width)
   units <- timespan_unit(width)
   tdiff <- time_diff(from, x, width)

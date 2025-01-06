@@ -6,77 +6,36 @@
 \alias{time_grid_size}
 \title{Vector date and datetime functions}
 \usage{
-time_grid(x, timespan = time_granularity(x), from = NULL, to = NULL)
+time_grid(x, timespan = granularity(x), from = NULL, to = NULL)
 
-time_complete(x, timespan = time_granularity(x), sort = TRUE)
+time_complete(
+  data,
+  ...,
+  .by = NULL,
+  time_by = NULL,
+  from = NULL,
+  to = NULL,
+  expand_type = NULL,
+  sort = TRUE,
+  fill = NA
+)
 
-time_grid_size(x, timespan = time_granularity(x), from = NULL, to = NULL)
+time_grid_size(x, timespan = granularity(x), from = NULL, to = NULL)
 }
 \arguments{
 \item{x}{Time variable. \cr
 Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, \code{yearqtr},
 \code{year_month} or \code{year_quarter}.}
 
-\item{from}{Time series start date.}
+\item{timespan}{\link{timespan}}
 
-\item{to}{Time series end date.}
+\item{from}{Start time.}
 
-\item{sort}{Should the output be sorted? Default is \code{TRUE}.}
-
-\item{time_by}{Time unit. \cr
-Must be one of the following:
-\itemize{
-\item string, specifying either the unit or the number and unit, e.g
-\code{time_by = "days"} or \code{time_by = "2 weeks"}
-\item named list of length one, the unit being the name, and
-the number the value of the list, e.g. \code{list("days" = 7)}.
-For the vectorized time functions, you can supply multiple values,
-e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{time_by = 1}.
-}}
-
-\item{unique}{Should the result be unique or match the length of the vector?
-Default is \code{TRUE}.}
-
-\item{time_type}{If "auto", \code{periods} are used for
-the time expansion when days, weeks, months or years are specified,
-and \code{durations} are used otherwise.}
-
-\item{time_floor}{Should \code{from} be floored to the nearest unit specified
-through the \code{time_by} argument?
-This is particularly useful for starting sequences at the
-beginning of a week or month for example.}
-
-\item{week_start}{day on which week starts following ISO conventions - 1
-means Monday (default), 7 means Sunday.
-This is only used when \code{time_floor = TRUE}.}
-
-\item{roll_month}{Control how impossible dates are handled when
-month or year arithmetic is involved.
-Options are "preday", "boundary", "postday", "full" and "NA".
-See \code{?timechange::time_add} for more details.}
-
-\item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
-
-\item{complete}{Logical. If \code{TRUE} implicit gaps in time are filled
-before counting and after time aggregation (controlled using \code{time_by}).
-The default is \code{FALSE}.}
-
-\item{g}{Grouping object passed directly to \code{collapse::GRP()}.
-This can for example be a vector or data frame.}
-
-\item{use.g.names}{Should the result include group names?
-Default is \code{TRUE}.}
-
-\item{as_interval}{Should result be a \code{time_interval}?
-Default is \code{FALSE}. \cr
-This can be controlled globally through \code{options(timeplyr.use_intervals)}.}
+\item{to}{End time.}
 }
 \value{
 Vectors (typically the same class as \code{x}) of varying lengths depending
 on the arguments supplied.
-\code{time_countv()} returns a \code{tibble}.
 }
 \description{
 These are atomic vector-based functions
@@ -89,12 +48,6 @@ library(timeplyr)
 library(dplyr)
 library(lubridate)
 library(nycflights13)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
 x <- unique(flights$time_hour)
 
 # Number of missing hours
@@ -104,31 +57,16 @@ time_num_gaps(x)
 time_grid_size(x) - length(unique(x))
 
 # Time sequence that spans the data
-length(time_span(x)) # Automatically detects hour granularity
-time_span(x, time_by = "month")
-time_span(x, time_by = list("quarters" = 1),
-             to = today(),
-             # Floor start of sequence to nearest month
-             time_floor = TRUE)
+length(time_grid(x)) # Automatically detects hour granularity
+time_grid(x, "month")
+time_grid(x, from = floor_date(min(x), "month"), to = today(),
+          timespan = timespan("month"))
 
-# Complete missing gaps in time using time_completev
-y <- time_completev(x, time_by = "hour")
+# Complete missing gaps in time using time_complete
+y <- time_complete(x, "hour")
 identical(y[!y \%in\% x], time_gaps(x))
 
-# Summarise time using time_summarisev
-quarters <- time_summarisev(y, time_by = "quarter")
+# Summarise time into higher intervals
+quarters <- time_cut_width(y, "quarter")
 interval_count(quarters)
-
-# Unique quarters
-time_summarisev(y, time_by = "quarter", unique = TRUE)
-
-flights \%>\%
-  fastplyr::f_count(quarter = time_summarisev(time_hour, "quarter"))
-# Alternatively
-time_countv(flights$time_hour, time_by = "quarter")
-# If you want the above as an atomic vector just use tibble::deframe
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
 }

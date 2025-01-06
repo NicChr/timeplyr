@@ -4,13 +4,7 @@
 \alias{time_id}
 \title{Time ID}
 \usage{
-time_id(
-  x,
-  timespan = time_granularity(x),
-  g = NULL,
-  na_skip = TRUE,
-  shift = 1L
-)
+time_id(x, timespan = granularity(x), g = NULL, na_skip = TRUE, shift = 1L)
 }
 \arguments{
 \item{x}{Time variable. \cr

@@ -8,8 +8,7 @@ get_time_delay(
   data,
   origin,
   end,
-  time_by = 1L,
-  time_type = getOption("timeplyr.time_type", "auto"),
+  timespan = 1L,
   min_delay = -Inf,
   max_delay = Inf,
   probs = c(0.25, 0.5, 0.75, 0.95),
@@ -26,22 +25,6 @@ get_time_delay(
 \item{origin}{Origin date variable.}
 
 \item{end}{End date variable.}
-
-\item{time_by}{Must be one of the three:
-\itemize{
-\item string, specifying either the unit or the number and unit, e.g
-\code{time_by = "days"} or \code{time_by = "2 weeks"}
-\item named list of length one, the unit being the name, and
-the number the value of the list, e.g. \code{list("days" = 7)}.
-For the vectorized time functions, you can supply multiple values,
-e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{time_by = 1}.
-}}
-
-\item{time_type}{If "auto", \code{periods} are used for
-the time expansion when days, weeks, months or years are specified,
-and \code{durations} are used otherwise.}
 
 \item{min_delay}{The minimum acceptable delay,
 all delays less than this are removed before calculation.
@@ -71,6 +54,22 @@ This differs from the default implemented by \code{stats::density()}
 which uses Silverman's rule-of-thumb.}
 
 \item{...}{Further arguments to be passed on to \code{ggplot2::geom_density()}.}
+
+\item{time_by}{Must be one of the three:
+\itemize{
+\item string, specifying either the unit or the number and unit, e.g
+\code{time_by = "days"} or \code{time_by = "2 weeks"}
+\item named list of length one, the unit being the name, and
+the number the value of the list, e.g. \code{list("days" = 7)}.
+For the vectorized time functions, you can supply multiple values,
+e.g. \code{list("days" = 1:10)}.
+\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
+then arithmetic is used, e.g \code{time_by = 1}.
+}}
+
+\item{time_type}{If "auto", \code{periods} are used for
+the time expansion when days, weeks, months or years are specified,
+and \code{durations} are used otherwise.}
 }
 \value{
 A list containing summary data, summary statistics and an optional \code{ggplot}.
