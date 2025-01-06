@@ -18,7 +18,7 @@ rm_intv_class <- function(x){
 #' @export
 interval_start.time_interval <- function(x){
   out <- rm_intv_class(x)
-  class(out) <- attr(x, "oldClass")
+  attr(out, "timespan") <- NULL
   out
 }
 #' @export

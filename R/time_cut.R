@@ -1,3 +1,105 @@
+# Low-level binning function for right-open intervals only
+cut_time <- function(x, breaks, include_oob = TRUE, codes = FALSE){
+  cheapr::bin(x, breaks, codes = codes, left_closed = TRUE,
+              include_oob = include_oob,
+              include_endpoint = FALSE)
+}
+
+.time_breaks <- function(x, n = 5, timespan = NULL,
+                         from = NULL, to = NULL,
+                         time_floor = FALSE,
+                         week_start = getOption("lubridate.week.start", 1)){
+  check_is_time_or_num(x)
+  check_is_num(n)
+  stopifnot(n >= 1)
+  check_length(n, 1L)
+  if (is.null(from)){
+    from <- collapse::fmin(x, na.rm = TRUE)
+  }
+  if (is.null(to)){
+    to <- collapse::fmax(x, na.rm = TRUE)
+  }
+  from <- time_cast(from, x)
+  to <- time_cast(to, x)
+  if (is.null(timespan)){
+    gcd_difference <- gcd_time_diff(x)
+    time_rng_diff <- unclass(to) - unclass(from)
+    # We shouldn't try to cut up the data using more breaks than this
+    max_breaks <- (time_rng_diff %/% gcd_difference) + 1
+    if (length(max_breaks) == 0){
+      max_breaks <- 0
+    }
+    if (is_time(x)){
+      if (n >= max_breaks){
+        interval_width <- gcd_difference
+        units_to_try <- rep_len(get_time_unit(x), max(length(interval_width), 1))
+      } else {
+        date_units <- c("days", "weeks", "months", "years")
+        units_to_try <- date_units
+        if (is_datetime(x)){
+          datetime_units <- setdiff(.duration_units, date_units)
+          units_to_try <- c(datetime_units, date_units)
+        }
+        units_to_try <- rev(units_to_try)
+        interval_width <- rep_len(1L, length(units_to_try))
+      }
+    } else {
+      # Calculate range of data
+      if (n >= max_breaks){
+        interval_width <- gcd_difference
+      } else {
+        equal_bin_width <- time_rng_diff / min(n, max_breaks, na.rm = TRUE)
+        interval_width <- pretty_ceiling(equal_bin_width)
+      }
+      if (is_whole_number(interval_width)){
+        interval_width <- as.integer(interval_width)
+      }
+      units_to_try <- rep_len(NA_character_, max(length(interval_width), 1))
+    }
+    i <- 0L
+    start <- from
+    while(i < length(units_to_try)){
+      i <- i + 1L
+      tby <- new_timespan(units_to_try[i], interval_width[i])
+      if (time_floor){
+        start <- time_floor(from, tby, week_start = week_start)
+      }
+      n_breaks <- time_seq_sizes(start, to, tby)
+      if (length(n_breaks) == 0){
+        n_breaks <- 0
+      }
+      if (n_breaks == 0 || n_breaks >= n){
+        break
+      }
+    }
+    from <- start
+    unit <- units_to_try[i]
+    time_by <- unit
+    unit_multiplier <- 1L
+    scale <- 1L
+    num <- interval_width[i]
+  } else {
+    tby <- timespan(timespan)
+    unit <- timespan_unit(tby)
+    num <- timespan_num(tby)
+    by <- unit
+    if (time_floor){
+      from <- time_floor(from, tby, week_start = week_start)
+    }
+    n_breaks <- time_seq_sizes(from, to, tby)
+    unit_multiplier <- 1L
+  }
+  if (n_breaks > n){
+    unit_multiplier <- ceiling(n_breaks / n)
+  }
+  time_increment <- new_timespan(unit, num * scale * unit_multiplier)
+  breaks <- time_seq_v(from, to, time_increment)
+  list(
+    breaks = breaks,
+    timespan = time_increment
+  )
+}
+
 #' Cut dates and datetimes into regularly spaced date or datetime intervals
 #'
 #' @description
@@ -164,105 +266,4 @@ time_cut_width <- function(x, timespan = granularity(x),
   time_to_add[["num"]] <- trunc2(tdiff) * num
   out <- time_add(from, timespan = time_to_add)
   time_interval(out, width)
-}
-.time_breaks <- function(x, n = 5, timespan = NULL,
-                         from = NULL, to = NULL,
-                         time_floor = FALSE,
-                         week_start = getOption("lubridate.week.start", 1)){
-  check_is_time_or_num(x)
-  check_is_num(n)
-  stopifnot(n >= 1)
-  check_length(n, 1L)
-  if (is.null(from)){
-    from <- collapse::fmin(x, na.rm = TRUE)
-  }
-  if (is.null(to)){
-    to <- collapse::fmax(x, na.rm = TRUE)
-  }
-  from <- time_cast(from, x)
-  to <- time_cast(to, x)
-  if (is.null(timespan)){
-    gcd_difference <- gcd_time_diff(x)
-    time_rng_diff <- unclass(to) - unclass(from)
-    # We shouldn't try to cut up the data using more breaks than this
-    max_breaks <- (time_rng_diff %/% gcd_difference) + 1
-    if (length(max_breaks) == 0){
-      max_breaks <- 0
-    }
-    if (is_time(x)){
-      if (n >= max_breaks){
-        interval_width <- gcd_difference
-        units_to_try <- rep_len(get_time_unit(x), max(length(interval_width), 1))
-      } else {
-        date_units <- c("days", "weeks", "months", "years")
-        units_to_try <- date_units
-        if (is_datetime(x)){
-          datetime_units <- setdiff(.duration_units, date_units)
-          units_to_try <- c(datetime_units, date_units)
-        }
-        units_to_try <- rev(units_to_try)
-        interval_width <- rep_len(1L, length(units_to_try))
-      }
-    } else {
-      # Calculate range of data
-      if (n >= max_breaks){
-        interval_width <- gcd_difference
-      } else {
-        equal_bin_width <- time_rng_diff / min(n, max_breaks, na.rm = TRUE)
-        interval_width <- pretty_ceiling(equal_bin_width)
-      }
-      if (is_whole_number(interval_width)){
-        interval_width <- as.integer(interval_width)
-      }
-      units_to_try <- rep_len(NA_character_, max(length(interval_width), 1))
-    }
-    i <- 0L
-    start <- from
-    while(i < length(units_to_try)){
-      i <- i + 1L
-      tby <- new_timespan(units_to_try[i], interval_width[i])
-      if (time_floor){
-        start <- time_floor(from, tby, week_start = week_start)
-      }
-      n_breaks <- time_seq_sizes(start, to, tby)
-      if (length(n_breaks) == 0){
-        n_breaks <- 0
-      }
-      if (n_breaks == 0 || n_breaks >= n){
-        break
-      }
-    }
-    from <- start
-    unit <- units_to_try[i]
-    time_by <- unit
-    unit_multiplier <- 1L
-    scale <- 1L
-    num <- interval_width[i]
-  } else {
-    tby <- timespan(timespan)
-    unit <- timespan_unit(tby)
-    num <- timespan_num(tby)
-    by <- unit
-    if (time_floor){
-      from <- time_floor(from, tby, week_start = week_start)
-    }
-    n_breaks <- time_seq_sizes(from, to, tby)
-    unit_multiplier <- 1L
-  }
-  if (n_breaks > n){
-    unit_multiplier <- ceiling(n_breaks / n)
-  }
-  time_increment <- new_timespan(unit, num * scale * unit_multiplier)
-  breaks <- time_seq_v(from, to, time_increment)
-  list(
-    breaks = breaks,
-    timespan = time_increment
-  )
-}
-
-# Low-level binning function for right-open intervals only
-cut_time <- function(x, breaks, include_oob = TRUE, codes = FALSE){
-  cheapr::bin(x, breaks, codes = codes, left_closed = TRUE,
-              include_oob = include_oob,
-              include_endpoint = FALSE)
 }

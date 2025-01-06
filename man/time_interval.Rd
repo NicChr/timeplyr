@@ -3,37 +3,23 @@
 \name{time_interval}
 \alias{time_interval}
 \alias{is_time_interval}
-\alias{[.time_interval}
-\alias{c.time_interval}
-\alias{unique.time_interval}
-\alias{rep.time_interval}
-\alias{rep_len.time_interval}
 \title{S3-based Time Intervals (Currently very experimental and so subject to change)}
 \usage{
 time_interval(start = integer(), width = resolution(start))
 
 is_time_interval(x)
-
-\method{[}{time_interval}(x, ..., drop = TRUE)
-
-\method{c}{time_interval}(...)
-
-\method{unique}{time_interval}(x, incomparables = FALSE, ...)
-
-\method{rep}{time_interval}(x, ...)
-
-rep_len.time_interval(x, ...)
 }
 \arguments{
 \item{start}{Start time. \cr
-Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, \code{yearqtr},
-\code{year_month} or \code{year_quarter}.}
+E.g a \code{Date}, \code{POSIXt}, \code{numeric} and more.}
 
-\item{x}{A 'time_interval'.}
+\item{width}{Interval width supplied as a \link{timespan}.
+By default this is the \link{resolution} of a time vector so for example,
+a date's resolution is exactly 1 day, therefore
+\code{time_interval(Sys.Date())} simply represents today's date
+as an interval.}
 
-\item{end}{End time. \cr
-Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, \code{yearqtr},
-\code{year_month} or \code{year_quarter}.}
+\item{x}{A \link{time_interval}.}
 }
 \value{
 An object of class \code{time_interval}. \cr
@@ -43,33 +29,23 @@ An object of class \code{time_interval}. \cr
 \code{interval_count} returns a data frame of unique intervals and their counts. \cr
 }
 \description{
-Inspired by both 'lubridate' and 'ivs', \code{time_interval} is a 'vctrs' style
-class for right-open intervals that contain a vector of start dates and end dates.
+Inspired by both 'lubridate' and 'ivs',
+\code{time_interval} objects are lightweight S3 objects of a fixed width.
+This enables fast and flexible representation of time data
+such as months, weeks, and more.
+They are all left closed, right open intervals.
 }
 \details{
-In the near-future, all time aggregated variables will utilise these intervals.
-One can control the appearance of the intervals through the "timeplyr.interval_style" option.
-For example:
-
-\code{options(timeplyr.interval_style = "full")} - Full interval format.
-\code{options(timeplyr.interval_style = "start")} - Start time of the interval.
-\code{options(timeplyr.interval_style = "end")} - end time of the interval.
-
-Representing time using intervals is natural because when one talks about a day or an hour,
-they are implicitly referring to an interval of time. Even a unit as small as a second
-is just an interval and therefore base R objects like Dates and POSIXcts are
-also intervals.
+Currently because of limitations with the S3/S4 system,
+one can't use time intervals directly with lubridate periods.
+To navigate around this, \code{timeplyr::timespan()} can be used.
+e.g. instead of \code{interval / weeks(3)}, use \code{interval / timespan(weeks(3))}
+or even \code{interval / "3 weeks"}. where \code{interval} is a \code{time_interval}.
 }
 \examples{
 library(dplyr)
 library(timeplyr)
 library(lubridate)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
 x <- 1:10
 int <- time_interval(x, 100)
 int
@@ -86,13 +62,8 @@ time_interval(today(), years(10)) / timespan("year")
 
 # Cutting Sepal Length into blocks of width 1
 int <- time_cut_width(iris$Sepal.Length, 1)
-int \%>\%
-  as_tbl() |>
-  count(value)
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
+interval_count(int)
+
 }
 \seealso{
 \link{interval_start}

@@ -543,31 +543,7 @@ time_floor2 <- function(x, time_by, week_start = getOption("lubridate.week.start
     num <- unlist(time_by, use.names = FALSE, recursive = FALSE)
     floor(x / num) * num
   } else {
-    time_floor(x, time_by = add_names(list(1), names(time_by)), week_start = week_start)
-  }
-}
-time_ceiling <- function(x, time_by, week_start = getOption("lubridate.week.start", 1),
-                         change_on_boundary = inherits(x, "Date")){
-  unit_info <- timespan(time_by)
-  by_unit <- unit_info[["unit"]]
-  by_n <- unit_info[["num"]] * unit_info[["scale"]]
-  if (is_time(x)){
-    time_by <- paste(by_n, by_unit)
-    timechange::time_ceiling(x, unit = time_by, week_start = week_start)
-  } else {
-    ceiling(x / by_n) * by_n
-  }
-}
-# Custom time flooring..
-time_ceiling2 <- function(x, time_by, week_start = getOption("lubridate.week.start", 1),
-                          change_on_boundary = FALSE){
-  if (time_by_is_num(time_by)){
-    num <- unlist(time_by, use.names = FALSE, recursive = FALSE)
-    ceiling(x / num) * num
-  } else {
-    time_ceiling(x, time_by = add_names(list(1), names(time_by)),
-                 week_start = week_start,
-                 change_on_boundary = change_on_boundary)
+    time_floor(x, timespan(names(time_by), 1), week_start = week_start)
   }
 }
 tomorrow <- function(){

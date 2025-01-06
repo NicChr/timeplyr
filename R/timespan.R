@@ -1,6 +1,6 @@
 
 new_timespan <- function(units, num = 1L){
- out <- list("unit" = units, num = num)
+ out <- list(unit = units, num = num)
  class(out) <- "timespan"
  out
 }
@@ -13,6 +13,20 @@ check_is_timespan <- function(x){
       "{.var x} must be a timespan",
       "x" = "You've suplied a {.cls {class(x)}} vector"
     ))
+  }
+}
+check_valid_timespan <- function(x){
+  check_is_timespan(x)
+  if (!is.list(x) || length(unclass(x)) != 2){
+    cli::cli_abort("{.var x} must be a valid timespan")
+  }
+  if (timespan_has_unit(x) &&
+      !timespan_unit(x) %in% .duration_units){
+    cli::cli_abort(
+      c("timespan unit must be one of:",
+        paste(.duration_units, collapse = ", "),
+        "not '{timespan_unit(x)}'")
+    )
   }
 }
 timespan_unit <- function(x){
@@ -121,6 +135,7 @@ as.character.timespan <- function(x, short = TRUE, ...){
 
 #' @export
 print.timespan <- function(x, ...){
+  check_valid_timespan(x)
   unit <- timespan_unit(x)
   num <- timespan_num(x)
   if (is.null(unit) || is.na(unit) || unit == "numeric" || !nzchar(unit)){

@@ -1,8 +1,28 @@
 #' S3-based Time Intervals (Currently very experimental and so subject to change)
 #'
 #' @description
-#' Inspired by both 'lubridate' and 'ivs', `time_interval` is a 'vctrs' style
-#' class for right-open intervals that contain a vector of start dates and end dates.
+#' Inspired by both 'lubridate' and 'ivs',
+#' `time_interval` objects are lightweight S3 objects of a fixed width.
+#' This enables fast and flexible representation of time data
+#' such as months, weeks, and more.
+#' They are all left closed, right open intervals.
+#'
+#' @param x A [time_interval].
+#' @param start Start time. \cr
+#' E.g a `Date`, `POSIXt`, `numeric` and more.
+#' @param width Interval width supplied as a [timespan].
+#' By default this is the [resolution] of a time vector so for example,
+#' a date's resolution is exactly 1 day, therefore
+#' `time_interval(Sys.Date())` simply represents today's date
+#' as an interval.
+#'
+#' @details
+#' Currently because of limitations with the S3/S4 system,
+#' one can't use time intervals directly with lubridate periods.
+#' To navigate around this, `timeplyr::timespan()` can be used.
+#' e.g. instead of `interval / weeks(3)`, use `interval / timespan(weeks(3))`
+#' or even `interval / "3 weeks"`. where `interval` is a `time_interval`.
+#'
 #'
 #' @returns
 #' An object of class `time_interval`. \cr
@@ -11,40 +31,12 @@
 #' `interval_end` returns the end times. \cr
 #' `interval_count` returns a data frame of unique intervals and their counts. \cr
 #'
-#' @details
-#' In the near-future, all time aggregated variables will utilise these intervals.
-#' One can control the appearance of the intervals through the "timeplyr.interval_style" option.
-#' For example:
-#'
-#' `options(timeplyr.interval_style = "full")` - Full interval format.
-#' `options(timeplyr.interval_style = "start")` - Start time of the interval.
-#' `options(timeplyr.interval_style = "end")` - end time of the interval.
-#'
-#' Representing time using intervals is natural because when one talks about a day or an hour,
-#' they are implicitly referring to an interval of time. Even a unit as small as a second
-#' is just an interval and therefore base R objects like Dates and POSIXcts are
-#' also intervals.
-#'
-#' @param x A 'time_interval'.
-#' @param start Start time. \cr
-#' Can be a `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, `yearqtr`,
-#' `year_month` or `year_quarter`.
-#' @param end End time. \cr
-#' Can be a `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, `yearqtr`,
-#' `year_month` or `year_quarter`.
-#'
 #' @seealso [interval_start]
 #'
 #' @examples
 #' library(dplyr)
 #' library(timeplyr)
 #' library(lubridate)
-#' \dontshow{
-#' .n_dt_threads <- data.table::getDTthreads()
-#' .n_collapse_threads <- collapse::get_collapse()$nthreads
-#' data.table::setDTthreads(threads = 2L)
-#' collapse::set_collapse(nthreads = 1L)
-#' }
 #' x <- 1:10
 #' int <- time_interval(x, 100)
 #' int
@@ -61,13 +53,8 @@
 #'
 #' # Cutting Sepal Length into blocks of width 1
 #' int <- time_cut_width(iris$Sepal.Length, 1)
-#' int %>%
-#'   as_tbl() |>
-#'   count(value)
-#' \dontshow{
-#' data.table::setDTthreads(threads = .n_dt_threads)
-#' collapse::set_collapse(nthreads = .n_collapse_threads)
-#' }
+#' interval_count(int)
+#'
 #' @rdname time_interval
 #' @export
 time_interval <- function(start = integer(), width = resolution(start)){
@@ -100,29 +87,30 @@ check_is_time_interval <- function(x){
     cli::cli_abort("{.arg x} must be a {.cls time_interval}")
   }
 }
+
+check_valid_time_interval <- function(x){
+  check_is_time_interval(x)
+  if (is.null(attr(x, "timespan", TRUE))){
+    cli::cli_abort("{.arg x} must have a timespan")
+  }
+}
+
 # Like time_interval() but no checks or recycling
 new_time_interval <- function(start, timespan){
   out <- start
   attr(out, "timespan") <- timespan
-  attr(out, "oldClass") <- oldClass(start)
-  class(out) <- "time_interval"
-  # class(out) <- c(paste0(timespan_abbr(timespan), "_intv"),
-  #                 "time_interval", oldClass(start))
+  class(out) <- c("time_interval", oldClass(start))
   out
 }
-#' @rdname time_interval
 #' @export
 `[.time_interval` <- function(x, ..., drop = TRUE){
   cl <- oldClass(x)
   span <- interval_width(x)
-  class(x) <- attr(x, "oldClass")
   out <- NextMethod("[")
   class(out) <- cl
   attr(out, "timespan") <- span
-  attr(out, "oldClass") <- attr(x, "oldClass")
   out
 }
-#' @rdname time_interval
 #' @export
 c.time_interval <- function(...){
   dots <- list(...)
@@ -134,7 +122,7 @@ c.time_interval <- function(...){
     if (!is_time_interval(dot)){
       cli::cli_abort("Cannot combine {.cls time_interval} with {.cls {class(dot)}}")
     }
-    dots[[i]] <- interval_start(dot)
+    dots[[i]] <- rm_intv_class(dot)
     if (!identical(span, interval_width(dot))){
      cli::cli_abort(c(
      " " = "{.cls time_interval} {i} with width {interval_width(dot)}",
@@ -144,11 +132,9 @@ c.time_interval <- function(...){
   }
   out <- do.call(c, dots, envir = parent.frame())
   attr(out, "timespan") <- span
-  attr(out, "oldClass") <- oldClass(out)
   class(out) <- cl
   out
 }
-#' @rdname time_interval
 #' @export
 unique.time_interval <- function(x, incomparables = FALSE, ...){
   new_time_interval(
@@ -156,7 +142,6 @@ unique.time_interval <- function(x, incomparables = FALSE, ...){
     interval_width(x)
   )
 }
-#' @rdname time_interval
 #' @export
 rep.time_interval <- function(x, ...){
   new_time_interval(
@@ -164,7 +149,6 @@ rep.time_interval <- function(x, ...){
     interval_width(x)
   )
 }
-#' @rdname time_interval
 #' @export
 rep_len.time_interval <- function(x, ...){
   new_time_interval(
@@ -192,7 +176,7 @@ Ops.time_interval <- function(e1, e2){
            start <- interval_start(e1)
            span <- timespan(e2)
            end <- interval_end(e1)
-           time_diff(start, end, time_by = span)
+           time_diff(start, end, span)
            }, NextMethod(.Generic))
 }
 
@@ -225,22 +209,25 @@ as.character.time_interval <- function(x, ...){
 }
 #' @export
 as.Date.time_interval <- function(x, ...){
-  as.Date(interval_start(x))
+  out <- as.Date(interval_start(x))
+  class(out) <- "Date"
+  out
 }
 #' @export
-as.POSIXct.time_interval <- function(x, ...){
-  as.POSIXct(interval_start(x))
+as.POSIXct.time_interval <- function(x, tz = "", ...){
+  out <- as.POSIXct(interval_start(x), tz = tz, ...)
+  class(out) <- c("POSIXct", "POSIXt")
+  out
 }
 #' @export
-as.POSIXlt.time_interval <- function(x, ...){
-  as.POSIXlt(interval_start(x))
-}
-#' @export
-is.numeric.time_interval <- function(x){
-  FALSE
+as.POSIXlt.time_interval <- function(x, tz = "", ...){
+  out <- as.POSIXlt(interval_start(x), tz = tz, ...)
+  class(out) <- c("POSIXlt", "POSIXt")
+  out
 }
 #' @export
 print.time_interval <- function(x, max = NULL, ...){
+  check_valid_time_interval(x)
   out <- x
   N <- length(out)
   if (is.null(max)){
@@ -284,11 +271,6 @@ intv_span_abbr <- function(x){
     "<time_interval> [width:",
     timespan_abbr(width, short = TRUE), "]"
   )
-
-  # paste(
-  #   "<time_interval> /",
-  #   "Width:", timespan_abbr(width)
-  # )
 }
 intv_span_abbr_cli <- function(x){
   check_is_time_interval(x)
