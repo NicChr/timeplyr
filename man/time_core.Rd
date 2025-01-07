@@ -2,32 +2,21 @@
 % Please edit documentation in R/time_core.R
 \name{time_grid}
 \alias{time_grid}
-\alias{time_complete}
+\alias{time_complete_missing}
 \alias{time_grid_size}
 \title{Vector date and datetime functions}
 \usage{
 time_grid(x, timespan = granularity(x), from = NULL, to = NULL)
 
-time_complete(
-  data,
-  ...,
-  .by = NULL,
-  time_by = NULL,
-  from = NULL,
-  to = NULL,
-  expand_type = NULL,
-  sort = TRUE,
-  fill = NA
-)
+time_complete_missing(x, timespan = granularity(x))
 
 time_grid_size(x, timespan = granularity(x), from = NULL, to = NULL)
 }
 \arguments{
-\item{x}{Time variable. \cr
-Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, \code{yearqtr},
-\code{year_month} or \code{year_quarter}.}
+\item{x}{Time vector. \cr
+E.g. a \code{Date}, \code{POSIXt}, \code{numeric} or any time-based vector.}
 
-\item{timespan}{\link{timespan}}
+\item{timespan}{\link{timespan}.}
 
 \item{from}{Start time.}
 
@@ -69,4 +58,5 @@ identical(y[!y \%in\% x], time_gaps(x))
 # Summarise time into higher intervals
 quarters <- time_cut_width(y, "quarter")
 interval_count(quarters)
+
 }

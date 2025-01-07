@@ -7,8 +7,10 @@
 time_id(x, timespan = granularity(x), g = NULL, na_skip = TRUE, shift = 1L)
 }
 \arguments{
-\item{x}{Time variable. \cr
-Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, or \code{yearqtr}.}
+\item{x}{Time vector. \cr
+E.g. a \code{Date}, \code{POSIXt}, \code{numeric} or any time-based vector.}
+
+\item{timespan}{\link{timespan}.}
 
 \item{g}{Object used for grouping x.
 This can for example be a vector or data frame.
@@ -19,23 +21,6 @@ This can for example be a vector or data frame.
 \item{shift}{Value used to shift the time IDs. Typically this is 1 to ensure the
 IDs start at 1 but can be 0 or even negative if for example
 your time values are going backwards in time.}
-
-\item{time_by}{Time unit. \cr
-This signifies the granularity of the time data with which to measure gaps
-in the sequence.
-If your data is daily for example, supply \code{time_by = "days"}.
-If weekly, supply \code{time_by = "week"}.
-Must be one of the three:
-\itemize{
-\item string, specifying either the unit or the number and unit, e.g
-\code{time_by = "days"} or \code{time_by = "2 weeks"}
-\item named list of length one, the unit being the name, and
-the number the value of the list, e.g. \code{list("days" = 7)}.
-For the vectorized time functions, you can supply multiple values,
-e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{time_by = 1}.
-}}
 
 \item{time_type}{If "auto", \code{periods} are used for
 the time expansion when days, weeks, months or years are specified,

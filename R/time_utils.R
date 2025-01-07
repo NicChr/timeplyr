@@ -232,9 +232,7 @@ period_by_calc <- function(from, to, length){
   seconds_unit <- period_unit("seconds")
   set_recycle_args(from, to, length)
   which_len_1 <- cheapr::val_find(length, 1)
-  sec_diff <- time_diff(from, to,
-                        time_by = list("seconds" = 1),
-                        time_type = "period")
+  sec_diff <- time_diff(from, to, new_timespan("seconds"))
   out <- lubridate::seconds_to_period(sec_diff / (length - 1))
   period_info <- collapse::qDF(time_unit_info(out))
   n_unique_slots <- df_ncol(period_info) - rowSums(period_info == 0)

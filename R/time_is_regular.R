@@ -7,18 +7,9 @@
 #' whole multiple of the specified time unit. \cr
 #' This means `x` can be a regular sequence with or without gaps in time.
 #'
-#' @param x A vector. Can be a
-#' `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, or `yearqtr`.
-#' @param time_by Time unit. \cr
-#' Must be one of the three:
-#' * string, specifying either the unit or the number and unit, e.g
-#' `time_by = "days"` or `time_by = "2 weeks"`
-#' * named list of length one, the unit being the name, and
-#' the number the value of the list, e.g. `list("days" = 7)`.
-#' For the vectorized time functions, you can supply multiple values,
-#' e.g. `list("days" = 1:10)`.
-#' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-#' then arithmetic is used, e.g `time_by = 1`.
+#' @param x Time vector. \cr
+#' E.g. a `Date`, `POSIXt`, `numeric` or any time-based vector.
+#' @param timespan [timespan].
 #' @param g Grouping object passed directly to `collapse::GRP()`.
 #' This can for example be a vector or data frame. \cr
 #' Note that when `g` is supplied the output is a logical with length
@@ -27,13 +18,8 @@
 #' Default is `TRUE`.
 #' @param na.rm Should `NA` values be removed before calculation?
 #' Default is `TRUE`.
-#' @param time_type If "auto", `periods` are used for
-#' the time expansion when days, weeks,
-#' months or years are specified, and `durations`
-#' are used otherwise. If `durations`
-#' are used the output is always of class `POSIXt`.
-#' @param allow_gaps Should gaps be allowed? Default is `TRUE`.
-#' @param allow_dups Should duplicates be allowed? Default is `TRUE`.
+#' @param allow_gaps Should gaps be allowed? Default is `FALSE`.
+#' @param allow_dups Should duplicates be allowed? Default is `FALSE`.
 #'
 #' @returns
 #' A logical vector the same length as the number of supplied groups.
@@ -51,18 +37,19 @@
 #' x <- 1:5
 #' y <- c(1, 1, 2, 3, 5)
 #'
+#' # No duplicates or gaps allowed by default
 #' time_is_regular(x)
 #' time_is_regular(y)
 #'
 #' increment <- 1
 #'
-#' # No duplicates allowed
-#' time_is_regular(x, increment, allow_dups = FALSE)
-#' time_is_regular(y, increment, allow_dups = FALSE)
+#' # duplicates and gaps allowed
+#' time_is_regular(x, increment, allow_dups = TRUE, allow_gaps = TRUE)
+#' time_is_regular(y, increment, allow_dups = TRUE, allow_gaps = TRUE)
 #'
 #' # No gaps allowed
-#' time_is_regular(x, increment, allow_gaps = FALSE)
-#' time_is_regular(y, increment, allow_gaps = FALSE)
+#' time_is_regular(x, increment, allow_dups = TRUE, allow_gaps = FALSE)
+#' time_is_regular(y, increment, allow_dups = TRUE, allow_gaps = FALSE)
 #'
 #' # Grouped
 #' eu_stock <- ts_as_tibble(EuStockMarkets)
@@ -71,11 +58,11 @@
 #'     date_decimal(time)
 #'   ))
 #'
-#' time_is_regular(eu_stock$date, g = eu_stock$group,
-#'                 time_by = 1)
+#' time_is_regular(eu_stock$date, g = eu_stock$group, timespan = 1,
+#'                 allow_gaps = TRUE)
 #' # This makes sense as no trading occurs on weekends and holidays
 #' time_is_regular(eu_stock$date, g = eu_stock$group,
-#'                 time_by = 1,
+#'                 timespan = 1,
 #'                 allow_gaps = FALSE)
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)

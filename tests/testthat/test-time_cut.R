@@ -15,46 +15,44 @@ test_that("time breaks", {
   x <- nycflights13::flights$time_hour
   y <- lubridate::as_date(x)
   x_max <- max(x)
-  tseq <- time_span(x, time_by = "hour")
+  tseq <- time_grid(x, "hour")
   x_missed <- time_cast(setdiff(tseq, x), tseq)
 
   res1 <- time_breaks(x, n = 5)
-  res2 <- time_breaks(x, n = 5, time_by = "week")
-  res3 <- time_breaks(x, n = 100, time_by = "month")
-  res4 <- time_breaks(x, n = 100, time_by = "month", time_type = "duration")
-  # res5 <- time_breaks(x, n = 5, time_by = "week", n_at_most = FALSE)
-  expect_equal(res3, time_span(x, time_by = "month"))
-  expect_equal(res4, time_span(x, time_by = "month",
-                                             time_type = "duration"))
-  expect_equal(time_diff(res1,
-                                   dplyr::lag(res1),
-                                   time_by = "months", time_type = "period"),
+  res2 <- time_breaks(x, n = 5, "week")
+  res3 <- time_breaks(x, n = 100, "month")
+  res4 <- time_breaks(x, n = 100, dmonths(1))
+
+  # res5 <- time_breaks(x, n = 5, "week", n_at_most = FALSE)
+  expect_equal(res3, time_grid(x, "month"))
+  expect_equal(res4, time_grid(x, dmonths(1)))
+  expect_equal(time_diff(res1, dplyr::lag(res1), "months"),
                          c(NA, rep(-3, 3)))
   expect_equal(time_diff(res2,
                                    dplyr::lag(res2),
-                                   time_by = "weeks", time_type = "period"),
+                                   "weeks", time_type = "period"),
                          c(NA, rep(-11, 4)))
   # expect_equal(time_diff(res5,
   #                                  dplyr::lag(res5),
-  #                                  time_by = "weeks", time_type = "period"),
+  #                                  "weeks", time_type = "period"),
   #                        c(NA, rep(-10, 5)))
   # expect_error(supressWarnings(time_breaks(x, n = Inf)))
-  expect_equal(time_breaks(x, n = 100, time_by = "month",
+  expect_equal(time_breaks(x, n = 100, "month",
                                          from = start1,
                                          to = end2 + period_unit("months")(4)),
-                             time_span(x, time_by = "month",
+                             time_span(x, "month",
                                        from = start1,
                                        to = end2 + period_unit("months")(4)))
-  expect_equal(time_breaks(x, n = 100, time_by = "month",
+  expect_equal(time_breaks(x, n = 100, "month",
                                          from = start1),
-                             time_span(x, time_by = "month",
+                             time_span(x, "month",
                                        from = start1))
-  expect_equal(time_breaks(x, n = 100, time_by = "month",
+  expect_equal(time_breaks(x, n = 100, "month",
                                          to = end2),
-                             time_span(x, time_by = "month",
+                             time_span(x, "month",
                                        to = end2))
-  expect_equal(time_breaks(x, n = Inf, time_by = "hour"),
-                             time_span(x, time_by = "hour"))
+  expect_equal(time_breaks(x, n = Inf, "hour"),
+                             time_span(x, "hour"))
 })
 
 test_that("time cut", {
@@ -66,25 +64,25 @@ test_that("time cut", {
   x <- nycflights13::flights$time_hour
   y <- lubridate::as_date(x)
   x_max <- max(x)
-  tseq <- time_span(x, time_by = "hour")
+  tseq <- time_span(x, "hour")
   x_missed <- time_cast(setdiff(tseq, x), tseq)
 
   res1 <- time_cut(x, n = 5)
-  expect_equal(res1, time_summarisev(x, time_by = list("months" = 3),
+  expect_equal(res1, time_summarisev(x, list("months" = 3),
                                              sort = FALSE, unique = FALSE))
-  res2 <- time_cut(x, n = 5, time_by = "week",
+  res2 <- time_cut(x, n = 5, "week",
                    from = start2, to = end1)
   expect_equal(sum(is.na(res2)),
                              length(x[x < time_cast(start2, x) |
                                         x > time_cast(end1, x)]))
 
   expect_equal(
-    time_cut(c(1, 5, 10), n = 100, as_interval = TRUE, time_by = 3),
+    time_cut(c(1, 5, 10), n = 100, as_interval = TRUE, 3),
     structure(list(start = c(1, 4, 10), end = c(4, 7, 13)), class = c("time_interval",
                                                                       "vctrs_rcrd", "vctrs_vctr"))
   )
   expect_equal(
-    time_cut(c(1, 5, 10), n = Inf, as_interval = TRUE, time_by = 3),
+    time_cut(c(1, 5, 10), n = Inf, as_interval = TRUE, 3),
     structure(list(start = c(1, 4, 10), end = c(4, 7, 13)), class = c("time_interval",
                                                                       "vctrs_rcrd", "vctrs_vctr"))
   )
@@ -93,24 +91,14 @@ test_that("time cut", {
   expect_equal(time_cut(y, n = Inf), y)
   expect_equal(time_cut(x, n = 10^5), x)
   expect_equal(time_cut(y, n = 10^5), y)
-  expect_equal(time_cut(x, n = Inf, time_by = "weeks"),
-               time_aggregate(x, time_by = "weeks"))
-  expect_equal(time_cut(y, n = Inf, time_by = "weeks"),
-               time_aggregate(y, time_by = "weeks"))
+  expect_equal(time_cut(x, n = Inf, "weeks"),
+               time_aggregate(x, "weeks"))
+  expect_equal(time_cut(y, n = Inf, "weeks"),
+               time_aggregate(y, "weeks"))
   expect_equal(
-    time_cut(y, n = Inf, time_by = "weeks", time_type = "duration"),
-    time_aggregate(y, time_by = "weeks", time_type = "duration")
+    time_cut(y, n = Inf, "weeks"),
+    time_aggregate(y, "weeks")
   )
-  # expect_equal(levels(res2),
-  #                        c("[2013-03-15 20:00:00 EDT, 2013-03-22 20:00:00 EDT)",
-  #                          "[2013-03-22 20:00:00 EDT, 2013-03-26 07:43:48 EDT]"))
-  # expect_equal(time_cut(x, n = 10^6, time_by = "30 minutes",
-  #                                     n_at_most = FALSE),
-  #                            time_cut(x, n = 10^6, time_by = "hour",
-  #                                     n_at_most = FALSE))
-  # expect_equal(time_cut(x, n = 10^6, time_by = "30 minutes",
-  #                                     n_at_most = TRUE),
-  #                            time_cut(x, n = 10^6, time_by = "hour"))
 })
 
 reset_timeplyr_options()

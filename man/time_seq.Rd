@@ -116,41 +116,39 @@ collapse::set_collapse(nthreads = 1L)
 today <- today()
 now <- now()
 
-time_seq(today, today + months(1), time_by = "day")
-time_seq(today, length.out = 10, time_by = "day")
-time_seq(today, length.out = 10, time_by = "hour")
+time_seq(today, today + months(1), time = "day")
+time_seq(today, length.out = 10, time = "day")
+time_seq(today, length.out = 10, time = "hour")
 
-time_seq(today, today + months(1), time_by = list("days" = 1)) # Alternative
-time_seq(today, today + years(1), time_by = "week")
-time_seq(today, today + years(1), time_by = "fortnight")
-time_seq(today, today + years(1), time_by = "year")
-time_seq(today, today + years(10), time_by = "year")
-time_seq(today, today + years(100), time_by = "decade")
+time_seq(today, today + months(1), time = timespan("days", 1)) # Alternative
+time_seq(today, today + years(1), time = "week")
+time_seq(today, today + years(1), time = "fortnight")
+time_seq(today, today + years(1), time = "year")
+time_seq(today, today + years(10), time = "year")
+time_seq(today, today + years(100), time = "decade")
 
 # Datetimes
-time_seq(now, now + weeks(1), time_by = "12 hours")
-time_seq(now, now + weeks(1), time_by = "day")
-time_seq(now, now + years(1), time_by = "week")
-time_seq(now, now + years(1), time_by = "fortnight")
-time_seq(now, now + years(1), time_by = "year")
-time_seq(now, now + years(10), time_by = "year")
-time_seq(now, today + years(100), time_by = "decade")
+time_seq(now, now + weeks(1), time = "12 hours")
+time_seq(now, now + weeks(1), time = "day")
+time_seq(now, now + years(1), time = "week")
+time_seq(now, now + years(1), time = "fortnight")
+time_seq(now, now + years(1), time = "year")
+time_seq(now, now + years(10), time = "year")
+time_seq(now, today + years(100), time = "decade")
 
 # You can seamlessly mix dates and datetimes with no errors.
-time_seq(now, today + days(3), time_by = "day")
-time_seq(now, today + days(3), time_by = "hour")
-time_seq(today, now + days(3), time_by = "day")
-time_seq(today, now + days(3), time_by = "hour")
+time_seq(now, today + days(3), time = "day")
+time_seq(now, today + days(3), time = "hour")
+time_seq(today, now + days(3), time = "day")
+time_seq(today, now + days(3), time = "hour")
 
 # Choose between durations or periods
 
 start <- dmy(31012020)
 # If time_type is left as is,
 # periods are used for days, weeks, months and years.
-time_seq(start, time_by = "month", length.out = 12,
-         time_type = "period")
-time_seq(start, time_by = "month", length.out = 12,
-         time_type = "duration")
+time_seq(start, time = months(1), length.out = 12)
+time_seq(start, time = dmonths(1), length.out = 12)
 # Notice how strange base R version is.
 seq(start, by = "month", length.out = 12)
 
@@ -159,11 +157,11 @@ seq(start, by = "month", length.out = 12)
 leap <- dmy(29022020) # Leap day
 end <- dmy(01032021)
 # 3 different options
-time_seq(leap, to = end, time_by = "year",
+time_seq(leap, to = end, time = "year",
          roll_month = "NA")
-time_seq(leap, to = end, time_by = "year",
+time_seq(leap, to = end, time = "year",
          roll_month = "postday")
-time_seq(leap, to = end, time_by = "year",
+time_seq(leap, to = end, time = "year",
          roll_month = getOption("timeplyr.roll_month", "preday"))
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)

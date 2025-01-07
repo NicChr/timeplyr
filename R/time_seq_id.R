@@ -5,29 +5,17 @@
 #' time has passed, or in the case of regular sequences, when there is a gap
 #' in time.
 #'
-#' @param x Date, datetime or numeric vector.
-#' @param time_by Time unit. \cr
-#' This signifies the granularity of the time data with which to measure gaps
-#' in the sequence.
-#' If your data is daily for example, supply `time_by = "days"`.
-#' If weekly, supply `time_by = "week"`.
-#' Must be one of the three:
-#' * string, specifying either the unit or the number and unit, e.g
-#' `time_by = "days"` or `time_by = "2 weeks"`
-#' * named list of length one, the unit being the name, and
-#' the number the value of the list, e.g. `list("days" = 7)`.
-#' For the vectorized time functions, you can supply multiple values,
-#' e.g. `list("days" = 1:10)`.
-#' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-#' then arithmetic is used, e.g `time_by = 1`.
+#' @param x Time vector. \cr
+#' E.g. a `Date`, `POSIXt`, `numeric` or any time-based vector.
+#' @param timespan [timespan].
 #' @param threshold Threshold such that when the time elapsed
 #' exceeds this, the sequence ID is incremented by 1.
-#' For example, if `time_by = "days"` and `threshold = 2`,
+#' For example, if `timespan = "days"` and `threshold = 2`,
 #' then when 2 days have passed, a new ID is created.
 #' Furthermore, `threshold` generally need not be supplied as \cr
-#' `time_by = "3 days"` & `threshold = 1` \cr
+#' `timespan = "3 days"` & `threshold = 1` \cr
 #' is identical to \cr
-#' `time_by = "days"` & `threshold = 3`. \cr
+#' `timespan = "days"` & `threshold = 3`. \cr
 #' @param g Object used for grouping x.
 #' This can for example be a vector or data frame.
 #' `g` is passed directly to `collapse::GRP()`.
@@ -40,9 +28,6 @@
 #' The default is `FALSE`. For example, if `time_by = "days"` and
 #' `switch_on_boundary = FALSE`, `>` 1 day must have passed, otherwise
 #' `>=` 1 day must have passed.
-#' @param time_type If "auto", `periods` are used for
-#' the time expansion when days, weeks, months or years are specified,
-#' and `durations` are used otherwise.
 #'
 #' @returns
 #' An integer vector of `length(x)`.

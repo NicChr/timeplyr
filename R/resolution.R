@@ -5,6 +5,26 @@
 #' currently the resolution defines the smallest timespan
 #' that differentiates two non-fractional instances in time.
 #' The granularity defines the smallest common timespan.
+#' A practical example would be when using dates to record data with a monthly
+#' frequency. In this case the granularity is 1 month, whereas the resolution
+#' of the data type `Date` is 1 day. Therefore the resolution depends
+#' only on the data type whereas the granularity depends on the frequency
+#' with which the data is recorded.
+#'
+#'
+#' @param x Time vector. \cr
+#' E.g. a `Date`, `POSIXt`, `numeric` or any time-based vector.
+#' @param ... Further arguments passed to methods.
+#'
+#' @details
+#' For dates and date-times, the argument `exact = TRUE`
+#' can be used to detect monthly/yearly granularity.
+#' In some cases this can be slow and memory-intensive so
+#' it is advised to set this to `FALSE` in these cases.
+#'
+#' The default for dates is `exact = TRUE` whereas the default
+#' for date-times is `exact = FALSE`.
+#'
 #'
 #' @returns
 #' A [timespan] object.
@@ -58,7 +78,14 @@ granularity.numeric <- function(x, ...){
   new_timespan(NA_character_, gcd_diff)
 }
 #' @export
-granularity.Date <- function(x, exact = length(x) <= 10000, ...){
+granularity.Date <- function(x, exact = TRUE, ...){
+
+  # Use unique dates as most analyses won't involve many unique dates
+  # and so this is usually more efficient
+
+  if (length(x) >= 1e04){
+    x <- collapse::funique(x)
+  }
   if (exact){
     td <- time_elapsed(x, rolling = FALSE, new_timespan("months"), na_skip = TRUE)
     is_whole_num <- is_whole_number(td, na.rm = TRUE)
@@ -76,7 +103,7 @@ granularity.Date <- function(x, exact = length(x) <= 10000, ...){
   new_timespan(out_unit, gcd_delta)
 }
 #' @export
-granularity.POSIXt <- function(x, exact = length(x) <= 10000, ...){
+granularity.POSIXt <- function(x, exact = FALSE, ...){
   if (exact){
     td <- time_elapsed(x, rolling = FALSE, new_timespan("months"), na_skip = TRUE)
     is_whole_num <- is_whole_number(td, na.rm = TRUE)
@@ -95,11 +122,17 @@ granularity.POSIXt <- function(x, exact = length(x) <= 10000, ...){
 }
 #' @export
 granularity.year_month <- function(x, ...){
+  if (length(x) >= 1e04){
+    x <- collapse::funique(x)
+  }
   gcd_diff <- gcd_time_diff(unclass(x))
   new_timespan(NA_character_, gcd_diff)
 }
 #' @export
 granularity.year_quarter <- function(x, ...){
+  if (length(x) >= 1e04){
+    x <- collapse::funique(x)
+  }
   gcd_diff <- gcd_time_diff(unclass(x))
   new_timespan(NA_character_, gcd_diff)
 }
@@ -114,31 +147,3 @@ granularity.yearqtr <- function(x, ...){
   new_timespan(NA_character_, gcd_diff)
 }
 
-time_gcd_diff2 <- function(x, tol = sqrt(.Machine$double.eps)){
-  x <- collapse::funique(x, sort = FALSE)
-  if (is_time(x)){
-    unit <- get_time_unit(x)
-    for (per in c("years", "months", "weeks")){
-      tdiff <- time_elapsed(x, rolling = FALSE, time_by = per, na_skip = TRUE)
-      is_whole_num <- is_whole_number(tdiff, na.rm = TRUE)
-      if (is_whole_num){
-        unit <- per
-        break
-      }
-    }
-    if (!is_whole_num){
-      tdiff <- time_elapsed(x, rolling = TRUE, time_by = unit, na_skip = TRUE)
-    } else {
-      tdiff <- roll_diff(tdiff, fill = 0)
-    }
-  } else {
-    unit <- "numeric"
-    tdiff <- time_elapsed(x, rolling = TRUE,
-                          time_by = 1L,
-                          time_type = time_type,
-                          g = NULL,
-                          na_skip = TRUE)
-  }
-  gcd <- cheapr::gcd(tdiff, tol = tol, na_rm = TRUE, round = FALSE)
-  add_names(list(gcd), unit)
-}

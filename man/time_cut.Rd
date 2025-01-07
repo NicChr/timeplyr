@@ -37,13 +37,12 @@ time_breaks(
 )
 }
 \arguments{
-\item{x}{Time variable. \cr
-Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, \code{yearqtr},
-\code{year_month} or \code{year_quarter}.}
+\item{x}{Time vector. \cr
+E.g. a \code{Date}, \code{POSIXt}, \code{numeric} or any time-based vector.}
 
 \item{n}{Number of breaks.}
 
-\item{timespan}{\link{timespan}}
+\item{timespan}{\link{timespan}.}
 
 \item{from}{Start time.}
 

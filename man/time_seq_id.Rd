@@ -15,16 +15,19 @@ time_seq_id(
 )
 }
 \arguments{
-\item{x}{Date, datetime or numeric vector.}
+\item{x}{Time vector. \cr
+E.g. a \code{Date}, \code{POSIXt}, \code{numeric} or any time-based vector.}
+
+\item{timespan}{\link{timespan}.}
 
 \item{threshold}{Threshold such that when the time elapsed
 exceeds this, the sequence ID is incremented by 1.
-For example, if \code{time_by = "days"} and \code{threshold = 2},
+For example, if \code{timespan = "days"} and \code{threshold = 2},
 then when 2 days have passed, a new ID is created.
 Furthermore, \code{threshold} generally need not be supplied as \cr
-\code{time_by = "3 days"} & \code{threshold = 1} \cr
+\code{timespan = "3 days"} & \code{threshold = 1} \cr
 is identical to \cr
-\code{time_by = "days"} & \code{threshold = 3}. \cr}
+\code{timespan = "days"} & \code{threshold = 3}. \cr}
 
 \item{g}{Object used for grouping x.
 This can for example be a vector or data frame.
@@ -41,27 +44,6 @@ a new ID is created, the clock "resets" and we start counting from that point.}
 The default is \code{FALSE}. For example, if \code{time_by = "days"} and
 \code{switch_on_boundary = FALSE}, \code{>} 1 day must have passed, otherwise
 \code{>=} 1 day must have passed.}
-
-\item{time_by}{Time unit. \cr
-This signifies the granularity of the time data with which to measure gaps
-in the sequence.
-If your data is daily for example, supply \code{time_by = "days"}.
-If weekly, supply \code{time_by = "week"}.
-Must be one of the three:
-\itemize{
-\item string, specifying either the unit or the number and unit, e.g
-\code{time_by = "days"} or \code{time_by = "2 weeks"}
-\item named list of length one, the unit being the name, and
-the number the value of the list, e.g. \code{list("days" = 7)}.
-For the vectorized time functions, you can supply multiple values,
-e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{time_by = 1}.
-}}
-
-\item{time_type}{If "auto", \code{periods} are used for
-the time expansion when days, weeks, months or years are specified,
-and \code{durations} are used otherwise.}
 }
 \value{
 An integer vector of \code{length(x)}.

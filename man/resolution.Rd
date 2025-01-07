@@ -9,6 +9,12 @@ resolution(x, ...)
 
 granularity(x, ...)
 }
+\arguments{
+\item{x}{Time vector. \cr
+E.g. a \code{Date}, \code{POSIXt}, \code{numeric} or any time-based vector.}
+
+\item{...}{Further arguments passed to methods.}
+}
 \value{
 A \link{timespan} object.
 }
@@ -17,4 +23,18 @@ The definitions of resolution and granularity may evolve over time but
 currently the resolution defines the smallest timespan
 that differentiates two non-fractional instances in time.
 The granularity defines the smallest common timespan.
+A practical example would be when using dates to record data with a monthly
+frequency. In this case the granularity is 1 month, whereas the resolution
+of the data type \code{Date} is 1 day. Therefore the resolution depends
+only on the data type whereas the granularity depends on the frequency
+with which the data is recorded.
+}
+\details{
+For dates and date-times, the argument \code{exact = TRUE}
+can be used to detect monthly/yearly granularity.
+In some cases this can be slow and memory-intensive so
+it is advised to set this to \code{FALSE} in these cases.
+
+The default for dates is \code{exact = TRUE} whereas the default
+for date-times is \code{exact = FALSE}.
 }

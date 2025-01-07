@@ -103,17 +103,7 @@ roll_lag.ts <- function(x, n = 1L, g = NULL, fill = NULL, ...){
       user_groups <- rep(group_id(g, .cols = seq_along(g)), ncols)
       g <- GRP2(list_rm_null(list(col_groups, user_groups)))
     }
-    # out <- roll_lag(strip_attrs(x), n = n, g = g, fill = fill, ...)
-    # attributes(out) <- attributes(x)
-    # out <- roll_lag(unclass(x), n = n, g = g, fill = fill, ...)
-    # class(out) <- class(x)
   }
-  # else {
-    # # out <- NextMethod("roll_lag")
-    # out <- roll_lag(strip_attrs(x), n = n, g = g, fill = fill, ...)
-    # # class(out) <- class(x)
-    # attributes(out) <- attributes(x)
-  # }
   out <- roll_lag(strip_attrs(x), n = n, g = g, fill = fill, ...)
   attributes(out) <- attributes(x)
   out
@@ -143,42 +133,6 @@ roll_diff.ts <- function(x, n = 1L, g = NULL, fill = NULL, differences = 1L, ...
   nrows <- nrow(x)
   if (is.array(x) && ncols > 1){
 
-    ## Method 1 - Not very efficient
-    # out <- x
-    # for (j in seq_len(ncol(x))){
-    #   out[, j] <- roll_diff(unclass(out[, j]), n = n, g = g,
-    #                         fill = fill, differences = differences, ...)
-    # }
-
-    ## Method 2 - Okay
-    # ncols <- ncol(x)
-    # nrows <- nrow(x)
-    # out <- numeric(ncols * nrows)
-    # for (j in seq_len(ncols)){
-    #   out[ (1 + (nrows * (j - 1))):(nrows + (nrows * (j - 1)))] <- roll_diff(
-    #     unclass(x)[, j],
-    #     n = n, g = g,
-    #     fill = fill, differences = differences, ...
-    #   )
-    # }
-    # attributes(out) <- attributes(x)
-
-    ## Method 3 - Much better
-    # ncols <- ncol(x)
-    # diff_list <- cheapr::new_list(ncols)
-    # for (j in seq_len(ncols)){
-    #   diff_list[[j]] <- roll_diff(
-    #     unclass(x)[, j],
-    #     n = n, g = g,
-    #     fill = fill, differences = differences, ...
-    #   )
-    # }
-    # out <- do.call(c, diff_list)
-    # attributes(out) <- attributes(x)
-
-    ## Method 4 - Taking advantage of the fact that each col is a new 'group'
-    ## Always run through the vector/matrix in one C loop
-
     ## You can speed this up in C but not enough justification to do so.
 
     ncols <- ncol(x)
@@ -193,12 +147,7 @@ roll_diff.ts <- function(x, n = 1L, g = NULL, fill = NULL, differences = 1L, ...
       user_groups <- rep(group_id(g, .cols = seq_along(g)), ncols)
       g <- GRP2(list_rm_null(list(col_groups, user_groups)))
     }
-    # out <- roll_diff(unclass(x), n = n, g = g,
-    #                  fill = fill, differences = differences, ...)
   }
-  # else {
-    # out <- NextMethod("roll_diff")
-  # }
   out <- roll_diff.default(x, n = n, g = g,
                            fill = fill, differences = differences, ...)
   attributes(out) <- attributes(x)

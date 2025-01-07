@@ -57,6 +57,7 @@ timespan_has_unit <- function(x){
 #' timespan("1.5 hours")
 #' @export
 timespan <- function(units, num = 1L, ...){
+  check_is_num(num)
   UseMethod("timespan")
 }
 #' @export

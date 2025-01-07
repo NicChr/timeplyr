@@ -5,10 +5,9 @@
 #' These are more geared towards programmers and allow for working with date and
 #' datetime vectors.
 #'
-#' @param x Time variable. \cr
-#' Can be a `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, `yearqtr`,
-#' `year_month` or `year_quarter`.
-#' @param timespan [timespan]
+#' @param x Time vector. \cr
+#' E.g. a `Date`, `POSIXt`, `numeric` or any time-based vector.
+#' @param timespan [timespan].
 #' @param from Start time.
 #' @param to End time.
 #'
@@ -42,6 +41,7 @@
 #' # Summarise time into higher intervals
 #' quarters <- time_cut_width(y, "quarter")
 #' interval_count(quarters)
+#'
 #' @rdname time_core
 #' @export
 time_grid <- function(x, timespan = granularity(x),
@@ -73,7 +73,7 @@ time_grid <- function(x, timespan = granularity(x),
 }
 #' @rdname time_core
 #' @export
-time_complete <- function(x, timespan = granularity(x)){
+time_complete_missing <- function(x, timespan = granularity(x)){
   time_full <- time_grid(x, timespan)
   out <- time_cast(x, time_full)
   gaps <- cheapr::setdiff_(time_full, out)

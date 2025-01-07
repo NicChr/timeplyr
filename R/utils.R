@@ -205,12 +205,12 @@ bin_grouped <- function(x, breaks, gx = NULL, gbreaks = NULL, codes = TRUE,
 
 check_is_num <- function(x){
   if (!is.numeric(x)){
-    stop(paste(deparse2(substitute(x)), "must be numeric"))
+    cli::cli_abort("{.arg x} must be numeric")
   }
 }
 check_is_double <- function(x){
   if (!is.double(x)){
-    stop(paste(deparse2(substitute(x)), "must be a double"))
+    cli::cli_abort("{.arg x} must be a double")
   }
 }
 # TRUE when x is sorted and contains no NA

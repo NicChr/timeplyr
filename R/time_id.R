@@ -5,22 +5,9 @@
 #' this is the time passed since
 #' the first time point.
 #'
-#' @param x Time variable. \cr
-#' Can be a `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, or `yearqtr`.
-#' @param time_by Time unit. \cr
-#' This signifies the granularity of the time data with which to measure gaps
-#' in the sequence.
-#' If your data is daily for example, supply `time_by = "days"`.
-#' If weekly, supply `time_by = "week"`.
-#' Must be one of the three:
-#' * string, specifying either the unit or the number and unit, e.g
-#' `time_by = "days"` or `time_by = "2 weeks"`
-#' * named list of length one, the unit being the name, and
-#' the number the value of the list, e.g. `list("days" = 7)`.
-#' For the vectorized time functions, you can supply multiple values,
-#' e.g. `list("days" = 1:10)`.
-#' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-#' then arithmetic is used, e.g `time_by = 1`.
+#' @param x Time vector. \cr
+#' E.g. a `Date`, `POSIXt`, `numeric` or any time-based vector.
+#' @param timespan [timespan].
 #' @param g Object used for grouping x.
 #' This can for example be a vector or data frame.
 #' `g` is passed directly to `collapse::GRP()`.
@@ -62,14 +49,6 @@ time_id <- function(x, timespan = granularity(x), g = NULL,
                       rolling = FALSE)
   out <- as.integer(round2(out, digits = 9))
   cheapr::set_add(out, as.integer(shift))
-  # Make sure we don't lose precision when converting to integer
-  # out <- trunc(elapsed)
-  # elapsed_rounded <- round(elapsed)
-  # elapsed_truncated <- which(cppdoubles::double_equal(elapsed, elapsed_rounded) &
-  #                                  (elapsed_rounded != out))
-  # out[elapsed_truncated] <- elapsed_rounded[elapsed_truncated]
-  # as.integer(out) + shift
-  # # as.integer(elapsed + 1e-10) + shift
 }
 # To more closely match collapse::timeid one can use the below 3 lines
 # time_gcd_diff <- time_gcd_diff(x)

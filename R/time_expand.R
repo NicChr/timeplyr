@@ -266,10 +266,12 @@ time_complete <- function(data, ..., .by = NULL,
   reconstruct(data, out)
 }
 
+#' @importFrom tidyr expand
 #' @rdname time_expand
 #' @export
 expand.time_tbl_df <- function(data, ..., .from = NULL, .to = NULL, .sort = TRUE){
-  group_vars <- get_groups(data)
+  time_var <- time_tbl_time_col(data)
+  group_vars <- setdiff(get_groups(data), time_var)
   temp_data <- data
   if (length(group_vars(data)) == 0){
     temp_data <- fastplyr::f_group_by(temp_data, .order = FALSE)
@@ -277,7 +279,6 @@ expand.time_tbl_df <- function(data, ..., .from = NULL, .to = NULL, .sort = TRUE
   group_ids <- df_group_id(temp_data)
   from_info <- mutate_summary_grouped(temp_data, !!enquo(.from), .keep = "none")
   to_info <- mutate_summary_grouped(temp_data, !!enquo(.to), .keep = "none")
-  time_var <- time_tbl_time_col(data)
   from_var <- from_info[["cols"]]
   to_var <- to_info[["cols"]]
   check_length_lte(from_var, 1)
@@ -286,7 +287,8 @@ expand.time_tbl_df <- function(data, ..., .from = NULL, .to = NULL, .sort = TRUE
   # Remove duplicate cols
   from_data <- df_ungroup(from_info[["data"]])
   to_data <- df_ungroup(to_info[["data"]])
-  time_data <- fastplyr::f_select(data, .cols = time_var)
+  time_data <- fastplyr::f_select(dplyr::ungroup(data), .cols = time_var)
+  time_data <- dplyr::mutate(time_data, dplyr::across(dplyr::everything(), interval_start))
   from_data <- fastplyr::f_select(from_data,
                                   .cols = which(match(names(from_data), names(time_data), 0L) == 0L))
   to_data <- fastplyr::f_select(to_data,
@@ -314,22 +316,21 @@ expand.time_tbl_df <- function(data, ..., .from = NULL, .to = NULL, .sort = TRUE
     )
     # Reverse by sign in case from > to
     by_nm <- unique_col_name(out, ".by")
-    by_n <- rep_len(by_n, nrow(time_tbl))
-    which_wrong_sign <- which(time_tbl[[from_nm]] > time_by[[to_nm]])
+    by_n <- rep_len(timespan_num(timespan), nrow(time_tbl))
+    which_wrong_sign <- which(time_tbl[[from_nm]] > time_tbl[[to_nm]])
+    browser()
     by_n[which_wrong_sign] <- -abs(by_n[which_wrong_sign])
     time_tbl[[by_nm]] <- by_n
     # Determine size of sequences
     size_nm <- unique_col_name(out, ".size")
     time_tbl[[size_nm]] <- time_seq_sizes(time_tbl[[from_nm]],
                                           time_tbl[[to_nm]],
-                                          add_names(list(time_tbl[[by_nm]]),
-                                                              by_unit))
+                                          timespan)
     expanded_nrow <- sum(time_tbl[[size_nm]])
     # Vectorised time sequence
     time_seq <- time_seq_v2(time_tbl[[size_nm]],
                             time_tbl[[from_nm]],
-                            time_by = add_names(list(time_tbl[[by_nm]]),
-                                                by_unit))
+                            timespan)
     time_seq_sizes <- time_tbl[[size_nm]]
     time_tbl <- df_rm_cols(time_tbl, c(from_nm, to_nm, size_nm, by_nm))
     out <- df_rep(time_tbl, time_seq_sizes)

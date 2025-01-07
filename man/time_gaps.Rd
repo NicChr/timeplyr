@@ -33,7 +33,10 @@ time_has_gaps(
 )
 }
 \arguments{
-\item{x}{A date, datetime or numeric vector.}
+\item{x}{Time vector. \cr
+E.g. a \code{Date}, \code{POSIXt}, \code{numeric} or any time-based vector.}
+
+\item{timespan}{\link{timespan}.}
 
 \item{g}{Grouping object passed directly to \code{collapse::GRP()}.
 This can for example be a vector or data frame.}
@@ -46,23 +49,6 @@ checked to see if it is regular (with or without gaps)?
 Default is \code{FALSE}.}
 
 \item{na.rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
-
-\item{time_by}{Time unit. \cr
-Must be one of the three:
-\itemize{
-\item string, specifying either the unit or the number and unit, e.g
-\code{time_by = "days"} or \code{time_by = "2 weeks"}
-\item named list of length one, the unit being the name, and
-the number the value of the list, e.g. \code{list("days" = 7)}.
-For the vectorized time functions, you can supply multiple values,
-e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{time_by = 1}.
-}}
-
-\item{time_type}{Time type, either "auto", "duration" or "period".
-With larger data, it is recommended to use \code{time_type = "duration"} for
-speed and efficiency.}
 }
 \value{
 \code{time_gaps} returns a vector of time gaps. \cr

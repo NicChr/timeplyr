@@ -82,6 +82,7 @@ cut_time <- function(x, breaks, include_oob = TRUE, codes = FALSE){
     tby <- timespan(timespan)
     unit <- timespan_unit(tby)
     num <- timespan_num(tby)
+    scale <- 1L
     by <- unit
     if (time_floor){
       from <- time_floor(from, tby, week_start = week_start)

@@ -14,8 +14,10 @@ time_elapsed(
 )
 }
 \arguments{
-\item{x}{Time variable. \cr
-Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, or \code{yearqtr}.}
+\item{x}{Time vector. \cr
+E.g. a \code{Date}, \code{POSIXt}, \code{numeric} or any time-based vector.}
+
+\item{timespan}{\link{timespan}.}
 
 \item{g}{Object to be used for grouping \code{x}, passed onto \code{collapse::GRP()}.}
 
@@ -29,22 +31,6 @@ are calculated.}
 the first elapsed time. The default is \code{NA}.}
 
 \item{na_skip}{Should \code{NA} values be skipped? Default is \code{TRUE}.}
-
-\item{time_by}{Must be one of the three:
-\itemize{
-\item string, specifying either the unit or the number and unit, e.g
-\code{time_by = "days"} or \code{time_by = "2 weeks"}
-\item named list of length one, the unit being the name, and
-the number the value of the list, e.g. \code{list("days" = 7)}.
-For the vectorized time functions, you can supply multiple values,
-e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{time_by = 1}.
-}}
-
-\item{time_type}{Time type, either "auto", "duration" or "period".
-With larger data, it is recommended to use \code{time_type = "duration"} for
-speed and efficiency.}
 }
 \value{
 A numeric vector the same length as \code{x}.
@@ -77,15 +63,15 @@ library(lubridate)
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
-x <- time_seq(today(), length.out = 25, time_by = "3 days")
+x <- time_seq(today(), length.out = 25, time = "3 days")
 time_elapsed(x)
-time_elapsed(x, rolling = FALSE, time_by = "day")
+time_elapsed(x, "days", rolling = FALSE)
 
 # Grouped example
 set.seed(99)
 g <- sample.int(3, 25, TRUE)
 
-time_elapsed(x, time_by = "day", g = g)
+time_elapsed(x, "days", g = g)
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

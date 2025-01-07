@@ -68,41 +68,39 @@
 #' today <- today()
 #' now <- now()
 #'
-#' time_seq(today, today + months(1), time_by = "day")
-#' time_seq(today, length.out = 10, time_by = "day")
-#' time_seq(today, length.out = 10, time_by = "hour")
+#' time_seq(today, today + months(1), time = "day")
+#' time_seq(today, length.out = 10, time = "day")
+#' time_seq(today, length.out = 10, time = "hour")
 #'
-#' time_seq(today, today + months(1), time_by = list("days" = 1)) # Alternative
-#' time_seq(today, today + years(1), time_by = "week")
-#' time_seq(today, today + years(1), time_by = "fortnight")
-#' time_seq(today, today + years(1), time_by = "year")
-#' time_seq(today, today + years(10), time_by = "year")
-#' time_seq(today, today + years(100), time_by = "decade")
+#' time_seq(today, today + months(1), time = timespan("days", 1)) # Alternative
+#' time_seq(today, today + years(1), time = "week")
+#' time_seq(today, today + years(1), time = "fortnight")
+#' time_seq(today, today + years(1), time = "year")
+#' time_seq(today, today + years(10), time = "year")
+#' time_seq(today, today + years(100), time = "decade")
 #'
 #' # Datetimes
-#' time_seq(now, now + weeks(1), time_by = "12 hours")
-#' time_seq(now, now + weeks(1), time_by = "day")
-#' time_seq(now, now + years(1), time_by = "week")
-#' time_seq(now, now + years(1), time_by = "fortnight")
-#' time_seq(now, now + years(1), time_by = "year")
-#' time_seq(now, now + years(10), time_by = "year")
-#' time_seq(now, today + years(100), time_by = "decade")
+#' time_seq(now, now + weeks(1), time = "12 hours")
+#' time_seq(now, now + weeks(1), time = "day")
+#' time_seq(now, now + years(1), time = "week")
+#' time_seq(now, now + years(1), time = "fortnight")
+#' time_seq(now, now + years(1), time = "year")
+#' time_seq(now, now + years(10), time = "year")
+#' time_seq(now, today + years(100), time = "decade")
 #'
 #' # You can seamlessly mix dates and datetimes with no errors.
-#' time_seq(now, today + days(3), time_by = "day")
-#' time_seq(now, today + days(3), time_by = "hour")
-#' time_seq(today, now + days(3), time_by = "day")
-#' time_seq(today, now + days(3), time_by = "hour")
+#' time_seq(now, today + days(3), time = "day")
+#' time_seq(now, today + days(3), time = "hour")
+#' time_seq(today, now + days(3), time = "day")
+#' time_seq(today, now + days(3), time = "hour")
 #'
 #' # Choose between durations or periods
 #'
 #' start <- dmy(31012020)
 #' # If time_type is left as is,
 #' # periods are used for days, weeks, months and years.
-#' time_seq(start, time_by = "month", length.out = 12,
-#'          time_type = "period")
-#' time_seq(start, time_by = "month", length.out = 12,
-#'          time_type = "duration")
+#' time_seq(start, time = months(1), length.out = 12)
+#' time_seq(start, time = dmonths(1), length.out = 12)
 #' # Notice how strange base R version is.
 #' seq(start, by = "month", length.out = 12)
 #'
@@ -111,16 +109,16 @@
 #' leap <- dmy(29022020) # Leap day
 #' end <- dmy(01032021)
 #' # 3 different options
-#' time_seq(leap, to = end, time_by = "year",
+#' time_seq(leap, to = end, time = "year",
 #'          roll_month = "NA")
-#' time_seq(leap, to = end, time_by = "year",
+#' time_seq(leap, to = end, time = "year",
 #'          roll_month = "postday")
-#' time_seq(leap, to = end, time_by = "year",
+#' time_seq(leap, to = end, time = "year",
 #'          roll_month = getOption("timeplyr.roll_month", "preday"))
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
-#'}
+#' }
 #' @rdname time_seq
 #' @export
 time_seq <- function(from, to, timespan, length.out = NULL,
@@ -165,97 +163,33 @@ time_seq <- function(from, to, timespan, length.out = NULL,
   } else {
     has_unit <- FALSE
   }
-  if (!has_unit || (missing_by &&
-                         (!missing_from && !is_time(from) ||
-                          !missing_to && !is_time(to)))){
-    args <- as.list(match.call())[-1]
-    args <- args[names(args) %in% c("from", "to", "timespan", "length.out")]
-    if (!missing_from){
-     args[["from"]] <- from
-    }
-    if (!missing_to){
-      args[["to"]] <- to
-    }
-    if (!missing_by){
-      time_by <- unlist(unname(time_by), recursive = FALSE, use.names = FALSE)
-      if (from_and_to && length(from) > 0L && length(to) > 0L && to < from){
-        time_by <- -abs(time_by)
-      }
-      args[["time_by"]] <- time_by
-    }
-    names(args)[names(args) == "time_by"] <- "by"
-    out <- do.call(seq, args, envir = parent.frame())
-
-  } else {
     # From, to, length, no time_by
     if (from_and_to && missing_by && !missing_len){
-      time_unit <- time_by_calc(from, to, length = length.out, time_type = time_type)
+      time_unit <- time_by_calc(from, to, length = length.out)
       # Calculate time_by info from lubridate class object
       unit_info <- time_unit_info(time_unit)
       by_n <- unname(unit_info)[[1L]]
       by_unit <- paste0(names(unit_info), "s")
-      tby <- add_names(list(by_n), by_unit)
+      tby <- timespan(by_unit, by_n)
       # From, to, time_by, no length
     }
     if (from_and_to && !missing_by && missing_len){
-      if (time_floor){
-        from <- time_floor2(from, time_by = tby,
-                            week_start = week_start)
-      }
-      length.out <- time_seq_sizes(from, to, time_by = tby,
-                                   time_type = input_time_type)
+      length.out <- time_seq_sizes(from, to, tby)
     }
-    # Guess seq type
-    if (time_type == "auto") time_type <- guess_seq_type(by_unit)
     ### After this we will always have both length and time_by
     if (missing_from){
-      from <- time_add2(to, add_names(list(-(by_n * length.out) + by_n),
-                                     by_unit),
-                        time_type = time_type,
-                        roll_month = roll_month, roll_dst = roll_dst)
-      if (time_floor){
-        from <- time_floor2(from, time_by = tby,
-                            week_start = week_start)
-      }
-    }
-    if (missing_to){
-      if (time_floor){
-        from <- time_floor2(from, time_by = tby,
-                            week_start = week_start)
-      }
+      from <- time_add(
+        to, timespan(by_unit, -(by_n * length.out) + by_n),
+        roll_month = roll_month, roll_dst = roll_dst
+      )
     }
     if (!missing_to && length(from) > 0L && length(to) > 0L && to < from){
       by_n <- -abs(by_n)
-      tby[[1L]] <- by_n
+      tby <- timespan(timespan_unit(tby), by_n)
     }
-    is_special_case_days <- {
-      input_time_type == "auto" &&
-        by_unit %in% c("days", "weeks") &&
-        is_date(from) &&
-        is_whole_number(by_n)
-    }
-    if (is_special_case_days){
-      if (by_unit == "weeks"){
-        by_n <- by_n * 7L
-      }
-      out <- seq.int(from = from,
-                     length.out = length.out,
-                     by = as.double(by_n))
-      class(out) <- "Date"
-    } else if (time_type == "duration"){
-      out <- duration_seq(from = as_datetime2(from),
-                          length = length.out,
-                          duration = duration_unit(by_unit)(by_n))
-    } else {
-      out <- period_seq(from = from,
-                        length = length.out,
-                        unit = plural_unit_to_single(by_unit),
-                        num = by_n,
-                        roll_month = roll_month,
-                        roll_dst = roll_dst)
-    }
-  }
-  out
+  time_seq_v2(length.out, from = from, tby,
+              roll_dst = roll_dst,
+              roll_month = roll_month)
 }
 #' @rdname time_seq
 #' @export
@@ -380,7 +314,7 @@ period_seq <- function(from, length, unit, num = 1,
 # Duration sequence vectorised over from, to and num
 duration_seq_v <- function(from, to, units, num = 1){
   time_by <- add_names(list(num), units)
-  seq_sizes <- time_seq_sizes(from, to, time_by = time_by)
+  seq_sizes <- time_seq_sizes(from, to, time_by)
   duration_seq_v2(seq_sizes, from = from, units = units, num = num)
 }
 # Alternate version of duration_seq_v with sizes arg instead of to
@@ -399,9 +333,8 @@ duration_seq_v2 <- function(sizes, from, units, num = 1){
 # Date sequence vectorised over from, to and num
 date_seq_v <- function(from, to, units = c("days", "weeks"), num = 1L){
   check_is_date(to)
-  seq_sizes <- time_seq_sizes(from, to, time_by = add_names(list(num), units))
-  date_seq_v2(seq_sizes,
-              from = from, units = units, num = num)
+  seq_sizes <- time_seq_sizes(from, to, timespan(units, num))
+  date_seq_v2(seq_sizes, from = from, units = units, num = num)
 }
 # Alternate version of date_seq_v with sizes arg instead of to
 # If you have the sequence sizes pre-calculated, you can use this
@@ -426,7 +359,7 @@ period_seq_v <- function(from, to, units, num = 1,
   if (length(to) == 0L){
     return(vec_head(from, n = 0L))
   }
-  seq_sizes <- time_seq_sizes(from, to, time_by = add_names(list(num), units))
+  seq_sizes <- time_seq_sizes(from, to, timespan(units, num))
   period_seq_v2(sizes = seq_sizes,
                 from = from, units = units,
                 num = num,

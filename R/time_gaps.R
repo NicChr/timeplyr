@@ -3,20 +3,9 @@
 #' @description `time_gaps()` checks for implicit missing gaps in time for any
 #' regular date or datetime sequence.
 #'
-#' @param x A date, datetime or numeric vector.
-#' @param time_by Time unit. \cr
-#' Must be one of the three:
-#' * string, specifying either the unit or the number and unit, e.g
-#' `time_by = "days"` or `time_by = "2 weeks"`
-#' * named list of length one, the unit being the name, and
-#' the number the value of the list, e.g. `list("days" = 7)`.
-#' For the vectorized time functions, you can supply multiple values,
-#' e.g. `list("days" = 1:10)`.
-#' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-#' then arithmetic is used, e.g `time_by = 1`.
-#' @param time_type Time type, either "auto", "duration" or "period".
-#' With larger data, it is recommended to use `time_type = "duration"` for
-#' speed and efficiency.
+#' @param x Time vector. \cr
+#' E.g. a `Date`, `POSIXt`, `numeric` or any time-based vector.
+#' @param timespan [timespan].
 #' @param g Grouping object passed directly to `collapse::GRP()`.
 #' This can for example be a vector or data frame.
 #' @param use.g.names Should the result include group names?

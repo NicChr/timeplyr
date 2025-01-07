@@ -59,37 +59,21 @@ EuStockMarkets \%>\%
   ts_as_tibble() \%>\%
   time_ggplot(time, value, group)
 
+# Converting this to monthly averages
+
+EuStockMarkets \%>\%
+  ts_as_tibble() \%>\%
+  mutate(month = year_month_decimal(time)) \%>\%
+  summarise(avg = mean(value),
+            .by = c(group, month)) \%>\%
+  time_ggplot(month, avg, group)
+
 # zoo example
 x.Date <- as.Date("2003-02-01") + c(1, 3, 7, 9, 14) - 1
 x <- zoo::zoo(rnorm(5), x.Date)
 x \%>\%
   ts_as_tibble() \%>\%
   time_ggplot(time, value)
-
-# An example using raw data
-
-ebola <- outbreaks::ebola_sim$linelist
-
-# We can build a helper to count and complete
-# Using the same time grid
-
-count_and_complete <- function(.data, time, .name,
-                               from = NULL, ...,
-                               time_by = NULL){
-  .data \%>\%
-    time_by(!!dplyr::enquo(time), time_by = time_by,
-               .name = .name, from = !!dplyr::enquo(from),
-            as_interval = FALSE) \%>\%
-    dplyr::count(...) \%>\%
-    dplyr::ungroup() \%>\%
-    time_complete(.data[[.name]], ..., time_by = time_by,
-                  fill = list(n = 0))
-}
-ebola \%>\%
-  count_and_complete(date_of_onset, outcome, time_by = "week", .name = "date_of_onset",
-                     from = floor_date(min(date_of_onset), "week")) \%>\%
-  time_ggplot(date_of_onset, n, geom = geom_blank) +
-  geom_col(aes(fill = outcome))
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)
