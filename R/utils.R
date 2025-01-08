@@ -12,6 +12,8 @@ dot_nms <- get_from_package("expr_names", "cheapr")
 deparse2 <- get_from_package("deparse2", "cheapr")
 r_copy <- get_from_package("r_copy", "cheapr")
 cpp_loc_set_replace <- get_from_package("cpp_loc_set_replace", "cheapr")
+is_compact_seq <- get_from_package("is_compact_seq", "cheapr")
+compact_seq_data <- get_from_package("compact_seq_data", "cheapr")
 
 set_recycle_args <- function(..., length = NULL, use.names = TRUE){
   if (identical(base::parent.frame(n = 1), base::globalenv())){

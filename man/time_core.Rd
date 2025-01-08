@@ -52,7 +52,7 @@ time_grid(x, from = floor_date(min(x), "month"), to = today(),
           timespan = timespan("month"))
 
 # Complete missing gaps in time using time_complete
-y <- time_complete(x, "hour")
+y <- time_complete_missing(x, "hour")
 identical(y[!y \%in\% x], time_gaps(x))
 
 # Summarise time into higher intervals

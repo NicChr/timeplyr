@@ -3,6 +3,7 @@
 \name{time_cut}
 \alias{time_cut}
 \alias{time_cut_n}
+\alias{time_cut_width}
 \alias{time_breaks}
 \title{Cut dates and datetimes into regularly spaced date or datetime intervals}
 \usage{
@@ -25,6 +26,8 @@ time_cut_n(
   time_floor = FALSE,
   week_start = getOption("lubridate.week.start", 1)
 )
+
+time_cut_width(x, timespan = granularity(x), from = NULL, to = NULL)
 
 time_breaks(
   x,
@@ -96,7 +99,7 @@ library(dplyr)
 time_cut(1:10, n = 5)
 # Easily create custom time breaks
 df <- nycflights13::flights \%>\%
-  f_slice_sample(n = 10) \%>\%
+  f_slice_sample(n = 100) \%>\%
   with_local_seed(.seed = 8192821) \%>\%
   select(time_hour) \%>\%
   fastplyr::f_arrange(time_hour) \%>\%
@@ -114,22 +117,18 @@ time_breaks(df$date, n = 5, timespan = "month")
 cut_dates <- time_cut(df$date)
 date_breaks <- time_breaks(df$date)
 
-# WHen n = Inf and as_factor = FALSE, it should be equivalent to using
-# time_aggregate or time_summarisev
-identical(time_cut(df$date, n = Inf, time_by = "month"),
-          time_cut_width(df$date, time_by = "month"))
-identical(time_summarisev(df$date, time_by = "month"),
-          time_aggregate(df$date, time_by = "month"))
-
-# To get exact breaks at regular intervals, use time_expandv
-weekly_breaks <- time_expandv(df$date,
-                              time_by = "5 weeks",
-                              week_start = 1, # Monday
-                              time_floor = TRUE)
+# When n = Inf it should be equivalent to using time_cut_width
+identical(time_cut(df$date, n = Inf, "month"),
+          time_cut_width(df$date, "month"))
+# To get exact breaks at regular intervals, use time_grid
+weekly_breaks <- time_grid(
+  df$date, "5 weeks",
+  from = floor_date(min(df$date), "week", week_start = 1)
+)
 weekly_labels <- format(weekly_breaks, "\%b-\%d")
 df \%>\%
   time_by(date, "week", .name = "date") \%>\%
-  count() \%>\%
+  f_count() \%>\%
   mutate(date = interval_start(date)) \%>\%
   ggplot(aes(x = date, y = n)) +
   geom_bar(stat = "identity") +

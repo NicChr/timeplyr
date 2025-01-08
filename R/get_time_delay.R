@@ -13,18 +13,7 @@
 #' @param data A data frame.
 #' @param origin Origin date variable.
 #' @param end End date variable.
-#' @param time_by Must be one of the three:
-#' * string, specifying either the unit or the number and unit, e.g
-#' `time_by = "days"` or `time_by = "2 weeks"`
-#' * named list of length one, the unit being the name, and
-#' the number the value of the list, e.g. `list("days" = 7)`.
-#' For the vectorized time functions, you can supply multiple values,
-#' e.g. `list("days" = 1:10)`.
-#' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-#' then arithmetic is used, e.g `time_by = 1`.
-#' @param time_type If "auto", `periods` are used for
-#' the time expansion when days, weeks, months or years are specified,
-#' and `durations` are used otherwise.
+#' @param timespan [timespan].
 #' @param min_delay The minimum acceptable delay,
 #' all delays less than this are removed before calculation.
 #' Default is `min_delay = -Inf`.
@@ -68,7 +57,7 @@
 #' inc_distr_days <- ebola_linelist %>%
 #'   get_time_delay(date_of_infection,
 #'                  date_of_onset,
-#'                  time_by = "days")
+#'                  time = "days")
 #' head(inc_distr_days$data)
 #' inc_distr_days$unit
 #' inc_distr_days$num
@@ -80,7 +69,7 @@
 #' inc_distr_days <- ebola_linelist %>%
 #'   get_time_delay(date_of_infection,
 #'                  date_of_onset,
-#'                  time_by = "day",
+#'                  time = "day",
 #'                  bw = "nrd")
 #' inc_distr_days$plot
 #'
@@ -88,7 +77,7 @@
 #' inc_distr_weeks <- ebola_linelist %>%
 #'   get_time_delay(date_of_infection,
 #'                  date_of_onset,
-#'                  time_by = "weeks",
+#'                  time = "weeks",
 #'                  bw = "nrd")
 #' inc_distr_weeks$plot
 #' \dontshow{
@@ -144,7 +133,7 @@ get_time_delay <- function(data, origin, end, timespan = 1L,
   ))
   n_miss_delays <- cheapr::na_count(out[[delay_nm]])
   if (n_miss_delays > 0){
-    warning(paste(n_miss_delays, "missing observations will be
+    cli::cli_warn(paste(n_miss_delays, "missing observations will be
                   removed before calculation.",
                   sep = " "))
   }

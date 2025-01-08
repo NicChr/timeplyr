@@ -1,8 +1,6 @@
 #' Time interval utilities
 #'
-#' @param x A 'time_interval'.
-#' @param na_rm Should `NA` values be removed? Default is `TRUE`.
-#' @param ... Additional arguments passed onto `time_diff`.
+#' @param x A [time_interval].
 #'
 #' @seealso [time_interval]
 #'

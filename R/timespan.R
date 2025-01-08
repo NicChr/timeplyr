@@ -1,12 +1,3 @@
-
-new_timespan <- function(units, num = 1L){
- out <- list(unit = units, num = num)
- class(out) <- "timespan"
- out
-}
-is_timespan <- function(x){
-  inherits(x, "timespan")
-}
 check_is_timespan <- function(x){
   if (!is_timespan(x)){
     cli::cli_abort(c(
@@ -29,20 +20,32 @@ check_valid_timespan <- function(x){
     )
   }
 }
-timespan_unit <- function(x){
-  x[["unit"]]
-}
-timespan_num <- function(x){
-  x[["num"]]
-}
 timespan_has_unit <- function(x){
   !is.na(timespan_unit(x))
 }
 
 #' Timespans
 #'
+#' @param units A unit of time, e.g.
+#' `"days"`, `"3 weeks"`, `lubridate::weeks(3)`, or just a numeric vector.
+#' @param num Number of units. E.g. `units = "days"` and `num = 3` produces
+#' a timespan width of 3 days.
+#' @param x A [timespan].
+#'
 #' @returns
 #' A [timespan] object.
+#'
+#' @details
+#' `timespan()` can be used to create objects of class 'timespan' which are
+#' used widely in timeplyr.
+#'
+#' `new_timespan()` is a bare-bones version that
+#' does no checking or string parsing and is
+#' intended for fast timespan creation.
+#'
+#' `timespan_unit()` is a helper that extracts the unit of time of the timespan.
+#'
+#' `timespan_num()` is a helper that extracts the number of units of time.
 #'
 #' @examples
 #' library(timeplyr)
@@ -55,10 +58,21 @@ timespan_has_unit <- function(x){
 #'
 #' timespan("10 weeks")
 #' timespan("1.5 hours")
+#'
+#' # These are all equivalent
+#' timespan(NULL, 3);timespan(3);timespan(NA_character_, 3)
+#'
 #' @export
 timespan <- function(units, num = 1L, ...){
   check_is_num(num)
   UseMethod("timespan")
+}
+#' @rdname timespan
+#' @export
+new_timespan <- function(units, num = 1L){
+  out <- list(unit = units, num = num)
+  class(out) <- "timespan"
+  out
 }
 #' @export
 timespan.NULL <- function(units, num = 1L, ...){
@@ -70,7 +84,11 @@ timespan.logical <- function(units, num = 1L, ...){
 }
 #' @export
 timespan.numeric <- function(units, num = 1L, ...){
-  new_timespan("unit" = NA_character_, "num" = units * num)
+  # if (length(units) == 1 && is.na(units)){
+  #   new_timespan("unit" = NA_character_, "num" = num)
+  # } else {
+    new_timespan("unit" = NA_character_, "num" = units * num)
+  # }
 }
 #' @export
 timespan.Duration <- function(units, num = 1L, ...){
@@ -98,7 +116,12 @@ timespan.Period <- function(units, num = 1L, ...){
 
 #' @export
 timespan.character <- function(units, num = 1L, ...){
-
+  if (length(units) != 1){
+    cli::cli_abort("{.arg units} must be of length 1")
+  }
+  if (is.na(units)){
+    return(new_timespan("unit" = NA_character_, "num" = num))
+  }
   unit <- unit_match(units)
   # If that doesn't work finally try parsing
   if (is.na(unit)){
@@ -149,6 +172,21 @@ print.timespan <- function(x, ...){
 #' @export
 length.timespan <- function(x){
   length(.subset2(x, "num"))
+}
+#' @rdname timespan
+#' @export
+is_timespan <- function(x){
+  inherits(x, "timespan")
+}
+#' @rdname timespan
+#' @export
+timespan_unit <- function(x){
+  x[["unit"]]
+}
+#' @rdname timespan
+#' @export
+timespan_num <- function(x){
+  x[["num"]]
 }
 
 
@@ -299,71 +337,3 @@ as.double.timespan <- function(x, ...){
 as.integer.timespan <- function(x, ...){
   as.integer(timespan_num(x))
 }
-
-# format.timespan <- function(x, ...){
-#   periods <- unclass(x)
-#   abbrs <- c("y", "m", "w", "d", "H", "M", "S")
-#   time_units <- c("years", "months", "weeks", "days",
-#                   "hours", "minutes", "seconds")
-#   units <- names(periods)
-#   abbrs <- abbrs[match(units, time_units)]
-#   ranges <- lapply(
-#     periods, function(x) collapse::frange(x, na.rm = TRUE)
-#   )
-#   keep <- logical(length(periods))
-#   fmts <- character(length(periods))
-#
-#   # We only print periods that have at least 1 non-zero element
-#   # We're also deciding whether to use an integer or floating point print format
-#
-#   # time_period() already checked that all values are whole numbers
-#   # But they might be larger than 32-bit integers..
-#
-#   for (i in seq_along(keep)){
-#     keep[i] <- sum(abs(ranges[[i]])) > 0
-#     is_whole_num <- is_whole_number(periods[[i]])
-#     can_be_int <- isTRUE(is_integerable(max(abs(ranges[[i]]))))
-#     if (!is_whole_num){
-#       fmts[i] <- "%.3g"
-#     } else if (can_be_int){
-#       fmts[i] <- "%d"
-#     } else {
-#       fmts[i] <- "%.0f"
-#     }
-#   }
-#
-#   # Keep only elements that have >=1 non-zero values
-#   keep <- which(keep)
-#   time_list <- periods[keep]
-#   fmts <- fmts[keep]
-#
-#   # sprintf() formats
-#   sprint_fmt <- paste(paste0(fmts, abbrs[match(names(time_list), units)]), collapse = " ")
-#
-#   if (length(time_list) == 0){
-#     out <- sprintf("%.0fS", periods[["seconds"]])
-#   } else {
-#     out <- do.call(sprintf, c(list(sprint_fmt), time_list))
-#   }
-#   out
-# }
-
-# Ops.timespan <- function(e1, e2){
-#   if (is_timespan(e1) && is_timespan(e2)){
-#     cli::cli_abort("Cannot use ops between two timespans")
-#   }
-#   if (is_timespan(e1)){
-#     if (timespan_has_unit(e1)){
-#       e1 <- period_unit(timespan_unit(e1))(timespan_num(e1))
-#     } else {
-#       e1 <- timespan_num(e1)
-#     }
-#   } else {
-#     if (timespan_has_unit(e2)){
-#       e2 <- period_unit(timespan_unit(e2))(timespan_num(e2))
-#     } else {
-#       e2 <- timespan_num(e2)
-#     }
-#   }
-#   NextMethod(.Generic)
-# }

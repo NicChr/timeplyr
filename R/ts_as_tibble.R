@@ -74,28 +74,13 @@ ts_as_tibble.default <- function(x, name = "time", value = "value", group = "gro
     }
     time <- rep(time, times = ncol)
   }
-  out <- list(groups, time, as.vector(x))
-  not_null <- cpp_list_which_not_null(out)
-  out_nms <- c(group, name, value)[not_null]
-  list_as_tbl(add_names(.subset(out, not_null), out_nms))
+  fastplyr::new_tbl(!!group := groups,
+                    !!name := time,
+                    !!value := as.vector(x))
 }
 #' @rdname ts_as_tibble
 #' @export
-ts_as_tibble.mts <- function(x, name = "time", value = "value", group = "group"){
-  time <- as.vector(stats::time(x))
-  ncol <- ncol(x)
-  groups <- rep(colnames(x), each = length(time))
-  if (!is.null(ncol)){
-    if (is.null(groups)){
-      groups <- rep(seq_len(ncol), each = length(time))
-    }
-    time <- rep(time, times = ncol)
-  }
-  out <- list(groups, time, as.vector(x))
-  not_null <- cpp_list_which_not_null(out)
-  out_nms <- c(group, name, value)[not_null]
-  list_as_tbl(add_names(.subset(out, not_null), out_nms))
-}
+ts_as_tibble.mts <- ts_as_tibble.default
 #' @rdname ts_as_tibble
 #' @export
 ts_as_tibble.xts <- function(x, name = "time", value = "value", group = "group"){
@@ -141,10 +126,9 @@ ts_as_tibble.zoo <- function(x, name = "time", value = "value", group = "group")
     }
     time <- rep(time, times = ncol)
   }
-  out <- list(groups, time, as.vector(x))
-  not_null <- cpp_list_which_not_null(out)
-  out_nms <- c(group, name, value)[not_null]
-  list_as_tbl(add_names(.subset(out, not_null), out_nms))
+  fastplyr::new_tbl(!!group := groups,
+                    !!name := time,
+                    !!value := as.vector(x))
 }
 #' @rdname ts_as_tibble
 #' @export
@@ -157,8 +141,7 @@ ts_as_tibble.timeSeries <- function(x, name = "time", value = "value", group = "
     groups <- rep(seq_len(ncol), each = length(time))
   }
   time <- rep(time, times = ncol)
-  out <- list(groups, time, as.vector(x))
-  not_null <- cpp_list_which_not_null(out)
-  out_nms <- c(group, name, value)[not_null]
-  list_as_tbl(add_names(.subset(out, not_null), out_nms))
+  fastplyr::new_tbl(!!group := groups,
+                    !!name := time,
+                    !!value := as.vector(x))
 }

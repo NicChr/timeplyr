@@ -11,96 +11,71 @@
 \usage{
 time_roll_sum(
   x,
-  window = Inf,
-  time = seq_along(x),
+  window = timespan(Inf),
+  time = NULL,
   weights = NULL,
   g = NULL,
   partial = TRUE,
   close_left_boundary = FALSE,
   na.rm = TRUE,
-  time_type = getOption("timeplyr.time_type", "auto"),
-  roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "NA"),
   ...
 )
 
 time_roll_mean(
   x,
-  window = Inf,
-  time = seq_along(x),
+  window = timespan(Inf),
+  time = NULL,
   weights = NULL,
   g = NULL,
   partial = TRUE,
   close_left_boundary = FALSE,
   na.rm = TRUE,
-  time_type = getOption("timeplyr.time_type", "auto"),
-  roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "NA"),
   ...
 )
 
 time_roll_growth_rate(
   x,
-  window = Inf,
-  time = seq_along(x),
+  window = timespan(Inf),
+  time = NULL,
   time_step = NULL,
   g = NULL,
   partial = TRUE,
   close_left_boundary = FALSE,
-  na.rm = TRUE,
-  time_type = getOption("timeplyr.time_type", "auto"),
-  roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "NA")
+  na.rm = TRUE
 )
 
 time_roll_window_size(
   time,
-  window = Inf,
+  window = timespan(Inf),
   g = NULL,
   partial = TRUE,
-  close_left_boundary = FALSE,
-  time_type = getOption("timeplyr.time_type", "auto"),
-  roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "NA")
+  close_left_boundary = FALSE
 )
 
 time_roll_window(
   x,
-  window = Inf,
-  time = seq_along(x),
+  window = timespan(Inf),
+  time = NULL,
   g = NULL,
   partial = TRUE,
-  close_left_boundary = FALSE,
-  time_type = getOption("timeplyr.time_type", "auto"),
-  roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "NA")
+  close_left_boundary = FALSE
 )
 
 time_roll_apply(
   x,
-  window = Inf,
+  window = timespan(Inf),
   fun,
-  time = seq_along(x),
+  time = NULL,
   g = NULL,
   partial = TRUE,
   unlist = FALSE,
-  close_left_boundary = FALSE,
-  time_type = getOption("timeplyr.time_type", "auto"),
-  roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "NA")
+  close_left_boundary = FALSE
 )
 }
 \arguments{
 \item{x}{Numeric vector.}
 
-\item{window}{Time window size (Default is \code{Inf}).
-Must be one of the following:
-\itemize{
-\item string, e.g \code{window = "day"} or \code{window = "2 weeks"}
-\item lubridate duration or period object, e.g. \code{days(1)} or \code{ddays(1)}.
-\item named list of length one, e.g. \code{list("days" = 7)}.
-\item Numeric vector, e.g. \code{window = 7}.
-}}
+\item{window}{Time window size as a \link{timespan}.}
 
 \item{time}{(Optional) time index. \cr
 Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer},
@@ -123,18 +98,6 @@ a value of \code{TRUE} would result in the window vector \code{c(1, 2)}.}
 
 \item{na.rm}{Should missing values be removed for the calculation?
 The default is \code{TRUE}.}
-
-\item{time_type}{If "auto", \code{periods} are used for
-the time expansion when lubridate periods are specified or when
-days, weeks, months or years are specified,
-and \code{durations} are used otherwise.}
-
-\item{roll_month}{Control how impossible dates are handled when
-month or year arithmetic is involved.
-Options are "preday", "boundary", "postday", "full" and "NA".
-See \code{?timechange::time_add} for more details.}
-
-\item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
 
 \item{...}{Additional arguments passed to \code{data.table::frollmean} and
 \code{data.table::frollsum}.}
@@ -192,21 +155,21 @@ even with missing days.
 library(timeplyr)
 library(lubridate)
 library(dplyr)
+library(fastplyr)
 \dontshow{
 .n_dt_threads <- data.table::getDTthreads()
 .n_collapse_threads <- collapse::get_collapse()$nthreads
 data.table::setDTthreads(threads = 2L)
 collapse::set_collapse(nthreads = 1L)
 }
-time <- time_seq(today(), today() + weeks(3),
-                 time_by = "3 days")
+time <- time_seq(today(), today() + weeks(3), "3 days")
 set.seed(99)
 x <- sample.int(length(time))
 
 roll_mean(x, window = 7)
 roll_sum(x, window = 7)
 
-time_roll_mean(x, window = ddays(7), time = time)
+time_roll_mean(x, window = days(7), time = time)
 time_roll_sum(x, window = days(7), time = time)
 
 # Alternatively and more verbosely
@@ -215,7 +178,7 @@ x_chunks
 vapply(x_chunks, mean, 0)
 
 # Interval (x - 3 x]
-time_roll_sum(x, window = ddays(3), time = time)
+time_roll_sum(x, window = days(3), time = time)
 
 # An example with an irregular time series
 
@@ -223,7 +186,7 @@ t <- today() + days(sort(sample(1:30, 20, TRUE)))
 time_elapsed(t, days(1)) # See the irregular elapsed time
 x <- rpois(length(t), 10)
 
-tibble(x, t) \%>\%
+new_tbl(x, t) \%>\%
   mutate(sum = time_roll_sum(x, time = t, window = days(3))) \%>\%
   time_ggplot(t, sum)
 

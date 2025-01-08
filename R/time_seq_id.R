@@ -48,17 +48,17 @@
 #' collapse::set_collapse(nthreads = 1L)
 #' }
 #' # Weekly sequence, with 2 gaps in between
-#' x <- time_seq(today(), length.out = 10, time_by = "week")
+#' x <- time_seq(today(), length.out = 10, time = "week")
 #' x <- x[-c(3, 7)]
 #' # A new ID when more than a week has passed since the last time point
-#' time_seq_id(x, time_by = "week")
+#' time_seq_id(x)
 #' # A new ID when >= 2 weeks has passed since the last time point
-#' time_seq_id(x, time_by = "weeks", threshold = 2, switch_on_boundary = TRUE)
+#' time_seq_id(x, threshold = 2, switch_on_boundary = TRUE)
 #' # A new ID when at least 4 cumulative weeks have passed
-#' time_seq_id(x, time_by = "4 weeks",
+#' time_seq_id(x, timespan = "4 weeks",
 #'             switch_on_boundary = TRUE, rolling = FALSE)
 #' # A new ID when more than 4 cumulative weeks have passed
-#' time_seq_id(x, time_by = "4 weeks",
+#' time_seq_id(x, timespan = "4 weeks",
 #'             switch_on_boundary = FALSE, rolling = FALSE)
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)

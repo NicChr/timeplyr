@@ -123,7 +123,6 @@ new_year_month <- function(x){
 #' @exportS3Method base::c
 `c.year_month` <- function(...){
   new_year_month(NextMethod("c"))
-  # new_year_month(do.call(c, lapply(list(...), unclass)))
 }
 #' @exportS3Method base::print
 print.year_month <- function(x, max = NULL, ...){

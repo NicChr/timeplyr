@@ -2,15 +2,48 @@
 % Please edit documentation in R/timespan.R
 \name{timespan}
 \alias{timespan}
+\alias{new_timespan}
+\alias{is_timespan}
+\alias{timespan_unit}
+\alias{timespan_num}
 \title{Timespans}
 \usage{
 timespan(units, num = 1L, ...)
+
+new_timespan(units, num = 1L)
+
+is_timespan(x)
+
+timespan_unit(x)
+
+timespan_num(x)
+}
+\arguments{
+\item{units}{A unit of time, e.g.
+\code{"days"}, \code{"3 weeks"}, \code{lubridate::weeks(3)}, or just a numeric vector.}
+
+\item{num}{Number of units. E.g. \code{units = "days"} and \code{num = 3} produces
+a timespan width of 3 days.}
+
+\item{x}{A \link{timespan}.}
 }
 \value{
 A \link{timespan} object.
 }
 \description{
 Timespans
+}
+\details{
+\code{timespan()} can be used to create objects of class 'timespan' which are
+used widely in timeplyr.
+
+\code{new_timespan()} is a bare-bones version that
+does no checking or string parsing and is
+intended for fast timespan creation.
+
+\code{timespan_unit()} is a helper that extracts the unit of time of the timespan.
+
+\code{timespan_num()} is a helper that extracts the number of units of time.
 }
 \examples{
 library(timeplyr)
@@ -23,4 +56,8 @@ timespan("decade")
 
 timespan("10 weeks")
 timespan("1.5 hours")
+
+# These are all equivalent
+timespan(NULL, 3);timespan(3);timespan(NA_character_, 3)
+
 }

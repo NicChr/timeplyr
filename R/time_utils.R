@@ -836,8 +836,8 @@ int_to_per <- function (start, end){
   start <- as_datetime2(start)
   end <- time_cast(end, start)
   duration <- strip_attrs(end) - strip_attrs(start)
-  start <- strip_attrs(as.POSIXlt(start))
-  end <- strip_attrs(as.POSIXlt(end))
+  start <- unclass(as.POSIXlt(start))
+  end <- unclass(as.POSIXlt(end))
   negs <- duration < 0
   wnegs <- which(negs)
   wnnegs <- which(negs, invert = TRUE)

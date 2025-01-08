@@ -149,7 +149,7 @@ cut_time <- function(x, breaks, include_oob = TRUE, codes = FALSE){
 #' time_cut(1:10, n = 5)
 #' # Easily create custom time breaks
 #' df <- nycflights13::flights %>%
-#'   f_slice_sample(n = 10) %>%
+#'   f_slice_sample(n = 100) %>%
 #'   with_local_seed(.seed = 8192821) %>%
 #'   select(time_hour) %>%
 #'   fastplyr::f_arrange(time_hour) %>%
@@ -167,22 +167,18 @@ cut_time <- function(x, breaks, include_oob = TRUE, codes = FALSE){
 #' cut_dates <- time_cut(df$date)
 #' date_breaks <- time_breaks(df$date)
 #'
-#' # WHen n = Inf and as_factor = FALSE, it should be equivalent to using
-#' # time_aggregate or time_summarisev
-#' identical(time_cut(df$date, n = Inf, time_by = "month"),
-#'           time_cut_width(df$date, time_by = "month"))
-#' identical(time_summarisev(df$date, time_by = "month"),
-#'           time_aggregate(df$date, time_by = "month"))
-#'
-#' # To get exact breaks at regular intervals, use time_expandv
-#' weekly_breaks <- time_expandv(df$date,
-#'                               time_by = "5 weeks",
-#'                               week_start = 1, # Monday
-#'                               time_floor = TRUE)
+#' # When n = Inf it should be equivalent to using time_cut_width
+#' identical(time_cut(df$date, n = Inf, "month"),
+#'           time_cut_width(df$date, "month"))
+#' # To get exact breaks at regular intervals, use time_grid
+#' weekly_breaks <- time_grid(
+#'   df$date, "5 weeks",
+#'   from = floor_date(min(df$date), "week", week_start = 1)
+#' )
 #' weekly_labels <- format(weekly_breaks, "%b-%d")
 #' df %>%
 #'   time_by(date, "week", .name = "date") %>%
-#'   count() %>%
+#'   f_count() %>%
 #'   mutate(date = interval_start(date)) %>%
 #'   ggplot(aes(x = date, y = n)) +
 #'   geom_bar(stat = "identity") +
@@ -238,16 +234,6 @@ time_cut_n <- function(x, n = 5, timespan = NULL,
 }
 #' @rdname time_cut
 #' @export
-time_breaks <- function(x, n = 5, timespan = NULL,
-                        from = NULL, to = NULL,
-                        time_floor = FALSE,
-                        week_start = getOption("lubridate.week.start", 1)){
-  out <- .time_breaks(x, n = n, timespan = timespan,
-                      from = from, to = to,
-                      time_floor = time_floor,
-                      week_start = week_start)
-  out[["breaks"]]
-}
 time_cut_width <- function(x, timespan = granularity(x),
                            from = NULL, to = NULL){
   check_is_time_or_num(x)
@@ -267,4 +253,16 @@ time_cut_width <- function(x, timespan = granularity(x),
   time_to_add[["num"]] <- trunc2(tdiff) * num
   out <- time_add(from, timespan = time_to_add)
   time_interval(out, width)
+}
+#' @rdname time_cut
+#' @export
+time_breaks <- function(x, n = 5, timespan = NULL,
+                        from = NULL, to = NULL,
+                        time_floor = FALSE,
+                        week_start = getOption("lubridate.week.start", 1)){
+  out <- .time_breaks(x, n = n, timespan = timespan,
+                      from = from, to = to,
+                      time_floor = time_floor,
+                      week_start = week_start)
+  out[["breaks"]]
 }

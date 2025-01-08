@@ -26,7 +26,7 @@
 #' from <- floor_date(today(), unit = "year")
 #' to <- ceiling_date(today(), unit = "year", change_on_boundary = TRUE) - days(1)
 #'
-#' my_seq <- time_seq(from, to, time_by = "day")
+#' my_seq <- time_seq(from, to, "day")
 #' calendar(my_seq)
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)

@@ -16,11 +16,7 @@ interval_end(x)
 interval_count(x)
 }
 \arguments{
-\item{x}{A 'time_interval'.}
-
-\item{na_rm}{Should \code{NA} values be removed? Default is \code{TRUE}.}
-
-\item{...}{Additional arguments passed onto \code{time_diff}.}
+\item{x}{A \link{time_interval}.}
 }
 \description{
 Time interval utilities
