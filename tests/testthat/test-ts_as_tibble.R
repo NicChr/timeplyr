@@ -6,7 +6,7 @@ collapse::set_collapse(nthreads = 1L)
 testthat::test_that("univariate", {
   uts <- ts(cumsum(1 + round(rnorm(100), 2)),
             start = c(1954, 7), frequency = 12)
-  uts_tbl <- ts_as_tibble(uts)
+  uts_tbl <- ts_as_tbl(uts)
   testthat::expect_equal(
     uts_tbl,
     dplyr::tibble(
@@ -16,13 +16,13 @@ testthat::test_that("univariate", {
   )
   testthat::expect_equal(
     uts_tbl,
-    ts_as_tibble.default(uts)
+    ts_as_tbl.default(uts)
   )
 })
 
 testthat::test_that("multivariate", {
   mts <- ts(matrix(rnorm(300), 100, 3), start = c(1961, 1), frequency = 12)
-  mts_tbl <- ts_as_tibble(mts)
+  mts_tbl <- ts_as_tbl(mts)
   time <- as.double(time(mts))
   testthat::expect_equal(
     mts_tbl,
@@ -34,7 +34,7 @@ testthat::test_that("multivariate", {
   )
   testthat::expect_equal(
     mts_tbl,
-    ts_as_tibble.default(mts)
+    ts_as_tbl.default(mts)
   )
 })
 
@@ -255,7 +255,7 @@ testthat::test_that("xts", {
   # Load methods without using library() or loadNamespace()
   zoo::yearmon
   # The below should work if we have zoo loaded but not xts..
-  xts_tbl <- ts_as_tibble(xts)
+  xts_tbl <- ts_as_tbl(xts)
   time <- lubridate::as_datetime(attr(xts, "index"),
                                  tz = attr(attr(xts, "index"), "tzone"))
   testthat::expect_equal(
@@ -266,7 +266,7 @@ testthat::test_that("xts", {
       value = as.vector(xts)
     )
   )
-  xts_tbl2 <- ts_as_tibble.default(xts)
+  xts_tbl2 <- ts_as_tbl.default(xts)
   xts_tbl$time <- as.double(xts_tbl$time)
   testthat::expect_equal(
     xts_tbl, xts_tbl2
@@ -281,7 +281,7 @@ testthat::test_that("zoo", {
   x <- structure(c(0.807268292139951, 0.757088653227813, 0.239998755408692,
                    0.549973058300116, 1.73072914807555), index = structure(c(12084,
                                                                              12086, 12090, 12092, 12097), class = "Date"), class = "zoo")
-  zoo_tbl <- ts_as_tibble(x)
+  zoo_tbl <- ts_as_tbl(x)
   time <- x.Date
   testthat::expect_equal(
     zoo_tbl,
@@ -290,7 +290,7 @@ testthat::test_that("zoo", {
       value = as.vector(x)
     )
   )
-  zoo_tbl2 <- ts_as_tibble.default(x)
+  zoo_tbl2 <- ts_as_tbl.default(x)
   zoo_tbl$time <- as.double(zoo_tbl$time)
   testthat::expect_equal(
     zoo_tbl, zoo_tbl2
@@ -298,7 +298,7 @@ testthat::test_that("zoo", {
   # Example 2 - Multivariate (no col names)
   x <- structure(1:12, dim = 4:3, index = structure(c(12053, 12054,
                                                       12055, 12056), class = "Date"), class = "zoo")
-  zoo_tbl <- ts_as_tibble(x)
+  zoo_tbl <- ts_as_tbl(x)
   time <- .Date(c(12053, 12054, 12055, 12056))
   # index_origin <- min(time) - 1
   testthat::expect_equal(
@@ -309,14 +309,14 @@ testthat::test_that("zoo", {
       value = as.vector(x)
     )
   )
-  zoo_tbl2 <- ts_as_tibble.default(x)
+  zoo_tbl2 <- ts_as_tbl.default(x)
   zoo_tbl$time <- as.double(zoo_tbl$time)
   testthat::expect_equal(
     zoo_tbl, zoo_tbl2
   )
   # Example 3 - Empty zoo object
   x <- structure(logical(0), dim = c(4L, 0L), index = 1:4, class = "zoo")
-  zoo_tbl <- ts_as_tibble(x)
+  zoo_tbl <- ts_as_tbl(x)
   time <- time(x)
   testthat::expect_equal(
     zoo_tbl,
@@ -326,7 +326,7 @@ testthat::test_that("zoo", {
       value = as.vector(x)
     )
   )
-  zoo_tbl2 <- ts_as_tibble.default(x)
+  zoo_tbl2 <- ts_as_tbl.default(x)
   zoo_tbl$time <- as.double(zoo_tbl$time)
   testthat::expect_equal(
     zoo_tbl, zoo_tbl2
@@ -339,7 +339,7 @@ testthat::test_that("zoo", {
   ), dim = c(5L, 3L), dimnames = list(NULL, c("foo", "bar", "yeah"
   )), index = structure(c(0, 10800, 21600, 32400, 43200), class = c("POSIXct",
                                                                          "POSIXt"), tzone = "UTC"), class = "zoo")
-  zoo_tbl <- ts_as_tibble(x)
+  zoo_tbl <- ts_as_tbl(x)
   time <- .POSIXct(c(0, 10800, 21600, 32400, 43200), tz = "UTC")
   testthat::expect_equal(
     zoo_tbl,
@@ -349,7 +349,7 @@ testthat::test_that("zoo", {
       value = as.vector(x)
     )
   )
-  zoo_tbl2 <- ts_as_tibble.default(x)
+  zoo_tbl2 <- ts_as_tbl.default(x)
   zoo_tbl$time <- as.double(zoo_tbl$time)
   testthat::expect_equal(
     zoo_tbl, zoo_tbl2
@@ -370,7 +370,7 @@ testthat::test_that("zoo", {
 #                                                                                                                         970444800, 970531200, 970617600, 970704000, 970790400, 971049600,
 #                                                                                                                         971136000), format = "%Y-%m-%d", FinCenter = "GMT", recordIDs = structure(list(), names = character(0), row.names = integer(0), class = "data.frame"),
 #   title = "Time Series Object", documentation = "")
-#   ts_tbl <- ts_as_tibble(x)
+#   ts_tbl <- ts_as_tbl(x)
 #   time <- lubridate::as_datetime(attr(unclass(x), "positions"))
 #   testthat::expect_equal(
 #     ts_tbl,

@@ -57,7 +57,7 @@
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #' }
 #' @export
-time_elapsed <- function(x, timespan = resolution(x), g = NULL,
+time_elapsed <- function(x, timespan = granularity(x), g = NULL,
                          rolling = TRUE, fill = NA,
                          na_skip = TRUE){
   check_is_time_or_num(x)

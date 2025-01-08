@@ -212,7 +212,7 @@ apply(x, 2,
 
 
 # Instead we can pivot it longer and code each series as a separate group
-tbl <- ts_as_tibble(zoo_ts)
+tbl <- ts_as_tbl(zoo_ts)
 
 tbl \%>\%
   mutate(monthly_mean = time_roll_mean(value, window = dmonths(1),

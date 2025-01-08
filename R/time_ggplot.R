@@ -16,7 +16,7 @@
 #' @returns
 #' A `ggplot`.
 #'
-#' @seealso [ts_as_tibble]
+#' @seealso [ts_as_tbl]
 #'
 #' @examples
 #' library(dplyr)
@@ -31,18 +31,18 @@
 #' }
 #' # It's as easy as this
 #' AirPassengers %>%
-#'   ts_as_tibble() %>%
+#'   ts_as_tbl() %>%
 #'   time_ggplot(time, value)
 #'
 #' # And this
 #' EuStockMarkets %>%
-#'   ts_as_tibble() %>%
+#'   ts_as_tbl() %>%
 #'   time_ggplot(time, value, group)
 #'
 #' # Converting this to monthly averages
 #'
 #' EuStockMarkets %>%
-#'   ts_as_tibble() %>%
+#'   ts_as_tbl() %>%
 #'   mutate(month = year_month_decimal(time)) %>%
 #'   summarise(avg = mean(value),
 #'             .by = c(group, month)) %>%
@@ -52,7 +52,7 @@
 #' x.Date <- as.Date("2003-02-01") + c(1, 3, 7, 9, 14) - 1
 #' x <- zoo::zoo(rnorm(5), x.Date)
 #' x %>%
-#'   ts_as_tibble() %>%
+#'   ts_as_tbl() %>%
 #'   time_ggplot(time, value)
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
@@ -78,11 +78,11 @@ time_ggplot <- function(data, time, value, group = NULL,
     x_scale <- ggplot2::scale_x_date(breaks = time_breaks,
                                      labels = scales::label_date_short())
   } else if (is_year_month(time_var)){
-    x_scale <- scale_x_year_month(breaks = function(x) get_breaks(as.double(x)))
+    x_scale <- scale_x_year_month(breaks = function(x) cheapr::get_breaks(as.double(x)))
   } else if (is_year_quarter(time_var)){
-    x_scale <- scale_x_year_quarter(breaks = function(x) get_breaks(as.double(x)))
+    x_scale <- scale_x_year_quarter(breaks = function(x) cheapr::get_breaks(as.double(x)))
   } else {
-    x_scale <- ggplot2::scale_x_continuous(breaks = function(x) get_breaks(as.double(x)))
+    x_scale <- ggplot2::scale_x_continuous(breaks = function(x) cheapr::get_breaks(as.double(x)))
   }
   # Concatenate group names together
   if (length(group) > 1L){
