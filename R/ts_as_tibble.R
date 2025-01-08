@@ -76,7 +76,9 @@ ts_as_tibble.default <- function(x, name = "time", value = "value", group = "gro
   }
   fastplyr::new_tbl(!!group := groups,
                     !!name := time,
-                    !!value := as.vector(x))
+                    !!value := as.vector(x),
+                    .recycle = FALSE,
+                    .name_repair = FALSE)
 }
 #' @rdname ts_as_tibble
 #' @export
@@ -109,10 +111,11 @@ ts_as_tibble.xts <- function(x, name = "time", value = "value", group = "group")
     groups <- rep(seq_len(ncol), each = length(time))
   }
   time <- rep(time, times = ncol)
-  out <- list(groups, time, as.vector(x))
-  not_null <- cpp_list_which_not_null(out)
-  out_nms <- c(group, name, value)[not_null]
-  list_as_tbl(add_names(.subset(out, not_null), out_nms))
+  fastplyr::new_tbl(!!group := groups,
+                    !!name := time,
+                    !!value := as.vector(x),
+                    .recycle = FALSE,
+                    .name_repair = FALSE)
 }
 #' @rdname ts_as_tibble
 #' @export
@@ -128,7 +131,9 @@ ts_as_tibble.zoo <- function(x, name = "time", value = "value", group = "group")
   }
   fastplyr::new_tbl(!!group := groups,
                     !!name := time,
-                    !!value := as.vector(x))
+                    !!value := as.vector(x),
+                    .recycle = FALSE,
+                    .name_repair = FALSE)
 }
 #' @rdname ts_as_tibble
 #' @export
@@ -143,5 +148,7 @@ ts_as_tibble.timeSeries <- function(x, name = "time", value = "value", group = "
   time <- rep(time, times = ncol)
   fastplyr::new_tbl(!!group := groups,
                     !!name := time,
-                    !!value := as.vector(x))
+                    !!value := as.vector(x),
+                    .recycle = FALSE,
+                    .name_repair = FALSE)
 }
