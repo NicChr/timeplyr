@@ -80,16 +80,6 @@ time_by <- function(data, time, width = NULL, .name = NULL, .add = TRUE){
     time_agg <- time_cut_width(out[[time_var]], width, from = from)
     time_var <- across_col_names(time_var, .fns = "", .names = .name)
     out <- df_add_cols(out, add_names(list(time_agg), time_var))
-    time_span <- GRP_group_data(time_span_GRP)
-    if (df_nrow(time_span) == 0L && df_nrow(data) > 0L){
-      time_span <- df_init(time_span, 1L)
-    }
-    time_span$start <- collapse::fmin(interval_start(time_agg), g = time_span_GRP, use.g.names = FALSE)
-    time_span$end <- collapse::fmax(interval_end(time_agg), g = time_span_GRP, use.g.names = FALSE)
-    num_gaps <- time_num_gaps(interval_start(time_agg), width,
-                              g = time_span_GRP, use.g.names = FALSE,
-                              check_time_regular = FALSE)
-    time_span[["num_gaps"]] <- num_gaps
   }
   groups <- time_var
   if (.add){
@@ -100,8 +90,6 @@ time_by <- function(data, time, width = NULL, .name = NULL, .add = TRUE){
     out <- dplyr::new_grouped_df(out,
                                  groups = group_data(out),
                                  time = time_var,
-                                 width = width,
-                                 range = time_span,
                                  class = "time_tbl_df")
   }
   out
@@ -115,22 +103,6 @@ time_tbl_time_col <- function(x, ...){
 time_tbl_time_col.time_tbl_df <- function(x, ...){
   attr(x, "time")
 }
-#' @export
-time_tbl_width <- function(x, ...){
-  UseMethod("time_tbl_width")
-}
-#' @export
-time_tbl_width.time_tbl_df <- function(x, ...){
-  attr(x, "width")
-}
-#' @export
-time_tbl_range <- function(x, ...){
-  UseMethod("time_tbl_range")
-}
-#' @export
-time_tbl_range.time_tbl_df <- function(x, ...){
-  attr(x, "range")
-}
 
 #' @exportS3Method pillar::tbl_sum
 tbl_sum.time_tbl_df <- function(x, ...){
@@ -138,11 +110,7 @@ tbl_sum.time_tbl_df <- function(x, ...){
   group_vars <- group_vars(x)
   time_var <- attr(x, "time")
   non_time_group_vars <- setdiff(group_vars, time_var)
-  width <- timespan_abbr(attr(x, "width"))
   time <- group_data(x)[[time_var]]
-  range <- attr(x, "range")
-  time_range <- c(collapse::fmin(range[["start"]], na.rm = TRUE),
-                  collapse::fmax(range[["end"]], na.rm = TRUE))
   if (length(non_time_group_vars) > 0L){
     n_non_time_groups <- df_n_distinct(
       fastplyr::f_select(group_data(x),
@@ -159,12 +127,20 @@ tbl_sum.time_tbl_df <- function(x, ...){
     n_time_groups <- n_groups
     groups_header <- character(0)
   }
-  time_header <- c("Time" = paste0(time_var,
-                                   " [",
-                                   prettyNum(n_time_groups, big.mark = ","),
-                                   "]"))
-  time_by_header <- c("Width" = width)
-  time_range_header <- c("Range" = paste0(time_range[1L], " -- ", time_range[2L]))
+  if (!is.null(time)){
+    width <- timespan_abbr(interval_width(time))
+    time_range <- interval_range(time)
+    time_header <- c("Time" = paste0(time_var,
+                                     " [",
+                                     prettyNum(n_time_groups, big.mark = ","),
+                                     "]"))
+    time_by_header <- c("Width" = width)
+    time_range_header <- c("Range" = paste0(time_range[1L], " -- ", time_range[2L]))
+  } else {
+    time_header <- character()
+    time_by_header <- character()
+    time_range_header <- character()
+  }
   num_row <- prettyNum(nrow(x), big.mark = ",")
   num_col <- prettyNum(ncol(x), big.mark = ",")
   tbl_header <- c("A tibble" = paste0(num_row, " x ", num_col))

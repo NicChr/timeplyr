@@ -85,9 +85,15 @@
 #'}
 #' @rdname time_expand
 #' @export
-time_expand <- function(data, ...,
-                            time_by = NULL, from = NULL, to = NULL,
-                            sort = TRUE){
+time_expand <- function(data, time = NULL, ..., .by = NULL,
+                        time_by = NULL, from = NULL, to = NULL,
+                        time_type = getOption("timeplyr.time_type", "auto"),
+                        time_floor = FALSE,
+                        week_start = getOption("lubridate.week.start", 1),
+                        sort = TRUE,
+                        expand_type = NULL,
+                        roll_month = getOption("timeplyr.roll_month", "preday"),
+                        roll_dst = getOption("timeplyr.roll_dst", "NA")){
   check_is_df(data)
   group_vars <- get_groups(data, {{ .by }})
   temp_data <- data
@@ -145,25 +151,21 @@ time_expand <- function(data, ...,
     # Reverse by sign in case from > to
     by_nm <- unique_col_name(out, ".by")
     by_n <- rep_len(by_n, nrow(time_tbl))
-    which_wrong_sign <- which(time_tbl[[from_nm]] > time_by[[to_nm]])
+    which_wrong_sign <- which(time_tbl[[from_nm]] > time_tbl[[to_nm]])
     by_n[which_wrong_sign] <- -abs(by_n[which_wrong_sign])
     time_tbl[[by_nm]] <- by_n
     # Determine size of sequences
     size_nm <- unique_col_name(out, ".size")
     time_tbl[[size_nm]] <- time_seq_sizes(time_tbl[[from_nm]],
                                           time_tbl[[to_nm]],
-                                          time_by = add_names(list(time_tbl[[by_nm]]),
-                                                              by_unit),
-                                          time_type = time_type)
+                                          timespan(by_unit, time_tbl[[by_nm]]))
     expanded_nrow <- sum(time_tbl[[size_nm]])
     # Vectorised time sequence
     time_seq <- time_seq_v2(time_tbl[[size_nm]],
                             time_tbl[[from_nm]],
-                            time_by = add_names(list(time_tbl[[by_nm]]),
-                                                by_unit),
+                            timespan(by_unit, time_tbl[[by_nm]]),
                             roll_month = roll_month,
-                            roll_dst = roll_dst,
-                            time_type = time_type)
+                            roll_dst = roll_dst)
     time_seq_sizes <- time_tbl[[size_nm]]
     time_tbl <- df_rm_cols(time_tbl, c(from_nm, to_nm, size_nm, by_nm))
     out <- df_rep(time_tbl, time_seq_sizes)
@@ -273,9 +275,7 @@ expand.time_tbl_df <- function(data, ..., .from = NULL, .to = NULL, .sort = TRUE
   time_var <- time_tbl_time_col(data)
   group_vars <- setdiff(get_groups(data), time_var)
   temp_data <- data
-  if (length(group_vars(data)) == 0){
-    temp_data <- fastplyr::f_group_by(temp_data, .order = FALSE)
-  }
+  temp_data <- fastplyr::f_group_by(temp_data, .order = FALSE, .cols = group_vars)
   group_ids <- df_group_id(temp_data)
   from_info <- mutate_summary_grouped(temp_data, !!enquo(.from), .keep = "none")
   to_info <- mutate_summary_grouped(temp_data, !!enquo(.to), .keep = "none")
@@ -318,7 +318,6 @@ expand.time_tbl_df <- function(data, ..., .from = NULL, .to = NULL, .sort = TRUE
     by_nm <- unique_col_name(out, ".by")
     by_n <- rep_len(timespan_num(timespan), nrow(time_tbl))
     which_wrong_sign <- which(time_tbl[[from_nm]] > time_tbl[[to_nm]])
-    browser()
     by_n[which_wrong_sign] <- -abs(by_n[which_wrong_sign])
     time_tbl[[by_nm]] <- by_n
     # Determine size of sequences
@@ -337,8 +336,7 @@ expand.time_tbl_df <- function(data, ..., .from = NULL, .to = NULL, .sort = TRUE
     out[[time_var]] <- time_seq
     out <- df_rm_cols(out, grp_nm)
     if (dots_length(...) > 0){
-      expanded_df <- fastplyr::f_expand(data, ...,
-                                        .sort = FALSE, .by = {{ .by }})
+      expanded_df <- fastplyr::f_expand(data, ..., .sort = FALSE)
       expanded_nms <- names(expanded_df)
       if (df_nrow(expanded_df) > 0L){
         # If there are no common cols, just cross join them
@@ -364,7 +362,8 @@ expand.time_tbl_df <- function(data, ..., .from = NULL, .to = NULL, .sort = TRUE
       out <- fastplyr::f_arrange(out, .cols = sort_nms)
     }
   } else {
-    out <- fastplyr::f_expand(data, ..., .sort = sort, .by = {{ .by }})
+    out <- fastplyr::f_expand(data, ..., .sort = sort)
   }
+  out[[time_var]] <- new_time_interval(out[[time_var]], interval_width(data[[time_var]]))
   reconstruct(data, out)
 }

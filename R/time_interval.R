@@ -159,6 +159,11 @@ rep_len.time_interval <- function(x, ...){
 
 #' @export
 Ops.time_interval <- function(e1, e2){
+  # if (is_time_interval(e1) && is_time_interval(e2)){
+  #   e1 <- ivs::iv(interval_start(e1), interval_end(e1))
+  #   e2 <- ivs::iv(interval_start(e2), interval_end(e2))
+  #   return(NextMethod(.Generic))
+  # }
   switch(.Generic,
          `+` = {
            start <- interval_start(e1)

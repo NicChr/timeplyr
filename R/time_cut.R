@@ -245,7 +245,7 @@ time_cut_width <- function(x, timespan = granularity(x),
     to <- time_cast(to, x)
     x[x >= to] <- NA
   }
-  width <- get_granularity(x, timespan)
+  width <- timespan(timespan)
   num <- timespan_num(width)
   units <- timespan_unit(width)
   tdiff <- time_diff(from, x, width)
