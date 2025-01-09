@@ -39,7 +39,7 @@ time_diff <- function(x, y, timespan = 1L){
     if (!is_duration_unit(units)){
       # Use distinct start/end pairs (intervals)
       # Instead of all of them because it's usually more efficient
-      interval_tbl <- new_df(x = x, y = y, num = num, .recycle = TRUE)
+      interval_tbl <- cheapr::new_df(x = x, y = y, num = num, .recycle = TRUE)
       interval_groups <- collapse::group(interval_tbl, starts = TRUE, group.sizes = TRUE)
       starts <- attr(interval_groups, "starts")
       sizes <- attr(interval_groups, "group.sizes")

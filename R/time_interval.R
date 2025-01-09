@@ -99,17 +99,13 @@ check_valid_time_interval <- function(x){
 new_time_interval <- function(start, timespan){
   out <- start
   attr(out, "timespan") <- timespan
-  class(out) <- c("time_interval", oldClass(start))
+  class(out) <- "time_interval"
+  attr(out, "old_class") <- oldClass(start)
   out
 }
 #' @export
-`[.time_interval` <- function(x, ..., drop = TRUE){
-  cl <- oldClass(x)
-  span <- interval_width(x)
-  out <- NextMethod("[")
-  class(out) <- cl
-  attr(out, "timespan") <- span
-  out
+`[.time_interval` <- function(x, ...){
+  new_time_interval(`class<-`(x, attr(x, "old_class"))[...], interval_width(x))
 }
 #' @export
 c.time_interval <- function(...){
@@ -117,13 +113,16 @@ c.time_interval <- function(...){
   int <- dots[[1L]]
   cl <- oldClass(int)
   span <- interval_width(int)
+  span_unit <- timespan_unit(span)
+  span_num <- timespan_num(span)
   for (i in seq_along(dots)){
     dot <- dots[[i]]
     if (!is_time_interval(dot)){
       cli::cli_abort("Cannot combine {.cls time_interval} with {.cls {class(dot)}}")
     }
-    dots[[i]] <- rm_intv_class(dot)
-    if (!identical(span, interval_width(dot))){
+    class(dots[[i]]) <- attr(dot, "old_class")
+    if (!identical(span_unit, attr(dot, "timespan")[["unit"]]) ||
+        span_num != attr(dot, "timespan")[["num"]]){
      cli::cli_abort(c(
      " " = "{.cls time_interval} {i} with width {interval_width(dot)}",
      "must match the width of",
@@ -131,9 +130,10 @@ c.time_interval <- function(...){
     }
   }
   out <- do.call(c, dots, envir = parent.frame())
-  attr(out, "timespan") <- span
-  class(out) <- cl
-  out
+  new_time_interval(out, span)
+  # attr(out, "timespan") <- span
+  # class(out) <- cl
+  # out
 }
 #' @export
 unique.time_interval <- function(x, incomparables = FALSE, ...){
@@ -159,30 +159,18 @@ rep_len.time_interval <- function(x, ...){
 
 #' @export
 Ops.time_interval <- function(e1, e2){
-  # if (is_time_interval(e1) && is_time_interval(e2)){
-  #   e1 <- ivs::iv(interval_start(e1), interval_end(e1))
-  #   e2 <- ivs::iv(interval_start(e2), interval_end(e2))
-  #   return(NextMethod(.Generic))
-  # }
-  switch(.Generic,
-         `+` = {
-           start <- interval_start(e1)
-           width <- interval_width(e1)
-           span <- timespan(e2)
-           new_time_interval(time_add(start, span), width)
-         },
-         `-` = {
-           start <- interval_start(e1)
-           width <- interval_width(e1)
-           span <- timespan(e2)
-           new_time_interval(time_subtract(start, span), width)
-         },
-         `/` = {
-           start <- interval_start(e1)
-           span <- timespan(e2)
-           end <- interval_end(e1)
-           time_diff(start, end, span)
-           }, NextMethod(.Generic))
+  switch(
+    .Generic,
+    `/` = {
+      start <- interval_start(e1)
+      span <- timespan(e2)
+      end <- interval_end(e1)
+      time_diff(start, end, span)
+    },
+    {
+      cli::cli_abort("Incompatible {.cls time_interval} operation: { .Generic } ")
+    }
+  )
 }
 
 #' @export
@@ -229,6 +217,11 @@ as.POSIXlt.time_interval <- function(x, tz = "", ...){
   out <- as.POSIXlt(interval_start(x), tz = tz, ...)
   class(out) <- c("POSIXlt", "POSIXt")
   out
+}
+#' @importFrom lubridate tz
+#' @export
+tz.time_interval <- function(x){
+  lubridate::tz(interval_start(x))
 }
 #' @export
 print.time_interval <- function(x, max = NULL, ...){

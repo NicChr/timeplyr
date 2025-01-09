@@ -130,7 +130,7 @@
 #' events <- flights %>%
 #'   mutate(date = as_date(time_hour)) %>%
 #'   group_by(origin, dest) %>%
-#'   time_episodes(date, time_by = "week", window = 1)
+#'   time_episodes(date, "week", window = 1)
 #'
 #' events
 #'
@@ -142,9 +142,8 @@
 #' # dry-periods
 #' episodes %>%
 #'   ungroup() %>%
-#'   time_by(ep_start, time_by = "week",
-#'           .name = "ep_start", as_interval = FALSE) %>%
-#'   count() %>%
+#'   time_by(ep_start, "week", .name = "ep_start") %>%
+#'   count(ep_start = interval_start(ep_start)) %>%
 #'   ggplot(aes(x = ep_start, y = n)) +
 #'   geom_bar(stat = "identity")
 #' \dontshow{
@@ -211,7 +210,7 @@ time_episodes <- function(data, time, time_by = NULL,
   groups <- fastplyr::f_select(fastplyr::as_tbl(temp), .cols = group_vars)
   events <- fastplyr::f_select(fastplyr::as_tbl(temp), .cols = event_col)
   temp <- fastplyr::f_select(temp, .cols = c(group_vars, time_col,
-                                           event_col, event_id_nm))
+                                             event_col, event_id_nm))
   time_by <- time_by_get(temp[[time_col]], time_by = time_by)
   # Create group ID variable
   grp_nm <- unique_col_name(data_nms, ".group")
@@ -299,7 +298,7 @@ time_episodes <- function(data, time, time_by = NULL,
   }
   out <- reconstruct(data, out)
   threshold <- time_by
-  threshold[[1L]] <- timespan_num(time_by) * window
+  threshold[[1L]] <- time_by_num(time_by) * window
   out <- structure(out, time = time_col, time_by = time_by, threshold = threshold)
   class(out) <- c("episodes_tbl_df", class(out))
   out
@@ -328,7 +327,7 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
     # max_episodes <- collapse::fmax(x[["ep_id_new"]], g = GRPS,
     #                                use.g.names = FALSE, na.rm = TRUE)
     n_episodes <- collapse::fsum(x[["ep_id_new"]] > 0L, g = GRPS,
-                                   use.g.names = FALSE, na.rm = TRUE)
+                                 use.g.names = FALSE, na.rm = TRUE)
     median_episodes <- collapse::fmedian(n_episodes)
     total_episodes <- sum(n_episodes)
     mean_episodes <- total_episodes / length(n_episodes)
@@ -354,18 +353,18 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
     pooled_elapsed <- collapse::fmean(elapsed, na.rm = TRUE)
     if (length(pooled_elapsed) == 0){
       pooled_string <- "NaN"
+    } else {
+      pretty_mean <- add_names(
+        list(
+          pooled_elapsed * time_by_num(attr(x, "time_by"))
+        ), time_by_unit(attr(x, "time_by"))
+      )
+      if (is.null(names(pretty_mean))){
+        pooled_string <- "NA"
       } else {
-        pretty_mean <- add_names(
-          list(
-            pooled_elapsed * timespan_num(attr(x, "time_by"))
-          ), timespan_unit(attr(x, "time_by"))
-        )
-        if (is.null(names(pretty_mean))){
-          pooled_string <- "NA"
-        } else {
-          pooled_string <- time_by_pretty(pretty_mean)
-        }
+        pooled_string <- time_by_pretty(pretty_mean)
       }
+    }
     elapsed_header <- c(
       "Time b/w events" = paste0(
         "Mean: ",
@@ -401,15 +400,14 @@ calc_episodes <- function(data,
   N <- df_nrow(data)
   lag <- min(N, 1L) # Bound lag to >= 0
   time_na <- na_init(data[[time]]) # time NA with correct class
-  time_num <- timespan_num(time_by)
-  time_unit <- timespan_unit(time_by)
+  time_num <- time_by_num(time_by)
+  time_unit <- time_by_unit(time_by)
   # Time elapsed
   data <- df_add_cols(
     data, list(
       t_elapsed = time_elapsed(data[[time]], g = g,
-                               time_by = time_by,
+                               timespan(time_by_unit(time_by), time_by_num(time_by)),
                                fill = fill,
-                               time_type = time_type,
                                rolling = roll_episode,
                                na_skip = TRUE)
     )
@@ -418,11 +416,9 @@ calc_episodes <- function(data,
   # The first event is always a new episode
   # Events where t_elapsed >= window are new episodes
   data <- df_add_cols(data, list(
-    ep_id = time_seq_id(data[[time]],
+    ep_id = time_seq_id(data[[time]], timespan(time_by_unit(time_by), time_by_num(time_by)),
                         g = g,
-                        time_by = time_by,
                         threshold = window,
-                        time_type = time_type,
                         rolling = roll_episode,
                         switch_on_boundary = switch_on_boundary,
                         na_skip = TRUE)

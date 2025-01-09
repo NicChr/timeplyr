@@ -3,26 +3,6 @@
 unit_match_stop <- function(units = .time_units){
   stop(paste0("'arg' should be one of '", paste(units, collapse = "', '"), "'"))
 }
-# The idea is that when you supply a list, no regex
-# is needed to separate out the numbers
-# This is handy with loops to reduce overhead
-unit_list_match <- function(l){
-  if (names(l) == "numeric") {
-    unit <- "numeric"
-  } else {
-    unit <- rlang::arg_match0(names(l), .time_units)
-  }
-  if (is.na(unit)) unit_match_stop()
-
-  num <- .subset2(l, 1L)
-  scale <- 1L
-  if (unit %in% .extra_time_units){
-    exotic_info <- convert_exotic_units(unit)
-    scale <- .subset2(exotic_info, "scale")
-    unit <- .subset2(exotic_info, "unit")
-  }
-  list("unit" = unit, "num" = num * scale)
-}
 # Convert exotic units to normal units
 convert_exotic_units <- function(x){
   scales <- c(2, 3, 18, 4, 5, 10, 15, 20, 100, 1000)
@@ -79,42 +59,6 @@ get_granularity <- function(x, timespan = NULL, quiet = FALSE){
     granularity(x)
   } else {
     timespan(timespan)
-  }
-}
-time_by_pretty <- function(time_by, sep = " "){
-  span <- timespan(time_by)
-  units <- timespan_unit(span)
-  num <- timespan_num(span)
-  if (length(num) > 1){
-    stop("Please supply only one numeric value in `time_by`")
-  }
-  if (!timespan_has_unit(span)){
-    if (isTRUE(num == 1)){
-      paste(num, "numeric unit", sep = " ")
-    } else {
-      pretty_num <- round(num, 2)
-      if (isTRUE(!cppdoubles::double_equal(num, pretty_num))){
-        pretty_num <- paste0("~", pretty_num)
-      }
-      paste(pretty_num, "numeric units", sep = " ")
-    }
-  } else {
-    num_seconds <- unit_to_seconds(span)
-    higher_unit_info <- seconds_to_unit(num_seconds)
-    scale <- higher_unit_info$scale
-    higher_unit <- higher_unit_info$unit
-    num <- num_seconds / scale
-    units <- higher_unit
-
-    pretty_num <- round(num, 2)
-    if (isTRUE(!cppdoubles::double_equal(num, pretty_num))){
-      pretty_num <- paste0("~", pretty_num)
-    }
-    if (isTRUE(num == 1)){
-      paste0(plural_unit_to_single(units))
-    } else {
-      paste0(pretty_num, sep, units)
-    }
   }
 }
 gcd_time_diff <- function(x){

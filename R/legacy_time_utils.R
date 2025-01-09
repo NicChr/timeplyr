@@ -1,4 +1,23 @@
-
+unit_list_match <- function(l){
+  if (length(l) != 1L) stop("l must of a list of length 1.")
+  if (names(l) == "numeric") {
+    unit <- "numeric"
+  } else {
+    unit <- rlang::arg_match0(names(l), .time_units)
+  }
+  if (is.na(unit)) unit_match_stop()
+  # if (length(unit) == 0L) stop("unit list must be named")
+  num <- .subset2(l, 1L)
+  scale <- 1L
+  if (unit %in% .extra_time_units){
+    exotic_info <- convert_exotic_units(unit)
+    scale <- .subset2(exotic_info, "scale")
+    unit <- .subset2(exotic_info, "unit")
+  }
+  list("unit" = unit,
+       "num" = num,
+       "scale" = scale)
+}
 
 time_by_list <- function(time_by){
   unit_info <- unit_guess(time_by)
@@ -43,6 +62,7 @@ check_time_by_length_is_one <- function(time_by){
     stop("Please supply only one numeric value in time_by")
   }
 }
+
 time_by_pretty <- function(time_by, sep = " "){
   time_by <- time_by_list(time_by)
   units <- names(time_by)
@@ -61,7 +81,7 @@ time_by_pretty <- function(time_by, sep = " "){
       paste(pretty_num, "numeric units", sep = " ")
     }
   } else {
-    num_seconds <- unit_to_seconds(time_by)
+    num_seconds <- unit_to_seconds2(time_by)
     higher_unit_info <- seconds_to_unit(num_seconds)
     scale <- higher_unit_info$scale
     higher_unit <- higher_unit_info$unit
@@ -182,8 +202,8 @@ time_add2 <- function(x, time_by,
     }
     if (time_type == "period"){
       unit <- plural_unit_to_single(time_unit)
-      time_add(x, periods = add_names(list(time_num), unit),
-               roll_month = roll_month, roll_dst = roll_dst)
+      timechange::time_add(x, periods = add_names(list(time_num), unit),
+                           roll_month = roll_month, roll_dst = roll_dst)
     } else {
       x + duration_unit(time_unit)(time_num)
     }
@@ -267,4 +287,105 @@ get_time_unit <- function(x){
   } else {
     "numeric"
   }
+}
+unit_guess <- function(x){
+  if (inherits(x, c("Duration", "Period"))){
+    time_unit_info <- time_unit_info(x)
+    if (length(time_unit_info) > 1L){
+      stop("Multiple period units are currently not supported.")
+    }
+    unit <- paste0(names(time_unit_info), "s")
+    num <- .subset2(time_unit_info, 1L)
+    out <- list("unit" = unit,
+                "num" = num,
+                "scale" = 1L
+    )
+    # If numeric then just return this..
+  } else if (is.numeric(x)){
+    out <- list("unit" = "numeric",
+                "num" = x,
+                "scale" = 1L
+    )
+  } else if (is.list(x)){
+    # If it's a list, string match but no parse
+    out <- unit_list_match(x)
+  } else {
+    # Try matching first as it's faster
+    unit <- unit_match(x)
+    # If that doesn't work finally try parsing
+    if (is.na(unit)){
+      out <- unit_parse2(x)
+    } else {
+      num <- 1L
+      scale <- 1L
+      # If the unit is something exotic,
+      # The num needs to be scaled correctly
+      if (unit %in% .extra_time_units){
+        exotic_info <- convert_exotic_units(unit)
+        scale <- .subset2(exotic_info, "scale")
+        unit <- .subset2(exotic_info, "unit")
+      }
+      out <- list("unit" = unit,
+                  "num" = num,
+                  "scale" = scale)
+    }
+  }
+  out
+}
+
+unit_to_seconds2 <- function(x){
+  unit_info <- unit_guess(x)
+  unit <- unit_info[["unit"]]
+  num <- unit_info[["num"]] * unit_info[["scale"]]
+  scales <- c(1/1000/1000/1000/1000, # Pico
+              1/1000/1000/1000, # Nano
+              1/1000/1000, # Micro
+              1/1000, # Milli
+              1, # Second
+              60, # Hour
+              3600, # Minute
+              86400, # Day
+              604800, # Week
+              2629800, # Month
+              31557600) # Year
+  unit_match <- match(unit, .duration_units)
+  if (is.na(unit_match)){
+    unit_match_stop(.duration_units)
+  }
+  num * scales[unit_match]
+}
+
+unit_parse2 <- function(x){
+  # Extract numbers from string
+  # Try decimal numbers
+  num_str <- regmatches(x, m = regexpr(pattern = ".*[[:digit:]]*\\.[[:digit:]]+",
+                                       text = x))
+  # If not try regular numbers
+  if (length(num_str) == 0L){
+    num_str <- regmatches(x, m = regexpr(pattern = ".*[[:digit:]]+",
+                                         text = x))
+  }
+  num <- as.numeric(num_str)
+  if (length(num) == 0L){
+    num <- 1L
+  }
+  if (is_whole_number(num) && is_integerable(num)){
+    num <- as.integer(num)
+  }
+  scale <- 1L
+  if (length(num_str) > 0L){
+    x <- sub(num_str, "", x, fixed = TRUE) # Remove numbers
+  }
+  x <- gsub(" ", "", x, fixed = TRUE) # Remove whitespace
+  unit <- unit_match(x)
+  if (is.na(unit)) unit_match_stop()
+  if (unit %in% .extra_time_units){
+    exotic_info <- convert_exotic_units(unit)
+    scale <- .subset2(exotic_info, "scale")
+    unit <- .subset2(exotic_info, "unit")
+  }
+  out <- list("unit" = unit,
+              "num" = num,
+              "scale" = scale)
+  out
 }

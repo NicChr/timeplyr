@@ -162,7 +162,7 @@ collapse::set_collapse(nthreads = 1L)
 events <- flights \%>\%
   mutate(date = as_date(time_hour)) \%>\%
   group_by(origin, dest) \%>\%
-  time_episodes(date, time_by = "week", window = 1)
+  time_episodes(date, "week", window = 1)
 
 events
 
@@ -174,9 +174,8 @@ nrow(fastplyr::f_distinct(episodes, origin, dest)) # 55 origin-destinations
 # dry-periods
 episodes \%>\%
   ungroup() \%>\%
-  time_by(ep_start, time_by = "week",
-          .name = "ep_start", as_interval = FALSE) \%>\%
-  count() \%>\%
+  time_by(ep_start, "week", .name = "ep_start") \%>\%
+  count(ep_start = interval_start(ep_start)) \%>\%
   ggplot(aes(x = ep_start, y = n)) +
   geom_bar(stat = "identity")
 \dontshow{

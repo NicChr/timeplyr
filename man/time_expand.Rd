@@ -25,14 +25,20 @@ time_expand(
 
 time_complete(
   data,
+  time = NULL,
   ...,
   .by = NULL,
   time_by = NULL,
   from = NULL,
   to = NULL,
+  time_type = getOption("timeplyr.time_type", "auto"),
+  time_floor = FALSE,
+  week_start = getOption("lubridate.week.start", 1),
   expand_type = NULL,
   sort = TRUE,
-  fill = NA
+  fill = NA,
+  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_dst = getOption("timeplyr.roll_dst", "NA")
 )
 
 \method{expand}{time_tbl_df}(data, ..., .from = NULL, .to = NULL, .sort = TRUE)

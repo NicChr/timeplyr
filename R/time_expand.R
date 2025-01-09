@@ -205,11 +205,22 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
 }
 #' @rdname time_expand
 #' @export
-time_complete <- function(data, ..., .by = NULL,
-                              time_by = NULL, from = NULL, to = NULL,
-                              expand_type = NULL,
-                              sort = TRUE,
-                              fill = NA){
+time_complete <- function(data, time = NULL, ..., .by = NULL,
+                          time_by = NULL, from = NULL, to = NULL,
+                          time_type = getOption("timeplyr.time_type", "auto"),
+                          time_floor = FALSE,
+                          week_start = getOption("lubridate.week.start", 1),
+                          expand_type = NULL,
+                          sort = TRUE,
+                          fill = NA,
+                          roll_month = getOption("timeplyr.roll_month", "preday"),
+                          roll_dst = getOption("timeplyr.roll_dst", "NA")){
+  if (!is.null(expand_type)){
+    lifecycle::deprecate_soft(
+      "0.9.0",
+      "time_complete(expand_type)"
+    )
+  }
   check_is_df(data)
   time_type <- match_time_type(time_type)
   group_vars <- get_groups(data, {{ .by }})
@@ -247,8 +258,8 @@ time_complete <- function(data, ..., .by = NULL,
     }
     if (sort){
       out <- fastplyr::f_arrange(out, .cols = c(group_vars, time_var,
-                                     setdiff(names(expanded_df),
-                                             c(group_vars, time_var))))
+                                                setdiff(names(expanded_df),
+                                                        c(group_vars, time_var))))
     }
   }
   # Replace NA with fill
@@ -287,15 +298,14 @@ expand.time_tbl_df <- function(data, ..., .from = NULL, .to = NULL, .sort = TRUE
   # Remove duplicate cols
   from_data <- df_ungroup(from_info[["data"]])
   to_data <- df_ungroup(to_info[["data"]])
-  time_data <- fastplyr::f_select(dplyr::ungroup(data), .cols = time_var)
+  group_data <- fastplyr::f_select(fastplyr::f_ungroup(data), .cols = group_vars)
+  time_data <- fastplyr::f_select(fastplyr::f_ungroup(data), .cols = time_var)
   time_data <- dplyr::mutate(time_data, dplyr::across(dplyr::everything(), interval_start))
-  from_data <- fastplyr::f_select(from_data,
-                                  .cols = which(match(names(from_data), names(time_data), 0L) == 0L))
-  to_data <- fastplyr::f_select(to_data,
-                                .cols = which(match(names(to_data), names(time_data), 0L) == 0L))
-  out <- fastplyr::f_bind_cols(time_data, from_data, to_data)
+  from_data <- fastplyr::f_select(from_data, -all_of(group_vars))
+  to_data <- fastplyr::f_select(to_data, -all_of(group_vars))
+  out <- fastplyr::f_bind_cols(group_data, time_data, from_data, to_data)
   if (length(time_var) > 0){
-    timespan <- time_tbl_width(data)
+    timespan <- interval_width(data[[time_var]])
     # Ordered group ID
     grp_nm <- unique_col_name(out, ".group.id")
     out[[grp_nm]] <- group_ids
@@ -336,7 +346,7 @@ expand.time_tbl_df <- function(data, ..., .from = NULL, .to = NULL, .sort = TRUE
     out[[time_var]] <- time_seq
     out <- df_rm_cols(out, grp_nm)
     if (dots_length(...) > 0){
-      expanded_df <- fastplyr::f_expand(data, ..., .sort = FALSE)
+      expanded_df <- fastplyr::f_expand(temp_data, ..., .sort = FALSE)
       expanded_nms <- names(expanded_df)
       if (df_nrow(expanded_df) > 0L){
         # If there are no common cols, just cross join them
@@ -362,7 +372,7 @@ expand.time_tbl_df <- function(data, ..., .from = NULL, .to = NULL, .sort = TRUE
       out <- fastplyr::f_arrange(out, .cols = sort_nms)
     }
   } else {
-    out <- fastplyr::f_expand(data, ..., .sort = sort)
+    out <- fastplyr::f_expand(temp_data, ..., .sort = sort)
   }
   out[[time_var]] <- new_time_interval(out[[time_var]], interval_width(data[[time_var]]))
   reconstruct(data, out)

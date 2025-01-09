@@ -9,14 +9,12 @@
 interval_start <- function(x){
   UseMethod("interval_start")
 }
-rm_intv_class <- function(x){
-  class(x) <- cheapr::val_rm(class(x), "time_interval")
-  x
-}
 #' @export
 interval_start.time_interval <- function(x){
-  out <- rm_intv_class(x)
+  out <- x
   attr(out, "timespan") <- NULL
+  attr(out, "old_class") <- NULL
+  class(out) <- attr(x, "old_class")
   out
 }
 #' @export
