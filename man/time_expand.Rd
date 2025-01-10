@@ -3,7 +3,6 @@
 \name{time_expand}
 \alias{time_expand}
 \alias{time_complete}
-\alias{expand.time_tbl_df}
 \title{A time based extension to \code{tidyr::complete()}.}
 \usage{
 time_expand(
@@ -40,8 +39,6 @@ time_complete(
   roll_month = getOption("timeplyr.roll_month", "preday"),
   roll_dst = getOption("timeplyr.roll_dst", "NA")
 )
-
-\method{expand}{time_tbl_df}(data, ..., .from = NULL, .to = NULL, .sort = TRUE)
 }
 \arguments{
 \item{data}{A data frame.}

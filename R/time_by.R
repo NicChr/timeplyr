@@ -95,12 +95,13 @@ time_by <- function(data, time, width = NULL, .name = NULL, .add = TRUE){
   out
 }
 
+#' @rdname time_by
 #' @export
-time_tbl_time_col <- function(x, ...){
+time_tbl_time_col <- function(x){
   UseMethod("time_tbl_time_col")
 }
 #' @export
-time_tbl_time_col.time_tbl_df <- function(x, ...){
+time_tbl_time_col.time_tbl_df <- function(x){
   attr(x, "time")
 }
 

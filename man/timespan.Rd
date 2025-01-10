@@ -25,6 +25,8 @@ timespan_num(x)
 \item{num}{Number of units. E.g. \code{units = "days"} and \code{num = 3} produces
 a timespan width of 3 days.}
 
+\item{...}{Further arguments passed onto methods.}
+
 \item{x}{A \link{timespan}.}
 }
 \value{

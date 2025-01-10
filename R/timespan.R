@@ -31,6 +31,7 @@ timespan_has_unit <- function(x){
 #' @param num Number of units. E.g. `units = "days"` and `num = 3` produces
 #' a timespan width of 3 days.
 #' @param x A [timespan].
+#' @param ... Further arguments passed onto methods.
 #'
 #' @returns
 #' A [timespan] object.
@@ -76,7 +77,7 @@ new_timespan <- function(units, num = 1L){
 }
 #' @export
 timespan.NULL <- function(units, num = 1L, ...){
-  new_timespan("unit" = NA_character_, "num" = num)
+  new_timespan(NA_character_, num)
 }
 #' @export
 timespan.logical <- function(units, num = 1L, ...){
@@ -87,7 +88,7 @@ timespan.numeric <- function(units, num = 1L, ...){
   # if (length(units) == 1 && is.na(units)){
   #   new_timespan("unit" = NA_character_, "num" = num)
   # } else {
-    new_timespan("unit" = NA_character_, "num" = units * num)
+    new_timespan(NA_character_, units * num)
   # }
 }
 #' @export
@@ -120,7 +121,7 @@ timespan.character <- function(units, num = 1L, ...){
     cli::cli_abort("{.arg units} must be of length 1")
   }
   if (is.na(units)){
-    return(new_timespan("unit" = NA_character_, "num" = num))
+    return(new_timespan(NA_character_, num))
   }
   unit <- unit_match(units)
   # If that doesn't work finally try parsing

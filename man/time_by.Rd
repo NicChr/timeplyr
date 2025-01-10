@@ -2,9 +2,12 @@
 % Please edit documentation in R/time_by.R
 \name{time_by}
 \alias{time_by}
+\alias{time_tbl_time_col}
 \title{Group by a time variable at a higher time unit}
 \usage{
 time_by(data, time, width = NULL, .name = NULL, .add = TRUE)
+
+time_tbl_time_col(x)
 }
 \arguments{
 \item{data}{A data frame.}

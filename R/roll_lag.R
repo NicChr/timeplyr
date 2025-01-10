@@ -100,11 +100,11 @@ roll_lag.ts <- function(x, n = 1L, g = NULL, fill = NULL, ...){
       g <- sorted_group_id_to_GRP(col_groups, n_groups = ncols, group_sizes = group_sizes,
                                   group.starts = FALSE)
     } else {
-      user_groups <- rep(group_id(g, .cols = seq_along(g)), ncols)
-      g <- GRP2(list_rm_null(list(col_groups, user_groups)))
+      user_groups <- rep(fastplyr::group_id(g), ncols)
+      g <- GRP2(fastplyr::list_tidy(col_groups, user_groups, .keep_null = FALSE))
     }
   }
-  out <- roll_lag(strip_attrs(x), n = n, g = g, fill = fill, ...)
+  out <- roll_lag.default(x, n = n, g = g, fill = fill, ...)
   attributes(out) <- attributes(x)
   out
 }
@@ -144,8 +144,8 @@ roll_diff.ts <- function(x, n = 1L, g = NULL, fill = NULL, differences = 1L, ...
       g <- sorted_group_id_to_GRP(col_groups, n_groups = ncols, group_sizes = group_sizes,
                                   group.starts = FALSE)
     } else {
-      user_groups <- rep(group_id(g, .cols = seq_along(g)), ncols)
-      g <- GRP2(list_rm_null(list(col_groups, user_groups)))
+      user_groups <- rep(fastplyr::group_id(g), ncols)
+      g <- GRP2(fastplyr::list_tidy(col_groups, user_groups, .keep_null = FALSE))
     }
   }
   out <- roll_diff.default(x, n = n, g = g,

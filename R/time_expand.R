@@ -280,8 +280,6 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
 }
 
 #' @importFrom tidyr expand
-#' @rdname time_expand
-#' @export
 expand.time_tbl_df <- function(data, ..., .from = NULL, .to = NULL, .sort = TRUE){
   time_var <- time_tbl_time_col(data)
   group_vars <- setdiff(get_groups(data), time_var)

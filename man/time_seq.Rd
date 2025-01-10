@@ -35,9 +35,11 @@ time_seq_v2(
 )
 }
 \arguments{
-\item{from}{Start date/datetime of sequence.}
+\item{from}{Start time.}
 
-\item{to}{End date/datetime of sequence.}
+\item{to}{End time.}
+
+\item{timespan}{\link{timespan}.}
 
 \item{length.out}{Length of the sequence.}
 
@@ -49,29 +51,6 @@ See \code{?timechange::time_add} for more details.}
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
 
 \item{sizes}{Time sequence sizes.}
-
-\item{time_by}{Time unit increment. \cr
-Must be one of the three:
-\itemize{
-\item string, specifying either the unit or the number and unit, e.g
-\code{time_by = "days"} or \code{time_by = "2 weeks"}
-\item named list of length one, the unit being the name, and
-the number the value of the list, e.g. \code{list("days" = 7)}.
-For the vectorized time functions, you can supply multiple values,
-e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{time_by = 1}.
-}}
-
-\item{time_floor}{Should \code{from} be floored to
-the nearest unit specified through the \code{time_by}
-argument? This is particularly useful for
-starting sequences at the beginning of a week
-or month for example.}
-
-\item{week_start}{day on which week starts following ISO conventions - 1
-means Monday (default), 7 means Sunday.
-This is only used when \code{time_floor = TRUE}.}
 }
 \value{
 \code{time_seq} returns a time sequence. \cr

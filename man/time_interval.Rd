@@ -3,11 +3,23 @@
 \name{time_interval}
 \alias{time_interval}
 \alias{is_time_interval}
+\alias{new_time_interval}
+\alias{interval_start}
+\alias{interval_end}
+\alias{interval_width}
 \title{S3-based Time Intervals (Currently very experimental and so subject to change)}
 \usage{
 time_interval(start = integer(), width = resolution(start))
 
 is_time_interval(x)
+
+new_time_interval(start, width)
+
+interval_start(x)
+
+interval_end(x)
+
+interval_width(x)
 }
 \arguments{
 \item{start}{Start time. \cr
@@ -27,6 +39,8 @@ An object of class \code{time_interval}. \cr
 \code{interval_start} returns the start times. \cr
 \code{interval_end} returns the end times. \cr
 \code{interval_count} returns a data frame of unique intervals and their counts. \cr
+\code{new_time_interval} is a bare-bones version of \code{time_interval()} that
+performs no checks.
 }
 \description{
 Inspired by both 'lubridate' and 'ivs',
@@ -41,6 +55,10 @@ one can't use time intervals directly with lubridate periods.
 To navigate around this, \code{timeplyr::timespan()} can be used.
 e.g. instead of \code{interval / weeks(3)}, use \code{interval / timespan(weeks(3))}
 or even \code{interval / "3 weeks"}. where \code{interval} is a \code{time_interval}.
+
+To perform interval algebra it is advised to use the 'ivs' package.
+To convert a \code{time_interval} into an \code{ivs_iv}, use
+\code{ivs::iv(interval_start(x), interval_end(x))}.
 }
 \examples{
 library(dplyr)

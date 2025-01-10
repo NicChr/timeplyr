@@ -573,7 +573,7 @@ time_roll_window_size <- function(time, window = timespan(Inf),
   }
   if (!partial){
     elapsed <- abs(
-      time_elapsed(time, unit_time_by, g = sorted_g, rolling = FALSE)
+      time_elapsed(time, unit_time_by, g = g, rolling = FALSE)
     )
 
     # Calculate the granularity of cumulative elapsed time

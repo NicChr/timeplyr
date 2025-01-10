@@ -12,9 +12,6 @@
 #' This can for example be a vector or data frame.
 #' `g` is passed directly to `collapse::GRP()`.
 #' @param na_skip Should `NA` values be skipped? Default is `TRUE`.
-#' @param time_type If "auto", `periods` are used for
-#' the time expansion when days, weeks, months or years are specified,
-#' and `durations` are used otherwise.
 #' @param shift Value used to shift the time IDs. Typically this is 1 to ensure the
 #' IDs start at 1 but can be 0 or even negative if for example
 #' your time values are going backwards in time.

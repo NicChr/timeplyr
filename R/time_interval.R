@@ -23,6 +23,9 @@
 #' e.g. instead of `interval / weeks(3)`, use `interval / timespan(weeks(3))`
 #' or even `interval / "3 weeks"`. where `interval` is a `time_interval`.
 #'
+#' To perform interval algebra it is advised to use the 'ivs' package.
+#' To convert a `time_interval` into an `ivs_iv`, use
+#' `ivs::iv(interval_start(x), interval_end(x))`.
 #'
 #' @returns
 #' An object of class `time_interval`. \cr
@@ -30,6 +33,8 @@
 #' `interval_start` returns the start times. \cr
 #' `interval_end` returns the end times. \cr
 #' `interval_count` returns a data frame of unique intervals and their counts. \cr
+#' `new_time_interval` is a bare-bones version of `time_interval()` that
+#' performs no checks.
 #'
 #' @seealso [interval_start]
 #'
@@ -75,6 +80,11 @@ time_interval <- function(start = integer(), width = resolution(start)){
     resolution <- resolution(start)
     timespan[["unit"]] <- timespan_unit(resolution)
   }
+
+  if (inherits(start, "POSIXlt")){
+    start <- as.POSIXct(start)
+  }
+
   new_time_interval(start, timespan)
 }
 #' @rdname time_interval
@@ -95,17 +105,18 @@ check_valid_time_interval <- function(x){
   }
 }
 
-# Like time_interval() but no checks or recycling
-new_time_interval <- function(start, timespan){
+#' @rdname time_interval
+#' @export
+new_time_interval <- function(start, width){
   out <- start
-  attr(out, "timespan") <- timespan
+  attr(out, "timespan") <- width
   class(out) <- "time_interval"
   attr(out, "old_class") <- oldClass(start)
   out
 }
 #' @export
 `[.time_interval` <- function(x, ...){
-  new_time_interval(`class<-`(x, attr(x, "old_class"))[...], interval_width(x))
+  new_time_interval(`class<-`(x, attr(x, "old_class"))[...], attr(x, "timespan"))
 }
 #' @export
 c.time_interval <- function(...){
@@ -149,7 +160,7 @@ rep.time_interval <- function(x, ...){
     interval_width(x)
   )
 }
-#' @export
+#' @exportS3Method base::rep_len
 rep_len.time_interval <- function(x, ...){
   new_time_interval(
     rep_len(interval_start(x), ...),
@@ -288,4 +299,45 @@ intv_span_abbr_cli <- function(x){
 pillar_shaft.time_interval <- function(x, ...) {
   out <- as.character(x)
   pillar::new_pillar_shaft_simple(out, align = "left")
+}
+
+#' @rdname time_interval
+#' @export
+interval_start <- function(x){
+  UseMethod("interval_start")
+}
+#' @export
+interval_start.time_interval <- function(x){
+  out <- x
+  attr(out, "timespan") <- NULL
+  attr(out, "old_class") <- NULL
+  class(out) <- attr(x, "old_class")
+  out
+}
+#' @export
+interval_start.Interval <- function(x){
+  attr(x, "start", TRUE)
+}
+#' @rdname time_interval
+#' @export
+interval_end <- function(x){
+  UseMethod("interval_end")
+}
+#' @export
+interval_end.time_interval <- function(x){
+  time_add(interval_start(x), interval_width(x))
+
+}
+#' @export
+interval_end.Interval <- function(x){
+  interval_start(x) + strip_attrs(unclass(x))
+}
+#' @rdname time_interval
+#' @export
+interval_width <- function(x){
+  UseMethod("interval_width")
+}
+#' @export
+interval_width.time_interval <- function(x){
+  attr(x, "timespan")
 }

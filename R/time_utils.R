@@ -191,9 +191,7 @@ period_by_calc <- function(from, to, length){
 # a certain length
 duration_by_calc <- function(from, to, length){
   seconds_unit <- duration_unit("seconds")
-  sec_diff <- time_diff(from, to,
-                        time_by = list("seconds" = 1),
-                        time_type = "duration")
+  sec_diff <- time_diff(from, to, new_timespan("seconds", 1L))
   out <- seconds_unit(sec_diff / (length - 1))
   length <- rep_len(length, length(out))
   out[cheapr::val_find(length, 1)] <- seconds_unit(0) # Special case
@@ -388,11 +386,6 @@ as_yearqtr <- function(x){
     structure(floor(4 * x + 0.001)/4, class = "yearqtr")
   }
 }
-is_interval <- function(x){
-  (isS4(x) && inherits(x, "Interval")) ||
-    inherits(x, "time_interval")
-}
-
 # Internal helper to process from/to args
 get_from_to <- function(data, ..., time, from = NULL, to = NULL,
                         .by = NULL){
@@ -445,8 +438,8 @@ time_add <- function(x, timespan,
   }
 }
 time_subtract <- function(x, timespan,
-                     roll_month = getOption("timeplyr.roll_month", "preday"),
-                     roll_dst = getOption("timeplyr.roll_dst", "NA")){
+                          roll_month = getOption("timeplyr.roll_month", "preday"),
+                          roll_dst = getOption("timeplyr.roll_dst", "NA")){
 
   span <- timespan(timespan)
   num <- timespan_num(span)

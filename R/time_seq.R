@@ -21,27 +21,10 @@
 #' function to calculate time sequence lengths, given start/end times.
 #'
 #'
-#' @param from Start date/datetime of sequence.
-#' @param to End date/datetime of sequence.
-#' @param time_by Time unit increment. \cr
-#' Must be one of the three:
-#' * string, specifying either the unit or the number and unit, e.g
-#' `time_by = "days"` or `time_by = "2 weeks"`
-#' * named list of length one, the unit being the name, and
-#' the number the value of the list, e.g. `list("days" = 7)`.
-#' For the vectorized time functions, you can supply multiple values,
-#' e.g. `list("days" = 1:10)`.
-#' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-#' then arithmetic is used, e.g `time_by = 1`.
+#' @param timespan [timespan].
+#' @param from Start time.
+#' @param to End time.
 #' @param length.out Length of the sequence.
-#' @param time_floor Should `from` be floored to
-#' the nearest unit specified through the `time_by`
-#' argument? This is particularly useful for
-#' starting sequences at the beginning of a week
-#' or month for example.
-#' @param week_start day on which week starts following ISO conventions - 1
-#' means Monday (default), 7 means Sunday.
-#' This is only used when `time_floor = TRUE`.
 #' @param roll_month Control how impossible dates are handled when
 #' month or year arithmetic is involved.
 #' Options are "preday", "boundary", "postday", "full" and "NA".

@@ -51,6 +51,10 @@ resolution.POSIXt <- function(x, ...){
   new_timespan("seconds", `storage.mode<-`(1L, storage.mode(x)))
 }
 #' @export
+resolution.POSIXlt <- function(x, ...){
+  new_timespan("seconds", 1)
+}
+#' @export
 resolution.year_month <- function(x, ...){
   new_timespan(NA_character_, 1L)
 }
