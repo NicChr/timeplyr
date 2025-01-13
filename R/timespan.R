@@ -85,11 +85,7 @@ timespan.logical <- function(units, num = 1L, ...){
 }
 #' @export
 timespan.numeric <- function(units, num = 1L, ...){
-  # if (length(units) == 1 && is.na(units)){
-  #   new_timespan("unit" = NA_character_, "num" = num)
-  # } else {
-    new_timespan(NA_character_, units * num)
-  # }
+  new_timespan(NA_character_, units * num)
 }
 #' @export
 timespan.Duration <- function(units, num = 1L, ...){
@@ -145,7 +141,7 @@ timespan.character <- function(units, num = 1L, ...){
 }
 #' @export
 timespan.timespan <- function(units, num = 1L, ...){
-  units[["num"]] <- units[["num"]] * num
+  units[[2L]] <- timespan_num(units) * num
   units
 }
 
@@ -163,16 +159,13 @@ print.timespan <- function(x, ...){
   check_valid_timespan(x)
   unit <- timespan_unit(x)
   num <- timespan_num(x)
-  if (is.null(unit) || is.na(unit) || unit == "numeric" || !nzchar(unit)){
-    unit <- ""
-  }
-  cat(paste0("<", "Timespan:", unit, ">\n"))
+  cat(paste0("<", "Timespan:", cheapr::na_rm(unit), ">\n"))
   print(num)
   invisible(x)
 }
 #' @export
 length.timespan <- function(x){
-  length(.subset2(x, "num"))
+  length(.subset2(x, 2L))
 }
 #' @rdname timespan
 #' @export
@@ -182,12 +175,12 @@ is_timespan <- function(x){
 #' @rdname timespan
 #' @export
 timespan_unit <- function(x){
-  x[["unit"]]
+  x[[1L]]
 }
 #' @rdname timespan
 #' @export
 timespan_num <- function(x){
-  x[["num"]]
+  x[[2L]]
 }
 
 
@@ -271,7 +264,6 @@ new_period_timespan <- function(years = 0L,
     minutes = minutes,
     seconds = seconds
   )
-  # class(out) <- c("period", "timespan", "vctrs_rcrd", "vctrs_vctr")
   out
 }
 timespan_abbr <- function(x, short = FALSE){
@@ -337,4 +329,73 @@ as.double.timespan <- function(x, ...){
 #' @export
 as.integer.timespan <- function(x, ...){
   as.integer(timespan_num(x))
+}
+
+#' @export
+`[.timespan` <- function(x, ...){
+  new_timespan(timespan_unit(x), timespan_num(x)[...])
+}
+#' @export
+c.timespan <- function(...){
+  dots <- list(...)
+  span <- dots[[1L]]
+  span_unit <- timespan_unit(span)
+  span_num <- timespan_num(span)
+  for (i in seq_along(dots)){
+    dot <- dots[[i]]
+    if (!is_timespan(dot)){
+      cli::cli_abort("Cannot combine {.cls timespan} with {.cls {class(dot)}}")
+    }
+    if (!identical(span_unit, timespan_unit(dot))){
+      cli::cli_abort(
+        "Cannot combine {.cls timespan} of unit '{timespan_unit(dot)}'
+        with {.cls timespan} of unit '{span_unit}'"
+      )
+    }
+    dots[[i]] <- timespan_num(dot)
+  }
+  out <- do.call(c, dots, envir = parent.frame())
+  new_timespan(span_unit, out)
+}
+#' @export
+unique.timespan <- function(x, incomparables = FALSE, ...){
+  new_timespan(
+    timespan_unit(x),
+    unique(timespan_num(x), incomparables = incomparables, ...)
+  )
+}
+#' @export
+rep.timespan <- function(x, ...){
+  new_timespan(
+    timespan_unit(x),
+    rep(timespan_num(x), ...)
+  )
+}
+#' @exportS3Method base::rep_len
+rep_len.timespan <- function(x, length.out){
+  new_timespan(
+    timespan_unit(x),
+    rep_len(timespan_num(x), length.out)
+  )
+}
+
+#' @exportS3Method vctrs::vec_proxy
+vec_proxy.timespan <- function(x, ...){
+  out <- list(timespan_num(x))
+  names(out) <- timespan_unit(x)
+  list_as_df(out)
+}
+#' @exportS3Method vctrs::vec_restore
+vec_restore.timespan <- function(x, to, ...){
+  new_timespan(timespan_unit(to), x[[1L]])
+}
+#' @exportS3Method pillar::pillar_shaft
+pillar_shaft.timespan <- function(x, ...) {
+  out <- timespan_num(x)
+  pillar::new_pillar_shaft_simple(out, align = "left")
+}
+
+#' @exportS3Method vctrs::vec_ptype_abbr
+vec_ptype_abbr.timespan <- function(x, ...){
+  paste0("Timespan:", cheapr::na_rm(timespan_unit(x)))
 }

@@ -74,11 +74,12 @@ time_interval <- function(start = integer(), width = resolution(start)){
     cli::cli_abort("{.arg width} must be a positive-valued timespan")
   }
 
-  # Basically if width is unitless (e.g. width = 10)
+  # Basically if width is unit-less (e.g. width = 10)
   # Then we use the unit of the time resolution
   if (!timespan_has_unit(timespan)){
     resolution <- resolution(start)
     timespan[["unit"]] <- timespan_unit(resolution)
+    # names(timespan) <- timespan_unit(resolution)
   }
 
   if (inherits(start, "POSIXlt")){
@@ -132,8 +133,8 @@ c.time_interval <- function(...){
       cli::cli_abort("Cannot combine {.cls time_interval} with {.cls {class(dot)}}")
     }
     class(dots[[i]]) <- attr(dot, "old_class")
-    if (!identical(span_unit, attr(dot, "timespan")[["unit"]]) ||
-        span_num != attr(dot, "timespan")[["num"]]){
+    if (!identical(span_unit, timespan_unit(attr(dot, "timespan"))) ||
+        span_num != timespan_num(attr(dot, "timespan"))){
      cli::cli_abort(c(
      " " = "{.cls time_interval} {i} with width {interval_width(dot)}",
      "must match the width of",
@@ -161,9 +162,9 @@ rep.time_interval <- function(x, ...){
   )
 }
 #' @exportS3Method base::rep_len
-rep_len.time_interval <- function(x, ...){
+rep_len.time_interval <- function(x, length.out){
   new_time_interval(
-    rep_len(interval_start(x), ...),
+    rep_len(interval_start(x), length.out),
     interval_width(x)
   )
 }
@@ -294,8 +295,7 @@ intv_span_abbr_cli <- function(x){
   )
 }
 
-#' @importFrom pillar pillar_shaft
-#' @export
+#' @exportS3Method pillar::pillar_shaft
 pillar_shaft.time_interval <- function(x, ...) {
   out <- as.character(x)
   pillar::new_pillar_shaft_simple(out, align = "left")
