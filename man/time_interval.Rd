@@ -7,6 +7,8 @@
 \alias{interval_start}
 \alias{interval_end}
 \alias{interval_width}
+\alias{interval_count}
+\alias{interval_range}
 \title{S3-based Time Intervals (Currently very experimental and so subject to change)}
 \usage{
 time_interval(start = integer(), width = resolution(start))
@@ -20,6 +22,10 @@ interval_start(x)
 interval_end(x)
 
 interval_width(x)
+
+interval_count(x)
+
+interval_range(x)
 }
 \arguments{
 \item{start}{Start time. \cr
@@ -38,7 +44,9 @@ An object of class \code{time_interval}. \cr
 \code{is_time_interval} returns a logical of length 1. \cr
 \code{interval_start} returns the start times. \cr
 \code{interval_end} returns the end times. \cr
+\code{interval_width} returns the width of the interval as a \link{timespan}. \cr
 \code{interval_count} returns a data frame of unique intervals and their counts. \cr
+\code{interval_range} returns a the range of the interval. \cr
 \code{new_time_interval} is a bare-bones version of \code{time_interval()} that
 performs no checks.
 }

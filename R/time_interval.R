@@ -32,7 +32,9 @@
 #' `is_time_interval` returns a logical of length 1. \cr
 #' `interval_start` returns the start times. \cr
 #' `interval_end` returns the end times. \cr
+#' `interval_width` returns the width of the interval as a [timespan]. \cr
 #' `interval_count` returns a data frame of unique intervals and their counts. \cr
+#' `interval_range` returns a the range of the interval. \cr
 #' `new_time_interval` is a bare-bones version of `time_interval()` that
 #' performs no checks.
 #'
@@ -339,4 +341,24 @@ interval_width <- function(x){
 #' @export
 interval_width.time_interval <- function(x){
   attr(x, "timespan")
+}
+#' @rdname time_interval
+#' @export
+interval_count <- function(x){
+  UseMethod("interval_count")
+}
+#' @export
+interval_count.time_interval <- function(x){
+  new_tbl(interval = x) %>%
+    fastplyr::f_count(.cols = 1L, .order = TRUE)
+}
+#' @rdname time_interval
+#' @export
+interval_range <- function(x){
+  UseMethod("interval_range")
+}
+#' @export
+interval_range.time_interval <- function(x){
+  rng <- collapse::frange(x, na.rm = TRUE)
+  c(interval_start(rng[1]), interval_end(rng[2]))
 }

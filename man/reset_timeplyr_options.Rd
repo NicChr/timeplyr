@@ -8,27 +8,8 @@ reset_timeplyr_options()
 }
 \value{
 Resets the timeplyr global options (prefixed with \code{"timeplyr."}): \cr
-time_type, roll_month, roll_dst, interval_style,
-interval_sub_formatter and use_intervals.
+roll_month & roll_dst.
 }
 \description{
-One can set global options to be used in timeplyr. These options include:
-\itemize{
-\item time_type - Controls whether to use periods, durations or to decide automatically.
-\item roll_month - Controls how to roll forward or backward impossible calendar days.
-\item roll_dst - Controls how to roll forward or backward impossible date-times.
-\item interval_style - Controls how \code{time_interval} objects are formatted.
-\item interval_sub_formatter - A function to format the start and end times of a \code{time_interval}.
-\item use_intervals - Controls whether \code{time_intervals} are
-returned whenever dates or date-times are aggregated. If this is \code{FALSE}
-the start time (or left-hand side) is always returned.
-}
-}
-\examples{
-library(timeplyr)
-options(timeplyr.interval_style = "start")
-getOption("timeplyr.interval_style")
-reset_timeplyr_options()
-getOption("timeplyr.interval_style")
-
+Reset 'timeplyr' options
 }
