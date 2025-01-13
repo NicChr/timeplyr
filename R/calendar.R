@@ -77,10 +77,9 @@ calendar <- function(x, label = TRUE,
     second <- NULL
   }
   out <- fastplyr::new_tbl(
-    x, year, quarter, month, month_l, week, day,
+    !!name := x, year, quarter, month, month_l, week, day,
     yday, isoyear, isoweek, isoday, epiyear, epiweek, wday, wday_l,
     hour, minute, second
   )
-  names(out)[1] <- name
   out
 }

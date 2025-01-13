@@ -142,10 +142,7 @@ flights and average arrival delay
 flights_monthly |>
   f_summarise(n = n(),
             mean_arr_delay = mean(arr_delay, na.rm = TRUE))
-#> # A tibble: 12 x 3
-#> # Time:     date [1]
-#> # Width:    month
-#> # Range:    2013-01-01 -- 2014-01-01
+#> # A tibble: 12 × 3
 #>    date                  n mean_arr_delay
 #>    <tm_ntrvl>        <int>          <dbl>
 #>  1 [2013-01-01, +1M) 27004          6.13 
@@ -228,20 +225,20 @@ start <- dmy("17-Jan-2013")
 flights |> 
   mutate(week = time_cut_width(date, from = floor_date(start, unit = "week"))) |> 
   f_count(week)
-#> # A tibble: 365 × 2
+#> # A tibble: 354 × 2
 #>    week                  n
 #>    <tm_ntrvl>        <int>
-#>  1 [2013-01-01, +1D)   842
-#>  2 [2013-01-02, +1D)   943
-#>  3 [2013-01-03, +1D)   914
-#>  4 [2013-01-04, +1D)   915
-#>  5 [2013-01-05, +1D)   720
-#>  6 [2013-01-06, +1D)   832
-#>  7 [2013-01-07, +1D)   933
-#>  8 [2013-01-08, +1D)   899
-#>  9 [2013-01-09, +1D)   902
-#> 10 [2013-01-10, +1D)   932
-#> # ℹ 355 more rows
+#>  1 [2013-01-13, +1D)   828
+#>  2 [2013-01-14, +1D)   928
+#>  3 [2013-01-15, +1D)   894
+#>  4 [2013-01-16, +1D)   901
+#>  5 [2013-01-17, +1D)   927
+#>  6 [2013-01-18, +1D)   924
+#>  7 [2013-01-19, +1D)   674
+#>  8 [2013-01-20, +1D)   786
+#>  9 [2013-01-21, +1D)   912
+#> 10 [2013-01-22, +1D)   890
+#> # ℹ 344 more rows
 ```
 
 #### Check for missing gaps in time
@@ -521,7 +518,7 @@ seq(start, end, by = "month") # Base R version
 #>  [1] "2020-01-31" "2020-03-02" "2020-03-31" "2020-05-01" "2020-05-31"
 #>  [6] "2020-07-01" "2020-07-31" "2020-08-31" "2020-10-01" "2020-10-31"
 #> [11] "2020-12-01" "2020-12-31" "2021-01-31"
-time_seq(start, end, "month") # lubridate version
+time_seq(start, end, "month") # lubridate version 
 #>  [1] "2020-01-31" "2020-02-29" "2020-03-31" "2020-04-30" "2020-05-31"
 #>  [6] "2020-06-30" "2020-07-31" "2020-08-31" "2020-09-30" "2020-10-31"
 #> [11] "2020-11-30" "2020-12-31" "2021-01-31"
@@ -602,11 +599,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2025-W02"
+#> [1] "2025-W03"
 iso_week(today(), day = TRUE)
-#> [1] "2025-W02-3"
+#> [1] "2025-W03-1"
 iso_week(today(), year = FALSE)
-#> [1] "W02"
+#> [1] "W03"
 ```
 
 ## `time_cut()`

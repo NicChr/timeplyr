@@ -305,7 +305,7 @@ A lubridate version of `seq()` for dates and datetimes
 start <- dmy(31012020)
 end <- start + years(1)
 seq(start, end, by = "month") # Base R version
-time_seq(start, end, "month") # lubridate version
+time_seq(start, end, "month") # lubridate version 
 
 ```
 

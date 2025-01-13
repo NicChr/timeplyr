@@ -151,3 +151,17 @@ tbl_sum.time_tbl_df <- function(x, ...){
     time_by_header,
     time_range_header)
 }
+
+#' @exportS3Method fastplyr::reconstruct
+reconstruct.time_tbl_df <- function(template, data, copy_extra_attributes = TRUE){
+  out <- NextMethod("reconstruct")
+
+  time_var <- time_tbl_time_col(template)
+  time <- dplyr::group_data(out)[[time_var]]
+
+  if (is.null(time)){
+    attr(out, "time") <- NULL
+    class(out) <- cheapr::val_rm(class(out), "time_tbl_df")
+  }
+  out
+}
