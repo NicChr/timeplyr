@@ -139,7 +139,11 @@ timespan.character <- function(units, num = 1L, ...){
 }
 #' @export
 timespan.timespan <- function(units, num = 1L, ...){
-  units * num
+  out <- units * num
+  if (!is_timespan(out)){
+    out <- new_timespan(timespan_unit(units), out)
+  }
+  out
 }
 
 #' @export

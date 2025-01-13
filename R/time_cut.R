@@ -243,7 +243,7 @@ time_cut_width <- function(x, timespan = granularity(x),
   units <- timespan_unit(width)
   tdiff <- time_diff(from, x, width)
   time_to_add <- new_timespan(units, trunc2(tdiff) * num)
-  out <- time_add(from, timespan = time_to_add)
+  out <- time_add(from, time_to_add)
   time_interval(out, width)
 }
 #' @rdname time_cut

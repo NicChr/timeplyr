@@ -27,10 +27,6 @@
 #' @export
 reset_timeplyr_options <- function(){
   # options(.initial_options)
-  options("timeplyr.time_type" = "auto",
-          "timeplyr.roll_month" = "preday",
-          "timeplyr.roll_dst" = "boundary",
-          "timeplyr.interval_style" = "full",
-          "timeplyr.interval_sub_formatter" = identity,
-          "timeplyr.use_intervals" = TRUE)
+  options("timeplyr.roll_month" = "preday",
+          "timeplyr.roll_dst" = "boundary")
 }

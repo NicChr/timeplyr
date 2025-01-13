@@ -468,15 +468,6 @@ time_floor <- function(x, time_by, week_start = getOption("lubridate.week.start"
     floor(x / num) * num
   }
 }
-# Custom time flooring..
-time_floor2 <- function(x, time_by, week_start = getOption("lubridate.week.start", 1)){
-  if (time_by_is_num(time_by)){
-    num <- unlist(time_by, use.names = FALSE, recursive = FALSE)
-    floor(x / num) * num
-  } else {
-    time_floor(x, timespan(names(time_by), 1), week_start = week_start)
-  }
-}
 tomorrow <- function(){
   as_int_date(Sys.Date()) + 1L
 }

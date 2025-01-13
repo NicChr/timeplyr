@@ -3,9 +3,6 @@ data.table::setDTthreads(threads = 2L)
 # Set number of collapse threads to 1
 collapse::set_collapse(nthreads = 1L)
 
-options(timeplyr.interval_sub_formatter = identity)
-options(timeplyr.use_intervals = FALSE)
-
 test_that("time breaks", {
   start1 <- lubridate::ymd_hms("2013-03-16 11:43:48",
     tz = "Europe/London"
@@ -22,11 +19,11 @@ test_that("time breaks", {
   res1 <- time_breaks(x, n = 5)
   res2 <- time_breaks(x, n = 5, "week")
   res3 <- time_breaks(x, n = 100, "month")
-  res4 <- time_breaks(x, n = 100, dmonths(1))
+  res4 <- time_breaks(x, n = 100, lubridate::dmonths(1))
 
   # res5 <- time_breaks(x, n = 5, "week", n_at_most = FALSE)
   expect_equal(res3, time_grid(x, "month"))
-  expect_equal(res4, time_grid(x, dmonths(1)))
+  expect_equal(res4, time_grid(x, lubridate::dmonths(1)))
   expect_equal(
     time_diff(res1, dplyr::lag(res1), "months"),
     c(NA, rep(-3, 3))
@@ -103,10 +100,7 @@ test_that("time cut", {
 
   expect_equal(
     time_cut_n(c(1, 5, 10), n = 100, 3),
-    structure(c(1, 4, 10), timespan = structure(list(
-      unit = NA_character_,
-      num = 3
-    ), class = "timespan"), class = "time_interval")
+    time_interval(c(1, 4, 10), width = 3)
   )
 
   expect_equal(interval_start(time_cut_n(x, n = Inf)), x)
