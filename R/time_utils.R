@@ -132,8 +132,9 @@ seconds_to_unit <- function(x){
 }
 unit_to_seconds <- function(x){
   unit_info <- timespan(x)
-  unit <- unit_info[["unit"]]
-  num <- unit_info[["num"]]
+  unit <- timespan_unit(unit_info)
+  num <- timespan_num(unit_info)
+
   scales <- c(1/1000/1000/1000/1000, # Pico
               1/1000/1000/1000, # Nano
               1/1000/1000, # Micro

@@ -78,8 +78,7 @@ time_interval <- function(start = integer(), width = resolution(start)){
   # Then we use the unit of the time resolution
   if (!timespan_has_unit(timespan)){
     resolution <- resolution(start)
-    timespan[["unit"]] <- timespan_unit(resolution)
-    # names(timespan) <- timespan_unit(resolution)
+    attr(timespan, "unit") <- timespan_unit(resolution)
   }
 
   if (inherits(start, "POSIXlt")){
@@ -101,7 +100,7 @@ check_is_time_interval <- function(x){
 
 check_valid_time_interval <- function(x){
   check_is_time_interval(x)
-  if (is.null(attr(x, "timespan", TRUE))){
+  if (is.null(interval_width(x))){
     cli::cli_abort("{.arg x} must have a timespan")
   }
 }
