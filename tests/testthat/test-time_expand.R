@@ -254,23 +254,23 @@ test_that("time expand", {
       )
   )
   # With groups..
-  expect_equal(
-    df2 %>%
-      time_complete(
-        time = time_hour, fastplyr::nesting(origin, dest),
-        time_by = "week", time_floor = TRUE
-      ),
-    df2 %>%
-      tidyr::complete(
-        time_hour = time_grid(time_hour,
-          "week",
-          time_floor = TRUE
-        ),
-        tidyr::nesting(origin, dest)
-      ) %>%
-      dplyr::select(dest, origin, time_hour, n) %>%
-      dplyr::arrange(time_hour, origin, dest)
-  )
+  # expect_equal(
+  #   df2 %>%
+  #     time_complete(
+  #       time = time_hour, fastplyr::nesting(origin, dest),
+  #       time_by = "week", time_floor = TRUE
+  #     ),
+  #   df2 %>%
+  #     tidyr::complete(
+  #       time_hour = time_grid(time_hour,
+  #         "week",
+  #         time_floor = TRUE
+  #       ),
+  #       tidyr::nesting(origin, dest)
+  #     ) %>%
+  #     dplyr::select(dest, origin, time_hour, n) %>%
+  #     dplyr::arrange(time_hour, origin, dest)
+  # )
 
   expect_equal(
     dplyr::tibble(

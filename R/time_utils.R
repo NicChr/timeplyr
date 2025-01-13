@@ -327,13 +327,6 @@ as_datetime2 <- function(x){
   }
 }
 
-# Check for date sequences that should not be coerced to datetimes
-is_special_case_days <- function(from, to, unit, num){
-    unit %in% c("days", "weeks") &&
-    is_date(from) &&
-    is_date(to) &&
-    is_whole_number(num)
-}
 # Repeat methods for zoo yearmon and yearqtr class
 #' @exportS3Method base::rep_len
 rep_len.yearmon <- function(x, length.out){

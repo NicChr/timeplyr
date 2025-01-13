@@ -726,8 +726,8 @@ test_that("Testing time episodes", {
   df <- df %>%
     fastplyr::f_arrange(name, value) %>%
     dplyr::mutate(
-      telapsed1 = time_elapsed(value, time_by = 1, rolling = TRUE, g = name),
-      telapsed2 = time_elapsed(value, time_by = 1, rolling = FALSE, g = name)
+      telapsed1 = time_elapsed(value, 1, rolling = TRUE, g = name),
+      telapsed2 = time_elapsed(value, 1, rolling = FALSE, g = name)
     ) %>%
     fastplyr::f_group_by(name)
 

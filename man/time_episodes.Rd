@@ -84,9 +84,7 @@ list element represent the event. For example, if your events were coded as
 \code{0} and \code{1} in a variable named "evt" where \code{1} represents the event,
 you would supply \code{event = list(evt = 1)}.}
 
-\item{time_type}{Time type, either "auto", "duration" or "period".
-With larger data, it is recommended to use \code{time_type = "duration"} for
-speed and efficiency.}
+\item{time_type}{No longer used.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using \code{tidyselect}.}

@@ -389,3 +389,16 @@ unit_parse2 <- function(x){
               "scale" = scale)
   out
 }
+
+# Temporary helper to convert old-style timespans to new
+time_by_list_as_timespan <- function(x){
+  unit <- time_by_unit(x)
+  num <- time_by_num(x)
+
+  if (unit == "numeric"){
+    unit <- NULL
+  }
+
+  timespan(unit, num)
+
+}

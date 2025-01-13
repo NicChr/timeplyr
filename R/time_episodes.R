@@ -57,9 +57,7 @@
 #' list element represent the event. For example, if your events were coded as
 #' `0` and `1` in a variable named "evt" where `1` represents the event,
 #' you would supply `event = list(evt = 1)`.
-#' @param time_type Time type, either "auto", "duration" or "period".
-#' With larger data, it is recommended to use `time_type = "duration"` for
-#' speed and efficiency.
+#' @param time_type No longer used.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using `tidyselect`.
 #'
@@ -405,8 +403,9 @@ calc_episodes <- function(data,
   # Time elapsed
   data <- df_add_cols(
     data, list(
-      t_elapsed = time_elapsed(data[[time]], g = g,
-                               timespan(time_by_unit(time_by), time_by_num(time_by)),
+      t_elapsed = time_elapsed(data[[time]],
+                               time_by_list_as_timespan(time_by),
+                               g = g,
                                fill = fill,
                                rolling = roll_episode,
                                na_skip = TRUE)
@@ -416,7 +415,8 @@ calc_episodes <- function(data,
   # The first event is always a new episode
   # Events where t_elapsed >= window are new episodes
   data <- df_add_cols(data, list(
-    ep_id = time_seq_id(data[[time]], timespan(time_by_unit(time_by), time_by_num(time_by)),
+    ep_id = time_seq_id(data[[time]],
+                        time_by_list_as_timespan(time_by),
                         g = g,
                         threshold = window,
                         rolling = roll_episode,

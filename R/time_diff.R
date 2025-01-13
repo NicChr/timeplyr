@@ -24,7 +24,15 @@ time_diff <- function(x, y, timespan = 1L){
   units <- timespan_unit(span)
   num <- timespan_num(span)
 
-  if (!timespan_has_unit(span)){
+  if (units %in% c("days", "weeks") &&
+      is_date(x) &&
+      is_date(y) &&
+      is_whole_number(num)){
+    if (units == "weeks"){
+      num <- num * 7L
+    }
+    out <- divide(unclass(y) - unclass(x), num)
+  } else if (!timespan_has_unit(span)){
     set_time_cast(y, x)
     if (!is.numeric(y)){
       y <- unclass(y)

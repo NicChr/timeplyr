@@ -326,6 +326,28 @@ timespan_abbr <- function(x, short = FALSE){
   new_timespan(timespan_unit(x), NextMethod("["))
 }
 #' @export
+c.timespan <- function(...){
+  dots <- list(...)
+  span <- dots[[1L]]
+  span_unit <- timespan_unit(span)
+  span_num <- timespan_num(span)
+  for (i in seq_along(dots)){
+    dot <- dots[[i]]
+    if (!is_timespan(dot)){
+      cli::cli_abort("Cannot combine {.cls timespan} with {.cls {class(dot)}}")
+    }
+    if (!identical(span_unit, timespan_unit(dot))){
+      cli::cli_abort(
+        "Cannot combine {.cls timespan} of unit '{timespan_unit(dot)}'
+        with {.cls timespan} of unit '{span_unit}'"
+      )
+    }
+    dots[[i]] <- timespan_num(dot)
+  }
+  out <- do.call(c, dots, envir = parent.frame())
+  new_timespan(span_unit, out)
+}
+#' @export
 unique.timespan <- function(x, incomparables = FALSE, ...){
   new_timespan(
     timespan_unit(x),

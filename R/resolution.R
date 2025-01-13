@@ -35,6 +35,10 @@ resolution <- function(x, ...){
   UseMethod("resolution")
 }
 #' @export
+resolution.default <- function(x, ...){
+  resolution(as.double(x), ...)
+}
+#' @export
 resolution.integer <- function(x, ...){
   new_timespan(NA_character_, 1L)
 }
@@ -77,6 +81,10 @@ granularity <- function(x, ...){
   UseMethod("granularity")
 }
 #' @export
+granularity.default <- function(x, ...){
+  granularity(as.double(x), ...)
+}
+#' @export
 granularity.numeric <- function(x, ...){
   gcd_diff <- gcd_time_diff(unclass(x))
   new_timespan(NA_character_, gcd_diff)
@@ -98,7 +106,12 @@ granularity.Date <- function(x, exact = TRUE, ...){
       out_unit <- "days"
     } else {
       gcd_delta <- gcd_time_diff(td)
-      out_unit <- "months"
+      if ( (gcd_delta %% 12) == 0){
+        gcd_delta <- gcd_delta / 12
+        out_unit <- "years"
+      } else {
+        out_unit <- "months"
+      }
     }
   } else {
     gcd_delta <- gcd_time_diff(unclass(x))
@@ -116,7 +129,12 @@ granularity.POSIXt <- function(x, exact = FALSE, ...){
       out_unit <- "seconds"
     } else {
       gcd_delta <- gcd_time_diff(td)
-      out_unit <- "months"
+      if ( (gcd_delta %% 12) == 0){
+        gcd_delta <- gcd_delta / 12
+        out_unit <- "years"
+      } else {
+        out_unit <- "months"
+      }
     }
   } else {
     gcd_delta <- gcd_time_diff(unclass(x))
@@ -137,16 +155,6 @@ granularity.year_quarter <- function(x, ...){
   if (length(x) >= 1e04){
     x <- collapse::funique(x)
   }
-  gcd_diff <- gcd_time_diff(unclass(x))
-  new_timespan(NA_character_, gcd_diff)
-}
-#' @export
-granularity.yearmon <- function(x, ...){
-  gcd_diff <- gcd_time_diff(unclass(x))
-  new_timespan(NA_character_, gcd_diff)
-}
-#' @export
-granularity.yearqtr <- function(x, ...){
   gcd_diff <- gcd_time_diff(unclass(x))
   new_timespan(NA_character_, gcd_diff)
 }
