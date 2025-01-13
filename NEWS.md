@@ -36,12 +36,14 @@ purpose of the package.
   
 ### New features
 
-- A new custom timeplyr object `timespan` to create and use 
-timespans for various time operations.
+- A custom timeplyr object `timespan` to create and use 
+timespans for various operations.
 
 - New functions `resolution` and `granularity` to calculate 
 the resolution and granularity of a time vector respectively.
 See the help page `?resolution` for more details.
+
+# timeplyr 0.9.0
 
 ### Upcoming breaking changes
 
