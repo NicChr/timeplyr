@@ -138,7 +138,7 @@ time_seq <- function(from, to, timespan, length.out = NULL,
   }
   # Unit parsing
   if (!missing_by){
-    unit_info <- timespan(timespan)
+    unit_info <- timeplyr::timespan(timespan)
     by_n <- timespan_num(unit_info)
     by_unit <- timespan_unit(unit_info)
     tby <- unit_info
@@ -150,10 +150,10 @@ time_seq <- function(from, to, timespan, length.out = NULL,
     if (from_and_to && missing_by && !missing_len){
       time_unit <- time_by_calc(from, to, length = length.out)
       # Calculate time_by info from lubridate class object
-      unit_info <- time_unit_info(time_unit)
-      by_n <- unname(unit_info)[[1L]]
-      by_unit <- paste0(names(unit_info), "s")
-      tby <- timespan(by_unit, by_n)
+      unit_info <- timeplyr::timespan(time_unit)
+      by_n <- timespan_num(unit_info)
+      by_unit <- timespan_unit(unit_info)
+      tby <- new_timespan(by_unit, by_n)
       # From, to, time_by, no length
     }
     if (from_and_to && !missing_by && missing_len){
@@ -162,13 +162,13 @@ time_seq <- function(from, to, timespan, length.out = NULL,
     ### After this we will always have both length and time_by
     if (missing_from){
       from <- time_add(
-        to, timespan(by_unit, -(by_n * length.out) + by_n),
+        to, timeplyr::timespan(by_unit, -(by_n * length.out) + by_n),
         roll_month = roll_month, roll_dst = roll_dst
       )
     }
     if (!missing_to && length(from) > 0L && length(to) > 0L && to < from){
       by_n <- -abs(by_n)
-      tby <- timespan(timespan_unit(tby), by_n)
+      tby <- timeplyr::timespan(timespan_unit(tby), by_n)
     }
   time_seq_v2(length.out, from = from, tby,
               roll_dst = roll_dst,

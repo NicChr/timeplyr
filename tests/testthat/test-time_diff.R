@@ -3,154 +3,180 @@ data.table::setDTthreads(threads = 2L)
 # Set number of collapse threads to 1
 collapse::set_collapse(nthreads = 1L)
 
-testthat::test_that("time diff", {
+test_that("time diff", {
   start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
-                               tz = "Europe/London")
+    tz = "Europe/London"
+  )
   end1 <- start1 + lubridate::ddays(37)
   end2 <- start1 + lubridate::days(37)
-  testthat::expect_identical(as.double(difftime(end1, start1, units = "secs")),
-                             time_diff(start1, end1, time_by = 1))
-  testthat::expect_identical(as.double(difftime(
-    lubridate::with_tz(lubridate::as_date(end1), tzone = "Europe/London"),
-    start1, units = "secs")),
-    time_diff(start1, lubridate::as_date(end1), time_by = 1))
-  testthat::expect_identical(as.double(difftime(lubridate::as_date(end1),
-                                                lubridate::as_date(start1),
-                                                units = "days")),
-                             time_diff(lubridate::as_date(start1),
-                                       lubridate::as_date(end1),
-                                       time_by = 1))
-  testthat::expect_identical(time_diff(3, 27, time_by = 1),
-                             27 - 3)
-  testthat::expect_identical(time_diff(3, 27, time_by = 3.5),
-                             (27 - 3)/3.5)
-  testthat::expect_identical(time_diff(3, 27, time_by = 0), Inf)
-  testthat::expect_identical(time_diff(-3, -27, time_by = 0), -Inf)
-  testthat::expect_identical(time_diff(start1, end2, time_by = "2 days",
-                                       time_type = "period"),
-                             18.5)
-  testthat::expect_identical(time_diff(start1, end2, time_by = "2 days"),
-                             18.5)
-  testthat::expect_identical(time_diff(start1, end1, time_by = "48 hours"),
-                             18.5)
-  testthat::expect_identical(time_diff(start1, end1, time_by = "2 days",
-                                       time_type = "duration"),
-                             18.5)
-  testthat::expect_equal(time_diff(start1, end1, time_by = "-2 days",
-                                       time_type = "duration"),
-                             -18.5)
-  testthat::expect_equal(time_diff(end1, start1, time_by = list("days" = 2),
-                                   time_type = "duration"),
-                         -18.5)
-  testthat::expect_equal(time_diff(end1, start1, time_by = list("days" = -2),
-                                   time_type = "duration"),
-                         18.5)
-  testthat::expect_identical(time_diff(lubridate::Date(0), lubridate::Date(0), time_by = "2 days",
-                                       time_type = "duration"),
-                             numeric(0))
-  testthat::expect_identical(time_diff(lubridate::Date(0), lubridate::POSIXct(0), time_by = "2 days",
-                                       time_type = "duration"),
-                             numeric(0))
-  testthat::expect_identical(time_diff(lubridate::today(), lubridate::POSIXct(0), time_by = "2 days",
-                                       time_type = "duration"),
-                             numeric(0))
-  for (i in seq_along(.duration_units)){
-    unit <- .duration_units[i]
-    by <- add_names(list(1), unit)
-    testthat::expect_identical(time_diff(start1, end1, time_by = by,
-                                         time_type = "duration"),
-                               lubridate::interval(start1, end1) /
-                                 duration_unit(unit)(1))
-
+  expect_identical(
+    as.double(difftime(end1, start1, units = "secs")),
+    time_diff(start1, end1)
+  )
+  expect_identical(
+    as.double(difftime(
+      lubridate::with_tz(lubridate::as_date(end1), tzone = "Europe/London"),
+      start1,
+      units = "secs"
+    )),
+    time_diff(start1, lubridate::as_date(end1), 1)
+  )
+  expect_identical(
+    as.double(difftime(lubridate::as_date(end1),
+      lubridate::as_date(start1),
+      units = "days"
+    )),
+    time_diff(lubridate::as_date(start1),
+      lubridate::as_date(end1),
+      1
+    )
+  )
+  expect_identical(
+    time_diff(3, 27, 1),
+    27 - 3
+  )
+  expect_identical(
+    time_diff(3, 27, 3.5),
+    (27 - 3) / 3.5
+  )
+  expect_identical(time_diff(3, 27, 0), Inf)
+  expect_identical(time_diff(-3, -27, 0), -Inf)
+  expect_identical(
+    time_diff(start1, end2,
+      "2 days"
+    ),
+    18.5
+  )
+  expect_identical(
+    time_diff(start1, end2, "2 days"),
+    18.5
+  )
+  expect_identical(
+    time_diff(start1, end1, "48 hours"),
+    18.5
+  )
+  expect_identical(
+    time_diff(start1, end1,
+      lubridate::ddays(2)
+    ),
+    18.5
+  )
+  expect_equal(
+    time_diff(start1, end1,
+      lubridate::ddays(-2)
+    ),
+    -18.5
+  )
+  expect_equal(
+    time_diff(end1, start1,
+      lubridate::ddays(2)
+    ),
+    -18.5
+  )
+  expect_equal(
+    time_diff(end1, start1,
+      lubridate::ddays(-2)
+    ),
+    18.5
+  )
+  expect_identical(
+    time_diff(lubridate::Date(0), lubridate::Date(0),
+      "2 days"
+    ),
+    numeric(0)
+  )
+  expect_identical(
+    time_diff(lubridate::Date(0), lubridate::POSIXct(0),
+      "2 days"
+    ),
+    numeric(0)
+  )
+  expect_identical(
+    time_diff(lubridate::today(), lubridate::POSIXct(0),
+      "2 days"
+    ),
+    numeric(0)
+  )
+  for (unit in .duration_units) {
+    expect_identical(
+      time_diff(start1, end1,
+        timespan("seconds", unit_to_seconds(unit))
+      ),
+      lubridate::interval(start1, end1) /
+        duration_unit(unit)(1)
+    )
   }
-  # for (i in seq_along(.period_units)){
-  #   unit <- .period_units[i]
-  #   by <- add_names(list(1), unit)
-  #   # expect_identical(
-  #   #   start1 + period_unit(unit)(time_diff(start1, end1, time_by = by,
-  #   #                                        time_type = "period")),
-  #   #   end1
-  #   # )
-  #   testthat::expect_identical(time_diff(start1, end1, time_by = by,
-  #                                        time_type = "period"),
-  #                              lubridate::interval(start1, end1) /
-  #                                period_unit(unit)(1))
-  #
-  # }
   leap1 <- lubridate::dmy("29-02-2020")
   leap2 <- lubridate::dmy("28-02-2021")
   leap3 <- lubridate::dmy("01-03-2021")
-  testthat::expect_true(floor(
-    time_diff(leap1, leap2, time_by = "year",
-              time_type = "period")
-  ) == 1)
-  testthat::expect_true(
-    age_years(leap1, leap2) == 0
+  expect_true(floor(
+    time_diff(leap1, leap2,
+      "year"
     )
-  testthat::expect_true(floor(
-    time_diff(leap1, leap3, time_by = lubridate::years(1))
   ) == 1)
-  testthat::expect_true(age_years(leap1, leap3) == 1)
+  expect_true(
+    age_years(leap1, leap2) == 0
+  )
+  expect_true(floor(
+    time_diff(leap1, leap3, lubridate::years(1))
+  ) == 1)
+  expect_true(age_years(leap1, leap3) == 1)
 
   # Test vectorization
   seq1 <- seq(-10, 10, 2)
   res1 <- time_diff(start1, end1,
-                   time_by = list("days" = seq1),
-                   time_type = "duration")
+    lubridate::ddays(seq1)
+  )
   res2 <- numeric(length(res1))
-  for (i in seq_along(seq1)){
+  for (i in seq_along(seq1)) {
     res2[i] <- time_diff(start1, end1,
-                         time_by = list("days" = seq1[i]),
-                         time_type = "duration")
+      timespan("seconds", seq1[i] * 86400)
+    )
   }
-  testthat::expect_equal(res1, res2)
+  expect_equal(res1, res2)
 
-  res3 <- time_diff(start1, end2,
-                    time_by = list("days" = seq1),
-                    time_type = "period")
+  res3 <- time_diff(start1, end2, timespan("days", seq1))
   res4 <- numeric(length(res3))
-  for (i in seq_along(seq1)){
+  for (i in seq_along(seq1)) {
     res4[i] <- time_diff(start1, end2,
-                         time_by = list("days" = seq1[i]),
-                         time_type = "period")
+      timespan("days", seq1[i])
+    )
   }
-  testthat::expect_equal(res3, res4)
+  expect_equal(res3, res4)
 
-  res5 <- time_diff(start1, end1 + lubridate::ddays(seq1),
-                    time_by = "days",
-                    time_type = "duration")
+  res5 <- time_diff(start1, end1 + lubridate::ddays(seq1), "86400 seconds")
   res6 <- numeric(length(res5))
-  for (i in seq_along(seq1)){
+  for (i in seq_along(seq1)) {
     res6[i] <- time_diff(start1, end1 + lubridate::ddays(seq1[i]),
-                         time_by = list("days" = 1),
-                         time_type = "duration")
+      timespan("seconds", 86400)
+    )
   }
-  testthat::expect_equal(res5, res6)
+  expect_equal(res5, res6)
 })
 
-testthat::test_that("lubridate period multiplication", {
+test_that("lubridate period multiplication", {
   x <- months(c(NA, seq(-10, 11, 1), NA))
-  testthat::expect_equal(
+  expect_equal(
     multiply_single_unit_period_by_number(x, c(Inf, -Inf, NaN, NA, -10:33)),
     x * c(Inf, -Inf, NaN, NA, -10:33)
   )
-  testthat::expect_equal(
+  expect_equal(
     multiply_single_unit_period_by_number(x, integer()),
     x * integer()
   )
-  testthat::expect_equal(
+  expect_equal(
     multiply_single_unit_period_by_number(x, numeric()),
     x * numeric()
   )
-  testthat::expect_equal(
+  expect_equal(
     multiply_single_unit_period_by_number(x, NA),
     x * NA
   )
-  testthat::expect_equal(
+  expect_equal(
     multiply_single_unit_period_by_number(x, Inf),
     x * Inf
   )
-  testthat::expect_equal(
+  expect_equal(
     multiply_single_unit_period_by_number(x, NULL),
     x * NULL
   )

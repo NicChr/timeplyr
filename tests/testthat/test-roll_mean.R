@@ -3,46 +3,70 @@ data.table::setDTthreads(threads = 2L)
 # Set number of collapse threads to 1
 collapse::set_collapse(nthreads = 1L)
 
-testthat::test_that("Expect error", {
-  testthat::expect_error(roll_sum(NA_character_))
-  testthat::expect_error(roll_mean(NA_character_))
+test_that("Expect error", {
+  expect_error(roll_sum(NA_character_))
+  expect_error(roll_mean(NA_character_))
 })
 
 
-testthat::test_that("Expect NA", {
+test_that("Expect NA", {
   x <- list(NA, NA_real_, NA_integer_, NaN, Inf, -Inf)
-  testthat::expect_identical(lapply(x, function(y) roll_sum(y, na.rm = FALSE)),
-                             lapply(1:length(x), function(x) NA_real_))
-  testthat::expect_identical(lapply(x, function(y) roll_mean(y, na.rm = FALSE)),
-                             lapply(1:length(x), function(x) NA_real_))
+  expect_identical(
+    lapply(x, function(y) roll_sum(y, na.rm = FALSE)),
+    lapply(1:length(x), function(x) NA_real_)
+  )
+  expect_identical(
+    lapply(x, function(y) roll_mean(y, na.rm = FALSE)),
+    lapply(1:length(x), function(x) NA_real_)
+  )
 })
 
-testthat::test_that("Expected outputs", {
+test_that("Expected outputs", {
   x <- seq(-5, 5, 0.25)
-  testthat::expect_identical(roll_sum(x, window = length(x)),
-                             as.numeric(cumsum(x)))
-  testthat::expect_identical(roll_mean(x, window = length(x)),
-                             as.numeric(dplyr::cummean(x)))
-  testthat::expect_identical(roll_sum(x, window = length(x), partial = FALSE),
-                             data.table::frollsum(x, n = length(x)))
-  testthat::expect_identical(roll_mean(x, window = length(x), partial = FALSE),
-                             data.table::frollmean(x, n = length(x)))
-  testthat::expect_identical(roll_sum(x, window = 6, partial = FALSE),
-                             data.table::frollsum(x, n = 6))
-  testthat::expect_identical(roll_mean(x, window = 6, partial = FALSE),
-                             data.table::frollmean(x, n = 6))
+  expect_identical(
+    roll_sum(x, window = length(x)),
+    as.numeric(cumsum(x))
+  )
+  expect_identical(
+    roll_mean(x, window = length(x)),
+    as.numeric(dplyr::cummean(x))
+  )
+  expect_identical(
+    roll_sum(x, window = length(x), partial = FALSE),
+    data.table::frollsum(x, n = length(x))
+  )
+  expect_identical(
+    roll_mean(x, window = length(x), partial = FALSE),
+    data.table::frollmean(x, n = length(x))
+  )
+  expect_identical(
+    roll_sum(x, window = 6, partial = FALSE),
+    data.table::frollsum(x, n = 6)
+  )
+  expect_identical(
+    roll_mean(x, window = 6, partial = FALSE),
+    data.table::frollmean(x, n = 6)
+  )
   x[sample(1:length(x), size = 10)] <- NA_real_
-  testthat::expect_identical(roll_sum(x, window = 5, na.rm = TRUE, partial = FALSE),
-                             data.table::frollsum(x, n = 5, na.rm = TRUE))
-  testthat::expect_identical(roll_sum(x, window = 5, na.rm = FALSE, partial = FALSE),
-                             data.table::frollsum(x, n = 5, na.rm = FALSE))
-  testthat::expect_identical(roll_mean(x, window = 5, na.rm = TRUE, partial = FALSE),
-                             data.table::frollmean(x, n = 5, na.rm = TRUE))
-  testthat::expect_identical(roll_mean(x, window = 5, na.rm = FALSE, partial = FALSE),
-                             data.table::frollmean(x, n = 5, na.rm = FALSE))
+  expect_identical(
+    roll_sum(x, window = 5, na.rm = TRUE, partial = FALSE),
+    data.table::frollsum(x, n = 5, na.rm = TRUE)
+  )
+  expect_identical(
+    roll_sum(x, window = 5, na.rm = FALSE, partial = FALSE),
+    data.table::frollsum(x, n = 5, na.rm = FALSE)
+  )
+  expect_identical(
+    roll_mean(x, window = 5, na.rm = TRUE, partial = FALSE),
+    data.table::frollmean(x, n = 5, na.rm = TRUE)
+  )
+  expect_identical(
+    roll_mean(x, window = 5, na.rm = FALSE, partial = FALSE),
+    data.table::frollmean(x, n = 5, na.rm = FALSE)
+  )
 })
 
-# testthat::test_that("Expected outputs2", {
+# test_that("Expected outputs2", {
 #  flights <- nycflights13::flights
 #  x <- flights$arr_delay
 #  g <- flights$dest
@@ -51,7 +75,7 @@ testthat::test_that("Expected outputs", {
 #
 #  expected <- dt[, mu2 := data.table::frollmean(x, n = 5, na.rm = TRUE),
 #                 by = "g"]$mu2
-#  testthat::expect_true(all.equal(dt[, mu1 := roll_mean(x, g = g, window = 5, partial = FALSE)]$mu1,
+#  expect_true(all.equal(dt[, mu1 := roll_mean(x, g = g, window = 5, partial = FALSE)]$mu1,
 #                                  expected))
 #
 #  dt[, mu1 := time_roll_mean(x, g = g, window = 5,
@@ -64,7 +88,7 @@ testthat::test_that("Expected outputs", {
 #                                       complete = TRUE,
 #                                       na_rm = TRUE),
 #     by = "g"]
-#  testthat::expect_equal(dt$mu1, dt$mu2)
+#  expect_equal(dt$mu1, dt$mu2)
 #  dt[, mu1 := time_roll_mean(x, g = g, window = 5,
 #                             time = frowid(g),
 #                             close_left_boundary = TRUE,
@@ -75,7 +99,7 @@ testthat::test_that("Expected outputs", {
 #                                       complete = TRUE,
 #                                       na_rm = TRUE),
 #     by = "g"]
-#  testthat::expect_equal(dt$mu1, dt$mu2)
+#  expect_equal(dt$mu1, dt$mu2)
 # })
 #
 # t <- time_seq_v2(100, Sys.Date(), time_by = lubridate::days(1))
@@ -159,17 +183,23 @@ testthat::test_that("Expected outputs", {
 #   dplyr::pull(mean)
 # all.equal(z1, z2)
 
-testthat::test_that("simple tests", {
-  testthat::expect_equal(
-    time_roll_mean(c(10, 20, 30), time = lubridate::today() + lubridate::days(0:2),
-                   window = lubridate::days(1),
-                   close_left_boundary = FALSE),
-    c(10, 20, 30))
-  testthat::expect_equal(
-    time_roll_mean(c(10, 20, 30), time = lubridate::today() + lubridate::days(0:2),
-                   window = lubridate::days(1),
-                   close_left_boundary = TRUE),
-    c(10, 15, 25))
+test_that("simple tests", {
+  expect_equal(
+    time_roll_mean(c(10, 20, 30),
+      time = lubridate::today() + lubridate::days(0:2),
+      window = lubridate::days(1),
+      close_left_boundary = FALSE
+    ),
+    c(10, 20, 30)
+  )
+  expect_equal(
+    time_roll_mean(c(10, 20, 30),
+      time = lubridate::today() + lubridate::days(0:2),
+      window = lubridate::days(1),
+      close_left_boundary = TRUE
+    ),
+    c(10, 15, 25)
+  )
 
 
   # x <- rnorm(10^6)
@@ -186,5 +216,3 @@ testthat::test_that("simple tests", {
   # mark(e1 = time_roll_sum(x, time = t, window = 7, g = g),
   #      e2 = time_roll_sum2(x, time = t, window = 7, g = g))
 })
-
-

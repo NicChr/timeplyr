@@ -3,55 +3,87 @@ data.table::setDTthreads(threads = 2L)
 # Set number of collapse threads to 1
 collapse::set_collapse(nthreads = 1L)
 
-testthat::test_that("Normal cases", {
+test_that("Normal cases", {
   x <- 1:10
-  testthat::expect_equal(growth(x, 3.75),
-                         3.75/mean(x))
-  testthat::expect_equal(growth(x, 3.75, log = TRUE),
-                         3.75/mean(x))
-  testthat::expect_equal(growth(0, 0),
-                         1)
-  testthat::expect_equal(growth(0, 1),
-                         Inf)
-  testthat::expect_equal(growth(0, 1, inf_fill = NA),
-                         NA_real_)
-  testthat::expect_equal(growth(0, 1, inf_fill = 99),
-                         99)
-  testthat::expect_equal(rolling_growth(c(0, x), n = 1, lag = 1),
-                         c(0, x)/dplyr::lag(c(0, x)))
-  testthat::expect_equal(rolling_growth(c(0, x), n = 1, lag = 1,
-                                        inf_fill = 99),
-                         {
-                           y <- c(0, x)/dplyr::lag(c(0, x))
-                           y[is.infinite(y)] <- 99
-                           y
-                         })
-  testthat::expect_equal(rolling_growth(c(0, x), n = 1, lag = 1,
-                                        inf_fill = NA),
-                         {
-                           y <- c(0, x)/dplyr::lag(c(0, x))
-                           y[is.infinite(y)] <- NA
-                           y
-                         })
-  testthat::expect_equal(rolling_growth(x, n = 1, lag = 0),
-                         rep(1, length(x)))
-  testthat::expect_equal(rolling_growth(x, n = 1, lag = 1),
-                         x/dplyr::lag(x))
-  testthat::expect_equal(rolling_growth(x, n = 1, lag = 2),
-                         x/dplyr::lag(x, n = 2))
-  testthat::expect_equal(rolling_growth(x, n = 1, lag = 3),
-                         x/dplyr::lag(x, n = 3))
-  testthat::expect_equal(rolling_growth(x, n = 3, lag = 3, partial = FALSE),
-                         roll_mean(x, window = 3, partial = FALSE)/
-                           roll_mean(dplyr::lag(x, n = 3), window = 3, partial = FALSE,
-                                     na.rm = FALSE))
-  testthat::expect_equal(rolling_growth(x, n = 3, lag = 2, partial = FALSE),
-                         roll_mean(x, window = 3, partial = FALSE, na.rm = FALSE)/
-                           roll_mean(dplyr::lag(x, n = 2), window = 3, partial = FALSE,
-                                     na.rm = FALSE))
+  expect_equal(
+    growth(x, 3.75),
+    3.75 / mean(x)
+  )
+  expect_equal(
+    growth(x, 3.75, log = TRUE),
+    3.75 / mean(x)
+  )
+  expect_equal(
+    growth(0, 0),
+    1
+  )
+  expect_equal(
+    growth(0, 1),
+    Inf
+  )
+  expect_equal(
+    growth(0, 1, inf_fill = NA),
+    NA_real_
+  )
+  expect_equal(
+    growth(0, 1, inf_fill = 99),
+    99
+  )
+  expect_equal(
+    rolling_growth(c(0, x), n = 1, lag = 1),
+    c(0, x) / dplyr::lag(c(0, x))
+  )
+  expect_equal(rolling_growth(c(0, x),
+    n = 1, lag = 1,
+    inf_fill = 99
+  ), {
+    y <- c(0, x) / dplyr::lag(c(0, x))
+    y[is.infinite(y)] <- 99
+    y
+  })
+  expect_equal(rolling_growth(c(0, x),
+    n = 1, lag = 1,
+    inf_fill = NA
+  ), {
+    y <- c(0, x) / dplyr::lag(c(0, x))
+    y[is.infinite(y)] <- NA
+    y
+  })
+  expect_equal(
+    rolling_growth(x, n = 1, lag = 0),
+    rep(1, length(x))
+  )
+  expect_equal(
+    rolling_growth(x, n = 1, lag = 1),
+    x / dplyr::lag(x)
+  )
+  expect_equal(
+    rolling_growth(x, n = 1, lag = 2),
+    x / dplyr::lag(x, n = 2)
+  )
+  expect_equal(
+    rolling_growth(x, n = 1, lag = 3),
+    x / dplyr::lag(x, n = 3)
+  )
+  expect_equal(
+    rolling_growth(x, n = 3, lag = 3, partial = FALSE),
+    roll_mean(x, window = 3, partial = FALSE) /
+      roll_mean(dplyr::lag(x, n = 3),
+        window = 3, partial = FALSE,
+        na.rm = FALSE
+      )
+  )
+  expect_equal(
+    rolling_growth(x, n = 3, lag = 2, partial = FALSE),
+    roll_mean(x, window = 3, partial = FALSE, na.rm = FALSE) /
+      roll_mean(dplyr::lag(x, n = 2),
+        window = 3, partial = FALSE,
+        na.rm = FALSE
+      )
+  )
 })
 
-testthat::test_that("Weights and offsets", {
+test_that("Weights and offsets", {
   set.seed(61092)
   x <- sample(1:10^5, size = 10)
   x1 <- x[1:5]
@@ -70,32 +102,46 @@ testthat::test_that("Weights and offsets", {
   # No weights/offset
   mod1 <- stats::glm(x ~ cp, family = poisson)
   sum(x2) / sum(x1)
-  testthat::expect_equal(exp(stats::coef(mod1))[[2]], rolling_growth(x, n = 5)[10])
+  expect_equal(exp(stats::coef(mod1))[[2]], rolling_growth(x, n = 5)[10])
 
   # Weights and offset
   mod2 <- stats::glm(x ~ cp + offset(log(o)), family = poisson, weights = w)
-  ( ( sum(x2 * w2)/sum(o2 * w2) ) / (sum(x1 * w1)/sum(o1 * w1))  )
-  ( ( stats::weighted.mean(x2, w = w2)/stats::weighted.mean(o2, w2) ) /
-      (stats::weighted.mean(x1, w1)/stats::weighted.mean(o1, w1))  )
-  testthat::expect_equal(exp(stats::coef(mod2))[[2]],
-                         rolling_growth(x, n = 5, weights = w, offset = o)[10])
-  testthat::expect_equal(exp(stats::coef(mod2))[[2]],
-                         rolling_growth(x, n = 5, weights = w, offset = o,
-                                        log = TRUE)[10])
-  testthat::expect_equal(exp(stats::coef(mod2))[[2]],
-                         rolling_growth(x, n = 5, weights = w, offset = o,
-                                        log = FALSE, partial = FALSE)[10])
+  ((sum(x2 * w2) / sum(o2 * w2)) / (sum(x1 * w1) / sum(o1 * w1)))
+  ((stats::weighted.mean(x2, w = w2) / stats::weighted.mean(o2, w2)) /
+    (stats::weighted.mean(x1, w1) / stats::weighted.mean(o1, w1)))
+  expect_equal(
+    exp(stats::coef(mod2))[[2]],
+    rolling_growth(x, n = 5, weights = w, offset = o)[10]
+  )
+  expect_equal(
+    exp(stats::coef(mod2))[[2]],
+    rolling_growth(x,
+      n = 5, weights = w, offset = o,
+      log = TRUE
+    )[10]
+  )
+  expect_equal(
+    exp(stats::coef(mod2))[[2]],
+    rolling_growth(x,
+      n = 5, weights = w, offset = o,
+      log = FALSE, partial = FALSE
+    )[10]
+  )
 
   # Weights only
   mod3 <- stats::glm(x ~ cp, family = poisson, weights = w)
-  ( ( collapse::fmean(x2, w = w2)) / (collapse::fmean(x1, w = w1))  )
-  testthat::expect_equal(exp(stats::coef(mod3))[[2]],
-                         rolling_growth(x, n = 5, weights = w)[10])
+  ((collapse::fmean(x2, w = w2)) / (collapse::fmean(x1, w = w1)))
+  expect_equal(
+    exp(stats::coef(mod3))[[2]],
+    rolling_growth(x, n = 5, weights = w)[10]
+  )
   # Offset only
   mod4 <- stats::glm(x ~ cp + offset(log(o)), family = poisson)
-  ( sum(x2)/sum(o2) ) / ( sum(x1)/sum(o1) )
-  testthat::expect_equal(exp(stats::coef(mod4))[[2]],
-                         rolling_growth(x, n = 5, offset = o, na.rm = TRUE)[10])
+  (sum(x2) / sum(o2)) / (sum(x1) / sum(o1))
+  expect_equal(
+    exp(stats::coef(mod4))[[2]],
+    rolling_growth(x, n = 5, offset = o, na.rm = TRUE)[10]
+  )
 
   # WITH NAs
 
@@ -119,27 +165,37 @@ testthat::test_that("Weights and offsets", {
   # No weights/offset
   mod1 <- stats::glm(x ~ cp, family = poisson)
   sum(x2) / sum(x1)
-  testthat::expect_equal(exp(stats::coef(mod1))[[2]], rolling_growth(x, n = 50, na.rm = TRUE)[100])
+  expect_equal(exp(stats::coef(mod1))[[2]], rolling_growth(x, n = 50, na.rm = TRUE)[100])
 
   # # Weights and offset
   mod2 <- stats::glm(x ~ cp + offset(log(o)), family = poisson, weights = w)
-  ( ( sum(x2 * w2, na.rm = TRUE)/sum(o2 * w2, na.rm = TRUE) ) / (sum(x1 * w1, na.rm = TRUE)/sum(o1 * w1, na.rm = TRUE))  )
-  ( ( stats::weighted.mean(x2, w = w2, na.rm = TRUE)/stats::weighted.mean(o2, w2, na.rm = TRUE) ) /
-      (stats::weighted.mean(x1, w1, na.rm = TRUE)/stats::weighted.mean(o1, w1, na.rm = TRUE))  )
-  testthat::expect_equal(exp(stats::coef(mod2))[[2]],
-                         rolling_growth(x, n = 50, weights = w, offset = o, na.rm = TRUE)[100])
+  ((sum(x2 * w2, na.rm = TRUE) / sum(o2 * w2, na.rm = TRUE)) / (sum(x1 * w1, na.rm = TRUE) / sum(o1 * w1, na.rm = TRUE)))
+  ((stats::weighted.mean(x2, w = w2, na.rm = TRUE) / stats::weighted.mean(o2, w2, na.rm = TRUE)) /
+    (stats::weighted.mean(x1, w1, na.rm = TRUE) / stats::weighted.mean(o1, w1, na.rm = TRUE)))
+  expect_equal(
+    exp(stats::coef(mod2))[[2]],
+    rolling_growth(x, n = 50, weights = w, offset = o, na.rm = TRUE)[100]
+  )
 
   # Weights only
   mod3 <- stats::glm(x ~ cp, family = poisson, weights = w)
-  ( ( collapse::fmean(x2, w = w2)) / (collapse::fmean(x1, w = w1))  )
-  testthat::expect_equal(exp(stats::coef(mod3))[[2]],
-                         rolling_growth(x, n = 50, weights = w, na.rm = TRUE)[100])
-  testthat::expect_equal(exp(stats::coef(mod3))[[2]],
-                         rolling_growth(x, n = 50, log = TRUE,
-                                        weights = w, na.rm = TRUE)[100])
+  ((collapse::fmean(x2, w = w2)) / (collapse::fmean(x1, w = w1)))
+  expect_equal(
+    exp(stats::coef(mod3))[[2]],
+    rolling_growth(x, n = 50, weights = w, na.rm = TRUE)[100]
+  )
+  expect_equal(
+    exp(stats::coef(mod3))[[2]],
+    rolling_growth(x,
+      n = 50, log = TRUE,
+      weights = w, na.rm = TRUE
+    )[100]
+  )
   # Offset only
   mod4 <- stats::glm(x ~ cp + offset(log(o)), family = poisson)
-  ( sum(x2)/sum(o2) ) / ( sum(x1)/sum(o1) )
-  testthat::expect_equal(exp(stats::coef(mod4))[[2]],
-                         rolling_growth(x, n = 50, offset = o, na.rm = TRUE)[100])
+  (sum(x2) / sum(o2)) / (sum(x1) / sum(o1))
+  expect_equal(
+    exp(stats::coef(mod4))[[2]],
+    rolling_growth(x, n = 50, offset = o, na.rm = TRUE)[100]
+  )
 })

@@ -190,23 +190,11 @@ time_cut <- function(x, n = 5, timespan = NULL,
                      from = NULL, to = NULL,
                      time_floor = FALSE,
                      week_start = getOption("lubridate.week.start", 1)){
-  lifecycle::deprecate_soft("0.9.9", "time_cut()", "time_cut_n()")
-  if (!is.null(to)){
-    to <- time_cast(to, x)
-    x[x >= to] <- NA
-  }
-  breaks_list <- .time_breaks(x = x, n = n, timespan = timespan,
-                              from = from, to = to,
-                              time_floor = time_floor,
-                              week_start = week_start)
-  time_breaks <- breaks_list[["breaks"]]
-  timespan <- breaks_list[["timespan"]]
-  x <- time_cast(x, time_breaks)
-  out <- cut_time(
-    x, breaks = time_breaks, codes = FALSE,
-    include_oob = TRUE
-  )
-  time_interval(out, timespan)
+  lifecycle::deprecate_soft("1.0.0", "time_cut()", "time_cut_n()")
+  time_cut_n(x, n = n, timespan = timespan,
+             from = from, to = to,
+             time_floor = time_floor,
+             week_start = week_start)
 }
 #' @rdname time_cut
 #' @export
@@ -237,9 +225,14 @@ time_cut_n <- function(x, n = 5, timespan = NULL,
 time_cut_width <- function(x, timespan = granularity(x),
                            from = NULL, to = NULL){
   check_is_time_or_num(x)
+  from_missing <- is.null(from)
 
-  if (is.null(from)){
+  if (from_missing){
     from <- collapse::fmin(x, na.rm = TRUE)
+  }
+  if (!from_missing){
+    from <- time_cast(from, x)
+    x[x < from] <- NA
   }
   if (!is.null(to)){
     to <- time_cast(to, x)

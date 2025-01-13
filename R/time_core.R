@@ -51,7 +51,7 @@ time_grid <- function(x, timespan = granularity(x),
   check_length_lte(to, 1)
   timespan <- timespan(timespan)
 
-  if (is.null(from)){
+  if (is.null(from) && is.null(to)){
     rng <- collapse::frange(x, na.rm = TRUE)
     from <- rng[1]
     to <- rng[2]
@@ -90,7 +90,7 @@ time_grid_size <- function(x, timespan = granularity(x),
   check_length_lte(from, 1)
   check_length_lte(to, 1)
   timespan <- timespan(timespan)
-  if (is.null(from)){
+  if (is.null(from) && is.null(to)){
     rng <- collapse::frange(x, na.rm = TRUE)
     from <- rng[1]
     to <- rng[2]

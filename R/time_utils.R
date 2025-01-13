@@ -203,14 +203,9 @@ num_by_calc <- function(from, to, length){
   out[cheapr::val_find(length, 1)] <- 0
   out
 }
-# Vectorized except for periods
 time_by_calc <- function(from, to, length){
   if (is_time(from) && is_time(to)){
-    # if (time_type == "period"){
-      period_by_calc(from, to, length)
-    # } else {
-    #   duration_by_calc(from, to, length)
-    # }
+    period_by_calc(from, to, length)
   } else {
     num_by_calc(from, to, length)
   }
