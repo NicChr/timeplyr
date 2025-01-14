@@ -34,13 +34,7 @@ time_diff <- function(x, y, timespan = 1L){
     out <- divide(unclass(y) - unclass(x), num)
   } else if (!timespan_has_unit(span)){
     set_time_cast(y, x)
-    if (!is.numeric(y)){
-      y <- unclass(y)
-    }
-    if (!is.numeric(x)){
-      x <- unclass(x)
-    }
-    out <- divide(y - x, num)
+    out <- divide(unclass(y) - unclass(x), num)
   } else {
     x <- as_datetime2(x)
     y <- as_datetime2(y)

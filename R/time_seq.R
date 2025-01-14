@@ -20,10 +20,10 @@
 #' `time_seq_sizes()` is a convenience
 #' function to calculate time sequence lengths, given start/end times.
 #'
-#'
-#' @param timespan [timespan].
 #' @param from Start time.
 #' @param to End time.
+#' @param timespan [timespan].
+#' @param time_by A [timespan]. This argument may be renamed in the future.
 #' @param length.out Length of the sequence.
 #' @param roll_month Control how impossible dates are handled when
 #' month or year arithmetic is involved.
@@ -104,12 +104,12 @@
 #' }
 #' @rdname time_seq
 #' @export
-time_seq <- function(from, to, timespan, length.out = NULL,
+time_seq <- function(from, to, time_by, length.out = NULL,
                      roll_month = getOption("timeplyr.roll_month", "preday"),
                      roll_dst = getOption("timeplyr.roll_dst", "NA")){
   missing_from <- missing(from)
   missing_to <- missing(to)
-  missing_by <- missing(timespan)
+  missing_by <- missing(time_by)
   missing_len <- is.null(length.out)
   if (!missing_len && !sign(length.out) >= 0){
     stop("length.out must be positive")
@@ -138,7 +138,7 @@ time_seq <- function(from, to, timespan, length.out = NULL,
   }
   # Unit parsing
   if (!missing_by){
-    unit_info <- timeplyr::timespan(timespan)
+    unit_info <- timespan(time_by)
     by_n <- timespan_num(unit_info)
     by_unit <- timespan_unit(unit_info)
     tby <- unit_info
@@ -150,7 +150,7 @@ time_seq <- function(from, to, timespan, length.out = NULL,
     if (from_and_to && missing_by && !missing_len){
       time_unit <- time_by_calc(from, to, length = length.out)
       # Calculate time_by info from lubridate class object
-      unit_info <- timeplyr::timespan(time_unit)
+      unit_info <- timespan(time_unit)
       by_n <- timespan_num(unit_info)
       by_unit <- timespan_unit(unit_info)
       tby <- new_timespan(by_unit, by_n)
@@ -162,13 +162,13 @@ time_seq <- function(from, to, timespan, length.out = NULL,
     ### After this we will always have both length and time_by
     if (missing_from){
       from <- time_add(
-        to, timeplyr::timespan(by_unit, -(by_n * length.out) + by_n),
+        to, timespan(by_unit, -(by_n * length.out) + by_n),
         roll_month = roll_month, roll_dst = roll_dst
       )
     }
     if (!missing_to && length(from) > 0L && length(to) > 0L && to < from){
       by_n <- -abs(by_n)
-      tby <- timeplyr::timespan(timespan_unit(tby), by_n)
+      tby <- timespan(timespan_unit(tby), by_n)
     }
   time_seq_v2(length.out, from = from, tby,
               roll_dst = roll_dst,
@@ -311,7 +311,6 @@ duration_seq_v2 <- function(sizes, from, units, num = 1){
                                 from = unclass(from),
                                 by = num_seconds)
   .POSIXct(time_seq, lubridate::tz(from))
-  # time_cast(time_seq, from)
 }
 # Date sequence vectorised over from, to and num
 date_seq_v <- function(from, to, units = c("days", "weeks"), num = 1L){

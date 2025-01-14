@@ -4,6 +4,67 @@ cut_time <- function(x, breaks, include_oob = TRUE, codes = FALSE){
               include_oob = include_oob,
               include_endpoint = FALSE)
 }
+cut_time_using_breaks <- function(x, width, from = NULL, to = NULL){
+
+  width <- timespan(width)
+  from_missing <- is.null(from)
+  to_missing <- is.null(to)
+
+  if (from_missing && to_missing){
+    rng <- collapse::frange(x, na.rm = TRUE)
+    from <- rng[1]
+    to <- rng[2]
+  } else if (from_missing){
+    from <- collapse::fmin(x, na.rm = TRUE)
+  } else if (to_missing){
+    to <- collapse::fmax(x, na.rm = TRUE)
+  }
+
+  # from/to correspond to left closed right open semantics
+  # so we just make x NA where x >= to
+  # from is handled correctly with `cut_time`
+
+  if (!to_missing){
+    to <- time_cast(to, x)
+    x[x >= to] <- NA
+  }
+
+  from <- time_cast(from, x)
+  sizes <- time_seq_sizes(from, to, width)
+  breaks <- time_seq_v2(sizes, from = from, width)
+
+  x <- time_cast(x, time_breaks)
+  out <- cut_time(
+    x, breaks = breaks, codes = FALSE
+  )
+
+  time_interval(out, width)
+}
+
+cut_time_using_ops <- function(x, width, from = NULL, to = NULL){
+
+  width <- timespan(width)
+  from_missing <- is.null(from)
+  to_missing <- is.null(to)
+
+  if (from_missing){
+    from <- collapse::fmin(x, na.rm = TRUE)
+  } else {
+    from <- time_cast(from, x)
+    x[x < from] <- NA
+  }
+  if (!to_missing){
+    to <- time_cast(to, x)
+    x[x >= to] <- NA
+  }
+  num <- timespan_num(width)
+  units <- timespan_unit(width)
+  tdiff <- time_diff(from, x, width)
+  time_to_add <- new_timespan(units, trunc2(tdiff) * num)
+  out <- time_add(from, time_to_add)
+  time_interval(out, width)
+
+}
 
 .time_breaks <- function(x, n = 5, timespan = NULL,
                          from = NULL, to = NULL,
@@ -76,13 +137,11 @@ cut_time <- function(x, breaks, include_oob = TRUE, codes = FALSE){
     unit <- units_to_try[i]
     time_by <- unit
     unit_multiplier <- 1L
-    scale <- 1L
     num <- interval_width[i]
   } else {
     tby <- timespan(timespan)
     unit <- timespan_unit(tby)
     num <- timespan_num(tby)
-    scale <- 1L
     by <- unit
     if (time_floor){
       from <- time_floor(from, tby, week_start = week_start)
@@ -93,7 +152,7 @@ cut_time <- function(x, breaks, include_oob = TRUE, codes = FALSE){
   if (n_breaks > n){
     unit_multiplier <- ceiling(n_breaks / n)
   }
-  time_increment <- new_timespan(unit, num * scale * unit_multiplier)
+  time_increment <- new_timespan(unit, num * unit_multiplier)
   breaks <- time_seq_v(from, to, time_increment)
   list(
     breaks = breaks,
@@ -224,27 +283,24 @@ time_cut_n <- function(x, n = 5, timespan = NULL,
 #' @export
 time_cut_width <- function(x, timespan = granularity(x),
                            from = NULL, to = NULL){
-  check_is_time_or_num(x)
-  from_missing <- is.null(from)
 
-  if (from_missing){
-    from <- collapse::fmin(x, na.rm = TRUE)
+  check_is_time_or_num(x)
+
+  # There are two methods we choose from
+  # 1. Cut x into bins using breakpoints
+  # This is usually very efficient
+
+  # 2. Use addition, subtraction from `min(x)` and truncation
+  # Simpler but tends to be slower
+
+  if (
+    (is.null(from) || length(from) == 1) &&
+    (is.null(to) || length(to) == 1)
+  ){
+    cut_time_using_breaks(x, width = timespan, from = from, to = to)
+  } else {
+    cut_time_using_ops(x, width = timespan, from = from, to = to)
   }
-  if (!from_missing){
-    from <- time_cast(from, x)
-    x[x < from] <- NA
-  }
-  if (!is.null(to)){
-    to <- time_cast(to, x)
-    x[x >= to] <- NA
-  }
-  width <- timespan(timespan)
-  num <- timespan_num(width)
-  units <- timespan_unit(width)
-  tdiff <- time_diff(from, x, width)
-  time_to_add <- new_timespan(units, trunc2(tdiff) * num)
-  out <- time_add(from, time_to_add)
-  time_interval(out, width)
 }
 #' @rdname time_cut
 #' @export
@@ -252,9 +308,9 @@ time_breaks <- function(x, n = 5, timespan = NULL,
                         from = NULL, to = NULL,
                         time_floor = FALSE,
                         week_start = getOption("lubridate.week.start", 1)){
-  out <- .time_breaks(x, n = n, timespan = timespan,
+  breaks <- .time_breaks(x, n = n, timespan = timespan,
                       from = from, to = to,
                       time_floor = time_floor,
                       week_start = week_start)
-  out[["breaks"]]
+  breaks[["breaks"]]
 }

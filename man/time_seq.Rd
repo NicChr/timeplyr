@@ -10,7 +10,7 @@
 time_seq(
   from,
   to,
-  timespan,
+  time_by,
   length.out = NULL,
   roll_month = getOption("timeplyr.roll_month", "preday"),
   roll_dst = getOption("timeplyr.roll_dst", "NA")
@@ -39,7 +39,7 @@ time_seq_v2(
 
 \item{to}{End time.}
 
-\item{timespan}{\link{timespan}.}
+\item{time_by}{A \link{timespan}. This argument may be renamed in the future.}
 
 \item{length.out}{Length of the sequence.}
 
@@ -49,6 +49,8 @@ Options are "preday", "boundary", "postday", "full" and "NA".
 See \code{?timechange::time_add} for more details.}
 
 \item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
+
+\item{timespan}{\link{timespan}.}
 
 \item{sizes}{Time sequence sizes.}
 }

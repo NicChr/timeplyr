@@ -39,13 +39,15 @@ time_seq_fill <- function(x){
   if (n_first_nas == 0){
     start <- vec_head(x)
   } else {
-    time_to_subtract <- timespan(timespan, (timespan_num(timespan) * n_first_nas))
+    time_to_subtract <- timespan(timespan_unit(timespan),
+                                 (timespan_num(timespan) * n_first_nas))
     start <- time_subtract(x[n_first_nas + 1L], time_to_subtract)
   }
   if (n_last_nas == 0){
     end <- vec_tail(x)
   } else {
-    time_to_add <- timespan(timespan, (timespan_num(timespan) * n_last_nas))
+    time_to_add <- timespan(timespan_unit(timespan),
+                            (timespan_num(timespan) * n_last_nas))
     end <- time_add(x[length(x) - n_last_nas], time_to_add)
   }
   elapsed <- time_elapsed(x, timespan, rolling = TRUE, na_skip = TRUE)
