@@ -28,18 +28,6 @@ cpp_vector_size <- function(x) {
   .Call(`_timeplyr_cpp_vector_size`, x)
 }
 
-cpp_list_which_not_null <- function(l) {
-  .Call(`_timeplyr_cpp_list_which_not_null`, l)
-}
-
-list_has_interval <- function(l) {
-  .Call(`_timeplyr_list_has_interval`, l)
-}
-
-list_item_is_interval <- function(l) {
-  .Call(`_timeplyr_list_item_is_interval`, l)
-}
-
 roll_time_threshold <- function(x, threshold, switch_on_boundary) {
   .Call(`_timeplyr_roll_time_threshold`, x, threshold, switch_on_boundary)
 }

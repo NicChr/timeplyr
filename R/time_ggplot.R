@@ -16,7 +16,7 @@
 #' @returns
 #' A `ggplot`.
 #'
-#' @seealso [ts_as_tibble]
+#' @seealso [ts_as_tbl]
 #'
 #' @examples
 #' library(dplyr)
@@ -31,45 +31,29 @@
 #' }
 #' # It's as easy as this
 #' AirPassengers %>%
-#'   ts_as_tibble() %>%
+#'   ts_as_tbl() %>%
 #'   time_ggplot(time, value)
 #'
 #' # And this
 #' EuStockMarkets %>%
-#'   ts_as_tibble() %>%
+#'   ts_as_tbl() %>%
 #'   time_ggplot(time, value, group)
+#'
+#' # Converting this to monthly averages
+#'
+#' EuStockMarkets %>%
+#'   ts_as_tbl() %>%
+#'   mutate(month = year_month_decimal(time)) %>%
+#'   summarise(avg = mean(value),
+#'             .by = c(group, month)) %>%
+#'   time_ggplot(month, avg, group)
 #'
 #' # zoo example
 #' x.Date <- as.Date("2003-02-01") + c(1, 3, 7, 9, 14) - 1
 #' x <- zoo::zoo(rnorm(5), x.Date)
 #' x %>%
-#'   ts_as_tibble() %>%
+#'   ts_as_tbl() %>%
 #'   time_ggplot(time, value)
-#'
-#' # An example using raw data
-#'
-#' ebola <- outbreaks::ebola_sim$linelist
-#'
-#' # We can build a helper to count and complete
-#' # Using the same time grid
-#'
-#' count_and_complete <- function(.data, time, .name,
-#'                                from = NULL, ...,
-#'                                time_by = NULL){
-#'   .data %>%
-#'     time_by(!!dplyr::enquo(time), time_by = time_by,
-#'                .name = .name, from = !!dplyr::enquo(from),
-#'             as_interval = FALSE) %>%
-#'     dplyr::count(...) %>%
-#'     dplyr::ungroup() %>%
-#'     time_complete(.data[[.name]], ..., time_by = time_by,
-#'                   fill = list(n = 0))
-#' }
-#' ebola %>%
-#'   count_and_complete(date_of_onset, outcome, time_by = "week", .name = "date_of_onset",
-#'                      from = floor_date(min(date_of_onset), "week")) %>%
-#'   time_ggplot(date_of_onset, n, geom = geom_blank) +
-#'   geom_col(aes(fill = outcome))
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
@@ -85,13 +69,8 @@ time_ggplot <- function(data, time, value, group = NULL,
   value <- names(value)
   group <- names(group)
   time_var <- data[[time]]
-  # Must be date, datetime or number
-  if (!is_time_or_num(time_var)){
-    stop("time must be a date, datetime or numeric variable")
-  }
   # Pretty x-axis breaks
-  time_breaks <- time_breaks(time_var,
-                             n = 7, time_floor = TRUE)
+  time_breaks <- time_breaks(time_var, n = 7, time_floor = TRUE)
   if (is_datetime(time_var)){
     x_scale <- ggplot2::scale_x_datetime(breaks = time_breaks,
                                          labels = scales::label_date_short())
@@ -99,11 +78,11 @@ time_ggplot <- function(data, time, value, group = NULL,
     x_scale <- ggplot2::scale_x_date(breaks = time_breaks,
                                      labels = scales::label_date_short())
   } else if (is_year_month(time_var)){
-    x_scale <- scale_x_year_month(breaks = time_breaks)
+    x_scale <- scale_x_year_month(breaks = function(x) cheapr::get_breaks(as.double(x)))
   } else if (is_year_quarter(time_var)){
-    x_scale <- scale_x_year_quarter(breaks = time_breaks)
+    x_scale <- scale_x_year_quarter(breaks = function(x) cheapr::get_breaks(as.double(x)))
   } else {
-    x_scale <- ggplot2::scale_x_continuous(breaks = time_breaks)
+    x_scale <- ggplot2::scale_x_continuous(breaks = function(x) cheapr::get_breaks(as.double(x)))
   }
   # Concatenate group names together
   if (length(group) > 1L){

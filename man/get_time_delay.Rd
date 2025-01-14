@@ -8,8 +8,7 @@ get_time_delay(
   data,
   origin,
   end,
-  time_by = 1L,
-  time_type = getOption("timeplyr.time_type", "auto"),
+  timespan = 1L,
   min_delay = -Inf,
   max_delay = Inf,
   probs = c(0.25, 0.5, 0.75, 0.95),
@@ -27,21 +26,7 @@ get_time_delay(
 
 \item{end}{End date variable.}
 
-\item{time_by}{Must be one of the three:
-\itemize{
-\item string, specifying either the unit or the number and unit, e.g
-\code{time_by = "days"} or \code{time_by = "2 weeks"}
-\item named list of length one, the unit being the name, and
-the number the value of the list, e.g. \code{list("days" = 7)}.
-For the vectorized time functions, you can supply multiple values,
-e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{time_by = 1}.
-}}
-
-\item{time_type}{If "auto", \code{periods} are used for
-the time expansion when days, weeks, months or years are specified,
-and \code{durations} are used otherwise.}
+\item{timespan}{\link{timespan}.}
 
 \item{min_delay}{The minimum acceptable delay,
 all delays less than this are removed before calculation.
@@ -106,7 +91,7 @@ ebola_linelist <- ebola_sim_clean$linelist
 inc_distr_days <- ebola_linelist \%>\%
   get_time_delay(date_of_infection,
                  date_of_onset,
-                 time_by = "days")
+                 time = "days")
 head(inc_distr_days$data)
 inc_distr_days$unit
 inc_distr_days$num
@@ -118,7 +103,7 @@ inc_distr_days$plot
 inc_distr_days <- ebola_linelist \%>\%
   get_time_delay(date_of_infection,
                  date_of_onset,
-                 time_by = "day",
+                 time = "day",
                  bw = "nrd")
 inc_distr_days$plot
 
@@ -126,7 +111,7 @@ inc_distr_days$plot
 inc_distr_weeks <- ebola_linelist \%>\%
   get_time_delay(date_of_infection,
                  date_of_onset,
-                 time_by = "weeks",
+                 time = "weeks",
                  bw = "nrd")
 inc_distr_weeks$plot
 \dontshow{

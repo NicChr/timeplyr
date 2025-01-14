@@ -108,7 +108,7 @@ growth_rate <- function(x, na.rm = FALSE, log = FALSE, inf_fill = NULL){
   x_n <- x[n]
   x_1 <- x[min(n, 1L)]
   if (na.rm){
-    n <- n - cheapr::num_na(x, recursive = FALSE)
+    n <- n - cheapr::na_count(x, recursive = FALSE)
   }
   if (isTRUE(x_n == 0 && x_1 == 0)) return(1)
   if (log){

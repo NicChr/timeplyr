@@ -2,75 +2,27 @@
 % Please edit documentation in R/time_by.R
 \name{time_by}
 \alias{time_by}
-\alias{time_by_span}
-\alias{time_by_var}
-\alias{time_by_units}
+\alias{time_tbl_time_col}
 \title{Group by a time variable at a higher time unit}
 \usage{
-time_by(
-  data,
-  time,
-  time_by = NULL,
-  from = NULL,
-  to = NULL,
-  .name = paste0("time_intv_", time_by_pretty(time_by, "_")),
-  .add = FALSE,
-  time_type = getOption("timeplyr.time_type", "auto"),
-  as_interval = getOption("timeplyr.use_intervals", TRUE),
-  .time_by_group = TRUE
-)
+time_by(data, time, width = NULL, .name = NULL, .add = TRUE)
 
-time_by_span(x)
-
-time_by_var(x)
-
-time_by_units(x)
+time_tbl_time_col(x)
 }
 \arguments{
 \item{data}{A data frame.}
 
 \item{time}{Time variable (\bold{data-masking}). \cr
-Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, or \code{yearqtr}.}
+E.g., a \code{Date}, \code{POSIXt}, \code{numeric} or any time variable.}
 
-\item{time_by}{Time unit. \cr
-Must be one of the following:
-\itemize{
-\item string, specifying either the unit or the number and unit, e.g
-\code{time_by = "days"} or \code{time_by = "2 weeks"}
-\item lubridate duration or period object, e.g. \code{days(1)} or \code{ddays(1)}.
-\item named list of length one, the unit being the name, and
-the number the value of the list, e.g. \code{list("days" = 7)}.
-For the vectorized time functions, you can supply multiple values,
-e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{time_by = 1}.
-}}
-
-\item{from}{(Optional) Start time.}
-
-\item{to}{(Optional) end time.}
+\item{width}{A \link{timespan}.}
 
 \item{.name}{An optional glue specification passed to \code{stringr::glue()}
 which can be used to concatenate
 strings to the time column name or replace it.}
 
 \item{.add}{Should the time groups be added to existing groups?
-Default is \code{FALSE}.}
-
-\item{time_type}{If "auto", \code{periods} are used for
-the time aggregation when days, weeks,
-months or years are specified, and \code{durations}
-are used otherwise. If \code{durations}
-are used the output is always of class \code{POSIXct}.}
-
-\item{as_interval}{Should time variable be a \code{time_interval}?
-Default is \code{FALSE}. \cr
-This can be controlled globally through \code{options(timeplyr.use_intervals)}.}
-
-\item{.time_by_group}{Should the time aggregations be built on a
-group-by-group basis (the default), or should the time variable be aggregated
-using the full data? If done by group, different groups may contain
-different time sequences. This only applies when \code{.add = TRUE}.}
+Default is \code{TRUE}.}
 
 \item{x}{A \code{time_tbl_df}.}
 }
@@ -86,41 +38,29 @@ It can be used exactly like \code{dplyr::group_by}.
 \examples{
 library(dplyr)
 library(timeplyr)
+library(fastplyr)
 library(nycflights13)
 library(lubridate)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
 
 # Basic usage
 hourly_flights <- flights \%>\%
   time_by(time_hour) # Detects time granularity
 
 hourly_flights
-time_by_span(hourly_flights)
 
 monthly_flights <- flights \%>\%
   time_by(time_hour, "month")
 weekly_flights <- flights \%>\%
-  time_by(time_hour, "week", from = floor_date(min(time_hour), "week"))
+  time_by(time_hour, "week")
 
 monthly_flights \%>\%
-  count()
+  f_count()
 
 weekly_flights \%>\%
-  summarise(n = n(), arr_delay = mean(arr_delay, na.rm = TRUE))
+  f_summarise(n = n(), arr_delay = mean(arr_delay, na.rm = TRUE))
 
 # To aggregate multiple variables, use time_aggregate
 
 flights \%>\%
-  select(time_hour) \%>\%
-  mutate(across(everything(), \(x) time_aggregate(x, time_by = "weeks"))) \%>\%
-  count(time_hour)
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
+  f_count(week = time_cut_width(time_hour, months(3)))
 }

@@ -4,31 +4,14 @@
 \alias{time_diff}
 \title{Time differences by any time unit}
 \usage{
-time_diff(
-  x,
-  y,
-  time_by = 1L,
-  time_type = getOption("timeplyr.time_type", "auto")
-)
+time_diff(x, y, timespan = 1L)
 }
 \arguments{
 \item{x}{Start date or datetime.}
 
 \item{y}{End date or datetime.}
 
-\item{time_by}{Must be one of the three (Default is 1):
-\itemize{
-\item string, specifying either the unit or the number and unit, e.g
-\code{time_by = "days"} or \code{time_by = "2 weeks"}
-\item named list of length one, the unit being the name, and
-the number the value of the list, e.g. \code{list("days" = 7)}.
-For the vectorized time functions, you can supply multiple values,
-e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{time_by = 1}.
-}}
-
-\item{time_type}{Time difference type: "auto", "duration" or "period".}
+\item{timespan}{A \link{timespan} used to divide the difference.}
 }
 \value{
 A numeric vector recycled to the length of \code{max(length(x), length(y))}.
@@ -36,43 +19,12 @@ A numeric vector recycled to the length of \code{max(length(x), length(y))}.
 \description{
 The time difference between 2 date or date-time vectors.
 }
-\details{
-When \code{time_by} is a numeric vector, e.g \code{time_by = 1} then
-base arithmetic using \code{base::`-`} is used, otherwise 'lubridate' style
-durations and periods are used.\cr
-Some more exotic time units such as quarters, fortnights, etcetera
-can be specified. See \code{.time_units} for more choices.
-}
 \examples{
 library(timeplyr)
 library(lubridate)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
-time_diff(today(), today() + days(10),
-          time_by = "days")
-time_diff(today(), today() + days((0:3) * 7),
-          time_by = weeks(1))
-time_diff(today(), today() + days(100),
-          time_by = list("days" = 1:100))
-time_diff(1, 1 + 0:100, time_by = 3)
-\donttest{
-library(nycflights13)
-library(bench)
+time_diff(today(), today() + days(10), "days")
+time_diff(today(), today() + days((0:3) * 7), weeks(1))
+time_diff(today(), today() + days(100), timespan("days", 1:100))
+time_diff(1, 1 + 0:100, 3)
 
-# Period differences are much faster
-# check = FALSE because the results are fractionally different.
-# lubridate:::adjust_estimate likely has a typo in the first while loop
-
-mark(timeplyr = time_diff(flights$time_hour, today(), "weeks", time_type = "period"),
-     lubridate = interval(flights$time_hour, today()) / weeks(1),
-     check = FALSE)
-}
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
 }

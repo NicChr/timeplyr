@@ -12,6 +12,8 @@ dot_nms <- get_from_package("expr_names", "cheapr")
 deparse2 <- get_from_package("deparse2", "cheapr")
 r_copy <- get_from_package("r_copy", "cheapr")
 cpp_loc_set_replace <- get_from_package("cpp_loc_set_replace", "cheapr")
+is_compact_seq <- get_from_package("is_compact_seq", "cheapr")
+compact_seq_data <- get_from_package("compact_seq_data", "cheapr")
 
 set_recycle_args <- function(..., length = NULL, use.names = TRUE){
   if (identical(base::parent.frame(n = 1), base::globalenv())){
@@ -100,6 +102,13 @@ vec_tail <- function(x, n = 1L){
   sset(x, seq.int(from = N - size + 1L, by = 1L, length.out = size))
 }
 
+# first <- function(x){
+#   cheapr::sset(x, 1:0)
+# }
+# last <- function(x){
+#   cheapr::sset(x, cheapr::vector_length(x))
+# }
+
 packageName <- function (env = parent.frame()){
   if (!is.environment(env))
     stop("'env' must be an environment")
@@ -157,10 +166,6 @@ fpluck <- function(x, .cols = NULL, .default = NULL){
   .subset2(x, icol)
 }
 
-# round down to nearest n
-floor_nearest_n <- function(x, n){
-  floor(x / n) * n
-}
 # Round up to nearest n
 ceiling_nearest_n <- function(x, n){
   ceiling(x / n) * n
@@ -169,10 +174,6 @@ ceiling_nearest_n <- function(x, n){
 log10_divisibility <- function(x){
   x[x == 0] <- 1
   floor(log10(abs(x)))
-}
-# Sensible rounding
-pretty_floor <- function(x){
-  floor_nearest_n(x, n = 10^(log10_divisibility(x)))
 }
 pretty_ceiling <- function(x){
   ceiling_nearest_n(x, n = 10^(log10_divisibility(x)))
@@ -206,12 +207,12 @@ bin_grouped <- function(x, breaks, gx = NULL, gbreaks = NULL, codes = TRUE,
 
 check_is_num <- function(x){
   if (!is.numeric(x)){
-    stop(paste(deparse2(substitute(x)), "must be numeric"))
+    cli::cli_abort("{.arg x} must be numeric")
   }
 }
 check_is_double <- function(x){
   if (!is.double(x)){
-    stop(paste(deparse2(substitute(x)), "must be a double"))
+    cli::cli_abort("{.arg x} must be a double")
   }
 }
 # TRUE when x is sorted and contains no NA
@@ -323,10 +324,6 @@ tsp <- function(x){
   attr(x, "tsp")
 }
 
-# setdiff where x and y are unique vectors
-setdiff2 <- function(x, y){
-  x[match(x, y, 0L) == 0L]
-}
 intersect2 <- function(x, y){
   if (is.null(x) || is.null(y)){
     return(NULL)
@@ -413,6 +410,7 @@ tidy_select_names <- get_from_package("tidy_select_names", "fastplyr")
 tidy_select_pos <- get_from_package("tidy_select_pos", "fastplyr")
 cpp_set_list_element <- get_from_package("cpp_set_list_element", "fastplyr")
 list_as_tbl <- get_from_package("list_as_tbl", "fastplyr")
+across_col_names <- get_from_package("across_col_names", "fastplyr")
 
 
 # Temporary code, will update with cheapr:::inline_hist later

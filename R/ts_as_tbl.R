@@ -35,11 +35,11 @@
 #' # Univariate
 #' uts <- ts(cumsum(1 + round(rnorm(100), 2)),
 #'           start = c(1954, 7), frequency = 12)
-#' uts_tbl <- ts_as_tibble(uts)
+#' uts_tbl <- ts_as_tbl(uts)
 #'
 #' ## Multivariate
 #' mts <- ts(matrix(rnorm(300), 100, 3), start = c(1961, 1), frequency = 12)
-#' mts_tbl <- ts_as_tibble(mts)
+#' mts_tbl <- ts_as_tbl(mts)
 #'
 #' uts_tbl %>%
 #'   time_ggplot(time, value)
@@ -50,21 +50,25 @@
 #' # zoo example
 #' x.Date <- as.Date("2003-02-01") + c(1, 3, 7, 9, 14) - 1
 #' x <- zoo::zoo(rnorm(5), x.Date)
-#' ts_as_tibble(x)
+#' ts_as_tbl(x)
 #' x <- zoo::zoo(matrix(1:12, 4, 3), as.Date("2003-01-01") + 0:3)
-#' ts_as_tibble(x)
+#' ts_as_tbl(x)
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #'}
-#' @rdname ts_as_tibble
+#' @rdname ts_as_tbl
 #' @export
+ts_as_tbl <- function(x, name = "time", value = "value", group = "group"){
+ UseMethod("ts_as_tbl")
+}
 ts_as_tibble <- function(x, name = "time", value = "value", group = "group"){
- UseMethod("ts_as_tibble")
+  lifecycle::deprecate_soft("1.0.0", "ts_as_tibble()", "ts_as_tbl()")
+  ts_as_tbl(x, name, value, group)
 }
-#' @rdname ts_as_tibble
+#' @rdname ts_as_tbl
 #' @export
-ts_as_tibble.default <- function(x, name = "time", value = "value", group = "group"){
+ts_as_tbl.default <- function(x, name = "time", value = "value", group = "group"){
   time <- as.vector(stats::time(x))
   ncol <- ncol(x)
   groups <- rep(colnames(x), each = length(time))
@@ -74,31 +78,18 @@ ts_as_tibble.default <- function(x, name = "time", value = "value", group = "gro
     }
     time <- rep(time, times = ncol)
   }
-  out <- list(groups, time, as.vector(x))
-  not_null <- cpp_list_which_not_null(out)
-  out_nms <- c(group, name, value)[not_null]
-  list_as_tbl(add_names(.subset(out, not_null), out_nms))
+  fastplyr::new_tbl(!!group := groups,
+                    !!name := time,
+                    !!value := as.vector(x),
+                    .recycle = FALSE,
+                    .name_repair = FALSE)
 }
-#' @rdname ts_as_tibble
+#' @rdname ts_as_tbl
 #' @export
-ts_as_tibble.mts <- function(x, name = "time", value = "value", group = "group"){
-  time <- as.vector(stats::time(x))
-  ncol <- ncol(x)
-  groups <- rep(colnames(x), each = length(time))
-  if (!is.null(ncol)){
-    if (is.null(groups)){
-      groups <- rep(seq_len(ncol), each = length(time))
-    }
-    time <- rep(time, times = ncol)
-  }
-  out <- list(groups, time, as.vector(x))
-  not_null <- cpp_list_which_not_null(out)
-  out_nms <- c(group, name, value)[not_null]
-  list_as_tbl(add_names(.subset(out, not_null), out_nms))
-}
-#' @rdname ts_as_tibble
+ts_as_tbl.mts <- ts_as_tbl.default
+#' @rdname ts_as_tbl
 #' @export
-ts_as_tibble.xts <- function(x, name = "time", value = "value", group = "group"){
+ts_as_tbl.xts <- function(x, name = "time", value = "value", group = "group"){
   time <- attr(x, "index")
   class_match <- match(attr(time, "tclass"), c("POSIXt", "Date"))
   is_datetime <- isTRUE(1L %in% class_match)
@@ -124,14 +115,15 @@ ts_as_tibble.xts <- function(x, name = "time", value = "value", group = "group")
     groups <- rep(seq_len(ncol), each = length(time))
   }
   time <- rep(time, times = ncol)
-  out <- list(groups, time, as.vector(x))
-  not_null <- cpp_list_which_not_null(out)
-  out_nms <- c(group, name, value)[not_null]
-  list_as_tbl(add_names(.subset(out, not_null), out_nms))
+  fastplyr::new_tbl(!!group := groups,
+                    !!name := time,
+                    !!value := as.vector(x),
+                    .recycle = FALSE,
+                    .name_repair = FALSE)
 }
-#' @rdname ts_as_tibble
+#' @rdname ts_as_tbl
 #' @export
-ts_as_tibble.zoo <- function(x, name = "time", value = "value", group = "group"){
+ts_as_tbl.zoo <- function(x, name = "time", value = "value", group = "group"){
   time <- attr(x, "index")
   ncol <- ncol(x)
   groups <- rep(colnames(x), each = length(time))
@@ -141,14 +133,15 @@ ts_as_tibble.zoo <- function(x, name = "time", value = "value", group = "group")
     }
     time <- rep(time, times = ncol)
   }
-  out <- list(groups, time, as.vector(x))
-  not_null <- cpp_list_which_not_null(out)
-  out_nms <- c(group, name, value)[not_null]
-  list_as_tbl(add_names(.subset(out, not_null), out_nms))
+  fastplyr::new_tbl(!!group := groups,
+                    !!name := time,
+                    !!value := as.vector(x),
+                    .recycle = FALSE,
+                    .name_repair = FALSE)
 }
-#' @rdname ts_as_tibble
+#' @rdname ts_as_tbl
 #' @export
-ts_as_tibble.timeSeries <- function(x, name = "time", value = "value", group = "group"){
+ts_as_tbl.timeSeries <- function(x, name = "time", value = "value", group = "group"){
   x <- unclass(x)
   time <- lubridate::as_datetime(attr(x, "positions"))
   ncol <- ncol(x)
@@ -157,8 +150,9 @@ ts_as_tibble.timeSeries <- function(x, name = "time", value = "value", group = "
     groups <- rep(seq_len(ncol), each = length(time))
   }
   time <- rep(time, times = ncol)
-  out <- list(groups, time, as.vector(x))
-  not_null <- cpp_list_which_not_null(out)
-  out_nms <- c(group, name, value)[not_null]
-  list_as_tbl(add_names(.subset(out, not_null), out_nms))
+  fastplyr::new_tbl(!!group := groups,
+                    !!name := time,
+                    !!value := as.vector(x),
+                    .recycle = FALSE,
+                    .name_repair = FALSE)
 }

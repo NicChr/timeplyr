@@ -3,28 +3,16 @@ data.table::setDTthreads(threads = 2L)
 # Set number of collapse threads to 1
 collapse::set_collapse(nthreads = 1L)
 
-# Temporary to make tests pass
-# time_by2 <- function(data, ...){
-#   out <- time_by(data, ..., .name = "{.col}")
-#   cl <- class(out)
-#   out[[attr(out, "time")]] <- interval_start(out[[attr(out, "time")]])
-#   class(out) <- cl
-#   # attr(out, "groups")[[attr(out, "time")]] <-
-#   #   interval_start(attr(out, "groups")[[attr(out, "time")]])
-#   out
-# }
-
-testthat::test_that("time_by", {
-  options(timeplyr.use_intervals = FALSE)
+test_that("time_by", {
   flights <- nycflights13::flights
   start <- lubridate::ymd_hms("2013-03-16 11:43:48",
-                               tz = "Europe/London")
+    tz = "Europe/London"
+  )
   end <- start + lubridate::ddays(10)
   expect_snapshot(
     flights %>%
-      time_by(time_hour, time_by = "3 days",
-              from = start, to = end,
-              time_type = "period") %>%
+      dplyr::filter(dplyr::between(time_hour, start, end)) %>%
+      time_by(time_hour, "3 days") %>%
       fastplyr::f_count()
   )
   expect_snapshot(
@@ -33,53 +21,58 @@ testthat::test_that("time_by", {
       time_by(time_hour)
   )
   flights_weekly <- flights %>%
-    time_by(time_hour, time_by = "week")
+    time_by(time_hour, "week")
   flights_bi_weekly <- flights %>%
-    time_by(time_hour, time_by = "2 weeks")
-  testthat::expect_equal(time_by_units(flights_weekly),
-                         list(weeks = 1))
-  testthat::expect_equal(time_by_var(flights_weekly),
-                         "time_intv_week")
-  testthat::expect_equal(time_by_units(flights_bi_weekly),
-                         list(weeks = 2))
-  testthat::expect_equal(time_by_var(flights_bi_weekly),
-                         "time_intv_2_weeks")
+    time_by(time_hour, "2 weeks")
+  expect_equal(time_tbl_time_col(flights_weekly), "time_hour")
+  expect_equal(time_tbl_time_col(flights_bi_weekly), "time_hour")
 
-  testthat::expect_equal(
-    flights_weekly$time_intv_week,
-    time_summarisev(flights$time_hour, time_by = "week")
+  expect_equal(
+    flights_weekly$time_hour,
+    time_cut_width(flights$time_hour, "week")
   )
-  testthat::expect_equal(
-    flights_bi_weekly$time_intv_2_weeks,
-    time_summarisev(flights$time_hour, time_by = "2 weeks")
+  expect_equal(
+    flights_bi_weekly$time_hour,
+    time_cut_width(flights$time_hour, "2 weeks")
   )
 
-  testthat::expect_equal(
-    group_data(flights_weekly)$time_intv_week,
-    time_summarisev(flights$time_hour,
-                    time_by = "week",
-                    sort = TRUE, unique = TRUE)
+  expect_equal(
+    group_data(flights_weekly)$time_hour,
+    time_cut_width(flights$time_hour, "week") %>%
+      unique() %>%
+      sort()
   )
-  testthat::expect_equal(
-    group_data(flights_bi_weekly)$time_intv_2_weeks,
-    time_summarisev(flights$time_hour,
-                    time_by = "2 weeks",
-                    sort = TRUE, unique = TRUE)
+  expect_equal(
+    group_data(flights_bi_weekly)$time_hour,
+    time_cut_width(flights$time_hour, "2 weeks") %>%
+      unique() %>%
+      sort()
   )
 
   printed_out <- capture.output(print(flights_weekly))
   printed_out2 <- capture.output(print(flights_bi_weekly))
-  testthat::expect_equal(gsub(" ", "", printed_out[1]),
-                         "#Atibble:336,776x20")
-  testthat::expect_equal(gsub(" ", "", printed_out[2]),
-                         "#Time:time_intv_week[53]")
-  testthat::expect_equal(gsub(" ", "", printed_out[3]),
-                         "#By:week")
-  testthat::expect_equal(gsub(" ", "", printed_out2[1]),
-                         "#Atibble:336,776x20")
-  testthat::expect_equal(gsub(" ", "", printed_out2[2]),
-                         "#Time:time_intv_2_weeks[27]")
-  testthat::expect_equal(gsub(" ", "", printed_out2[3]),
-                         "#By:2weeks")
-  reset_timeplyr_options()
+  expect_equal(
+    gsub(" ", "", printed_out[1]),
+    "#Atibble:336,776x19"
+  )
+  expect_equal(
+    gsub(" ", "", printed_out[2]),
+    "#Time:time_hour[53]"
+  )
+  expect_equal(
+    gsub(" ", "", printed_out[3]),
+    "#Width:week"
+  )
+  expect_equal(
+    gsub(" ", "", printed_out2[1]),
+    "#Atibble:336,776x19"
+  )
+  expect_equal(
+    gsub(" ", "", printed_out2[2]),
+    "#Time:time_hour[27]"
+  )
+  expect_equal(
+    gsub(" ", "", printed_out2[3]),
+    "#Width:2weeks"
+  )
 })

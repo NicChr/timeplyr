@@ -3,29 +3,6 @@
 unit_match_stop <- function(units = .time_units){
   stop(paste0("'arg' should be one of '", paste(units, collapse = "', '"), "'"))
 }
-# The idea is that when you supply a list, no regex
-# is needed to separate out the numbers
-# This is handy with loops to reduce overhead
-unit_list_match <- function(l){
-  if (length(l) != 1L) stop("l must of a list of length 1.")
-  if (names(l) == "numeric") {
-    unit <- "numeric"
-  } else {
-    unit <- rlang::arg_match0(names(l), .time_units)
-  }
-  if (is.na(unit)) unit_match_stop()
-  # if (length(unit) == 0L) stop("unit list must be named")
-  num <- .subset2(l, 1L)
-  scale <- 1L
-  if (unit %in% .extra_time_units){
-    exotic_info <- convert_exotic_units(unit)
-    scale <- .subset2(exotic_info, "scale")
-    unit <- .subset2(exotic_info, "unit")
-  }
-  list("unit" = unit,
-       "num" = num,
-       "scale" = scale)
-}
 # Convert exotic units to normal units
 convert_exotic_units <- function(x){
   scales <- c(2, 3, 18, 4, 5, 10, 15, 20, 100, 1000)
@@ -75,88 +52,13 @@ unit_parse <- function(x){
     scale <- .subset2(exotic_info, "scale")
     unit <- .subset2(exotic_info, "unit")
   }
-  out <- list("unit" = unit,
-              "num" = num,
-              "scale" = scale)
-  out
+  list("unit" = unit, "num" = num * scale)
 }
-time_by_list <- function(time_by){
-  unit_info <- unit_guess(time_by)
-  units <- .subset2(unit_info, "unit")
-  num <- .subset2(unit_info, "num") * .subset2(unit_info, "scale")
-  add_names(list(num), units)
-}
-# Returns list with numeric vector element, where the name of the list
-# is the time unit name
-time_by_get <- function(x, time_by = NULL, quiet = FALSE){
-  if (is.null(time_by)){
-    unit_info <- time_granularity(x, msg = !quiet)
-    by_n <- unit_info[["num"]]
-    by_unit <- unit_info[["unit"]]
-    out <- add_names(list(by_n), by_unit)
+get_granularity <- function(x, timespan = NULL, quiet = FALSE){
+  if (is.null(timespan)){
+    granularity(x)
   } else {
-    out <- time_by_list(time_by)
-  }
-  out
-}
-time_by_length <- function(time_by){
-  length(time_by_num(time_by))
-}
-time_by_num <- function(time_by){
-  time_by[[1L]]
-}
-time_by_unit <- function(time_by){
-  names(time_by)
-}
-time_by_is_num <- function(time_by){
-  is.numeric(time_by) ||
-  # isTRUE(class(time_by) %in% c("integer", "numeric")) ||
-    (is.list(time_by) &&
-       length(time_by_unit(time_by)) == 1L &&
-       time_by_unit(time_by) == "numeric")
-}
-time_by_sign <- function(time_by){
-  sign(time_by_num(time_by))
-}
-check_time_by_length_is_one <- function(time_by){
-  if (time_by_length(time_by) != 1){
-    stop("Please supply only one numeric value in time_by")
-  }
-}
-time_by_pretty <- function(time_by, sep = " "){
-  time_by <- time_by_list(time_by)
-  units <- names(time_by)
-  if (time_by_length(time_by) > 1){
-    stop("Please supply only one numeric value in time_by")
-  }
-  num <- time_by[[1L]]
-  if (units == "numeric"){
-    if (isTRUE(num == 1)){
-      paste(num, "numeric unit", sep = " ")
-    } else {
-      pretty_num <- round(num, 2)
-      if (isTRUE(!cppdoubles::double_equal(num, pretty_num))){
-        pretty_num <- paste0("~", pretty_num)
-      }
-      paste(pretty_num, "numeric units", sep = " ")
-    }
-  } else {
-    num_seconds <- unit_to_seconds(time_by)
-    higher_unit_info <- seconds_to_unit(num_seconds)
-    scale <- higher_unit_info$scale
-    higher_unit <- higher_unit_info$unit
-    num <- num_seconds / scale
-    units <- higher_unit
-
-    pretty_num <- round(num, 2)
-    if (isTRUE(!cppdoubles::double_equal(num, pretty_num))){
-      pretty_num <- paste0("~", pretty_num)
-    }
-    if (isTRUE(num == 1)){
-      paste0(plural_unit_to_single(units))
-    } else {
-      paste0(pretty_num, sep, units)
-    }
+    timespan(timespan)
   }
 }
 gcd_time_diff <- function(x){
@@ -167,54 +69,7 @@ gcd_time_diff <- function(x){
   }
   cheapr::na_replace(out, 1L)
 }
-time_granularity <- function(x, msg = TRUE){
-  gcd_diff <- gcd_time_diff(x)
-  if (is_date(x)){
-    granularity <- "day(s)"
-    scale <- 1L
-    unit <- "days"
-    num_and_unit <- paste(gcd_diff, unit, sep = " ")
-  } else if (is_datetime(x)){
-    convert_seconds <- seconds_to_unit(gcd_diff)
-    scale <- convert_seconds[["scale"]]
-    granularity <- convert_seconds[["unit"]]
-    granularity <- paste0(plural_unit_to_single(granularity), "(s)")
-    unit <- "seconds"
-    num_and_unit <- stringr::str_c(gcd_diff, unit, sep = " ")
-  } else {
-    granularity <- "numeric unit(s)"
-    scale <- 1L
-    unit <- "numeric"
-    num_and_unit <- gcd_diff
-  }
-  if (msg){
-    message(paste("Assuming a time granularity of",
-                  gcd_diff/scale,
-                  granularity,
-                  sep = " "))
-  }
-  list("granularity" = granularity,
-       "unit" = unit,
-       "num" = gcd_diff,
-       "num_and_unit" = num_and_unit,
-       "scale" = scale)
-}
-# A more focused version
-time_granularity2 <- function(x){
-  gcd_diff <- gcd_time_diff(x)
-  if (is_date(x)){
-    unit <- "days"
-    scale <- 1
-  } else if (is_datetime(x)){
-    convert_seconds <- seconds_to_unit(gcd_diff)
-    unit <- convert_seconds[["unit"]]
-    scale <- convert_seconds[["scale"]]
-  } else {
-    unit <- "numeric"
-    scale <- 1L
-  }
-  add_names(list(gcd_diff / scale), unit)
-}
+
 # Converts seconds to duration unit
 # Scale is in comparison to seconds
 seconds_to_unit <- function(x){
@@ -276,9 +131,10 @@ seconds_to_unit <- function(x){
        "scale" = scale)
 }
 unit_to_seconds <- function(x){
-  unit_info <- unit_guess(x)
-  unit <- unit_info[["unit"]]
-  num <- unit_info[["num"]] * unit_info[["scale"]]
+  unit_info <- timespan(x)
+  unit <- timespan_unit(unit_info)
+  num <- timespan_num(unit_info)
+
   scales <- c(1/1000/1000/1000/1000, # Pico
               1/1000/1000/1000, # Nano
               1/1000/1000, # Micro
@@ -295,19 +151,6 @@ unit_to_seconds <- function(x){
     unit_match_stop(.duration_units)
   }
   num * scales[unit_match]
-}
-# No string guessing at all
-guess_seq_type <- function(units){
-  if (units %in% c("days", "weeks", "months", "years",
-                   .extra_time_units)){
-    "period"
-  } else if (units %in% c("picoseconds", "nanoseconds",
-                          "microseconds", "milliseconds",
-                          "seconds", "minutes", "hours")){
-    "duration"
-  } else {
-    "numeric"
-  }
 }
 
 convert_common_dates <- function(x){
@@ -334,9 +177,7 @@ period_by_calc <- function(from, to, length){
   seconds_unit <- period_unit("seconds")
   set_recycle_args(from, to, length)
   which_len_1 <- cheapr::val_find(length, 1)
-  sec_diff <- time_diff(from, to,
-                        time_by = list("seconds" = 1),
-                        time_type = "period")
+  sec_diff <- time_diff(from, to, new_timespan("seconds"))
   out <- lubridate::seconds_to_period(sec_diff / (length - 1))
   period_info <- collapse::qDF(time_unit_info(out))
   n_unique_slots <- df_ncol(period_info) - rowSums(period_info == 0)
@@ -351,9 +192,7 @@ period_by_calc <- function(from, to, length){
 # a certain length
 duration_by_calc <- function(from, to, length){
   seconds_unit <- duration_unit("seconds")
-  sec_diff <- time_diff(from, to,
-                        time_by = list("seconds" = 1),
-                        time_type = "duration")
+  sec_diff <- time_diff(from, to, new_timespan("seconds", 1L))
   out <- seconds_unit(sec_diff / (length - 1))
   length <- rep_len(length, length(out))
   out[cheapr::val_find(length, 1)] <- seconds_unit(0) # Special case
@@ -365,14 +204,9 @@ num_by_calc <- function(from, to, length){
   out[cheapr::val_find(length, 1)] <- 0
   out
 }
-# Vectorized except for periods
-time_by_calc <- function(from, to, length, time_type){
+time_by_calc <- function(from, to, length){
   if (is_time(from) && is_time(to)){
-    if (time_type == "period"){
-      period_by_calc(from, to, length)
-    } else {
-      duration_by_calc(from, to, length)
-    }
+    period_by_calc(from, to, length)
   } else {
     num_by_calc(from, to, length)
   }
@@ -420,11 +254,10 @@ numeric_unit <- function(units){
   identity
 }
 # Functional that returns time unit function
-time_unit <- function(units, time_type = c("duration", "period", "numeric")){
-  time_type <- rlang::arg_match0(time_type, c("duration", "period", "numeric"))
-  if (units == "numeric"){
+time_unit <- function(units){
+  if (is.na(units)){
     numeric_unit(units)
-  } else if (time_type == "duration"){
+  } else if (is_duration_unit(units)){
     duration_unit(units)
   } else {
     period_unit(units)
@@ -494,42 +327,6 @@ as_datetime2 <- function(x){
   }
 }
 
-fcut_ind <- function(x, breaks, rightmost.closed = FALSE,
-                     left.open = FALSE, all.inside = FALSE){
-  breaksi <- findInterval(x,
-                          breaks,
-                          rightmost.closed = rightmost.closed,
-                          left.open = left.open,
-                          all.inside = all.inside)
-  # This makes it so that NA is returned for any x where findinterval
-  # resorts to 0 and doesn't just remove them
-  breaksi[cheapr::val_find(breaksi, 0L)] <- NA_integer_
-  breaksi
-}
-cut_time2 <- function(x, breaks, rightmost.closed = FALSE, left.open = FALSE){
-  breaks[
-    fcut_ind(x,
-             breaks,
-             rightmost.closed = rightmost.closed,
-             left.open = left.open,
-             all.inside = FALSE)
-  ]
-}
-
-cut_time <- function(x, breaks, include_oob = FALSE, codes = FALSE, include_lowest = TRUE){
-  cheapr::bin(x, breaks, codes = codes, left_closed = TRUE,
-              include_oob = include_oob,
-              include_endpoint = include_lowest)
-}
-
-# Check for date sequences that should not be coerced to datetimes
-is_special_case_days <- function(from, to, unit, num, time_type){
-  time_type == "auto" &&
-    unit %in% c("days", "weeks") &&
-    is_date(from) &&
-    is_date(to) &&
-    is_whole_number(num)
-}
 # Repeat methods for zoo yearmon and yearqtr class
 #' @exportS3Method base::rep_len
 rep_len.yearmon <- function(x, length.out){
@@ -578,11 +375,6 @@ as_yearqtr <- function(x){
     structure(floor(4 * x + 0.001)/4, class = "yearqtr")
   }
 }
-is_interval <- function(x){
-  (isS4(x) && inherits(x, "Interval")) ||
-    inherits(x, "time_interval")
-}
-
 # Internal helper to process from/to args
 get_from_to <- function(data, ..., time, from = NULL, to = NULL,
                         .by = NULL){
@@ -611,71 +403,62 @@ get_from_to <- function(data, ..., time, from = NULL, to = NULL,
 # All credits go to the authors of timechange
 C_time_add <- get("C_time_add", asNamespace("timechange"), inherits = FALSE)
 
-time_add2 <- function(x, time_by,
-                      time_type = getOption("timeplyr.time_type", "auto"),
-                      roll_month = getOption("timeplyr.roll_month", "preday"),
-                      roll_dst = getOption("timeplyr.roll_dst", "NA")){
-  time_by <- time_by_list(time_by)
-  time_num <- time_by_num(time_by)
-  time_unit <- time_by_unit(time_by)
-  if (time_by_is_num(time_by)){
-    x + time_num
+time_add <- function(x, timespan,
+                     roll_month = getOption("timeplyr.roll_month", "preday"),
+                     roll_dst = getOption("timeplyr.roll_dst", "NA")){
+
+  span <- timespan(timespan)
+  num <- timespan_num(span)
+  unit <- timespan_unit(span)
+
+  if (is.na(unit)){
+    x + num
   } else {
-    time_type <- match_time_type(time_type)
-    if (time_type == "auto"){
-      time_type <- guess_seq_type(time_unit)
-    }
-    if (time_type == "period"){
-      unit <- plural_unit_to_single(time_unit)
-      time_add(x, periods = add_names(list(time_num), unit),
-               roll_month = roll_month, roll_dst = roll_dst)
+    # If timespan is less than a day
+    if (is_duration_unit(unit)){
+      x + duration_unit(unit)(num)
     } else {
-      x + duration_unit(time_unit)(time_num)
+      unit <- plural_unit_to_single(unit)
+      timechange::time_add(
+        x, periods = add_names(list(num), unit),
+        roll_month = roll_month, roll_dst = roll_dst
+      )
+    }
+  }
+}
+time_subtract <- function(x, timespan,
+                          roll_month = getOption("timeplyr.roll_month", "preday"),
+                          roll_dst = getOption("timeplyr.roll_dst", "NA")){
+
+  span <- timespan(timespan)
+  num <- timespan_num(span)
+  unit <- timespan_unit(span)
+
+  if (is.na(unit)){
+    x - num
+  } else {
+    # If timespan is less than a day
+    if (is_duration_unit(unit)){
+      x - duration_unit(unit)(num)
+    } else {
+      unit <- plural_unit_to_single(unit)
+      timechange::time_subtract(
+        x, periods = add_names(list(num), unit),
+        roll_month = roll_month, roll_dst = roll_dst
+      )
     }
   }
 }
 time_floor <- function(x, time_by, week_start = getOption("lubridate.week.start", 1)){
-  unit_info <- unit_guess(time_by)
-  by_unit <- unit_info[["unit"]]
-  by_n <- unit_info[["num"]] * unit_info[["scale"]]
+  span <- timespan(time_by)
+  num <- timespan_num(span)
+  unit <- timespan_unit(span)
+
   if (is_time(x)){
-    time_by <- paste(by_n, by_unit)
+    time_by <- paste(num, unit)
     timechange::time_floor(x, unit = time_by, week_start = week_start)
   } else {
-    floor(x / by_n) * by_n
-  }
-}
-# Custom time flooring..
-time_floor2 <- function(x, time_by, week_start = getOption("lubridate.week.start", 1)){
-  if (time_by_is_num(time_by)){
-    num <- unlist(time_by, use.names = FALSE, recursive = FALSE)
     floor(x / num) * num
-  } else {
-    time_floor(x, time_by = add_names(list(1), names(time_by)), week_start = week_start)
-  }
-}
-time_ceiling <- function(x, time_by, week_start = getOption("lubridate.week.start", 1),
-                         change_on_boundary = inherits(x, "Date")){
-  unit_info <- unit_guess(time_by)
-  by_unit <- unit_info[["unit"]]
-  by_n <- unit_info[["num"]] * unit_info[["scale"]]
-  if (is_time(x)){
-    time_by <- paste(by_n, by_unit)
-    timechange::time_ceiling(x, unit = time_by, week_start = week_start)
-  } else {
-    ceiling(x / by_n) * by_n
-  }
-}
-# Custom time flooring..
-time_ceiling2 <- function(x, time_by, week_start = getOption("lubridate.week.start", 1),
-                          change_on_boundary = FALSE){
-  if (time_by_is_num(time_by)){
-    num <- unlist(time_by, use.names = FALSE, recursive = FALSE)
-    ceiling(x / num) * num
-  } else {
-    time_ceiling(x, time_by = add_names(list(1), names(time_by)),
-                 week_start = week_start,
-                 change_on_boundary = change_on_boundary)
   }
 }
 tomorrow <- function(){
@@ -689,40 +472,26 @@ time_as_character <- function(x){
     as.character(x)
   }
 }
-time_as_number <- function(x){
-  strip_attrs(unclass(x))
-}
-time_int_end <- function(x){
-  attr(x, "end")
-}
-time_int_rm_attrs <- function(x){
-  attr(x, "end") <- NULL
-  attr(x, "direction") <- NULL
-  x
-}
 
 check_is_date <- function(x){
   if (!is_date(x)){
-    stop(paste(deparse2(substitute(x)),
-               "must be a date"))
+    cli::cli_abort("{.arg x} must be a date")
   }
 }
 check_is_datetime <- function(x){
   if (!is_datetime(x)){
-    stop(paste(deparse2(substitute(x)),
-               "must be a datetime"))
+    cli::cli_abort("{.arg x} must be a datetime")
   }
 }
 check_is_time <- function(x){
   if (!is_time(x)){
-    stop(paste(deparse2(substitute(x)),
-                "must be a date or datetime"))
+    cli::cli_abort("{.arg x} must be a date or datetime")
   }
 }
 check_is_time_or_num <- function(x){
   if (!is_time_or_num(x)){
-    stop(paste(deparse2(substitute(x)),
-               "must be a date, datetime, or numeric vector"))
+    cli::cli_abort(c("{.arg x} must be one of the following classes:",
+                   paste(time_classes, collapse = ", ")))
   }
 }
 # Turn date storage into integer
@@ -737,9 +506,6 @@ check_time_not_missing <- function(x){
     stop("time index must not contain NA values")
   }
 }
-match_time_type <- function(time_type){
-  rlang::arg_match0(time_type, c("auto", "duration", "period"))
-}
 # Turn "days" into "day", etc
 plural_unit_to_single <- function(x){
   substr(x, 1L, nchar(x) -1L)
@@ -747,10 +513,10 @@ plural_unit_to_single <- function(x){
 
 # Multiplies a single unit period like days(7) or months(2)
 multiply_single_unit_period_by_number <- function(per, num){
-  per_list <- time_by_list(per)
+  per_list <- timespan(per)
   per_list <- time_by_list_convert_weeks_to_days(per_list)
-  per_num <- time_by_num(per_list)
-  per_unit <- time_by_unit(per_list)
+  per_num <- timespan_num(per_list)
+  per_unit <- timespan_unit(per_list)
   # per_unit <- plural_unit_to_single(per_unit)
   # if (per_unit == "second"){
   #   per_unit <- ".Data"
@@ -818,10 +584,10 @@ multiply_single_unit_period_by_number <- function(per, num){
 }
 
 rep_single_unit_period <- function(per, ...){
-  per_list <- time_by_list(per)
+  per_list <- timespan(per)
   per_list <- time_by_list_convert_weeks_to_days(per_list)
-  per_num <- time_by_num(per_list)
-  per_unit <- time_by_unit(per_list)
+  per_num <- timespan_num(per_list)
+  per_unit <- timespan_unit(per_list)
   per_num <- rep(per_num, ...)
   other_fill <- integer(length(per_num))
   switch(
@@ -884,17 +650,16 @@ rep_single_unit_period <- function(per, ...){
 # Start datetime, end datetime, and period object
 adj_dur_est <- function (est, start, end, per){
   est <- ceiling(est)
-  up_date <- time_add2(start,
+  up_date <- time_add(start,
                        # est * per)
                        multiply_single_unit_period_by_number(per, est),
-                       time_type = "period",
                        ### NOT SURE ABOUT THE BELOW roll_dst LINE
                        roll_dst = "NA")
   # up_date2 <- up_date
   while (length(which <- which(up_date < end))) {
     # up_date2 <- up_date
     est[which] <- est[which] + 1
-    up_date[which] <- time_add(start[which],
+    up_date[which] <- timechange::time_add(start[which],
 
     # As as 20-March-2024 lubridate uses the below line
     # Which I think is likely wrong and a typo...
@@ -910,13 +675,13 @@ adj_dur_est <- function (est, start, end, per){
   while (length(which <- which(low_date > end))) {
     est[which] <- est[which] - 1
     up_date[which] <- low_date[which]
-    low_date[which] <- time_add(start[which],
+    low_date[which] <- timechange::time_add(start[which],
                                  period_to_list(
                                    multiply_single_unit_period_by_number(per[which], est[which])
                                    ))
   }
-  frac <- strip_attrs(unclass(difftime(end, low_date, units = "secs"))) /
-    strip_attrs(unclass(difftime(up_date, low_date, units = "secs")))
+  frac <- strip_attrs(difftime(end, low_date, units = "secs")) /
+    strip_attrs(difftime(up_date, low_date, units = "secs"))
   frac[which(low_date == up_date)] <- 0
   est + frac
 }
@@ -926,8 +691,8 @@ divide_interval_by_period2 <- function(start, end, per){
   if (length(start) == 0 || length(end) == 0 || length(per) == 0) {
     return(numeric())
   }
-  estimate <- (time_as_number(as_datetime2(end)) -
-                 time_as_number(as_datetime2(start)) ) / unit_to_seconds(per)
+  estimate <- (strip_attrs(as_datetime2(end)) -
+                 strip_attrs(as_datetime2(start)) ) / unit_to_seconds(per)
   max_len <- max(length(start), length(end), length(per))
   timespans <- cheapr::recycle(start = start, end = end, length = max_len)
   # Here we make sure to use rep method for lubridate periods
@@ -945,15 +710,15 @@ divide_interval_by_period2 <- function(start, end, per){
 }
 time_by_list_convert_weeks_to_days <- function(time_by){
   out <- time_by
-  if (time_by_unit(out) == "weeks"){
-    out <- list("days" = as.double(time_by_num(out) * 7))
+  if (timespan_unit(out) == "weeks"){
+    out <- list("days" = as.double(timespan_num(out) * 7))
   }
   out
 }
 # time_by_as_timechange_period_list <- function(time_by){
 #   time_by <- time_by_list(time_by)
-#   num <- time_by_num(time_by)
-#   unit <- plural_unit_to_single(time_by_unit(time_by))
+#   num <- timespan_num(time_by)
+#   unit <- plural_unit_to_single(timespan_unit(time_by))
 #   add_names(list(num), unit)
 # }
 period_to_list <- function(x){
@@ -987,7 +752,7 @@ int_to_per <- function (start, end){
   set_recycle_args(start, end)
   start <- as_datetime2(start)
   end <- time_cast(end, start)
-  duration <- time_as_number(end) - time_as_number(start)
+  duration <- strip_attrs(end) - strip_attrs(start)
   start <- unclass(as.POSIXlt(start))
   end <- unclass(as.POSIXlt(end))
   negs <- duration < 0
@@ -1048,6 +813,7 @@ int_to_per <- function (start, end){
 }
 
 # Convenience function to return base time unit of time variable
+# Useless now, use `resolution()`
 get_time_unit <- function(x){
   if (is_date(x)){
     "days"
@@ -1056,4 +822,8 @@ get_time_unit <- function(x){
   } else {
     "numeric"
   }
+}
+
+is_duration_unit <- function(x){
+  collapse::fmatch(x, .time_units) <= 7L
 }

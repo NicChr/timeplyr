@@ -55,27 +55,6 @@ extern "C" SEXP _timeplyr_cpp_vector_size(SEXP x) {
   END_CPP11
 }
 // utils.cpp
-SEXP cpp_list_which_not_null(SEXP l);
-extern "C" SEXP _timeplyr_cpp_list_which_not_null(SEXP l) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(cpp_list_which_not_null(cpp11::as_cpp<cpp11::decay_t<SEXP>>(l)));
-  END_CPP11
-}
-// utils.cpp
-bool list_has_interval(SEXP l);
-extern "C" SEXP _timeplyr_list_has_interval(SEXP l) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(list_has_interval(cpp11::as_cpp<cpp11::decay_t<SEXP>>(l)));
-  END_CPP11
-}
-// utils.cpp
-SEXP list_item_is_interval(SEXP l);
-extern "C" SEXP _timeplyr_list_item_is_interval(SEXP l) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(list_item_is_interval(cpp11::as_cpp<cpp11::decay_t<SEXP>>(l)));
-  END_CPP11
-}
-// utils.cpp
 SEXP roll_time_threshold(SEXP x, double threshold, bool switch_on_boundary);
 extern "C" SEXP _timeplyr_roll_time_threshold(SEXP x, SEXP threshold, SEXP switch_on_boundary) {
   BEGIN_CPP11
@@ -102,15 +81,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_consecutive_na_id",    (DL_FUNC) &_timeplyr_cpp_consecutive_na_id,    2},
     {"_timeplyr_cpp_diff",                 (DL_FUNC) &_timeplyr_cpp_diff,                 6},
     {"_timeplyr_cpp_is_whole_num",         (DL_FUNC) &_timeplyr_cpp_is_whole_num,         3},
-    {"_timeplyr_cpp_list_which_not_null",  (DL_FUNC) &_timeplyr_cpp_list_which_not_null,  1},
     {"_timeplyr_cpp_roll_count_na",        (DL_FUNC) &_timeplyr_cpp_roll_count_na,        4},
     {"_timeplyr_cpp_roll_growth_rate",     (DL_FUNC) &_timeplyr_cpp_roll_growth_rate,     3},
     {"_timeplyr_cpp_roll_na_fill",         (DL_FUNC) &_timeplyr_cpp_roll_na_fill,         2},
     {"_timeplyr_cpp_roll_na_fill_grouped", (DL_FUNC) &_timeplyr_cpp_roll_na_fill_grouped, 4},
     {"_timeplyr_cpp_vector_size",          (DL_FUNC) &_timeplyr_cpp_vector_size,          1},
     {"_timeplyr_cpp_which_first_gap",      (DL_FUNC) &_timeplyr_cpp_which_first_gap,      3},
-    {"_timeplyr_list_has_interval",        (DL_FUNC) &_timeplyr_list_has_interval,        1},
-    {"_timeplyr_list_item_is_interval",    (DL_FUNC) &_timeplyr_list_item_is_interval,    1},
     {"_timeplyr_roll_time_threshold",      (DL_FUNC) &_timeplyr_roll_time_threshold,      3},
     {NULL, NULL, 0}
 };

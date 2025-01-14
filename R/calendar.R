@@ -26,7 +26,7 @@
 #' from <- floor_date(today(), unit = "year")
 #' to <- ceiling_date(today(), unit = "year", change_on_boundary = TRUE) - days(1)
 #'
-#' my_seq <- time_seq(from, to, time_by = "day")
+#' my_seq <- time_seq(from, to, "day")
 #' calendar(my_seq)
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
@@ -77,10 +77,9 @@ calendar <- function(x, label = TRUE,
     second <- NULL
   }
   out <- fastplyr::new_tbl(
-    x, year, quarter, month, month_l, week, day,
+    !!name := x, year, quarter, month, month_l, week, day,
     yday, isoyear, isoweek, isoday, epiyear, epiweek, wday, wday_l,
     hour, minute, second
   )
-  names(out)[1] <- name
   out
 }

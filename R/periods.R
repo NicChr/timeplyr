@@ -1,9 +1,9 @@
 # Faster lubridate::period for larger data basically
 
 lubridate_period <- function(...){
-  periods <- unclass(time_period(...))
+  periods <- unclass(period_timespan(...))
   # lubridate::period() propagates NA values across all periods
-  if (cheapr::num_na(periods, recursive = TRUE) > 0){
+  if (cheapr::na_count(periods, recursive = TRUE) > 0){
     which_na_fill <- which(cheapr::row_any_na(list_as_df(periods)))
     for (i in seq_along(periods)){
       periods[[i]][which_na_fill] <- NA

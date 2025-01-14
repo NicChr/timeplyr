@@ -2,58 +2,54 @@
 % Please edit documentation in R/time_cut.R
 \name{time_cut}
 \alias{time_cut}
+\alias{time_cut_n}
+\alias{time_cut_width}
 \alias{time_breaks}
 \title{Cut dates and datetimes into regularly spaced date or datetime intervals}
 \usage{
 time_cut(
   x,
   n = 5,
-  time_by = NULL,
+  timespan = NULL,
   from = NULL,
   to = NULL,
   time_floor = FALSE,
-  week_start = getOption("lubridate.week.start", 1),
-  time_type = getOption("timeplyr.time_type", "auto"),
-  roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "NA"),
-  as_interval = getOption("timeplyr.use_intervals", TRUE)
+  week_start = getOption("lubridate.week.start", 1)
 )
+
+time_cut_n(
+  x,
+  n = 5,
+  timespan = NULL,
+  from = NULL,
+  to = NULL,
+  time_floor = FALSE,
+  week_start = getOption("lubridate.week.start", 1)
+)
+
+time_cut_width(x, timespan = granularity(x), from = NULL, to = NULL)
 
 time_breaks(
   x,
   n = 5,
-  time_by = NULL,
+  timespan = NULL,
   from = NULL,
   to = NULL,
   time_floor = FALSE,
-  week_start = getOption("lubridate.week.start", 1),
-  time_type = getOption("timeplyr.time_type", "auto"),
-  roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "NA")
+  week_start = getOption("lubridate.week.start", 1)
 )
 }
 \arguments{
-\item{x}{Time variable. \cr
-Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, or \code{yearqtr}.}
+\item{x}{Time vector. \cr
+E.g. a \code{Date}, \code{POSIXt}, \code{numeric} or any time-based vector.}
 
 \item{n}{Number of breaks.}
 
-\item{time_by}{Time unit. \cr
-Must be one of the three:
-\itemize{
-\item string, specifying either the unit or the number and unit, e.g
-\code{time_by = "days"} or \code{time_by = "2 weeks"}
-\item named list of length one, the unit being the name, and
-the number the value of the list, e.g. \code{list("days" = 7)}.
-For the vectorized time functions, you can supply multiple values,
-e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{time_by = 1}.
-}}
+\item{timespan}{\link{timespan}.}
 
-\item{from}{Time series start date.}
+\item{from}{Start time.}
 
-\item{to}{Time series end date.}
+\item{to}{End time.}
 
 \item{time_floor}{Logical. Should the initial date/datetime be
 floored before building the sequence?}
@@ -61,21 +57,6 @@ floored before building the sequence?}
 \item{week_start}{day on which week starts following ISO conventions - 1
 means Monday (default), 7 means Sunday.
 This is only used when \code{time_floor = TRUE}.}
-
-\item{time_type}{If "auto", \code{periods} are used for
-the time expansion when days, weeks, months or years are specified,
-and \code{durations} are used otherwise.}
-
-\item{roll_month}{Control how impossible dates are handled when
-month or year arithmetic is involved.
-Options are "preday", "boundary", "postday", "full" and "NA".
-See \code{?timechange::time_add} for more details.}
-
-\item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
-
-\item{as_interval}{Should result be a \code{time_interval}?
-Default is \code{FALSE}. \cr
-This can be controlled globally through \code{options(timeplyr.use_intervals)}.}
 }
 \value{
 \code{time_breaks} returns a vector of breaks. \cr
@@ -85,7 +66,8 @@ This can be controlled globally through \code{options(timeplyr.use_intervals)}.}
 Useful functions especially for when plotting time-series.
 \code{time_cut} makes approximately \code{n} groups of equal time range.
 It prioritises the highest time unit possible, making axes look
-less cluttered and thus prettier. \code{time_breaks} returns only the breaks.
+less cluttered and thus prettier.
+\code{time_breaks} returns only the breaks.
 }
 \details{
 To retrieve regular time breaks that simply spans the range of \code{x},
@@ -106,17 +88,6 @@ except for 3 things:
 \item Up to \code{n} breaks are created, i.e \verb{<= n} breaks. This is to prioritise
 pretty breaks.
 }
-
-\code{time_cut} is a generalisation of \code{time_summarisev} such that the
-below identity should always hold:
-\preformatted{
- identical(time_cut(x, n = Inf, as_factor = FALSE), time_summarisev(x))
-}
-Or also:
-\preformatted{
- breaks <- time_breaks(x, n = Inf)
- identical(breaks[unclass(time_cut(x, n = Inf))], time_summarisev(x))
-}
 }
 \examples{
 library(timeplyr)
@@ -125,16 +96,10 @@ library(cheapr)
 library(lubridate)
 library(ggplot2)
 library(dplyr)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
 time_cut(1:10, n = 5)
 # Easily create custom time breaks
 df <- nycflights13::flights \%>\%
-  f_slice_sample(n = 10) \%>\%
+  f_slice_sample(n = 100) \%>\%
   with_local_seed(.seed = 8192821) \%>\%
   select(time_hour) \%>\%
   fastplyr::f_arrange(time_hour) \%>\%
@@ -142,44 +107,31 @@ df <- nycflights13::flights \%>\%
 
 # time_cut() and time_breaks() automatically find a
 # suitable way to cut the data
-options(timeplyr.use_intervals = TRUE)
 time_cut(df$date)
 # Works with datetimes as well
-time_cut(df$time_hour, n = 5) # <= 5 breaks
-# Custom formatting
-options(timeplyr.interval_sub_formatter =
-          function(x) format(x, format = "\%Y \%b"))
-time_cut(df$date, time_by = "month")
+time_cut(df$time_hour, n = 5) # ~5 breaks
+time_cut(df$date, timespan = "month")
 # Just the breaks
-time_breaks(df$date, n = 5, time_by = "month")
+time_breaks(df$date, n = 5, timespan = "month")
 
 cut_dates <- time_cut(df$date)
 date_breaks <- time_breaks(df$date)
 
-# WHen n = Inf and as_factor = FALSE, it should be equivalent to using
-# time_aggregate or time_summarisev
-identical(time_cut(df$date, n = Inf, time_by = "month"),
-          time_summarisev(df$date, time_by = "month"))
-identical(time_summarisev(df$date, time_by = "month"),
-          time_aggregate(df$date, time_by = "month"))
-
-# To get exact breaks at regular intervals, use time_expandv
-weekly_breaks <- time_expandv(df$date,
-                              time_by = "5 weeks",
-                              week_start = 1, # Monday
-                              time_floor = TRUE)
+# When n = Inf it should be equivalent to using time_cut_width
+identical(time_cut(df$date, n = Inf, "month"),
+          time_cut_width(df$date, "month"))
+# To get exact breaks at regular intervals, use time_grid
+weekly_breaks <- time_grid(
+  df$date, "5 weeks",
+  from = floor_date(min(df$date), "week", week_start = 1)
+)
 weekly_labels <- format(weekly_breaks, "\%b-\%d")
 df \%>\%
-  time_by(date, time_by = "week", .name = "date") \%>\%
-  count() \%>\%
+  time_by(date, "week", .name = "date") \%>\%
+  f_count() \%>\%
   mutate(date = interval_start(date)) \%>\%
   ggplot(aes(x = date, y = n)) +
   geom_bar(stat = "identity") +
   scale_x_date(breaks = weekly_breaks,
                labels = weekly_labels)
-reset_timeplyr_options()
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
 }

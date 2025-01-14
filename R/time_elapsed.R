@@ -3,21 +3,10 @@
 #' @description Calculate how much time has passed
 #' on a rolling or cumulative basis. \cr
 #'
-#' @param x Time variable. \cr
-#' Can be a `Date`, `POSIXt`, `numeric`, `integer`, `yearmon`, or `yearqtr`.
-#' @param time_by Must be one of the three:
-#' * string, specifying either the unit or the number and unit, e.g
-#' `time_by = "days"` or `time_by = "2 weeks"`
-#' * named list of length one, the unit being the name, and
-#' the number the value of the list, e.g. `list("days" = 7)`.
-#' For the vectorized time functions, you can supply multiple values,
-#' e.g. `list("days" = 1:10)`.
-#' * Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-#' then arithmetic is used, e.g `time_by = 1`.
+#' @param x Time vector. \cr
+#' E.g. a `Date`, `POSIXt`, `numeric` or any time-based vector.
+#' @param timespan [timespan].
 #' @param g Object to be used for grouping `x`, passed onto `collapse::GRP()`.
-#' @param time_type Time type, either "auto", "duration" or "period".
-#' With larger data, it is recommended to use `time_type = "duration"` for
-#' speed and efficiency.
 #' @param rolling If `TRUE` (the default) then lagged
 #' time differences are calculated on a rolling basis,
 #' essentially like `diff()`. \cr
@@ -54,27 +43,25 @@
 #' data.table::setDTthreads(threads = 2L)
 #' collapse::set_collapse(nthreads = 1L)
 #' }
-#' x <- time_seq(today(), length.out = 25, time_by = "3 days")
+#' x <- time_seq(today(), length.out = 25, time = "3 days")
 #' time_elapsed(x)
-#' time_elapsed(x, rolling = FALSE, time_by = "day")
+#' time_elapsed(x, "days", rolling = FALSE)
 #'
 #' # Grouped example
 #' set.seed(99)
 #' g <- sample.int(3, 25, TRUE)
 #'
-#' time_elapsed(x, time_by = "day", g = g)
+#' time_elapsed(x, "days", g = g)
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #' }
 #' @export
-time_elapsed <- function(x, time_by = NULL, g = NULL,
-                         time_type = getOption("timeplyr.time_type", "auto"),
+time_elapsed <- function(x, timespan = granularity(x), g = NULL,
                          rolling = TRUE, fill = NA,
                          na_skip = TRUE){
   check_is_time_or_num(x)
-  time_by <- time_by_get(x, time_by = time_by)
-  check_time_by_length_is_one(time_by)
+  timespan <- timespan(timespan)
   check_length(fill, 1)
   needs_fill <- !is.na(fill)
   has_groups <- !is.null(g)
@@ -96,7 +83,7 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
     } else {
       x_lag <- roll_lag(x, g = g)
     }
-    out <- time_diff(x_lag, x, time_by = time_by, time_type = time_type)
+    out <- time_diff(x_lag, x, timespan)
     if (needs_fill){
       if (has_groups){
         out[o[sorted_group_starts]] <- fill
@@ -108,7 +95,7 @@ time_elapsed <- function(x, time_by = NULL, g = NULL,
     g <- GRP2(g, sort = TRUE, return.groups = FALSE, return.order = FALSE)
     # Index time
     first_time <- gfirst(x, g = g, na.rm = na_skip)
-    out <- time_diff(first_time, x, time_by = time_by, time_type = time_type)
+    out <- time_diff(first_time, x, timespan)
   }
   out
 }

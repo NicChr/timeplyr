@@ -13,6 +13,7 @@ Depends:
     R (>= 3.5.0)
 Imports:
     cheapr (>= 0.9.91),
+    cli, 
     collapse (>= 2.0.0),
     cppdoubles (>= 0.2.0),
     data.table (>= 1.14.8),
@@ -25,6 +26,7 @@ Imports:
     rlang (>= 1.0.0),
     scales,
     stringr (>= 1.4.0),
+    tidyr,
     tidyselect (>= 1.2.0),
     timechange (>= 0.2.0),
     vctrs (>= 0.6.0)
@@ -35,7 +37,6 @@ Suggests:
     outbreaks,
     rmarkdown,
     testthat (>= 3.0.0),
-    tidyr,
     zoo
 LinkingTo: 
     cpp11

@@ -7,8 +7,8 @@ gduplicated <- function(x, g = NULL, order = TRUE, all = FALSE){
   } else {
     g <- GRP2(
       new_df(
-        g1 = group_id(g, order = order, .cols = names(g)),
-        g2 = group_id(x, order = order, .cols = names(x))
+        g1 = fastplyr::group_id(g, order = order),
+        g2 = fastplyr::group_id(x, order = order)
       ),
       sort = order,
       return.groups = FALSE,
@@ -23,8 +23,8 @@ gorder <- function(x, g = NULL, order = TRUE){
   } else {
     order <- radixorderv2(
       new_df(
-        g1 = group_id(g, order = order, .cols = names(g)),
-        g2 = group_id(x, order = TRUE, .cols = names(x))
+        g1 = fastplyr::group_id(g, order = order),
+        g2 = fastplyr::group_id(x, order = TRUE)
       )
     )
   }
@@ -34,4 +34,11 @@ gorder <- function(x, g = NULL, order = TRUE){
 # Data need not be sorted over the entire data.
 gis_sorted <- function(x, g = NULL, order = TRUE){
   isTRUE(attr(gorder(x, g = g, order = order), "sorted"))
+}
+gany <- function(x, g = NULL, order = TRUE){
+  if (is.null(g)){
+    any(x)
+  } else {
+    collapse::fsum(x, g = fastplyr::group_id(g, order = order, as_qg = TRUE)) != 0L
+  }
 }

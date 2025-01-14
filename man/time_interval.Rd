@@ -3,106 +3,93 @@
 \name{time_interval}
 \alias{time_interval}
 \alias{is_time_interval}
+\alias{new_time_interval}
+\alias{interval_start}
+\alias{interval_end}
+\alias{interval_width}
+\alias{interval_count}
+\alias{interval_range}
 \title{S3-based Time Intervals (Currently very experimental and so subject to change)}
 \usage{
-time_interval(start = integer(), end = integer())
+time_interval(start = integer(), width = resolution(start))
 
 is_time_interval(x)
+
+new_time_interval(start, width)
+
+interval_start(x)
+
+interval_end(x)
+
+interval_width(x)
+
+interval_count(x)
+
+interval_range(x)
 }
 \arguments{
 \item{start}{Start time. \cr
-Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, \code{yearqtr},
-\code{year_month} or \code{year_quarter}.}
+E.g a \code{Date}, \code{POSIXt}, \code{numeric} and more.}
 
-\item{end}{End time. \cr
-Can be a \code{Date}, \code{POSIXt}, \code{numeric}, \code{integer}, \code{yearmon}, \code{yearqtr},
-\code{year_month} or \code{year_quarter}.}
+\item{width}{Interval width supplied as a \link{timespan}.
+By default this is the \link{resolution} of a time vector so for example,
+a date's resolution is exactly 1 day, therefore
+\code{time_interval(Sys.Date())} simply represents today's date
+as an interval.}
 
-\item{x}{A 'time_interval'.}
+\item{x}{A \link{time_interval}.}
 }
 \value{
 An object of class \code{time_interval}. \cr
 \code{is_time_interval} returns a logical of length 1. \cr
 \code{interval_start} returns the start times. \cr
 \code{interval_end} returns the end times. \cr
+\code{interval_width} returns the width of the interval as a \link{timespan}. \cr
 \code{interval_count} returns a data frame of unique intervals and their counts. \cr
+\code{interval_range} returns a the range of the interval. \cr
+\code{new_time_interval} is a bare-bones version of \code{time_interval()} that
+performs no checks.
 }
 \description{
-Inspired by both 'lubridate' and 'ivs', \code{time_interval} is a 'vctrs' style
-class for right-open intervals that contain a vector of start dates and end dates.
+Inspired by both 'lubridate' and 'ivs',
+\code{time_interval} objects are lightweight S3 objects of a fixed width.
+This enables fast and flexible representation of time data
+such as months, weeks, and more.
+They are all left closed, right open intervals.
 }
 \details{
-In the near-future, all time aggregated variables will utilise these intervals.
-One can control the appearance of the intervals through the "timeplyr.interval_style" option.
-For example:
+Currently because of limitations with the S3/S4 system,
+one can't use time intervals directly with lubridate periods.
+To navigate around this, \code{timeplyr::timespan()} can be used.
+e.g. instead of \code{interval / weeks(3)}, use \code{interval / timespan(weeks(3))}
+or even \code{interval / "3 weeks"}. where \code{interval} is a \code{time_interval}.
 
-\code{options(timeplyr.interval_style = "full")} - Full interval format.
-\code{options(timeplyr.interval_style = "start")} - Start time of the interval.
-\code{options(timeplyr.interval_style = "end")} - end time of the interval.
-
-Representing time using intervals is natural because when one talks about a day or an hour,
-they are implicitly referring to an interval of time. Even a unit as small as a second
-is just an interval and therefore base R objects like Dates and POSIXcts are
-also intervals.
+To perform interval algebra it is advised to use the 'ivs' package.
+To convert a \code{time_interval} into an \code{ivs_iv}, use
+\code{ivs::iv(interval_start(x), interval_end(x))}.
 }
 \examples{
 library(dplyr)
 library(timeplyr)
 library(lubridate)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
 x <- 1:10
 int <- time_interval(x, 100)
-options(timeplyr.interval_style = "full")
 int
 
-# Displaying the start or end values of the intervals
-format(int, "start")
-format(int, "end")
-
 month_start <- floor_date(today(), unit = "months")
-month_int <- time_interval(month_start, month_start + months(1))
+month_int <- time_interval(month_start, "month")
 month_int
-# Custom format function for start and end dates
-format(month_int, interval_sub_formatter =
-         function(x) format(x, format = "\%Y/\%B"))
-format(month_int, interval_style = "start",
-       interval_sub_formatter = function(x) format(x, format = "\%Y/\%B"))
 
-# Advanced formatting
-
-# As shown above, we can specify formatting functions for the dates
-# in our intervals
-# Sometimes it's useful to set a default function
-
-options(timeplyr.interval_sub_formatter =
-          function(x) format(x, format = "\%b \%Y"))
-month_int
+interval_start(month_int)
+interval_end(month_int)
 
 # Divide an interval into different time units
-time_interval(today(), today() + years(0:10)) / "years"
-time_interval(today(), today() + dyears(0:10)) / ddays(365.25)
-time_interval(today(), today() + years(0:10)) / "months"
-time_interval(today(), today() + years(0:10)) / "weeks"
-time_interval(today(), today() + years(0:10)) / "7 days"
-time_interval(today(), today() + years(0:10)) / "24 hours"
-time_interval(today(), today() + years(0:10)) / "minutes"
-time_interval(today(), today() + years(0:10)) / "seconds"
-time_interval(today(), today() + years(0:10)) / "milliseconds"
+time_interval(today(), years(10)) / timespan("year")
 
 # Cutting Sepal Length into blocks of width 1
-int <- time_aggregate(iris$Sepal.Length, time_by = 1, as_interval = TRUE)
-int \%>\%
-  interval_count()
-reset_timeplyr_options()
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
-}
+int <- time_cut_width(iris$Sepal.Length, 1)
+interval_count(int)
+
 }
 \seealso{
 \link{interval_start}

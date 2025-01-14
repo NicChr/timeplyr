@@ -57,9 +57,7 @@
 #' list element represent the event. For example, if your events were coded as
 #' `0` and `1` in a variable named "evt" where `1` represents the event,
 #' you would supply `event = list(evt = 1)`.
-#' @param time_type Time type, either "auto", "duration" or "period".
-#' With larger data, it is recommended to use `time_type = "duration"` for
-#' speed and efficiency.
+#' @param time_type No longer used.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using `tidyselect`.
 #'
@@ -130,7 +128,7 @@
 #' events <- flights %>%
 #'   mutate(date = as_date(time_hour)) %>%
 #'   group_by(origin, dest) %>%
-#'   time_episodes(date, time_by = "week", window = 1)
+#'   time_episodes(date, "week", window = 1)
 #'
 #' events
 #'
@@ -142,9 +140,8 @@
 #' # dry-periods
 #' episodes %>%
 #'   ungroup() %>%
-#'   time_by(ep_start, time_by = "week",
-#'           .name = "ep_start", as_interval = FALSE) %>%
-#'   count() %>%
+#'   time_by(ep_start, "week", .name = "ep_start") %>%
+#'   count(ep_start = interval_start(ep_start)) %>%
 #'   ggplot(aes(x = ep_start, y = n)) +
 #'   geom_bar(stat = "identity")
 #' \dontshow{
@@ -211,7 +208,7 @@ time_episodes <- function(data, time, time_by = NULL,
   groups <- fastplyr::f_select(fastplyr::as_tbl(temp), .cols = group_vars)
   events <- fastplyr::f_select(fastplyr::as_tbl(temp), .cols = event_col)
   temp <- fastplyr::f_select(temp, .cols = c(group_vars, time_col,
-                                           event_col, event_id_nm))
+                                             event_col, event_id_nm))
   time_by <- time_by_get(temp[[time_col]], time_by = time_by)
   # Create group ID variable
   grp_nm <- unique_col_name(data_nms, ".group")
@@ -328,7 +325,7 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
     # max_episodes <- collapse::fmax(x[["ep_id_new"]], g = GRPS,
     #                                use.g.names = FALSE, na.rm = TRUE)
     n_episodes <- collapse::fsum(x[["ep_id_new"]] > 0L, g = GRPS,
-                                   use.g.names = FALSE, na.rm = TRUE)
+                                 use.g.names = FALSE, na.rm = TRUE)
     median_episodes <- collapse::fmedian(n_episodes)
     total_episodes <- sum(n_episodes)
     mean_episodes <- total_episodes / length(n_episodes)
@@ -354,18 +351,18 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
     pooled_elapsed <- collapse::fmean(elapsed, na.rm = TRUE)
     if (length(pooled_elapsed) == 0){
       pooled_string <- "NaN"
+    } else {
+      pretty_mean <- add_names(
+        list(
+          pooled_elapsed * time_by_num(attr(x, "time_by"))
+        ), time_by_unit(attr(x, "time_by"))
+      )
+      if (is.null(names(pretty_mean))){
+        pooled_string <- "NA"
       } else {
-        pretty_mean <- add_names(
-          list(
-            pooled_elapsed * time_by_num(attr(x, "time_by"))
-          ), time_by_unit(attr(x, "time_by"))
-        )
-        if (is.null(names(pretty_mean))){
-          pooled_string <- "NA"
-        } else {
-          pooled_string <- time_by_pretty(pretty_mean)
-        }
+        pooled_string <- time_by_pretty(pretty_mean)
       }
+    }
     elapsed_header <- c(
       "Time b/w events" = paste0(
         "Mean: ",
@@ -406,10 +403,10 @@ calc_episodes <- function(data,
   # Time elapsed
   data <- df_add_cols(
     data, list(
-      t_elapsed = time_elapsed(data[[time]], g = g,
-                               time_by = time_by,
+      t_elapsed = time_elapsed(data[[time]],
+                               time_by_list_as_timespan(time_by),
+                               g = g,
                                fill = fill,
-                               time_type = time_type,
                                rolling = roll_episode,
                                na_skip = TRUE)
     )
@@ -419,10 +416,9 @@ calc_episodes <- function(data,
   # Events where t_elapsed >= window are new episodes
   data <- df_add_cols(data, list(
     ep_id = time_seq_id(data[[time]],
+                        time_by_list_as_timespan(time_by),
                         g = g,
-                        time_by = time_by,
                         threshold = window,
-                        time_type = time_type,
                         rolling = roll_episode,
                         switch_on_boundary = switch_on_boundary,
                         na_skip = TRUE)
