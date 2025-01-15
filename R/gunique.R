@@ -6,7 +6,7 @@ gduplicated <- function(x, g = NULL, order = TRUE, all = FALSE){
               return.order = TRUE)
   } else {
     g <- GRP2(
-      new_df(
+      cheapr::new_df(
         g1 = fastplyr::group_id(g, order = order),
         g2 = fastplyr::group_id(x, order = order)
       ),
@@ -22,7 +22,7 @@ gorder <- function(x, g = NULL, order = TRUE){
     order <- radixorderv2(x)
   } else {
     order <- radixorderv2(
-      new_df(
+      cheapr::new_df(
         g1 = fastplyr::group_id(g, order = order),
         g2 = fastplyr::group_id(x, order = TRUE)
       )

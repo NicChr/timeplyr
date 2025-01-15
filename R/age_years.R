@@ -14,7 +14,7 @@
 age_years <- function(start, end = if (is_date(start)) Sys.Date() else Sys.time()){
   check_is_time(start)
   check_is_time(end)
-  interval_tbl <- new_df(start = start, end = end, .recycle = TRUE)
+  interval_tbl <- cheapr::new_df(start = start, end = end, .recycle = TRUE)
   interval_groups <- group2(interval_tbl)
   starts <- attr(interval_groups, "starts")
   sizes <- attr(interval_groups, "group.sizes")
@@ -47,7 +47,7 @@ age_years <- function(start, end = if (is_date(start)) Sys.Date() else Sys.time(
 age_months <- function(start, end = if (is_date(start)) Sys.Date() else Sys.time()){
   check_is_time(start)
   check_is_time(end)
-  interval_tbl <- new_df(start = start, end = end, .recycle = TRUE)
+  interval_tbl <- cheapr::new_df(start = start, end = end, .recycle = TRUE)
   interval_groups <- group2(interval_tbl)
   starts <- attr(interval_groups, "starts")
   sizes <- attr(interval_groups, "group.sizes")

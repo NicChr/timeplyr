@@ -16,7 +16,7 @@ test_that("NA fill", {
   z <- cheapr::na_insert(groups2, prop = 3 / 5)
   x[sample.int(10^5, 10^4)] <- NA
 
-  df <- new_tbl(x = x, y = y, z = z, groups = groups, groups2 = groups2)
+  df <- fastplyr::new_tbl(x = x, y = y, z = z, groups = groups, groups2 = groups2)
   sorted_df <- dplyr::arrange(df, groups)
 
   expect_identical(

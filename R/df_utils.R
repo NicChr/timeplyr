@@ -17,7 +17,6 @@ df_add_cols <- get_from_package("df_add_cols", "fastplyr")
 df_rm_cols <- get_from_package("df_rm_cols", "fastplyr")
 df_rep <- get_from_package("df_rep", "fastplyr")
 df_rep_each <- get_from_package("df_rep_each", "fastplyr")
-df_nrow <- get_from_package("df_nrow", "fastplyr")
 df_ungroup <- fastplyr::f_ungroup
 df_init <- get_from_package("df_init", "fastplyr")
 df_paste_names <- get_from_package("df_paste_names", "fastplyr")
@@ -37,19 +36,14 @@ is_df <- function(x){
 
 check_is_df <- function(x){
   if (!is_df(x)){
-    stop(paste(deparse2(substitute(x)), "must be a data.frame"))
+    cli::cli_abort("{.arg x} must be a data.frame")
   }
 }
 
-# Create new df with no name checks or length checks
-# ..N is there purely to create an (n > 0) x 0 data frame
-new_df <- cheapr::new_df
-new_tbl <- fastplyr::new_tbl
-
 # Reorder data frame to original order after having sorted it using a GRP
-df_reorder <- function(data, g){
-  df_row_slice(data, greorder2(df_seq_along(data, "rows"), g = g))
-}
+# df_reorder <- function(data, g){
+#   df_row_slice(data, greorder2(df_seq_along(data, "rows"), g = g))
+# }
 
 #' @exportS3Method dplyr::dplyr_reconstruct
 dplyr_reconstruct.time_tbl_df <- function(data, template){
@@ -76,35 +70,35 @@ df_n_distinct <- function(data){
 }
 
 # A `data.table::setorder()` that works for any data frame
-df_set_order <- function(x, .cols = names(x), .order = 1L){
-
-  ## Make sure this only works for data frames of simple vectors
-
-  group_vars <- group_vars(x)
-
-  temp_list <- cheapr::new_list(length(names(x)))
-  names(temp_list) <- names(x)
-  for (i in seq_along(temp_list)){
-    cpp_set_list_element(temp_list, i, x[[i]])
-  }
-
-  # setDT() creates a sort of shallow copy
-  # so we can't directly use it on x
-  data.table::setDT(temp_list)
-  data.table::setorderv(temp_list, cols = col_select_names(x, .cols), na.last = TRUE, order = .order)
-
-  # Add cols back to x by reference
-  # This ensures materialised ALTREP objects in temp_list
-  # are definitely copied back to x
-
-  for (i in seq_along(temp_list)){
-    cpp_set_list_element(x, i, temp_list[[i]])
-  }
-  if (length(group_vars) > 0){
-    # Add re-calculated group data
-    groups <- group_data(fastplyr::f_group_by(fastplyr::f_ungroup(x), .cols = group_vars))
-    set_add_attr(x, "groups", groups)
-  } else {
-    x
-  }
-}
+# df_set_order <- function(x, .cols = names(x), .order = 1L){
+#
+#   ## Make sure this only works for data frames of simple vectors
+#
+#   group_vars <- group_vars(x)
+#
+#   temp_list <- cheapr::new_list(length(names(x)))
+#   names(temp_list) <- names(x)
+#   for (i in seq_along(temp_list)){
+#     cpp_set_list_element(temp_list, i, x[[i]])
+#   }
+#
+#   # setDT() creates a sort of shallow copy
+#   # so we can't directly use it on x
+#   data.table::setDT(temp_list)
+#   data.table::setorderv(temp_list, cols = col_select_names(x, .cols), na.last = TRUE, order = .order)
+#
+#   # Add cols back to x by reference
+#   # This ensures materialised ALTREP objects in temp_list
+#   # are definitely copied back to x
+#
+#   for (i in seq_along(temp_list)){
+#     cpp_set_list_element(x, i, temp_list[[i]])
+#   }
+#   if (length(group_vars) > 0){
+#     # Add re-calculated group data
+#     groups <- group_data(fastplyr::f_group_by(fastplyr::f_ungroup(x), .cols = group_vars))
+#     set_add_attr(x, "groups", groups)
+#   } else {
+#     x
+#   }
+# }

@@ -379,7 +379,7 @@ time_roll_growth_rate <- function(x, window = timespan(Inf),
   if (has_groups){
     group_sizes <- GRP_group_sizes(g)
     n_groups <- GRP_n_groups(g)
-    g2 <- GRP2(new_df(g = group_id, t = time), return.groups = FALSE)
+    g2 <- GRP2(cheapr::new_df(g = group_id, t = time), return.groups = FALSE)
   } else {
     g2 <- GRP2(time, return.groups = FALSE)
     group_sizes <- length(x)
@@ -550,7 +550,7 @@ time_roll_window_size <- function(time, window = timespan(Inf),
   }
   if (isTRUE(time_num == 0)){
     if (close_left_boundary){
-      out <- fastplyr::row_id(new_df(group_id = fastplyr::group_id(g), time = time))
+      out <- fastplyr::row_id(cheapr::new_df(group_id = fastplyr::group_id(g), time = time))
     } else {
       out <- integer(length(time))
     }
@@ -597,10 +597,12 @@ time_roll_window <- function(x, window = timespan(Inf), time = NULL,
                              g = NULL,
                              partial = TRUE,
                              close_left_boundary = FALSE){
-  window_widths <- time_roll_window_size(time, window = window,
-                                         g = g,
-                                         partial = partial,
-                                         close_left_boundary = close_left_boundary)
+  window_widths <- time_roll_window_size(
+    time, window = window,
+    g = g,
+    partial = partial,
+    close_left_boundary = close_left_boundary
+  )
   window_widths[which_na(window_widths)] <- 0L
   out <- roll_chop(x, sizes = window_widths)
   vctrs::new_list_of(out, ptype = x[0L])
@@ -614,11 +616,13 @@ time_roll_apply <- function(x, window = timespan(Inf), fun,
                             unlist = FALSE,
                             close_left_boundary = FALSE){
   stopifnot(is.function(fun))
-  sizes <- time_roll_window_size(time,
-                                 window = window,
-                                 g = g,
-                                 partial = partial,
-                                 close_left_boundary = close_left_boundary)
+  sizes <- time_roll_window_size(
+    time,
+    window = window,
+    g = g,
+    partial = partial,
+    close_left_boundary = close_left_boundary
+  )
   sizes[which_na(sizes)] <- 0L
   x_size <- length(x)
   out <- vector("list", x_size)
@@ -635,7 +639,7 @@ time_roll_apply <- function(x, window = timespan(Inf), fun,
   if (is.null(g)){
     group_id <- fastplyr::group_id(time, as_qg = TRUE)
   } else {
-    group_id <- fastplyr::group_id(new_df(g = group_id(g), t = time), as_qg = TRUE)
+    group_id <- fastplyr::group_id(cheapr::new_df(g = group_id(g), t = time), as_qg = TRUE)
   }
   # This only works because group_id should always be sorted here
   # Which is already checked in time_roll_window_size

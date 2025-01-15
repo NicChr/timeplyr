@@ -349,7 +349,7 @@ interval_count <- function(x){
 }
 #' @export
 interval_count.time_interval <- function(x){
-  new_tbl(interval = x) %>%
+  fastplyr::new_tbl(interval = x) %>%
     fastplyr::f_count(.cols = 1L, .order = TRUE)
 }
 #' @rdname time_interval
