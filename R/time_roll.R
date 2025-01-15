@@ -598,7 +598,7 @@ time_roll_window <- function(x, window = timespan(Inf), time = NULL,
                              partial = TRUE,
                              close_left_boundary = FALSE){
   window_widths <- time_roll_window_size(
-    time, window = window,
+    time %||% seq_along(x), window = window,
     g = g,
     partial = partial,
     close_left_boundary = close_left_boundary
@@ -616,6 +616,7 @@ time_roll_apply <- function(x, window = timespan(Inf), fun,
                             unlist = FALSE,
                             close_left_boundary = FALSE){
   stopifnot(is.function(fun))
+  time <- time %||% seq_along(x)
   sizes <- time_roll_window_size(
     time,
     window = window,
@@ -639,7 +640,9 @@ time_roll_apply <- function(x, window = timespan(Inf), fun,
   if (is.null(g)){
     group_id <- fastplyr::group_id(time, as_qg = TRUE)
   } else {
-    group_id <- fastplyr::group_id(cheapr::new_df(g = group_id(g), t = time), as_qg = TRUE)
+    group_id <- fastplyr::group_id(
+      cheapr::new_df(g = fastplyr::group_id(g), t = time), as_qg = TRUE
+    )
   }
   # This only works because group_id should always be sorted here
   # Which is already checked in time_roll_window_size
