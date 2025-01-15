@@ -57,7 +57,6 @@
 #' list element represent the event. For example, if your events were coded as
 #' `0` and `1` in a variable named "evt" where `1` represents the event,
 #' you would supply `event = list(evt = 1)`.
-#' @param time_type No longer used.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using `tidyselect`.
 #'
@@ -156,7 +155,6 @@ time_episodes <- function(data, time, time_by = NULL,
                           fill = 0,
                           .add = FALSE,
                           event = NULL,
-                          time_type = getOption("timeplyr.time_type", "auto"),
                           .by = NULL){
   rlang::check_required(time)
   N <- df_nrow(data)
@@ -261,7 +259,6 @@ time_episodes <- function(data, time, time_by = NULL,
   temp <- calc_episodes(
     temp, time = time_col,
     time_by = time_by,
-    time_type = time_type,
     switch_on_boundary = switch_on_boundary,
     g = g,
     gid = grp_nm,
@@ -388,7 +385,6 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
 calc_episodes <- function(data,
                           time, # time col
                           time_by, # time unit (days, etc)
-                          time_type, # time_type (duration/period)
                           switch_on_boundary,
                           g, # GRP object
                           gid, # group id col

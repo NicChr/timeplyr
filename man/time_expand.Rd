@@ -13,13 +13,7 @@ time_expand(
   time_by = NULL,
   from = NULL,
   to = NULL,
-  time_type = getOption("timeplyr.time_type", "auto"),
-  time_floor = FALSE,
-  week_start = getOption("lubridate.week.start", 1),
-  sort = TRUE,
-  expand_type = NULL,
-  roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "NA")
+  sort = TRUE
 )
 
 time_complete(
@@ -30,14 +24,8 @@ time_complete(
   time_by = NULL,
   from = NULL,
   to = NULL,
-  time_type = getOption("timeplyr.time_type", "auto"),
-  time_floor = FALSE,
-  week_start = getOption("lubridate.week.start", 1),
-  expand_type = NULL,
   sort = TRUE,
-  fill = NA,
-  roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "NA")
+  fill = NA
 )
 }
 \arguments{
@@ -50,47 +38,13 @@ time_complete(
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using tidy-select.}
 
-\item{time_by}{Time unit. \cr
-Must be one of the three:
-\itemize{
-\item string, specifying either the unit or the number and unit, e.g
-\code{time_by = "days"} or \code{time_by = "2 weeks"}
-\item named list of length one, the unit being the name, and
-the number the value of the list, e.g. \code{list("days" = 7)}.
-For the vectorized time functions, you can supply multiple values,
-e.g. \code{list("days" = 1:10)}.
-\item Numeric vector. If time_by is a numeric vector and x is not a date/datetime,
-then arithmetic is used, e.g \code{time_by = 1}.
-}}
+\item{time_by}{A \link{timespan}.}
 
 \item{from}{Time series start date.}
 
 \item{to}{Time series end date.}
 
-\item{time_type}{If "auto", \code{periods} are used for
-the time expansion when days, weeks, months or years are specified,
-and \code{durations} are used otherwise.}
-
-\item{time_floor}{Should \code{from} be floored to the
-nearest unit specified through the \code{time_by}
-argument? This is particularly useful for
-starting sequences at the beginning of a week or month for example.}
-
-\item{week_start}{day on which week starts following ISO conventions - 1
-means Monday (default), 7 means Sunday.
-This is only used when \code{floor_date = TRUE}.}
-
 \item{sort}{Logical. If \code{TRUE} expanded/completed variables are sorted.}
-
-\item{expand_type}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
-Use \code{fastplyr::crossing()} and \code{fastplyr::nesting()}.}
-
-\item{roll_month}{Control how impossible dates are handled when
-month or year arithmetic is involved.
-Options are "preday", "boundary", "postday", "full" and "NA".
-See \code{?timechange::time_add} for more details.}
-
-\item{roll_dst}{See \code{?timechange::time_add} for the full list of details.}
 
 \item{fill}{A named list containing value-name pairs to fill the named implicit missing values.}
 }
@@ -102,10 +56,8 @@ A time based extension to \code{tidyr::complete()}.
 }
 \details{
 This works much the same as \code{tidyr::complete()}, except that
-you can supply an additional \code{time} argument to allow for filling in time gaps,
-expansion of time, as well as aggregating time to a higher unit.
-\code{lubridate} is used for handling time, while \code{data.table} and \code{collapse} are used for
-the data frame expansion.
+you can supply an additional \code{time} argument to allow for
+completing implicit time gaps and creating time sequences by group.
 }
 \examples{
 library(timeplyr)

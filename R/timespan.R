@@ -62,8 +62,11 @@ timespan_has_unit <- function(x){
 #'
 #' @export
 timespan <- function(units, num = 1L, ...){
-  check_is_num(num)
-  UseMethod("timespan")
+  if (inherits(units, "timespan") && length(num) == 1 && num == 1){
+    return(units)
+  } else {
+    UseMethod("timespan")
+  }
 }
 #' @rdname timespan
 #' @export

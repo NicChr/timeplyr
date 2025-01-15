@@ -14,7 +14,6 @@ time_episodes(
   fill = 0,
   .add = FALSE,
   event = NULL,
-  time_type = getOption("timeplyr.time_type", "auto"),
   .by = NULL
 )
 }
@@ -83,8 +82,6 @@ but this need not be the case. \cr
 list element represent the event. For example, if your events were coded as
 \code{0} and \code{1} in a variable named "evt" where \code{1} represents the event,
 you would supply \code{event = list(evt = 1)}.}
-
-\item{time_type}{No longer used.}
 
 \item{.by}{(Optional). A selection of columns to group by for this operation.
 Columns are specified using \code{tidyselect}.}
