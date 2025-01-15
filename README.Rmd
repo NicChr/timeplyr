@@ -178,7 +178,7 @@ eu_stock |>
 x <- ts(c(NA, 3, 4, NA, 6, NA, NA, 8))
 g <- cheapr::seq_id(c(3, 5)) # Two groups of size 3 + 5
 
-.roll_na_fill(x) # Simple locf fill
+roll_na_fill(x) # Simple locf fill
 roll_na_fill(x, fill_limit = 1) # Fill up to 1 NA
 
 roll_na_fill(x, g = g) # Very efficient on large data too

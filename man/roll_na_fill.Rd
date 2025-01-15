@@ -2,12 +2,9 @@
 % Please edit documentation in R/roll_na_fill.R
 \name{roll_na_fill}
 \alias{roll_na_fill}
-\alias{.roll_na_fill}
 \title{Fast grouped "locf" \code{NA} fill}
 \usage{
 roll_na_fill(x, g = NULL, fill_limit = Inf)
-
-.roll_na_fill(x, fill_limit = Inf)
 }
 \arguments{
 \item{x}{A vector.}
@@ -33,63 +30,5 @@ specify how to loop through \code{x}, making this extremely efficient.
 
 When \code{x} contains zero or all \code{NA} values, then \code{x} is returned with no copy
 made.
-
-\code{.roll_na_fill()} is the same as \code{roll_na_fill()} but without a g argument and
-it performs no sanity checks. It is passed straight to c++ which makes it efficient for
-loops.
-}
-}
-\examples{
-library(timeplyr)
-library(dplyr)
-library(data.table)
-\dontshow{
-.n_dt_threads <- data.table::getDTthreads()
-.n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
-collapse::set_collapse(nthreads = 1L)
-}
-words <- do.call(paste0,
-                 do.call(expand.grid, rep(list(letters), 3)))
-groups <- sample(words, size = 10^5, replace = TRUE)
-x <- sample.int(10^2, 10^5, TRUE)
-x[sample.int(10^5, 10^4)] <- NA
-
-dt <- data.table(x, groups)
-
-filled <- roll_na_fill(x, groups)
-\donttest{
-library(zoo)
-
-  # Summary
-# Latest version of vctrs with their vec_fill_missing
-# Is the fastest but not most memory efficient
-# For low repetitions and large vectors, data.table is best
-
-# For large numbers of repetitions (groups) and data
-# that is sorted by groups
-# timeplyr is fastest
-
-# No groups
-bench::mark(e1 = dt[, filled1 := timeplyr::roll_na_fill(x)][]$filled1,
-            e2 = dt[, filled2 := data.table::nafill(x, type = "locf")][]$filled2,
-            e3 = dt[, filled3 := vctrs::vec_fill_missing(x)][]$filled3,
-            e4 = dt[, filled4 := zoo::na.locf0(x)][]$filled4,
-            e5 = dt[, filled5 := timeplyr::.roll_na_fill(x)][]$filled5)
-# With group
-bench::mark(e1 = dt[, filled1 := timeplyr::roll_na_fill(x, groups)][]$filled1,
-            e2 = dt[, filled2 := data.table::nafill(x, type = "locf"), by = groups][]$filled2,
-            e3 = dt[, filled3 := vctrs::vec_fill_missing(x), by = groups][]$filled3,
-            e4 = dt[, filled4 := timeplyr::.roll_na_fill(x), by = groups][]$filled4)
-# Data sorted by groups
-setkey(dt, groups)
-bench::mark(e1 = dt[, filled1 := timeplyr::roll_na_fill(x, groups)][]$filled1,
-            e2 = dt[, filled2 := data.table::nafill(x, type = "locf"), by = groups][]$filled2,
-            e3 = dt[, filled3 := vctrs::vec_fill_missing(x), by = groups][]$filled3,
-            e4 = dt[, filled4 := timeplyr::.roll_na_fill(x), by = groups][]$filled4)
-}
-\dontshow{
-data.table::setDTthreads(threads = .n_dt_threads)
-collapse::set_collapse(nthreads = .n_collapse_threads)
 }
 }

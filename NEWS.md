@@ -33,6 +33,8 @@ renamed to `time_grid`, `time_complete_missing`, `time_grid_size` respectively.
 
 - `edf`, `asc` and `desc` have been removed as they do not fit the 
 purpose of the package.
+
+- `.roll_na_fill` has been removed.
   
 ### New features
 

@@ -295,7 +295,7 @@ eu_stock |>
 x <- ts(c(NA, 3, 4, NA, 6, NA, NA, 8))
 g <- cheapr::seq_id(c(3, 5)) # Two groups of size 3 + 5
 
-.roll_na_fill(x) # Simple locf fill
+roll_na_fill(x) # Simple locf fill
 #> Time Series:
 #> Start = 1 
 #> End = 8 
@@ -601,7 +601,7 @@ Simple function to get formatted ISO weeks.
 iso_week(today())
 #> [1] "2025-W03"
 iso_week(today(), day = TRUE)
-#> [1] "2025-W03-1"
+#> [1] "2025-W03-3"
 iso_week(today(), year = FALSE)
 #> [1] "W03"
 ```
