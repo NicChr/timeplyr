@@ -227,7 +227,10 @@ time_seq_v2 <- function(sizes, from, timespan,
       is_date(from) &&
       is_whole_number(num)
     if (is_special_case_days){
-      out <- date_seq_v2(sizes, from = from, units = units, num = num)
+      if (units == "weeks"){
+        num <- num * 7L
+      }
+      out <- date_seq_v2(sizes, from = from, by = num)
     } else if (is_duration_unit(units)){
       out <- duration_seq_v2(sizes, from = from, units = units, num = num)
     } else {
@@ -236,63 +239,6 @@ time_seq_v2 <- function(sizes, from, timespan,
     }
   }
   out
-}
-# faster seq.Date() and handles zero length from differently
-# by must be numeric
-date_seq <- function(from, to, by = 1L){
-  if (length(from) == 0L) return(from)
-  check_is_date(from)
-  check_is_date(to)
-  out <- seq.int(from = unclass(from),
-                 to = unclass(to),
-                 by = by)
-  class(out) <- "Date"
-  out
-}
-# datetime sequence using from + length + by
-duration_seq <- function(from, length, duration){
-  if (length(from) == 0L){
-    check_is_datetime(from)
-    return(from)
-  }
-  if (length < 0 || length == Inf){
-    stop("length must be a non-negative integer")
-  }
-  seq.POSIXt(from = from,
-             length.out = length, by = unclass(duration))
-}
-# datetime sequence using from + to + by
-duration_seq2 <- function(from, to, duration){
-  if (length(from) == 0L){
-    check_is_datetime(from)
-    return(from)
-  }
-  if (length(to) == 0L){
-    check_is_datetime(to)
-    return(to)
-  }
-  seq.POSIXt(from = from, to = to, by = unclass(duration))
-}
-# This will always calculate an increasing or decreasing sequence
-# of a specified length and unit increment
-period_seq <- function(from, length, unit, num = 1,
-                       roll_month = getOption("timeplyr.roll_month", "preday"),
-                       roll_dst = getOption("timeplyr.roll_dst", "NA")){
-  if (length(from) == 0L){
-    length <- 0L
-  }
-  if (length < 0 || length == Inf){
-    stop("length must be a non-negative integer")
-  }
-  int_seq <- seq_len(length) - 1L
-  if (length == 0L){
-    from <- from[0L]
-  }
-  timechange::time_add(
-    from,
-    periods = add_names(list(num * int_seq), unit),
-    roll_month = roll_month, roll_dst = roll_dst
-  )
 }
 # Duration sequence vectorised over from, to and num
 duration_seq_v <- function(from, to, units, num = 1){
@@ -312,22 +258,15 @@ duration_seq_v2 <- function(sizes, from, units, num = 1){
                                 by = num_seconds)
   .POSIXct(time_seq, lubridate::tz(from))
 }
-# Date sequence vectorised over from, to and num
-date_seq_v <- function(from, to, units = c("days", "weeks"), num = 1L){
-  check_is_date(to)
-  seq_sizes <- time_seq_sizes(from, to, timespan(units, num))
-  date_seq_v2(seq_sizes, from = from, units = units, num = num)
+# Date sequence vectorised over from, to and by
+date_seq_v <- function(from, to, by = 1L){
+  size <- cheapr::seq_size(from, to, by)
+  date_seq_v2(size, from = from, by = by)
 }
 # Alternate version of date_seq_v with sizes arg instead of to
 # If you have the sequence sizes pre-calculated, you can use this
-date_seq_v2 <- function(sizes, from, units = c("days", "weeks"), num = 1L){
-  units <- rlang::arg_match0(units, c("days", "weeks"))
-  check_is_date(from)
-  if (units == "weeks"){
-    units <- "days"
-    num <- num * 7L
-  }
-  out <- sequences(sizes, from = unclass(from), by = num)
+date_seq_v2 <- function(sizes, from, by = 1L){
+  out <- sequences(sizes, from = unclass(from), by = by)
   class(out) <- "Date"
   out
 }
@@ -339,7 +278,7 @@ period_seq_v <- function(from, to, units, num = 1,
                          roll_dst = getOption("timeplyr.roll_dst", "NA")){
   units <- rlang::arg_match0(units, .period_units)
   if (length(to) == 0L){
-    return(vec_head(from, n = 0L))
+    return(from[0])
   }
   seq_sizes <- time_seq_sizes(from, to, timespan(units, num))
   period_seq_v2(sizes = seq_sizes,
@@ -362,52 +301,44 @@ period_seq_v2 <- function(sizes, from, units, num = 1L,
   # Following timechange rules.
   convert_back_to_date <- is_date(from) &&
     unit %in% c("day", "week", "month", "year")
-  period_df <- cheapr::recycle(from = from, num = num, sizes = sizes)
-  data.table::setDT(period_df)
-  period_df[, ("row_id") := seq_len(.N)]
-  # We want to eliminate unnecessary grouped calculations
-  # To do so we need to collapse identical groups and just repeat their sequences based on number of duplicates
-  grps <- df_to_GRP(period_df, .cols = c("from", "num", "sizes"),
-                    order = TRUE,
-                    return.groups = FALSE)
-  period_df[, ("g") := GRP_group_id(grps)]
-  period_df[, ("n") := GRP_group_sizes(grps)[GRP_group_id(grps)]]
+  period_df <- cheapr::new_df(
+    from = from, num = num, sizes = sizes,
+    .recycle = TRUE
+  )
 
-  # It's important the result is properly ordered
-  # So let's store the correct order before collapsing
-  period_df <- df_row_slice(period_df, GRP_order(grps))
-  out_order <- radix_order(rep.int(period_df[["row_id"]],
-                                   period_df[["sizes"]]))
+  # Does unique reduction result in a 2x reduction in data size?
+  reduce <- isTRUE((df_nrow(period_df) %/% collapse::fnunique(period_df)) >= 2L)
 
-  # Collapse the data frame into unique combinations of length, from, and num
-  period_df <- collapse::funique(period_df, cols = "g")
-  # Setting up vector arithmetic
-  g <- rep.int(period_df[["g"]], times = period_df[["sizes"]])
-  num <- sequences(period_df[["sizes"]], from = 1L, by = period_df[["num"]]) - 1L
-  # Split these by group
-  by <- collapse::gsplit(num, g = g, use.g.names = FALSE)
-  # Repeat these by the group counts
-  group_counts <- period_df[["n"]]
-  which_n_gt_1 <- which(group_counts > 1L)
-  for (ind in which_n_gt_1){
-    by[ind][[1L]] <- rep.int(.subset2(by, ind),
-                             .subset2(group_counts, ind))
+  if (reduce){
+    period_groups <- collapse::group(period_df, starts = TRUE, group.sizes = TRUE)
+    group_starts <- attr(period_groups, "starts")
+    group_sizes <- attr(period_groups, "group.sizes")
+    n_groups <- attr(period_groups, "N.groups")
+    period_df <- cheapr::sset(period_df, group_starts)
   }
-  out_sizes <- as.integer(period_df[["sizes"]] * group_counts)
-  # Counter to keep track of which indices to replace
-  init <- 0L
+
   from <- period_df[["from"]]
+  num <- period_df[["num"]]
+  sizes <- period_df[["sizes"]]
+
   from <- as_datetime2(from)
-  # Setnames on the list for timechange::time_add
-  by <- add_names(by, rep_len(unit, length(by)))
-  out <- vector("list", df_nrow(period_df))
-  for (i in df_seq_along(period_df)){
-    out[[i]] <- C_time_add(from[i], .subset(by, i), roll_month, roll_dst)
+
+  period_add <- add_names(list(r_copy(num)), unit)
+  out <- vector("list", length(from))
+
+  for (i in seq_along(from)){
+    out[[i]] <- C_time_add(
+      from[i],
+      set_vec_elt(period_add, 0L, .subset2(num, i) * (seq_len(.subset2(sizes, i)) - 1L)), roll_month, roll_dst
+    )
   }
-  out <- unlist(out, recursive = FALSE, use.names = FALSE)
-  out <- time_cast(out, from)
+  if (reduce){
+    out <- out[period_groups]
+  }
+  out <- time_cast(unlist(out), from)
+
   if (convert_back_to_date){
     out <- lubridate::as_date(out)
   }
-  out[out_order]
+  out
 }

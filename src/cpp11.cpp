@@ -75,6 +75,13 @@ extern "C" SEXP _timeplyr_cpp_which_first_gap(SEXP x, SEXP increment, SEXP left_
     return cpp11::as_sexp(cpp_which_first_gap(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<int>>(increment), cpp11::as_cpp<cpp11::decay_t<bool>>(left_to_right)));
   END_CPP11
 }
+// utils.cpp
+SEXP set_vec_elt(SEXP x, R_xlen_t i, SEXP value);
+extern "C" SEXP _timeplyr_set_vec_elt(SEXP x, SEXP i, SEXP value) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(set_vec_elt(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<R_xlen_t>>(i), cpp11::as_cpp<cpp11::decay_t<SEXP>>(value)));
+  END_CPP11
+}
 
 extern "C" {
 static const R_CallMethodDef CallEntries[] = {
@@ -88,6 +95,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_vector_size",          (DL_FUNC) &_timeplyr_cpp_vector_size,          1},
     {"_timeplyr_cpp_which_first_gap",      (DL_FUNC) &_timeplyr_cpp_which_first_gap,      3},
     {"_timeplyr_roll_time_threshold",      (DL_FUNC) &_timeplyr_roll_time_threshold,      3},
+    {"_timeplyr_set_vec_elt",              (DL_FUNC) &_timeplyr_set_vec_elt,              3},
     {NULL, NULL, 0}
 };
 }

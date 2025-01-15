@@ -278,6 +278,23 @@ time_by_list_convert_weeks_to_days <- function(time_by){
   out
 }
 
+# Functional that returns lubridate duration function
+duration_unit <- function(units = "seconds"){
+  if (!units %in% .duration_units) unit_match_stop(.duration_units)
+  switch(units,
+         picoseconds = lubridate::dpicoseconds,
+         nanoseconds = lubridate::dnanoseconds,
+         microseconds = lubridate::dmicroseconds,
+         milliseconds = lubridate::dmilliseconds,
+         seconds = lubridate::dseconds,
+         minutes = lubridate::dminutes,
+         hours = lubridate::dhours,
+         days = lubridate::ddays,
+         weeks = lubridate::dweeks,
+         months = lubridate::dmonths,
+         years = lubridate::dyears)
+}
+
 # Convenience function to return base time unit of time variable
 get_time_unit <- function(x){
   if (is_date(x)){

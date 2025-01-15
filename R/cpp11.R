@@ -39,3 +39,7 @@ cpp_consecutive_na_id <- function(x, left_to_right) {
 cpp_which_first_gap <- function(x, increment, left_to_right) {
   .Call(`_timeplyr_cpp_which_first_gap`, x, increment, left_to_right)
 }
+
+set_vec_elt <- function(x, i, value) {
+  .Call(`_timeplyr_set_vec_elt`, x, i, value)
+}

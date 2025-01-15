@@ -1,7 +1,7 @@
 # Time utility functions
 # Error for the user to see available units
 unit_match_stop <- function(units = .time_units){
-  stop(paste0("'arg' should be one of '", paste(units, collapse = "', '"), "'"))
+  cli::cli_abort(paste0("'arg' should be one of '", paste(units, collapse = "', '"), "'"))
 }
 # Convert exotic units to normal units
 convert_exotic_units <- function(x){
@@ -188,18 +188,8 @@ period_by_calc <- function(from, to, length){
   out[which_len_1] <- seconds_unit(0)
   out
 }
-# Calculates size of duration to cut a pre-specified interval of
-# a certain length
-duration_by_calc <- function(from, to, length){
-  seconds_unit <- duration_unit("seconds")
-  sec_diff <- time_diff(from, to, new_timespan("seconds", 1L))
-  out <- seconds_unit(sec_diff / (length - 1))
-  length <- rep_len(length, length(out))
-  out[cheapr::val_find(length, 1)] <- seconds_unit(0) # Special case
-  out
-}
 num_by_calc <- function(from, to, length){
-  out <- (to - from) / (length - 1)
+  out <- (unclass(to) - unclass(from)) / (length - 1)
   length <- rep_len(length, length(out))
   out[cheapr::val_find(length, 1)] <- 0
   out
@@ -231,36 +221,6 @@ time_unit_info <- function(time_unit){
     }
   } else {
     list("numeric" = time_value)
-  }
-}
-# Functional that returns lubridate duration function
-duration_unit <- function(units = "seconds"){
-  if (!units %in% .duration_units) unit_match_stop(.duration_units)
-  switch(units,
-         picoseconds = lubridate::dpicoseconds,
-         nanoseconds = lubridate::dnanoseconds,
-         microseconds = lubridate::dmicroseconds,
-         milliseconds = lubridate::dmilliseconds,
-         seconds = lubridate::dseconds,
-         minutes = lubridate::dminutes,
-         hours = lubridate::dhours,
-         days = lubridate::ddays,
-         weeks = lubridate::dweeks,
-         months = lubridate::dmonths,
-         years = lubridate::dyears)
-}
-
-numeric_unit <- function(units){
-  identity
-}
-# Functional that returns time unit function
-time_unit <- function(units){
-  if (is.na(units)){
-    numeric_unit(units)
-  } else if (is_duration_unit(units)){
-    duration_unit(units)
-  } else {
-    period_unit(units)
   }
 }
 
@@ -308,7 +268,7 @@ time_cast <- function(x, template){
 # Coerce pair of time based vectors to the most informative
 # class between them
 set_time_cast <- function(x, y){
-  if (identical(base::parent.frame(n = 1), base::globalenv())){
+  if (identical(parent.frame(n = 1), globalenv())){
     stop("Users cannot use set_time_cast from the global environment")
   }
   if (!identical(class(x), class(y))){
@@ -416,7 +376,7 @@ time_add <- function(x, timespan,
   } else {
     # If timespan is less than a day
     if (is_duration_unit(unit)){
-      x + duration_unit(unit)(num)
+      x + unit_to_seconds(span)
     } else {
       unit <- plural_unit_to_single(unit)
       timechange::time_add(
@@ -431,23 +391,7 @@ time_subtract <- function(x, timespan,
                           roll_dst = getOption("timeplyr.roll_dst", "NA")){
 
   span <- timespan(timespan)
-  num <- timespan_num(span)
-  unit <- timespan_unit(span)
-
-  if (is.na(unit)){
-    x - num
-  } else {
-    # If timespan is less than a day
-    if (is_duration_unit(unit)){
-      x - duration_unit(unit)(num)
-    } else {
-      unit <- plural_unit_to_single(unit)
-      timechange::time_subtract(
-        x, periods = add_names(list(num), unit),
-        roll_month = roll_month, roll_dst = roll_dst
-      )
-    }
-  }
+  time_add(x, timespan(span, -1L), roll_month = roll_month, roll_dst = roll_dst)
 }
 time_floor <- function(x, time_by, week_start = getOption("lubridate.week.start", 1)){
   span <- timespan(time_by)
@@ -810,18 +754,6 @@ int_to_per <- function (start, end){
   per$month[wnegs] <- -per$month[wnegs]
   per$year[wnegs] <- -per$year[wnegs]
   per
-}
-
-# Convenience function to return base time unit of time variable
-# Useless now, use `resolution()`
-get_time_unit <- function(x){
-  if (is_date(x)){
-    "days"
-  } else if (is_datetime(x)){
-   "seconds"
-  } else {
-    "numeric"
-  }
 }
 
 is_duration_unit <- function(x){

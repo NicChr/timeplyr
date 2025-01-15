@@ -93,7 +93,10 @@ cut_time_using_ops <- function(x, width, from = NULL, to = NULL){
     if (is_time(x)){
       if (n >= max_breaks){
         interval_width <- gcd_difference
-        units_to_try <- rep_len(get_time_unit(x), max(length(interval_width), 1))
+        units_to_try <- rep_len(
+          timespan_unit(resolution(x)),
+          max(length(interval_width), 1)
+        )
       } else {
         date_units <- c("days", "weeks", "months", "years")
         units_to_try <- date_units

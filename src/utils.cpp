@@ -267,3 +267,9 @@ void cpp_copy_names(SEXP source, SEXP target){
   Rf_setAttrib(target, R_NamesSymbol, target_nms);
   Rf_unprotect(2);
 }
+
+[[cpp11::register]]
+SEXP set_vec_elt(SEXP x, R_xlen_t i, SEXP value){
+  SET_VECTOR_ELT(x, i, value);
+  return x;
+}
