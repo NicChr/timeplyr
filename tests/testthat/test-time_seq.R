@@ -615,3 +615,15 @@ test_that("Datetimes", {
 #     )
 #   )
 # })
+
+test_that("time_seq_fill", {
+  x <- c(1L, NA, NA, NA, NA, 6L, NA, 8L, NA, NA, NA, NA, NA, NA, NA,
+    16L, NA, NA, 19L, 20L, NA, NA, NA, 24L, NA, NA, NA, NA, NA, 30L,
+    NA, 32L, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 43L, 44L, NA,
+    46L, NA, NA, NA, 50L, NA, 52L, NA, NA, 55L, NA, 57L, 58L, NA,
+    NA, NA, NA, NA, 64L, NA, NA, NA, 68L, 69L, 70L, 71L, NA, NA,
+    74L, 75L, 76L, NA, NA, NA, 80L, 81L, NA, NA, NA, NA, NA, 87L,
+    NA, NA, 90L, NA, 92L, NA, 94L, NA, 96L, NA, NA, NA, NA)
+  expect_equal(time_seq_fill(x), 1:100)
+  expect_equal(time_seq_fill(rev(x)), 100:1)
+})

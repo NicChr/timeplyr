@@ -391,7 +391,7 @@ time_subtract <- function(x, timespan,
                           roll_dst = getOption("timeplyr.roll_dst", "NA")){
 
   span <- timespan(timespan)
-  time_add(x, timespan(span, -1L), roll_month = roll_month, roll_dst = roll_dst)
+  time_add(x, -timespan(span), roll_month = roll_month, roll_dst = roll_dst)
 }
 time_floor <- function(x, time_by, week_start = getOption("lubridate.week.start", 1)){
   span <- timespan(time_by)
