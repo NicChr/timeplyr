@@ -55,9 +55,7 @@ iso_week <- function(x, year = TRUE, day = FALSE){
 #' @rdname iso_week
 #' @export
 isoday <- function(x){
-  out <- data.table::wday(x) - 1L
-  out[cheapr::val_find(out, 0L)] <- 7L
-  out
+  cheapr::val_replace(data.table::wday(x) - 1L, 0L, 7L)
 }
 # Integer isoweek
 # isoweek <- function(x){

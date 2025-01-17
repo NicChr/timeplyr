@@ -40,11 +40,11 @@ test_that("time breaks", {
     time_breaks(x,
       n = 100, "month",
       from = start1,
-      to = end2 + period_unit("months")(4)
+      to = end2 + months(4)
     ),
     time_grid(x, "month",
       from = start1,
-      to = end2 + period_unit("months")(4)
+      to = end2 + months(4)
     )
   )
   expect_equal(

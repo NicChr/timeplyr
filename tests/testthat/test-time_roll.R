@@ -46,21 +46,21 @@ test_that("time_roll", {
   # With dups ---------------------------------------------------------------
 
 
-  z1 <- time_roll_mean(x, time = t, days(11), close_left_boundary = TRUE)
-  z3 <- time_roll_mean(x, time = t, days(11), close_left_boundary = FALSE)
+  z1 <- time_roll_mean(x, time = t, lubridate::days(11), close_left_boundary = TRUE)
+  z3 <- time_roll_mean(x, time = t, lubridate::days(11), close_left_boundary = FALSE)
   expect_snapshot(smr(z1 - z3))
 
   # With NA -----------------------------------------------------------------
 
 
   x <- cheapr::na_insert(x, prop = 0.3)
-  z1 <- time_roll_mean(x, time = t, days(11), close_left_boundary = TRUE)
+  z1 <- time_roll_mean(x, time = t, lubridate::days(11), close_left_boundary = TRUE)
   expect_snapshot(smr(z1))
   # With gaps ---------------------------------------------------------------
 
   t <- sort(sample(t, size = 20, FALSE))
   x <- rnorm(length(t))
-  z1 <- time_roll_mean(x, time = t, days(11), close_left_boundary = TRUE)
+  z1 <- time_roll_mean(x, time = t, lubridate::days(11), close_left_boundary = TRUE)
   expect_snapshot(smr(z1))
 
   # With gaps and dups ------------------------------------------------------
@@ -68,7 +68,7 @@ test_that("time_roll", {
   t <- time_seq_v2(100, Sys.Date(), lubridate::days(1))
   t <- sort(sample(t, size = 30, TRUE))
   x <- rnorm(length(t))
-  z1 <- time_roll_mean(x, time = t, days(11), close_left_boundary = TRUE)
+  z1 <- time_roll_mean(x, time = t, lubridate::days(11), close_left_boundary = TRUE)
   expect_snapshot(smr(z1))
   # By group
 

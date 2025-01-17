@@ -136,55 +136,44 @@ convert_common_dates <- function(x){
   }
   out
 }
+period_to_list <- function(x){
+  out <- attributes(unclass(x))
+  seconds <- lubridate::second(x)
+  out[["second"]] <- seconds
+  sum_rng <- lapply(out, function(x) sum(abs(collapse::frange(x, na.rm = TRUE))))
+  keep <- vapply(sum_rng, function(x) isTRUE(cppdoubles::double_gt(x, 0)), FALSE)
+  if (sum(keep) == 0){
+    out["second"]
+  } else {
+    out[keep]
+  }
+}
 # Calculate size of period unit to expand from and to for specified length
 period_by_calc <- function(from, to, length){
-  seconds_unit <- period_unit("seconds")
   set_recycle_args(from, to, length)
   which_len_1 <- cheapr::val_find(length, 1)
   sec_diff <- time_diff(from, to, new_timespan("seconds"))
   out <- lubridate::seconds_to_period(sec_diff / (length - 1))
-  period_info <- collapse::qDF(time_unit_info(out))
+  period_info <- collapse::qDF(period_to_list(out))
   n_unique_slots <- df_ncol(period_info) - rowSums(period_info == 0)
-  which_multi <- which(n_unique_slots > 1)
-  out[which_multi] <- seconds_unit(
+  which_multi <- which(n_unique_slots > 1L)
+  out[which_multi] <- lubridate::seconds(
     lubridate::period_to_seconds(out[which_multi])
   )
-  out[which_len_1] <- seconds_unit(0)
-  out
+  out[which_len_1] <- lubridate::seconds(0)
+  timespan(out)
 }
 num_by_calc <- function(from, to, length){
   out <- (unclass(to) - unclass(from)) / (length - 1)
   length <- rep_len(length, length(out))
   out[cheapr::val_find(length, 1)] <- 0
-  out
+  new_timespan(NA_character_, out)
 }
 time_by_calc <- function(from, to, length){
   if (is_time(from) && is_time(to)){
     period_by_calc(from, to, length)
   } else {
     num_by_calc(from, to, length)
-  }
-}
-# This only works for single unit vectors
-# Periods with multiple types of units do not work.
-time_unit_info <- function(time_unit){
-  tclass <- class(time_unit)
-  time_value <- unclass(time_unit)
-  if (tclass == "Duration"){
-    list("second" = time_value)
-  } else if (tclass == "Period"){
-    out <- attributes(time_value)
-    seconds <- lubridate::second(time_unit)
-    out[["second"]] <- seconds
-    sum_rng <- lapply(out, function(x) sum(abs(collapse::frange(x, na.rm = TRUE))))
-    keep <- vapply(sum_rng, function(x) isTRUE(cppdoubles::double_gt(x, 0)), FALSE)
-    if (sum(keep) == 0){
-      out["second"]
-    } else {
-      out[keep]
-    }
-  } else {
-    list("numeric" = time_value)
   }
 }
 
