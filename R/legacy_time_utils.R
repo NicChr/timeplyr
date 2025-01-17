@@ -82,7 +82,7 @@ time_by_pretty <- function(time_by, sep = " "){
     }
   } else {
     num_seconds <- unit_to_seconds2(time_by)
-    higher_unit_info <- seconds_to_unit(num_seconds)
+    higher_unit_info <- seconds_to_unit2(num_seconds)
     scale <- higher_unit_info$scale
     higher_unit <- higher_unit_info$unit
     num <- num_seconds / scale
@@ -108,7 +108,7 @@ time_granularity <- function(x, msg = TRUE){
     unit <- "days"
     num_and_unit <- paste(gcd_diff, unit, sep = " ")
   } else if (is_datetime(x)){
-    convert_seconds <- seconds_to_unit(gcd_diff)
+    convert_seconds <- seconds_to_unit2(gcd_diff)
     scale <- convert_seconds[["scale"]]
     granularity <- convert_seconds[["unit"]]
     granularity <- paste0(plural_unit_to_single(granularity), "(s)")
@@ -139,7 +139,7 @@ time_granularity2 <- function(x){
     unit <- "days"
     scale <- 1
   } else if (is_datetime(x)){
-    convert_seconds <- seconds_to_unit(gcd_diff)
+    convert_seconds <- seconds_to_unit2(gcd_diff)
     unit <- convert_seconds[["unit"]]
     scale <- convert_seconds[["scale"]]
   } else {
@@ -348,6 +348,65 @@ unit_guess <- function(x){
     }
   }
   out
+}
+
+seconds_to_unit2 <- function(x){
+  if (length(x) == 0L){
+    return(
+      list(
+        unit = "seconds",
+        scale = numeric()
+      )
+    )
+  }
+  if (length(x) == 1 && is.na(x)){
+    return(
+      list(
+        unit = "seconds",
+        scale = NA_real_
+      )
+    )
+  }
+  x <- abs(x)
+  if (x == 0){
+    unit <- "seconds"
+    scale <- 1
+  } else if (x > 0 && x < 1/1000/1000/1000){
+    unit <- "picoseconds"
+    scale <- 1/1000/1000/1000/1000
+  } else if (x >= 1/1000/1000/1000 && x < 1/1000/1000){
+    unit <- "nanoseconds"
+    scale <- 1/1000/1000/1000
+  } else if (x >= 1/1000/1000 && x < 1/1000){
+    unit <- "microseconds"
+    scale <- 1/1000/1000
+  } else if (x >= 1/1000 && x < 1){
+    unit <- "milliseconds"
+    scale <- 1/1000
+  }  else if (x >= 1 && x < 60){
+    unit <- "seconds"
+    scale <- 1
+  } else if (x >= 60 && x < 3600){
+    unit <- "minutes"
+    scale <- 60
+  } else if (x >= 3600 && x < 86400){
+    unit <- "hours"
+    scale <- 3600
+  } else if (x >= 86400 && x < 604800){
+    unit <- "days"
+    scale <- 86400
+  } else if (x >= 604800 && x < 2629800){
+    unit <- "weeks"
+    scale <- 604800
+  } else if (x >= 2629800 && x < 31557600){
+    unit <- "months"
+    scale <- 2629800
+  } else if (x >= 31557600){
+    unit <- "years"
+    scale <- 31557600
+  }
+  list("unit" = unit,
+       "scale" = scale)
 }
 
 unit_to_seconds2 <- function(x){

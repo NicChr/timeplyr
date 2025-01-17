@@ -290,12 +290,12 @@ check_is_list <- function(x){
 }
 check_length <- function(x, size){
   if (length(x) != size){
-    stop(paste(deparse2(substitute(x)), "must be of length", size))
+    cli::cli_abort("{.arg x} must be of length {size}")
   }
 }
 check_length_lte <- function(x, size){
   if (!(length(x) <= size)){
-    stop(paste(deparse2(substitute(x)), "must have length <=", size))
+    cli::cli_abort("{.arg x} must have length <= {size}")
   }
 }
 # collapse allv and allna with extra length check

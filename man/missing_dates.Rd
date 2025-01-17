@@ -2,12 +2,15 @@
 % Please edit documentation in R/missing_dates.R
 \name{missing_dates}
 \alias{missing_dates}
+\alias{n_missing_dates}
 \title{Check for missing dates between first and last date}
 \usage{
 missing_dates(x)
+
+n_missing_dates(x)
 }
 \arguments{
-\item{x}{A date or datetime vector, or a data frame.}
+\item{x}{A Date or Date-Time vector.}
 }
 \value{
 A \code{Date} vector.

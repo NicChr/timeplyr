@@ -70,65 +70,29 @@ gcd_time_diff <- function(x){
   cheapr::na_replace(out, 1L)
 }
 
-# Converts seconds to duration unit
-# Scale is in comparison to seconds
-seconds_to_unit <- function(x){
+seconds_to_higher_timespan <- function(x){
+  check_length_lte(x, 1)
+
   if (length(x) == 0L){
-    return(
-      list(
-        unit = "seconds",
-        scale = numeric()
-      )
-    )
+    return(new_timespan("seconds", numeric()))
   }
-  if (length(x) == 1 && is.na(x)){
-    return(
-      list(
-        unit = "seconds",
-        scale = NA_real_
-      )
-    )
+  if (is.na(x)){
+    return(new_timespan("seconds", NA_real_))
   }
-  x <- abs(x)
-  if (x == 0){
-    unit <- "seconds"
-    scale <- 1
-  } else if (x > 0 && x < 1/1000/1000/1000){
-    unit <- "picoseconds"
-    scale <- 1/1000/1000/1000/1000
-  } else if (x >= 1/1000/1000/1000 && x < 1/1000/1000){
-    unit <- "nanoseconds"
-    scale <- 1/1000/1000/1000
-  } else if (x >= 1/1000/1000 && x < 1/1000){
-    unit <- "microseconds"
-    scale <- 1/1000/1000
-  } else if (x >= 1/1000 && x < 1){
-    unit <- "milliseconds"
-    scale <- 1/1000
-  }  else if (x >= 1 && x < 60){
-    unit <- "seconds"
-    scale <- 1
-  } else if (x >= 60 && x < 3600){
-    unit <- "minutes"
-    scale <- 60
-  } else if (x >= 3600 && x < 86400){
+
+  num <- as.double(x)
+
+  if ( (num %% 3600) == 0 ){
+    num <- num / 3600
     unit <- "hours"
-    scale <- 3600
-  } else if (x >= 86400 && x < 604800){
-    unit <- "days"
-    scale <- 86400
-  } else if (x >= 604800 && x < 2629800){
-    unit <- "weeks"
-    scale <- 604800
-  } else if (x >= 2629800 && x < 31557600){
-    unit <- "months"
-    scale <- 2629800
-  } else if (x >= 31557600){
-    unit <- "years"
-    scale <- 31557600
+  } else if ( (num %% 60) == 0 ){
+    num <- num / 60
+    unit <- "minutes"
+  } else {
+    unit <- "seconds"
   }
-  list("unit" = unit,
-       "scale" = scale)
+
+  new_timespan(unit, num)
 }
 unit_to_seconds <- function(x){
   unit_info <- timespan(x)

@@ -140,7 +140,11 @@ granularity.POSIXt <- function(x, exact = FALSE, ...){
     gcd_delta <- gcd_time_diff(unclass(x))
     out_unit <- "seconds"
   }
-  new_timespan(out_unit, gcd_delta)
+  if (out_unit == "seconds"){
+    seconds_to_higher_timespan(gcd_delta)
+  } else {
+    new_timespan(out_unit, gcd_delta)
+  }
 }
 #' @export
 granularity.year_month <- function(x, ...){

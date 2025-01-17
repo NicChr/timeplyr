@@ -62,7 +62,7 @@ time_by <- function(data, time, width = NULL, .name = NULL, .add = TRUE){
   # Remove duplicate cols..
   out <- time_info[["data"]]
   col_seq <- seq_along(names(out))
-  time_span <- NULL
+
   if (length(time_var) > 0L){
     check_is_time_or_num(out[[time_var]])
     width <- get_granularity(out[[time_var]], width)
@@ -73,8 +73,7 @@ time_by <- function(data, time, width = NULL, .name = NULL, .add = TRUE){
       g <- fastplyr::f_select(out, .cols = group_vars)
       time_span_groups <- group_vars
     }
-    time_span_GRP <- df_to_GRP(out, .cols = time_span_groups,
-                               return.groups = TRUE)
+    time_span_GRP <- df_to_GRP(out, .cols = time_span_groups, return.groups = FALSE)
     from <- gmin(out[[time_var]], g = time_span_GRP)
     # Aggregate time data
     time_agg <- time_cut_width(out[[time_var]], width, from = from)
