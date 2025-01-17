@@ -153,31 +153,3 @@ test_that("time diff", {
   }
   expect_equal(res5, res6)
 })
-
-test_that("lubridate period multiplication", {
-  x <- months(c(NA, seq(-10, 11, 1), NA))
-  expect_equal(
-    multiply_single_unit_period_by_number(x, c(Inf, -Inf, NaN, NA, -10:33)),
-    x * c(Inf, -Inf, NaN, NA, -10:33)
-  )
-  expect_equal(
-    multiply_single_unit_period_by_number(x, integer()),
-    x * integer()
-  )
-  expect_equal(
-    multiply_single_unit_period_by_number(x, numeric()),
-    x * numeric()
-  )
-  expect_equal(
-    multiply_single_unit_period_by_number(x, NA),
-    x * NA
-  )
-  expect_equal(
-    multiply_single_unit_period_by_number(x, Inf),
-    x * Inf
-  )
-  expect_equal(
-    multiply_single_unit_period_by_number(x, NULL),
-    x * NULL
-  )
-})

@@ -229,54 +229,11 @@ time_floor2 <- function(x, time_by, week_start = getOption("lubridate.week.start
     time_floor3(x, time_by = add_names(list(1), names(time_by)), week_start = week_start)
   }
 }
-time_ceiling3 <- function(x, time_by, week_start = getOption("lubridate.week.start", 1),
-                         change_on_boundary = inherits(x, "Date")){
-  unit_info <- unit_guess(time_by)
-  by_unit <- unit_info[["unit"]]
-  by_n <- unit_info[["num"]] * unit_info[["scale"]]
-  if (is_time(x)){
-    time_by <- paste(by_n, by_unit)
-    timechange::time_ceiling(x, unit = time_by, week_start = week_start)
-  } else {
-    ceiling(x / by_n) * by_n
-  }
-}
-# Custom time flooring..
-time_ceiling2 <- function(x, time_by, week_start = getOption("lubridate.week.start", 1),
-                          change_on_boundary = FALSE){
-  if (time_by_is_num(time_by)){
-    num <- unlist(time_by, use.names = FALSE, recursive = FALSE)
-    ceiling(x / num) * num
-  } else {
-    time_ceiling3(x, time_by = add_names(list(1), names(time_by)),
-                 week_start = week_start,
-                 change_on_boundary = change_on_boundary)
-  }
-}
-
-time_as_number <- function(x){
-  strip_attrs(unclass(x))
-}
-time_int_end <- function(x){
-  attr(x, "end")
-}
-time_int_rm_attrs <- function(x){
-  attr(x, "end") <- NULL
-  attr(x, "direction") <- NULL
-  x
-}
 
 match_time_type <- function(time_type){
   rlang::arg_match0(time_type, c("auto", "duration", "period"))
 }
 
-time_by_list_convert_weeks_to_days <- function(time_by){
-  out <- time_by
-  if (time_by_unit(out) == "weeks"){
-    out <- list("days" = as.double(time_by_num(out) * 7))
-  }
-  out
-}
 
 # Functional that returns lubridate duration function
 duration_unit <- function(units = "seconds"){
@@ -295,16 +252,6 @@ duration_unit <- function(units = "seconds"){
          years = lubridate::dyears)
 }
 
-# Convenience function to return base time unit of time variable
-get_time_unit <- function(x){
-  if (is_date(x)){
-    "days"
-  } else if (is_datetime(x)){
-    "seconds"
-  } else {
-    "numeric"
-  }
-}
 unit_guess <- function(x){
   if (inherits(x, c("Duration", "Period"))){
     time_unit_info <- time_unit_info(x)
