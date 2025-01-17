@@ -6,6 +6,9 @@ seq_direction <- function(x){
 
 time_seq_fill <- function(x){
   check_is_time_or_num(x)
+  if (length(x) == 0){
+    return(x)
+  }
   if (cheapr::all_na(x)){
     warning("all values of x are NA, cannot fill the explicit missing values")
     return(x)
@@ -71,12 +74,12 @@ time_seq_fill <- function(x){
     # We subtract 2 from the elapsed time between this pair
     elapsed <- elapsed - na_count
   }
-  elapsed <- as.double(elapsed)
-  is_regular <-
-    cppdoubles::all_equal(elapsed, 1, na.rm = TRUE) ||
-    cppdoubles::all_equal(elapsed, -1, na.rm = TRUE)
+  if (is.integer(elapsed)){
+    is_regular <- cheapr::val_count(elapsed, 1L) == (length(elapsed) - num_na - 1L)
+  } else {
+    is_regular <- cppdoubles::all_equal(elapsed, 1, na.rm = TRUE)
+  }
 
-  # is_regular <- all(abs(seq_diff - 1L) < sqrt(.Machine$double.eps), na.rm = TRUE)
   if (!is_regular){
     stop("x must be a regular sequence with no duplicates or implicit gaps in time.")
   }
