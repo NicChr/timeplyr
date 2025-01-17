@@ -55,7 +55,7 @@ time_diff <- function(x, y, timespan = 1L){
       y <- interval_tbl$y
       num <- interval_tbl$num
 
-      span <- abs(span)
+      span <- new_timespan(units, abs(num))
       out <- sign(num) * divide_interval_by_period(x, y, span)
       out[which(num == 0 & x > y)] <- -Inf
       out[which(num == 0 & x < y)] <- Inf
