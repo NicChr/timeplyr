@@ -379,7 +379,7 @@ weekly_data <- flights |>
 weekly_data |>
   ggplot(aes(x = interval_start(date), y = n)) + 
   geom_bar(stat = "identity", fill = "#0072B2") + 
-  scale_x_date(breaks = date_breaks, labels = scales::label_date_short())
+  scale_x_date(breaks = date_breaks, labels = scales::label_date_short()) 
 
 flights |>
   ggplot(aes(x = time_hour)) + 

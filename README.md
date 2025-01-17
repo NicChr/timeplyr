@@ -167,7 +167,7 @@ flights |>
   time_by(time_hour)
 #> # A tibble: 336,776 x 20
 #> # Time:     time_hour [6,936]
-#> # Width:    3600 secs
+#> # Width:    hour
 #> # Range:    2013-01-01 05:00:00 -- 2014-01-01
 #>     year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
 #>    <int> <int> <int>    <int>          <int>     <dbl>    <int>          <int>
@@ -601,7 +601,7 @@ Simple function to get formatted ISO weeks.
 iso_week(today())
 #> [1] "2025-W03"
 iso_week(today(), day = TRUE)
-#> [1] "2025-W03-3"
+#> [1] "2025-W03-5"
 iso_week(today(), year = FALSE)
 #> [1] "W03"
 ```
@@ -624,7 +624,7 @@ weekly_data <- flights |>
 weekly_data |>
   ggplot(aes(x = interval_start(date), y = n)) + 
   geom_bar(stat = "identity", fill = "#0072B2") + 
-  scale_x_date(breaks = date_breaks, labels = scales::label_date_short())
+  scale_x_date(breaks = date_breaks, labels = scales::label_date_short()) 
 ```
 
 ![](man/figures/README-unnamed-chunk-30-1.png)<!-- -->
