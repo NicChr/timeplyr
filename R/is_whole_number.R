@@ -75,5 +75,5 @@
 is_whole_number <- function(x, tol = .Machine$double.eps, na.rm = TRUE){
   check_length(tol, 1)
   check_length(na.rm, 1)
-  is.numeric(x) && cpp_is_whole_num(x, tol = as.double(tol), na_rm = na.rm)
+  is.numeric(x) && cpp_is_whole_num(x, tol = as.double(tol), na_rm = as.logical(na.rm))
 }

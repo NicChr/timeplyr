@@ -75,6 +75,13 @@ resolution.yearqtr <- function(x, ...){
   new_timespan(NA_character_, 1/4)
 }
 
+
+# inform_granularity <- function(x){
+#   cli::cli_inform(
+#     c("i" = "Using a {cli::col_blue('granularity')} of {timespan_abbr(x, short = FALSE)}")
+#   )
+# }
+
 #' @rdname resolution
 #' @export
 granularity <- function(x, ...){

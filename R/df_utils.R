@@ -20,8 +20,6 @@ df_rep_each <- get_from_package("df_rep_each", "fastplyr")
 df_ungroup <- fastplyr::f_ungroup
 df_init <- get_from_package("df_init", "fastplyr")
 df_paste_names <- get_from_package("df_paste_names", "fastplyr")
-df_group_by_drop_default <- get_from_package("df_group_by_drop_default", "fastplyr")
-df_group_by_order_default <- get_from_package("df_group_by_order_default", "fastplyr")
 
 reconstruct <- get_from_package("reconstruct", "fastplyr")
 

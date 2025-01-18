@@ -117,25 +117,6 @@ unit_to_seconds <- function(x){
   num * scales[unit_match]
 }
 
-convert_common_dates <- function(x){
-  if (is_time(x)){
-    out <- x
-  } else if (is.character(x)){
-    which_na <- cheapr::na_find(x)
-    out <- lubridate::ymd(x, quiet = TRUE)
-    num_na <- cheapr::na_count(out)
-    if (num_na > length(which_na)){
-      out <- lubridate::dmy(x, quiet = TRUE)
-    }
-    num_na <- cheapr::na_count(out)
-    if (num_na > length(which_na)){
-      out <- lubridate::Date(length(x))
-    }
-  } else {
-    out <- lubridate::Date(length(x))
-  }
-  out
-}
 period_to_list <- function(x){
   out <- attributes(unclass(x))
   seconds <- lubridate::second(x)
@@ -345,9 +326,7 @@ time_add <- function(x, timespan,
 time_subtract <- function(x, timespan,
                           roll_month = getOption("timeplyr.roll_month", "preday"),
                           roll_dst = getOption("timeplyr.roll_dst", "NA")){
-
-  span <- timespan(timespan)
-  time_add(x, -span, roll_month = roll_month, roll_dst = roll_dst)
+  time_add(x, -timespan(timespan), roll_month = roll_month, roll_dst = roll_dst)
 }
 time_floor <- function(x, time_by, week_start = getOption("lubridate.week.start", 1)){
   span <- timespan(time_by)
@@ -413,9 +392,7 @@ adj_dur_est <- function (est, start, end, width){
     start, timespan_as_timechange_period(cheapr::val_replace(width * est, NaN, NA)),
     "preday", "NA"
   )
-  # up_date2 <- up_date
   while (length(which <- which(up_date < end))) {
-    # up_date2 <- up_date
     est[which] <- est[which] + 1
     up_date[which] <- C_time_add(
       start[which],

@@ -23,17 +23,13 @@
 #' `time_gaps` returns a vector of time gaps. \cr
 #' `time_num_gaps` returns the number of time gaps. \cr
 #' `time_has_gaps` returns a logical(1) of whether there are gaps.
+#'
 #' @examples
+#'
 #' library(timeplyr)
-#' library(dplyr)
+#' library(fastplyr)
 #' library(lubridate)
 #' library(nycflights13)
-#' \dontshow{
-#' .n_dt_threads <- data.table::getDTthreads()
-#' .n_collapse_threads <- collapse::get_collapse()$nthreads
-#' data.table::setDTthreads(threads = 2L)
-#' collapse::set_collapse(nthreads = 1L)
-#' }
 #' missing_dates(flights$time_hour)
 #' time_has_gaps(flights$time_hour)
 #' time_num_gaps(flights$time_hour)
@@ -42,12 +38,9 @@
 #'
 #' # Number of missing hours by origin and dest
 #' flights %>%
-#'   group_by(origin, dest) %>%
-#'   summarise(n_missing = time_num_gaps(time_hour, "hours"))
-#' \dontshow{
-#' data.table::setDTthreads(threads = .n_dt_threads)
-#' collapse::set_collapse(nthreads = .n_collapse_threads)
-#'}
+#'   f_group_by(origin, dest) %>%
+#'   f_summarise(n_missing = time_num_gaps(time_hour, "hours"))
+#'
 #' @rdname time_gaps
 #' @export
 time_gaps <- function(x, timespan = granularity(x),

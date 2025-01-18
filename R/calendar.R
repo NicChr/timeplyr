@@ -38,8 +38,7 @@ calendar <- function(x, label = TRUE,
                      week_start = getOption("lubridate.week.start", 1),
                      fiscal_start = getOption("lubridate.fiscal.start", 1),
                      name = "time"){
-  dates <- convert_common_dates(x)
-  time_info <- as.POSIXlt(dates)
+  time_info <- as.POSIXlt(x)
   year <- time_info$year + 1900L
   quarter <- (( (time_info$mon %/% 3L) + (as.integer(fiscal_start) - 1L) ) %% 4L) + 1L
   month <- time_info$mon + 1L
@@ -67,7 +66,7 @@ calendar <- function(x, label = TRUE,
     wday_l <- NULL
     month_l <- NULL
   }
-  if (is_datetime(dates)){
+  if (is_datetime(x)){
     hour <- time_info$hour
     minute <- time_info$min
     second <- time_info$sec

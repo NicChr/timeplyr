@@ -444,3 +444,20 @@ inline_hist <- function (x, n_bins = 5L){
   hist_dt <- hist_dt / max(hist_dt)
   spark_bar(hist_dt)
 }
+
+old_group_id <- function(data, ...,
+                         order = TRUE,
+                         ascending = TRUE,
+                         .by = NULL, .cols = NULL,
+                         .name = NULL,
+                         as_qg = FALSE){
+  fastplyr::add_group_id(
+    data, ...,
+    .order = order,
+    .ascending = ascending,
+    .by = {{ .by }},
+    .cols = .cols,
+    .name = ".internal.temp.group.id",
+    as_qg = as_qg
+  )[[".internal.temp.group.id"]]
+}
