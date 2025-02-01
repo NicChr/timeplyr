@@ -361,7 +361,7 @@ sequences <- function(size, from = 1L, by = 1L, add_id = FALSE){
   time_cast(cheapr::sequence_(size, from, by, add_id), from)
 }
 list_as_df <- get_from_package("list_as_df", "cheapr")
-# inline_hist <- get_from_package("inline_hist", "cheapr")
+inline_hist <- get_from_package("inline_hist", "cheapr")
 new_list <- cheapr::new_list
 window_sequence <- cheapr::window_sequence
 sset <- cheapr::sset
@@ -411,39 +411,6 @@ tidy_select_pos <- get_from_package("tidy_select_pos", "fastplyr")
 cpp_set_list_element <- get_from_package("cpp_set_list_element", "fastplyr")
 list_as_tbl <- get_from_package("list_as_tbl", "fastplyr")
 across_col_names <- get_from_package("across_col_names", "fastplyr")
-
-
-# Temporary code, will update with cheapr:::inline_hist later
-spark_bar <- function (x){
-  bars <- intToUtf8(c(9601L, 9602L, 9603L, 9605L, 9606L, 9607L),
-                    multiple = TRUE)
-  bar_codes <- cheapr::bin(
-    x, seq.int(0, to = 1, length.out = length(bars) + 1L),
-    left_closed = TRUE, include_oob = TRUE, include_endpoint = TRUE
-  )
-  bar_codes[bar_codes == 0L] <- NA_integer_
-  out <- bars[bar_codes]
-  paste0(out, collapse = "")
-}
-
-inline_hist <- function (x, n_bins = 5L){
-  if (length(x) < 1L) {
-    return(" ")
-  }
-  if (is.infinite(max(abs(collapse::frange(x, na.rm = TRUE))))) {
-    x[cheapr::which_(is.infinite(x))] <- NA
-  }
-  if (cheapr::all_na(x)) {
-    return(" ")
-  }
-  if (allv2(cheapr::na_rm(x), 0)) {
-    x <- x + 1
-  }
-  hist_dt <- tabulate(cheapr::cut_numeric(x, n_bins, right = TRUE, labels = FALSE),
-                      nbins = n_bins)
-  hist_dt <- hist_dt / max(hist_dt)
-  spark_bar(hist_dt)
-}
 
 old_group_id <- function(data, ...,
                          order = TRUE,

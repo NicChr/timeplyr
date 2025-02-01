@@ -4,7 +4,7 @@
 #' The definitions of resolution and granularity may evolve over time but
 #' currently the resolution defines the smallest timespan
 #' that differentiates two non-fractional instances in time.
-#' The granularity defines the smallest common timespan.
+#' The granularity defines the smallest common time difference.
 #' A practical example would be when using dates to record data with a monthly
 #' frequency. In this case the granularity is 1 month, whereas the resolution
 #' of the data type `Date` is 1 day. Therefore the resolution depends

@@ -1,4 +1,4 @@
-# timeplyr (Development version)
+# timeplyr 1.0.0
 
 ### Major breaking changes
 

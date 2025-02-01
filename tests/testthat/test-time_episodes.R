@@ -721,7 +721,7 @@ test_that("Testing time episodes", {
   g <- sample(1:2, 20, T)
   x[sample.int(20, 7)] <- NA
   names(x) <- g
-  df <- cheapr::enframe_(x)
+  df <- fastplyr::f_enframe(x)
 
   df <- df %>%
     fastplyr::f_arrange(name, value) %>%

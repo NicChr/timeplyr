@@ -1,4 +1,4 @@
-* Updated to version 0.9.0
+* Updated to version 1.0.0
 
 * Fixed the C issue causing R to crash.
 
