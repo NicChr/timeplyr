@@ -223,22 +223,22 @@ flights |>
 ``` r
 start <- dmy("17-Jan-2013")
 flights |> 
-  mutate(week = time_cut_width(date, from = floor_date(start, unit = "week"))) |> 
+  mutate(week = time_cut_width(date, "weeks", from = floor_date(start, unit = "week"))) |> 
   f_count(week)
-#> # A tibble: 354 × 2
+#> # A tibble: 52 × 2
 #>    week                  n
 #>    <tm_ntrvl>        <int>
-#>  1 [2013-01-13, +1D)   828
-#>  2 [2013-01-14, +1D)   928
-#>  3 [2013-01-15, +1D)   894
-#>  4 [2013-01-16, +1D)   901
-#>  5 [2013-01-17, +1D)   927
-#>  6 [2013-01-18, +1D)   924
-#>  7 [2013-01-19, +1D)   674
-#>  8 [2013-01-20, +1D)   786
-#>  9 [2013-01-21, +1D)   912
-#> 10 [2013-01-22, +1D)   890
-#> # ℹ 344 more rows
+#>  1 [2013-01-13, +1W)  6076
+#>  2 [2013-01-20, +1W)  6012
+#>  3 [2013-01-27, +1W)  6072
+#>  4 [2013-02-03, +1W)  6089
+#>  5 [2013-02-10, +1W)  6217
+#>  6 [2013-02-17, +1W)  6349
+#>  7 [2013-02-24, +1W)  6411
+#>  8 [2013-03-03, +1W)  6551
+#>  9 [2013-03-10, +1W)  6556
+#> 10 [2013-03-17, +1W)  6549
+#> # ℹ 42 more rows
 ```
 
 #### Check for missing gaps in time
@@ -324,7 +324,7 @@ inspired by the excellent ‘zoo’ and ‘tsibble’ packages.
 ``` r
 today <- today()
 year_month(today)
-#> [1] "2025 Jan"
+#> [1] "2025 Feb"
 ```
 
 The underlying data for a `year_month` is the number of months since 1
@@ -341,9 +341,9 @@ To create a sequence of ‘year_months’, one can use base arithmetic
 
 ``` r
 year_month(today) + 0:12
-#>  [1] "2025 Jan" "2025 Feb" "2025 Mar" "2025 Apr" "2025 May" "2025 Jun"
-#>  [7] "2025 Jul" "2025 Aug" "2025 Sep" "2025 Oct" "2025 Nov" "2025 Dec"
-#> [13] "2026 Jan"
+#>  [1] "2025 Feb" "2025 Mar" "2025 Apr" "2025 May" "2025 Jun" "2025 Jul"
+#>  [7] "2025 Aug" "2025 Sep" "2025 Oct" "2025 Nov" "2025 Dec" "2026 Jan"
+#> [13] "2026 Feb"
 year_quarter(today) + 0:4
 #> [1] "2025 Q1" "2025 Q2" "2025 Q3" "2025 Q4" "2026 Q1"
 ```
@@ -599,11 +599,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2025-W03"
+#> [1] "2025-W05"
 iso_week(today(), day = TRUE)
-#> [1] "2025-W03-5"
+#> [1] "2025-W05-6"
 iso_week(today(), year = FALSE)
-#> [1] "W03"
+#> [1] "W05"
 ```
 
 ## `time_cut()`

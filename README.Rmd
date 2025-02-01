@@ -130,7 +130,7 @@ flights |>
 ```{r}
 start <- dmy("17-Jan-2013")
 flights |> 
-  mutate(week = time_cut_width(date, from = floor_date(start, unit = "week"))) |> 
+  mutate(week = time_cut_width(date, "weeks", from = floor_date(start, unit = "week"))) |> 
   f_count(week)
 ```
 
