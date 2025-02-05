@@ -1,5 +1,5 @@
-#ifndef timeplyr_cpp_funs
-#define timeplyr_cpp_funs
+#ifndef timeplyr_cpp_
+#define timeplyr_cpp_
 
 #include <cpp11.hpp>
 #include <Rinternals.h>
@@ -24,12 +24,6 @@
 #define r_integer_min_ std::numeric_limits<int>::min()
 #endif
 
-#ifndef base_r_length
-#define base_r_length(x) ((SEXP) cpp11::package("base")["length"](x))
-#endif
-
-R_xlen_t cpp_vector_size(SEXP x);
-int cpp_vector_width(SEXP x);
 double r_sum(SEXP x, bool na_rm);
 double r_min(SEXP x);
 void cpp_copy_names(SEXP source, SEXP target);

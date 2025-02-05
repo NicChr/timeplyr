@@ -234,16 +234,17 @@ time_seq_v2 <- function(sizes, from, timespan,
     } else if (is_duration_unit(units)){
       out <- duration_seq_v2(sizes, from = from, units = units, num = num)
     } else {
-      out <- period_seq_v2(sizes, from = from, units = units, num = num,
-                           roll_month = roll_month, roll_dst = roll_dst)
+      out <- period_seq_v2(
+        sizes, from = from, units = units, num = num,
+        roll_month = roll_month, roll_dst = roll_dst
+      )
     }
   }
   out
 }
 # Duration sequence vectorised over from, to and num
 duration_seq_v <- function(from, to, units, num = 1){
-  time_by <- add_names(list(num), units)
-  seq_sizes <- time_seq_sizes(from, to, time_by)
+  seq_sizes <- time_seq_sizes(from, to, new_timespan(units, num))
   duration_seq_v2(seq_sizes, from = from, units = units, num = num)
 }
 # Alternate version of duration_seq_v with sizes arg instead of to
@@ -251,7 +252,7 @@ duration_seq_v <- function(from, to, units, num = 1){
 duration_seq_v2 <- function(sizes, from, units, num = 1){
   units <- rlang::arg_match0(units, .duration_units)
   from <- as_datetime2(from)
-  timespan <- timespan(units, num)
+  timespan <- new_timespan(units, num)
   num_seconds <- unit_to_seconds(timespan)
   time_seq <- cheapr::sequence_(sizes,
                                 from = unclass(from),
@@ -270,17 +271,14 @@ date_seq_v2 <- function(sizes, from, by = 1L){
   class(out) <- "Date"
   out
 }
-# (Semi) Vectorised period sequence
-# Duplicate from/to/by values are grouped together and
-# their sequences are repeated at the end.
+# Vectorised period sequence
 period_seq_v <- function(from, to, units, num = 1,
                          roll_month = getOption("timeplyr.roll_month", "preday"),
                          roll_dst = getOption("timeplyr.roll_dst", "NA")){
-  units <- rlang::arg_match0(units, .period_units)
   if (length(to) == 0L){
     return(from[0])
   }
-  seq_sizes <- time_seq_sizes(from, to, timespan(units, num))
+  seq_sizes <- time_seq_sizes(from, to, new_timespan(units, num))
   period_seq_v2(sizes = seq_sizes,
                 from = from, units = units,
                 num = num,
@@ -293,52 +291,58 @@ period_seq_v2 <- function(sizes, from, units, num = 1L,
                           roll_month = getOption("timeplyr.roll_month", "preday"),
                           roll_dst = getOption("timeplyr.roll_dst", "NA")){
   units <- rlang::arg_match0(units, .period_units)
-  out_len <- sum(sizes)
-  unit <- plural_unit_to_single(units)
-  if (length(from) == 0L || length(sizes) == 0L){
+  n_seqs <- length(sizes)
+
+  if (length(from) == 0L || n_seqs == 0L){
     return(from[0L])
   }
-  # Following timechange rules.
-  convert_back_to_date <- is_date(from) &&
-    unit %in% c("day", "week", "month", "year")
-  period_df <- cheapr::new_df(
-    from = from, num = num, sizes = sizes,
-    .recycle = TRUE
+
+  # Vectorised time period addition
+
+  if (length(num) != 1){
+    num <- rep(rep_len(num, n_seqs), sizes)
+  }
+  if (length(from) != 1){
+    from <- rep(rep_len(from, n_seqs), sizes)
+  }
+  add <- cheapr::sequence_(sizes, from = 0L, by = 1L) * num
+  time_add(
+    from, new_timespan(units, add),
+    roll_month = roll_month, roll_dst = roll_dst
   )
-
-  # Does unique reduction result in a 2x reduction in data size?
-  reduce <- isTRUE((df_nrow(period_df) %/% collapse::fnunique(period_df)) >= 2L)
-
-  if (reduce){
-    period_groups <- collapse::group(period_df, starts = TRUE, group.sizes = TRUE)
-    group_starts <- attr(period_groups, "starts")
-    group_sizes <- attr(period_groups, "group.sizes")
-    n_groups <- attr(period_groups, "N.groups")
-    period_df <- cheapr::sset(period_df, group_starts)
-  }
-
-  from <- period_df[["from"]]
-  num <- period_df[["num"]]
-  sizes <- period_df[["sizes"]]
-
-  from <- as_datetime2(from)
-
-  period_add <- add_names(list(r_copy(num)), unit)
-  out <- vector("list", length(from))
-
-  for (i in seq_along(from)){
-    out[[i]] <- C_time_add(
-      from[i],
-      set_vec_elt(period_add, 0L, .subset2(num, i) * (seq_len(.subset2(sizes, i)) - 1L)), roll_month, roll_dst
-    )
-  }
-  if (reduce){
-    out <- out[period_groups]
-  }
-  out <- time_cast(unlist(out), from)
-
-  if (convert_back_to_date){
-    out <- lubridate::as_date(out)
-  }
-  out
 }
+# period_seq_v2 <- function(sizes, from, units, num = 1L,
+#                           roll_month = getOption("timeplyr.roll_month", "preday"),
+#                           roll_dst = getOption("timeplyr.roll_dst", "NA")){
+#   units <- rlang::arg_match0(units, .period_units)
+#   out_len <- sum(sizes)
+#   unit <- plural_unit_to_single(units)
+#   if (length(from) == 0L || length(sizes) == 0L){
+#     return(from[0L])
+#   }
+#   # Following timechange rules.
+#   convert_back_to_date <- is_date(from) &&
+#     unit %in% c("day", "week", "month", "year")
+#
+#   from <- as_datetime2(from)
+#   storage.mode(from) <- "double"
+#   by <- as.double(num)
+#   sizes <- as.integer(sizes)
+#
+#   # Vectorised time period addition
+#   out <- period_add_v(
+#     sizes = sizes,
+#     from = from,
+#     by = by,
+#     unit = unit,
+#     roll_month = roll_month,
+#     roll_dst = roll_dst
+#   )
+#
+#   out <- time_cast(unlist(out), from)
+#
+#   if (convert_back_to_date){
+#     out <- lubridate::as_date(out)
+#   }
+#   out
+# }

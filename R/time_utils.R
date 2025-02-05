@@ -387,16 +387,25 @@ plural_unit_to_single <- function(x){
 # Accepts an estimate ala (interval / duration)
 # Start datetime, end datetime, and period object
 adj_dur_est <- function (est, start, end, width){
+  unit <- plural_unit_to_single(timespan_unit(width))
+  num <- timespan_num(width)
+  period <- `names<-`(list(numeric()), unit)
+
+  modify_period <- function(x, with){
+    x[[1L]] <- with
+    x
+  }
+
   est <- ceiling(est)
   up_date <- C_time_add(
-    start, timespan_as_timechange_period(cheapr::val_replace(width * est, NaN, NA)),
+    start, modify_period(period, cheapr::val_replace(num * est, NaN, NA)),
     "preday", "NA"
   )
   while (length(which <- which(up_date < end))) {
     est[which] <- est[which] + 1
     up_date[which] <- C_time_add(
       start[which],
-      timespan_as_timechange_period(width[which] * est[which]),
+      modify_period(period, num[which] * est[which]),
       "preday", "NA"
     )
   }
@@ -406,12 +415,13 @@ adj_dur_est <- function (est, start, end, width){
     up_date[which] <- low_date[which]
     low_date[which] <- C_time_add(
       start[which],
-      timespan_as_timechange_period(width[which] * est[which]),
+      modify_period(period, width[which] * est[which]),
       "preday", "NA"
     )
   }
-  frac <- strip_attrs(difftime(end, low_date, units = "secs")) /
-    strip_attrs(difftime(up_date, low_date, units = "secs"))
+  frac <- ( unclass(end) - unclass(low_date) ) /
+    ( unclass(up_date) - unclass(low_date) )
+  frac <- strip_attrs(frac)
   frac[which(low_date == up_date)] <- 0
   est + frac
 }

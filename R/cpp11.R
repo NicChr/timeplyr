@@ -24,10 +24,6 @@ cpp_roll_growth_rate <- function(x, lag, log) {
   .Call(`_timeplyr_cpp_roll_growth_rate`, x, lag, log)
 }
 
-cpp_vector_size <- function(x) {
-  .Call(`_timeplyr_cpp_vector_size`, x)
-}
-
 roll_time_threshold <- function(x, threshold, switch_on_boundary) {
   .Call(`_timeplyr_roll_time_threshold`, x, threshold, switch_on_boundary)
 }
@@ -38,8 +34,4 @@ cpp_consecutive_na_id <- function(x, left_to_right) {
 
 cpp_which_first_gap <- function(x, increment, left_to_right) {
   .Call(`_timeplyr_cpp_which_first_gap`, x, increment, left_to_right)
-}
-
-set_vec_elt <- function(x, i, value) {
-  .Call(`_timeplyr_set_vec_elt`, x, i, value)
 }
