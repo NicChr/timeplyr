@@ -305,44 +305,13 @@ period_seq_v2 <- function(sizes, from, units, num = 1L,
   if (length(from) != 1){
     from <- rep(rep_len(from, n_seqs), sizes)
   }
-  add <- cheapr::sequence_(sizes, from = 0L, by = 1L) * num
-  time_add(
-    from, new_timespan(units, add),
+  if (is.integer(num)){
+    add <- sequence(sizes, from = 0L, by = 1L) * num
+  } else {
+    add <- cheapr::sequence_(sizes, from = 0, by = 1) * num
+  }
+  timechange::time_add(
+    from, timespan_as_timechange_period(new_timespan(units, add)),
     roll_month = roll_month, roll_dst = roll_dst
   )
 }
-# period_seq_v2 <- function(sizes, from, units, num = 1L,
-#                           roll_month = getOption("timeplyr.roll_month", "preday"),
-#                           roll_dst = getOption("timeplyr.roll_dst", "NA")){
-#   units <- rlang::arg_match0(units, .period_units)
-#   out_len <- sum(sizes)
-#   unit <- plural_unit_to_single(units)
-#   if (length(from) == 0L || length(sizes) == 0L){
-#     return(from[0L])
-#   }
-#   # Following timechange rules.
-#   convert_back_to_date <- is_date(from) &&
-#     unit %in% c("day", "week", "month", "year")
-#
-#   from <- as_datetime2(from)
-#   storage.mode(from) <- "double"
-#   by <- as.double(num)
-#   sizes <- as.integer(sizes)
-#
-#   # Vectorised time period addition
-#   out <- period_add_v(
-#     sizes = sizes,
-#     from = from,
-#     by = by,
-#     unit = unit,
-#     roll_month = roll_month,
-#     roll_dst = roll_dst
-#   )
-#
-#   out <- time_cast(unlist(out), from)
-#
-#   if (convert_back_to_date){
-#     out <- lubridate::as_date(out)
-#   }
-#   out
-# }
