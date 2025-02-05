@@ -1,5 +1,8 @@
 # timeplyr (development version)
 
+- Internal speed improvements to sequence creation. Specifically
+period sequences are now vectorised.
+
 # timeplyr 1.0.0
 
 ### Major breaking changes
