@@ -13,10 +13,10 @@ extern "C" SEXP _timeplyr_cpp_diff(SEXP x, SEXP lag, SEXP order, SEXP run_length
   END_CPP11
 }
 // is_whole_num.cpp
-SEXP cpp_is_whole_num(SEXP x, double tol, bool na_rm);
-extern "C" SEXP _timeplyr_cpp_is_whole_num(SEXP x, SEXP tol, SEXP na_rm) {
+SEXP cpp_is_whole_num(SEXP x, SEXP tol_, SEXP na_rm_);
+extern "C" SEXP _timeplyr_cpp_is_whole_num(SEXP x, SEXP tol_, SEXP na_rm_) {
   BEGIN_CPP11
-    return cpp11::as_sexp(cpp_is_whole_num(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(tol), cpp11::as_cpp<cpp11::decay_t<bool>>(na_rm)));
+    return cpp11::as_sexp(cpp_is_whole_num(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(tol_), cpp11::as_cpp<cpp11::decay_t<SEXP>>(na_rm_)));
   END_CPP11
 }
 // na_fill.cpp

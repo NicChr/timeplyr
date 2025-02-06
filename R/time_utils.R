@@ -433,10 +433,7 @@ divide_interval_by_period <- function(start, end, width){
   }
   estimate <- (strip_attrs(as_datetime2(end)) -
                  strip_attrs(as_datetime2(start)) ) / unit_to_seconds(width)
-  max_len <- max(length(start), length(end), length(width))
-  timespans <- cheapr::recycle(start = start, end = end, length = max_len)
-  # Here we make sure to use rep method for lubridate periods
-  timespans[[3]] <- rep_len(width, length.out = max_len)
+  timespans <- cheapr::recycle(start = start, end = end, width = width)
   if (cheapr::na_count(estimate) == 0) {
     adj_dur_est(estimate, timespans[[1]], timespans[[2]], timespans[[3]])
   } else {

@@ -4,8 +4,8 @@ cpp_diff <- function(x, lag, order, run_lengths, fill, differences) {
   .Call(`_timeplyr_cpp_diff`, x, lag, order, run_lengths, fill, differences)
 }
 
-cpp_is_whole_num <- function(x, tol, na_rm) {
-  .Call(`_timeplyr_cpp_is_whole_num`, x, tol, na_rm)
+cpp_is_whole_num <- function(x, tol_, na_rm_) {
+  .Call(`_timeplyr_cpp_is_whole_num`, x, tol_, na_rm_)
 }
 
 cpp_roll_na_fill <- function(x, fill_limit) {

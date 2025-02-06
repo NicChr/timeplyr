@@ -743,7 +743,7 @@ test_that("Testing time episodes", {
       time_episodes(value, roll_episode = TRUE, window = 100, .add = TRUE) %>%
       dplyr::as_tibble() %>%
       fastplyr::f_count(res1 == ep_id_new),
-    list_as_tbl(list(
+    fastplyr::as_tbl(cheapr::fast_df(
       "res1 == ep_id_new" = c(TRUE, NA),
       "n" = c(13L, 7L)
     ))
@@ -765,7 +765,7 @@ test_that("Testing time episodes", {
       ) %>%
       dplyr::as_tibble() %>%
       fastplyr::f_count(res2 == ep_id_new),
-    list_as_tbl(list(
+    fastplyr::as_tbl(cheapr::fast_df(
       "res2 == ep_id_new" = c(TRUE, NA),
       "n" = c(13L, 7L)
     ))

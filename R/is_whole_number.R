@@ -2,11 +2,8 @@
 #'
 #' @param x A numeric vector.
 #' @param tol tolerance value. \cr
-#' The default is `.Machine$double.eps`, essentially the lowest possible tolerance.
-#' A more typical tolerance for double floating point comparisons in other comparisons
-#' is `sqrt(.Machine$double.eps)`.
-#' @param na.rm Should `NA` values be removed before calculation?
-#' Default is `TRUE`.
+#' The default is `.Machine$double.eps^(2/3)`, an arbitrarily small tolerance.
+#' @param na.rm Should `NA` values be ignored? Default is `TRUE`.
 #'
 #' @returns
 #' A logical vector of length 1.
@@ -72,8 +69,6 @@
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
 #'}
 #' @export
-is_whole_number <- function(x, tol = .Machine$double.eps, na.rm = TRUE){
-  check_length(tol, 1)
-  check_length(na.rm, 1)
-  is.numeric(x) && cpp_is_whole_num(x, tol = as.double(tol), na_rm = as.logical(na.rm))
+is_whole_number <- function(x, tol = .Machine$double.eps^(2/3), na.rm = TRUE){
+  .Call(`_timeplyr_cpp_is_whole_num`, x, tol, na.rm)
 }

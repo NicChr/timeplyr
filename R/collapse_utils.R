@@ -1,8 +1,4 @@
 
-get_from_package <- function(x, package){
-  get(x, asNamespace(package), inherits = FALSE)
-}
-
 is_GRP <- get_from_package("is_GRP", "fastplyr")
 GRP2 <- get_from_package("GRP2", "fastplyr")
 GRP_n_groups <- get_from_package("GRP_n_groups", "fastplyr")

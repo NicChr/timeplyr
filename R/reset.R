@@ -6,7 +6,5 @@
 #'
 #' @export
 reset_timeplyr_options <- function(){
-  # options(.initial_options)
-  options("timeplyr.roll_month" = "preday",
-          "timeplyr.roll_dst" = "boundary")
+  options("timeplyr.roll_month" = "preday", "timeplyr.roll_dst" = "NA")
 }

@@ -39,7 +39,7 @@ roll_apply <- function(x, fun, window = cheapr::window_sequence(length(x), Inf),
   stopifnot(is.function(fun))
   check_length(window, length(x))
   x_size <- length(x)
-  out <- new_list(x_size, default)
+  out <- cheapr::new_list(x_size, default)
   which_gt_zero <- which(window > 0)
   if (align == "right"){
     for (i in which_gt_zero){

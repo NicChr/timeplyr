@@ -1,9 +1,5 @@
 ##### Data frame helpers #####
 
-
-get_from_package <- function(x, package){
-  get(x, asNamespace(package), inherits = FALSE)
-}
 # Internal helpers from fastplyr
 
 df_nrow <- get_from_package("df_nrow", "fastplyr")

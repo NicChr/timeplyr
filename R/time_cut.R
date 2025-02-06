@@ -208,29 +208,34 @@ cut_time_using_ops <- function(x, width, from = NULL, to = NULL){
 #' library(lubridate)
 #' library(ggplot2)
 #' library(dplyr)
-#' time_cut(1:10, n = 5)
+#'
+#' time_cut_n(1:10, n = 5)
+#'
 #' # Easily create custom time breaks
 #' df <- nycflights13::flights %>%
 #'   f_slice_sample(n = 100) %>%
 #'   with_local_seed(.seed = 8192821) %>%
-#'   select(time_hour) %>%
+#'   f_select(time_hour) %>%
 #'   fastplyr::f_arrange(time_hour) %>%
 #'   mutate(date = as_date(time_hour))
 #'
-#' # time_cut() and time_breaks() automatically find a
+#' # time_cut_n() and time_breaks() automatically find a
 #' # suitable way to cut the data
-#' time_cut(df$date)
+#' time_cut_n(df$date) |>
+#'   interval_count()
 #' # Works with datetimes as well
-#' time_cut(df$time_hour, n = 5) # ~5 breaks
-#' time_cut(df$date, timespan = "month")
+#' time_cut_n(df$time_hour, n = 5) |>
+#'   interval_count()
+#' time_cut_n(df$date, timespan = "month") |>
+#'   interval_count()
 #' # Just the breaks
 #' time_breaks(df$date, n = 5, timespan = "month")
 #'
-#' cut_dates <- time_cut(df$date)
+#' cut_dates <- time_cut_n(df$date)
 #' date_breaks <- time_breaks(df$date)
 #'
 #' # When n = Inf it should be equivalent to using time_cut_width
-#' identical(time_cut(df$date, n = Inf, "month"),
+#' identical(time_cut_n(df$date, n = Inf, "month"),
 #'           time_cut_width(df$date, "month"))
 #' # To get exact breaks at regular intervals, use time_grid
 #' weekly_breaks <- time_grid(

@@ -16,7 +16,7 @@ test_that("Whole numbers", {
   expect_true(is_whole_number(0))
   # expect_true(is_whole_number(c(NA_integer_, 1:10)))
 
-  ## Internally vectorised against tolerance
+  ## Not vectorised against tolerance
   expect_true(is_whole_number(5))
   expect_error(is_whole_number(5, c(0.01, -Inf)))
 
@@ -26,7 +26,7 @@ test_that("Whole numbers", {
 
   ## Different types
   expect_false(is_whole_number(letters))
-  expect_false(is_whole_number(Sys.Date()))
+  expect_true(is_whole_number(Sys.Date()))
 
   # expect_error(is_whole_number(1, tol = 1:2))
   expect_true(is_whole_number(numeric()))
