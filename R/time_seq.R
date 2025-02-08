@@ -300,10 +300,10 @@ period_seq_v2 <- function(sizes, from, units, num = 1L,
   # Vectorised time period addition
 
   if (length(num) != 1){
-    num <- rep(rep_len(num, n_seqs), sizes)
+    num <- rep2(rep_len2(num, n_seqs), sizes)
   }
   if (length(from) != 1){
-    from <- rep(rep_len(from, n_seqs), sizes)
+    from <- rep2(rep_len2(from, n_seqs), sizes)
   }
   if (is.integer(num)){
     add <- sequence(sizes, from = 0L, by = 1L) * num

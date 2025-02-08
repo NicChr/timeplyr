@@ -326,3 +326,19 @@ old_group_id <- function(data, ...,
     as_qg = as_qg
   )[[".internal.temp.group.id"]]
 }
+
+rep_len2 <- function(x, length.out){
+  if (length(x) == length.out){
+    x
+  } else {
+    rep_len(x, length.out)
+  }
+}
+
+rep2 <- function(x, times){
+  if (length(times) == 1 && times == 1){
+    x
+  } else {
+    rep(x, times)
+  }
+}
