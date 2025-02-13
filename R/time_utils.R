@@ -334,8 +334,7 @@ time_floor <- function(x, time_by, week_start = getOption("lubridate.week.start"
   unit <- timespan_unit(span)
 
   if (is_time(x)){
-    time_by <- paste(num, unit)
-    timechange::time_floor(x, unit = time_by, week_start = week_start)
+    timechange::time_floor(x, unit = paste(num, unit), week_start = week_start)
   } else {
     floor(x / num) * num
   }
@@ -431,17 +430,23 @@ divide_interval_by_period <- function(start, end, width){
   if (length(start) == 0 || length(end) == 0 || length(width) == 0) {
     return(numeric())
   }
-  estimate <- (strip_attrs(as_datetime2(end)) -
-                 strip_attrs(as_datetime2(start)) ) / unit_to_seconds(width)
+  start <- as_datetime2(start)
+  end <- as_datetime2(end)
+  estimate <- strip_attrs((unclass(end) - unclass(start)) / unit_to_seconds(width))
   timespans <- cheapr::recycle(start = start, end = end, width = width)
+  start <- timespans[[1L]]
+  end <- timespans[[2L]]
+  width <- timespans[[3L]]
+
   if (cheapr::na_count(estimate) == 0) {
-    adj_dur_est(estimate, timespans[[1]], timespans[[2]], timespans[[3]])
+    adj_dur_est(estimate, start, end, width)
+    # adjust_duration_estimate(as.double(estimate), start, end, as.double(timespan_num(width)), timespan_unit(width))
   } else {
     not_nas <- which_not_na(estimate)
-    start2 <- timespans[[1]][not_nas]
-    end2 <- timespans[[2]][not_nas]
-    width2 <- timespans[[3]][not_nas]
-    estimate[not_nas] <- adj_dur_est(estimate[not_nas], start2, end2, width2)
+    start <- start[not_nas]
+    end <- end[not_nas]
+    width <- width[not_nas]
+    estimate[not_nas] <- adj_dur_est(estimate[not_nas], start, end, width)
     estimate
   }
 }

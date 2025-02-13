@@ -12,7 +12,7 @@ BugReports: https://github.com/NicChr/timeplyr/issues
 Depends:
     R (>= 4.0.0)
 Imports:
-    cheapr (>= 1.0.0),
+    cheapr (>= 1.0.1),
     cli, 
     collapse (>= 2.0.0),
     cppdoubles (>= 0.2.0),

@@ -33,6 +33,13 @@ extern "C" SEXP _timeplyr_cpp_roll_na_fill_grouped(SEXP x, SEXP o, SEXP sizes, S
     return cpp11::as_sexp(cpp_roll_na_fill_grouped(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(o), cpp11::as_cpp<cpp11::decay_t<SEXP>>(sizes), cpp11::as_cpp<cpp11::decay_t<double>>(fill_limit)));
   END_CPP11
 }
+// posixt.cpp
+SEXP cpp_add_months(SEXP date, SEXP num_months);
+extern "C" SEXP _timeplyr_cpp_add_months(SEXP date, SEXP num_months) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_add_months(cpp11::as_cpp<cpp11::decay_t<SEXP>>(date), cpp11::as_cpp<cpp11::decay_t<SEXP>>(num_months)));
+  END_CPP11
+}
 // roll.cpp
 SEXP cpp_roll_count_na(SEXP x, double window, bool invert, bool partial);
 extern "C" SEXP _timeplyr_cpp_roll_count_na(SEXP x, SEXP window, SEXP invert, SEXP partial) {
@@ -71,6 +78,7 @@ extern "C" SEXP _timeplyr_cpp_which_first_gap(SEXP x, SEXP increment, SEXP left_
 
 extern "C" {
 static const R_CallMethodDef CallEntries[] = {
+    {"_timeplyr_cpp_add_months",           (DL_FUNC) &_timeplyr_cpp_add_months,           2},
     {"_timeplyr_cpp_consecutive_na_id",    (DL_FUNC) &_timeplyr_cpp_consecutive_na_id,    2},
     {"_timeplyr_cpp_diff",                 (DL_FUNC) &_timeplyr_cpp_diff,                 6},
     {"_timeplyr_cpp_is_whole_num",         (DL_FUNC) &_timeplyr_cpp_is_whole_num,         3},
