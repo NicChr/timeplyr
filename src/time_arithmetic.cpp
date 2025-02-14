@@ -15,37 +15,60 @@
 //   return days_since_epoch.time_since_epoch().count();
 // }
 
-int add_months_roll_backward(int date, int months_add){
+// int add_months_roll_backward(int date, int months_add){
+//   using namespace std::chrono;
+//   year_month_day ymd = year_month_day(sys_days(days(date)));
+//   months m = months(months_add);
+//   ymd = ymd + m;
+//   if (!ymd.ok()){
+//     ymd = ymd.year()/ymd.month()/last;
+//   }
+//   sys_days days_since_epoch = sys_days(ymd);
+//   return days_since_epoch.time_since_epoch().count();
+// }
+//
+// int add_months_roll_forward(int date, int months_add){
+//   using namespace std::chrono;
+//   year_month_day ymd = year_month_day(sys_days(days(date)));
+//   months m = months(months_add);
+//   ymd = ymd + m;
+//   if (!ymd.ok()){
+//     auto next_month = year_month(ymd.year(), ymd.month()) + months(1);
+//     ymd = next_month/day(1);
+//   }
+//   sys_days days_since_epoch = sys_days(ymd);
+//   return days_since_epoch.time_since_epoch().count();
+// }
+//
+// int add_months_no_roll(int date, int months_add){
+//   using namespace std::chrono;
+//   year_month_day ymd = year_month_day(sys_days(days(date)));
+//   months m = months(months_add);
+//   ymd = ymd + m;
+//   if (!ymd.ok()) return NA_INTEGER;
+//   sys_days days_since_epoch = sys_days(ymd);
+//   return days_since_epoch.time_since_epoch().count();
+// }
+
+int add_months(int date, int months_add, int roll_month){
   using namespace std::chrono;
   year_month_day ymd = year_month_day(sys_days(days(date)));
   months m = months(months_add);
-  ymd = ymd + m;
+  ymd += m;
   if (!ymd.ok()){
+    switch (roll_month){
+    case 1: { // Roll backwards
     ymd = ymd.year()/ymd.month()/last;
+    break;
+  } case 2: { // Roll forwards
+      auto next_month = year_month(ymd.year(), ymd.month()) + months(1);
+      ymd = next_month/day(1);
+      break;
+    } default: {
+    return NA_INTEGER;
   }
-  sys_days days_since_epoch = sys_days(ymd);
-  return days_since_epoch.time_since_epoch().count();
-}
-
-int add_months_roll_forward(int date, int months_add){
-  using namespace std::chrono;
-  year_month_day ymd = year_month_day(sys_days(days(date)));
-  months m = months(months_add);
-  ymd = ymd + m;
-  if (!ymd.ok()){
-    auto next_month = year_month(ymd.year(), ymd.month()) + months(1);
-    ymd = next_month/day(1);
+    }
   }
-  sys_days days_since_epoch = sys_days(ymd);
-  return days_since_epoch.time_since_epoch().count();
-}
-
-int add_months_no_roll(int date, int months_add){
-  using namespace std::chrono;
-  year_month_day ymd = year_month_day(sys_days(days(date)));
-  months m = months(months_add);
-  ymd = ymd + m;
-  if (!ymd.ok()) return NA_INTEGER;
   sys_days days_since_epoch = sys_days(ymd);
   return days_since_epoch.time_since_epoch().count();
 }
@@ -53,11 +76,11 @@ int add_months_no_roll(int date, int months_add){
 // Add months to date vector with month-rollback
 
 [[cpp11::register]]
-SEXP cpp_add_months(SEXP date, SEXP num_months){
+SEXP cpp_add_months(SEXP date, SEXP num_months, int roll_month){
   R_xlen_t dn = Rf_xlength(date);
   R_xlen_t mn = Rf_xlength(num_months);
   R_xlen_t n = std::max(dn, mn);
-  if (dn <= 0 || dn <= 0) n = 0;
+  if (dn <= 0 || mn <= 0) n = 0;
   SEXP months = Rf_protect(Rf_coerceVector(num_months, INTSXP));
   int *p_months = INTEGER(months);
 
@@ -78,7 +101,7 @@ SEXP cpp_add_months(SEXP date, SEXP num_months){
       nmnths = p_months[mi];
 
       p_out[i] = (ndates == NA_INTEGER || nmnths == NA_INTEGER) ?
-      NA_INTEGER : add_months_roll_backward(p_date[di], p_months[mi]);
+      NA_INTEGER : add_months(p_date[di], p_months[mi], roll_month);
     }
     SHALLOW_DUPLICATE_ATTRIB(out, date);
     Rf_unprotect(2);
@@ -89,6 +112,7 @@ SEXP cpp_add_months(SEXP date, SEXP num_months){
     double *p_out = REAL(out);
     double *p_date = REAL(date);
     double ndates;
+    int res;
 
     R_xlen_t i, di, mi;
     for (i = di = mi = 0; i < n;
@@ -97,8 +121,12 @@ SEXP cpp_add_months(SEXP date, SEXP num_months){
       ndates = p_date[di];
       nmnths = p_months[mi];
 
-      p_out[i] = (ndates != ndates || nmnths == NA_INTEGER) ?
-      NA_REAL : add_months_roll_backward(p_date[di], p_months[mi]);
+      if (ndates != ndates || nmnths == NA_INTEGER){
+        p_out[i] = NA_REAL;
+      } else {
+        res = add_months(p_date[di], p_months[mi], roll_month);
+        p_out[i] = res == NA_INTEGER ? NA_REAL : res;
+      }
     }
     SHALLOW_DUPLICATE_ATTRIB(out, date);
     Rf_unprotect(2);

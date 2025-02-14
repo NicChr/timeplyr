@@ -24,8 +24,8 @@ cpp_roll_growth_rate <- function(x, lag, log) {
   .Call(`_timeplyr_cpp_roll_growth_rate`, x, lag, log)
 }
 
-cpp_add_months <- function(date, num_months) {
-  .Call(`_timeplyr_cpp_add_months`, date, num_months)
+cpp_add_months <- function(date, num_months, roll_month) {
+  .Call(`_timeplyr_cpp_add_months`, date, num_months, roll_month)
 }
 
 roll_time_threshold <- function(x, threshold, switch_on_boundary) {

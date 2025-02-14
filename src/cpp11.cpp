@@ -48,10 +48,10 @@ extern "C" SEXP _timeplyr_cpp_roll_growth_rate(SEXP x, SEXP lag, SEXP log) {
   END_CPP11
 }
 // time_arithmetic.cpp
-SEXP cpp_add_months(SEXP date, SEXP num_months);
-extern "C" SEXP _timeplyr_cpp_add_months(SEXP date, SEXP num_months) {
+SEXP cpp_add_months(SEXP date, SEXP num_months, int roll_month);
+extern "C" SEXP _timeplyr_cpp_add_months(SEXP date, SEXP num_months, SEXP roll_month) {
   BEGIN_CPP11
-    return cpp11::as_sexp(cpp_add_months(cpp11::as_cpp<cpp11::decay_t<SEXP>>(date), cpp11::as_cpp<cpp11::decay_t<SEXP>>(num_months)));
+    return cpp11::as_sexp(cpp_add_months(cpp11::as_cpp<cpp11::decay_t<SEXP>>(date), cpp11::as_cpp<cpp11::decay_t<SEXP>>(num_months), cpp11::as_cpp<cpp11::decay_t<int>>(roll_month)));
   END_CPP11
 }
 // utils.cpp
@@ -78,7 +78,7 @@ extern "C" SEXP _timeplyr_cpp_which_first_gap(SEXP x, SEXP increment, SEXP left_
 
 extern "C" {
 static const R_CallMethodDef CallEntries[] = {
-    {"_timeplyr_cpp_add_months",           (DL_FUNC) &_timeplyr_cpp_add_months,           2},
+    {"_timeplyr_cpp_add_months",           (DL_FUNC) &_timeplyr_cpp_add_months,           3},
     {"_timeplyr_cpp_consecutive_na_id",    (DL_FUNC) &_timeplyr_cpp_consecutive_na_id,    2},
     {"_timeplyr_cpp_diff",                 (DL_FUNC) &_timeplyr_cpp_diff,                 6},
     {"_timeplyr_cpp_is_whole_num",         (DL_FUNC) &_timeplyr_cpp_is_whole_num,         3},

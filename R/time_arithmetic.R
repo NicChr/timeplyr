@@ -27,17 +27,24 @@ period_add.default <- function(x, add, ...){
   )
 }
 #' @export
-period_add.Date <- function(x, add, ...){
+period_add.Date <- function(x, add, roll_month = getOption("timeplyr.roll_month", "preday"), ...){
   num <- timespan_num(add)
   unit <- timespan_unit(add)
+  roll_choice <- match(roll_month, c("preday", "postday", "NA"))
+
+  if (is.na(roll_choice)){
+    # Helpful error msg
+    rlang::arg_match0(roll_month, c("preday", "postday", "NA"))
+    stop("error") # This should never be reached but is a fallback in case above doesn't error
+  }
 
   switch(
     unit,
     years = {
-      cpp_add_months(x, num * 12L)
+      cpp_add_months(x, num * 12L, roll_choice)
     },
     months = {
-      cpp_add_months(x, num)
+      cpp_add_months(x, num, roll_choice)
     },
     weeks = {
       `class<-`(unclass(x) + (num * 7L), class(x))
@@ -62,7 +69,7 @@ time_add <- function(x, timespan,
   } else {
     # If timespan is less than a day
     if (is_duration_unit(unit)){
-      x + unit_to_seconds(span)
+      as_datetime2(x) + unit_to_seconds(span)
     } else {
       period_add(x, span, roll_month = roll_month, roll_dst = roll_dst)
     }

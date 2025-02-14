@@ -220,7 +220,7 @@ time_seq_v2 <- function(sizes, from, timespan,
   units <- timespan_unit(timespan)
   num <- timespan_num(timespan)
 
-  if (!timespan_has_unit(timespan)){
+  if (is.na(units)){
     out <- sequences(sizes, from = from, by = num)
   } else {
     is_special_case_days <- units %in% c("days", "weeks") &&
