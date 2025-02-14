@@ -3,53 +3,6 @@
 
 // C++20 solution
 
-// int add_months(int date, int months_add){
-//   using namespace std::chrono;
-//   year_month_day ymd = year_month_day(sys_days(days(date)));
-//   months m = months(months_add);
-//   bool was_last = ymd == ymd.year()/ymd.month()/last;
-//   ymd = ymd + m;
-//   if (!ymd.ok() || was_last)
-//     ymd = ymd.year()/ymd.month()/last;
-//   sys_days days_since_epoch = sys_days(ymd);
-//   return days_since_epoch.time_since_epoch().count();
-// }
-
-// int add_months_roll_backward(int date, int months_add){
-//   using namespace std::chrono;
-//   year_month_day ymd = year_month_day(sys_days(days(date)));
-//   months m = months(months_add);
-//   ymd = ymd + m;
-//   if (!ymd.ok()){
-//     ymd = ymd.year()/ymd.month()/last;
-//   }
-//   sys_days days_since_epoch = sys_days(ymd);
-//   return days_since_epoch.time_since_epoch().count();
-// }
-//
-// int add_months_roll_forward(int date, int months_add){
-//   using namespace std::chrono;
-//   year_month_day ymd = year_month_day(sys_days(days(date)));
-//   months m = months(months_add);
-//   ymd = ymd + m;
-//   if (!ymd.ok()){
-//     auto next_month = year_month(ymd.year(), ymd.month()) + months(1);
-//     ymd = next_month/day(1);
-//   }
-//   sys_days days_since_epoch = sys_days(ymd);
-//   return days_since_epoch.time_since_epoch().count();
-// }
-//
-// int add_months_no_roll(int date, int months_add){
-//   using namespace std::chrono;
-//   year_month_day ymd = year_month_day(sys_days(days(date)));
-//   months m = months(months_add);
-//   ymd = ymd + m;
-//   if (!ymd.ok()) return NA_INTEGER;
-//   sys_days days_since_epoch = sys_days(ymd);
-//   return days_since_epoch.time_since_epoch().count();
-// }
-
 int add_months(int date, int months_add, int roll_month){
   using namespace std::chrono;
   year_month_day ymd = year_month_day(sys_days(days(date)));
