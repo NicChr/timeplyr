@@ -1,10 +1,8 @@
 #include "timeplyr.h"
-#include <chrono>
-
-// C++20 solution
+#include "tzdb/date.h"
 
 int add_months(int date, int months_add, int roll_month){
-  using namespace std::chrono;
+  using namespace date;
   year_month_day ymd = year_month_day(sys_days(days(date)));
   months m = months(months_add);
   ymd += m;
@@ -14,7 +12,7 @@ int add_months(int date, int months_add, int roll_month){
     ymd = ymd.year()/ymd.month()/last;
     break;
   } case 2: { // Roll forwards
-      auto next_month = year_month(ymd.year(), ymd.month()) + months(1);
+      year_month next_month = year_month(ymd.year(), ymd.month()) + months(1);
       ymd = next_month/day(1);
       break;
     } default: {

@@ -39,7 +39,8 @@ Suggests:
     tidyr,
     zoo
 LinkingTo: 
-    cpp11
+    cpp11,
+    tzdb
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
