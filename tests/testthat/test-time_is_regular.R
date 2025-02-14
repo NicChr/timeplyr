@@ -7,7 +7,7 @@ test_that("time regularity", {
   x <- c(-10:20)
   x1 <- c(-1:10, 10, NA, 13:20)
   x2 <- c(-1:10, NA, 9, 13:20)
-  y1 <- time_cast(x1, tomorrow())
+  y1 <- time_cast(x1, lubridate::today())
 
   # Strictly regular x
   expect_true(suppressMessages(time_is_regular(x)))
@@ -56,7 +56,7 @@ test_that("time regularity", {
     time_gaps(x1, 0.5),
     setdiff(seq(-1, 20, 0.5), x1)
   )
-  expect_equal(time_gaps(y1, "days"), time_cast(c(11, 12), tomorrow()))
+  expect_equal(time_gaps(y1, "days"), time_cast(c(11, 12), lubridate::today()))
 
   expect_equal(
     time_gaps(y1, "hours"),

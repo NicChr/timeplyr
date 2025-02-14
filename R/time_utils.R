@@ -293,55 +293,6 @@ get_from_to <- function(data, ..., time, from = NULL, to = NULL,
   list(.from = .from,
        .to = .to)
 }
-# Taken from timechange to be used in a tight period sequence loop
-# All credits go to the authors of timechange
-C_time_add <- get("C_time_add", asNamespace("timechange"), inherits = FALSE)
-
-timespan_as_timechange_period <- function(x){
-  `names<-`(list(timespan_num(x)), plural_unit_to_single(timespan_unit(x)))
-}
-
-time_add <- function(x, timespan,
-                     roll_month = getOption("timeplyr.roll_month", "preday"),
-                     roll_dst = getOption("timeplyr.roll_dst", "NA")){
-
-  span <- timespan(timespan)
-  num <- timespan_num(span)
-  unit <- timespan_unit(span)
-
-  if (is.na(unit)){
-    x + num
-  } else {
-    # If timespan is less than a day
-    if (is_duration_unit(unit)){
-      x + unit_to_seconds(span)
-    } else {
-      timechange::time_add(
-        x, periods = timespan_as_timechange_period(span),
-        roll_month = roll_month, roll_dst = roll_dst
-      )
-    }
-  }
-}
-time_subtract <- function(x, timespan,
-                          roll_month = getOption("timeplyr.roll_month", "preday"),
-                          roll_dst = getOption("timeplyr.roll_dst", "NA")){
-  time_add(x, -timespan(timespan), roll_month = roll_month, roll_dst = roll_dst)
-}
-time_floor <- function(x, time_by, week_start = getOption("lubridate.week.start", 1)){
-  span <- timespan(time_by)
-  num <- timespan_num(span)
-  unit <- timespan_unit(span)
-
-  if (is_time(x)){
-    timechange::time_floor(x, unit = paste(num, unit), week_start = week_start)
-  } else {
-    floor(x / num) * num
-  }
-}
-tomorrow <- function(){
-  Sys.Date() + 1
-}
 
 check_is_date <- function(x){
   if (!is_date(x)){

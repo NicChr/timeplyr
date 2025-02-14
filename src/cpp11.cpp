@@ -33,13 +33,6 @@ extern "C" SEXP _timeplyr_cpp_roll_na_fill_grouped(SEXP x, SEXP o, SEXP sizes, S
     return cpp11::as_sexp(cpp_roll_na_fill_grouped(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(o), cpp11::as_cpp<cpp11::decay_t<SEXP>>(sizes), cpp11::as_cpp<cpp11::decay_t<double>>(fill_limit)));
   END_CPP11
 }
-// posixt.cpp
-SEXP cpp_add_months(SEXP date, SEXP num_months);
-extern "C" SEXP _timeplyr_cpp_add_months(SEXP date, SEXP num_months) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(cpp_add_months(cpp11::as_cpp<cpp11::decay_t<SEXP>>(date), cpp11::as_cpp<cpp11::decay_t<SEXP>>(num_months)));
-  END_CPP11
-}
 // roll.cpp
 SEXP cpp_roll_count_na(SEXP x, double window, bool invert, bool partial);
 extern "C" SEXP _timeplyr_cpp_roll_count_na(SEXP x, SEXP window, SEXP invert, SEXP partial) {
@@ -52,6 +45,13 @@ SEXP cpp_roll_growth_rate(SEXP x, SEXP lag, bool log);
 extern "C" SEXP _timeplyr_cpp_roll_growth_rate(SEXP x, SEXP lag, SEXP log) {
   BEGIN_CPP11
     return cpp11::as_sexp(cpp_roll_growth_rate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(lag), cpp11::as_cpp<cpp11::decay_t<bool>>(log)));
+  END_CPP11
+}
+// time_arithmetic.cpp
+SEXP cpp_add_months(SEXP date, SEXP num_months);
+extern "C" SEXP _timeplyr_cpp_add_months(SEXP date, SEXP num_months) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_add_months(cpp11::as_cpp<cpp11::decay_t<SEXP>>(date), cpp11::as_cpp<cpp11::decay_t<SEXP>>(num_months)));
   END_CPP11
 }
 // utils.cpp

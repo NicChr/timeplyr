@@ -5,7 +5,7 @@ collapse::set_collapse(nthreads = 1L)
 
 test_that("time gaps", {
   x <- c(-1:10, NA, 13:20)
-  y <- time_cast(x, tomorrow())
+  y <- time_cast(x, lubridate::today())
 
   expect_equal(time_gaps(x), c(11, 12))
   expect_equal(time_num_gaps(x, 1, na.rm = TRUE), 2)
@@ -16,7 +16,7 @@ test_that("time gaps", {
     time_gaps(x, 0.5),
     setdiff(seq(-1, 20, 0.5), x)
   )
-  expect_equal(time_gaps(y), time_cast(c(11, 12), tomorrow()))
+  expect_equal(time_gaps(y), time_cast(c(11, 12), lubridate::today()))
 
   expect_equal(
     time_gaps(y, "hours"),

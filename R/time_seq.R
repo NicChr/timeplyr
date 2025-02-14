@@ -310,8 +310,8 @@ period_seq_v2 <- function(sizes, from, units, num = 1L,
   } else {
     add <- cheapr::sequence_(sizes, from = 0, by = 1) * num
   }
-  timechange::time_add(
-    from, timespan_as_timechange_period(new_timespan(units, add)),
+  time_add(
+    from, new_timespan(units, add),
     roll_month = roll_month, roll_dst = roll_dst
   )
 }

@@ -16,16 +16,16 @@ cpp_roll_na_fill_grouped <- function(x, o, sizes, fill_limit) {
   .Call(`_timeplyr_cpp_roll_na_fill_grouped`, x, o, sizes, fill_limit)
 }
 
-cpp_add_months <- function(date, num_months) {
-  .Call(`_timeplyr_cpp_add_months`, date, num_months)
-}
-
 cpp_roll_count_na <- function(x, window, invert, partial) {
   .Call(`_timeplyr_cpp_roll_count_na`, x, window, invert, partial)
 }
 
 cpp_roll_growth_rate <- function(x, lag, log) {
   .Call(`_timeplyr_cpp_roll_growth_rate`, x, lag, log)
+}
+
+cpp_add_months <- function(date, num_months) {
+  .Call(`_timeplyr_cpp_add_months`, date, num_months)
 }
 
 roll_time_threshold <- function(x, threshold, switch_on_boundary) {
