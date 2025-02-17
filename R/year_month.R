@@ -195,6 +195,10 @@ as.POSIXct.year_month <- function(x, tz = "UTC", ...){
 as.POSIXlt.year_month <- function(x, tz = "UTC", ...){
   as.POSIXlt(as.POSIXct(x, tz = tz))
 }
+#' @exportS3Method lubridate::tz
+tz.year_month <- function(x){
+  ""
+}
 new_year_quarter <- function(x){
   check_is_num(x)
   x <- as.integer(x)
@@ -326,6 +330,10 @@ as.POSIXct.year_quarter <- function(x, tz = "UTC", ...){
 #' @exportS3Method base::as.POSIXlt
 as.POSIXlt.year_quarter <- function(x, tz = "UTC", ...){
   as.POSIXlt(as.POSIXct(x, tz = tz))
+}
+#' @exportS3Method lubridate::tz
+tz.year_quarter <- function(x){
+  ""
 }
 #' @exportS3Method base::rep
 rep.year_month <- function(x, ...){
