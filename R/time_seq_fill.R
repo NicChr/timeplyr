@@ -61,7 +61,7 @@ time_seq_fill <- function(x){
     time_to_add <- time_to_subtract <- timespan * n_last_nas
     end <- time_add(x[length(x) - n_last_nas], time_to_add)
   }
-  elapsed <- time_elapsed(x, timespan, rolling = TRUE, na_skip = TRUE)
+  elapsed <- roll_diff(time_elapsed(x, timespan, rolling = F, na_skip = TRUE), fill = 1L)
   if (num_na > 0){
     na_count <- cpp_consecutive_na_id(x, TRUE)
 
