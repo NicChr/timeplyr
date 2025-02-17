@@ -167,7 +167,7 @@ diff_months.Date <- function(x, y, n = 1L, fractional = FALSE, ...){
     out[neg] <- out[neg] + (emd > smd)[neg]
   }
 
-  out <- trunc2(divide(out, n))
+  out <- as.integer(divide(out, n))
 
   # Fractional through the month
   if (fractional){
@@ -225,7 +225,7 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
     out[neg] <- out[neg] + (after_month_day | after_time_of_day)[neg]
   }
 
-  out <- trunc2(divide(out, n))
+  out <- as.integer(divide(out, n))
 
   if (fractional){
     int_end1 <- C_time_add(x, list(month = cheapr::val_replace(out * n, NaN, NA)), "preday", "xfirst")
@@ -287,7 +287,7 @@ diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   if (length(neg) > 0){
     out[neg] <- out[neg] + (eseconds > sseconds)[neg]
   }
-  out <- trunc2(divide(out, n))
+  out <- as.integer(divide(out, n))
 
   if (fractional){
     int_end1 <- C_time_add(x, list(day = cheapr::val_replace(out * n, NaN, NA)), "preday", "xfirst")
@@ -308,7 +308,7 @@ diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
 
 # Exact difference in clock time
 
-period_diff <- function(x, y, timespan){
+period_diff <- function(x, y, timespan, fractional = TRUE){
   check_is_timespan(timespan)
   unit <- timespan_unit(timespan)
   num <- timespan_num(timespan)
@@ -349,16 +349,16 @@ period_diff <- function(x, y, timespan){
   out <- switch(
     unit,
     years = {
-      diff_months(x, y, fractional = TRUE, n = num * 12L)
+      diff_months(x, y, fractional = fractional, n = num * 12L)
     },
     months = {
-      diff_months(x, y, fractional = TRUE, n = num)
+      diff_months(x, y, fractional = fractional, n = num)
     },
     weeks = {
-      diff_days(x, y, fractional = TRUE, n = num * 7L)
+      diff_days(x, y, fractional = fractional, n = num * 7L)
     },
     days = {
-      diff_days(x, y, fractional = TRUE, n = num)
+      diff_days(x, y, fractional = fractional, n = num)
     },
     rlang::arg_match0(unit, .period_units)
   )
