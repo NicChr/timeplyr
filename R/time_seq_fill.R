@@ -14,7 +14,7 @@ time_seq_fill <- function(x){
     return(x)
   }
   desc <- seq_direction(x) < 1
-  timespan <- granularity(x)
+  timespan <- granularity(x, exact = TRUE)
   if (desc){
     timespan <- -timespan
   }
@@ -81,7 +81,7 @@ time_seq_fill <- function(x){
   }
 
   if (!is_regular){
-    stop("x must be a regular sequence with no duplicates or implicit gaps in time.")
+    cli::cli_abort("{.arg x} must be a regular sequence with no duplicates or implicit gaps in time")
   }
   if (num_na > 0){
     time_seq_v(start, end, timespan)

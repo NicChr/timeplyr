@@ -129,18 +129,35 @@ granularity.Date <- function(x, exact = TRUE, ...){
 #' @export
 granularity.POSIXt <- function(x, exact = FALSE, ...){
   if (exact){
-    td <- time_elapsed(x, rolling = FALSE, new_timespan("months"), na_skip = TRUE)
+
+    # Have to account for both month rolling and dst rolling
+    exact_unit <- new_timespan("months")
+    td <- time_elapsed(x, rolling = FALSE, exact_unit, na_skip = TRUE)
     is_whole_num <- is_whole_number(td, na.rm = TRUE)
+    if (!is_whole_num){
+      exact_unit <- new_timespan("days")
+      td <- time_elapsed(x, rolling = FALSE, exact_unit, na_skip = TRUE)
+      is_whole_num <- is_whole_number(td, na.rm = TRUE)
+    }
     if (!is_whole_num){
       gcd_delta <- gcd_time_diff(unclass(x))
       out_unit <- "seconds"
     } else {
       gcd_delta <- gcd_time_diff(td)
-      if ( (gcd_delta %% 12) == 0){
-        gcd_delta <- gcd_delta / 12
-        out_unit <- "years"
+      if (timespan_unit(exact_unit) == "months"){
+        if ( (gcd_delta %% 12) == 0){
+          gcd_delta <- gcd_delta / 12
+          out_unit <- "years"
+        } else {
+          out_unit <- "months"
+        }
       } else {
-        out_unit <- "months"
+        if ( (gcd_delta %% 7) == 0){
+          gcd_delta <- gcd_delta / 7
+          out_unit <- "weeks"
+        } else {
+          out_unit <- "days"
+        }
       }
     }
   } else {

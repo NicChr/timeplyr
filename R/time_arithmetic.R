@@ -113,6 +113,21 @@ time_floor <- function(x, time_by, week_start = getOption("lubridate.week.start"
   }
 }
 
+# Extract the "clock-time" as the number of seconds of the day since midnight
+# Useful for comparing clock-times
+clock_seconds <- function(x){
+  posixlt <- unclass(as.POSIXlt(x))
+  hour <- posixlt[["hour"]]
+  min <- posixlt[["min"]]
+  sec <- as.integer(posixlt[["sec"]])
+
+  # The below seconds capture the clock time, not the number of seconds that
+  # have truly passed since midnight
+  # So if the clocks go back an hour for DST, both these metrics
+  # measure the same number of seconds
+  sec + (min * 60L) + (hour * 3600L)
+}
+
 # Internal function to calculate differences in months
 # arg `n` is used for differences in blocks of multiple months
 diff_months <- function(x, y, n = 1L, fractional = FALSE, ...){
@@ -191,6 +206,10 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   ssec <- as.integer(start[["sec"]])
   esec <- as.integer(end[["sec"]])
 
+  # The below seconds capture the clock time, not the number of seconds that
+  # have truly passed since midnight
+  # So if the clocks go back an hour for DST, both these metrics
+  # measure the same number of seconds
   sseconds <- ssec + (smin * 60L) + (shour * 3600L)
   eseconds <- esec + (emin * 60L) + (ehour * 3600L)
 
@@ -208,7 +227,7 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   }
   if (length(neg) > 0){
     after_month_day <- emd > smd
-    after_time_of_day <- emd == smd & eseconds > sseconds
+    after_time_of_day <- emd == smd & eseconds > sseconds # Same day &
     out[neg] <- out[neg] + (after_month_day | after_time_of_day)[neg]
   }
 
@@ -216,13 +235,13 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
 
   # Fractional through the month
   if (fractional){
-    int_end1 <- C_time_add(x, list(month = cheapr::val_replace(out * n, NaN, NA)), "preday", "xlast")
+    int_end1 <- C_time_add(x, list(month = cheapr::val_replace(out * n, NaN, NA)), "preday", "xfirst")
     if (length(n) != 1){
       n <- rep_len2(n, length(out))
     }
-    int_end2 <- C_time_add(int_end1, list(month = n), "preday", "xlast")
+    int_end2 <- C_time_add(int_end1, list(month = n), "preday", "xfirst")
     if (length(neg) > 0L){
-      int_end2[neg] <- C_time_add(int_end1[neg], list(month = -scalar_if_else(length(n) == 1, n, n[neg])), "preday", "NA")
+      int_end2[neg] <- C_time_add(int_end1[neg], list(month = -scalar_if_else(length(n) == 1, n, n[neg])), "preday", "xfirst")
     }
     fraction <- strip_attrs(
       (unclass(y) - unclass(int_end1)) / abs(unclass(int_end2) - unclass(int_end1))
@@ -244,7 +263,7 @@ diff_days.default <- function(x, y, n = 1L, fractional = FALSE, ...){
 }
 #' @export
 diff_days.Date <- function(x, y, n = 1L, ...){
-  divide(strip_attrs(unclass(as.Date(y)) - unclass(as.Date(x))), n)
+  divide(strip_attrs(unclass(as.Date(y)) - unclass(x)), n)
 }
 
 #' @export
@@ -252,42 +271,58 @@ diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
 
   x <- as.POSIXct(x)
   y <- as.POSIXct(y)
+  #
+  # start <- unclass(as.POSIXlt(x))
+  # end <- unclass(as.POSIXlt(y))
+  # shour <- start[["hour"]]
+  # ehour <- end[["hour"]]
+  # smin <- start[["min"]]
+  # emin <- end[["min"]]
+  # ssec <- as.integer(start[["sec"]])
+  # esec <- as.integer(end[["sec"]])
 
-  start <- unclass(as.POSIXlt(x))
-  end <- unclass(as.POSIXlt(y))
-  sy <- start[["year"]]
-  ey <- end[["year"]]
-  syd <- start[["yday"]]
-  eyd <- end[["yday"]]
+  # The below seconds capture the clock time, not the number of seconds that
+  # have truly passed since midnight
+  # So if the clocks go back an hour for DST, both these metrics
+  # measure the same number of seconds
+  # sseconds <- ssec + (smin * 60L) + (shour * 3600L)
+  # eseconds <- esec + (emin * 60L) + (ehour * 3600L)
 
-  out <- (365.25 * (ey - sy)) + (eyd - syd)
+  sseconds <- clock_seconds(x)
+  eseconds <- clock_seconds(y)
+
+  # out <- (365.25 * (ey - sy)) + (eyd - syd)
+  # out <- strip_attrs( (unclass(y) - unclass(x)) / 86400 )
+  out <- diff_days(lubridate::as_date(x), lubridate::as_date(y), n = 1L)
+
+  l2r <- y >= x
+  pos <- cheapr::val_find(l2r, TRUE)
+  neg <- cheapr::val_find(l2r, FALSE)
+
+  # Adjust for time of day
+  if (length(pos) > 0){
+    out[pos] <- out[pos] - (eseconds < sseconds)[pos]
+  }
+  if (length(neg) > 0){
+    out[neg] <- out[neg] + (eseconds > sseconds)[neg]
+  }
   out <- trunc2(divide(out, n))
 
   # Fractional through the month
   if (fractional){
-    l2r <- y >= x
-    pos <- cheapr::val_find(l2r, TRUE)
-    neg <- cheapr::val_find(l2r, FALSE)
-
-    int_end1 <- C_time_add(x, list(day = cheapr::val_replace(out * n, NaN, NA)), "preday", "NA")
+    int_end1 <- C_time_add(x, list(day = cheapr::val_replace(out * n, NaN, NA)), "preday", "xfirst")
     if (length(n) != 1){
       n <- rep_len2(n, length(out))
     }
-    int_end2 <- C_time_add(int_end1, list(day = n), "preday", "NA")
+    int_end2 <- C_time_add(int_end1, list(day = n), "preday", "xfirst")
     if (length(neg) > 0L){
-      int_end2[neg] <- C_time_add(int_end1[neg], list(day = -scalar_if_else(length(n) == 1, n, n[neg])), "preday", "NA")
+      int_end2[neg] <- C_time_add(int_end1[neg], list(day = -scalar_if_else(length(n) == 1, n, n[neg])), "preday", "xfirst")
     }
     fraction <- strip_attrs(
       (unclass(y) - unclass(int_end1)) / abs(unclass(int_end2) - unclass(int_end1))
     )
     out <- out + fraction
   }
-
-  # Duration estimate
-  # out <- strip_attrs((unclass(y) - unclass(x)) / 86400)
-  # if (!fractional){
-  #   out <- as.integer(divide(out, n))
-  # }
   out
 }
 
