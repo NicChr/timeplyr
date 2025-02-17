@@ -221,13 +221,12 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   }
   if (length(neg) > 0){
     after_month_day <- emd > smd
-    after_time_of_day <- emd == smd & eseconds > sseconds # Same day &
+    after_time_of_day <- emd == smd & eseconds > sseconds
     out[neg] <- out[neg] + (after_month_day | after_time_of_day)[neg]
   }
 
   out <- trunc2(divide(out, n))
 
-  # Fractional through the month
   if (fractional){
     int_end1 <- C_time_add(x, list(month = cheapr::val_replace(out * n, NaN, NA)), "preday", "xfirst")
     if (length(n) != 1){
@@ -277,7 +276,6 @@ diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
     lubridate::make_date(ylt$year + 1900L, ylt$mon + 1L, ylt$mday)
   )
 
-
   l2r <- y >= x
   pos <- cheapr::val_find(l2r, TRUE)
   neg <- cheapr::val_find(l2r, FALSE)
@@ -291,7 +289,6 @@ diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   }
   out <- trunc2(divide(out, n))
 
-  # Fractional through the month
   if (fractional){
     int_end1 <- C_time_add(x, list(day = cheapr::val_replace(out * n, NaN, NA)), "preday", "xfirst")
     if (length(n) != 1){

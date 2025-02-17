@@ -1,5 +1,7 @@
 # timeplyr (development version)
 
+- timeplyr now imports tzdb for access to the C++ Date header file.
+
 - Internal speed improvements to sequence creation. Specifically
 period sequences are now vectorised.
 
