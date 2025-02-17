@@ -161,80 +161,91 @@ test_that("grid of dates and date-times", {
     int / lubridate::period(timespan_num(time), plural_unit_to_single(timespan_unit(time)))
   }
 
-  test_all <- function(a, b, use_lubridate = FALSE){
+  test_all <- function(a, b, use_lubridate = FALSE, na.rm = FALSE){
 
     if (use_lubridate){
       int1 <- interval(a, b)
       int2 <- interval(b, a)
-      expect_true(cppdoubles::all_equal(time_diff(a, b, years), time_diff_lubridate(int1, years)))
-      expect_true(cppdoubles::all_equal(time_diff(a, b, years * 3), time_diff_lubridate(int1, years * 3)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, years), time_diff_lubridate(int2, years)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, years * 3), time_diff_lubridate(int2, years * 3)))
 
-      expect_true(cppdoubles::all_equal(time_diff(a, b, months), time_diff_lubridate(int1, months)))
-      expect_true(cppdoubles::all_equal(time_diff(a, b, months * 3), time_diff_lubridate(int1, months * 3)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, months), time_diff_lubridate(int2, months)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, months * 3), time_diff_lubridate(int2, months * 3)))
+      # Only doing this cause re-writing all the function calls below would take time
+      if (na.rm){
+        all_equal <- function(x, y){
+          isTRUE(all.equal(x, y))
+        }
+      } else {
+        all_equal <- function(x, y){
+          cppdoubles::all_equal(x, y, na.rm = FALSE)
+        }
+      }
+      expect_true(all_equal(time_diff(a, b, years), time_diff_lubridate(int1, years)))
+      expect_true(all_equal(time_diff(a, b, years * 3), time_diff_lubridate(int1, years * 3)))
+      expect_true(all_equal(time_diff(b, a, years), time_diff_lubridate(int2, years)))
+      expect_true(all_equal(time_diff(b, a, years * 3), time_diff_lubridate(int2, years * 3)))
 
-      expect_true(cppdoubles::all_equal(time_diff(a, b, weeks), time_diff_lubridate(int1, weeks)))
-      expect_true(cppdoubles::all_equal(time_diff(a, b, weeks * 3), time_diff_lubridate(int1, weeks * 3)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, weeks), time_diff_lubridate(int2, weeks)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, weeks * 3), time_diff_lubridate(int2, weeks * 3)))
+      expect_true(all_equal(time_diff(a, b, months), time_diff_lubridate(int1, months)))
+      expect_true(all_equal(time_diff(a, b, months * 3), time_diff_lubridate(int1, months * 3)))
+      expect_true(all_equal(time_diff(b, a, months), time_diff_lubridate(int2, months)))
+      expect_true(all_equal(time_diff(b, a, months * 3), time_diff_lubridate(int2, months * 3)))
 
-      expect_true(cppdoubles::all_equal(time_diff(a, b, days), time_diff_lubridate(int1, days)))
-      expect_true(cppdoubles::all_equal(time_diff(a, b, days * 3), time_diff_lubridate(int1, days * 3)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, days), time_diff_lubridate(int2, days)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, days * 3), time_diff_lubridate(int2, days * 3)))
+      expect_true(all_equal(time_diff(a, b, weeks), time_diff_lubridate(int1, weeks)))
+      expect_true(all_equal(time_diff(a, b, weeks * 3), time_diff_lubridate(int1, weeks * 3)))
+      expect_true(all_equal(time_diff(b, a, weeks), time_diff_lubridate(int2, weeks)))
+      expect_true(all_equal(time_diff(b, a, weeks * 3), time_diff_lubridate(int2, weeks * 3)))
 
-      expect_true(cppdoubles::all_equal(time_diff(a, b, hours), time_diff_lubridate(int1, hours)))
-      expect_true(cppdoubles::all_equal(time_diff(a, b, hours * 3), time_diff_lubridate(int1, hours * 3)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, hours), time_diff_lubridate(int2, hours)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, hours * 3), time_diff_lubridate(int2, hours * 3)))
+      expect_true(all_equal(time_diff(a, b, days), time_diff_lubridate(int1, days)))
+      expect_true(all_equal(time_diff(a, b, days * 3), time_diff_lubridate(int1, days * 3)))
+      expect_true(all_equal(time_diff(b, a, days), time_diff_lubridate(int2, days)))
+      expect_true(all_equal(time_diff(b, a, days * 3), time_diff_lubridate(int2, days * 3)))
 
-      expect_true(cppdoubles::all_equal(time_diff(a, b, minutes), time_diff_lubridate(int1, minutes)))
-      expect_true(cppdoubles::all_equal(time_diff(a, b, minutes * 3), time_diff_lubridate(int1, minutes * 3)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, minutes), time_diff_lubridate(int2, minutes)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, minutes * 3), time_diff_lubridate(int2, minutes * 3)))
+      expect_true(all_equal(time_diff(a, b, hours), time_diff_lubridate(int1, hours)))
+      expect_true(all_equal(time_diff(a, b, hours * 3), time_diff_lubridate(int1, hours * 3)))
+      expect_true(all_equal(time_diff(b, a, hours), time_diff_lubridate(int2, hours)))
+      expect_true(all_equal(time_diff(b, a, hours * 3), time_diff_lubridate(int2, hours * 3)))
 
-      expect_true(cppdoubles::all_equal(time_diff(a, b, seconds), time_diff_lubridate(int1, seconds)))
-      expect_true(cppdoubles::all_equal(time_diff(a, b, seconds * 3), time_diff_lubridate(int1, seconds * 3)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, seconds), time_diff_lubridate(int2, seconds)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, seconds * 3), time_diff_lubridate(int2, seconds * 3)))
+      expect_true(all_equal(time_diff(a, b, minutes), time_diff_lubridate(int1, minutes)))
+      expect_true(all_equal(time_diff(a, b, minutes * 3), time_diff_lubridate(int1, minutes * 3)))
+      expect_true(all_equal(time_diff(b, a, minutes), time_diff_lubridate(int2, minutes)))
+      expect_true(all_equal(time_diff(b, a, minutes * 3), time_diff_lubridate(int2, minutes * 3)))
+
+      expect_true(all_equal(time_diff(a, b, seconds), time_diff_lubridate(int1, seconds)))
+      expect_true(all_equal(time_diff(a, b, seconds * 3), time_diff_lubridate(int1, seconds * 3)))
+      expect_true(all_equal(time_diff(b, a, seconds), time_diff_lubridate(int2, seconds)))
+      expect_true(all_equal(time_diff(b, a, seconds * 3), time_diff_lubridate(int2, seconds * 3)))
     } else {
-      expect_true(cppdoubles::all_equal(time_diff(a, b, years), time_diff_original(a, b, years)))
-      expect_true(cppdoubles::all_equal(time_diff(a, b, years * 3), time_diff_original(a, b, years * 3)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, years), time_diff_original(b, a, years)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, years * 3), time_diff_original(b, a, years * 3)))
+      expect_true(all_equal(time_diff(a, b, years), time_diff_original(a, b, years)))
+      expect_true(all_equal(time_diff(a, b, years * 3), time_diff_original(a, b, years * 3)))
+      expect_true(all_equal(time_diff(b, a, years), time_diff_original(b, a, years)))
+      expect_true(all_equal(time_diff(b, a, years * 3), time_diff_original(b, a, years * 3)))
 
-      expect_true(cppdoubles::all_equal(time_diff(a, b, months), time_diff_original(a, b, months)))
-      expect_true(cppdoubles::all_equal(time_diff(a, b, months * 3), time_diff_original(a, b, months * 3)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, months), time_diff_original(b, a, months)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, months * 3), time_diff_original(b, a, months * 3)))
+      expect_true(all_equal(time_diff(a, b, months), time_diff_original(a, b, months)))
+      expect_true(all_equal(time_diff(a, b, months * 3), time_diff_original(a, b, months * 3)))
+      expect_true(all_equal(time_diff(b, a, months), time_diff_original(b, a, months)))
+      expect_true(all_equal(time_diff(b, a, months * 3), time_diff_original(b, a, months * 3)))
 
-      expect_true(cppdoubles::all_equal(time_diff(a, b, weeks), time_diff_original(a, b, weeks)))
-      expect_true(cppdoubles::all_equal(time_diff(a, b, weeks * 3), time_diff_original(a, b, weeks * 3)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, weeks), time_diff_original(b, a, weeks)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, weeks * 3), time_diff_original(b, a, weeks * 3)))
+      expect_true(all_equal(time_diff(a, b, weeks), time_diff_original(a, b, weeks)))
+      expect_true(all_equal(time_diff(a, b, weeks * 3), time_diff_original(a, b, weeks * 3)))
+      expect_true(all_equal(time_diff(b, a, weeks), time_diff_original(b, a, weeks)))
+      expect_true(all_equal(time_diff(b, a, weeks * 3), time_diff_original(b, a, weeks * 3)))
 
-      expect_true(cppdoubles::all_equal(time_diff(a, b, days), time_diff_original(a, b, days)))
-      expect_true(cppdoubles::all_equal(time_diff(a, b, days * 3), time_diff_original(a, b, days * 3)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, days), time_diff_original(b, a, days)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, days * 3), time_diff_original(b, a, days * 3)))
+      expect_true(all_equal(time_diff(a, b, days), time_diff_original(a, b, days)))
+      expect_true(all_equal(time_diff(a, b, days * 3), time_diff_original(a, b, days * 3)))
+      expect_true(all_equal(time_diff(b, a, days), time_diff_original(b, a, days)))
+      expect_true(all_equal(time_diff(b, a, days * 3), time_diff_original(b, a, days * 3)))
 
-      expect_true(cppdoubles::all_equal(time_diff(a, b, hours), time_diff_original(a, b, hours)))
-      expect_true(cppdoubles::all_equal(time_diff(a, b, hours * 3), time_diff_original(a, b, hours * 3)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, hours), time_diff_original(b, a, hours)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, hours * 3), time_diff_original(b, a, hours * 3)))
+      expect_true(all_equal(time_diff(a, b, hours), time_diff_original(a, b, hours)))
+      expect_true(all_equal(time_diff(a, b, hours * 3), time_diff_original(a, b, hours * 3)))
+      expect_true(all_equal(time_diff(b, a, hours), time_diff_original(b, a, hours)))
+      expect_true(all_equal(time_diff(b, a, hours * 3), time_diff_original(b, a, hours * 3)))
 
-      expect_true(cppdoubles::all_equal(time_diff(a, b, minutes), time_diff_original(a, b, minutes)))
-      expect_true(cppdoubles::all_equal(time_diff(a, b, minutes * 3), time_diff_original(a, b, minutes * 3)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, minutes), time_diff_original(b, a, minutes)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, minutes * 3), time_diff_original(b, a, minutes * 3)))
+      expect_true(all_equal(time_diff(a, b, minutes), time_diff_original(a, b, minutes)))
+      expect_true(all_equal(time_diff(a, b, minutes * 3), time_diff_original(a, b, minutes * 3)))
+      expect_true(all_equal(time_diff(b, a, minutes), time_diff_original(b, a, minutes)))
+      expect_true(all_equal(time_diff(b, a, minutes * 3), time_diff_original(b, a, minutes * 3)))
 
-      expect_true(cppdoubles::all_equal(time_diff(a, b, seconds), time_diff_original(a, b, seconds)))
-      expect_true(cppdoubles::all_equal(time_diff(a, b, seconds * 3), time_diff_original(a, b, seconds * 3)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, seconds), time_diff_original(b, a, seconds)))
-      expect_true(cppdoubles::all_equal(time_diff(b, a, seconds * 3), time_diff_original(b, a, seconds * 3)))
+      expect_true(all_equal(time_diff(a, b, seconds), time_diff_original(a, b, seconds)))
+      expect_true(all_equal(time_diff(a, b, seconds * 3), time_diff_original(a, b, seconds * 3)))
+      expect_true(all_equal(time_diff(b, a, seconds), time_diff_original(b, a, seconds)))
+      expect_true(all_equal(time_diff(b, a, seconds * 3), time_diff_original(b, a, seconds * 3)))
     }
   }
 
@@ -297,7 +308,7 @@ test_that("grid of dates and date-times", {
   a <- no_roll_combs$a
   b <- no_roll_combs$b
 
-  test_all(a, b)
+  test_all(a, b, na.rm = TRUE)
 
   # Manual testing and checking
   # unit <- years

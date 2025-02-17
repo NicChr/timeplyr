@@ -167,7 +167,7 @@ diff_months.Date <- function(x, y, n = 1L, fractional = FALSE, ...){
     out[neg] <- out[neg] + (emd > smd)[neg]
   }
 
-  out <- as.integer(divide(out, n))
+  out <- as.integer(divide(out, cheapr::val_replace(n, 0, NA)))
 
   # Fractional through the month
   if (fractional){
@@ -225,16 +225,16 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
     out[neg] <- out[neg] + (after_month_day | after_time_of_day)[neg]
   }
 
-  out <- as.integer(divide(out, n))
+  out <- as.integer(divide(out, cheapr::val_replace(n, 0, NA)))
 
   if (fractional){
-    int_end1 <- C_time_add(x, list(month = cheapr::val_replace(out * n, NaN, NA)), "preday", "xfirst")
+    int_end1 <- C_time_add(x, list(month = cheapr::val_replace(out * n, NaN, NA)), "preday", "NA")
     if (length(n) != 1){
       n <- rep_len2(n, length(out))
     }
-    int_end2 <- C_time_add(int_end1, list(month = n), "preday", "xfirst")
+    int_end2 <- C_time_add(int_end1, list(month = n), "preday", "NA")
     if (length(neg) > 0L){
-      int_end2[neg] <- C_time_add(int_end1[neg], list(month = -scalar_if_else(length(n) == 1, n, n[neg])), "preday", "xfirst")
+      int_end2[neg] <- C_time_add(int_end1[neg], list(month = -scalar_if_else(length(n) == 1, n, n[neg])), "preday", "NA")
     }
     fraction <- strip_attrs(
       (unclass(y) - unclass(int_end1)) / abs(unclass(int_end2) - unclass(int_end1))
@@ -287,16 +287,16 @@ diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   if (length(neg) > 0){
     out[neg] <- out[neg] + (eseconds > sseconds)[neg]
   }
-  out <- as.integer(divide(out, n))
+  out <- as.integer(divide(out, cheapr::val_replace(n, 0, NA)))
 
   if (fractional){
-    int_end1 <- C_time_add(x, list(day = cheapr::val_replace(out * n, NaN, NA)), "preday", "xfirst")
+    int_end1 <- C_time_add(x, list(day = cheapr::val_replace(out * n, NaN, NA)), "preday", "NA")
     if (length(n) != 1){
       n <- rep_len2(n, length(out))
     }
-    int_end2 <- C_time_add(int_end1, list(day = n), "preday", "xfirst")
+    int_end2 <- C_time_add(int_end1, list(day = n), "preday", "NA")
     if (length(neg) > 0L){
-      int_end2[neg] <- C_time_add(int_end1[neg], list(day = -scalar_if_else(length(n) == 1, n, n[neg])), "preday", "xfirst")
+      int_end2[neg] <- C_time_add(int_end1[neg], list(day = -scalar_if_else(length(n) == 1, n, n[neg])), "preday", "NA")
     }
     fraction <- strip_attrs(
       (unclass(y) - unclass(int_end1)) / abs(unclass(int_end2) - unclass(int_end1))
