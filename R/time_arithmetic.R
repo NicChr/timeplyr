@@ -191,27 +191,21 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   x <- as.POSIXct(x)
   y <- as.POSIXct(y)
 
-  start <- unclass(as.POSIXlt(x))
-  end <- unclass(as.POSIXlt(y))
+  start_posix <- as.POSIXlt(x)
+  end_posix <- as.POSIXlt(y)
+
+  start <- unclass(start_posix)
+  end <- unclass(end_posix)
+
   sy <- start[["year"]]
   ey <- end[["year"]]
   sm <- start[["mon"]]
   em <- end[["mon"]]
   smd <- start[["mday"]]
   emd <- end[["mday"]]
-  shour <- start[["hour"]]
-  ehour <- end[["hour"]]
-  smin <- start[["min"]]
-  emin <- end[["min"]]
-  ssec <- as.integer(start[["sec"]])
-  esec <- as.integer(end[["sec"]])
 
-  # The below seconds capture the clock time, not the number of seconds that
-  # have truly passed since midnight
-  # So if the clocks go back an hour for DST, both these metrics
-  # measure the same number of seconds
-  sseconds <- ssec + (smin * 60L) + (shour * 3600L)
-  eseconds <- esec + (emin * 60L) + (ehour * 3600L)
+  sseconds <- clock_seconds(start_posix)
+  eseconds <- clock_seconds(end_posix)
 
   out <- (12L * (ey - sy)) + (em - sm)
 
@@ -271,29 +265,18 @@ diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
 
   x <- as.POSIXct(x)
   y <- as.POSIXct(y)
-  #
-  # start <- unclass(as.POSIXlt(x))
-  # end <- unclass(as.POSIXlt(y))
-  # shour <- start[["hour"]]
-  # ehour <- end[["hour"]]
-  # smin <- start[["min"]]
-  # emin <- end[["min"]]
-  # ssec <- as.integer(start[["sec"]])
-  # esec <- as.integer(end[["sec"]])
 
-  # The below seconds capture the clock time, not the number of seconds that
-  # have truly passed since midnight
-  # So if the clocks go back an hour for DST, both these metrics
-  # measure the same number of seconds
-  # sseconds <- ssec + (smin * 60L) + (shour * 3600L)
-  # eseconds <- esec + (emin * 60L) + (ehour * 3600L)
+  xlt <- as.POSIXlt(x)
+  ylt <- as.POSIXlt(y)
 
-  sseconds <- clock_seconds(x)
-  eseconds <- clock_seconds(y)
+  sseconds <- clock_seconds(xlt)
+  eseconds <- clock_seconds(ylt)
 
-  # out <- (365.25 * (ey - sy)) + (eyd - syd)
-  # out <- strip_attrs( (unclass(y) - unclass(x)) / 86400 )
-  out <- diff_days(lubridate::as_date(x), lubridate::as_date(y), n = 1L)
+  out <- diff_days(
+    lubridate::make_date(xlt$year + 1900L, xlt$mon + 1L, xlt$mday),
+    lubridate::make_date(ylt$year + 1900L, ylt$mon + 1L, ylt$mday)
+  )
+
 
   l2r <- y >= x
   pos <- cheapr::val_find(l2r, TRUE)
@@ -326,6 +309,7 @@ diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   out
 }
 
+# Exact difference in clock time
 
 period_diff <- function(x, y, timespan){
   check_is_timespan(timespan)
