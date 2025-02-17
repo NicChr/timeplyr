@@ -246,8 +246,11 @@ timespan_abbr <- function(x, short = FALSE){
   new_timespan(timespan_unit(x), NextMethod("["))
 }
 #' @export
-c.timespan <- function(...){
+c.timespan <- function(..., recursive = FALSE, use.names = TRUE){
   dots <- list(...)
+  if (!use.names){
+    dots <- unname(dots)
+  }
   span <- dots[[1L]]
   span_unit <- timespan_unit(span)
   span_num <- timespan_num(span)
@@ -300,4 +303,22 @@ pillar_shaft.timespan <- function(x, ...) {
 #' @exportS3Method vctrs::vec_ptype_abbr
 vec_ptype_abbr.timespan <- function(x, ...){
   paste0("Timespan:", cheapr::na_rm(timespan_unit(x)))
+}
+
+#' @export
+Ops.timespan <- function(e1, e2){
+  out <- NextMethod(.Generic)
+  switch(
+    .Generic,
+    `+` =,
+    `*` =,
+    `/` =,
+    `^` =,
+    `%%` =,
+    `%/%` = {
+      attributes(out) <- attributes(if (inherits(e1, "timespan")) e1 else e2)
+      out
+    },
+    out
+  )
 }

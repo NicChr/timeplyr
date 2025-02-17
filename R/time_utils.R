@@ -315,13 +315,6 @@ check_is_time_or_num <- function(x){
                    paste(time_classes, collapse = ", ")))
   }
 }
-# Turn date storage into integer
-# as_int_date <- function(x){
-#   check_is_date(x)
-#   out <- as.integer(x)
-#   class(out) <- "Date"
-#   out
-# }
 check_time_not_missing <- function(x){
   if (cheapr::any_na(x)){
     stop("time index must not contain NA values")
