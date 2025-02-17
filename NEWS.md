@@ -1,5 +1,8 @@
 # timeplyr (development version)
 
+- Internally much of the methodology for calculating time differences has been
+re-written to be simpler and in many cases faster.
+
 - timeplyr now imports tzdb for access to the C++ Date header file.
 
 - Internal speed improvements to sequence creation. Specifically

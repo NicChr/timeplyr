@@ -51,7 +51,7 @@ library(tidyverse)
 #> ✔ forcats   1.0.0     ✔ stringr   1.5.1
 #> ✔ ggplot2   3.5.1     ✔ tibble    3.2.1
 #> ✔ lubridate 1.9.4     ✔ tidyr     1.3.1
-#> ✔ purrr     1.0.2     
+#> ✔ purrr     1.0.4     
 #> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 #> ✖ dplyr::filter()       masks stats::filter()
 #> ✖ dplyr::lag()          masks stats::lag()
@@ -599,11 +599,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2025-W05"
+#> [1] "2025-W08"
 iso_week(today(), day = TRUE)
-#> [1] "2025-W05-6"
+#> [1] "2025-W08-1"
 iso_week(today(), year = FALSE)
-#> [1] "W05"
+#> [1] "W08"
 ```
 
 ## `time_cut()`

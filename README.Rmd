@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 [![R-CMD-check](https://github.com/NicChr/timeplyr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/NicChr/timeplyr/actions/workflows/R-CMD-check.yaml)
 [![CRAN status](https://www.r-pkg.org/badges/version/timeplyr)](https://CRAN.R-project.org/package=timeplyr)
 [![Codecov test coverage](https://codecov.io/gh/NicChr/timeplyr/graph/badge.svg)](https://app.codecov.io/gh/NicChr/timeplyr)
-<!-- badges: end -->
+<!-- badges: end --> 
 
 # timeplyr
 
