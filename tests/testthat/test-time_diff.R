@@ -153,3 +153,135 @@ test_that("time diff", {
   }
   expect_equal(res5, res6)
 })
+
+
+test_that("grid of dates and date-times", {
+
+  date_grid <- lubridate::dmy("01-01-2003") + 0:(ceiling(365.24*2))
+
+  combs <- expand.grid(a = date_grid, b = date_grid)
+
+  # same mday combs for now
+  # same_mday_combs <- cheapr::sset(combs, lubridate::mday(combs$b) == lubridate::mday(combs$a))
+  no_roll_combs <- cheapr::sset(combs, lubridate::mday(combs$b) <= 28 & lubridate::mday(combs$a) <= 28)
+  # roll_combs <- cheapr::sset(combs, lubridate::mday(combs$b) > 28)
+  # combs <- cheapr::sset(combs, combs$b >= combs$a)
+
+  a <- no_roll_combs$a
+  b <- no_roll_combs$b
+
+  years <- timespan("years", 1)
+  months <- timespan("months", 1)
+  weeks <- timespan("weeks", 1)
+  days <- timespan("days", 1)
+  hours <- timespan("hours", 1)
+  minutes <- timespan("minutes", 1)
+  seconds <- timespan("seconds", 1)
+
+
+  # Dates
+
+  # expect_true(max(cppdoubles::abs_diff(time_diff(a, b, months), time_diff_original(a, b, months))) < 0.1)
+  expect_true(cppdoubles::all_equal(time_diff(a, b, years), time_diff_original(a, b, years)))
+  expect_true(cppdoubles::all_equal(time_diff(a, b, years * 3), time_diff_original(a, b, years * 3)))
+  expect_true(cppdoubles::all_equal(time_diff(b, a, years), time_diff_original(b, a, years)))
+  expect_true(cppdoubles::all_equal(time_diff(b, a, years * 3), time_diff_original(b, a, years * 3)))
+
+  expect_true(cppdoubles::all_equal(time_diff(a, b, months), time_diff_original(a, b, months)))
+  expect_true(cppdoubles::all_equal(time_diff(a, b, months * 3), time_diff_original(a, b, months * 3)))
+  expect_true(cppdoubles::all_equal(time_diff(b, a, months), time_diff_original(b, a, months)))
+  expect_true(cppdoubles::all_equal(time_diff(b, a, months * 3), time_diff_original(b, a, months * 3)))
+
+  expect_true(cppdoubles::all_equal(time_diff(a, b, weeks), time_diff_original(a, b, weeks)))
+  expect_true(cppdoubles::all_equal(time_diff(a, b, weeks * 3), time_diff_original(a, b, weeks * 3)))
+  expect_true(cppdoubles::all_equal(time_diff(b, a, weeks), time_diff_original(b, a, weeks)))
+  expect_true(cppdoubles::all_equal(time_diff(b, a, weeks * 3), time_diff_original(b, a, weeks * 3)))
+
+  expect_true(cppdoubles::all_equal(time_diff(a, b, days), time_diff_original(a, b, days)))
+  expect_true(cppdoubles::all_equal(time_diff(a, b, days * 3), time_diff_original(a, b, days * 3)))
+  expect_true(cppdoubles::all_equal(time_diff(b, a, days), time_diff_original(b, a, days)))
+  expect_true(cppdoubles::all_equal(time_diff(b, a, days * 3), time_diff_original(b, a, days * 3)))
+
+  expect_true(cppdoubles::all_equal(time_diff(a, b, hours), time_diff_original(a, b, hours)))
+  expect_true(cppdoubles::all_equal(time_diff(a, b, hours * 3), time_diff_original(a, b, hours * 3)))
+  expect_true(cppdoubles::all_equal(time_diff(b, a, hours), time_diff_original(b, a, hours)))
+  expect_true(cppdoubles::all_equal(time_diff(b, a, hours * 3), time_diff_original(b, a, hours * 3)))
+
+  expect_true(cppdoubles::all_equal(time_diff(a, b, minutes), time_diff_original(a, b, minutes)))
+  expect_true(cppdoubles::all_equal(time_diff(a, b, minutes * 3), time_diff_original(a, b, minutes * 3)))
+  expect_true(cppdoubles::all_equal(time_diff(b, a, minutes), time_diff_original(b, a, minutes)))
+  expect_true(cppdoubles::all_equal(time_diff(b, a, minutes * 3), time_diff_original(b, a, minutes * 3)))
+
+  expect_true(cppdoubles::all_equal(time_diff(a, b, seconds), time_diff_original(a, b, seconds)))
+  expect_true(cppdoubles::all_equal(time_diff(a, b, seconds * 3), time_diff_original(a, b, seconds * 3)))
+  expect_true(cppdoubles::all_equal(time_diff(b, a, seconds), time_diff_original(b, a, seconds)))
+  expect_true(cppdoubles::all_equal(time_diff(b, a, seconds * 3), time_diff_original(b, a, seconds * 3)))
+
+  # Date-times
+
+  # set.seed(71243)
+  # n_seconds <- unit_to_seconds(duration_unit("years")(2))
+  # start <- lubridate::dmy_hms("01-02-2003 00:00:00", tz = "Europe/London")
+  # end <- time_add(start, months * 14)
+  #
+  # datetime_grid <- time_seq(start, end, minutes * 180)
+  #
+  # combs <- expand.grid(a = datetime_grid, b = datetime_grid)
+  #
+  # no_roll_combs <- cheapr::sset(combs, lubridate::mday(combs$b) <= 28 & lubridate::mday(combs$a) <= 28)
+  # roll_combs <- cheapr::sset(combs, lubridate::mday(combs$b) > 28)
+  #
+  # a <- no_roll_combs$a
+  # b <- no_roll_combs$b
+  #
+  # expect_true(cppdoubles::all_equal(time_diff(a, b, years), time_diff_original(a, b, years)))
+  # expect_true(cppdoubles::all_equal(time_diff(a, b, years * 3), time_diff_original(a, b, years * 3)))
+  # expect_true(cppdoubles::all_equal(time_diff(b, a, years), time_diff_original(b, a, years)))
+  # expect_true(cppdoubles::all_equal(time_diff(b, a, years * 3), time_diff_original(b, a, years * 3)))
+  #
+  # expect_true(cppdoubles::all_equal(time_diff(a, b, months), time_diff_original(a, b, months)))
+  # expect_true(cppdoubles::all_equal(time_diff(a, b, months * 3), time_diff_original(a, b, months * 3)))
+  # expect_true(cppdoubles::all_equal(time_diff(b, a, months), time_diff_original(b, a, months)))
+  # expect_true(cppdoubles::all_equal(time_diff(b, a, months * 3), time_diff_original(b, a, months * 3)))
+  #
+  # expect_true(cppdoubles::all_equal(time_diff(a, b, weeks), time_diff_original(a, b, weeks)))
+  # expect_true(cppdoubles::all_equal(time_diff(a, b, weeks * 3), time_diff_original(a, b, weeks * 3)))
+  # expect_true(cppdoubles::all_equal(time_diff(b, a, weeks), time_diff_original(b, a, weeks)))
+  # expect_true(cppdoubles::all_equal(time_diff(b, a, weeks * 3), time_diff_original(b, a, weeks * 3)))
+  #
+  # expect_true(cppdoubles::all_equal(time_diff(a, b, days), time_diff_original(a, b, days)))
+  # expect_true(cppdoubles::all_equal(time_diff(a, b, days * 3), time_diff_original(a, b, days * 3)))
+  # expect_true(cppdoubles::all_equal(time_diff(b, a, days), time_diff_original(b, a, days)))
+  # expect_true(cppdoubles::all_equal(time_diff(b, a, days * 3), time_diff_original(b, a, days * 3)))
+  #
+  # expect_true(cppdoubles::all_equal(time_diff(a, b, hours), time_diff_original(a, b, hours)))
+  # expect_true(cppdoubles::all_equal(time_diff(a, b, hours * 3), time_diff_original(a, b, hours * 3)))
+  # expect_true(cppdoubles::all_equal(time_diff(b, a, hours), time_diff_original(b, a, hours)))
+  # expect_true(cppdoubles::all_equal(time_diff(b, a, hours * 3), time_diff_original(b, a, hours * 3)))
+  #
+  # expect_true(cppdoubles::all_equal(time_diff(a, b, minutes), time_diff_original(a, b, minutes)))
+  # expect_true(cppdoubles::all_equal(time_diff(a, b, minutes * 3), time_diff_original(a, b, minutes * 3)))
+  # expect_true(cppdoubles::all_equal(time_diff(b, a, minutes), time_diff_original(b, a, minutes)))
+  # expect_true(cppdoubles::all_equal(time_diff(b, a, minutes * 3), time_diff_original(b, a, minutes * 3)))
+  #
+  # expect_true(cppdoubles::all_equal(time_diff(a, b, seconds), time_diff_original(a, b, seconds)))
+  # expect_true(cppdoubles::all_equal(time_diff(a, b, seconds * 3), time_diff_original(a, b, seconds * 3)))
+  # expect_true(cppdoubles::all_equal(time_diff(b, a, seconds), time_diff_original(b, a, seconds)))
+  # expect_true(cppdoubles::all_equal(time_diff(b, a, seconds * 3), time_diff_original(b, a, seconds * 3)))
+
+  # res1 <- time_diff(a, b, months)
+  # res2 <- time_diff_original(a, b, months)
+
+  # res1 <- time_diff(a, b, months * 3)
+  # res2 <- time_diff_original(a, b, months * 3)
+#
+#   res1 <- time_diff(a, b, years)
+#   res2 <- time_diff_original(a, b, years)
+
+  # c <- a[which(!double_equal(res1, res2))[1]]
+  # d <- b[which(!double_equal(res1, res2))[1]]
+  #
+  # c;d
+  # time_diff(c, d, months);time_diff_original(c, d, months)
+
+})
