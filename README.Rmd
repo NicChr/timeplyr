@@ -48,15 +48,108 @@ remotes::install_github("NicChr/timeplyr")
 
 ```{r package_load}
 library(timeplyr)
+library(tidyverse)
+library(fastplyr)
+library(nycflights13)
+library(lubridate)
 ```
 
 # Basic examples
 
+## Time arithmetic
+
+```{r}
+start <- dmy("01-01-2000")
+
+start |> 
+  time_add("year")
+```
+
+Internally timeplyr makes use of custom `timespan` objects for various 
+time manipulations. 
+
+```{r}
+timespan("months"); timespan("1 month"); timespan(months(1))
+
+timespan("weeks", 1:10)
+```
+
+# Additing timespans
+
+```{r}
+
+# Parsing 
+start |> time_add("10 years"); start |> time_add("decade")
+
+# Lubridate style timespans
+
+start |> 
+  time_add(years(1))
+
+start |> time_add(dyears(1)); start |> time_add("31557600 seconds")
+
+# timeplyr timespans
+
+start |> 
+  time_add(timespan("years", 1))
+start |> 
+  time_add(timespan("years", 0:10))
+```
+
+Time arithmetic involving days, weeks, months and years 
+is equivalent to using lubridate periods.
+
+Any arithmetic involving units less than days, e.g. hours, minutes and seconds, 
+uses normal duration arithmetic in terms of how many seconds have passed.
+This is equivalent to using lubridate durations.
+
+```{r}
+# Clocks go back 1 hour at exactly 2 am
+dst <- dmy_hms("26-10-2025 00:00:00", tz = "GB") |> time_add("hour")
+
+# Below 2 are equivalent
+dst |> 
+  time_add(timespan("hours", 0:2))
+dst + dhours(0:2)
+
+# There is currently no timeplyr way to achieve the below result 
+# 1 hour forward in clock time is actually 2 literal hours forward
+dst + hours(0:2)
+```
+
+Period-based hours, minutes and seconds are not as commonly used as
+literal duration-based hours, minutes and seconds. 
+Therefore timeplyr tries to simplify things by removing the distinction and
+automatically choosing periods for units larger than an hour and durations for units
+smaller than a day without the user having to contemplate which to use.
+
+```{r}
+# The lubridate and timeplyr equivalents for info
+time_add(dst, "second"); dst + dseconds(1)
+time_add(dst, "minute"); dst + dminutes(1)
+time_add(dst, "hour"); dst + dhours(1)
+time_add(dst, "day"); dst + days(1)
+time_add(dst, "week"); dst + weeks(1)
+time_add(dst, "month"); dst + months(1)
+time_add(dst, "year"); dst + years(1)
+```
+
+## Time differences
+
+Time differences are accurate and simple
+
+```{r}
+start <- ymd_hms("2008-10-27 10:00:00", tz = "GB")
+end <- ymd_hms("2010-10-24 02:00:00", tz = "GB")
+
+time_diff(start, end, "years")
+interval(start, end) / years(1)
+```
+
+
 ## Convert `ts`, `mts`, `xts`, `zoo`and `timeSeries` objects using `ts_as_tbl`
 
 ```{r}
-library(tidyverse)
-library(fastplyr)
 eu_stock <- EuStockMarkets |>
   ts_as_tbl()
 eu_stock

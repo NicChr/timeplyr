@@ -161,6 +161,10 @@ test_that("grid of dates and date-times", {
     int / lubridate::period(timespan_num(time), plural_unit_to_single(timespan_unit(time)))
   }
 
+  lubridate_years <- function(x, y){
+    lubridate::year(lubridate::as.period(lubridate::interval(x, y)))
+  }
+
   test_all <- function(a, b, use_lubridate = FALSE, na.rm = FALSE){
 
     # Only doing this cause re-writing all the function calls below would take time
@@ -249,6 +253,14 @@ test_that("grid of dates and date-times", {
     }
   }
 
+  years <- timespan("years", 1)
+  months <- timespan("months", 1)
+  weeks <- timespan("weeks", 1)
+  days <- timespan("days", 1)
+  hours <- timespan("hours", 1)
+  minutes <- timespan("minutes", 1)
+  seconds <- timespan("seconds", 1)
+
   date_grid <- lubridate::dmy("01-01-2003") + 0:(ceiling(365.24*3))
 
   combs <- expand.grid(a = date_grid, b = date_grid)
@@ -261,14 +273,6 @@ test_that("grid of dates and date-times", {
 
   a <- no_roll_combs$a
   b <- no_roll_combs$b
-
-  years <- timespan("years", 1)
-  months <- timespan("months", 1)
-  weeks <- timespan("weeks", 1)
-  days <- timespan("days", 1)
-  hours <- timespan("hours", 1)
-  minutes <- timespan("minutes", 1)
-  seconds <- timespan("seconds", 1)
 
   # Dates
 
@@ -309,6 +313,16 @@ test_that("grid of dates and date-times", {
   b <- no_roll_combs$b
 
   test_all(a, b, na.rm = TRUE)
+
+  # Test this as well
+
+  expect_equal(
+    time_diff(lubridate::dmy_hms("25-10-2025 01:01:00", tz = "GB"),
+              lubridate::dmy_hms("26-10-2025 01:00:00", tz = "GB"), "days"),
+    time_diff_original(lubridate::dmy_hms("25-10-2025 01:01:00", tz = "GB"),
+                       lubridate::dmy_hms("26-10-2025 01:00:00", tz = "GB"), "days")
+  )
+
 
   # Manual testing and checking
   # unit <- years * 3

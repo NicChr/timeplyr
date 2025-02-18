@@ -38,13 +38,6 @@ remotes::install_github("NicChr/timeplyr")
 
 ``` r
 library(timeplyr)
-```
-
-# Basic examples
-
-## Convert `ts`, `mts`, `xts`, `zoo`and `timeSeries` objects using `ts_as_tbl`
-
-``` r
 library(tidyverse)
 #> ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
 #> ✔ dplyr     1.1.4     ✔ readr     2.1.5
@@ -68,6 +61,145 @@ library(fastplyr)
 #> The following objects are masked from 'package:tidyr':
 #> 
 #>     crossing, nesting
+library(nycflights13)
+library(lubridate)
+```
+
+# Basic examples
+
+## Time arithmetic
+
+``` r
+start <- dmy("01-01-2000")
+
+start |> 
+  time_add("year")
+#> [1] "2001-01-01"
+```
+
+Internally timeplyr makes use of custom `timespan` objects for various
+time manipulations.
+
+``` r
+timespan("months"); timespan("1 month"); timespan(months(1))
+#> <Timespan:months>
+#> [1] 1
+#> <Timespan:months>
+#> [1] 1
+#> <Timespan:months>
+#> [1] 1
+
+timespan("weeks", 1:10)
+#> <Timespan:weeks>
+#>  [1]  1  2  3  4  5  6  7  8  9 10
+```
+
+# Additing timespans
+
+``` r
+
+# Parsing 
+start |> time_add("10 years"); start |> time_add("decade")
+#> [1] "2010-01-01"
+#> [1] "2010-01-01"
+
+# Lubridate style timespans
+
+start |> 
+  time_add(years(1))
+#> [1] "2001-01-01"
+
+start |> time_add(dyears(1)); start |> time_add("31557600 seconds")
+#> [1] "2000-12-31 06:00:00 UTC"
+#> [1] "2000-12-31 06:00:00 UTC"
+
+# timeplyr timespans
+
+start |> 
+  time_add(timespan("years", 1))
+#> [1] "2001-01-01"
+start |> 
+  time_add(timespan("years", 0:10))
+#>  [1] "2000-01-01" "2001-01-01" "2002-01-01" "2003-01-01" "2004-01-01"
+#>  [6] "2005-01-01" "2006-01-01" "2007-01-01" "2008-01-01" "2009-01-01"
+#> [11] "2010-01-01"
+```
+
+Time arithmetic involving days, weeks, months and years is equivalent to
+using lubridate periods.
+
+Any arithmetic involving units less than days, e.g. hours, minutes and
+seconds, uses normal duration arithmetic in terms of how many seconds
+have passed. This is equivalent to using lubridate durations.
+
+``` r
+# Clocks go back 1 hour at exactly 2 am
+dst <- dmy_hms("26-10-2025 00:00:00", tz = "GB") |> time_add("hour")
+
+# Below 2 are equivalent
+dst |> 
+  time_add(timespan("hours", 0:2))
+#> [1] "2025-10-26 01:00:00 BST" "2025-10-26 01:00:00 GMT"
+#> [3] "2025-10-26 02:00:00 GMT"
+dst + dhours(0:2)
+#> [1] "2025-10-26 01:00:00 BST" "2025-10-26 01:00:00 GMT"
+#> [3] "2025-10-26 02:00:00 GMT"
+
+# There is currently no timeplyr way to achieve the below result 
+# 1 hour forward in clock time is actually 2 literal hours forward
+dst + hours(0:2)
+#> [1] "2025-10-26 01:00:00 BST" "2025-10-26 02:00:00 GMT"
+#> [3] "2025-10-26 03:00:00 GMT"
+```
+
+Period-based hours, minutes and seconds are not as commonly used as
+literal duration-based hours, minutes and seconds. Therefore timeplyr
+tries to simplify things by removing the distinction and automatically
+choosing periods for units larger than an hour and durations for units
+smaller than a day without the user having to contemplate which to use.
+
+``` r
+# The lubridate and timeplyr equivalents for info
+time_add(dst, "second"); dst + dseconds(1)
+#> [1] "2025-10-26 01:00:01 BST"
+#> [1] "2025-10-26 01:00:01 BST"
+time_add(dst, "minute"); dst + dminutes(1)
+#> [1] "2025-10-26 01:01:00 BST"
+#> [1] "2025-10-26 01:01:00 BST"
+time_add(dst, "hour"); dst + dhours(1)
+#> [1] "2025-10-26 01:00:00 GMT"
+#> [1] "2025-10-26 01:00:00 GMT"
+time_add(dst, "day"); dst + days(1)
+#> [1] "2025-10-27 01:00:00 GMT"
+#> [1] "2025-10-27 01:00:00 GMT"
+time_add(dst, "week"); dst + weeks(1)
+#> [1] "2025-11-02 01:00:00 GMT"
+#> [1] "2025-11-02 01:00:00 GMT"
+time_add(dst, "month"); dst + months(1)
+#> [1] "2025-11-26 01:00:00 GMT"
+#> [1] "2025-11-26 01:00:00 GMT"
+time_add(dst, "year"); dst + years(1)
+#> [1] "2026-10-26 01:00:00 GMT"
+#> [1] "2026-10-26 01:00:00 GMT"
+```
+
+## Time differences
+
+Time differences are accurate and simple
+
+``` r
+start <- ymd_hms("2008-10-27 10:00:00", tz = "GB")
+end <- ymd_hms("2010-10-24 02:00:00", tz = "GB")
+
+time_diff(start, end, "years")
+#> [1] 1.990867
+interval(start, end) / years(1)
+#> [1] 1.990867
+```
+
+## Convert `ts`, `mts`, `xts`, `zoo`and `timeSeries` objects using `ts_as_tbl`
+
+``` r
 eu_stock <- EuStockMarkets |>
   ts_as_tbl()
 eu_stock
@@ -94,7 +226,7 @@ eu_stock |>
   time_ggplot(time, value, group)
 ```
 
-![](man/figures/README-unnamed-chunk-2-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-8-1.png)<!-- -->
 
 For the next examples we use flights departing from New York City in
 2013.
@@ -286,7 +418,7 @@ eu_stock |>
     time_ggplot(date, month_mean, group)
 ```
 
-![](man/figures/README-unnamed-chunk-12-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-18-1.png)<!-- -->
 
 ## By-group rolling (locf) NA fill
 
@@ -601,7 +733,7 @@ Simple function to get formatted ISO weeks.
 iso_week(today())
 #> [1] "2025-W08"
 iso_week(today(), day = TRUE)
-#> [1] "2025-W08-1"
+#> [1] "2025-W08-2"
 iso_week(today(), year = FALSE)
 #> [1] "W08"
 ```
@@ -627,7 +759,7 @@ weekly_data |>
   scale_x_date(breaks = date_breaks, labels = scales::label_date_short()) 
 ```
 
-![](man/figures/README-unnamed-chunk-30-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-36-1.png)<!-- -->
 
 ``` r
 
@@ -637,4 +769,4 @@ flights |>
   scale_x_datetime(breaks = time_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-30-2.png)<!-- -->
+![](man/figures/README-unnamed-chunk-36-2.png)<!-- -->
