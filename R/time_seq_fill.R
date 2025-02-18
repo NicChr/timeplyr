@@ -61,7 +61,14 @@ time_seq_fill <- function(x){
     time_to_add <- time_to_subtract <- timespan * n_last_nas
     end <- time_add(x[length(x) - n_last_nas], time_to_add)
   }
-  elapsed <- time_elapsed(x, timespan, rolling = FALSE, na_skip = TRUE)
+
+  # Filter out first and last NA sequence
+
+  x <- x[(n_first_nas + 1L):(length(x) - n_last_nas)]
+
+  elapsed <- time_elapsed(x,
+    timespan, rolling = FALSE, na_skip = TRUE
+  )
   if (is.integer(elapsed)){
     target <- seq.int(0L, length(x) - 1L, 1L)
     is_regular <- all(elapsed == target, na.rm = TRUE)

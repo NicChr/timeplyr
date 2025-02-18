@@ -79,7 +79,7 @@ period_add.Date <- function(x, add, roll_month = getOption("timeplyr.roll_month"
 #' @export
 time_add <- function(x, timespan,
                      roll_month = getOption("timeplyr.roll_month", "preday"),
-                     roll_dst = getOption("timeplyr.roll_dst", "NA")){
+                     roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))){
 
   span <- timespan(timespan)
   num <- timespan_num(span)
@@ -98,7 +98,7 @@ time_add <- function(x, timespan,
 }
 time_subtract <- function(x, timespan,
                           roll_month = getOption("timeplyr.roll_month", "preday"),
-                          roll_dst = getOption("timeplyr.roll_dst", "NA")){
+                          roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))){
   time_add(x, -timespan, roll_month = roll_month, roll_dst = roll_dst)
 }
 time_floor <- function(x, time_by, week_start = getOption("lubridate.week.start", 1)){
@@ -228,13 +228,13 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   out <- as.integer(divide(out, cheapr::val_replace(n, 0, NA)))
 
   if (fractional){
-    int_end1 <- C_time_add(x, list(month = cheapr::val_replace(out * n, NaN, NA)), "preday", "NA")
+    int_end1 <- C_time_add(x, list(month = cheapr::val_replace(out * n, NaN, NA)), "preday", c("NA", "pre"))
     if (length(n) != 1){
       n <- rep_len2(n, length(out))
     }
-    int_end2 <- C_time_add(int_end1, list(month = n), "preday", "NA")
+    int_end2 <- C_time_add(int_end1, list(month = n), "preday", c("NA", "pre"))
     if (length(neg) > 0L){
-      int_end2[neg] <- C_time_add(int_end1[neg], list(month = -scalar_if_else(length(n) == 1, n, n[neg])), "preday", "NA")
+      int_end2[neg] <- C_time_add(int_end1[neg], list(month = -scalar_if_else(length(n) == 1, n, n[neg])), "preday", c("NA", "pre"))
     }
     fraction <- strip_attrs(
       (unclass(y) - unclass(int_end1)) / abs(unclass(int_end2) - unclass(int_end1))
@@ -290,13 +290,13 @@ diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   out <- as.integer(divide(out, cheapr::val_replace(n, 0, NA)))
 
   if (fractional){
-    int_end1 <- C_time_add(x, list(day = cheapr::val_replace(out * n, NaN, NA)), "preday", "NA")
+    int_end1 <- C_time_add(x, list(day = cheapr::val_replace(out * n, NaN, NA)), "preday", c("NA", "pre"))
     if (length(n) != 1){
       n <- rep_len2(n, length(out))
     }
-    int_end2 <- C_time_add(int_end1, list(day = n), "preday", "NA")
+    int_end2 <- C_time_add(int_end1, list(day = n), "preday", c("NA", "pre"))
     if (length(neg) > 0L){
-      int_end2[neg] <- C_time_add(int_end1[neg], list(day = -scalar_if_else(length(n) == 1, n, n[neg])), "preday", "NA")
+      int_end2[neg] <- C_time_add(int_end1[neg], list(day = -scalar_if_else(length(n) == 1, n, n[neg])), "preday", c("NA", "pre"))
     }
     fraction <- strip_attrs(
       (unclass(y) - unclass(int_end1)) / abs(unclass(int_end2) - unclass(int_end1))
@@ -312,9 +312,12 @@ period_diff <- function(x, y, timespan, fractional = TRUE){
   check_is_timespan(timespan)
   unit <- timespan_unit(timespan)
   num <- timespan_num(timespan)
+
   if (!is_whole_number(num)){
     cli::cli_abort("{.arg timespan} must be a {.cls timespan} of whole numbers")
   }
+
+  set_time_cast(x, y)
 
   # Reduce to unique x-y pairs
 
@@ -362,6 +365,8 @@ period_diff <- function(x, y, timespan, fractional = TRUE){
     },
     rlang::arg_match0(unit, .period_units)
   )
+
+  out[x == y] <- 0L
 
   if (distinct_pairs){
     out <- out[interval_groups]

@@ -8,7 +8,7 @@ time_add(
   x,
   timespan,
   roll_month = getOption("timeplyr.roll_month", "preday"),
-  roll_dst = getOption("timeplyr.roll_dst", "NA")
+  roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))
 )
 }
 \arguments{

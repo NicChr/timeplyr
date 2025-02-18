@@ -32,10 +32,6 @@ roll_time_threshold <- function(x, threshold, switch_on_boundary) {
   .Call(`_timeplyr_roll_time_threshold`, x, threshold, switch_on_boundary)
 }
 
-cpp_consecutive_na_id <- function(x, left_to_right) {
-  .Call(`_timeplyr_cpp_consecutive_na_id`, x, left_to_right)
-}
-
 cpp_which_first_gap <- function(x, increment, left_to_right) {
   .Call(`_timeplyr_cpp_which_first_gap`, x, increment, left_to_right)
 }

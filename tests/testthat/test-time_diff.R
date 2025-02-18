@@ -163,20 +163,20 @@ test_that("grid of dates and date-times", {
 
   test_all <- function(a, b, use_lubridate = FALSE, na.rm = FALSE){
 
-    if (use_lubridate){
-      int1 <- interval(a, b)
-      int2 <- interval(b, a)
-
-      # Only doing this cause re-writing all the function calls below would take time
-      if (na.rm){
-        all_equal <- function(x, y){
-          isTRUE(all.equal(x, y))
-        }
-      } else {
-        all_equal <- function(x, y){
-          cppdoubles::all_equal(x, y, na.rm = FALSE)
-        }
+    # Only doing this cause re-writing all the function calls below would take time
+    if (na.rm){
+      all_equal <- function(x, y){
+        isTRUE(all.equal(x, y))
       }
+    } else {
+      all_equal <- function(x, y){
+        cppdoubles::all_equal(x, y, na.rm = FALSE)
+      }
+    }
+
+    if (use_lubridate){
+      int1 <- lubridate::interval(a, b)
+      int2 <- lubridate::interval(b, a)
       expect_true(all_equal(time_diff(a, b, years), time_diff_lubridate(int1, years)))
       expect_true(all_equal(time_diff(a, b, years * 3), time_diff_lubridate(int1, years * 3)))
       expect_true(all_equal(time_diff(b, a, years), time_diff_lubridate(int2, years)))
@@ -311,15 +311,15 @@ test_that("grid of dates and date-times", {
   test_all(a, b, na.rm = TRUE)
 
   # Manual testing and checking
-  # unit <- years
+  # unit <- years * 3
   #
   # res1 <- time_diff(a, b, unit)
-  # res2 <- time_diff_lubridate(int1, unit)
+  # # res2 <- time_diff_lubridate(int1, unit)
   # res3 <- time_diff_original(a, b, unit)
   #
   # target <- res3
   #
-  # neq <- which(!double_equal(res1, target))
+  # neq <- which(!cppdoubles::double_equal(res1, target) | is.na(res1) != is.na(target))
   # c <- a[neq][1]
   # d <- b[neq][1]
   #
