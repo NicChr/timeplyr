@@ -58,7 +58,7 @@ time_seq_fill <- function(x){
   if (n_last_nas == 0){
     end <- vec_tail(x)
   } else {
-    time_to_add <- time_to_subtract <- timespan * n_last_nas
+    time_to_add <- timespan * n_last_nas
     end <- time_add(x[length(x) - n_last_nas], time_to_add)
   }
 
