@@ -344,3 +344,8 @@ rep2 <- function(x, times){
 }
 # if else as a function for ease-of-use
 scalar_if_else <- function(condition, true, false) if (condition) true else false
+
+# Memory efficient (but slower) scalar versions of all and any
+all_val <- function(x, value){
+  cheapr::val_count(x, value, recursive = TRUE) == cheapr::unlisted_length(x)
+}

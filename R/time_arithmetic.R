@@ -156,34 +156,44 @@ diff_months.Date <- function(x, y, n = 1L, fractional = FALSE, ...){
   out <- (12L * (ey - sy)) + (em - sm)
 
   l2r <- end >= start
-  pos <- cheapr::val_find(l2r, TRUE)
-  neg <- cheapr::val_find(l2r, FALSE)
+
+  out <- cheapr::cheapr_if_else(l2r, out - (emd < smd), out + (emd > smd))
+
+  # pos <- cheapr::val_find(l2r, TRUE)
+  # neg <- cheapr::val_find(l2r, FALSE)
 
   # Adjust for full months
-  if (length(pos) > 0){
-    out[pos] <- out[pos] - (emd < smd)[pos]
-  }
-  if (length(neg) > 0){
-    out[neg] <- out[neg] + (emd > smd)[neg]
-  }
+  # if (length(pos) > 0){
+  #   out[pos] <- out[pos] - (emd < smd)[pos]
+  # }
+  # if (length(neg) > 0){
+  #   out[neg] <- out[neg] + (emd > smd)[neg]
+  # }
 
   out <- as.integer(divide(out, cheapr::val_replace(n, 0, NA)))
 
   # Fractional through the month
   if (fractional){
-    int_end1 <- cpp_add_months(
-      start, new_timespan("months", out * n), roll_month = 1L
-    )
+    temp <- out * n
 
-    months <- new_timespan("months", n)
-    int_end2 <- cpp_add_months(int_end1, months, roll_month = 1L)
-    if (length(neg) > 0L){
-      int_end2[neg] <- cpp_add_months(int_end1, -months, roll_month = 1L)[neg]
-    }
-    fraction <- strip_attrs(
-      (unclass(end) - unclass(int_end1)) / abs(unclass(int_end2) - unclass(int_end1))
+    small_int_start <- cpp_add_months(
+      start, new_timespan("months", temp), roll_month = 1L
     )
-    out <- out + fraction
+    big_int_end <- cpp_add_months(
+      start, new_timespan("months", temp + cheapr::cheapr_if_else(l2r, n, -n)), roll_month = 1L
+      )
+    # big_int_end <- cpp_add_months(start, new_timespan("months", temp + n), roll_month = 1L)
+    # if (length(neg) > 0L){
+    #   big_int_end[neg] <- cpp_add_months(start, new_timespan("months", temp - n), roll_month = 1L)[neg]
+    # }
+    fraction <- strip_attrs(
+      (unclass(end) - unclass(small_int_start)) /
+        abs(unclass(big_int_end) - unclass(small_int_start))
+    )
+    fraction[start == end] <- 0
+    if (!all_val(fraction, 0)){
+      out <- out + fraction
+    }
   }
   out
 }
@@ -222,26 +232,34 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   out <- as.integer(divide(out, cheapr::val_replace(n, 0, NA)))
 
   if (fractional){
-    int_end1 <- C_time_add(
-      x, list(month = cheapr::val_replace(out * n, NaN, NA)),
+
+    temp <- out * n
+
+    small_int_start <- C_time_add(
+      x, list(month = temp),
       "preday", c("NA", "pre")
     )
     if (length(n) != 1){
       n <- rep_len2(n, length(out))
     }
-    int_end2 <- C_time_add(
-      int_end1, list(month = n), "preday", c("NA", "pre")
+    big_int_end <- C_time_add(
+      x, list(month = temp + n), "preday", c("NA", "pre")
     )
     if (length(neg) > 0L){
-      int_end2[neg] <- C_time_add(
-        int_end1[neg], list(month = -scalar_if_else(length(n) == 1, n, n[neg])),
+      big_int_end[neg] <- C_time_add(
+        x[neg], list(month = (temp - n)[neg]),
         "preday", c("NA", "pre")
       )
     }
     fraction <- strip_attrs(
-      (unclass(y) - unclass(int_end1)) / abs(unclass(int_end2) - unclass(int_end1))
+      (unclass(y) - unclass(small_int_start)) /
+        abs(unclass(big_int_end) - unclass(small_int_start))
     )
-    out <- out + fraction
+    fraction[start == end] <- 0
+
+    if (!all_val(fraction, 0)){
+      out <- out + fraction
+    }
   }
   out
 }

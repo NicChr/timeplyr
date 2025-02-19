@@ -165,16 +165,16 @@ test_that("grid of dates and date-times", {
     lubridate::year(lubridate::as.period(lubridate::interval(x, y)))
   }
 
-  test_all <- function(a, b, use_lubridate = FALSE, na.rm = FALSE){
+  test_all <- function(a, b, use_lubridate = FALSE, na.rm = FALSE, tol_ = sqrt(.Machine$double.eps)){
 
     # Only doing this cause re-writing all the function calls below would take time
     if (na.rm){
       all_equal <- function(x, y){
-        isTRUE(all.equal(x, y))
+        isTRUE(all.equal(x, y, tolerance = tol_))
       }
     } else {
       all_equal <- function(x, y){
-        cppdoubles::all_equal(x, y, na.rm = FALSE)
+        cppdoubles::all_equal(x, y, tol = tol_, na.rm = FALSE)
       }
     }
 
@@ -262,17 +262,10 @@ test_that("grid of dates and date-times", {
   seconds <- timespan("seconds", 1)
 
   date_grid <- lubridate::dmy("01-01-2003") + 0:(ceiling(365.24*3))
-
   combs <- expand.grid(a = date_grid, b = date_grid)
 
-  # same mday combs for now
-  # same_mday_combs <- cheapr::sset(combs, lubridate::mday(combs$b) == lubridate::mday(combs$a))
-  no_roll_combs <- cheapr::sset(combs, lubridate::mday(combs$b) <= 28 & lubridate::mday(combs$a) <= 28)
-  # roll_combs <- cheapr::sset(combs, lubridate::mday(combs$b) > 28)
-  # combs <- cheapr::sset(combs, combs$b >= combs$a)
-
-  a <- no_roll_combs$a
-  b <- no_roll_combs$b
+  a <- combs$a
+  b <- combs$b
 
   # Dates
 
@@ -289,10 +282,8 @@ test_that("grid of dates and date-times", {
 
   combs <- expand.grid(a = datetime_grid, b = datetime_grid)
 
-  no_roll_combs <- cheapr::sset(combs, lubridate::mday(combs$b) <= 28 & lubridate::mday(combs$a) <= 28)
-
-  a <- no_roll_combs$a
-  b <- no_roll_combs$b
+  a <- combs$a
+  b <- combs$b
 
   test_all(a, b)
 
@@ -307,10 +298,8 @@ test_that("grid of dates and date-times", {
 
   combs <- expand.grid(a = datetime_grid, b = datetime_grid)
 
-  no_roll_combs <- cheapr::sset(combs, lubridate::mday(combs$b) <= 28 & lubridate::mday(combs$a) <= 28)
-
-  a <- no_roll_combs$a
-  b <- no_roll_combs$b
+  a <- combs$a
+  b <- combs$b
 
   test_all(a, b, na.rm = TRUE)
 
@@ -325,15 +314,15 @@ test_that("grid of dates and date-times", {
 
 
   # Manual testing and checking
-  # unit <- years * 3
+  # unit <- years
   #
-  # res1 <- time_diff(a, b, unit)
-  # # res2 <- time_diff_lubridate(int1, unit)
-  # res3 <- time_diff_original(a, b, unit)
+  # res <- time_diff(a, b, unit)
+  # target <- time_diff_original(a, b, unit)
   #
-  # target <- res3
-  #
-  # neq <- which(!cppdoubles::double_equal(res1, target) | is.na(res1) != is.na(target))
+  # neq <- which(!cppdoubles::double_equal(res, target) | is.na(res) != is.na(target))
+  # # neq <- which.max(abs_diff(res, target))
+  # # neq <- which.max(rel_diff(res, target))
+  # # cat("abs: ", max(abs_diff(res, target)), "rel: ", max(rel_diff(res, target)))
   # c <- a[neq][1]
   # d <- b[neq][1]
   #
