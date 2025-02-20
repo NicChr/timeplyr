@@ -83,7 +83,7 @@ test_that("time diff", {
     time_diff(lubridate::Date(0), lubridate::Date(0),
       "2 days"
     ),
-    numeric(0)
+    integer(0)
   )
   expect_identical(
     time_diff(lubridate::Date(0), lubridate::POSIXct(0),
@@ -314,7 +314,7 @@ test_that("grid of dates and date-times", {
 
 
   # Manual testing and checking
-  # unit <- years
+  # unit <- weeks
   #
   # res <- time_diff(a, b, unit)
   # target <- time_diff_original(a, b, unit)
@@ -327,5 +327,6 @@ test_that("grid of dates and date-times", {
   # d <- b[neq][1]
   #
   # c;d
+  # all.equal(time_diff(c, d, unit), time_diff_original(c, d, unit))
   # time_diff(c, d, unit);time_diff_original(c, d, unit);time_diff_lubridate(interval(c, d), unit)
 })

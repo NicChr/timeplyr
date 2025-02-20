@@ -158,34 +158,19 @@ diff_months.Date <- function(x, y, n = 1L, fractional = FALSE, ...){
   l2r <- end >= start
 
   out <- cheapr::cheapr_if_else(l2r, out - (emd < smd), out + (emd > smd))
-
-  # pos <- cheapr::val_find(l2r, TRUE)
-  # neg <- cheapr::val_find(l2r, FALSE)
-
-  # Adjust for full months
-  # if (length(pos) > 0){
-  #   out[pos] <- out[pos] - (emd < smd)[pos]
-  # }
-  # if (length(neg) > 0){
-  #   out[neg] <- out[neg] + (emd > smd)[neg]
-  # }
-
   out <- as.integer(divide(out, cheapr::val_replace(n, 0, NA)))
 
   # Fractional through the month
   if (fractional){
-    temp <- out * n
+    months_add <- new_timespan("months", out * n)
 
     small_int_start <- cpp_add_months(
-      start, new_timespan("months", temp), roll_month = 1L
+      start, months_add, roll_month = 1L
     )
     big_int_end <- cpp_add_months(
-      start, new_timespan("months", temp + cheapr::cheapr_if_else(l2r, n, -n)), roll_month = 1L
+      start, months_add + cheapr::cheapr_if_else(l2r, n, -n),
+      roll_month = 1L
       )
-    # big_int_end <- cpp_add_months(start, new_timespan("months", temp + n), roll_month = 1L)
-    # if (length(neg) > 0L){
-    #   big_int_end[neg] <- cpp_add_months(start, new_timespan("months", temp - n), roll_month = 1L)[neg]
-    # }
     fraction <- strip_attrs(
       (unclass(end) - unclass(small_int_start)) /
         abs(unclass(big_int_end) - unclass(small_int_start))
@@ -276,7 +261,11 @@ diff_days.default <- function(x, y, n = 1L, fractional = FALSE, ...){
 }
 #' @export
 diff_days.Date <- function(x, y, n = 1L, ...){
-  divide(strip_attrs(unclass(as.Date(y)) - unclass(x)), n)
+  out <- divide(unclass(as.Date(y)) - unclass(x), n)
+  if (is_whole_number(out)){
+    out <- as.integer(out)
+  }
+  out
 }
 
 #' @export
@@ -287,12 +276,6 @@ diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
 
   xlt <- as.POSIXlt(x)
   ylt <- as.POSIXlt(y)
-
-  # sseconds <- clock_seconds(xlt)
-  # eseconds <- clock_seconds(ylt)
-
-  # sseconds <- strip_attrs(unclass(x) - unclass(timechange::time_floor(x, "day")))
-  # eseconds <- strip_attrs(unclass(y) - unclass(timechange::time_floor(y, "day")))
 
   sdate <- lubridate::make_date(xlt$year + 1900L, xlt$mon + 1L, xlt$mday)
   edate <- lubridate::make_date(ylt$year + 1900L, ylt$mon + 1L, ylt$mday)
@@ -317,7 +300,7 @@ diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   out <- as.integer(divide(out, cheapr::val_replace(n, 0, NA)))
 
   if (fractional){
-    int_end1 <- C_time_add(x, list(day = cheapr::val_replace(out * n, NaN, NA)), "preday", c("NA", "pre"))
+    int_end1 <- C_time_add(x, list(day = out * n), "preday", c("NA", "pre"))
     if (length(n) != 1){
       n <- rep_len2(n, length(out))
     }
