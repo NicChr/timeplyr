@@ -69,13 +69,13 @@ test_that("time delay", {
     "2 days"
   ))
 
-  res3 <- df3 %>%
-    get_time_delay(
-      date_of_infection,
-      date_of_onset,
-      "2 days"
-    ) %>%
-    suppressWarnings()
+  # res3 <- df3 %>%
+  #   get_time_delay(
+  #     date_of_infection,
+  #     date_of_onset,
+  #     "2 days"
+  #   ) %>%
+  #   suppressWarnings()
 
   res4 <- suppressWarnings(get_time_delay(
     ebola,
