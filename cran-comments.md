@@ -1,6 +1,4 @@
-* Updated to version 1.0.0
-
-* Fixed the C issue causing R to crash.
+* Updated to version 1.0.1
 
 * Checked and passed using rhub v2.0.0 in the following environments:
 

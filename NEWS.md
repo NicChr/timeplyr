@@ -1,9 +1,12 @@
-# timeplyr (development version)
+# timeplyr 1.0.1
+
+- New function `time_add` for adding timespans to dates, date-times and other
+time-based vectors.
 
 - Internally much of the methodology for calculating time differences has been
 re-written to be simpler and in many cases faster.
 
-- timeplyr now imports tzdb for access to the C++ Date header file.
+- timeplyr now imports tzdb for access to the C++ date header file.
 
 - Internal speed improvements to sequence creation. Specifically
 period sequences are now vectorised.
