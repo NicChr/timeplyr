@@ -28,7 +28,7 @@ period_add.default <- function(x, add, ...){
   )
 }
 #' @export
-period_add.Date <- function(x, add, roll_month = getOption("timeplyr.roll_month", "preday"), ...){
+period_add.Date <- function(x, add, roll_month = getOption("timeplyr.roll_month", "postday"), ...){
   num <- timespan_num(add)
   unit <- timespan_unit(add)
   roll_choice <- match(roll_month, c("preday", "postday", "NA"))
@@ -83,7 +83,7 @@ period_add.Date <- function(x, add, roll_month = getOption("timeplyr.roll_month"
 #' A date, date-time, or other time-based vector.
 #' @export
 time_add <- function(x, timespan,
-                     roll_month = getOption("timeplyr.roll_month", "preday"),
+                     roll_month = getOption("timeplyr.roll_month", "postday"),
                      roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))){
 
   span <- timespan(timespan)
@@ -102,7 +102,7 @@ time_add <- function(x, timespan,
   }
 }
 time_subtract <- function(x, timespan,
-                          roll_month = getOption("timeplyr.roll_month", "preday"),
+                          roll_month = getOption("timeplyr.roll_month", "postday"),
                           roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))){
   time_add(x, -timespan(timespan), roll_month = roll_month, roll_dst = roll_dst)
 }

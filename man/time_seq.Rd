@@ -12,7 +12,7 @@ time_seq(
   to,
   time_by,
   length.out = NULL,
-  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_month = getOption("timeplyr.roll_month", "postday"),
   roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))
 )
 
@@ -22,7 +22,7 @@ time_seq_v(
   from,
   to,
   timespan,
-  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_month = getOption("timeplyr.roll_month", "postday"),
   roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))
 )
 
@@ -30,7 +30,7 @@ time_seq_v2(
   sizes,
   from,
   timespan,
-  roll_month = getOption("timeplyr.roll_month", "preday"),
+  roll_month = getOption("timeplyr.roll_month", "postday"),
   roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))
 )
 }
@@ -143,7 +143,7 @@ time_seq(leap, to = end, time = "year",
 time_seq(leap, to = end, time = "year",
          roll_month = "postday")
 time_seq(leap, to = end, time = "year",
-         roll_month = getOption("timeplyr.roll_month", "preday"))
+         roll_month = getOption("timeplyr.roll_month", "postday"))
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)
 collapse::set_collapse(nthreads = .n_collapse_threads)

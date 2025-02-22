@@ -97,7 +97,7 @@
 #' time_seq(leap, to = end, time = "year",
 #'          roll_month = "postday")
 #' time_seq(leap, to = end, time = "year",
-#'          roll_month = getOption("timeplyr.roll_month", "preday"))
+#'          roll_month = getOption("timeplyr.roll_month", "postday"))
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
 #' collapse::set_collapse(nthreads = .n_collapse_threads)
@@ -105,7 +105,7 @@
 #' @rdname time_seq
 #' @export
 time_seq <- function(from, to, time_by, length.out = NULL,
-                     roll_month = getOption("timeplyr.roll_month", "preday"),
+                     roll_month = getOption("timeplyr.roll_month", "postday"),
                      roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))){
   missing_from <- missing(from)
   missing_to <- missing(to)
@@ -198,7 +198,7 @@ time_seq_sizes <- function(from, to, timespan){
 #' @rdname time_seq
 #' @export
 time_seq_v <- function(from, to, timespan,
-                       roll_month = getOption("timeplyr.roll_month", "preday"),
+                       roll_month = getOption("timeplyr.roll_month", "postday"),
                        roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))){
   timespan <- timespan(timespan)
   units <- timespan_unit(timespan)
@@ -214,7 +214,7 @@ time_seq_v <- function(from, to, timespan,
 #' @rdname time_seq
 #' @export
 time_seq_v2 <- function(sizes, from, timespan,
-                        roll_month = getOption("timeplyr.roll_month", "preday"),
+                        roll_month = getOption("timeplyr.roll_month", "postday"),
                         roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))){
   timespan <- timespan(timespan)
   units <- timespan_unit(timespan)
@@ -273,7 +273,7 @@ date_seq_v2 <- function(sizes, from, by = 1L){
 }
 # Vectorised period sequence
 period_seq_v <- function(from, to, units, num = 1,
-                         roll_month = getOption("timeplyr.roll_month", "preday"),
+                         roll_month = getOption("timeplyr.roll_month", "postday"),
                          roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))){
   if (length(to) == 0L){
     return(from[0])
@@ -288,7 +288,7 @@ period_seq_v <- function(from, to, units, num = 1,
 # Alternate version of period_seq_v with sizes arg instead of to
 # If you have the sequence sizes pre-calculated, you can use this
 period_seq_v2 <- function(sizes, from, units, num = 1L,
-                          roll_month = getOption("timeplyr.roll_month", "preday"),
+                          roll_month = getOption("timeplyr.roll_month", "postday"),
                           roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))){
   units <- rlang::arg_match0(units, .period_units)
   n_seqs <- length(sizes)
