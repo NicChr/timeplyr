@@ -235,26 +235,26 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
     small_int_start <- x
 
     small_int_start[pos] <- C_time_add(
-      x[pos], list(month = temp[pos]),
+      x, list(month = temp),
       "postday", c("NA", "pre")
-    )
+    )[pos]
     small_int_start[neg] <- C_time_add(
-      x[neg], list(month = temp[neg]),
+      x, list(month = temp),
       "preday", c("NA", "pre")
-    )
+    )[neg]
     if (length(n) != 1){
       n <- rep_len2(n, length(out))
     }
     big_int_end <- small_int_start
 
     big_int_end[pos] <- C_time_add(
-      x[pos], list(month = (temp + n)[pos]),
+      x, list(month = (temp + n)),
       "postday", c("NA", "pre")
-    )
+    )[pos]
     big_int_end[neg] <- C_time_add(
-      x[neg], list(month = (temp - n)[neg]),
+      x, list(month = (temp - n)),
       "preday", c("NA", "pre")
-    )
+    )[neg]
     fraction <- strip_attrs(
       (unclass(y) - unclass(small_int_start)) /
         abs(unclass(big_int_end) - unclass(small_int_start))
