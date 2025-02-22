@@ -155,7 +155,7 @@ diff_months.Date <- function(x, y, n = 1L, fractional = FALSE, ...){
 
   out <- (12L * (ey - sy)) + (em - sm)
 
-  l2r <- end >= start
+  l2r <- cheapr::na_replace(end >= start, TRUE)
 
   out <- cheapr::cheapr_if_else(l2r, out - (emd < smd), out + (emd > smd))
   out <- as.integer(divide(out, cheapr::val_replace(n, 0, NA)))
@@ -164,18 +164,31 @@ diff_months.Date <- function(x, y, n = 1L, fractional = FALSE, ...){
   if (fractional){
     months_add <- new_timespan("months", out * n)
 
-    small_int_start <- cpp_add_months(
-      start, months_add, roll_month = 1L
-    )
-    big_int_end <- cpp_add_months(
-      start, months_add + cheapr::cheapr_if_else(l2r, n, -n),
-      roll_month = 1L
+    small_int_start <- cheapr::cheapr_if_else(
+      l2r, cpp_add_months(
+        start, months_add, roll_month = 2L
+      ),
+      cpp_add_months(
+        start, months_add, roll_month = 1L
       )
+    )
+    big_int_end <- cheapr::cheapr_if_else(
+      l2r,
+      cpp_add_months(
+        start, (months_add + n),
+        roll_month = 2L
+      ),
+      cpp_add_months(
+        start, (months_add - n),
+        roll_month = 1L
+      )
+    )
+
     fraction <- strip_attrs(
       (unclass(end) - unclass(small_int_start)) /
         abs(unclass(big_int_end) - unclass(small_int_start))
     )
-    fraction[start == end] <- 0
+    fraction[cheapr::which_(start == end)] <- 0
     if (!all_val(fraction, 0)){
       out <- out + fraction
     }
@@ -201,7 +214,7 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   out <- (12L * (ey - sy)) + (em - sm)
 
   l2r <- y >= x
-  pos <- cheapr::val_find(l2r, TRUE)
+  pos <- cheapr::val_find(l2r, FALSE, invert = TRUE)
   neg <- cheapr::val_find(l2r, FALSE)
 
   # Adjust for full months & time of day
@@ -217,30 +230,36 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   out <- as.integer(divide(out, cheapr::val_replace(n, 0, NA)))
 
   if (fractional){
-
     temp <- out * n
 
-    small_int_start <- C_time_add(
-      x, list(month = temp),
+    small_int_start <- x
+
+    small_int_start[pos] <- C_time_add(
+      x[pos], list(month = temp[pos]),
+      "postday", c("NA", "pre")
+    )
+    small_int_start[neg] <- C_time_add(
+      x[neg], list(month = temp[neg]),
       "preday", c("NA", "pre")
     )
     if (length(n) != 1){
       n <- rep_len2(n, length(out))
     }
-    big_int_end <- C_time_add(
-      x, list(month = temp + n), "preday", c("NA", "pre")
+    big_int_end <- small_int_start
+
+    big_int_end[pos] <- C_time_add(
+      x[pos], list(month = (temp + n)[pos]),
+      "postday", c("NA", "pre")
     )
-    if (length(neg) > 0L){
-      big_int_end[neg] <- C_time_add(
-        x[neg], list(month = (temp - n)[neg]),
-        "preday", c("NA", "pre")
-      )
-    }
+    big_int_end[neg] <- C_time_add(
+      x[neg], list(month = (temp - n)[neg]),
+      "preday", c("NA", "pre")
+    )
     fraction <- strip_attrs(
       (unclass(y) - unclass(small_int_start)) /
         abs(unclass(big_int_end) - unclass(small_int_start))
     )
-    fraction[start == end] <- 0
+    fraction[cheapr::which_(start == end)] <- 0
 
     if (!all_val(fraction, 0)){
       out <- out + fraction
@@ -300,13 +319,16 @@ diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   out <- as.integer(divide(out, cheapr::val_replace(n, 0, NA)))
 
   if (fractional){
-    int_end1 <- C_time_add(x, list(day = out * n), "preday", c("NA", "pre"))
+    int_end1 <- C_time_add(x, list(day = out * n), "postday", c("NA", "pre"))
     if (length(n) != 1){
       n <- rep_len2(n, length(out))
     }
-    int_end2 <- C_time_add(int_end1, list(day = n), "preday", c("NA", "pre"))
+    int_end2 <- C_time_add(int_end1, list(day = n), "postday", c("NA", "pre"))
     if (length(neg) > 0L){
-      int_end2[neg] <- C_time_add(int_end1[neg], list(day = -scalar_if_else(length(n) == 1, n, n[neg])), "preday", c("NA", "pre"))
+      int_end2[neg] <- C_time_add(
+        int_end1[neg], list(day = -scalar_if_else(length(n) == 1, n, n[neg])),
+        "postday", c("NA", "pre")
+      )
     }
     fraction <- strip_attrs(
       (unclass(y) - unclass(int_end1)) / abs(unclass(int_end2) - unclass(int_end1))
@@ -383,3 +405,8 @@ period_diff <- function(x, y, timespan, fractional = TRUE){
   out
 
 }
+# add_days <- function(x, n){
+#  out <- x + (n * 86400)
+#  hour(out) <- hour(x)
+#  out
+# }

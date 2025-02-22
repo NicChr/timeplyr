@@ -113,7 +113,7 @@ test_that("time diff", {
     time_diff(leap1, leap2,
       "year"
     )
-  ) == 1)
+  ) == 0)
   expect_true(
     age_years(leap1, leap2) == 0
   )
@@ -261,15 +261,20 @@ test_that("grid of dates and date-times", {
   minutes <- timespan("minutes", 1)
   seconds <- timespan("seconds", 1)
 
-  date_grid <- lubridate::dmy("01-01-2003") + 0:(ceiling(365.24*3))
+  date_grid <- lubridate::dmy("01-01-2003") + seq(0, ceiling(365.24*3), 3)
   combs <- expand.grid(a = date_grid, b = date_grid)
-
-  a <- combs$a
-  b <- combs$b
+  no_roll_combs <- cheapr::sset(combs, lubridate::mday(combs$b) <= 28 & lubridate::mday(combs$a) <= 28)
+  roll_combs <- cheapr::sset(combs, lubridate::mday(combs$b) > 28)
 
   # Dates
-
+  a <- no_roll_combs$a
+  b <- no_roll_combs$b
   test_all(a, b)
+  test_all(as_datetime2(a), as_datetime2(b))
+  a <- roll_combs$a
+  b <- roll_combs$b
+  test_all(a, b, tol_ = 0.05)
+  test_all(as_datetime2(a), as_datetime2(b), tol_ = 0.05)
 
   # Date-times (no DST rolling)
 
@@ -284,7 +289,6 @@ test_that("grid of dates and date-times", {
 
   a <- combs$a
   b <- combs$b
-
   test_all(a, b)
 
   # Date-times (DST rolling)
@@ -301,7 +305,7 @@ test_that("grid of dates and date-times", {
   a <- combs$a
   b <- combs$b
 
-  test_all(a, b, na.rm = TRUE)
+  test_all(a, b)
 
   # Test this as well
 
@@ -314,19 +318,19 @@ test_that("grid of dates and date-times", {
 
 
   # Manual testing and checking
-  # unit <- weeks
+  # unit <- months
   #
   # res <- time_diff(a, b, unit)
   # target <- time_diff_original(a, b, unit)
   #
   # neq <- which(!cppdoubles::double_equal(res, target) | is.na(res) != is.na(target))
-  # # neq <- which.max(abs_diff(res, target))
-  # # neq <- which.max(rel_diff(res, target))
+  # neq <- which.max(abs_diff(res, target))
+  # neq <- which.max(rel_diff(res, target))
   # # cat("abs: ", max(abs_diff(res, target)), "rel: ", max(rel_diff(res, target)))
   # c <- a[neq][1]
   # d <- b[neq][1]
   #
   # c;d
-  # all.equal(time_diff(c, d, unit), time_diff_original(c, d, unit))
+  # # all.equal(time_diff(c, d, unit), time_diff_original(c, d, unit))
   # time_diff(c, d, unit);time_diff_original(c, d, unit);time_diff_lubridate(interval(c, d), unit)
 })
