@@ -35,7 +35,12 @@ period_add.Date <- function(x, add, roll_month = getOption("timeplyr.roll_month"
 
   if (is.na(roll_choice)){
     # Helpful error msg
-    rlang::arg_match0(roll_month, c("preday", "postday", "NA"))
+    return(
+      lubridate::as_date(
+        period_add(lubridate::as_datetime(x), add, roll_month = roll_month, ...)
+      )
+    )
+    # rlang::arg_match0(roll_month, c("preday", "postday", "NA"))
     stop("Internal error") # This should never be reached but is a fallback in case above doesn't error
   }
 
@@ -99,7 +104,7 @@ time_add <- function(x, timespan,
 time_subtract <- function(x, timespan,
                           roll_month = getOption("timeplyr.roll_month", "preday"),
                           roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))){
-  time_add(x, -timespan, roll_month = roll_month, roll_dst = roll_dst)
+  time_add(x, -timespan(timespan), roll_month = roll_month, roll_dst = roll_dst)
 }
 time_floor <- function(x, time_by, week_start = getOption("lubridate.week.start", 1)){
   span <- timespan(time_by)
