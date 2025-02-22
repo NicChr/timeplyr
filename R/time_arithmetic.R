@@ -22,10 +22,11 @@ period_add <- function(x, add, ...){
   UseMethod("period_add")
 }
 #' @export
-period_add.default <- function(x, add, ...){
-  timechange::time_add(
-    as.POSIXct(x), periods = timespan_as_timechange_period(add), ...
-  )
+period_add.default <- function(x, add,
+                               roll_month = getOption("timeplyr.roll_month", "postday"),
+                               roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre")),
+                               ...){
+  C_time_add(as.POSIXct(x), timespan_as_timechange_period(add), roll_month, roll_dst)
 }
 #' @export
 period_add.Date <- function(x, add, roll_month = getOption("timeplyr.roll_month", "postday"), ...){

@@ -32,7 +32,7 @@ test_that("Dates", {
   # This may be unexpected but at the moment, emphasis is always placed on a start point of any seq
   expect_equal(
     time_seq(to = lubridate::ymd("1946-01-31"), length.out = 2, time = "9 months"),
-    lubridate::ymd(c("1945-04-30", "1946-01-30"))
+    lubridate::ymd(c("1945-05-01", "1946-02-01"))
   )
 
   # Very basic tests
