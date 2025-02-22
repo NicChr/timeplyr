@@ -213,48 +213,46 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
 
   out <- (12L * (ey - sy)) + (em - sm)
 
-  l2r <- y >= x
-  pos <- cheapr::val_find(l2r, FALSE, invert = TRUE)
-  neg <- cheapr::val_find(l2r, FALSE)
+  l2r <- cheapr::na_replace(y >= x, TRUE)
 
   # Adjust for full months & time of day
   up <- time_add(x, new_timespan("months", out))
 
-  if (length(pos) > 0){
-    out[pos] <- out[pos] - (up > y)[pos]
-  }
-  if (length(neg) > 0){
-    out[neg] <- out[neg] + (up < y)[neg]
-  }
-
+  out <- cheapr::cheapr_if_else(
+    l2r,
+    out - (up > y),
+    out + (up < y)
+  )
   out <- as.integer(divide(out, cheapr::val_replace(n, 0, NA)))
 
   if (fractional){
     temp <- out * n
 
-    small_int_start <- x
-
-    small_int_start[pos] <- C_time_add(
-      x, list(month = temp),
-      "postday", c("NA", "pre")
-    )[pos]
-    small_int_start[neg] <- C_time_add(
-      x, list(month = temp),
-      "preday", c("NA", "pre")
-    )[neg]
+    small_int_start <- cheapr::cheapr_if_else(
+      l2r,
+      C_time_add(
+        x, list(month = temp),
+        "postday", c("NA", "pre")
+      ),
+      C_time_add(
+        x, list(month = temp),
+        "preday", c("NA", "pre")
+      )
+    )
     if (length(n) != 1){
       n <- rep_len2(n, length(out))
     }
-    big_int_end <- small_int_start
-
-    big_int_end[pos] <- C_time_add(
-      x, list(month = (temp + n)),
-      "postday", c("NA", "pre")
-    )[pos]
-    big_int_end[neg] <- C_time_add(
-      x, list(month = (temp - n)),
-      "preday", c("NA", "pre")
-    )[neg]
+    big_int_end <- cheapr::cheapr_if_else(
+      l2r,
+      C_time_add(
+        x, list(month = (temp + n)),
+        "postday", c("NA", "pre")
+      ),
+      C_time_add(
+        x, list(month = (temp - n)),
+        "preday", c("NA", "pre")
+      )
+    )
     fraction <- strip_attrs(
       (unclass(y) - unclass(small_int_start)) /
         abs(unclass(big_int_end) - unclass(small_int_start))
