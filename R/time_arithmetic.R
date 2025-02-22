@@ -257,7 +257,7 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
       (unclass(y) - unclass(small_int_start)) /
         abs(unclass(big_int_end) - unclass(small_int_start))
     )
-    fraction[cheapr::which_(start == end)] <- 0
+    fraction[cheapr::which_(x == y)] <- 0
 
     if (!all_val(fraction, 0)){
       out <- out + fraction
