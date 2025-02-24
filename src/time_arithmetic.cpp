@@ -11,13 +11,32 @@ int add_months(int date, int months_add, int roll_month){
     case 1: { // Roll backwards
     ymd = ymd.year()/ymd.month()/last;
     break;
-  } case 2: { // Roll forwards
+  }
+    case 2: { // Roll forwards
       year_month next_month = year_month(ymd.year(), ymd.month()) + months(1);
       ymd = next_month/day(1);
       break;
-    } default: {
-    return NA_INTEGER;
-  }
+    }
+    case 3: { // Roll forwards when adding and backwards when subtracting
+      if (months_add >= 0){
+      year_month next_month = year_month(ymd.year(), ymd.month()) + months(1);
+      ymd = next_month/day(1);
+    } else {
+      ymd = ymd.year()/ymd.month()/last;
+    }
+    break;
+    }
+    case 4: { // Roll backwards when adding and forwards when subtracting
+      if (months_add >= 0){
+      ymd = ymd.year()/ymd.month()/last;
+    } else {
+      year_month next_month = year_month(ymd.year(), ymd.month()) + months(1);
+      ymd = next_month/day(1);
+    }
+    }
+    default: {
+      return NA_INTEGER;
+    }
     }
   }
   sys_days days_since_epoch = sys_days(ymd);

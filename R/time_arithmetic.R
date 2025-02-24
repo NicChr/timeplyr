@@ -192,26 +192,11 @@ diff_months.Date <- function(x, y, n = 1L, fractional = FALSE, ...){
   if (fractional){
     months_add <- new_timespan("months", out * n)
 
-    small_int_start <- cheapr::cheapr_if_else(
-      l2r, cpp_add_months(
-        start, months_add, roll_month = 2L
-      ),
-      cpp_add_months(
-        start, months_add, roll_month = 1L
-      )
+    small_int_start <- cpp_add_months(start, months_add, roll_month = 3L)
+    big_int_end <- cpp_add_months(
+      start, (months_add + cheapr::cheapr_if_else(l2r, n, -n)),
+      roll_month = 3L
     )
-    big_int_end <- cheapr::cheapr_if_else(
-      l2r,
-      cpp_add_months(
-        start, (months_add + n),
-        roll_month = 2L
-      ),
-      cpp_add_months(
-        start, (months_add - n),
-        roll_month = 1L
-      )
-    )
-
     fraction <- strip_attrs(
       (unclass(end) - unclass(small_int_start)) /
         abs(unclass(big_int_end) - unclass(small_int_start))
@@ -345,9 +330,7 @@ diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   if (fractional){
     temp <- new_timespan("days", out * n)
     int_end1 <- time_add(x, temp)
-    int_end2 <- cheapr::cheapr_if_else(
-      l2r, time_add(x, temp + n), time_add(x, temp - n)
-    )
+    int_end2 <- time_add(x, temp + cheapr::cheapr_if_else(l2r, n, -n))
     fraction <- strip_attrs(
       (unclass(y) - unclass(int_end1)) / abs(unclass(int_end2) - unclass(int_end1))
     )
