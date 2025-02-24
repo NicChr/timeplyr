@@ -13,7 +13,7 @@ time_seq(
   time_by,
   length.out = NULL,
   roll_month = getOption("timeplyr.roll_month", "postday"),
-  roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))
+  roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))
 )
 
 time_seq_sizes(from, to, timespan)
@@ -23,7 +23,7 @@ time_seq_v(
   to,
   timespan,
   roll_month = getOption("timeplyr.roll_month", "postday"),
-  roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))
+  roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))
 )
 
 time_seq_v2(
@@ -31,7 +31,7 @@ time_seq_v2(
   from,
   timespan,
   roll_month = getOption("timeplyr.roll_month", "postday"),
-  roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))
+  roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))
 )
 }
 \arguments{

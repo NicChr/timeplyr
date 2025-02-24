@@ -89,13 +89,13 @@ test_that("time diff", {
     time_diff(lubridate::Date(0), lubridate::POSIXct(0),
       "2 days"
     ),
-    numeric(0)
+    integer(0)
   )
   expect_identical(
     time_diff(lubridate::today(), lubridate::POSIXct(0),
       "2 days"
     ),
-    numeric(0)
+    integer(0)
   )
   for (unit in .duration_units) {
     expect_identical(
@@ -318,14 +318,14 @@ test_that("grid of dates and date-times", {
 
 
   # Manual testing and checking
-  # unit <- months
+  # unit <- days
   #
   # res <- time_diff(a, b, unit)
   # target <- time_diff_original(a, b, unit)
   #
   # neq <- which(!cppdoubles::double_equal(res, target) | is.na(res) != is.na(target))
-  # neq <- which.max(abs_diff(res, target))
-  # neq <- which.max(rel_diff(res, target))
+  # # neq <- which.max(abs_diff(res, target))
+  # # neq <- which.max(rel_diff(res, target))
   # # cat("abs: ", max(abs_diff(res, target)), "rel: ", max(rel_diff(res, target)))
   # c <- a[neq][1]
   # d <- b[neq][1]

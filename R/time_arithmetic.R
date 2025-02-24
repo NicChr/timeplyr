@@ -24,9 +24,14 @@ period_add <- function(x, add, ...){
 #' @export
 period_add.default <- function(x, add,
                                roll_month = getOption("timeplyr.roll_month", "postday"),
-                               roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre")),
+                               roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst")),
                                ...){
-  C_time_add(as.POSIXct(x), timespan_as_timechange_period(add), roll_month, roll_dst)
+  x <- lubridate::as_datetime(x)
+  if (timespan_unit(add) == "days" && lubridate::tz(x) == "UTC"){
+    x + (timespan_num(add) * 86400)
+  } else {
+    C_time_add(x, timespan_as_timechange_period(add), roll_month, roll_dst)
+  }
 }
 #' @export
 period_add.Date <- function(x, add, roll_month = getOption("timeplyr.roll_month", "postday"), ...){
@@ -85,11 +90,25 @@ period_add.Date <- function(x, add, roll_month = getOption("timeplyr.roll_month"
 #' @export
 time_add <- function(x, timespan,
                      roll_month = getOption("timeplyr.roll_month", "postday"),
-                     roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))){
+                     roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))){
 
   span <- timespan(timespan)
   num <- timespan_num(span)
   unit <- timespan_unit(span)
+
+  if (!is.character(roll_month)){
+    if (is.numeric(roll_month)){
+      cli::cli_abort("
+      A {.cls numeric} vector has been supplied
+      to {.arg roll_month}, perhaps you meant
+      `timespan({unit}, {deparse1(substitute(roll_month))})`}")
+    } else {
+      cli::cli_abort("{.arg roll_month} must be a length 1 character vector")
+    }
+  }
+  if (!is.character(roll_dst)){
+    cli::cli_abort("{.arg roll_dst} must be a length 1 or length 2 character vector")
+  }
 
   if (is.na(unit)){
     x + num
@@ -104,7 +123,7 @@ time_add <- function(x, timespan,
 }
 time_subtract <- function(x, timespan,
                           roll_month = getOption("timeplyr.roll_month", "postday"),
-                          roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))){
+                          roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))){
   time_add(x, -timespan(timespan), roll_month = roll_month, roll_dst = roll_dst)
 }
 time_floor <- function(x, time_by, week_start = getOption("lubridate.week.start", 1)){
@@ -162,6 +181,9 @@ diff_months.Date <- function(x, y, n = 1L, fractional = FALSE, ...){
   out <- (12L * (ey - sy)) + (em - sm)
 
   l2r <- cheapr::na_replace(end >= start, TRUE)
+  if (length(l2r) < length(n)){
+    l2r <- rep_len(l2r, length(n))
+  }
 
   out <- cheapr::cheapr_if_else(l2r, out - (emd < smd), out + (emd > smd))
   out <- as.integer(divide(out, cheapr::val_replace(n, 0, NA)))
@@ -220,6 +242,9 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   out <- (12L * (ey - sy)) + (em - sm)
 
   l2r <- cheapr::na_replace(y >= x, TRUE)
+  if (length(l2r) < length(n)){
+    l2r <- rep_len(l2r, length(n))
+  }
 
   # Adjust for full months & time of day
   up <- time_add(x, new_timespan("months", out))
@@ -238,11 +263,11 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
       l2r,
       C_time_add(
         x, list(month = temp),
-        "postday", c("NA", "pre")
+        "postday", c("NA", "xfirst")
       ),
       C_time_add(
         x, list(month = temp),
-        "preday", c("NA", "pre")
+        "preday", c("NA", "xfirst")
       )
     )
     if (length(n) != 1){
@@ -252,11 +277,11 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
       l2r,
       C_time_add(
         x, list(month = (temp + n)),
-        "postday", c("NA", "pre")
+        "postday", c("NA", "xfirst")
       ),
       C_time_add(
         x, list(month = (temp - n)),
-        "preday", c("NA", "pre")
+        "preday", c("NA", "xfirst")
       )
     )
     fraction <- strip_attrs(
@@ -307,37 +332,29 @@ diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
 
   out <- diff_days(sdate, edate)
 
-  l2r <- y >= x
-  pos <- cheapr::val_find(l2r, TRUE)
-  neg <- cheapr::val_find(l2r, FALSE)
+  l2r <- cheapr::na_replace(y >= x, TRUE)
+  if (length(l2r) < length(n)){
+    l2r <- rep_len(l2r, length(n))
+  }
 
   # Adjust for time of day
   up <- time_add(x, new_timespan("days", out))
-
-  if (length(pos) > 0){
-    out[pos] <- out[pos] - (up > y)[pos]
-  }
-  if (length(neg) > 0){
-    out[neg] <- out[neg] + (up < y)[neg]
-  }
+  out <- cheapr::cheapr_if_else(l2r, out - (up > y), out + (up < y))
   out <- as.integer(divide(out, cheapr::val_replace(n, 0, NA)))
 
   if (fractional){
-    int_end1 <- C_time_add(x, list(day = out * n), "postday", c("NA", "pre"))
-    if (length(n) != 1){
-      n <- rep_len2(n, length(out))
-    }
-    int_end2 <- C_time_add(int_end1, list(day = n), "postday", c("NA", "pre"))
-    if (length(neg) > 0L){
-      int_end2[neg] <- C_time_add(
-        int_end1[neg], list(day = -scalar_if_else(length(n) == 1, n, n[neg])),
-        "postday", c("NA", "pre")
-      )
-    }
+    temp <- new_timespan("days", out * n)
+    int_end1 <- time_add(x, temp)
+    int_end2 <- cheapr::cheapr_if_else(
+      l2r, time_add(x, temp + n), time_add(x, temp - n)
+    )
     fraction <- strip_attrs(
       (unclass(y) - unclass(int_end1)) / abs(unclass(int_end2) - unclass(int_end1))
     )
-    out <- out + fraction
+    fraction[cheapr::which_(x == y)] <- 0
+    if (!all_val(fraction, 0)){
+      out <- out + fraction
+    }
   }
   out
 }
@@ -405,12 +422,5 @@ period_diff <- function(x, y, timespan, fractional = TRUE){
   if (distinct_pairs){
     out <- out[interval_groups]
   }
-
   out
-
 }
-# add_days <- function(x, n){
-#  out <- x + (n * 86400)
-#  hour(out) <- hour(x)
-#  out
-# }

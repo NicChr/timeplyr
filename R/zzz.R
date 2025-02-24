@@ -1,7 +1,7 @@
 .onAttach <- function(...){
   options(
     timeplyr.roll_month = getOption("timeplyr.roll_month", "postday"),
-    timeplyr.roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))
+    timeplyr.roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))
   )
 }
 .onUnload <- function(libname, pkgname){

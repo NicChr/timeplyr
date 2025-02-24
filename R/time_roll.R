@@ -662,7 +662,7 @@ time_roll_apply <- function(x, window = timespan(Inf), fun,
 #                           close_left_boundary = FALSE,
 #                           na.rm = TRUE,
 #                           time_type = getOption("timeplyr.time_type", "auto"),
-#                           roll_month = getOption("timeplyr.roll_month", "postday"), roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre")),
+#                           roll_month = getOption("timeplyr.roll_month", "postday"), roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst")),
 #                           ...){
 #   check_is_time_or_num(time)
 #   check_time_not_missing(time)

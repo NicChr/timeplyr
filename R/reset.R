@@ -6,5 +6,5 @@
 #'
 #' @export
 reset_timeplyr_options <- function(){
-  options("timeplyr.roll_month" = "postday", "timeplyr.roll_dst" = c("NA", "pre"))
+  options(timeplyr.roll_month = "postday", timeplyr.roll_dst = c("NA", "xfirst"))
 }

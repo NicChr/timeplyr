@@ -106,7 +106,7 @@
 #' @export
 time_seq <- function(from, to, time_by, length.out = NULL,
                      roll_month = getOption("timeplyr.roll_month", "postday"),
-                     roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))){
+                     roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))){
   missing_from <- missing(from)
   missing_to <- missing(to)
   missing_by <- missing(time_by)
@@ -199,7 +199,7 @@ time_seq_sizes <- function(from, to, timespan){
 #' @export
 time_seq_v <- function(from, to, timespan,
                        roll_month = getOption("timeplyr.roll_month", "postday"),
-                       roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))){
+                       roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))){
   timespan <- timespan(timespan)
   units <- timespan_unit(timespan)
   num <- timespan_num(timespan)
@@ -215,7 +215,7 @@ time_seq_v <- function(from, to, timespan,
 #' @export
 time_seq_v2 <- function(sizes, from, timespan,
                         roll_month = getOption("timeplyr.roll_month", "postday"),
-                        roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))){
+                        roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))){
   timespan <- timespan(timespan)
   units <- timespan_unit(timespan)
   num <- timespan_num(timespan)
@@ -274,7 +274,7 @@ date_seq_v2 <- function(sizes, from, by = 1L){
 # Vectorised period sequence
 period_seq_v <- function(from, to, units, num = 1,
                          roll_month = getOption("timeplyr.roll_month", "postday"),
-                         roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))){
+                         roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))){
   if (length(to) == 0L){
     return(from[0])
   }
@@ -289,7 +289,7 @@ period_seq_v <- function(from, to, units, num = 1,
 # If you have the sequence sizes pre-calculated, you can use this
 period_seq_v2 <- function(sizes, from, units, num = 1L,
                           roll_month = getOption("timeplyr.roll_month", "postday"),
-                          roll_dst = getOption("timeplyr.roll_dst", c("NA", "pre"))){
+                          roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))){
   units <- rlang::arg_match0(units, .period_units)
   n_seqs <- length(sizes)
 
