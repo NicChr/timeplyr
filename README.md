@@ -159,7 +159,9 @@ choosing periods for units larger than an hour and durations for units
 smaller than a day without the user having to contemplate which to use.
 
 ``` r
-# The lubridate and timeplyr equivalents for info
+
+# The lubridate and timeplyr equivalents
+
 time_add(dst, "second"); dst + dseconds(1)
 #> [1] "2025-10-26 01:00:01 BST"
 #> [1] "2025-10-26 01:00:01 BST"
@@ -197,6 +199,64 @@ interval(start, end) / years(1)
 #> [1] 1.990867
 ```
 
+When months and years are involved, timeplyr rolls impossible dates
+forward by default which is different to lubridate which rolls backwards
+by default
+
+``` r
+leap <- dmy("29-02-2020")
+
+leap |> time_add("year"); leap |> add_with_rollback(years(1))
+#> [1] "2021-03-01"
+#> [1] "2021-02-28"
+```
+
+timeplyr handles month addition symmetrically by rolling backwards when
+adding negative months
+
+``` r
+leap |> time_subtract("year")
+#> [1] "2019-02-28"
+```
+
+This can all be controlled through the `roll_month` argument which has
+options ‘xfirst’, ‘xlast’, ‘preday’, ‘postday’, ‘boundary’, ‘full’ and
+‘NA’. The ‘xfirst’ and ‘xlast’ options are timeplyr specific and signify
+crossed-first and crossed-last dates respectively. ‘xlast’ is set by
+default package-wide.
+
+The choice of rolling impossible dates can affect time difference
+calculations.
+
+``` r
+# timeplyr 
+leap_almost_one_year_old <- dmy("28-02-2021")
+cat("timeplyr: ", time_diff(leap, leap_almost_one_year_old, "years"), "\n", 
+    "lubridate: ", interval(leap, leap_almost_one_year_old) / years(1),
+    sep = "")
+#> timeplyr: 0.9972678
+#> lubridate: 1
+```
+
+In the above example timeplyr lets leaplings be younger for an extra
+day!
+
+Monthly time differences in timeplyr are symmetric, regardless if
+`x > y` or `x < y`
+
+``` r
+time_diff(leap, dmy("28-02-2021") + days(0:1), "years")
+#> [1] 0.9972678 1.0000000
+time_diff(leap, dmy("01-03-2019") - days(0:1), "years")
+#> [1] -0.9972678 -1.0000000
+
+# Not symmetric
+interval(leap, dmy("28-02-2021") + days(0:1)) / years(1)
+#> [1] 1.00000 1.00274
+interval(leap, dmy("01-03-2019") - days(0:1)) / years(1)
+#> [1] -0.9972678 -1.0000000
+```
+
 ## Convert `ts`, `mts`, `xts`, `zoo`and `timeSeries` objects using `ts_as_tbl`
 
 ``` r
@@ -226,7 +286,7 @@ eu_stock |>
   time_ggplot(time, value, group)
 ```
 
-![](man/figures/README-unnamed-chunk-8-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-12-1.png)<!-- -->
 
 For the next examples we use flights departing from New York City in
 2013.
@@ -418,7 +478,7 @@ eu_stock |>
     time_ggplot(date, month_mean, group)
 ```
 
-![](man/figures/README-unnamed-chunk-18-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-22-1.png)<!-- -->
 
 ## By-group rolling (locf) NA fill
 
@@ -651,9 +711,9 @@ seq(start, end, by = "month") # Base R version
 #>  [6] "2020-07-01" "2020-07-31" "2020-08-31" "2020-10-01" "2020-10-31"
 #> [11] "2020-12-01" "2020-12-31" "2021-01-31"
 time_seq(start, end, "month") # lubridate version 
-#>  [1] "2020-01-31" "2020-02-29" "2020-03-31" "2020-04-30" "2020-05-31"
-#>  [6] "2020-06-30" "2020-07-31" "2020-08-31" "2020-09-30" "2020-10-31"
-#> [11] "2020-11-30" "2020-12-31" "2021-01-31"
+#>  [1] "2020-01-31" "2020-03-01" "2020-03-31" "2020-05-01" "2020-05-31"
+#>  [6] "2020-07-01" "2020-07-31" "2020-08-31" "2020-10-01" "2020-10-31"
+#> [11] "2020-12-01" "2020-12-31" "2021-01-31"
 ```
 
 `time_seq()` doesn’t mind mixing dates and datetimes
@@ -679,20 +739,20 @@ from, to and by
 time_seq_v(from = start, 
            to = end, 
            timespan("months", 1:3))
-#>  [1] "2020-01-31" "2020-02-29" "2020-03-31" "2020-04-30" "2020-05-31"
-#>  [6] "2020-06-30" "2020-07-31" "2020-08-31" "2020-09-30" "2020-10-31"
-#> [11] "2020-11-30" "2020-12-31" "2021-01-31" "2020-01-31" "2020-03-31"
-#> [16] "2020-05-31" "2020-07-31" "2020-09-30" "2020-11-30" "2021-01-31"
-#> [21] "2020-01-31" "2020-04-30" "2020-07-31" "2020-10-31" "2021-01-31"
+#>  [1] "2020-01-31" "2020-03-01" "2020-03-31" "2020-05-01" "2020-05-31"
+#>  [6] "2020-07-01" "2020-07-31" "2020-08-31" "2020-10-01" "2020-10-31"
+#> [11] "2020-12-01" "2020-12-31" "2021-01-31" "2020-01-31" "2020-03-31"
+#> [16] "2020-05-31" "2020-07-31" "2020-10-01" "2020-12-01" "2021-01-31"
+#> [21] "2020-01-31" "2020-05-01" "2020-07-31" "2020-10-31" "2021-01-31"
 # Equivalent to 
 c(time_seq(start, end, "month"),
   time_seq(start, end, "2 months"),
   time_seq(start, end, "3 months"))
-#>  [1] "2020-01-31" "2020-02-29" "2020-03-31" "2020-04-30" "2020-05-31"
-#>  [6] "2020-06-30" "2020-07-31" "2020-08-31" "2020-09-30" "2020-10-31"
-#> [11] "2020-11-30" "2020-12-31" "2021-01-31" "2020-01-31" "2020-03-31"
-#> [16] "2020-05-31" "2020-07-31" "2020-09-30" "2020-11-30" "2021-01-31"
-#> [21] "2020-01-31" "2020-04-30" "2020-07-31" "2020-10-31" "2021-01-31"
+#>  [1] "2020-01-31" "2020-03-01" "2020-03-31" "2020-05-01" "2020-05-31"
+#>  [6] "2020-07-01" "2020-07-31" "2020-08-31" "2020-10-01" "2020-10-31"
+#> [11] "2020-12-01" "2020-12-31" "2021-01-31" "2020-01-31" "2020-03-31"
+#> [16] "2020-05-31" "2020-07-31" "2020-10-01" "2020-12-01" "2021-01-31"
+#> [21] "2020-01-31" "2020-05-01" "2020-07-31" "2020-10-31" "2021-01-31"
 ```
 
 ## `time_seq_sizes()`
@@ -731,11 +791,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2025-W08"
+#> [1] "2025-W09"
 iso_week(today(), day = TRUE)
-#> [1] "2025-W08-2"
+#> [1] "2025-W09-4"
 iso_week(today(), year = FALSE)
-#> [1] "W08"
+#> [1] "W09"
 ```
 
 ## `time_cut()`
@@ -759,7 +819,7 @@ weekly_data |>
   scale_x_date(breaks = date_breaks, labels = scales::label_date_short()) 
 ```
 
-![](man/figures/README-unnamed-chunk-36-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-40-1.png)<!-- -->
 
 ``` r
 
@@ -769,4 +829,4 @@ flights |>
   scale_x_datetime(breaks = time_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-36-2.png)<!-- -->
+![](man/figures/README-unnamed-chunk-40-2.png)<!-- -->

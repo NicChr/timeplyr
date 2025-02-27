@@ -42,8 +42,8 @@ period_add.default <- function(x, add,
     if (roll_month == "xlast" || roll_month == "xfirst"){
       out <- x
       l2r <- add >= 0L
-      if (length(add) < length(x)){
-        add <- rep_len(l2r, length(x))
+      if (length(l2r) < length(x)){
+        l2r <- rep_len(l2r, length(x))
       }
       pos <- cheapr::val_find(l2r, TRUE)
       neg <- cheapr::val_find(l2r, FALSE)

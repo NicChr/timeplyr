@@ -124,7 +124,9 @@ automatically choosing periods for units larger than an hour and durations for u
 smaller than a day without the user having to contemplate which to use.
 
 ```{r}
-# The lubridate and timeplyr equivalents for info
+
+# The lubridate and timeplyr equivalents
+
 time_add(dst, "second"); dst + dseconds(1)
 time_add(dst, "minute"); dst + dminutes(1)
 time_add(dst, "hour"); dst + dhours(1)
@@ -144,6 +146,53 @@ end <- ymd_hms("2010-10-24 02:00:00", tz = "GB")
 
 time_diff(start, end, "years")
 interval(start, end) / years(1)
+```
+
+When months and years are involved, timeplyr rolls impossible dates 
+forward by default which is different to lubridate which rolls backwards by
+default
+
+```{r}
+leap <- dmy("29-02-2020")
+
+leap |> time_add("year"); leap |> add_with_rollback(years(1))
+```
+
+timeplyr handles month addition symmetrically by rolling backwards when 
+adding negative months
+
+```{r}
+leap |> time_subtract("year")
+```
+
+This can all be controlled through the `roll_month` argument which has 
+options 'xfirst', 'xlast', 'preday', 'postday', 'boundary', 'full' and 'NA'.
+The 'xfirst' and 'xlast' options are timeplyr specific and signify crossed-first
+and crossed-last dates respectively. 'xlast' is set by default package-wide.
+
+The choice of rolling impossible dates can affect time difference calculations.
+
+```{r}
+# timeplyr 
+leap_almost_one_year_old <- dmy("28-02-2021")
+cat("timeplyr: ", time_diff(leap, leap_almost_one_year_old, "years"), "\n", 
+    "lubridate: ", interval(leap, leap_almost_one_year_old) / years(1),
+    sep = "")
+```
+
+In the above example timeplyr lets leaplings be younger for an extra day!
+
+
+Monthly time differences in timeplyr are symmetric, regardless if 
+`x > y` or `x < y`
+
+```{r}
+time_diff(leap, dmy("28-02-2021") + days(0:1), "years")
+time_diff(leap, dmy("01-03-2019") - days(0:1), "years")
+
+# Not symmetric
+interval(leap, dmy("28-02-2021") + days(0:1)) / years(1)
+interval(leap, dmy("01-03-2019") - days(0:1)) / years(1)
 ```
 
 
