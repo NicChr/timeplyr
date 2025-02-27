@@ -2,9 +2,17 @@
 % Please edit documentation in R/time_arithmetic.R
 \name{time_add}
 \alias{time_add}
+\alias{time_subtract}
 \title{Add/subtract timespans to dates and date-times}
 \usage{
 time_add(
+  x,
+  timespan,
+  roll_month = getOption("timeplyr.roll_month", "xlast"),
+  roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))
+)
+
+time_subtract(
   x,
   timespan,
   roll_month = getOption("timeplyr.roll_month", "xlast"),

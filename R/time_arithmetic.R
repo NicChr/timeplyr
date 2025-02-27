@@ -39,7 +39,7 @@ period_add.default <- function(x, add,
   if (timespan_unit(add) == "days" && lubridate::tz(x) == "UTC"){
     x + (timespan_num(add) * 86400)
   } else {
-    if (roll_month == "xlast"){
+    if (roll_month == "xlast" || roll_month == "xfirst"){
       out <- x
       l2r <- add >= 0L
       if (length(add) < length(x)){
@@ -52,12 +52,12 @@ period_add.default <- function(x, add,
       out[pos] <- C_time_add(
         maybe_scalar_sset(x, pos),
         timespan_as_timechange_period(maybe_scalar_sset(add, pos)),
-        "postday", roll_dst
+        scalar_if_else(roll_month == "xlast", "postday", "preday"), roll_dst
       )
       out[neg] <- C_time_add(
         maybe_scalar_sset(x, neg),
         timespan_as_timechange_period(maybe_scalar_sset(add, neg)),
-        "preday", roll_dst
+        scalar_if_else(roll_month == "xlast", "preday", "postday"), roll_dst
       )
       out[na] <- NA
       out
@@ -71,8 +71,9 @@ period_add.default <- function(x, add,
 period_add.Date <- function(x, add, roll_month = getOption("timeplyr.roll_month", "xlast"), ...){
   num <- timespan_num(add)
   unit <- timespan_unit(add)
+
   # The match number is important as it lines up with what the C++ code expects
-  roll_choice <- match(roll_month, c("preday", "postday", "xlast", "NA"))
+  roll_choice <- match(roll_month, c("preday", "postday", "xlast", "xfirst", "NA"))
 
   if (is.na(roll_choice)){
     # Helpful error msg
@@ -122,6 +123,7 @@ period_add.Date <- function(x, add, roll_month = getOption("timeplyr.roll_month"
 #'
 #' @returns
 #' A date, date-time, or other time-based vector.
+#'
 #' @export
 time_add <- function(x, timespan,
                      roll_month = getOption("timeplyr.roll_month", "xlast"),
@@ -156,6 +158,8 @@ time_add <- function(x, timespan,
     }
   }
 }
+#' @rdname time_add
+#' @export
 time_subtract <- function(x, timespan,
                           roll_month = getOption("timeplyr.roll_month", "xlast"),
                           roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))){
@@ -190,6 +194,7 @@ clock_seconds <- function(x){
 
 # Internal function to calculate differences in months
 # arg `n` is used for differences in blocks of multiple months
+# e.g. years are blocks of 12 months
 diff_months <- function(x, y, n = 1L, fractional = FALSE, ...){
   set_time_cast(x, y)
   UseMethod("diff_months", x)
@@ -364,8 +369,9 @@ diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
 
   if (fractional){
     temp <- new_timespan("days", out * n)
-    int_end1 <- time_add(x, temp)
-    int_end2 <- time_add(x, temp + cheapr::cheapr_if_else(l2r, n, -n))
+    int_end1 <- time_add(x, temp, roll_month = "xlast", roll_dst = c("NA", "xfirst"))
+    int_end2 <- time_add(x, temp + cheapr::cheapr_if_else(l2r, n, -n),
+                         roll_month = "xlast", roll_dst = c("NA", "xfirst"))
     fraction <- strip_attrs(
       (unclass(y) - unclass(int_end1)) / abs(unclass(int_end2) - unclass(int_end1))
     )

@@ -1,16 +1,17 @@
 # timeplyr 1.0.1
 
+- New options 'xfirst' and 'xlast' for 'timeplyr.roll_month' to signify
+how to handle impossible dates.
+When adding or subtracting months, when 'xlast' is chosen, 
+the date which crosses impossible intervals last is returned and likewise
+when 'xfirst' is chosen, the date which crosses the interval first is returned.
+The default option is now 'xlast' and time differences are calculated using
+'xlast' for consistency. This is in contrast to lubridate which calculates
+time differences using 'preday'.
+
+
 - New function `time_add` for adding timespans to dates, date-times and other
 time-based vectors.
-
-- Time differences in months and years between dates that have incompatible
-days of the month are now calculated using a roll-forward method. 
-For example, if the start date is 2000-02-29, a year is said to have passed
-once 2001-03-01 is reached instead of 2000-02-28 as was the previous logic. 
-This change is also reflect in the "timeplyr.roll_month" option which is
-now "postday" by default. A small caveat to be aware of is that "preday" is
-used for calculating time differences when the start date is an earlier point
-in time than the end date for a more symmetrical calculation. 
 
 - Internally much of the methodology for calculating time differences has been
 re-written to be simpler and in many cases faster.

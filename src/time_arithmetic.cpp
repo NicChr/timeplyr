@@ -33,6 +33,7 @@ int add_months(int date, int months_add, int roll_month){
       year_month next_month = year_month(ymd.year(), ymd.month()) + months(1);
       ymd = next_month/day(1);
     }
+    break;
     }
     default: {
       return NA_INTEGER;
