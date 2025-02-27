@@ -330,37 +330,50 @@ plural_unit_to_single <- function(x){
 # Accepts an estimate ala (interval / duration)
 # Start datetime, end datetime, and period object
 adj_dur_est <- function (est, start, end, width){
-  unit <- plural_unit_to_single(timespan_unit(width))
-  num <- timespan_num(width)
-  period <- `names<-`(list(numeric()), unit)
-
-  modify_period <- function(x, with){
-    x[[1L]] <- with
-    x
-  }
+#   unit <- plural_unit_to_single(timespan_unit(width))
+#   num <- timespan_num(width)
+#   period <- `names<-`(list(numeric()), unit)
+#   modify_period <- function(x, with){
+#     x[[1L]] <- with
+#     x
+#   }
 
   est <- ceiling(est)
-  up_date <- C_time_add(
-    start, modify_period(period, cheapr::val_replace(num * est, NaN, NA)),
-    "postday", c("NA", "xfirst")
+  up_date <- time_add(
+    start, cheapr::val_replace(width * est, NaN, NA),
+    roll_month = "xlast", roll_dst = c("NA", "xfirst")
   )
+  # up_date <- C_time_add(
+  #   start, modify_period(period, cheapr::val_replace(num * est, NaN, NA)),
+  #   "postday", c("NA", "xfirst")
+  # )
   while (length(which <- which(up_date < end))) {
     est[which] <- est[which] + 1
-    up_date[which] <- C_time_add(
+    up_date[which] <- time_add(
       start[which],
-      modify_period(period, num[which] * est[which]),
-      "postday", c("NA", "xfirst")
+      width[which] * est[which],
+      roll_month = "xlast", roll_dst = c("NA", "xfirst")
     )
+    # up_date[which] <- C_time_add(
+    #   start[which],
+    #   modify_period(period, num[which] * est[which]),
+    #   "postday", c("NA", "xfirst")
+    # )
   }
   low_date <- up_date
   while (length(which <- which(low_date > end))) {
     est[which] <- est[which] - 1
     up_date[which] <- low_date[which]
-    low_date[which] <- C_time_add(
+    low_date[which] <- time_add(
       start[which],
-      modify_period(period, width[which] * est[which]),
-      "postday", c("NA", "xfirst")
+      width[which] * est[which],
+      roll_month = "xlast", roll_dst = c("NA", "xfirst")
     )
+    # low_date[which] <- C_time_add(
+    #   start[which],
+    #   modify_period(period, num[which] * est[which]),
+    #   "postday", c("NA", "xfirst")
+    # )
   }
   frac <- ( unclass(end) - unclass(low_date) ) /
     ( unclass(up_date) - unclass(low_date) )

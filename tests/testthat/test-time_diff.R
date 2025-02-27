@@ -261,23 +261,12 @@ test_that("grid of dates and date-times", {
   minutes <- timespan("minutes", 1)
   seconds <- timespan("seconds", 1)
 
+  # Dates
   date_grid <- lubridate::dmy("01-01-2003") + seq(0, ceiling(365.24*3), 3)
   combs <- expand.grid(a = date_grid, b = date_grid)
-  no_roll_combs <- cheapr::sset(combs, lubridate::mday(combs$b) <= 28 & lubridate::mday(combs$a) <= 28)
-  roll_combs <- cheapr::sset(combs, lubridate::mday(combs$b) >= 28)
-
-  # Dates
-  a <- no_roll_combs$a
-  b <- no_roll_combs$b
-  test_all(a, b)
-  test_all(as_datetime2(a), as_datetime2(b))
-  a <- roll_combs$a
-  b <- roll_combs$b
-  test_all(a, b, tol_ = 0.05)
-  test_all(as_datetime2(a), as_datetime2(b), tol_ = 0.05)
+  test_all(combs$a, combs$b)
 
   # Date-times (no DST rolling)
-
   set.seed(71243)
   start <- lubridate::dmy_hms("01-06-2003 00:00:00", tz = "Europe/London")
   end <- time_add(start, months * 1)
@@ -286,13 +275,9 @@ test_that("grid of dates and date-times", {
   datetime_grid <- time_add(datetime_grid, years * sample.int(10, length(datetime_grid), TRUE) - 1L)
 
   combs <- expand.grid(a = datetime_grid, b = datetime_grid)
-
-  a <- combs$a
-  b <- combs$b
-  test_all(a, b)
+  test_all(combs$a, combs$b)
 
   # Date-times (DST rolling)
-
   set.seed(71243)
   start <- lubridate::dmy_hms("24-10-2003 00:00:00", tz = "Europe/London")
   end <- time_add(start, days * 5)
@@ -301,12 +286,7 @@ test_that("grid of dates and date-times", {
   datetime_grid <- time_add(datetime_grid, years * sample.int(10, length(datetime_grid), TRUE) - 1L)
 
   combs <- expand.grid(a = datetime_grid, b = datetime_grid)
-
-  a <- combs$a
-  b <- combs$b
-
-  test_all(a, b)
-
+  test_all(combs$a, combs$b)
   # Test this as well
 
   expect_equal(

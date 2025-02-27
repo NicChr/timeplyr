@@ -209,18 +209,19 @@ diff_months.default <- function(x, y, n = 1L, fractional = FALSE, ...){
 #' @export
 diff_months.Date <- function(x, y, n = 1L, fractional = FALSE, ...){
 
-  start <- data.table::as.IDate(x)
-  end <- data.table::as.IDate(y)
-  sy <- data.table::year(start)
-  sm <- data.table::month(start)
-  ey <- data.table::year(end)
-  em <- data.table::month(end)
-  smd <- data.table::mday(start)
-  emd <- data.table::mday(end)
+  x <- data.table::as.IDate(x)
+  y <- data.table::as.IDate(y)
+  sy <- data.table::year(x)
+  ey <- data.table::year(y)
+  sm <- data.table::month(x)
+  em <- data.table::month(y)
+  smd <- data.table::mday(x)
+  emd <- data.table::mday(y)
 
   out <- (12L * (ey - sy)) + (em - sm)
 
-  l2r <- cheapr::na_replace(end >= start, TRUE)
+  l2r <- cheapr::na_replace(y >= x, TRUE)
+
   if (length(l2r) < length(n)){
     l2r <- rep_len(l2r, length(n))
   }
@@ -232,16 +233,21 @@ diff_months.Date <- function(x, y, n = 1L, fractional = FALSE, ...){
   if (fractional){
     months_add <- new_timespan("months", out * n)
 
-    small_int_start <- cpp_add_months(start, months_add, roll_month = 3L)
+    small_int_start <- cpp_add_months(x, months_add, roll_month = 3L)
+
+    if (identical(y, small_int_start)){
+      return(out)
+    }
+
     big_int_end <- cpp_add_months(
-      start, (months_add + cheapr::cheapr_if_else(l2r, n, -n)),
+      x, (months_add + cheapr::cheapr_if_else(l2r, n, -n)),
       roll_month = 3L
     )
     fraction <- strip_attrs(
-      (unclass(end) - unclass(small_int_start)) /
+      (unclass(y) - unclass(small_int_start)) /
         abs(unclass(big_int_end) - unclass(small_int_start))
     )
-    fraction[cheapr::which_(start == end)] <- 0
+    fraction[cheapr::which_(x == y)] <- 0
     if (!all_val(fraction, 0)){
       out <- out + fraction
     }
@@ -249,20 +255,20 @@ diff_months.Date <- function(x, y, n = 1L, fractional = FALSE, ...){
   out
 }
 #' @export
-diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
+diff_months.POSIXt <- function(x, y, n = 1L, fractional = FALSE, ...){
 
   x <- as.POSIXct(x)
   y <- as.POSIXct(y)
 
-  start <- as.POSIXlt(x)
-  end <- as.POSIXlt(y)
+  xlt <- as.POSIXlt(x)
+  ylt <- as.POSIXlt(y)
 
-  sy <- start$year
-  ey <- end$year
-  sm <- start$mon
-  em <- end$mon
-  smd <- start$mday
-  emd <- end$mday
+  sy <- xlt$year
+  ey <- ylt$year
+  sm <- xlt$mon
+  em <- ylt$mon
+  smd <- xlt$mday
+  emd <- ylt$mday
 
   out <- (12L * (ey - sy)) + (em - sm)
 
@@ -295,6 +301,11 @@ diff_months.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
         "preday", c("NA", "xfirst")
       )
     )
+
+    if (identical(y, small_int_start)){
+      return(out)
+    }
+
     if (length(n) != 1){
       n <- rep_len2(n, length(out))
     }
@@ -342,7 +353,7 @@ diff_days.Date <- function(x, y, n = 1L, ...){
 }
 
 #' @export
-diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
+diff_days.POSIXt <- function(x, y, n = 1L, fractional = FALSE, ...){
 
   x <- as.POSIXct(x)
   y <- as.POSIXct(y)
@@ -350,14 +361,23 @@ diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
   xlt <- as.POSIXlt(x)
   ylt <- as.POSIXlt(y)
 
-  sdate <- lubridate::make_date(xlt$year + 1900L, xlt$mon + 1L, xlt$mday)
-  edate <- lubridate::make_date(ylt$year + 1900L, ylt$mon + 1L, ylt$mday)
+  sdate <- lubridate::make_date(
+    cheapr::set_add(xlt$year, 1900L),
+    cheapr::set_add(xlt$mon, 1L),
+    xlt$mday
+  )
+  edate <- lubridate::make_date(
+    cheapr::set_add(ylt$year, 1900L),
+    cheapr::set_add(ylt$mon, 1L),
+    ylt$mday
+  )
   storage.mode(sdate) <- "integer"
   storage.mode(edate) <- "integer"
 
   out <- diff_days(sdate, edate)
 
   l2r <- cheapr::na_replace(y >= x, TRUE)
+
   if (length(l2r) < length(n)){
     l2r <- rep_len(l2r, length(n))
   }
@@ -369,11 +389,15 @@ diff_days.POSIXct <- function(x, y, n = 1L, fractional = FALSE, ...){
 
   if (fractional){
     temp <- new_timespan("days", out * n)
-    int_end1 <- time_add(x, temp, roll_month = "xlast", roll_dst = c("NA", "xfirst"))
-    int_end2 <- time_add(x, temp + cheapr::cheapr_if_else(l2r, n, -n),
-                         roll_month = "xlast", roll_dst = c("NA", "xfirst"))
+    small_int_start <- time_add(x, temp)
+
+    if (identical(y, small_int_start)){
+      return(out)
+    }
+
+    big_int_end <- time_add(x, temp + cheapr::cheapr_if_else(l2r, n, -n))
     fraction <- strip_attrs(
-      (unclass(y) - unclass(int_end1)) / abs(unclass(int_end2) - unclass(int_end1))
+      (unclass(y) - unclass(small_int_start)) / abs(unclass(big_int_end) - unclass(small_int_start))
     )
     fraction[cheapr::which_(x == y)] <- 0
     if (!all_val(fraction, 0)){
