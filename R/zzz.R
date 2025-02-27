@@ -1,6 +1,6 @@
 .onAttach <- function(...){
   options(
-    timeplyr.roll_month = getOption("timeplyr.roll_month", "postday"),
+    timeplyr.roll_month = getOption("timeplyr.roll_month", "xlast"),
     timeplyr.roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))
   )
 }

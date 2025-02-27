@@ -10,6 +10,15 @@ timespan_as_timechange_period <- function(x){
   `names<-`(list(timespan_num(x)), plural_unit_to_single(timespan_unit(x)))
 }
 
+# A subset tailored for timechange
+maybe_scalar_sset <- function(x, i){
+  if (length(x) == 1 && length(i) != 0){
+    x
+  } else {
+    x[i]
+  }
+}
+
 # timechange::time_add used for date-times
 # std::chrono (C++20) can also be used for adding months
 # (see earlier commits for method)
@@ -23,21 +32,47 @@ period_add <- function(x, add, ...){
 }
 #' @export
 period_add.default <- function(x, add,
-                               roll_month = getOption("timeplyr.roll_month", "postday"),
+                               roll_month = getOption("timeplyr.roll_month", "xlast"),
                                roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst")),
                                ...){
   x <- lubridate::as_datetime(x)
   if (timespan_unit(add) == "days" && lubridate::tz(x) == "UTC"){
     x + (timespan_num(add) * 86400)
   } else {
-    C_time_add(x, timespan_as_timechange_period(add), roll_month, roll_dst)
+    if (roll_month == "xlast"){
+      out <- x
+      l2r <- add >= 0L
+      if (length(add) < length(x)){
+        add <- rep_len(l2r, length(x))
+      }
+      pos <- cheapr::val_find(l2r, TRUE)
+      neg <- cheapr::val_find(l2r, FALSE)
+      na <- cheapr::na_find(l2r)
+
+      out[pos] <- C_time_add(
+        maybe_scalar_sset(x, pos),
+        timespan_as_timechange_period(maybe_scalar_sset(add, pos)),
+        "postday", roll_dst
+      )
+      out[neg] <- C_time_add(
+        maybe_scalar_sset(x, neg),
+        timespan_as_timechange_period(maybe_scalar_sset(add, neg)),
+        "preday", roll_dst
+      )
+      out[na] <- NA
+      out
+
+    } else {
+      C_time_add(x, timespan_as_timechange_period(add), roll_month, roll_dst)
+    }
   }
 }
 #' @export
-period_add.Date <- function(x, add, roll_month = getOption("timeplyr.roll_month", "postday"), ...){
+period_add.Date <- function(x, add, roll_month = getOption("timeplyr.roll_month", "xlast"), ...){
   num <- timespan_num(add)
   unit <- timespan_unit(add)
-  roll_choice <- match(roll_month, c("preday", "postday", "NA"))
+  # The match number is important as it lines up with what the C++ code expects
+  roll_choice <- match(roll_month, c("preday", "postday", "xlast", "NA"))
 
   if (is.na(roll_choice)){
     # Helpful error msg
@@ -89,7 +124,7 @@ period_add.Date <- function(x, add, roll_month = getOption("timeplyr.roll_month"
 #' A date, date-time, or other time-based vector.
 #' @export
 time_add <- function(x, timespan,
-                     roll_month = getOption("timeplyr.roll_month", "postday"),
+                     roll_month = getOption("timeplyr.roll_month", "xlast"),
                      roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))){
 
   span <- timespan(timespan)
@@ -122,7 +157,7 @@ time_add <- function(x, timespan,
   }
 }
 time_subtract <- function(x, timespan,
-                          roll_month = getOption("timeplyr.roll_month", "postday"),
+                          roll_month = getOption("timeplyr.roll_month", "xlast"),
                           roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))){
   time_add(x, -timespan(timespan), roll_month = roll_month, roll_dst = roll_dst)
 }

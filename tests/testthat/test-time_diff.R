@@ -264,7 +264,7 @@ test_that("grid of dates and date-times", {
   date_grid <- lubridate::dmy("01-01-2003") + seq(0, ceiling(365.24*3), 3)
   combs <- expand.grid(a = date_grid, b = date_grid)
   no_roll_combs <- cheapr::sset(combs, lubridate::mday(combs$b) <= 28 & lubridate::mday(combs$a) <= 28)
-  roll_combs <- cheapr::sset(combs, lubridate::mday(combs$b) > 28)
+  roll_combs <- cheapr::sset(combs, lubridate::mday(combs$b) >= 28)
 
   # Dates
   a <- no_roll_combs$a
@@ -318,7 +318,7 @@ test_that("grid of dates and date-times", {
 
 
   # Manual testing and checking
-  # unit <- days
+  # unit <- weeks
   #
   # res <- time_diff(a, b, unit)
   # target <- time_diff_original(a, b, unit)
@@ -332,5 +332,5 @@ test_that("grid of dates and date-times", {
   #
   # c;d
   # # all.equal(time_diff(c, d, unit), time_diff_original(c, d, unit))
-  # time_diff(c, d, unit);time_diff_original(c, d, unit);time_diff_lubridate(interval(c, d), unit)
+  # time_diff(c, d, unit);time_diff_original(c, d, unit);time_diff_lubridate(lubridate::interval(c, d), unit)
 })

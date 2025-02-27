@@ -342,14 +342,14 @@ adj_dur_est <- function (est, start, end, width){
   est <- ceiling(est)
   up_date <- C_time_add(
     start, modify_period(period, cheapr::val_replace(num * est, NaN, NA)),
-    "preday", c("NA", "xfirst")
+    "postday", c("NA", "xfirst")
   )
   while (length(which <- which(up_date < end))) {
     est[which] <- est[which] + 1
     up_date[which] <- C_time_add(
       start[which],
       modify_period(period, num[which] * est[which]),
-      "preday", c("NA", "xfirst")
+      "postday", c("NA", "xfirst")
     )
   }
   low_date <- up_date
@@ -359,7 +359,7 @@ adj_dur_est <- function (est, start, end, width){
     low_date[which] <- C_time_add(
       start[which],
       modify_period(period, width[which] * est[which]),
-      "preday", c("NA", "xfirst")
+      "postday", c("NA", "xfirst")
     )
   }
   frac <- ( unclass(end) - unclass(low_date) ) /
