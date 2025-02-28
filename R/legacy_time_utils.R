@@ -317,7 +317,7 @@ time_by_list_as_timespan <- function(x){
   num <- time_by_num(x)
 
   if (unit == "numeric"){
-    unit <- NULL
+    unit <- NA_character_
   }
 
   timespan(unit, num)

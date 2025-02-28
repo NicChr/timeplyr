@@ -8,9 +8,9 @@
 \title{Time based version of \code{base::seq()}}
 \usage{
 time_seq(
-  from,
-  to,
-  time_by,
+  from = NULL,
+  to = NULL,
+  time_by = NULL,
   length.out = NULL,
   roll_month = getOption("timeplyr.roll_month", "xlast"),
   roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))

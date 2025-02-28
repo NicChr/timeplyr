@@ -66,10 +66,7 @@ time_grid <- function(x, timespan = granularity(x),
   # Make sure from/to are datetimes if x is datetime
   from <- time_cast(from, x)
   to <- time_cast(to, x)
-  seq_sizes <- time_seq_sizes(from, to, timespan)
-  time_seq_v2(seq_sizes,
-              from = from,
-              timespan)
+  time_seq(from, to, timespan)
 }
 #' @rdname time_core
 #' @export

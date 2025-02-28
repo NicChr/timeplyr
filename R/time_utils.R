@@ -71,6 +71,11 @@ gcd_time_diff <- function(x){
 }
 
 seconds_to_higher_timespan <- function(x){
+
+  if (length(x) > 1){
+    return(x)
+  }
+
   check_length_lte(x, 1)
 
   if (length(x) == 0L){
@@ -131,21 +136,32 @@ period_to_list <- function(x){
 }
 # Calculate size of period unit to expand from and to for specified length
 period_by_calc <- function(from, to, length){
-  set_recycle_args(from, to, length)
-  which_len_1 <- cheapr::val_find(length, 1)
-  sec_diff <- time_diff(from, to, new_timespan("seconds"))
-  out <- lubridate::seconds_to_period(sec_diff / (length - 1))
-  period_info <- collapse::qDF(period_to_list(out))
-  n_unique_slots <- df_ncol(period_info) - rowSums(period_info == 0)
-  which_multi <- which(n_unique_slots > 1L)
-  out[which_multi] <- lubridate::seconds(
-    lubridate::period_to_seconds(out[which_multi])
-  )
-  out[which_len_1] <- lubridate::seconds(0)
-  timespan(out)
+  quo <- (length - 1)
+
+  # This returns `0` when `length == 1`
+  quo[cheapr::val_find(quo, 0)] <- Inf
+
+  # First try and see if we can create a sequence in
+  # whole months, if not then whole days,
+  # if not then it must be in seconds
+
+  month_delta <- time_diff(from, to, new_timespan("months")) / quo
+
+  if (is_whole_number(month_delta)){
+    out <- new_timespan("months", month_delta)
+  } else {
+    day_delta <- time_diff(from, to, new_timespan("days")) / quo
+    if (is_whole_number(day_delta)){
+      out <- new_timespan("days", day_delta)
+    } else {
+      out <- time_diff(from, to, new_timespan("seconds")) / quo
+      out <- seconds_to_higher_timespan(new_timespan("seconds", out))
+    }
+  }
+  out
 }
 num_by_calc <- function(from, to, length){
-  out <- (unclass(to) - unclass(from)) / (length - 1)
+  out <- strip_attrs((unclass(to) - unclass(from)) / (length - 1))
   length <- rep_len(length, length(out))
   out[cheapr::val_find(length, 1)] <- 0
   new_timespan(NA_character_, out)

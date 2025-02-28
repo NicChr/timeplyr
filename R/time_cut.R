@@ -30,8 +30,7 @@ cut_time_using_breaks <- function(x, width, from = NULL, to = NULL){
   }
 
   from <- time_cast(from, x)
-  sizes <- time_seq_sizes(from, to, width)
-  breaks <- time_seq_v2(sizes, from = from, width)
+  breaks <- time_seq(from, to, width)
 
   x <- time_cast(x, breaks)
   out <- cut_time(

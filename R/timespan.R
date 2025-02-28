@@ -78,7 +78,7 @@ new_timespan <- function(units, num = 1L){
 }
 #' @export
 timespan.NULL <- function(units, num = 1L, ...){
-  new_timespan(NA_character_, num)
+  new_timespan(NA_character_, numeric())
 }
 #' @export
 timespan.logical <- function(units, num = 1L, ...){

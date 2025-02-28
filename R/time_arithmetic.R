@@ -36,6 +36,11 @@ period_add.default <- function(x, add,
                                roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst")),
                                ...){
   x <- lubridate::as_datetime(x)
+
+  if (length(add) == 0){
+    return(x[0L])
+  }
+
   if (timespan_unit(add) == "days" && lubridate::tz(x) == "UTC"){
     x + (timespan_num(add) * 86400)
   } else {
