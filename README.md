@@ -94,7 +94,7 @@ timespan("weeks", 1:10)
 #>  [1]  1  2  3  4  5  6  7  8  9 10
 ```
 
-# Additing timespans
+# Adding timespans
 
 ``` r
 
@@ -185,19 +185,30 @@ time_add(dst, "year"); dst + years(1)
 #> [1] "2026-10-26 01:00:00 GMT"
 ```
 
-## Time differences
+# Time differences
 
 Time differences are accurate and simple
 
 ``` r
-start <- ymd_hms("2008-10-27 10:00:00", tz = "GB")
-end <- ymd_hms("2010-10-24 02:00:00", tz = "GB")
+start <- today()
+end <- today() |>  time_add("decade")
 
 time_diff(start, end, "years")
-#> [1] 1.990867
-interval(start, end) / years(1)
-#> [1] 1.990867
+#> [1] 10
+
+for (unit in .period_units){
+    cat(unit, ":", time_diff(start, end, unit), "\n")
+}
+#> seconds : 315532800 
+#> minutes : 5258880 
+#> hours : 87648 
+#> days : 3652 
+#> weeks : 521.7143 
+#> months : 120 
+#> years : 10
 ```
+
+# Months and years
 
 When months and years are involved, timeplyr rolls impossible dates
 forward by default which is different to lubridate which rolls backwards
@@ -257,6 +268,177 @@ interval(leap, dmy("01-03-2019") - days(0:1)) / years(1)
 #> [1] -0.9972678 -1.0000000
 ```
 
+# Fixed time intervals
+
+timeplyr makes use of its own custom time intervals. These are intervals
+of a fixed width. For example, R Dates can be thought of as fixed
+intervals of exactly 1 day width. In fact if you call `time_interval()`
+on a Date vector this is exactly what you get.
+
+``` r
+time_interval(today())
+#> <time_interval> [width:1D]
+#> [1] [2025-02-28, +1D)
+```
+
+Going into more detail, timeplyr uses the ‘resolution’ of the object to
+calculate the default width. Here, ‘resolution’ is defined as the
+‘smallest timespan that differentiates two non-fractional instances in
+time’.
+
+For dates this is one day
+
+``` r
+resolution(today())
+#> [1] 1
+```
+
+For date-times this is one second
+
+``` r
+resolution(now())
+#> [1] 1
+```
+
+Another concept timeplyr introduces is ‘granularity’. This is defined as
+‘the smallest common time difference’ which is a metric designed to
+estimate the level of detail or frequency in which the dates are
+recorded.
+
+In the `flights` dataset, flight information is recorded every hour, or
+within hourly intervals, meaning that the level of detail (or
+granularity) within this dataset is hourly.
+
+``` r
+granularity(flights$time_hour)
+#> <Timespan:hours>
+#> [1] 1
+```
+
+To convert these implicit intervals into explicit intervals we can use
+`time_cut_width` which places these hours into hourly intervals. It
+places them by default into hourly intervals because it calls
+`granularity()` by default.
+
+``` r
+time_cut_width(flights$time_hour) |> head()
+#> <time_interval> [width:1h]
+#> [1] [2013-01-01 05:00:00, +1h) [2013-01-01 05:00:00, +1h)
+#> [3] [2013-01-01 05:00:00, +1h) [2013-01-01 05:00:00, +1h)
+#> [5] [2013-01-01 06:00:00, +1h) [2013-01-01 05:00:00, +1h)
+
+# Identically
+time_cut_width(flights$time_hour, "1 hour") |> head()
+#> <time_interval> [width:1h]
+#> [1] [2013-01-01 05:00:00, +1h) [2013-01-01 05:00:00, +1h)
+#> [3] [2013-01-01 05:00:00, +1h) [2013-01-01 05:00:00, +1h)
+#> [5] [2013-01-01 06:00:00, +1h) [2013-01-01 05:00:00, +1h)
+```
+
+A common task is to places dates into larger time intervals,
+e.g. converting hourly data into weekly data.
+
+``` r
+time_cut_width(flights$time_hour, "week") |> 
+    as_tbl() |> 
+    count(value)
+#> # A tibble: 53 × 2
+#>    value                          n
+#>    <tm_ntrvl>                 <int>
+#>  1 [2013-01-01 05:00:00, +1W)  6099
+#>  2 [2013-01-08 05:00:00, +1W)  6109
+#>  3 [2013-01-15 05:00:00, +1W)  6018
+#>  4 [2013-01-22 05:00:00, +1W)  6060
+#>  5 [2013-01-29 05:00:00, +1W)  6072
+#>  6 [2013-02-05 05:00:00, +1W)  6101
+#>  7 [2013-02-12 05:00:00, +1W)  6255
+#>  8 [2013-02-19 05:00:00, +1W)  6394
+#>  9 [2013-02-26 05:00:00, +1W)  6460
+#> 10 [2013-03-05 05:00:00, +1W)  6549
+#> # ℹ 43 more rows
+```
+
+To get full weeks, simply utilise the `from` arg with `floor_date()`
+
+``` r
+time_cut_width(
+    flights$time_hour, "week" , from = min(floor_date(flights$time_hour, "week"))
+) |> 
+    as_tbl() |> 
+    count(value)
+#> # A tibble: 53 × 2
+#>    value                 n
+#>    <tm_ntrvl>        <int>
+#>  1 [2012-12-30, +1W)  4334
+#>  2 [2013-01-06, +1W)  6118
+#>  3 [2013-01-13, +1W)  6076
+#>  4 [2013-01-20, +1W)  6012
+#>  5 [2013-01-27, +1W)  6072
+#>  6 [2013-02-03, +1W)  6089
+#>  7 [2013-02-10, +1W)  6217
+#>  8 [2013-02-17, +1W)  6349
+#>  9 [2013-02-24, +1W)  6411
+#> 10 [2013-03-03, +1W)  6551
+#> # ℹ 43 more rows
+```
+
+# Interval metadata
+
+Some common metadata functions
+
+``` r
+int <- time_cut_width(today() + days(0:13), timespan("weeks"))
+
+interval_width(int)
+#> <Timespan:weeks>
+#> [1] 1
+interval_range(int)
+#> [1] "2025-02-28" "2025-03-14"
+interval_start(int)
+#>  [1] "2025-02-28" "2025-02-28" "2025-02-28" "2025-02-28" "2025-02-28"
+#>  [6] "2025-02-28" "2025-02-28" "2025-03-07" "2025-03-07" "2025-03-07"
+#> [11] "2025-03-07" "2025-03-07" "2025-03-07" "2025-03-07"
+interval_end(int)
+#>  [1] "2025-03-07" "2025-03-07" "2025-03-07" "2025-03-07" "2025-03-07"
+#>  [6] "2025-03-07" "2025-03-07" "2025-03-14" "2025-03-14" "2025-03-14"
+#> [11] "2025-03-14" "2025-03-14" "2025-03-14" "2025-03-14"
+interval_count(int)
+#> # A tibble: 2 × 2
+#>   interval              n
+#>   <tm_ntrvl>        <int>
+#> 1 [2025-02-28, +1W)     7
+#> 2 [2025-03-07, +1W)     7
+```
+
+# More detail
+
+For the R veterans among you who would like more detail, `timespans` and
+`time_intervals` are both lightweight S3 objects with some very basic
+attributes, making them work quite fast in R.
+
+`timespans` are simply numeric vectors with a time unit attribute.
+
+`time_intervals` are the unclassed version of the time object they are
+representing, along with a `timespan` attribute to record the interval
+width, as well as an attribute to record the original class.
+
+There are many methods written for both objects to ensure they work
+seamlessly with most R functions.
+
+``` r
+timespan("days", 1:3) |> unclass()
+#> [1] 1 2 3
+#> attr(,"unit")
+#> [1] "days"
+time_interval(today()) |>  unclass()
+#> [1] 20147
+#> attr(,"timespan")
+#> <Timespan:days>
+#> [1] 1
+#> attr(,"old_class")
+#> [1] "Date"
+```
+
 ## Convert `ts`, `mts`, `xts`, `zoo`and `timeSeries` objects using `ts_as_tbl`
 
 ``` r
@@ -286,7 +468,7 @@ eu_stock |>
   time_ggplot(time, value, group)
 ```
 
-![](man/figures/README-unnamed-chunk-12-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-21-1.png)<!-- -->
 
 For the next examples we use flights departing from New York City in
 2013.
@@ -379,60 +561,6 @@ flights |>
 #> #   hour <dbl>, minute <dbl>, time_hour <tm_ntrvl>, date <date>
 ```
 
-### We can also make use of timeplyr time intervals
-
-``` r
-quarters <- time_cut_width(flights$date, "quarter")
-is_time_interval(quarters)
-#> [1] TRUE
-interval_count(quarters)
-#> # A tibble: 4 × 2
-#>   interval              n
-#>   <tm_ntrvl>        <int>
-#> 1 [2013-01-01, +3M) 80789
-#> 2 [2013-04-01, +3M) 85369
-#> 3 [2013-07-01, +3M) 86326
-#> 4 [2013-10-01, +3M) 84292
-
-# Or simply
-flights |>
-  time_by(date, "quarter") |>
-  f_count()
-#> # A tibble: 4 x 2
-#> # Time:     date [4]
-#> # Width:    3 months
-#> # Range:    2013-01-01 -- 2014-01-01
-#>   date                  n
-#>   <tm_ntrvl>        <int>
-#> 1 [2013-01-01, +3M) 80789
-#> 2 [2013-04-01, +3M) 85369
-#> 3 [2013-07-01, +3M) 86326
-#> 4 [2013-10-01, +3M) 84292
-```
-
-#### Ensure full weeks by setting `from` to the start of the week
-
-``` r
-start <- dmy("17-Jan-2013")
-flights |> 
-  mutate(week = time_cut_width(date, "weeks", from = floor_date(start, unit = "week"))) |> 
-  f_count(week)
-#> # A tibble: 52 × 2
-#>    week                  n
-#>    <tm_ntrvl>        <int>
-#>  1 [2013-01-13, +1W)  6076
-#>  2 [2013-01-20, +1W)  6012
-#>  3 [2013-01-27, +1W)  6072
-#>  4 [2013-02-03, +1W)  6089
-#>  5 [2013-02-10, +1W)  6217
-#>  6 [2013-02-17, +1W)  6349
-#>  7 [2013-02-24, +1W)  6411
-#>  8 [2013-03-03, +1W)  6551
-#>  9 [2013-03-10, +1W)  6556
-#> 10 [2013-03-17, +1W)  6549
-#> # ℹ 42 more rows
-```
-
 #### Check for missing gaps in time
 
 ``` r
@@ -478,7 +606,7 @@ eu_stock |>
     time_ggplot(date, month_mean, group)
 ```
 
-![](man/figures/README-unnamed-chunk-22-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-29-1.png)<!-- -->
 
 ## By-group rolling (locf) NA fill
 
@@ -677,28 +805,6 @@ flights_calendar |>
 #> 12 Dec     28135
 ```
 
-## `.time_units`
-
-See a list of available time units
-
-``` r
-.time_units
-#>  [1] "picoseconds"  "nanoseconds"  "microseconds" "milliseconds" "seconds"     
-#>  [6] "minutes"      "hours"        "days"         "weeks"        "months"      
-#> [11] "years"        "fortnights"   "quarters"     "semesters"    "olympiads"   
-#> [16] "lustrums"     "decades"      "indictions"   "scores"       "centuries"   
-#> [21] "milleniums"
-```
-
-## `age_years()`
-
-Calculate ages (years) accurately
-
-``` r
-age_years(dmy("28-02-2000"))
-#> [1] 24
-```
-
 ## `time_seq()`
 
 A lubridate version of `seq()` for dates and datetimes
@@ -729,16 +835,13 @@ time_seq(start, as_datetime(end), "2 weeks")
 #> [25] "2021-01-01 UTC" "2021-01-15 UTC" "2021-01-29 UTC"
 ```
 
-## `time_seq_v()`
-
-A vectorised version of `time_seq()` Currently it is vectorised over
-from, to and by
+It is also vectorised
 
 ``` r
 # 3 sequences
-time_seq_v(from = start, 
-           to = end, 
-           timespan("months", 1:3))
+time_seq(from = start, 
+         to = end, 
+         timespan("months", 1:3))
 #>  [1] "2020-01-31" "2020-03-01" "2020-03-31" "2020-05-01" "2020-05-31"
 #>  [6] "2020-07-01" "2020-07-31" "2020-08-31" "2020-10-01" "2020-10-31"
 #> [11] "2020-12-01" "2020-12-31" "2021-01-31" "2020-01-31" "2020-03-31"
@@ -772,19 +875,6 @@ seqs
 #> [6] "2020-01-31" "2020-02-10" "2020-02-20"
 ```
 
-Dealing with impossible dates and datetimes is very simple
-
-``` r
-time_seq(start, end, "month", roll_month = "postday") # roll impossible months forward
-#>  [1] "2020-01-31" "2020-03-01" "2020-03-31" "2020-05-01" "2020-05-31"
-#>  [6] "2020-07-01" "2020-07-31" "2020-08-31" "2020-10-01" "2020-10-31"
-#> [11] "2020-12-01" "2020-12-31" "2021-01-31"
-time_seq(start, end, "month", roll_month = "NA") # no roll
-#>  [1] "2020-01-31" NA           "2020-03-31" NA           "2020-05-31"
-#>  [6] NA           "2020-07-31" "2020-08-31" NA           "2020-10-31"
-#> [11] NA           "2020-12-31" "2021-01-31"
-```
-
 ## `iso_week()`
 
 Simple function to get formatted ISO weeks.
@@ -793,7 +883,7 @@ Simple function to get formatted ISO weeks.
 iso_week(today())
 #> [1] "2025-W09"
 iso_week(today(), day = TRUE)
-#> [1] "2025-W09-4"
+#> [1] "2025-W09-5"
 iso_week(today(), year = FALSE)
 #> [1] "W09"
 ```
@@ -819,7 +909,7 @@ weekly_data |>
   scale_x_date(breaks = date_breaks, labels = scales::label_date_short()) 
 ```
 
-![](man/figures/README-unnamed-chunk-40-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-44-1.png)<!-- -->
 
 ``` r
 
@@ -829,4 +919,4 @@ flights |>
   scale_x_datetime(breaks = time_breaks, labels = scales::label_date_short())
 ```
 
-![](man/figures/README-unnamed-chunk-40-2.png)<!-- -->
+![](man/figures/README-unnamed-chunk-44-2.png)<!-- -->

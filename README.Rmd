@@ -1,6 +1,9 @@
 ---
 title:
 output: github_document
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, echo = FALSE}
@@ -15,24 +18,29 @@ knitr::opts_chunk$set(
 ```
 
 <!-- badges: start -->
+
 [![R-CMD-check](https://github.com/NicChr/timeplyr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/NicChr/timeplyr/actions/workflows/R-CMD-check.yaml)
-[![CRAN status](https://www.r-pkg.org/badges/version/timeplyr)](https://CRAN.R-project.org/package=timeplyr)
-[![Codecov test coverage](https://codecov.io/gh/NicChr/timeplyr/graph/badge.svg)](https://app.codecov.io/gh/NicChr/timeplyr)
-<!-- badges: end --> 
+[![CRAN
+status](https://www.r-pkg.org/badges/version/timeplyr)](https://CRAN.R-project.org/package=timeplyr)
+[![Codecov test
+coverage](https://codecov.io/gh/NicChr/timeplyr/graph/badge.svg)](https://app.codecov.io/gh/NicChr/timeplyr)
+<!-- badges: end -->
 
 # timeplyr
 
 # **Fast Tidy Tools for Date and Datetime Manipulation**
 
-This package provides a set of functions to make working with date and datetime data much easier!
+This package provides a set of functions to make working with date and
+datetime data much easier!
 
-While most time-based packages are designed to work 
-with clean and pre-aggregate data, timeplyr contains a set of tidy tools to 
-complete, expand and summarise both raw and aggregate date/datetime data.
+While most time-based packages are designed to work with clean and
+pre-aggregate data, timeplyr contains a set of tidy tools to complete,
+expand and summarise both raw and aggregate date/datetime data.
 
-Significant efforts have been made to ensure that grouped calculations are 
-fast and efficient thanks to the excellent functionality within the 
-[collapse](https://sebkrantz.github.io/collapse/reference/collapse-package.html) package.
+Significant efforts have been made to ensure that grouped calculations
+are fast and efficient thanks to the excellent functionality within the
+[collapse](https://sebkrantz.github.io/collapse/reference/collapse-package.html)
+package.
 
 ## Installation
 
@@ -65,8 +73,8 @@ start |>
   time_add("year")
 ```
 
-Internally timeplyr makes use of custom `timespan` objects for various 
-time manipulations. 
+Internally timeplyr makes use of custom `timespan` objects for various
+time manipulations.
 
 ```{r}
 timespan("months"); timespan("1 month"); timespan(months(1))
@@ -74,7 +82,7 @@ timespan("months"); timespan("1 month"); timespan(months(1))
 timespan("weeks", 1:10)
 ```
 
-# Additing timespans
+# Adding timespans
 
 ```{r}
 
@@ -96,12 +104,12 @@ start |>
   time_add(timespan("years", 0:10))
 ```
 
-Time arithmetic involving days, weeks, months and years 
-is equivalent to using lubridate periods.
+Time arithmetic involving days, weeks, months and years is equivalent to
+using lubridate periods.
 
-Any arithmetic involving units less than days, e.g. hours, minutes and seconds, 
-uses normal duration arithmetic in terms of how many seconds have passed.
-This is equivalent to using lubridate durations.
+Any arithmetic involving units less than days, e.g. hours, minutes and
+seconds, uses normal duration arithmetic in terms of how many seconds
+have passed. This is equivalent to using lubridate durations.
 
 ```{r}
 # Clocks go back 1 hour at exactly 2 am
@@ -118,9 +126,9 @@ dst + hours(0:2)
 ```
 
 Period-based hours, minutes and seconds are not as commonly used as
-literal duration-based hours, minutes and seconds. 
-Therefore timeplyr tries to simplify things by removing the distinction and
-automatically choosing periods for units larger than an hour and durations for units
+literal duration-based hours, minutes and seconds. Therefore timeplyr
+tries to simplify things by removing the distinction and automatically
+choosing periods for units larger than an hour and durations for units
 smaller than a day without the user having to contemplate which to use.
 
 ```{r}
@@ -136,21 +144,26 @@ time_add(dst, "month"); dst + months(1)
 time_add(dst, "year"); dst + years(1)
 ```
 
-## Time differences
+# Time differences
 
 Time differences are accurate and simple
 
 ```{r}
-start <- ymd_hms("2008-10-27 10:00:00", tz = "GB")
-end <- ymd_hms("2010-10-24 02:00:00", tz = "GB")
+start <- today()
+end <- today() |>  time_add("decade")
 
 time_diff(start, end, "years")
-interval(start, end) / years(1)
+
+for (unit in .period_units){
+    cat(unit, ":", time_diff(start, end, unit), "\n")
+}
 ```
 
-When months and years are involved, timeplyr rolls impossible dates 
-forward by default which is different to lubridate which rolls backwards by
-default
+# Months and years
+
+When months and years are involved, timeplyr rolls impossible dates
+forward by default which is different to lubridate which rolls backwards
+by default
 
 ```{r}
 leap <- dmy("29-02-2020")
@@ -158,19 +171,21 @@ leap <- dmy("29-02-2020")
 leap |> time_add("year"); leap |> add_with_rollback(years(1))
 ```
 
-timeplyr handles month addition symmetrically by rolling backwards when 
+timeplyr handles month addition symmetrically by rolling backwards when
 adding negative months
 
 ```{r}
 leap |> time_subtract("year")
 ```
 
-This can all be controlled through the `roll_month` argument which has 
-options 'xfirst', 'xlast', 'preday', 'postday', 'boundary', 'full' and 'NA'.
-The 'xfirst' and 'xlast' options are timeplyr specific and signify crossed-first
-and crossed-last dates respectively. 'xlast' is set by default package-wide.
+This can all be controlled through the `roll_month` argument which has
+options 'xfirst', 'xlast', 'preday', 'postday', 'boundary', 'full' and
+'NA'. The 'xfirst' and 'xlast' options are timeplyr specific and signify
+crossed-first and crossed-last dates respectively. 'xlast' is set by
+default package-wide.
 
-The choice of rolling impossible dates can affect time difference calculations.
+The choice of rolling impossible dates can affect time difference
+calculations.
 
 ```{r}
 # timeplyr 
@@ -180,10 +195,10 @@ cat("timeplyr: ", time_diff(leap, leap_almost_one_year_old, "years"), "\n",
     sep = "")
 ```
 
-In the above example timeplyr lets leaplings be younger for an extra day!
+In the above example timeplyr lets leaplings be younger for an extra
+day!
 
-
-Monthly time differences in timeplyr are symmetric, regardless if 
+Monthly time differences in timeplyr are symmetric, regardless if
 `x > y` or `x < y`
 
 ```{r}
@@ -194,6 +209,111 @@ time_diff(leap, dmy("01-03-2019") - days(0:1), "years")
 interval(leap, dmy("28-02-2021") + days(0:1)) / years(1)
 interval(leap, dmy("01-03-2019") - days(0:1)) / years(1)
 ```
+
+# Fixed time intervals
+
+timeplyr makes use of its own custom time intervals. These are intervals
+of a fixed width. 
+For example, R Dates can be thought of as fixed intervals of exactly 1 day width.
+In fact if you call `time_interval()` on a Date vector this is exactly what
+you get.
+
+```{r}
+time_interval(today())
+```
+
+Going into more detail, timeplyr uses the 'resolution' of the object to calculate
+the default width. Here, 'resolution' is defined as the 'smallest timespan that 
+differentiates two non-fractional instances in time'. 
+
+For dates this is one day
+
+```{r}
+resolution(today())
+```
+
+For date-times this is one second
+
+```{r}
+resolution(now())
+```
+
+Another concept timeplyr introduces is 'granularity'. This is defined as 
+'the smallest common time difference' which is a metric designed to 
+estimate the level of detail or frequency in which the dates are recorded.
+
+In the `flights` dataset, flight information is recorded every hour, 
+or within hourly intervals, meaning that the level of detail (or granularity)
+within this dataset is hourly.
+
+```{r}
+granularity(flights$time_hour)
+```
+
+To convert these implicit intervals into explicit intervals we can use
+`time_cut_width` which places these hours into hourly intervals. It places
+them by default into hourly intervals because it calls `granularity()` by default.
+
+```{r}
+time_cut_width(flights$time_hour) |> head()
+
+# Identically
+time_cut_width(flights$time_hour, "1 hour") |> head()
+```
+
+A common task is to places dates into larger time intervals, e.g. converting
+hourly data into weekly data. 
+
+```{r}
+time_cut_width(flights$time_hour, "week") |> 
+    as_tbl() |> 
+    count(value)
+```
+
+To get full weeks, simply utilise the `from` arg with `floor_date()`
+
+```{r}
+time_cut_width(
+    flights$time_hour, "week" , from = min(floor_date(flights$time_hour, "week"))
+) |> 
+    as_tbl() |> 
+    count(value)
+```
+
+# Interval metadata
+
+Some common metadata functions
+
+```{r}
+int <- time_cut_width(today() + days(0:13), timespan("weeks"))
+
+interval_width(int)
+interval_range(int)
+interval_start(int)
+interval_end(int)
+interval_count(int)
+```
+
+# More detail
+
+For the R veterans among you who would like more detail, `timespans` and 
+`time_intervals` are both lightweight S3 objects with some very basic attributes, 
+making them work quite fast in R. 
+
+`timespans` are simply numeric vectors with a time unit attribute.
+
+`time_intervals` are the unclassed version of the time object they are
+representing, along with a `timespan` attribute to record the interval width, 
+as well as an attribute to record the original class. 
+
+There are many methods written for both objects to ensure they work seamlessly 
+with most R functions.
+
+```{r}
+timespan("days", 1:3) |> unclass()
+time_interval(today()) |>  unclass()
+```
+
 
 
 ## Convert `ts`, `mts`, `xts`, `zoo`and `timeSeries` objects using `ts_as_tbl`
@@ -211,8 +331,8 @@ eu_stock |>
   time_ggplot(time, value, group)
 ```
 
-
-For the next examples we use flights departing from New York City in 2013.
+For the next examples we use flights departing from New York City in
+2013.
 
 ```{r}
 library(nycflights13)
@@ -237,8 +357,8 @@ flights_monthly <- flights |>
 flights_monthly
 ```
 
-We can then use this to create a monthly summary of the number of flights
-and average arrival delay
+We can then use this to create a monthly summary of the number of
+flights and average arrival delay
 
 ```{r}
 flights_monthly |>
@@ -246,34 +366,12 @@ flights_monthly |>
             mean_arr_delay = mean(arr_delay, na.rm = TRUE))
 ```
 
-If the time unit is left unspecified, the `time` functions try to 
-find the highest time unit possible.
+If the time unit is left unspecified, the `time` functions try to find
+the highest time unit possible.
 
 ```{r}
 flights |>
   time_by(time_hour)
-```
-
-### We can also make use of timeplyr time intervals
-
-```{r}
-quarters <- time_cut_width(flights$date, "quarter")
-is_time_interval(quarters)
-interval_count(quarters)
-
-# Or simply
-flights |>
-  time_by(date, "quarter") |>
-  f_count()
-```
-
-#### Ensure full weeks by setting `from` to the start of the week
-
-```{r}
-start <- dmy("17-Jan-2013")
-flights |> 
-  mutate(week = time_cut_width(date, "weeks", from = floor_date(start, unit = "week"))) |> 
-  f_count(week)
 ```
 
 #### Check for missing gaps in time
@@ -328,17 +426,16 @@ roll_na_fill(x, g = g) # Very efficient on large data too
 
 ## `year_month` and `year_quarter`
 
-timeplyr has its own lightweight 'yearmonth' and `yearquarter' classes
+timeplyr has its own lightweight 'yearmonth' and \`yearquarter' classes
 inspired by the excellent 'zoo' and 'tsibble' packages.
-
 
 ```{r}
 today <- today()
 year_month(today)
 ```
 
-The underlying data for a `year_month` is the number of months
-since 1 January 1970 (epoch).
+The underlying data for a `year_month` is the number of months since 1
+January 1970 (epoch).
 
 ```{r}
 unclass(year_month("1970-01-01"))
@@ -354,7 +451,8 @@ year_quarter(today) + 0:4
 
 ## `time_elapsed()`
 
-Let's look at the time between consecutive flights for a specific flight number
+Let's look at the time between consecutive flights for a specific flight
+number
 
 ```{r}
 set.seed(42)
@@ -384,8 +482,8 @@ all_flights |>
   f_arrange(desc(relative_iqr))
 ```
 
-`time_seq_id()` allows us to create unique IDs for regular sequences
-A new ID is created every time there is a gap in the sequence
+`time_seq_id()` allows us to create unique IDs for regular sequences A
+new ID is created every time there is a gap in the sequence
 
 ```{r}
 flights |>
@@ -397,7 +495,7 @@ flights |>
 ```
 
 We can see that the gaps typically occur at 11pm and the sequence
-resumes at 5am. 
+resumes at 5am.
 
 ### Other convenience functions are included below
 
@@ -411,8 +509,8 @@ flights_calendar <- flights |>
     reframe(calendar(time_hour))
 ```
 
-Now that gaps in time have been filled and we have 
-joined our date table, it is easy to count by any time dimension we like
+Now that gaps in time have been filled and we have joined our date
+table, it is easy to count by any time dimension we like
 
 ```{r}
 flights_calendar |> 
@@ -421,22 +519,6 @@ flights_calendar |>
   f_count(isoweek = iso_week(time))
 flights_calendar |> 
   f_count(month_l)
-```
-
-## `.time_units`
-
-See a list of available time units
-
-```{r}
-.time_units
-```
-
-## `age_years()`
-
-Calculate ages (years) accurately
-
-```{r}
-age_years(dmy("28-02-2000"))
 ```
 
 ## `time_seq()`
@@ -448,7 +530,6 @@ start <- dmy(31012020)
 end <- start + years(1)
 seq(start, end, by = "month") # Base R version
 time_seq(start, end, "month") # lubridate version 
-
 ```
 
 `time_seq()` doesn't mind mixing dates and datetimes
@@ -457,16 +538,13 @@ time_seq(start, end, "month") # lubridate version
 time_seq(start, as_datetime(end), "2 weeks")
 ```
 
-## `time_seq_v()`
-
-A vectorised version of `time_seq()`
-Currently it is vectorised over from, to and by
+It is also vectorised
 
 ```{r}
 # 3 sequences
-time_seq_v(from = start, 
-           to = end, 
-           timespan("months", 1:3))
+time_seq(from = start, 
+         to = end, 
+         timespan("months", 1:3))
 # Equivalent to 
 c(time_seq(start, end, "month"),
   time_seq(start, end, "2 months"),
@@ -474,6 +552,7 @@ c(time_seq(start, end, "month"),
 ```
 
 ## `time_seq_sizes()`
+
 Vectorised function that calculates time sequence lengths
 
 ```{r}
@@ -484,13 +563,6 @@ seq_lengths
 # Use time_seq_v2() if you know the sequence lengths
 seqs <- time_seq_v2(seq_lengths, start, timespan("days", c(1, 5, 10)))
 seqs
-```
-
-Dealing with impossible dates and datetimes is very simple
-
-```{r}
-time_seq(start, end, "month", roll_month = "postday") # roll impossible months forward
-time_seq(start, end, "month", roll_month = "NA") # no roll
 ```
 
 ## `iso_week()`
@@ -528,4 +600,3 @@ flights |>
   geom_bar(fill = "#0072B2") + 
   scale_x_datetime(breaks = time_breaks, labels = scales::label_date_short())
 ```
-

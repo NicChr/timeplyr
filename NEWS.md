@@ -9,7 +9,6 @@ The default option is now 'xlast' and time differences are calculated using
 'xlast' for consistency. This is in contrast to lubridate which calculates
 time differences using 'preday'.
 
-
 - New function `time_add` for adding timespans to dates, date-times and other
 time-based vectors.
 

@@ -283,7 +283,7 @@ diff_months.POSIXt <- function(x, y, n = 1L, fractional = FALSE, ...){
   }
 
   # Adjust for full months & time of day
-  up <- time_add(x, new_timespan("months", out))
+  up <- time_add(x, new_timespan("months", out), roll_month = "xlast")
 
   out <- cheapr::cheapr_if_else(
     l2r,
