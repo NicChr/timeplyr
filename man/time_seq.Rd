@@ -90,7 +90,7 @@ library(lubridate)
 \dontshow{
 .n_dt_threads <- data.table::getDTthreads()
 .n_collapse_threads <- collapse::get_collapse()$nthreads
-data.table::setDTthreads(threads = 2L)
+data.table::setDTthreads(threads = 1L)
 collapse::set_collapse(nthreads = 1L)
 }
 # Dates

@@ -268,14 +268,7 @@ diff_months.POSIXt <- function(x, y, n = 1L, fractional = FALSE, ...){
   xlt <- as.POSIXlt(x)
   ylt <- as.POSIXlt(y)
 
-  sy <- xlt$year
-  ey <- ylt$year
-  sm <- xlt$mon
-  em <- ylt$mon
-  smd <- xlt$mday
-  emd <- ylt$mday
-
-  out <- (12L * (ey - sy)) + (em - sm)
+  out <- (12L * (ylt$year - xlt$year)) + (ylt$mon - xlt$mon)
 
   l2r <- cheapr::na_replace(y >= x, TRUE)
   if (length(l2r) < length(n)){
@@ -349,9 +342,9 @@ diff_days.default <- function(x, y, n = 1L, fractional = FALSE, ...){
   diff_days(x, y, fractional = fractional, n = n, ...)
 }
 #' @export
-diff_days.Date <- function(x, y, n = 1L, ...){
-  out <- divide(unclass(as.Date(y)) - unclass(x), n)
-  if (is_whole_number(out)){
+diff_days.Date <- function(x, y, n = 1L, fractional = FALSE, ...){
+  out <- divide(unclass(as.Date(y)) - unclass(x), cheapr::val_replace(n, 0, NA))
+  if (!fractional || is_whole_number(out)){
     out <- as.integer(out)
   }
   out

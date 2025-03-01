@@ -15,12 +15,12 @@ convert_exotic_units <- function(x){
 }
 # Partial unit matching
 unit_match <- function(x){
-  if (length(x) != 1L) stop("x must be of length 1.")
-  units <- .time_units
-  match_i <- pmatch(x, units,
-                    nomatch = NA_character_,
-                    duplicates.ok = FALSE)
-  .subset(.time_units, match_i)
+  check_length(x, 1)
+  .time_units[
+    pmatch(x, .time_units,
+           nomatch = NA_character_,
+           duplicates.ok = FALSE)
+  ]
 }
 # Unit string parsing
 unit_parse <- function(x){
@@ -122,49 +122,67 @@ unit_to_seconds <- function(x){
   num * scales[unit_match]
 }
 
-period_to_list <- function(x){
-  out <- attributes(unclass(x))
-  seconds <- lubridate::second(x)
-  out[["second"]] <- seconds
-  sum_rng <- lapply(out, function(x) sum(abs(collapse::frange(x, na.rm = TRUE))))
-  keep <- vapply(sum_rng, function(x) isTRUE(cppdoubles::double_gt(x, 0)), FALSE)
-  if (sum(keep) == 0){
-    out["second"]
-  } else {
-    out[keep]
-  }
-}
 # Calculate size of period unit to expand from and to for specified length
-period_by_calc <- function(from, to, length){
-  quo <- (length - 1)
+# period_by_calc2 <- function(from, to, length){
+#   quo <- (length - 1)
+#
+#   # This returns `0` when `length == 1`
+#   quo[cheapr::val_find(quo, 0)] <- Inf
+#
+#   # First try and see if we can create a sequence in
+#   # whole months, if not then whole days,
+#   # if not then it must be in seconds
+#
+#   month_delta <- time_diff(from, to, new_timespan("months")) / quo
+#
+#   if (is_whole_number(month_delta)){
+#     out <- new_timespan("months", month_delta)
+#   } else {
+#     day_delta <- time_diff(from, to, new_timespan("days")) / quo
+#     if (is_whole_number(day_delta)){
+#       out <- new_timespan("days", day_delta)
+#     } else {
+#       out <- time_diff(from, to, new_timespan("seconds")) / quo
+#       out <- seconds_to_higher_timespan(new_timespan("seconds", out))
+#     }
+#   }
+#   out
+# }
 
-  # This returns `0` when `length == 1`
+period_by_calc <- function(from, to, length){
+
+  quo <- (length - 1L)
+
+  # Use `fct` as a factor to multiply and `quo` as a divisor
+  fct <- quo
   quo[cheapr::val_find(quo, 0)] <- Inf
 
-  # First try and see if we can create a sequence in
-  # whole months, if not then whole days,
-  # if not then it must be in seconds
+  # Difference in whole months
+  # multiply this ans by (length - 1) and add to `from`
+  # and if it equals `to` then the ans can be returned
 
-  month_delta <- time_diff(from, to, new_timespan("months")) / quo
-
-  if (is_whole_number(month_delta)){
+  month_delta <- diff_months(from, to, n = quo, fractional = FALSE)
+  up <- from |>
+    time_add(new_timespan("months", month_delta * fct), roll_month = "xlast")
+  if (identical(up, to)){
     out <- new_timespan("months", month_delta)
   } else {
-    day_delta <- time_diff(from, to, new_timespan("days")) / quo
-    if (is_whole_number(day_delta)){
+    day_delta <- diff_days(from, to, n = quo, fractional = FALSE)
+    up <- from |>
+      time_add(new_timespan("days", day_delta * fct))
+    if (identical(up, to)){
       out <- new_timespan("days", day_delta)
     } else {
-      out <- time_diff(from, to, new_timespan("seconds")) / quo
+      out <- time_diff(from, to, new_timespan("seconds", quo))
       out <- seconds_to_higher_timespan(new_timespan("seconds", out))
     }
   }
   out
 }
+
 num_by_calc <- function(from, to, length){
-  out <- strip_attrs((unclass(to) - unclass(from)) / (length - 1))
-  length <- rep_len(length, length(out))
-  out[cheapr::val_find(length, 1)] <- 0
-  new_timespan(NA_character_, out)
+  by <- (unclass(to) - unclass(from)) / (cheapr::val_replace(length - 1, 0, Inf))
+  new_timespan(NA_character_, as.double(by))
 }
 time_by_calc <- function(from, to, length){
   if (is_time(from) && is_time(to)){
@@ -346,23 +364,11 @@ plural_unit_to_single <- function(x){
 # Accepts an estimate ala (interval / duration)
 # Start datetime, end datetime, and period object
 adj_dur_est <- function (est, start, end, width){
-#   unit <- plural_unit_to_single(timespan_unit(width))
-#   num <- timespan_num(width)
-#   period <- `names<-`(list(numeric()), unit)
-#   modify_period <- function(x, with){
-#     x[[1L]] <- with
-#     x
-#   }
-
   est <- ceiling(est)
   up_date <- time_add(
     start, cheapr::val_replace(width * est, NaN, NA),
     roll_month = "xlast", roll_dst = c("NA", "xfirst")
   )
-  # up_date <- C_time_add(
-  #   start, modify_period(period, cheapr::val_replace(num * est, NaN, NA)),
-  #   "postday", c("NA", "xfirst")
-  # )
   while (length(which <- which(up_date < end))) {
     est[which] <- est[which] + 1
     up_date[which] <- time_add(
@@ -370,11 +376,6 @@ adj_dur_est <- function (est, start, end, width){
       width[which] * est[which],
       roll_month = "xlast", roll_dst = c("NA", "xfirst")
     )
-    # up_date[which] <- C_time_add(
-    #   start[which],
-    #   modify_period(period, num[which] * est[which]),
-    #   "postday", c("NA", "xfirst")
-    # )
   }
   low_date <- up_date
   while (length(which <- which(low_date > end))) {
@@ -385,11 +386,6 @@ adj_dur_est <- function (est, start, end, width){
       width[which] * est[which],
       roll_month = "xlast", roll_dst = c("NA", "xfirst")
     )
-    # low_date[which] <- C_time_add(
-    #   start[which],
-    #   modify_period(period, num[which] * est[which]),
-    #   "postday", c("NA", "xfirst")
-    # )
   }
   frac <- ( unclass(end) - unclass(low_date) ) /
     ( unclass(up_date) - unclass(low_date) )

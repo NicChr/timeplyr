@@ -1,5 +1,5 @@
 # Set number of data.table threads to 2
-data.table::setDTthreads(threads = 2L)
+data.table::setDTthreads(threads = 1L)
 # Set number of collapse threads to 1
 collapse::set_collapse(nthreads = 1L)
 
@@ -106,7 +106,7 @@ test_that("Dates", {
   )
   expect_equal(
     time_seq(start2, end2, length.out = 1),
-    start2
+    lubridate::as_datetime(start2)
   )
   expect_equal(
     time_seq(start2, start2, length.out = 3),
@@ -402,189 +402,131 @@ test_that("Datetimes", {
   )
 })
 #
-# test_that("Time sequence lengths", {
-#   start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
-#     tz = "Europe/London"
-#   )
-#   end1 <- start1 + lubridate::ddays(37)
-#   end2 <- start1 + lubridate::days(37)
-#   expect_equal(
-#     time_seq_sizes(lubridate::Date(0), lubridate::Date(0), time = "days"),
-#     integer(0)
-#   )
-#   expect_equal(
-#     time_seq_sizes(lubridate::Date(0), lubridate::Date(0), time = "days"),
-#     integer(0)
-#   )
-#   expect_equal(
-#     time_seq_sizes(lubridate::Date(0), lubridate::Date(0), time = "days"),
-#     integer(0)
-#   )
-#   expect_equal(
-#     time_seq_sizes(lubridate::POSIXct(0), lubridate::Date(0), time = "days"),
-#     integer(0)
-#   )
-#   expect_equal(
-#     time_seq_sizes(lubridate::POSIXct(0), lubridate::Date(0), time = "days"),
-#     integer(0)
-#   )
-#   expect_equal(
-#     time_seq_sizes(lubridate::POSIXct(0), lubridate::POSIXct(0), time = "days"),
-#     integer(0)
-#   )
-#   expect_equal(
-#     time_seq_sizes(lubridate::POSIXct(0), lubridate::POSIXct(0), time = "days"),
-#     integer(0)
-#   )
-#   expect_true(identical(
-#     time_seq_sizes(start1, end2, time = "days"),
-#     38L
-#   ))
-#   expect_equal(
-#     time_seq_sizes(start1, lubridate::POSIXct(0), time = "days"),
-#     integer(0)
-#   )
-#   expect_equal(
-#     time_seq_sizes(start1, lubridate::Date(0), time = "days"),
-#     integer(0)
-#   )
-#   expect_true(identical(
-#     time_seq_sizes(start1, end2, time = "days"),
-#     37L
-#   ))
-# })
-# test_that("Vectorised time sequences", {
-#   start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
-#     tz = "Europe/London"
-#   )
-#   end1 <- start1 + lubridate::ddays(37)
-#   end2 <- start1 + lubridate::days(37)
-#   expect_equal(
-#     time_seq_v(lubridate::Date(0), lubridate::Date(0), time = "days"),
-#     lubridate::Date(0)
-#   )
-#   expect_equal(
-#     time_seq_v(lubridate::Date(0), lubridate::Date(0), time = "days"),
-#     lubridate::POSIXct(0)
-#   )
-#   expect_equal(
-#     time_seq_v(lubridate::Date(0), lubridate::Date(0), time = "days"),
-#     lubridate::Date(0)
-#   )
-#   expect_equal(
-#     time_seq_v(lubridate::POSIXct(0), lubridate::Date(0), time = "days"),
-#     lubridate::POSIXct(0)
-#   )
-#   expect_equal(
-#     time_seq_v(lubridate::POSIXct(0), lubridate::Date(0), time = "days"),
-#     lubridate::POSIXct(0)
-#   )
-#   expect_equal(
-#     time_seq_v(lubridate::POSIXct(0), lubridate::POSIXct(0), time = "days"),
-#     lubridate::POSIXct(0)
-#   )
-#   expect_equal(
-#     time_seq_v(lubridate::POSIXct(0), lubridate::POSIXct(0), time = "days"),
-#     lubridate::POSIXct(0)
-#   )
-#   expect_equal(
-#     time_seq_v(start1, end2, time = "days"),
-#     time_seq(start1, end2, time = "days")
-#   )
-#   expect_equal(
-#     time_seq_v(start1, end2, time = "days"),
-#     time_seq(start1, end2, time = "days")
-#   )
-#   expect_equal(
-#     time_seq_v(start1, lubridate::POSIXct(0), time = "days"),
-#     lubridate::with_tz(lubridate::POSIXct(0), tzone = "Europe/London")
-#   )
-#   expect_equal(
-#     time_seq_v(start1, lubridate::Date(0), time = "days"),
-#     lubridate::with_tz(lubridate::POSIXct(0), tzone = "Europe/London")
-#   )
-#   expect_equal(
-#     time_seq_v(lubridate::as_date(start1), lubridate::Date(0), time = "days"),
-#     lubridate::Date(0)
-#   )
-#   foo1 <- function(x) time_seq(from = start1, to = end1, time = list("days" = x))
-#   expect_equal(
-#     time_seq_v(start1, end1, time = list("days" = seq(0.5, 20, 0.5))),
-#     do.call(c, lapply(seq(0.5, 20, 0.5), foo1))
-#   )
-#   foo2 <- function(x) time_seq(from = start1, to = end1, time = list("days" = x))
-#   expect_equal(
-#     time_seq_v(start1, end1, time = list("days" = seq(1, 20, 1))),
-#     do.call(c, lapply(seq(1, 20, 1), foo2))
-#   )
-# })
-# #
-# test_that("ftseq compared to time_seq", {
-#   start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
-#     tz = "Europe/London"
-#   )
-#   end1 <- start1 + lubridate::ddays(37)
-#   end2 <- start1 + lubridate::days(37)
-#   expect_equal(
-#     time_seq(100, 5, time = 5),
-#     seq(100, 5, by = -5)
-#   )
-#   expect_equal(
-#     time_seq(100, 5, time = -5),
-#     seq(100, 5, by = -5)
-#   )
-#
-#   expect_equal(
-#     time_seq(lubridate::Date(0), lubridate::Date(0), time = "days"),
-#     lubridate::POSIXct(0)
-#   )
-#   expect_equal(
-#     time_seq(lubridate::Date(0), lubridate::Date(0), time = "days"),
-#     lubridate::Date(0)
-#   )
-# })
-#
-# test_that("dates, datetimes and numeric increments", {
-#   start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
-#     tz = "Europe/London"
-#   )
-#   end1 <- start1 + lubridate::ddays(10)
-#   start2 <- lubridate::as_date(start1)
-#   end2 <- lubridate::as_date(end1)
-#
-#   expect_equal(
-#     time_seq_v(start2, end2,
-#       time = "3 days"
-#     ),
-#     time_seq_v(start2, end2,
-#       time = 3
-#     )
-#   )
-#   expect_equal(
-#     time_seq_v(start1, end1,
-#       time = "300 seconds"
-#     ),
-#     time_seq_v(start1, end1,
-#       time = 300
-#     )
-#   )
-#   expect_equal(
-#     time_seq_v(start1, end2,
-#       time = "338.5 seconds"
-#     ),
-#     time_seq_v(start1, end2,
-#       time = 338.5
-#     )
-#   )
-#   expect_equal(
-#     time_seq_v(start2, end1,
-#       time = "338.5 seconds"
-#     ),
-#     time_seq_v(start2, end1,
-#       time = 338.5
-#     )
-#   )
-# })
+test_that("Time sequence lengths", {
+  start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
+    tz = "Europe/London"
+  )
+  end1 <- start1 + lubridate::ddays(37)
+  end2 <- start1 + lubridate::days(37)
+  expect_equal(
+    time_seq_sizes(lubridate::Date(0), lubridate::Date(0), time = "days"),
+    integer(0)
+  )
+  expect_equal(
+    time_seq_sizes(lubridate::Date(0), lubridate::Date(0), time = "days"),
+    integer(0)
+  )
+  expect_equal(
+    time_seq_sizes(lubridate::Date(0), lubridate::Date(0), time = "days"),
+    integer(0)
+  )
+  expect_equal(
+    time_seq_sizes(lubridate::POSIXct(0), lubridate::Date(0), time = "days"),
+    integer(0)
+  )
+  expect_equal(
+    time_seq_sizes(lubridate::POSIXct(0), lubridate::Date(0), time = "days"),
+    integer(0)
+  )
+  expect_equal(
+    time_seq_sizes(lubridate::POSIXct(0), lubridate::POSIXct(0), time = "days"),
+    integer(0)
+  )
+  expect_equal(
+    time_seq_sizes(lubridate::POSIXct(0), lubridate::POSIXct(0), time = "days"),
+    integer(0)
+  )
+  expect_true(identical(
+    time_seq_sizes(start1, end2, time = "days"),
+    38L
+  ))
+  expect_equal(
+    time_seq_sizes(start1, lubridate::POSIXct(0), time = "days"),
+    integer(0)
+  )
+  expect_equal(
+    time_seq_sizes(start1, lubridate::Date(0), time = "days"),
+    integer(0)
+  )
+  expect_true(identical(
+    time_seq_sizes(start1, end2, time = "days"),
+    38L
+  ))
+  expect_true(identical(
+    time_seq_sizes(start1, end2, time = timespan("hours", 24)),
+    37L
+  ))
+})
+test_that("Vectorised time sequences", {
+  start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
+    tz = "Europe/London"
+  )
+  end1 <- start1 + lubridate::ddays(37)
+  end2 <- start1 + lubridate::days(37)
+  expect_equal(
+    time_seq(lubridate::Date(0), lubridate::Date(0), time = "days"),
+    lubridate::Date(0)
+  )
+  expect_equal(
+    time_seq(lubridate::POSIXct(0), lubridate::Date(0), time = "days"),
+    lubridate::POSIXct(0)
+  )
+  expect_equal(
+    time_seq(lubridate::POSIXct(0), lubridate::POSIXct(0), time = "days"),
+    lubridate::POSIXct(0)
+  )
+  expect_equal(
+    time_seq(start1, lubridate::POSIXct(0), time = "days"),
+    lubridate::with_tz(lubridate::POSIXct(0), tzone = "Europe/London")
+  )
+  expect_equal(
+    time_seq(lubridate::as_date(start1), lubridate::Date(0), time = "days"),
+    lubridate::Date(0)
+  )
+  foo <- function(x) time_seq(from = start1, to = end1, time = timespan("hours", x))
+  expect_equal(
+    time_seq(start1, end1, time = timespan("hours", 24 * seq(0.5, 20, 0.5))),
+    do.call(c, lapply(24 * seq(0.5, 20, 0.5), foo))
+  )
+})
+
+test_that("dates, datetimes and numeric increments", {
+  start1 <- lubridate::ymd_hms("2023-03-16 11:43:48",
+    tz = "Europe/London"
+  )
+  end1 <- start1 + lubridate::ddays(10)
+  start2 <- lubridate::as_date(start1)
+  end2 <- lubridate::as_date(end1)
+
+  expect_equal(
+    time_seq(start2, end2, time = "3 days"),
+    time_seq(start2, end2, time = 3)
+  )
+  expect_equal(
+    time_seq(start1, end1,
+      time = "300 seconds"
+    ),
+    time_seq(start1, end1,
+      time = 300
+    )
+  )
+  expect_equal(
+    time_seq(start1, end2,
+      time = "338.5 seconds"
+    ),
+    time_seq(start1, end2,
+      time = 338.5
+    )
+  )
+  expect_equal(
+    time_seq(start2, end1,
+      time = "338.5 seconds"
+    ),
+    time_seq(start2, end1,
+      time = 338.5
+    )
+  )
+})
 
 test_that("time_seq_fill", {
   x <- c(1L, NA, NA, NA, NA, 6L, NA, 8L, NA, NA, NA, NA, NA, NA, NA,
