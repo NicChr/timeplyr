@@ -48,7 +48,6 @@ time_id <- function(x, timespan = granularity(x), g = NULL,
   cheapr::set_add(out, as.integer(shift))
 }
 # To more closely match collapse::timeid one can use the below 3 lines
-# time_gcd_diff <- time_gcd_diff(x)
 # first_time <- collapse::fmin(x, g = g, na.rm = na_skip,
 #                              TRA = "replace_fill")
-# out <- time_diff(first_time, x, time_by = time_gcd_diff, time_type = time_type)
+# time_diff(first_time, x, granularity(x))

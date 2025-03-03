@@ -26,7 +26,8 @@
 #' @export
 roll_na_fill <- function(x, g = NULL, fill_limit = Inf){
   check_length(fill_limit, 1)
-  if (cheapr::na_count(x, recursive = TRUE) %in% c(0L, cheapr::unlisted_length(x))){
+  num_nas <- cheapr::na_count(x, recursive = TRUE)
+  if (num_nas == 0 || num_nas == cheapr::unlisted_length(x)){
     return(x)
   }
 

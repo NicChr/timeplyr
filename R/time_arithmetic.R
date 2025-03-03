@@ -117,8 +117,15 @@ period_add.Date <- function(x, add, roll_month = getOption("timeplyr.roll_month"
 #' @param x Time vector. \cr
 #' E.g. a `Date`, `POSIXt`, `numeric` or any time-based vector.
 #' @param timespan [timespan].
-#' @param roll_month See `?timechange::time_add`.
+#' @param roll_month See `?timechange::time_add`. Additional choices
+#' include `xlast` (default) and `xfirst`. These work conceptually similar to
+#' skipped DST intervals.
 #' @param roll_dst See `?timechange::time_add`.
+#' @param change_on_boundary `?timechange::time_floor`
+#' @param week_start day on which week starts following ISO conventions - 1
+#' means Monday, 7 means Sunday (default). When `label = TRUE`,
+#' this will be the first level of the returned factor.
+#' You can set `lubridate.week.start` option to control this parameter globally.
 #'
 #' @details
 #' The methods are continuously being improved over time.
@@ -170,15 +177,59 @@ time_subtract <- function(x, timespan,
                           roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))){
   time_add(x, -timespan(timespan), roll_month = roll_month, roll_dst = roll_dst)
 }
-time_floor <- function(x, time_by, week_start = getOption("lubridate.week.start", 1)){
-  span <- timespan(time_by)
+#' @rdname time_add
+#' @export
+time_floor <- function(x, timespan,
+                       week_start = getOption("lubridate.week.start", 1)){
+
+  span <- timespan(timespan)
   num <- timespan_num(span)
   unit <- timespan_unit(span)
 
-  if (is_time(x)){
-    timechange::time_floor(x, unit = paste(num, unit), week_start = week_start)
-  } else {
+  if (is.na(unit)){
     floor(x / num) * num
+  } else if (is_date(x)){
+    timechange::time_floor(
+      x, unit = paste(num, unit),
+      week_start = week_start
+    )
+  } else {
+    timechange::time_floor(
+      lubridate::as_datetime(x), unit = paste(num, unit),
+      week_start = week_start
+    )
+  }
+}
+
+#' @rdname time_add
+#' @export
+time_ceiling <- function(x, timespan,
+                         week_start = getOption("lubridate.week.start", 1),
+                         change_on_boundary = is_date(x)){
+
+  span <- timespan(timespan)
+  num <- timespan_num(span)
+  unit <- timespan_unit(span)
+
+  if (is.na(unit)){
+    out <- ceiling(x / num) * num
+    if (change_on_boundary){
+      change <- cheapr::which_(out == x)
+      out[change] <- (out + num)[change]
+    }
+    out
+  } else if (is_date(x)){
+    timechange::time_ceiling(
+      x, unit = paste(num, unit),
+      week_start = week_start,
+      change_on_boundary = change_on_boundary
+      )
+  } else {
+    timechange::time_ceiling(
+      lubridate::as_datetime(x), unit = paste(num, unit),
+      week_start = week_start,
+      change_on_boundary = change_on_boundary
+    )
   }
 }
 

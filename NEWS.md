@@ -1,4 +1,4 @@
-# timeplyr 1.0.1
+# timeplyr 1.1.0
 
 - New options 'xfirst' and 'xlast' for 'timeplyr.roll_month' to signify
 how to handle impossible dates.
@@ -9,8 +9,8 @@ The default option is now 'xlast' and time differences are calculated using
 'xlast' for consistency. This is in contrast to lubridate which calculates
 time differences using 'preday'.
 
-- New function `time_add` for adding timespans to dates, date-times and other
-time-based vectors.
+- New functions `time_add`, `time_subtract`, `time_floor` and `time_ceiling`
+for adding timespans to dates, date-times and other time-based vectors.
 
 - Internally much of the methodology for calculating time differences has been
 re-written to be simpler and in many cases faster.

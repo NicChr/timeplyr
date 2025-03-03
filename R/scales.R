@@ -43,4 +43,24 @@ scale_y_year_quarter <- function(...){
   ggplot2::ggproto(NULL, ggplot2::scale_y_continuous(...),
                    trans = transform_year_quarter())
 }
-
+# transform_time_interval <- function(width, endpoints_inverse, ...){
+#   scales::new_transform("time_interval", transform = \(x) strip_attrs(unclass(x)),
+#                         inverse = \(x){
+#                           inv <- endpoints_inverse(x)
+#                           time_interval(inv, width)
+#                         },
+#                         ...)
+# }
+# Not sure how to make a time_interval ggplot scale without having
+# the user supply the interval width
+# The scale_ function needs to access the time_interval directly
+# scale_x_time_interval_date <- function(width, ...){
+#   ggplot2::ggproto(NULL, ggplot2::scale_x_continuous(...),
+#                    trans = transform_time_interval(width, endpoints_inverse = .Date))
+# }
+# scale_x_time_interval_datetime <- function(width, ...){
+#   ggplot2::ggproto(NULL, ggplot2::scale_x_continuous(...),
+#                    trans = transform_time_interval(
+#                      width, endpoints_inverse = .POSIXct
+#                      ))
+# }

@@ -25,7 +25,7 @@ time_complete(
   from = NULL,
   to = NULL,
   sort = TRUE,
-  fill = NA
+  fill = NULL
 )
 }
 \arguments{
@@ -46,7 +46,8 @@ Columns are specified using tidy-select.}
 
 \item{sort}{Logical. If \code{TRUE} expanded/completed variables are sorted.}
 
-\item{fill}{A named list containing value-name pairs to fill the named implicit missing values.}
+\item{fill}{A named list containing value-name pairs to fill
+the named implicit missing values.}
 }
 \value{
 A \code{data.frame} of expanded time by or across groups.

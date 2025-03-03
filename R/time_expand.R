@@ -9,7 +9,8 @@
 #' @param sort Logical. If `TRUE` expanded/completed variables are sorted.
 #' @param .by (Optional). A selection of columns to group by for this operation.
 #' Columns are specified using tidy-select.
-#' @param fill A named list containing value-name pairs to fill the named implicit missing values.
+#' @param fill A named list containing value-name pairs to fill
+#' the named implicit missing values.
 #'
 #' @details
 #' This works much the same as `tidyr::complete()`, except that
@@ -165,8 +166,11 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
 time_complete <- function(data, time = NULL, ..., .by = NULL,
                           time_by = NULL, from = NULL, to = NULL,
                           sort = TRUE,
-                          fill = NA){
+                          fill = NULL){
   check_is_df(data)
+  if (!is.null(fill) && !is.list(fill) && !(length(fill) == 1 && is.na(fill))){
+    cli::cli_abort("{.arg fill} must be either a list or `NULL`")
+  }
   group_vars <- get_groups(data, {{ .by }})
   out_info <- mutate_summary_grouped(data, !!enquo(time), .by = {{ .by }})
   out <- out_info[["data"]]
@@ -186,15 +190,9 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
     if (length(time_var) > 0){
       out[[time_var]] <- time_cast(out[[time_var]], expanded_df[[time_var]])
     }
-    extra <- cheapr::setdiff_(expanded_df, sset(out, j = names(expanded_df)))
-    if (df_nrow(extra) > 0){
-      extra <- fastplyr::f_bind_cols(
-        extra,
-        df_init(sset(out, j = setdiff(names(out), names(expanded_df))),
-                df_nrow(extra))
-      )
-      out <- fastplyr::f_bind_rows(out, extra)
-    }
+    out <- fastplyr::f_full_join(
+      out, expanded_df, by = names(expanded_df)
+    )
     if (sort){
       out <- fastplyr::f_arrange(
         out, .cols = c(group_vars, time_var,
@@ -203,16 +201,18 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
       )
     }
   }
+
   # Replace NA with fill
-  if (any(!is.na(fill))){
-    fill <- cheapr::na_rm(fill)
+
+  if (is.list(fill)){
     fill_nms <- names(fill)
     for (i in seq_along(fill)){
       if (length(fill[[i]]) != 1){
-        stop("fill values must be of length 1")
+        cli::cli_abort("{.arg fill} values must be of length 1")
       }
-      out[[fill_nms[[i]]]][which_na(out[[fill_nms[[i]]]])] <-
-        fill[[i]]
+      var <- fill_nms[[i]]
+      na_fill <- fill[[i]]
+      out[[var]] <- cheapr::na_replace(out[[var]], na_fill)
     }
   }
   out_vars <- c(names(data), setdiff(names(out), names(data)))

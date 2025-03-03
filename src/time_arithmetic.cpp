@@ -1,6 +1,13 @@
 #include "timeplyr.h"
 #include "tzdb/date.h"
 
+#define TP_ROLL_FORWARD                                                 \
+year_month next_month = year_month(ymd.year(), ymd.month()) + months(1);\
+ymd = next_month/day(1);
+
+#define TP_ROLL_BACKWARD                                       \
+ymd = ymd.year()/ymd.month()/last;
+
 int add_months(int date, int months_add, int roll_month){
   using namespace date;
   year_month_day ymd = year_month_day(sys_days(days(date)));
@@ -9,29 +16,26 @@ int add_months(int date, int months_add, int roll_month){
   if (!ymd.ok()){
     switch (roll_month){
     case 1: { // Roll backwards
-    ymd = ymd.year()/ymd.month()/last;
+    TP_ROLL_BACKWARD
     break;
   }
     case 2: { // Roll forwards
-      year_month next_month = year_month(ymd.year(), ymd.month()) + months(1);
-      ymd = next_month/day(1);
+      TP_ROLL_FORWARD
       break;
     }
     case 3: { // Roll forwards when adding and backwards when subtracting
       if (months_add >= 0){
-      year_month next_month = year_month(ymd.year(), ymd.month()) + months(1);
-      ymd = next_month/day(1);
+      TP_ROLL_FORWARD
     } else {
-      ymd = ymd.year()/ymd.month()/last;
+      TP_ROLL_BACKWARD
     }
     break;
     }
     case 4: { // Roll backwards when adding and forwards when subtracting
       if (months_add >= 0){
-      ymd = ymd.year()/ymd.month()/last;
+      TP_ROLL_BACKWARD
     } else {
-      year_month next_month = year_month(ymd.year(), ymd.month()) + months(1);
-      ymd = next_month/day(1);
+      TP_ROLL_FORWARD
     }
     break;
     }

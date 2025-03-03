@@ -121,8 +121,11 @@ new_time_interval <- function(start, width){
   new_time_interval(`class<-`(x, attr(x, "old_class"))[...], attr(x, "timespan"))
 }
 #' @export
-c.time_interval <- function(...){
+c.time_interval <- function(..., recursive = FALSE, use.names = TRUE){
   dots <- list(...)
+  if (!use.names){
+    dots <- unname(dots)
+  }
   int <- dots[[1L]]
   cl <- oldClass(int)
   span <- interval_width(int)
@@ -144,9 +147,6 @@ c.time_interval <- function(...){
   }
   out <- do.call(c, dots, envir = parent.frame())
   new_time_interval(out, span)
-  # attr(out, "timespan") <- span
-  # class(out) <- cl
-  # out
 }
 #' @export
 unique.time_interval <- function(x, incomparables = FALSE, ...){
@@ -170,21 +170,6 @@ rep_len.time_interval <- function(x, length.out){
   )
 }
 
-#' @export
-Ops.time_interval <- function(e1, e2){
-  switch(
-    .Generic,
-    `/` = {
-      start <- interval_start(e1)
-      span <- timespan(e2)
-      end <- interval_end(e1)
-      time_diff(start, end, span)
-    },
-    {
-      cli::cli_abort("Incompatible {.cls time_interval} operation: { .Generic } ")
-    }
-  )
-}
 
 #' @export
 format.time_interval <- function(x, ...){

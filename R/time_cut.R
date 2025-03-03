@@ -300,7 +300,9 @@ time_cut_width <- function(x, timespan = granularity(x),
   # 2. Use addition, subtraction from `min(x)` and truncation
   # Simpler but tends to be slower
 
-  if (
+  timespan <- timespan(timespan)
+
+  if (isTRUE(!is_duration_unit(timespan_unit(timespan))) &&
     (is.null(from) || length(from) == 1) &&
     (is.null(to) || length(to) == 1)
   ){
