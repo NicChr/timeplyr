@@ -24,8 +24,4 @@
 #define r_integer_min_ std::numeric_limits<int>::min()
 #endif
 
-double r_sum(SEXP x, bool na_rm);
-double r_min(SEXP x);
-void cpp_copy_names(SEXP source, SEXP target);
-
 #endif

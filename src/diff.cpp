@@ -1,7 +1,14 @@
 #include "timeplyr.h"
 
+void cpp_copy_names(SEXP source, SEXP target){
+  SEXP source_nms = Rf_protect(Rf_getAttrib(source, R_NamesSymbol));
+  SEXP target_nms = Rf_protect(Rf_duplicate(source_nms));
+  Rf_setAttrib(target, R_NamesSymbol, target_nms);
+  Rf_unprotect(2);
+}
+
 // Integer difference accounting for overflow
-int int_diff(int x, int y){
+inline int int_diff(int x, int y){
   int out;
   if (x == NA_INTEGER || y == NA_INTEGER){
     out = NA_INTEGER;
@@ -15,7 +22,7 @@ int int_diff(int x, int y){
   return out;
 }
 
-int lgl_diff(int x, int y){
+inline int lgl_diff(int x, int y){
   if (x == NA_INTEGER || y == NA_INTEGER){
     return NA_INTEGER;
   } else {

@@ -106,10 +106,3 @@ SEXP cpp_which_first_gap(SEXP x, int increment, bool left_to_right) {
     return out;
   }
 }
-
-void cpp_copy_names(SEXP source, SEXP target){
-  SEXP source_nms = Rf_protect(Rf_getAttrib(source, R_NamesSymbol));
-  SEXP target_nms = Rf_protect(Rf_duplicate(source_nms));
-  Rf_setAttrib(target, R_NamesSymbol, target_nms);
-  Rf_unprotect(2);
-}
