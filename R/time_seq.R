@@ -140,28 +140,21 @@ time_seq <- function(from = NULL, to = NULL, time_by = NULL, length.out = NULL,
     time_by = scalar_if_else(is.null(time_by), NULL, timespan(time_by)),
     length.out = length.out
   )
-  from <- recycled_args$from
-  to <- recycled_args$to
-  time_by <- recycled_args$time_by
-  length.out <- recycled_args$length.out
+  from <- recycled_args[["from"]]
+  to <- recycled_args[["to"]]
+  time_by <- recycled_args[["time_by"]]
+  length.out <- recycled_args[["length.out"]]
 
-  # Unit parsing
-  # if (!missing_by){
-  #   unit_info <- timespan(time_by)
-  # }
   # From, to, length, no time_by
   if (from_and_to && missing_by && !missing_len){
     time_by <- time_by_calc(from, to, length = length.out)
   }
   if (from_and_to && !missing_by && missing_len){
-    wrong_dir <- (from > to & time_by > 0) | (from < to & time_by < 0)
+    wrong_dir <- (unclass(from) > unclass(to) & time_by > 0) |
+      (unclass(from) < unclass(to) & time_by < 0)
 
     # Correct the direction when user supplies impossible non-zero increment
     if (any(wrong_dir, na.rm = TRUE)){
-      # recycled_args <- cheapr::recycle(from = from, to = to, unit_info = unit_info)
-      # from <- recycled_args$from
-      # to <- recycled_args$to
-      # unit_info <- recycled_args$unit_info
       switch_locs <- cheapr::which_(wrong_dir)
       time_by[switch_locs] <- -time_by[switch_locs]
     }
@@ -187,7 +180,7 @@ time_seq_sizes <- function(from, to, timespan){
   tdiff[which(from == to)] <- 0L
   tdiff_rng <- collapse::frange(tdiff, na.rm = TRUE)
   if (isTRUE(any(tdiff_rng < 0))){
-    stop("At least 1 sequence length is negative, please check the time_by unit increments")
+    cli::cli_abort("At least 1 sequence length is negative, please check the supplied timespan increments")
   }
   if (length(tdiff) == 0 || all(is_integerable(abs(tdiff_rng) + 1), na.rm = TRUE)){
     if (is.integer(tdiff)){

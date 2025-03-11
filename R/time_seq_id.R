@@ -97,7 +97,7 @@ time_seq_id <- function(x, timespan = granularity(x),
     dt[, ("over") :=
          lapply(
            .SD, function(x)
-             roll_time_threshold(x, threshold = threshold, switch_on_boundary = switch_on_boundary)
+             cpp_roll_time_threshold(x, threshold = threshold, switch_on_boundary = switch_on_boundary)
          ),
        by = group_id_col,
        .SDcols = "x"]

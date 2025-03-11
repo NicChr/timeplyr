@@ -47,25 +47,25 @@ extern "C" SEXP _timeplyr_cpp_roll_growth_rate(SEXP x, SEXP lag, SEXP log) {
     return cpp11::as_sexp(cpp_roll_growth_rate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(lag), cpp11::as_cpp<cpp11::decay_t<bool>>(log)));
   END_CPP11
 }
+// roll.cpp
+SEXP cpp_roll_time_threshold(SEXP x, double threshold, bool switch_on_boundary);
+extern "C" SEXP _timeplyr_cpp_roll_time_threshold(SEXP x, SEXP threshold, SEXP switch_on_boundary) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_roll_time_threshold(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(threshold), cpp11::as_cpp<cpp11::decay_t<bool>>(switch_on_boundary)));
+  END_CPP11
+}
+// roll.cpp
+SEXP cpp_which_first_gap(SEXP x, int increment, bool left_to_right);
+extern "C" SEXP _timeplyr_cpp_which_first_gap(SEXP x, SEXP increment, SEXP left_to_right) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(cpp_which_first_gap(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<int>>(increment), cpp11::as_cpp<cpp11::decay_t<bool>>(left_to_right)));
+  END_CPP11
+}
 // time_arithmetic.cpp
 SEXP cpp_add_months(SEXP date, SEXP num_months, int roll_month);
 extern "C" SEXP _timeplyr_cpp_add_months(SEXP date, SEXP num_months, SEXP roll_month) {
   BEGIN_CPP11
     return cpp11::as_sexp(cpp_add_months(cpp11::as_cpp<cpp11::decay_t<SEXP>>(date), cpp11::as_cpp<cpp11::decay_t<SEXP>>(num_months), cpp11::as_cpp<cpp11::decay_t<int>>(roll_month)));
-  END_CPP11
-}
-// utils.cpp
-SEXP roll_time_threshold(SEXP x, double threshold, bool switch_on_boundary);
-extern "C" SEXP _timeplyr_roll_time_threshold(SEXP x, SEXP threshold, SEXP switch_on_boundary) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(roll_time_threshold(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(threshold), cpp11::as_cpp<cpp11::decay_t<bool>>(switch_on_boundary)));
-  END_CPP11
-}
-// utils.cpp
-SEXP cpp_which_first_gap(SEXP x, int increment, bool left_to_right);
-extern "C" SEXP _timeplyr_cpp_which_first_gap(SEXP x, SEXP increment, SEXP left_to_right) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(cpp_which_first_gap(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<int>>(increment), cpp11::as_cpp<cpp11::decay_t<bool>>(left_to_right)));
   END_CPP11
 }
 
@@ -78,8 +78,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_timeplyr_cpp_roll_growth_rate",     (DL_FUNC) &_timeplyr_cpp_roll_growth_rate,     3},
     {"_timeplyr_cpp_roll_na_fill",         (DL_FUNC) &_timeplyr_cpp_roll_na_fill,         2},
     {"_timeplyr_cpp_roll_na_fill_grouped", (DL_FUNC) &_timeplyr_cpp_roll_na_fill_grouped, 4},
+    {"_timeplyr_cpp_roll_time_threshold",  (DL_FUNC) &_timeplyr_cpp_roll_time_threshold,  3},
     {"_timeplyr_cpp_which_first_gap",      (DL_FUNC) &_timeplyr_cpp_which_first_gap,      3},
-    {"_timeplyr_roll_time_threshold",      (DL_FUNC) &_timeplyr_roll_time_threshold,      3},
     {NULL, NULL, 0}
 };
 }

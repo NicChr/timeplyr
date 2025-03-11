@@ -3,7 +3,6 @@
 
 #include <cpp11.hpp>
 #include <Rinternals.h>
-// #include <cstdint> // for intmax_t
 
 #ifndef R_NO_REMAP
 #define R_NO_REMAP

@@ -24,14 +24,14 @@ cpp_roll_growth_rate <- function(x, lag, log) {
   .Call(`_timeplyr_cpp_roll_growth_rate`, x, lag, log)
 }
 
-cpp_add_months <- function(date, num_months, roll_month) {
-  .Call(`_timeplyr_cpp_add_months`, date, num_months, roll_month)
-}
-
-roll_time_threshold <- function(x, threshold, switch_on_boundary) {
-  .Call(`_timeplyr_roll_time_threshold`, x, threshold, switch_on_boundary)
+cpp_roll_time_threshold <- function(x, threshold, switch_on_boundary) {
+  .Call(`_timeplyr_cpp_roll_time_threshold`, x, threshold, switch_on_boundary)
 }
 
 cpp_which_first_gap <- function(x, increment, left_to_right) {
   .Call(`_timeplyr_cpp_which_first_gap`, x, increment, left_to_right)
+}
+
+cpp_add_months <- function(date, num_months, roll_month) {
+  .Call(`_timeplyr_cpp_add_months`, date, num_months, roll_month)
 }
