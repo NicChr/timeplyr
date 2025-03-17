@@ -1,4 +1,4 @@
-* Updated to version 1.0.1
+* Updated to version 1.1.0
 
 * Checked and passed using rhub v2.0.0 in the following environments:
 
