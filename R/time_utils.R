@@ -162,13 +162,13 @@ period_by_calc <- function(from, to, length){
   # and if it equals `to` then the ans can be returned
 
   month_delta <- diff_months(from, to, n = quo, fractional = FALSE)
-  up <- from |>
+  up <- from %>%
     time_add(new_timespan("months", month_delta * fct), roll_month = "xlast")
   if (identical(up, to)){
     out <- new_timespan("months", month_delta)
   } else {
     day_delta <- diff_days(from, to, n = quo, fractional = FALSE)
-    up <- from |>
+    up <- from %>%
       time_add(new_timespan("days", day_delta * fct))
     if (identical(up, to)){
       out <- new_timespan("days", day_delta)
