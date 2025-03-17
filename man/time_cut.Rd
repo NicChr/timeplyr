@@ -109,12 +109,12 @@ df <- nycflights13::flights \%>\%
 
 # time_cut_n() and time_breaks() automatically find a
 # suitable way to cut the data
-time_cut_n(df$date) |>
+time_cut_n(df$date) \%>\%
   interval_count()
 # Works with datetimes as well
-time_cut_n(df$time_hour, n = 5) |>
+time_cut_n(df$time_hour, n = 5) \%>\%
   interval_count()
-time_cut_n(df$date, timespan = "month") |>
+time_cut_n(df$date, timespan = "month") \%>\%
   interval_count()
 # Just the breaks
 time_breaks(df$date, n = 5, timespan = "month")
