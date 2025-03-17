@@ -290,10 +290,10 @@ test_that("grid of dates and date-times", {
   # Test this as well
 
   expect_equal(
-    time_diff(lubridate::dmy_hms("25-10-2025 01:01:00", tz = "GB"),
-              lubridate::dmy_hms("26-10-2025 01:00:00", tz = "GB"), "days"),
-    time_diff_original(lubridate::dmy_hms("25-10-2025 01:01:00", tz = "GB"),
-                       lubridate::dmy_hms("26-10-2025 01:00:00", tz = "GB"), "days")
+    time_diff(lubridate::dmy_hms("25-10-2025 01:01:00", tz = "Europe/London"),
+              lubridate::dmy_hms("26-10-2025 01:00:00", tz = "Europe/London"), "days"),
+    time_diff_original(lubridate::dmy_hms("25-10-2025 01:01:00", tz = "Europe/London"),
+                       lubridate::dmy_hms("26-10-2025 01:00:00", tz = "Europe/London"), "days")
   )
 
 
