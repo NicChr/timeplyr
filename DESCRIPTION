@@ -13,7 +13,7 @@ Depends:
     R (>= 4.0.0)
 Imports:
     cheapr (>= 1.0.0),
-    cli, 
+    cli,
     collapse (>= 2.0.0),
     cppdoubles (>= 0.2.0),
     data.table (>= 1.14.8),
@@ -22,6 +22,7 @@ Imports:
     ggplot2 (>= 3.4.0),
     lifecycle,
     lubridate (>= 1.9.0),
+    magrittr,
     pillar (>= 1.7.0),
     rlang (>= 1.0.0),
     scales,
