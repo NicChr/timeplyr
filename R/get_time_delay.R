@@ -54,7 +54,7 @@
 #' # Incubation period distribution
 #'
 #' # 95% of individuals experienced an incubation period of <= 26 days
-#' inc_distr_days <- ebola_linelist %>%
+#' inc_distr_days <- ebola_linelist |>
 #'   get_time_delay(date_of_infection,
 #'                  date_of_onset,
 #'                  time = "days")
@@ -66,7 +66,7 @@
 #' inc_distr_days$plot
 #'
 #' # Can change bandwidth selector
-#' inc_distr_days <- ebola_linelist %>%
+#' inc_distr_days <- ebola_linelist |>
 #'   get_time_delay(date_of_infection,
 #'                  date_of_onset,
 #'                  time = "day",
@@ -74,7 +74,7 @@
 #' inc_distr_days$plot
 #'
 #' # Can choose any time units
-#' inc_distr_weeks <- ebola_linelist %>%
+#' inc_distr_weeks <- ebola_linelist |>
 #'   get_time_delay(date_of_infection,
 #'                  date_of_onset,
 #'                  time = "weeks",
@@ -93,23 +93,23 @@ get_time_delay <- function(data, origin, end, timespan = 1L,
                            bw = "sj",
                            ...){
   group_vars <- get_groups(data, {{ .by }})
-  origin_info <- mutate_summary_grouped(data,
-                                        !!enquo(origin),
-                                        .by = {{ .by }},
-                                        .keep = "none")
-  end_info <- mutate_summary_grouped(data,
-                                     !!enquo(end),
-                                     .by = {{ .by }},
-                                     .keep = "none")
-  origin <- origin_info[["cols"]]
-  end <- end_info[["cols"]]
+  origin_data <- mutate_one(
+    data, !!enquo(origin), .by = {{ .by }}
+  )
+  end_data <- mutate_one(
+    data, !!enquo(end), .by = {{ .by }}
+  )
+  origin <- names(origin_data)
+  end <- names(end_data)
   check_length(origin, 1)
   check_length(end, 1)
   start_time <- origin
   end_time <- end
-  origin_df <- df_ungroup(origin_info[["data"]])
-  end_df <- fastplyr::f_select(df_ungroup(end_info[["data"]]), .cols = end)
-  out <- fastplyr::f_bind_cols(origin_df, end_df)
+  out <- fastplyr::f_bind_cols(
+    fastplyr::f_ungroup(
+      fastplyr::f_select(data, .cols = group_vars)
+    ), origin_data, end_data
+  )
   grp_nm <- unique_col_name(out, ".group.id")
   out <- df_add_cols(out, add_names(list(
     fastplyr::add_group_id(data, .by = {{ .by }}, .name = grp_nm)[[grp_nm]]
@@ -153,7 +153,10 @@ get_time_delay <- function(data, origin, end, timespan = 1L,
     n = dplyr::n(),
     dplyr::across(
       dplyr::all_of(delay_nm),
-      list(min, max, mean, sd)
+      list(min = min,
+           max = max,
+           mean = mean,
+           sd = sd)
     ),
     .order = FALSE,
     .by = dplyr::all_of(grp_nm)
@@ -196,7 +199,7 @@ get_time_delay <- function(data, origin, end, timespan = 1L,
       edf = numeric()
     )
   } else {
-    delay_tbl <- out %>%
+    delay_tbl <- out |>
       fastplyr::f_count(across(all_of(c(grp_nm, group_vars))),
              across(all_of(delay_nm), ceiling),
              name = "n")
@@ -219,9 +222,9 @@ get_time_delay <- function(data, origin, end, timespan = 1L,
   }
   out <- df_rm_cols(out, grp_nm)
   out <- fastplyr::f_select(out, .cols = c(group_vars, setdiff(names(out), group_vars)))
-  out <- reconstruct(data, out)
-  delay_summary <- reconstruct(data, summary_stats_df)
-  delay_tbl <- reconstruct(data, delay_tbl)
+  out <- cheapr::rebuild(out, data)
+  delay_summary <- cheapr::rebuild(summary_stats_df, data)
+  delay_tbl <- cheapr::rebuild(delay_tbl, data)
   # Delay values
   delay_list <- list("data" = out,
                      "units" = by_unit,
@@ -253,7 +256,7 @@ get_time_delay <- function(data, origin, end, timespan = 1L,
       if (drop_leading_zeros) out <- drop_leading_zeros(out)
       out
     }
-    delay_summary_plot <- out %>%
+    delay_summary_plot <- out |>
       ggplot2::ggplot(ggplot2::aes(x = .data[[delay_nm]])) +
       ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(ndensity)),
                               binwidth = 1,

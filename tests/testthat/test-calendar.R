@@ -16,12 +16,12 @@ test_that("calendar", {
   cal2 <- calendar(y)
   expect_equal(
     calendar(x, label = FALSE),
-    cal1 %>%
+    cal1 |>
       dplyr::select(-all_of(c("month_l", "wday_l")))
   )
   expect_equal(
     calendar(y, label = FALSE),
-    cal2 %>%
+    cal2 |>
       dplyr::select(-all_of(c("month_l", "wday_l")))
   )
 })

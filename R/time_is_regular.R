@@ -53,7 +53,7 @@
 #'
 #' # Grouped
 #' eu_stock <- ts_as_tbl(EuStockMarkets)
-#' eu_stock <- eu_stock %>%
+#' eu_stock <- eu_stock |>
 #'   mutate(date = as_date(
 #'     date_decimal(time)
 #'   ))
@@ -102,7 +102,7 @@ time_is_regular <- function(x, timespan = granularity(x),
   # double_equal(telapsed, round(telapsed))
   is_whole_num <- are_whole_numbers(telapsed)
   if (na.rm){
-    is_whole_num[which_na(is_whole_num)] <- TRUE
+    is_whole_num[cheapr::na_find(is_whole_num)] <- TRUE
   }
   n_whole_num <- collapse::fsum(is_whole_num, g = g, use.g.names = FALSE,
                                 na.rm = na.rm, fill = FALSE)

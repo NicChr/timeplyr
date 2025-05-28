@@ -69,11 +69,11 @@ test_that("Time elapsed", {
       g = df$g,
       rolling = TRUE, fill = 0
     ),
-    df %>%
+    df |>
       dplyr::mutate(
         t = c(0, diff(x)),
         .by = g
-      ) %>%
+      ) |>
       dplyr::pull(t)
   )
   expect_equal(
@@ -83,14 +83,14 @@ test_that("Time elapsed", {
       rolling = TRUE, fill = 0,
       na_skip = TRUE
     ),
-    df %>%
+    df |>
       dplyr::mutate(
         t = time_elapsed(x2,
           timespan(1), na_skip = TRUE,
           fill = 0
         ),
         .by = g
-      ) %>%
+      ) |>
       dplyr::pull(t)
   )
   expect_equal(
@@ -100,14 +100,14 @@ test_that("Time elapsed", {
       rolling = TRUE, fill = 0,
       na_skip = FALSE
     ),
-    df %>%
+    df |>
       dplyr::mutate(
         t = time_elapsed(x2,
           timespan(1), na_skip = FALSE,
           fill = 0
         ),
         .by = g
-      ) %>%
+      ) |>
       dplyr::pull(t)
   )
   expect_equal(
@@ -117,14 +117,14 @@ test_that("Time elapsed", {
       rolling = TRUE, fill = 0,
       na_skip = FALSE
     ),
-    df %>%
+    df |>
       dplyr::mutate(
         t = time_elapsed(x,
           timespan(1), na_skip = FALSE,
           fill = 0
         ),
         .by = g
-      ) %>%
+      ) |>
       dplyr::pull(t)
   )
 
@@ -135,12 +135,12 @@ test_that("Time elapsed", {
       rolling = FALSE,
       na_skip = FALSE
     ),
-    df %>%
+    df |>
       dplyr::mutate(
         t = x2 - dplyr::first(x2),
         # t = cheapr::cheapr_if_else(dplyr::row_number() == 1L, 0, t),
         .by = g
-      ) %>%
+      ) |>
       dplyr::pull(t)
   )
 
@@ -151,12 +151,12 @@ test_that("Time elapsed", {
       rolling = FALSE,
       na_skip = TRUE
     ),
-    df %>%
+    df |>
       dplyr::mutate(
         t = x2 - dplyr::first(x2, na_rm = TRUE),
         # t = cheapr::cheapr_if_else(dplyr::row_number() == 1L, 0, t),
         .by = g
-      ) %>%
+      ) |>
       dplyr::pull(t)
   )
 })

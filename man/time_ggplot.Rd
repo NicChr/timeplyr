@@ -50,29 +50,29 @@ data.table::setDTthreads(threads = 1L)
 collapse::set_collapse(nthreads = 1L)
 }
 # It's as easy as this
-AirPassengers \%>\%
-  ts_as_tbl() \%>\%
+AirPassengers |>
+  ts_as_tbl() |>
   time_ggplot(time, value)
 
 # And this
-EuStockMarkets \%>\%
-  ts_as_tbl() \%>\%
+EuStockMarkets |>
+  ts_as_tbl() |>
   time_ggplot(time, value, group)
 
 # Converting this to monthly averages
 
-EuStockMarkets \%>\%
-  ts_as_tbl() \%>\%
-  mutate(month = year_month_decimal(time)) \%>\%
+EuStockMarkets |>
+  ts_as_tbl() |>
+  mutate(month = year_month_decimal(time)) |>
   summarise(avg = mean(value),
-            .by = c(group, month)) \%>\%
+            .by = c(group, month)) |>
   time_ggplot(month, avg, group)
 
 # zoo example
 x.Date <- as.Date("2003-02-01") + c(1, 3, 7, 9, 14) - 1
 x <- zoo::zoo(rnorm(5), x.Date)
-x \%>\%
-  ts_as_tbl() \%>\%
+x |>
+  ts_as_tbl() |>
   time_ggplot(time, value)
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)

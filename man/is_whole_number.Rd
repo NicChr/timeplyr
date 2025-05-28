@@ -71,12 +71,12 @@ all.equal(10^9 + 0.0001, round(10^9 + 0.0001))
 is_whole_number(10^9 + 0.0001)
 
 # Can safely be used to select whole number variables
-starwars \%>\%
+starwars |>
   select(where(is_whole_number))
 
 # To reduce the size of any data frame one can use the below code
 
-df <- starwars \%>\%
+df <- starwars |>
   mutate(across(where(is_whole_number), as.integer))
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)

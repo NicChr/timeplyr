@@ -41,10 +41,10 @@
 #' mts <- ts(matrix(rnorm(300), 100, 3), start = c(1961, 1), frequency = 12)
 #' mts_tbl <- ts_as_tbl(mts)
 #'
-#' uts_tbl %>%
+#' uts_tbl |>
 #'   time_ggplot(time, value)
 #'
-#' mts_tbl %>%
+#' mts_tbl |>
 #'   time_ggplot(time, value, group, facet = TRUE)
 #'
 #' # zoo example
@@ -71,12 +71,12 @@ ts_as_tibble <- function(x, name = "time", value = "value", group = "group"){
 ts_as_tbl.default <- function(x, name = "time", value = "value", group = "group"){
   time <- as.vector(stats::time(x))
   ncol <- ncol(x)
-  groups <- rep(colnames(x), each = length(time))
+  groups <- cheapr::cheapr_rep_each(colnames(x), length(time))
   if (!is.null(ncol)){
     if (is.null(groups)){
-      groups <- rep(seq_len(ncol), each = length(time))
+      groups <- cheapr::cheapr_rep_each(seq_len(ncol), length(time))
     }
-    time <- rep(time, times = ncol)
+    time <- cheapr::cheapr_rep(time, ncol)
   }
   fastplyr::new_tbl(!!group := groups,
                     !!name := time,
@@ -110,11 +110,11 @@ ts_as_tbl.xts <- function(x, name = "time", value = "value", group = "group"){
     time <- as.numeric(time)
   }
   ncol <- ncol(x)
-  groups <- rep(colnames(x), each = length(time))
+  groups <- cheapr::cheapr_rep_each(colnames(x), length(time))
   if (is.null(groups)){
-    groups <- rep(seq_len(ncol), each = length(time))
+    groups <- cheapr::cheapr_rep_each(seq_len(ncol), length(time))
   }
-  time <- rep(time, times = ncol)
+  time <- cheapr::cheapr_rep(time, ncol)
   fastplyr::new_tbl(!!group := groups,
                     !!name := time,
                     !!value := as.vector(x),
@@ -126,12 +126,12 @@ ts_as_tbl.xts <- function(x, name = "time", value = "value", group = "group"){
 ts_as_tbl.zoo <- function(x, name = "time", value = "value", group = "group"){
   time <- attr(x, "index")
   ncol <- ncol(x)
-  groups <- rep(colnames(x), each = length(time))
+  groups <- cheapr::cheapr_rep_each(colnames(x), length(time))
   if (!is.null(ncol)){
     if (is.null(groups)){
-      groups <- rep(seq_len(ncol), each = length(time))
+      groups <- cheapr::cheapr_rep_each(seq_len(ncol), length(time))
     }
-    time <- rep(time, times = ncol)
+    time <- cheapr::cheapr_rep(time, ncol)
   }
   fastplyr::new_tbl(!!group := groups,
                     !!name := time,
@@ -145,11 +145,11 @@ ts_as_tbl.timeSeries <- function(x, name = "time", value = "value", group = "gro
   x <- unclass(x)
   time <- lubridate::as_datetime(attr(x, "positions"))
   ncol <- ncol(x)
-  groups <- rep(colnames(x), each = length(time))
+  groups <- cheapr::cheapr_rep_each(colnames(x), length(time))
   if (is.null(groups)){
-    groups <- rep(seq_len(ncol), each = length(time))
+    groups <- cheapr::cheapr_rep_each(seq_len(ncol), length(time))
   }
-  time <- rep(time, times = ncol)
+  time <- cheapr::cheapr_rep(time, ncol)
   fastplyr::new_tbl(!!group := groups,
                     !!name := time,
                     !!value := as.vector(x),

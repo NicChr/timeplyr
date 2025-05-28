@@ -1,6 +1,6 @@
 Package: timeplyr
 Title: Fast Tidy Tools for Date and Date-Time Manipulation
-Version: 1.1.0
+Version: 1.1.0.9000
 Authors@R: 
     person("Nick", "Christofides", , "nick.christofides.r@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-9743-7342"))
@@ -10,9 +10,9 @@ Description: A set of fast tidy functions for wrangling, completing and
 License: GPL (>= 2)
 BugReports: https://github.com/NicChr/timeplyr/issues
 Depends:
-    R (>= 4.0.0)
+    R (>= 4.1.0)
 Imports:
-    cheapr (>= 1.0.0),
+    cheapr (>= 1.2.0),
     cli,
     collapse (>= 2.0.0),
     cppdoubles (>= 0.2.0),

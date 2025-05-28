@@ -68,7 +68,7 @@ time_diff_original <- function(x, y, timespan = 1L){
       # If distinct pairs results in a 2x reduction in data size, then we do that
       distinct_pairs <- isTRUE((df_nrow(interval_tbl) %/% n_groups) >= 2L)
       if ( distinct_pairs ){
-        interval_tbl <- df_row_slice(interval_tbl, starts)
+        interval_tbl <- cheapr::sset_row(interval_tbl, starts)
       }
       x <- interval_tbl$x
       y <- interval_tbl$y

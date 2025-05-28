@@ -100,21 +100,21 @@ library(dplyr)
 time_cut_n(1:10, n = 5)
 
 # Easily create custom time breaks
-df <- nycflights13::flights \%>\%
-  f_slice_sample(n = 100) \%>\%
-  with_local_seed(.seed = 8192821) \%>\%
-  f_select(time_hour) \%>\%
-  fastplyr::f_arrange(time_hour) \%>\%
+df <- nycflights13::flights |>
+  f_slice_sample(n = 100) |>
+  with_local_seed(.seed = 8192821) |>
+  f_select(time_hour) |>
+  fastplyr::f_arrange(time_hour) |>
   mutate(date = as_date(time_hour))
 
 # time_cut_n() and time_breaks() automatically find a
 # suitable way to cut the data
-time_cut_n(df$date) \%>\%
+time_cut_n(df$date) |>
   interval_count()
 # Works with datetimes as well
-time_cut_n(df$time_hour, n = 5) \%>\%
+time_cut_n(df$time_hour, n = 5) |>
   interval_count()
-time_cut_n(df$date, timespan = "month") \%>\%
+time_cut_n(df$date, timespan = "month") |>
   interval_count()
 # Just the breaks
 time_breaks(df$date, n = 5, timespan = "month")
@@ -131,10 +131,10 @@ weekly_breaks <- time_grid(
   from = floor_date(min(df$date), "week", week_start = 1)
 )
 weekly_labels <- format(weekly_breaks, "\%b-\%d")
-df \%>\%
-  time_by(date, "week", .name = "date") \%>\%
-  f_count() \%>\%
-  mutate(date = interval_start(date)) \%>\%
+df |>
+  time_by(date, "week", .name = "date") |>
+  f_count() |>
+  mutate(date = interval_start(date)) |>
   ggplot(aes(x = date, y = n)) +
   geom_bar(stat = "identity") +
   scale_x_date(breaks = weekly_breaks,

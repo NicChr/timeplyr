@@ -1,15 +1,12 @@
 # time_by
 
     Code
-      flights |> dplyr::filter(dplyr::between(time_hour, start, end)) |> time_by(
-        time_hour, "3 days") |> fastplyr::f_count()
+      fastplyr::f_count(time_by(dplyr::filter(flights, dplyr::between(time_hour,
+        start, end)), time_hour, "3 days"))
     Output
       # A tibble: 4 x 2
-      # Time:     time_hour [4]
-      # Width:    3 days
-      # Range:    2013-03-16 08:00:00 -- 2013-03-28 08:00:00
         time_hour                      n
-        <tm_ntrvl>                 <int>
+      * <tm_ntrvl>                 <int>
       1 [2013-03-16 08:00:00, +3D)  2694
       2 [2013-03-19 08:00:00, +3D)  2918
       3 [2013-03-22 08:00:00, +3D)  2650
@@ -18,7 +15,7 @@
 ---
 
     Code
-      flights |> fastplyr::f_slice(0) |> time_by(time_hour)
+      time_by(fastplyr::f_slice(flights, 0), time_hour)
     Output
       # A tibble: 0 x 19
       # Time:     time_hour [0]

@@ -31,8 +31,8 @@ roll_na_fill <- function(x, g = NULL, fill_limit = Inf){
     return(x)
   }
 
-  # fastplyr::new_tbl(x = x, g = fastplyr::group_id(g)) %>%
-  #   fastplyr::f_fill(.cols = "x", .by = dplyr::any_of("g")) %>%
+  # fastplyr::new_tbl(x = x, g = fastplyr::group_id(g)) |>
+  #   fastplyr::f_fill(.cols = "x", .by = dplyr::any_of("g")) |>
   #   fastplyr::f_pull(.cols = "x")
 
   order_and_counts <- group_order_and_counts(g)

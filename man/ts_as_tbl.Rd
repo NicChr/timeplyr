@@ -66,10 +66,10 @@ uts_tbl <- ts_as_tbl(uts)
 mts <- ts(matrix(rnorm(300), 100, 3), start = c(1961, 1), frequency = 12)
 mts_tbl <- ts_as_tbl(mts)
 
-uts_tbl \%>\%
+uts_tbl |>
   time_ggplot(time, value)
 
-mts_tbl \%>\%
+mts_tbl |>
   time_ggplot(time, value, group, facet = TRUE)
 
 # zoo example

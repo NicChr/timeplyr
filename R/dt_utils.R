@@ -3,7 +3,7 @@
 df_as_dt <- function(x, .copy = TRUE){
   out <- x
   if (.copy){
-    out <- r_copy(out)
+    out <- cheapr::deep_copy(out)
   }
   # Prefer collapse::qDT() to data.table::setalloccol()
   # Because the latter destroys time intervals

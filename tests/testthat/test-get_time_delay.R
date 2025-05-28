@@ -6,50 +6,50 @@ collapse::set_collapse(nthreads = 1L)
 test_that("time delay", {
   ebola <- dplyr::as_tibble(outbreaks::ebola_sim$linelist)
 
-  df1 <- ebola %>%
+  df1 <- ebola |>
     dplyr::mutate(delay = time_diff(
       date_of_infection,
       date_of_onset,
       "2 days"
-    )) %>%
-    dplyr::filter(!is.na(delay)) %>%
+    )) |>
+    dplyr::filter(!is.na(delay)) |>
     dplyr::select(
       date_of_infection,
       date_of_onset, delay
     )
 
-  df2 <- ebola %>%
-    dplyr::group_by(hospital) %>%
+  df2 <- ebola |>
+    dplyr::group_by(hospital) |>
     dplyr::mutate(delay = time_diff(
       date_of_infection,
       date_of_onset,
       "2 days"
-    )) %>%
-    dplyr::filter(!is.na(delay)) %>%
+    )) |>
+    dplyr::filter(!is.na(delay)) |>
     dplyr::select(
       hospital,
       date_of_infection,
       date_of_onset, delay
     )
-  df3 <- ebola %>%
+  df3 <- ebola |>
     dplyr::mutate(delay = time_diff(
       date_of_infection,
       date_of_onset,
       "2 days"
-    )) %>%
-    dplyr::slice(0) %>%
+    )) |>
+    dplyr::slice(0) |>
     dplyr::select(
       date_of_infection,
       date_of_onset, delay
     )
-  df4 <- ebola %>%
-    dplyr::mutate(across(c(date_of_infection, date_of_onset), as.numeric)) %>%
+  df4 <- ebola |>
+    dplyr::mutate(across(c(date_of_infection, date_of_onset), as.numeric)) |>
     dplyr::mutate(delay = time_diff(
       date_of_infection,
       date_of_onset,
       2
-    )) %>%
-    dplyr::filter(!is.na(delay)) %>%
+    )) |>
+    dplyr::filter(!is.na(delay)) |>
     dplyr::select(
       date_of_infection,
       date_of_onset, delay
@@ -62,19 +62,19 @@ test_that("time delay", {
   ))
 
   res2 <- suppressWarnings(get_time_delay(
-    ebola %>%
+    ebola |>
       dplyr::group_by(hospital),
     date_of_infection,
     date_of_onset,
     "2 days"
   ))
 
-  # res3 <- df3 %>%
+  # res3 <- df3 |>
   #   get_time_delay(
   #     date_of_infection,
   #     date_of_onset,
   #     "2 days"
-  #   ) %>%
+  #   ) |>
   #   suppressWarnings()
 
   res4 <- suppressWarnings(get_time_delay(
@@ -108,7 +108,7 @@ test_that("time delay", {
   # expect_equal(res3$num, 2)
   expect_equal(res4$num, 2)
 
-  expect_equal(res1$summary, df1 %>%
+  expect_equal(res1$summary, df1 |>
     dplyr::summarise(
       n = dplyr::n(),
       min = min(delay),
@@ -123,7 +123,7 @@ test_that("time delay", {
       iqr = p75 - p25,
       se = sd / sqrt(n)
     ))
-  # expect_equal(res2$summary, df2 %>%
+  # expect_equal(res2$summary, df2 |>
   #                          dplyr::summarise(n = dplyr::n(),
   #                                           min = min(delay, na.rm = TRUE),
   #                                           max = max(delay, na.rm = TRUE),
@@ -137,7 +137,7 @@ test_that("time delay", {
   #                                           iqr = p75 - p25,
   #                                           se = sd/sqrt(n)))
   # expect_equal(
-  #   res3$summary, df3 %>%
+  #   res3$summary, df3 |>
   #     dplyr::summarise(
   #       n = dplyr::n(),
   #       min = NA_real_,
@@ -152,10 +152,10 @@ test_that("time delay", {
   #       iqr = p75 - p25,
   #       # mad = stats::mad(delay),
   #       se = sd / sqrt(n)
-  #     ) %>%
+  #     ) |>
   #     dplyr::slice(0)
   # )
-  expect_equal(res4$summary, df4 %>%
+  expect_equal(res4$summary, df4 |>
     dplyr::summarise(
       n = dplyr::n(),
       min = min(delay),
@@ -172,37 +172,37 @@ test_that("time delay", {
       se = sd / sqrt(n),
       .groups = "keep"
     ))
-  expect_equal(res1$delay, df1 %>%
+  expect_equal(res1$delay, df1 |>
     dplyr::mutate(
       delay = ceiling(delay),
       edf = dplyr::cume_dist(delay)
-    ) %>%
-    fastplyr::f_count(delay, edf) %>%
-    dplyr::mutate(cumulative = cumsum(n)) %>%
+    ) |>
+    fastplyr::f_count(delay, edf) |>
+    dplyr::mutate(cumulative = cumsum(n)) |>
     dplyr::select(delay, n, cumulative, edf))
-  expect_equal(res2$delay, df2 %>%
+  expect_equal(res2$delay, df2 |>
     dplyr::mutate(
       delay = ceiling(delay),
       edf = dplyr::cume_dist(delay)
-    ) %>%
-    fastplyr::f_count(delay, edf) %>%
-    dplyr::mutate(cumulative = cumsum(n)) %>%
+    ) |>
+    fastplyr::f_count(delay, edf) |>
+    dplyr::mutate(cumulative = cumsum(n)) |>
     dplyr::select(hospital, delay, n, cumulative, edf))
-  # expect_equal(res3$delay, df3 %>%
+  # expect_equal(res3$delay, df3 |>
   #   dplyr::mutate(
   #     delay = ceiling(delay),
   #     edf = dplyr::cume_dist(delay)
-  #   ) %>%
-  #   fastplyr::f_count(delay, edf) %>%
-  #   dplyr::mutate(cumulative = cumsum(n)) %>%
+  #   ) |>
+  #   fastplyr::f_count(delay, edf) |>
+  #   dplyr::mutate(cumulative = cumsum(n)) |>
   #   dplyr::select(delay, n, cumulative, edf))
-  expect_equal(res4$delay, df4 %>%
+  expect_equal(res4$delay, df4 |>
     dplyr::mutate(
       delay = ceiling(delay),
       edf = dplyr::cume_dist(delay)
-    ) %>%
-    fastplyr::f_count(delay, edf) %>%
-    dplyr::mutate(cumulative = cumsum(n)) %>%
+    ) |>
+    fastplyr::f_count(delay, edf) |>
+    dplyr::mutate(cumulative = cumsum(n)) |>
     dplyr::select(delay, n, cumulative, edf))
 
   expect_equal(

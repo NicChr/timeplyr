@@ -5,16 +5,16 @@ collapse::set_collapse(nthreads = 1L)
 
 test_that("Tests for time_countv2", {
   flights2 <- nycflights13::flights
-  flights2 <- flights2 %>%
-    dplyr::slice_sample(n = nrow(flights2)) %>%
+  flights2 <- flights2 |>
+    dplyr::slice_sample(n = nrow(flights2)) |>
     dplyr::mutate(date = lubridate::as_date(time_hour))
   from <- lubridate::as_datetime(lubridate::dmy(02042013)) +
     lubridate::minutes(35)
   to <- lubridate::dmy(08092013)
   from2 <- time_cast(from, flights2$time_hour)
   to2 <- time_cast(to, flights2$time_hour)
-  nrow_flights2 <- flights2 %>%
-    dplyr::filter(dplyr::between(time_hour, from2, to2)) %>%
+  nrow_flights2 <- flights2 |>
+    dplyr::filter(dplyr::between(time_hour, from2, to2)) |>
     nrow()
 
   expect_equal(

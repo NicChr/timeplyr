@@ -1,22 +1,17 @@
 
-is_GRP <- get_from_package("is_GRP", "fastplyr")
 GRP2 <- get_from_package("GRP2", "fastplyr")
 GRP_n_groups <- get_from_package("GRP_n_groups", "fastplyr")
 GRP_group_id <- get_from_package("GRP_group_id", "fastplyr")
 GRP_data_size <- get_from_package("GRP_data_size", "fastplyr")
 GRP_group_sizes <- get_from_package("GRP_group_sizes", "fastplyr")
 GRP_starts <- get_from_package("GRP_starts", "fastplyr")
-GRP_ends <- get_from_package("GRP_ends", "fastplyr")
 GRP_order <- get_from_package("GRP_order", "fastplyr")
 GRP_is_sorted <- get_from_package("GRP_is_sorted", "fastplyr")
 GRP_names <- get_from_package("GRP_names", "fastplyr")
 GRP_duplicated <- get_from_package("GRP_duplicated", "fastplyr")
-GRP_group_data <- get_from_package("GRP_group_data", "fastplyr")
 
 sorted_group_starts <- get_from_package("sorted_group_starts", "fastplyr")
-sorted_group_ends <- get_from_package("sorted_group_ends", "fastplyr")
 group2 <- get_from_package("group2", "fastplyr")
-group_sizes <- get_from_package("group_sizes", "fastplyr")
 gsplit2 <- get_from_package("gsplit2", "fastplyr")
 radixorderv2 <- get_from_package("radixorderv2", "fastplyr")
 
@@ -63,17 +58,6 @@ sorted_group_id_to_GRP <- function(x,
   # Alternative way of getting group starts is:
   # c(1L, which(x) != collapse::flag(x))
   out
-}
-gsplit2 <- function(x = NULL, g = NULL, use.g.names = FALSE, ...){
-  if (is.null(g)){
-    if (is.null(x)){
-      list(integer())
-    } else {
-     list(x)
-    }
-  } else {
-    collapse::gsplit(x, g = g, use.g.names = use.g.names, ...)
-  }
 }
 # Sorts data by groups and returns key info
 sort_data_by_GRP <- function(x, g, sorted_group_starts = TRUE){
@@ -144,9 +128,17 @@ greorder2 <- function(x, g, ...){
   }
 }
 
+# greorder3 <- function(x, g, ...){
+#   if (is.null(g)){
+#     x
+#   } else {
+#     sset(x, cpp_orig_order(GRP_group_id(g), GRP_group_sizes(g)))
+#   }
+# }
+
 group_order_and_counts <- function(g = NULL){
   o <- radixorderv2(g, starts = FALSE, sort = FALSE, group.sizes = TRUE)
-  if (is_GRP(g)) {
+  if (inherits(g, "GRP")){
     sizes <- cheapr::val_rm(GRP_group_sizes(g), 0L)
   }
   else {

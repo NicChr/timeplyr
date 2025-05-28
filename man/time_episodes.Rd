@@ -154,23 +154,23 @@ collapse::set_collapse(nthreads = 1L)
 # Say we want to flag origin-destination pairs
 # that haven't seen departures or arrivals for a week
 
-events <- flights \%>\%
-  mutate(date = as_date(time_hour)) \%>\%
-  group_by(origin, dest) \%>\%
+events <- flights |>
+  mutate(date = as_date(time_hour)) |>
+  group_by(origin, dest) |>
   time_episodes(date, "week", window = 1)
 
 events
 
-episodes <- events \%>\%
+episodes <- events |>
   filter(ep_id_new > 1)
 nrow(fastplyr::f_distinct(episodes, origin, dest)) # 55 origin-destinations
 
 # As expected summer months saw the least number of
 # dry-periods
-episodes \%>\%
-  ungroup() \%>\%
-  time_by(ep_start, "week", .name = "ep_start") \%>\%
-  count(ep_start = interval_start(ep_start)) \%>\%
+episodes |>
+  ungroup() |>
+  time_by(ep_start, "week", .name = "ep_start") |>
+  count(ep_start = interval_start(ep_start)) |>
   ggplot(aes(x = ep_start, y = n)) +
   geom_bar(stat = "identity")
 \dontshow{

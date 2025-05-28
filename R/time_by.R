@@ -28,40 +28,39 @@
 #' library(lubridate)
 #'
 #' # Basic usage
-#' hourly_flights <- flights %>%
+#' hourly_flights <- flights |>
 #'   time_by(time_hour) # Detects time granularity
 #'
 #' hourly_flights
 #'
-#' monthly_flights <- flights %>%
+#' monthly_flights <- flights |>
 #'   time_by(time_hour, "month")
-#' weekly_flights <- flights %>%
+#' weekly_flights <- flights |>
 #'   time_by(time_hour, "week")
 #'
-#' monthly_flights %>%
+#' monthly_flights |>
 #'   f_count()
 #'
-#' weekly_flights %>%
+#' weekly_flights |>
 #'   f_summarise(n = n(), arr_delay = mean(arr_delay, na.rm = TRUE))
 #'
 #' # To aggregate multiple variables, use time_aggregate
 #'
-#' flights %>%
+#' flights |>
 #'   f_count(week = time_cut_width(time_hour, months(3)))
 #' @rdname time_by
 #' @export
 time_by <- function(data, time, width = NULL, .name = NULL, .add = TRUE){
   check_is_df(data)
   data_nms <- names(data)
-  group_vars <- group_vars(data)
-  out <- df_ungroup(data)
-  time_info <- mutate_summary_ungrouped(out, !!enquo(time))
-  time_var <- time_info[["cols"]]
+  group_vars <- fastplyr::f_group_vars(data)
+  out <- fastplyr::f_ungroup(data)
+  time_info <- mutate_one(out, !!enquo(time))
+  time_var <- names(time_info)
   check_length_lte(time_var, 1)
-
-  # Remove duplicate cols..
-  out <- time_info[["data"]]
+  out <- df_add_cols(data, time_info)
   col_seq <- seq_along(names(out))
+  from <- NULL # Initialise
 
   if (length(time_var) > 0L){
     check_is_time_or_num(out[[time_var]])
@@ -73,8 +72,18 @@ time_by <- function(data, time, width = NULL, .name = NULL, .add = TRUE){
       g <- fastplyr::f_select(out, .cols = group_vars)
       time_span_groups <- group_vars
     }
-    time_span_GRP <- df_to_GRP(out, .cols = time_span_groups, return.groups = FALSE)
-    from <- gmin(out[[time_var]], g = time_span_GRP)
+    if (length(time_span_groups) != 0){
+      from <- out |>
+        fastplyr::f_ungroup() |>
+        fastplyr::f_mutate(
+        dplyr::across(
+          dplyr::all_of(time_var),
+          collapse::fmin, .names = ".min."
+        ),
+        .by = all_of(time_span_groups)
+      ) |>
+        fastplyr::f_pull(.cols = ".min.")
+    }
     # Aggregate time data
     time_agg <- time_cut_width(out[[time_var]], width, from = from)
     time_var <- across_col_names(time_var, .fns = "", .names = .name)
@@ -87,7 +96,7 @@ time_by <- function(data, time, width = NULL, .name = NULL, .add = TRUE){
   out <- fastplyr::f_group_by(out, .cols = groups)
   if (length(time_var) > 0L && length(groups) > 0L){
     out <- dplyr::new_grouped_df(out,
-                                 groups = group_data(out),
+                                 groups = fastplyr::f_group_data(out),
                                  time = time_var,
                                  class = "time_tbl_df")
   }
@@ -106,14 +115,14 @@ time_tbl_time_col.time_tbl_df <- function(x){
 
 #' @exportS3Method pillar::tbl_sum
 tbl_sum.time_tbl_df <- function(x, ...){
-  n_groups <- df_nrow(group_data(x))
-  group_vars <- group_vars(x)
+  n_groups <- df_nrow(fastplyr::f_group_data(x))
+  group_vars <- fastplyr::f_group_vars(x)
   time_var <- attr(x, "time")
   non_time_group_vars <- setdiff(group_vars, time_var)
-  time <- group_data(x)[[time_var]]
+  time <- fastplyr::f_group_data(x)[[time_var]]
   if (length(non_time_group_vars) > 0L){
     n_non_time_groups <- df_n_distinct(
-      fastplyr::f_select(group_data(x),
+      fastplyr::f_select(fastplyr::f_group_data(x),
               .cols = non_time_group_vars)
     )
     n_time_groups <- collapse::fnunique(time)
@@ -151,12 +160,12 @@ tbl_sum.time_tbl_df <- function(x, ...){
     time_range_header)
 }
 
-#' @exportS3Method fastplyr::reconstruct
-reconstruct.time_tbl_df <- function(template, data, copy_extra_attributes = TRUE){
-  out <- NextMethod("reconstruct")
+#' @exportS3Method cheapr::rebuild
+rebuild.time_tbl_df <- function(x, template, ...){
+  out <- NextMethod("rebuild")
 
   time_var <- time_tbl_time_col(template)
-  time <- dplyr::group_data(out)[[time_var]]
+  time <- fastplyr::f_group_data(out)[[time_var]]
 
   if (is.null(time)){
     attr(out, "time") <- NULL

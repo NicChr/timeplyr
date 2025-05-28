@@ -37,8 +37,8 @@
 #' time_num_gaps(flights$time_hour, g = flights$origin)
 #'
 #' # Number of missing hours by origin and dest
-#' flights %>%
-#'   f_group_by(origin, dest) %>%
+#' flights |>
+#'   f_group_by(origin, dest) |>
 #'   f_summarise(n_missing = time_num_gaps(time_hour, "hours"))
 #'
 #' @rdname time_gaps
@@ -64,7 +64,7 @@ time_gaps <- function(x, timespan = granularity(x),
   }
   time_tbl <- fastplyr::f_enframe(x, name = "group", value = "time")
   time_not_na <- cheapr::val_find(time_tbl[["time"]], NA, invert = TRUE)
-  time_tbl <- df_row_slice(time_tbl, time_not_na)
+  time_tbl <- cheapr::sset_row(time_tbl, time_not_na)
   time_full_tbl <- fastplyr::f_enframe(time_seq, name = "group", value = "time")
   out_tbl <- fastplyr::f_anti_join(time_full_tbl, time_tbl, by = names(time_tbl))
   if (!use.g.names){

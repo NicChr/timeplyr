@@ -35,7 +35,7 @@ fnmiss <- function(x, g = NULL, sort = TRUE, use.g.names = TRUE,
   if (is.null(x)){
     return(0L)
   }
-  x <- df_ungroup(x)
+  x <- fastplyr::f_ungroup(x)
   g <- GRP2(g, sort = sort)
   N <- fn(x, g = g, use.g.names = FALSE)
   nobs <- collapse::fnobs(x, g = g, use.g.names = use.g.names)

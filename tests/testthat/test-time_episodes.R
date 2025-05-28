@@ -8,19 +8,19 @@ test_that("Testing time episodes", {
 
   flights <- fastplyr::add_row_id(flights, .name = "id")
 
-  na_ids <- flights %>%
-    fastplyr::f_slice_sample(n = (5 * 10^4)) %>%
-    cheapr::with_local_seed(.seed = 98712412) %>%
+  na_ids <- flights |>
+    fastplyr::f_slice_sample(n = (5 * 10^4)) |>
+    cheapr::with_local_seed(.seed = 98712412) |>
     dplyr::pull(id)
 
-  flights <- flights %>%
+  flights <- flights |>
     dplyr::mutate(time_hour = cheapr::cheapr_if_else(
       id %in% na_ids,
       lubridate::NA_POSIXct_, time_hour
     ))
 
-  flights <- flights %>%
-    fastplyr::add_group_id(.name = "id1") %>%
+  flights <- flights |>
+    fastplyr::add_group_id(.name = "id1") |>
     fastplyr::add_group_id(origin, dest,
       .name = "id2"
     )
@@ -449,78 +449,78 @@ test_that("Testing time episodes", {
   )
   expect_identical(
     base1,
-    flights %>%
+    flights |>
       time_episodes(
         .by = id1, time = time_hour,
         time_by = NULL,
         window = 7
-      ) %>%
-      suppressMessages() %>%
-      dplyr::as_tibble() %>%
+      ) |>
+      suppressMessages() |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(ep_id, ep_id_new)
   )
   expect_identical(
     base1,
-    flights %>%
-      dplyr::mutate(event = cheapr::cheapr_if_else(is.na(time_hour), NA, 1)) %>%
+    flights |>
+      dplyr::mutate(event = cheapr::cheapr_if_else(is.na(time_hour), NA, 1)) |>
       time_episodes(
         .by = id1, time = time_hour,
         time_by = NULL,
         window = 7,
         event = list(event = 1)
-      ) %>%
-      dplyr::as_tibble() %>%
+      ) |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(ep_id, ep_id_new)
   )
   expect_identical(
-    flights %>%
+    flights |>
       time_episodes(
         .by = id2, time = time_hour,
         time_by = list("hours" = 18.5),
         window = 2
-      ) %>%
-      dplyr::as_tibble() %>%
+      ) |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(ep_id, ep_id_new),
-    flights %>%
+    flights |>
       time_episodes(
         .by = id2, time = time_hour,
         time_by = "4 hours",
         window = 9.25
-      ) %>%
-      dplyr::as_tibble() %>%
+      ) |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(ep_id, ep_id_new)
   )
   expect_identical(
     base1,
-    flights %>%
+    flights |>
       time_episodes(
         .by = id1, time = time_hour,
         time_by = "hour",
         window = 7
-      ) %>%
-      dplyr::as_tibble() %>%
+      ) |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(ep_id, ep_id_new)
   )
   expect_identical(
     base2,
-    flights %>%
+    flights |>
       time_episodes(
         .by = id2, time = time_hour,
         time_by = "hour",
         window = 240
-      ) %>%
-      dplyr::as_tibble() %>%
+      ) |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(ep_id, ep_id_new)
   )
   expect_identical(
     base3,
-    flights %>%
+    flights |>
       time_episodes(
         .by = id1, time = time_hour,
         time_by = "hour",
         window = 7
-      ) %>%
-      dplyr::as_tibble() %>%
+      ) |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(
         id1, ep_id,
         ep_id_new, ep_start
@@ -528,13 +528,13 @@ test_that("Testing time episodes", {
   )
   expect_identical(
     base4,
-    flights %>%
+    flights |>
       time_episodes(
         .by = id2, time = time_hour,
         time_by = "hour",
         window = 240
-      ) %>%
-      dplyr::as_tibble() %>%
+      ) |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(
         id2, ep_id,
         ep_id_new, ep_start
@@ -542,38 +542,38 @@ test_that("Testing time episodes", {
   )
   expect_identical(
     base1,
-    flights %>%
+    flights |>
       time_episodes(
         .by = id1, time = time_hour,
         time_by = "hour",
         window = 7,
         .add = TRUE
-      ) %>%
-      dplyr::as_tibble() %>%
+      ) |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(ep_id, ep_id_new)
   )
   expect_identical(
     base2,
-    flights %>%
+    flights |>
       time_episodes(
         .by = id2, time = time_hour,
         time_by = "hour",
         window = 240,
         .add = TRUE
-      ) %>%
-      dplyr::as_tibble() %>%
+      ) |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(ep_id, ep_id_new)
   )
   expect_identical(
     base3,
-    flights %>%
+    flights |>
       time_episodes(
         .by = id1, time = time_hour,
         time_by = "hour",
         window = 7,
         .add = TRUE
-      ) %>%
-      dplyr::as_tibble() %>%
+      ) |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(
         id1, ep_id,
         ep_id_new, ep_start
@@ -581,14 +581,14 @@ test_that("Testing time episodes", {
   )
   expect_identical(
     base4,
-    flights %>%
+    flights |>
       time_episodes(
         .by = id2, time = time_hour,
         time_by = "hour",
         window = 240,
         .add = TRUE
-      ) %>%
-      dplyr::as_tibble() %>%
+      ) |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(
         id2, ep_id,
         ep_id_new, ep_start
@@ -597,38 +597,38 @@ test_that("Testing time episodes", {
   # Grouped
   expect_identical(
     base1,
-    flights %>%
+    flights |>
       time_episodes(
         .by = id1, time = time_hour,
         time_by = "hour",
         window = 7,
         .add = TRUE
-      ) %>%
-      dplyr::as_tibble() %>%
+      ) |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(ep_id, ep_id_new)
   )
   expect_identical(
     base2,
-    flights %>%
+    flights |>
       time_episodes(
         .by = id2, time = time_hour,
         time_by = "hour",
         window = 240,
         .add = TRUE
-      ) %>%
-      dplyr::as_tibble() %>%
+      ) |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(ep_id, ep_id_new)
   )
   expect_identical(
     base3,
-    flights %>%
+    flights |>
       time_episodes(
         .by = id1, time = time_hour,
         time_by = "hour",
         window = 7,
         .add = TRUE
-      ) %>%
-      dplyr::as_tibble() %>%
+      ) |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(
         id1, ep_id,
         ep_id_new, ep_start
@@ -636,14 +636,14 @@ test_that("Testing time episodes", {
   )
   expect_identical(
     base4,
-    flights %>%
+    flights |>
       time_episodes(
         .by = id2, time = time_hour,
         time_by = "hour",
         window = 240,
         .add = TRUE
-      ) %>%
-      dplyr::as_tibble() %>%
+      ) |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(
         id2, ep_id,
         ep_id_new, ep_start
@@ -653,56 +653,56 @@ test_that("Testing time episodes", {
   # Check that the order hasn't changed
   expect_identical(
     flights$id,
-    flights %>%
+    flights |>
       time_episodes(
         .by = id1, time = time_hour,
         time_by = "hour",
         window = 7,
         .add = TRUE
-      ) %>%
+      ) |>
       dplyr::pull(id)
   )
   expect_identical(
     flights$id,
-    flights %>%
+    flights |>
       time_episodes(
         .by = id2, time = time_hour,
         time_by = "hour",
         window = 240,
         .add = TRUE
-      ) %>%
+      ) |>
       dplyr::pull(id)
   )
   expect_identical(
     flights$id,
-    flights %>%
+    flights |>
       time_episodes(
         .by = id1, time = time_hour,
         time_by = "hour",
         window = 7,
         .add = TRUE
-      ) %>%
+      ) |>
       dplyr::pull(id)
   )
   expect_identical(
     flights$id,
-    flights %>%
+    flights |>
       time_episodes(
         .by = id2, time = time_hour,
         time_by = "hour",
         window = 240,
         .add = TRUE
-      ) %>%
+      ) |>
       dplyr::pull(id)
   )
   expect_identical(
-    flights %>%
-      fastplyr::f_slice(0) %>%
+    flights |>
+      fastplyr::f_slice(0) |>
       time_episodes(
         .by = id2, time = time_hour,
         time_by = "hour",
         window = 240
-      ) %>%
+      ) |>
       dplyr::as_tibble(),
     structure(
       list(
@@ -723,12 +723,12 @@ test_that("Testing time episodes", {
   names(x) <- g
   df <- fastplyr::f_enframe(x)
 
-  df <- df %>%
-    fastplyr::f_arrange(name, value) %>%
+  df <- df |>
+    fastplyr::f_arrange(name, value) |>
     dplyr::mutate(
       telapsed1 = time_elapsed(value, 1, rolling = TRUE, g = name),
       telapsed2 = time_elapsed(value, 1, rolling = FALSE, g = name)
-    ) %>%
+    ) |>
     fastplyr::f_group_by(name)
 
   # Rolling
@@ -739,9 +739,9 @@ test_that("Testing time episodes", {
     1, 2, 0, 0, 3, 0, 0, NA, NA
   )
   expect_equal(
-    df %>%
-      time_episodes(value, roll_episode = TRUE, window = 100, .add = TRUE) %>%
-      dplyr::as_tibble() %>%
+    df |>
+      time_episodes(value, roll_episode = TRUE, window = 100, .add = TRUE) |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(res1 == ep_id_new),
     fastplyr::as_tbl(cheapr::fast_df(
       "res1 == ep_id_new" = c(TRUE, NA),
@@ -758,12 +758,12 @@ test_that("Testing time episodes", {
   )
 
   expect_equal(
-    df %>%
+    df |>
       time_episodes(value,
         roll_episode = FALSE, window = 200,
         .add = TRUE
-      ) %>%
-      dplyr::as_tibble() %>%
+      ) |>
+      dplyr::as_tibble() |>
       fastplyr::f_count(res2 == ep_id_new),
     fastplyr::as_tbl(cheapr::fast_df(
       "res2 == ep_id_new" = c(TRUE, NA),
@@ -780,62 +780,62 @@ test_that("Simple episodic tests", {
   )
 
   expect_snapshot({
-    df %>%
+    df |>
       time_episodes(time,
         time_by = 1, window = 3, .add = FALSE,
         # t >= threshold
         switch_on_boundary = TRUE
-      ) %>%
+      ) |>
       fastplyr::f_arrange(time)
   })
 
   expect_snapshot({
-    df %>%
+    df |>
       time_episodes(time,
         time_by = 1, window = 3, .add = TRUE,
         # t > threshold
         switch_on_boundary = FALSE
-      ) %>%
+      ) |>
       fastplyr::f_arrange(time)
   })
 
   expect_snapshot({
-    df %>%
+    df |>
       time_episodes(time,
         time_by = 1, window = 3, .add = TRUE,
         switch_on_boundary = TRUE,
         event = list(event = "e")
-      ) %>%
+      ) |>
       fastplyr::f_arrange(time)
   })
 
   expect_snapshot({
-    df %>%
+    df |>
       time_episodes(time,
         time_by = 3, window = 1, .add = FALSE,
         switch_on_boundary = FALSE,
         event = list(event = "e")
-      ) %>%
+      ) |>
       fastplyr::f_arrange(time)
   })
   # Cumulative time ---------------------------------------------------------
   expect_snapshot({
-    df %>%
+    df |>
       time_episodes(time,
         time_by = "days", window = 5, .add = FALSE,
         roll_episode = FALSE,
         switch_on_boundary = TRUE
-      ) %>%
+      ) |>
       fastplyr::f_arrange(time)
   })
 
   expect_snapshot({
-    df %>%
+    df |>
       time_episodes(time,
         time_by = "5 days", window = 1, .add = FALSE,
         roll_episode = FALSE,
         switch_on_boundary = FALSE
-      ) %>%
+      ) |>
       fastplyr::f_arrange(time)
   })
 })

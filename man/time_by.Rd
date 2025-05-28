@@ -43,24 +43,24 @@ library(nycflights13)
 library(lubridate)
 
 # Basic usage
-hourly_flights <- flights \%>\%
+hourly_flights <- flights |>
   time_by(time_hour) # Detects time granularity
 
 hourly_flights
 
-monthly_flights <- flights \%>\%
+monthly_flights <- flights |>
   time_by(time_hour, "month")
-weekly_flights <- flights \%>\%
+weekly_flights <- flights |>
   time_by(time_hour, "week")
 
-monthly_flights \%>\%
+monthly_flights |>
   f_count()
 
-weekly_flights \%>\%
+weekly_flights |>
   f_summarise(n = n(), arr_delay = mean(arr_delay, na.rm = TRUE))
 
 # To aggregate multiple variables, use time_aggregate
 
-flights \%>\%
+flights |>
   f_count(week = time_cut_width(time_hour, months(3)))
 }

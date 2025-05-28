@@ -186,8 +186,8 @@ t <- today() + days(sort(sample(1:30, 20, TRUE)))
 time_elapsed(t, days(1)) # See the irregular elapsed time
 x <- rpois(length(t), 10)
 
-new_tbl(x, t) \%>\%
-  mutate(sum = time_roll_sum(x, time = t, window = days(3))) \%>\%
+new_tbl(x, t) |>
+  mutate(sum = time_roll_sum(x, time = t, window = days(3))) |>
   time_ggplot(t, sum)
 
 \donttest{
@@ -214,7 +214,7 @@ apply(x, 2,
 # Instead we can pivot it longer and code each series as a separate group
 tbl <- ts_as_tbl(zoo_ts)
 
-tbl \%>\%
+tbl |>
   mutate(monthly_mean = time_roll_mean(value, window = dmonths(1),
                                        time = time, g = group))
 }

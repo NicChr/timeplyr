@@ -88,7 +88,7 @@ ebola_linelist <- ebola_sim_clean$linelist
 # Incubation period distribution
 
 # 95\% of individuals experienced an incubation period of <= 26 days
-inc_distr_days <- ebola_linelist \%>\%
+inc_distr_days <- ebola_linelist |>
   get_time_delay(date_of_infection,
                  date_of_onset,
                  time = "days")
@@ -100,7 +100,7 @@ head(inc_distr_days$delay) # ECDF and freq by delay
 inc_distr_days$plot
 
 # Can change bandwidth selector
-inc_distr_days <- ebola_linelist \%>\%
+inc_distr_days <- ebola_linelist |>
   get_time_delay(date_of_infection,
                  date_of_onset,
                  time = "day",
@@ -108,7 +108,7 @@ inc_distr_days <- ebola_linelist \%>\%
 inc_distr_days$plot
 
 # Can choose any time units
-inc_distr_weeks <- ebola_linelist \%>\%
+inc_distr_weeks <- ebola_linelist |>
   get_time_delay(date_of_infection,
                  date_of_onset,
                  time = "weeks",

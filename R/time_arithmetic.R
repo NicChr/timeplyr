@@ -214,7 +214,7 @@ time_ceiling <- function(x, timespan,
   if (is.na(unit)){
     out <- ceiling(x / num) * num
     if (change_on_boundary){
-      change <- cheapr::which_(out == x)
+      change <- which(out == x)
       out[change] <- (out + num)[change]
     }
     out
@@ -303,7 +303,7 @@ diff_months.Date <- function(x, y, n = 1L, fractional = FALSE, ...){
       (unclass(y) - unclass(small_int_start)) /
         abs(unclass(big_int_end) - unclass(small_int_start))
     )
-    fraction[cheapr::which_(x == y)] <- 0
+    fraction[which(x == y)] <- 0
     if (!all_val(fraction, 0)){
       out <- out + fraction
     }
@@ -356,7 +356,7 @@ diff_months.POSIXt <- function(x, y, n = 1L, fractional = FALSE, ...){
     }
 
     if (length(n) != 1){
-      n <- rep_len2(n, length(out))
+      n <- cheapr::cheapr_rep_len(n, length(out))
     }
     big_int_end <- cheapr::cheapr_if_else(
       l2r,
@@ -373,7 +373,7 @@ diff_months.POSIXt <- function(x, y, n = 1L, fractional = FALSE, ...){
       (unclass(y) - unclass(small_int_start)) /
         abs(unclass(big_int_end) - unclass(small_int_start))
     )
-    fraction[cheapr::which_(x == y)] <- 0
+    fraction[which(x == y)] <- 0
 
     if (!all_val(fraction, 0)){
       out <- out + fraction
@@ -448,7 +448,7 @@ diff_days.POSIXt <- function(x, y, n = 1L, fractional = FALSE, ...){
     fraction <- strip_attrs(
       (unclass(y) - unclass(small_int_start)) / abs(unclass(big_int_end) - unclass(small_int_start))
     )
-    fraction[cheapr::which_(x == y)] <- 0
+    fraction[which(x == y)] <- 0
     if (!all_val(fraction, 0)){
       out <- out + fraction
     }

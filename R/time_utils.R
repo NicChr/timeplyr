@@ -162,13 +162,13 @@ period_by_calc <- function(from, to, length){
   # and if it equals `to` then the ans can be returned
 
   month_delta <- diff_months(from, to, n = quo, fractional = FALSE)
-  up <- from %>%
+  up <- from |>
     time_add(new_timespan("months", month_delta * fct), roll_month = "xlast")
   if (identical(up, to)){
     out <- new_timespan("months", month_delta)
   } else {
     day_delta <- diff_days(from, to, n = quo, fractional = FALSE)
-    up <- from %>%
+    up <- from |>
       time_add(new_timespan("days", day_delta * fct))
     if (identical(up, to)){
       out <- new_timespan("days", day_delta)
@@ -411,7 +411,7 @@ divide_interval_by_period <- function(start, end, width){
     adj_dur_est(estimate, start, end, width)
     # adjust_duration_estimate(as.double(estimate), start, end, as.double(timespan_num(width)), timespan_unit(width))
   } else {
-    not_nas <- which_not_na(estimate)
+    not_nas <- cheapr::na_find(estimate, invert = TRUE)
     start <- start[not_nas]
     end <- end[not_nas]
     width <- width[not_nas]

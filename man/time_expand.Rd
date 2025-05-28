@@ -75,22 +75,22 @@ x <- flights$time_hour
 
 time_num_gaps(x) # Missing hours
 
-flights_count <- flights \%>\%
+flights_count <- flights |>
   fastplyr::f_count(time_hour)
 
 # Fill in missing hours
-flights_count \%>\%
+flights_count |>
   time_complete(time = time_hour)
 
 # You can specify units too
-flights_count \%>\%
+flights_count |>
   time_complete(time = time_hour, time_by = "hours")
-flights_count \%>\%
+flights_count |>
   time_complete(time = as_date(time_hour), time_by = "days") #  Nothing to complete here
 
 # Where time_expand() and time_complete() really shine is how fast they are with groups
-flights \%>\%
-  group_by(origin, dest) \%>\%
+flights |>
+  group_by(origin, dest) |>
   time_expand(time = time_hour, time_by = dweeks(1))
 \dontshow{
 data.table::setDTthreads(threads = .n_dt_threads)

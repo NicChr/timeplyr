@@ -49,7 +49,7 @@ iso_week <- function(x, year = TRUE, day = FALSE){
   } else {
     out <- sprintf("W%02d", w)
   }
-  out[which_na(w)] <- NA_character_
+  out[cheapr::na_find(w)] <- NA_character_
   out
 }
 #' @rdname iso_week

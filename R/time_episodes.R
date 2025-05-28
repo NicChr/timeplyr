@@ -124,23 +124,23 @@
 #' # Say we want to flag origin-destination pairs
 #' # that haven't seen departures or arrivals for a week
 #'
-#' events <- flights %>%
-#'   mutate(date = as_date(time_hour)) %>%
-#'   group_by(origin, dest) %>%
+#' events <- flights |>
+#'   mutate(date = as_date(time_hour)) |>
+#'   group_by(origin, dest) |>
 #'   time_episodes(date, "week", window = 1)
 #'
 #' events
 #'
-#' episodes <- events %>%
+#' episodes <- events |>
 #'   filter(ep_id_new > 1)
 #' nrow(fastplyr::f_distinct(episodes, origin, dest)) # 55 origin-destinations
 #'
 #' # As expected summer months saw the least number of
 #' # dry-periods
-#' episodes %>%
-#'   ungroup() %>%
-#'   time_by(ep_start, "week", .name = "ep_start") %>%
-#'   count(ep_start = interval_start(ep_start)) %>%
+#' episodes |>
+#'   ungroup() |>
+#'   time_by(ep_start, "week", .name = "ep_start") |>
+#'   count(ep_start = interval_start(ep_start)) |>
 #'   ggplot(aes(x = ep_start, y = n)) +
 #'   geom_bar(stat = "identity")
 #' \dontshow{
@@ -171,7 +171,7 @@ time_episodes <- function(data, time, time_by = NULL,
   if (length(time_col) == 0){
     stop("Please supply date or datetime for episode calculation")
   }
-  temp <- df_ungroup(data)
+  temp <- fastplyr::f_ungroup(data)
   # Data names after data-masking
   data_nms <- names(temp)
   if (is.null(event)){
@@ -291,7 +291,7 @@ time_episodes <- function(data, time, time_by = NULL,
     # Set the column order
     out <- fastplyr::f_select(out, .cols = out_nms)
   }
-  out <- reconstruct(data, out)
+  out <- cheapr::rebuild(out, data)
   threshold <- time_by
   threshold[[1L]] <- time_by_num(time_by) * window
   out <- structure(out, time = time_col, time_by = time_by, threshold = threshold)
@@ -307,10 +307,10 @@ tbl_sum.episodes_tbl_df <- function(x, ...){
   elapsed_header <- character()
   threshold_header <- character()
   # Groups
-  group_vars <- group_vars(x)
+  group_vars <- fastplyr::f_group_vars(x)
   GRPS <- df_to_GRP(x, return.groups = FALSE)
   if (length(group_vars) > 0){
-    groups <- group_data(x)
+    groups <- fastplyr::f_group_data(x)
     groups_header <- c("Groups" =
                          paste0(paste(group_vars, collapse = ", "),
                                 " [",

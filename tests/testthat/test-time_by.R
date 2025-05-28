@@ -10,19 +10,19 @@ test_that("time_by", {
   )
   end <- start + lubridate::ddays(10)
   expect_snapshot(
-    flights %>%
-      dplyr::filter(dplyr::between(time_hour, start, end)) %>%
-      time_by(time_hour, "3 days") %>%
+    flights |>
+      dplyr::filter(dplyr::between(time_hour, start, end)) |>
+      time_by(time_hour, "3 days") |>
       fastplyr::f_count()
   )
   expect_snapshot(
-    flights %>%
-      fastplyr::f_slice(0) %>%
+    flights |>
+      fastplyr::f_slice(0) |>
       time_by(time_hour)
   )
-  flights_weekly <- flights %>%
+  flights_weekly <- flights |>
     time_by(time_hour, "week")
-  flights_bi_weekly <- flights %>%
+  flights_bi_weekly <- flights |>
     time_by(time_hour, "2 weeks")
   expect_equal(time_tbl_time_col(flights_weekly), "time_hour")
   expect_equal(time_tbl_time_col(flights_bi_weekly), "time_hour")
@@ -37,15 +37,15 @@ test_that("time_by", {
   )
 
   expect_equal(
-    group_data(flights_weekly)$time_hour,
-    time_cut_width(flights$time_hour, "week") %>%
-      unique() %>%
+    fastplyr::f_group_data(flights_weekly)$time_hour,
+    time_cut_width(flights$time_hour, "week") |>
+      unique() |>
       sort()
   )
   expect_equal(
-    group_data(flights_bi_weekly)$time_hour,
-    time_cut_width(flights$time_hour, "2 weeks") %>%
-      unique() %>%
+    fastplyr::f_group_data(flights_bi_weekly)$time_hour,
+    time_cut_width(flights$time_hour, "2 weeks") |>
+      unique() |>
       sort()
   )
 

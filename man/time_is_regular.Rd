@@ -74,7 +74,7 @@ time_is_regular(y, increment, allow_dups = TRUE, allow_gaps = FALSE)
 
 # Grouped
 eu_stock <- ts_as_tbl(EuStockMarkets)
-eu_stock <- eu_stock \%>\%
+eu_stock <- eu_stock |>
   mutate(date = as_date(
     date_decimal(time)
   ))

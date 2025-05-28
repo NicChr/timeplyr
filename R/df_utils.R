@@ -2,22 +2,23 @@
 
 # Internal helpers from fastplyr
 
-df_nrow <- get_from_package("df_nrow", "fastplyr")
-df_ncol <- get_from_package("df_ncol", "fastplyr")
-df_seq_along <- get_from_package("df_seq_along", "fastplyr")
-group_vars <- get_from_package("group_vars", "fastplyr")
-group_data <- get_from_package("group_data", "fastplyr")
+df_nrow <- function(x){
+  length(attr(x, "row.names", TRUE))
+}
+df_ncol <- function(x){
+  length(attr(x, "names", TRUE))
+}
+df_seq_along <- function (data, along = "rows"){
+  switch(along, rows = seq_len(df_nrow(data)), seq_len(df_ncol(data)))
+}
 get_groups <- get_from_package("get_groups", "fastplyr")
-df_row_slice <- get_from_package("df_row_slice", "fastplyr")
-df_add_cols <- get_from_package("df_add_cols", "fastplyr")
-df_rm_cols <- get_from_package("df_rm_cols", "fastplyr")
-df_rep <- get_from_package("df_rep", "fastplyr")
-df_rep_each <- get_from_package("df_rep_each", "fastplyr")
-df_ungroup <- fastplyr::f_ungroup
-df_init <- get_from_package("df_init", "fastplyr")
-df_paste_names <- get_from_package("df_paste_names", "fastplyr")
-
-reconstruct <- get_from_package("reconstruct", "fastplyr")
+df_add_cols <- get_from_package("cpp_df_assign_cols", "cheapr")
+df_rm_cols <- function(data, cols){
+  df_add_cols(data, `names<-`(cheapr::new_list(length(cols)), cols))
+}
+df_paste_names <- function (data, sep = "_", .cols = names(data)){
+  do.call(paste, c(fastplyr::f_select(data, .cols = .cols), list(sep = sep)))
+}
 
 df_group_id <- function(data){
   fastplyr::add_group_id(data, .name = ".group.id")[[".group.id"]]
@@ -34,26 +35,21 @@ check_is_df <- function(x){
   }
 }
 
-# Reorder data frame to original order after having sorted it using a GRP
-# df_reorder <- function(data, g){
-#   df_row_slice(data, greorder2(df_seq_along(data, "rows"), g = g))
-# }
-
 #' @exportS3Method dplyr::dplyr_reconstruct
 dplyr_reconstruct.time_tbl_df <- function(data, template){
-  reconstruct(template, data)
+  cheapr::rebuild(data, template)
 }
 #' @exportS3Method dplyr::dplyr_reconstruct
 dplyr_reconstruct.episodes_tbl_df <- function(data, template){
-  reconstruct(template, data)
+  cheapr::rebuild(data, template)
 }
 #' @exportS3Method dplyr::dplyr_row_slice
 dplyr_row_slice.time_tbl_df <- function(data, i, ..., .preserve = FALSE){
-  df_row_slice(data, i)
+  cheapr::sset_df(data, i)
 }
 #' @exportS3Method dplyr::dplyr_row_slice
 dplyr_row_slice.episodes_tbl_df <- function(data, i, ..., .preserve = FALSE){
-  df_row_slice(data, i)
+  cheapr::sset_df(data, i)
 }
 
 df_n_distinct <- function(data){
@@ -63,12 +59,22 @@ df_n_distinct <- function(data){
   )
 }
 
+
+mutate_one <- function(.data, expr, .by = NULL){
+  group_vars <- fastplyr::f_group_vars(.data)
+  out <- fastplyr::f_mutate(
+    .data, {{ expr }}, .by = {{ .by }}, .keep = "none"
+  )
+  fastplyr::f_select(fastplyr::f_ungroup(out), .cols = setdiff(names(out), group_vars))
+}
+
+
 # A `data.table::setorder()` that works for any data frame
 # df_set_order <- function(x, .cols = names(x), .order = 1L){
 #
 #   ## Make sure this only works for data frames of simple vectors
 #
-#   group_vars <- group_vars(x)
+#   group_vars <- fastplyr::f_group_vars(x)
 #
 #   temp_list <- cheapr::new_list(length(names(x)))
 #   names(temp_list) <- names(x)
@@ -90,7 +96,7 @@ df_n_distinct <- function(data){
 #   }
 #   if (length(group_vars) > 0){
 #     # Add re-calculated group data
-#     groups <- group_data(fastplyr::f_group_by(fastplyr::f_ungroup(x), .cols = group_vars))
+#     groups <- fastplyr::f_group_data(fastplyr::f_group_by(fastplyr::f_ungroup(x), .cols = group_vars))
 #     set_add_attr(x, "groups", groups)
 #   } else {
 #     x

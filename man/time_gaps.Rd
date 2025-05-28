@@ -78,8 +78,8 @@ length(time_gaps(flights$time_hour))
 time_num_gaps(flights$time_hour, g = flights$origin)
 
 # Number of missing hours by origin and dest
-flights \%>\%
-  f_group_by(origin, dest) \%>\%
+flights |>
+  f_group_by(origin, dest) |>
   f_summarise(n_missing = time_num_gaps(time_hour, "hours"))
 
 }

@@ -155,7 +155,7 @@ time_seq <- function(from = NULL, to = NULL, time_by = NULL, length.out = NULL,
 
     # Correct the direction when user supplies impossible non-zero increment
     if (any(wrong_dir, na.rm = TRUE)){
-      switch_locs <- cheapr::which_(wrong_dir)
+      switch_locs <- which(wrong_dir)
       time_by[switch_locs] <- -time_by[switch_locs]
     }
     length.out <- time_seq_sizes(from, to, time_by)
@@ -297,10 +297,10 @@ period_seq_v2 <- function(sizes, from, units, num = 1L,
   # Vectorised time period addition
 
   if (length(num) != 1){
-    num <- rep2(rep_len2(num, n_seqs), sizes)
+    num <- cheapr::cheapr_rep(cheapr::cheapr_rep_len(num, n_seqs), sizes)
   }
   if (length(from) != 1){
-    from <- rep2(rep_len2(from, n_seqs), sizes)
+    from <- cheapr::cheapr_rep(cheapr::cheapr_rep_len(from, n_seqs), sizes)
   }
   if (is.integer(num)){
     add <- sequence(sizes, from = 0L, by = 1L) * num

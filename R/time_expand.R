@@ -35,22 +35,22 @@
 #'
 #' time_num_gaps(x) # Missing hours
 #'
-#' flights_count <- flights %>%
+#' flights_count <- flights |>
 #'   fastplyr::f_count(time_hour)
 #'
 #' # Fill in missing hours
-#' flights_count %>%
+#' flights_count |>
 #'   time_complete(time = time_hour)
 #'
 #' # You can specify units too
-#' flights_count %>%
+#' flights_count |>
 #'   time_complete(time = time_hour, time_by = "hours")
-#' flights_count %>%
+#' flights_count |>
 #'   time_complete(time = as_date(time_hour), time_by = "days") #  Nothing to complete here
 #'
 #' # Where time_expand() and time_complete() really shine is how fast they are with groups
-#' flights %>%
-#'   group_by(origin, dest) %>%
+#' flights |>
+#'   group_by(origin, dest) |>
 #'   time_expand(time = time_hour, time_by = dweeks(1))
 #' \dontshow{
 #' data.table::setDTthreads(threads = .n_dt_threads)
@@ -64,29 +64,24 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
   check_is_df(data)
   group_vars <- get_groups(data, {{ .by }})
   temp_data <- data
-  if (length(group_vars(data)) == 0){
+  if (length(fastplyr::f_group_vars(data)) == 0){
     temp_data <- fastplyr::f_group_by(temp_data, .by = {{ .by }}, .order = FALSE)
   }
   group_ids <- df_group_id(temp_data)
-  time_info <- mutate_summary_grouped(temp_data, !!enquo(time), .keep = "none")
-  from_info <- mutate_summary_grouped(temp_data, !!enquo(from), .keep = "none")
-  to_info <- mutate_summary_grouped(temp_data, !!enquo(to), .keep = "none")
-  time_var <- time_info[["cols"]]
-  from_var <- from_info[["cols"]]
-  to_var <- to_info[["cols"]]
+  time_data <- mutate_one(temp_data, !!enquo(time))
+  from_data <- mutate_one(temp_data, !!enquo(from))
+  to_data <- mutate_one(temp_data, !!enquo(to))
+  time_var <- names(time_data)
+  from_var <- names(from_data)
+  to_var <- names(to_data)
   check_length_lte(time_var, 1)
   check_length_lte(from_var, 1)
   check_length_lte(to_var, 1)
 
-  # Remove duplicate cols
-  time_data <- df_ungroup(time_info[["data"]])
-  from_data <- df_ungroup(from_info[["data"]])
-  to_data <- df_ungroup(to_info[["data"]])
-  from_data <- fastplyr::f_select(from_data,
-                       .cols = which(match(names(from_data), names(time_data), 0L) == 0L))
-  to_data <- fastplyr::f_select(to_data,
-                     .cols = which(match(names(to_data), names(time_data), 0L) == 0L))
-  out <- fastplyr::f_bind_cols(time_data, from_data, to_data)
+  out <- fastplyr::f_bind_cols(
+    fastplyr::f_select(temp_data, .cols = group_vars),
+    time_data, from_data, to_data
+  )
   if (length(time_var) > 0){
     time_by <- get_granularity(out[[time_var]], time_by)
     by_unit <- timespan_unit(time_by)
@@ -111,7 +106,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
     )
     # Reverse by sign in case from > to
     by_nm <- unique_col_name(out, ".by")
-    by_n <- rep_len(by_n, nrow(time_tbl))
+    by_n <- cheapr::cheapr_rep_len(by_n, nrow(time_tbl))
     which_wrong_sign <- which(time_tbl[[from_nm]] > time_tbl[[to_nm]])
     by_n[which_wrong_sign] <- -abs(by_n[which_wrong_sign])
     time_tbl[[by_nm]] <- by_n
@@ -126,7 +121,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
                             timespan(by_unit, time_tbl[[by_nm]]))
     time_seq_sizes <- time_tbl[[size_nm]]
     time_tbl <- df_rm_cols(time_tbl, c(from_nm, to_nm, size_nm, by_nm))
-    out <- df_rep(time_tbl, time_seq_sizes)
+    out <- cheapr::cheapr_rep(time_tbl, time_seq_sizes)
     out[[time_var]] <- time_seq
     out <- df_rm_cols(out, grp_nm)
     if (dots_length(...) > 0){
@@ -138,7 +133,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
         if (length(intersect(group_vars, expanded_nms)) == 0L){
           out_n <- df_nrow(out)
           expanded_n <- df_nrow(expanded_df)
-          out <- df_rep_each(out, expanded_n)
+          out <- cheapr::cheapr_rep_each(out, expanded_n)
           for (i in seq_along(expanded_nms)){
             out[[expanded_nms[i]]] <- rep(expanded_df[[expanded_nms[i]]], out_n)
           }
@@ -159,7 +154,7 @@ time_expand <- function(data, time = NULL, ..., .by = NULL,
   } else {
       out <- fastplyr::f_expand(data, ..., .sort = sort, .by = {{ .by }})
   }
-  reconstruct(data, out)
+  cheapr::rebuild(out, data)
 }
 #' @rdname time_expand
 #' @export
@@ -172,9 +167,9 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
     cli::cli_abort("{.arg fill} must be either a list or `NULL`")
   }
   group_vars <- get_groups(data, {{ .by }})
-  out_info <- mutate_summary_grouped(data, !!enquo(time), .by = {{ .by }})
-  out <- out_info[["data"]]
-  time_var <- out_info[["cols"]]
+  time_info <- mutate_one(data, !!enquo(time), .by = {{ .by }})
+  out <- df_add_cols(data, time_info)
+  time_var <- names(time_info)
   check_length_lte(time_var, 1)
   expanded_df <- time_expand(out,
                              ...,
@@ -217,5 +212,5 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
   }
   out_vars <- c(names(data), setdiff(names(out), names(data)))
   out <- fastplyr::f_select(out, .cols = out_vars)
-  reconstruct(data, out)
+  cheapr::rebuild(out, data)
 }

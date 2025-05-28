@@ -334,8 +334,8 @@ interval_count <- function(x){
 }
 #' @export
 interval_count.time_interval <- function(x){
-  cheapr::fast_df(interval = x) %>%
-    fastplyr::f_count(.cols = 1L, .order = TRUE) %>%
+  cheapr::fast_df(interval = x) |>
+    fastplyr::f_count(.cols = 1L, .order = TRUE) |>
     fastplyr::as_tbl()
 }
 #' @rdname time_interval

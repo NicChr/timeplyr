@@ -1,15 +1,15 @@
 # Simple episodic tests
 
     Code
-      df |> time_episodes(time, time_by = 1, window = 3, .add = FALSE,
-        switch_on_boundary = TRUE) |> fastplyr::f_arrange(time)
+      fastplyr::f_arrange(time_episodes(df, time, time_by = 1, window = 3, .add = FALSE,
+        switch_on_boundary = TRUE), time)
     Output
       # A tibble:        15 x 5
       # Episodes:        N: 5, Median: 5, Mean: 5 ▁▁▁▇▁▁▁
       # Time b/w events: Mean: ~1.86 numeric units
       # Threshold:       3 numeric units
          time       t_elapsed ep_start   ep_id ep_id_new
-         <date>         <dbl> <date>     <int>     <int>
+       * <date>         <dbl> <date>     <int>     <int>
        1 1970-01-04         0 1970-01-04     1         1
        2 1970-01-04         0 1970-01-04     1         0
        3 1970-01-07         3 1970-01-07     2         2
@@ -29,15 +29,15 @@
 ---
 
     Code
-      df |> time_episodes(time, time_by = 1, window = 3, .add = TRUE,
-        switch_on_boundary = FALSE) |> fastplyr::f_arrange(time)
+      fastplyr::f_arrange(time_episodes(df, time, time_by = 1, window = 3, .add = TRUE,
+        switch_on_boundary = FALSE), time)
     Output
       # A tibble:        15 x 6
       # Episodes:        N: 3, Median: 3, Mean: 3 ▁▁▁▇▁▁▁
       # Time b/w events: Mean: ~1.86 numeric units
       # Threshold:       3 numeric units
          time       event t_elapsed ep_start   ep_id ep_id_new
-         <date>     <chr>     <dbl> <date>     <int>     <int>
+       * <date>     <chr>     <dbl> <date>     <int>     <int>
        1 1970-01-04 e             0 1970-01-04     1         1
        2 1970-01-04 ne            0 1970-01-04     1         0
        3 1970-01-07 e             3 1970-01-04     1         0
@@ -57,16 +57,15 @@
 ---
 
     Code
-      df |> time_episodes(time, time_by = 1, window = 3, .add = TRUE,
-        switch_on_boundary = TRUE, event = list(event = "e")) |> fastplyr::f_arrange(
-        time)
+      fastplyr::f_arrange(time_episodes(df, time, time_by = 1, window = 3, .add = TRUE,
+        switch_on_boundary = TRUE, event = list(event = "e")), time)
     Output
       # A tibble:        15 x 6
       # Episodes:        N: 4, Median: 4, Mean: 4 ▁▁▁▇▁▁▁
       # Time b/w events: Mean: 3 numeric units
       # Threshold:       3 numeric units
          time       event t_elapsed ep_start   ep_id ep_id_new
-         <date>     <chr>     <dbl> <date>     <int>     <int>
+       * <date>     <chr>     <dbl> <date>     <int>     <int>
        1 1970-01-04 e             0 1970-01-04     1         1
        2 1970-01-04 ne           NA NA            NA        NA
        3 1970-01-07 e             3 1970-01-07     2         2
@@ -86,16 +85,15 @@
 ---
 
     Code
-      df |> time_episodes(time, time_by = 3, window = 1, .add = FALSE,
-        switch_on_boundary = FALSE, event = list(event = "e")) |> fastplyr::f_arrange(
-        time)
+      fastplyr::f_arrange(time_episodes(df, time, time_by = 3, window = 1, .add = FALSE,
+        switch_on_boundary = FALSE, event = list(event = "e")), time)
     Output
       # A tibble:        15 x 6
       # Episodes:        N: 3, Median: 3, Mean: 3 ▁▁▁▇▁▁▁
       # Time b/w events: Mean: 3 numeric units
       # Threshold:       3 numeric units
          time       event t_elapsed ep_start   ep_id ep_id_new
-         <date>     <chr>     <dbl> <date>     <int>     <int>
+       * <date>     <chr>     <dbl> <date>     <int>     <int>
        1 1970-01-04 e         0     1970-01-04     1         1
        2 1970-01-04 ne       NA     NA            NA        NA
        3 1970-01-07 e         1     1970-01-04     1         0
@@ -115,15 +113,15 @@
 ---
 
     Code
-      df |> time_episodes(time, time_by = "days", window = 5, .add = FALSE,
-        roll_episode = FALSE, switch_on_boundary = TRUE) |> fastplyr::f_arrange(time)
+      fastplyr::f_arrange(time_episodes(df, time, time_by = "days", window = 5, .add = FALSE,
+        roll_episode = FALSE, switch_on_boundary = TRUE), time)
     Output
       # A tibble:        15 x 5
       # Episodes:        N: 6, Median: 6, Mean: 6 ▁▁▁▇▁▁▁
       # Time b/w events: Mean: ~1.92 weeks
       # Threshold:       5 days
          time       t_elapsed ep_start   ep_id ep_id_new
-         <date>         <int> <date>     <int>     <int>
+       * <date>         <int> <date>     <int>     <int>
        1 1970-01-04         0 1970-01-04     1         1
        2 1970-01-04         0 1970-01-04     1         0
        3 1970-01-07         3 1970-01-04     1         0
@@ -143,16 +141,15 @@
 ---
 
     Code
-      df |> time_episodes(time, time_by = "5 days", window = 1, .add = FALSE,
-        roll_episode = FALSE, switch_on_boundary = FALSE) |> fastplyr::f_arrange(
-        time)
+      fastplyr::f_arrange(time_episodes(df, time, time_by = "5 days", window = 1,
+        .add = FALSE, roll_episode = FALSE, switch_on_boundary = FALSE), time)
     Output
       # A tibble:        15 x 5
       # Episodes:        N: 4, Median: 4, Mean: 4 ▁▁▁▇▁▁▁
       # Time b/w events: Mean: ~1.92 weeks
       # Threshold:       5 days
          time       t_elapsed ep_start   ep_id ep_id_new
-         <date>         <dbl> <date>     <int>     <int>
+       * <date>         <dbl> <date>     <int>     <int>
        1 1970-01-04       0   1970-01-04     1         1
        2 1970-01-04       0   1970-01-04     1         0
        3 1970-01-07       0.6 1970-01-04     1         0

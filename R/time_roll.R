@@ -101,8 +101,8 @@
 #' time_elapsed(t, days(1)) # See the irregular elapsed time
 #' x <- rpois(length(t), 10)
 #'
-#' new_tbl(x, t) %>%
-#'   mutate(sum = time_roll_sum(x, time = t, window = days(3))) %>%
+#' new_tbl(x, t) |>
+#'   mutate(sum = time_roll_sum(x, time = t, window = days(3))) |>
 #'   time_ggplot(t, sum)
 #'
 #' \donttest{
@@ -129,7 +129,7 @@
 #' # Instead we can pivot it longer and code each series as a separate group
 #' tbl <- ts_as_tbl(zoo_ts)
 #'
-#' tbl %>%
+#' tbl |>
 #'   mutate(monthly_mean = time_roll_mean(value, window = dmonths(1),
 #'                                        time = time, g = group))
 #' }
@@ -184,7 +184,7 @@ time_roll_sum <- function(x, window = timespan(Inf), time = NULL,
     sorted_df <- fastplyr::new_tbl(x = x, time = time,
                                    group_id = group_id,
                                    group_id2 = group_id2,
-                                   weights = weights) %>%
+                                   weights = weights) |>
       cheapr::sset(group_order)
     x <- .subset2(sorted_df, "x")
     time <- .subset2(sorted_df, "time")
@@ -210,7 +210,7 @@ time_roll_sum <- function(x, window = timespan(Inf), time = NULL,
                                  gbreaks = sorted_g,
                                  right = close_left_boundary,
                                  codes = TRUE)
-  adj_window[which_na(adj_window)] <- 0L
+  adj_window[cheapr::na_find(adj_window)] <- 0L
   time_window <- cheapr::set_subtract(time_window, adj_window)
   out <- frollsum3(x, n = time_window,
                    weights = weights,
@@ -290,7 +290,7 @@ time_roll_mean <- function(x, window = timespan(Inf), time = NULL,
     sorted_df <- fastplyr::new_tbl(x = x, time = time,
                                    group_id = group_id,
                                    group_id2 = group_id2,
-                                   weights = weights) %>%
+                                   weights = weights) |>
       cheapr::sset(group_order)
     x <- .subset2(sorted_df, "x")
     time <- .subset2(sorted_df, "time")
@@ -316,7 +316,7 @@ time_roll_mean <- function(x, window = timespan(Inf), time = NULL,
                             gbreaks = sorted_g,
                             right = close_left_boundary,
                             codes = TRUE)
-  adj_window[which_na(adj_window)] <- 0L
+  adj_window[cheapr::na_find(adj_window)] <- 0L
   time_window <- cheapr::set_subtract(time_window, adj_window)
   out <- frollmean3(x, n = time_window,
                    weights = weights,
@@ -392,7 +392,7 @@ time_roll_growth_rate <- function(x, window = timespan(Inf),
     sorted_df <- cheapr::new_df(x = x,
                                 time = time,
                                 group_id = group_id,
-                                group_id2 = group_id2) %>%
+                                group_id2 = group_id2) |>
       cheapr::sset(group_order)
     x <- .subset2(sorted_df, "x")
     time <- .subset2(sorted_df, "time")
@@ -418,7 +418,7 @@ time_roll_growth_rate <- function(x, window = timespan(Inf),
                                  gbreaks = sorted_g,
                                  right = close_left_boundary,
                                  codes = TRUE)
-  adj_window[which_na(adj_window)] <- 0L
+  adj_window[cheapr::na_find(adj_window)] <- 0L
   final_window <- naive_window - adj_window
   if (is.null(time_step)){
     # Check first for gaps in time
@@ -561,7 +561,7 @@ time_roll_window_size <- function(time, window = timespan(Inf),
                               gbreaks = g,
                               right = close_left_boundary,
                               codes = TRUE)
-    which_na <- which_na(adj_window)
+    which_na <- cheapr::na_find(adj_window)
     adj_window[which_na] <- 0L
     out <- cheapr::set_subtract(out, adj_window)
   }
@@ -603,7 +603,7 @@ time_roll_window <- function(x, window = timespan(Inf), time = NULL,
     partial = partial,
     close_left_boundary = close_left_boundary
   )
-  window_widths[which_na(window_widths)] <- 0L
+  window_widths[cheapr::na_find(window_widths)] <- 0L
   out <- roll_chop(x, sizes = window_widths)
   vctrs::new_list_of(out, ptype = x[0L])
 }
@@ -624,7 +624,7 @@ time_roll_apply <- function(x, window = timespan(Inf), fun,
     partial = partial,
     close_left_boundary = close_left_boundary
   )
-  sizes[which_na(sizes)] <- 0L
+  sizes[cheapr::na_find(sizes)] <- 0L
   x_size <- length(x)
   out <- vector("list", x_size)
   for (i in seq_len(x_size)){
@@ -694,7 +694,7 @@ time_roll_apply <- function(x, window = timespan(Inf), fun,
 #     sorted_df <- new_tbl(x = x, time = time,
 #                          group_id = group_id,
 #                          group_id2 = group_id2,
-#                          weights = weights) %>%
+#                          weights = weights) |>
 #       df_row_slice(group_order)
 #     x <- .subset2(sorted_df, "x")
 #     time <- .subset2(sorted_df, "time")
