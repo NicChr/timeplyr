@@ -152,20 +152,10 @@ na_init <- function(x, size = 1L){
   rep(x[NA_integer_], size)
 }
 strip_attrs <- function(x, set = FALSE){
-  if (set){
-    cheapr::attrs_rm(x, .set = TRUE)
-  } else {
-    attributes(x) <- NULL
-    x
-  }
+  cheapr::attrs_rm(x, .set = set)
 }
 strip_attr <- function(x, which, set = FALSE){
-  if (set){
-    cheapr::attrs_add(x, .args = `names<-`(list(NULL), which), .set = TRUE)
-  } else {
-    attr(x, which) <- NULL
-    x
-  }
+  cheapr::attrs_add(x, .args = `names<-`(list(NULL), which), .set = set)
 }
 is_integerable <- function(x){
   abs(x) <= .Machine$integer.max
@@ -177,21 +167,9 @@ all_integerable <- function(x, shift = 0){
   )
 }
 add_attr <- function(x, which, value, set = FALSE){
-  if (set){
-    cheapr::attrs_add(x, `names<-`(list(value), which), .set = TRUE)
-  } else {
-    attr(x, which) <- value
-    x
-  }
+  cheapr::attrs_add(x, `names<-`(list(value), which), .set = set)
 }
-add_attrs <- function(x, values, set = FALSE){
-  if (set){
-    cheapr::attrs_add(x, .args = values, .set = TRUE)
-  } else {
-    attributes(x) <- values
-    x
-  }
-}
+
 add_names <- function(x, value){
   names(x) <- value
   x

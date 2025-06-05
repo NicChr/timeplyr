@@ -72,7 +72,7 @@ test_that("time_roll", {
   expect_snapshot(smr(z1))
   # By group
 
-  flights2 <- nycflights13::flights %>%
+  flights2 <- nycflights13::flights |>
     fastplyr::f_arrange(time_hour)
 
   t <- flights2$time_hour
@@ -80,14 +80,14 @@ test_that("time_roll", {
   z2 <- time_roll_mean(x, lubridate::dhours(2), time = t, partial = FALSE, close_left_boundary = TRUE)
   expect_snapshot(smr(z2))
 
-  z2 <- flights2 %>%
-    fastplyr::add_group_id(origin, dest) %>%
+  z2 <- flights2 |>
+    fastplyr::add_group_id(origin, dest) |>
     dplyr::mutate(mean = time_roll_mean(arr_delay,
       time = time_hour,
       lubridate::dhours(2.5),
       close_left_boundary = TRUE,
       g = group_id
-    )) %>%
+    )) |>
     dplyr::pull(mean)
   expect_snapshot(smr(z2))
   options(max.print = max_print)

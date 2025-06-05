@@ -93,7 +93,7 @@ time_ggplot <- function(data, time, value, group = NULL,
       )
     )
     names(group_col) <- group_nm
-    data <- df_add_cols(data, cols = group_col)
+    data <- cheapr::df_modify(data, cols = group_col)
   } else {
     group_nm <- group
   }

@@ -12,9 +12,8 @@ df_seq_along <- function (data, along = "rows"){
   switch(along, rows = seq_len(df_nrow(data)), seq_len(df_ncol(data)))
 }
 get_groups <- get_from_package("get_groups", "fastplyr")
-df_add_cols <- get_from_package("cpp_df_assign_cols", "cheapr")
 df_rm_cols <- function(data, cols){
-  df_add_cols(data, `names<-`(cheapr::new_list(length(cols)), cols))
+  cheapr::df_modify(data, `names<-`(cheapr::new_list(length(cols)), cols))
 }
 df_paste_names <- function (data, sep = "_", .cols = names(data)){
   do.call(paste, c(fastplyr::f_select(data, .cols = .cols), list(sep = sep)))

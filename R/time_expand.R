@@ -168,7 +168,7 @@ time_complete <- function(data, time = NULL, ..., .by = NULL,
   }
   group_vars <- get_groups(data, {{ .by }})
   time_info <- mutate_one(data, !!enquo(time), .by = {{ .by }})
-  out <- df_add_cols(data, time_info)
+  out <- cheapr::df_modify(data, time_info)
   time_var <- names(time_info)
   check_length_lte(time_var, 1)
   expanded_df <- time_expand(out,

@@ -111,7 +111,7 @@ get_time_delay <- function(data, origin, end, timespan = 1L,
     ), origin_data, end_data
   )
   grp_nm <- unique_col_name(out, ".group.id")
-  out <- df_add_cols(out, add_names(list(
+  out <- cheapr::df_modify(out, add_names(list(
     fastplyr::add_group_id(data, .by = {{ .by }}, .name = grp_nm)[[grp_nm]]
     ), grp_nm))
   out <- df_rm_cols(out, setdiff(names(out), c(grp_nm, group_vars, start_time, end_time)))
@@ -124,7 +124,7 @@ get_time_delay <- function(data, origin, end, timespan = 1L,
   by_unit <- timespan_unit(timespan)
   by_n <- timespan_num(timespan)
   delay_nm <- unique_col_name(out, "delay")
-  out <- df_add_cols(out, add_names(
+  out <- cheapr::df_modify(out, add_names(
     list(
       time_diff(out[[start_time]],
                 out[[end_time]], timespan)

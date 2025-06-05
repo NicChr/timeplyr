@@ -58,7 +58,7 @@ time_by <- function(data, time, width = NULL, .name = NULL, .add = TRUE){
   time_info <- mutate_one(out, !!enquo(time))
   time_var <- names(time_info)
   check_length_lte(time_var, 1)
-  out <- df_add_cols(data, time_info)
+  out <- cheapr::df_modify(data, time_info)
   col_seq <- seq_along(names(out))
   from <- NULL # Initialise
 
@@ -87,7 +87,7 @@ time_by <- function(data, time, width = NULL, .name = NULL, .add = TRUE){
     # Aggregate time data
     time_agg <- time_cut_width(out[[time_var]], width, from = from)
     time_var <- across_col_names(time_var, .fns = "", .names = .name)
-    out <- df_add_cols(out, add_names(list(time_agg), time_var))
+    out <- cheapr::df_modify(out, add_names(list(time_agg), time_var))
   }
   groups <- time_var
   if (.add){

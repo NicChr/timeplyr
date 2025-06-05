@@ -190,7 +190,7 @@ time_episodes <- function(data, time, time_by = NULL,
     }
     # Add event identifier col
     event_id_nm <- unique_col_name(temp, ".event.id")
-    temp <- df_add_cols(
+    temp <- cheapr::df_modify(
       temp, add_names(list(
         cheapr::cheapr_if_else(
           temp[[event_col]] %in_% event[[1L]], 1L, 0L
@@ -210,7 +210,7 @@ time_episodes <- function(data, time, time_by = NULL,
   time_by <- time_by_get(temp[[time_col]], time_by = time_by)
   # Create group ID variable
   grp_nm <- unique_col_name(data_nms, ".group")
-  temp <- df_add_cols(temp, add_names(
+  temp <- cheapr::df_modify(temp, add_names(
     list(
       old_group_id(data, as_qg = TRUE, order = TRUE)
     ), grp_nm
@@ -222,7 +222,7 @@ time_episodes <- function(data, time, time_by = NULL,
   strip_attrs(temp[[grp_nm]], set = TRUE)
   # Group by group vars + time
   grp_nm2 <- unique_col_name(temp, ".group")
-  temp <- df_add_cols(temp, add_names(list(
+  temp <- cheapr::df_modify(temp, add_names(list(
     old_group_id(temp, .cols = c(grp_nm, time_col), order = TRUE)
   ), grp_nm2))
   data_is_sorted <- is_sorted(temp[[grp_nm2]])
@@ -397,7 +397,7 @@ calc_episodes <- function(data,
   time_num <- time_by_num(time_by)
   time_unit <- time_by_unit(time_by)
   # Time elapsed
-  data <- df_add_cols(
+  data <- cheapr::df_modify(
     data, list(
       t_elapsed = time_elapsed(data[[time]],
                                time_by_list_as_timespan(time_by),
@@ -410,7 +410,7 @@ calc_episodes <- function(data,
   # Binary variable indicating if new episode or not
   # The first event is always a new episode
   # Events where t_elapsed >= window are new episodes
-  data <- df_add_cols(data, list(
+  data <- cheapr::df_modify(data, list(
     ep_id = time_seq_id(data[[time]],
                         time_by_list_as_timespan(time_by),
                         g = g,
@@ -421,13 +421,13 @@ calc_episodes <- function(data,
   ))
   g3 <- collapse::GRP(fastplyr::f_select(data, .cols = c(gid, "ep_id")))
   g3_starts <- GRP_starts(g3)
-  data <- df_add_cols(data, list(ep_id_new = 0L))
+  data <- cheapr::df_modify(data, list(ep_id_new = 0L))
   cpp_loc_set_replace(data[["ep_id_new"]], g3_starts, data[["ep_id"]][g3_starts])
   cpp_loc_set_replace(data[["ep_id_new"]], cheapr::na_find(data[["ep_id"]]), NA_integer_)
 
   # Add episode start dates
   # Get min episode dates for each subject + episode
-  data <- df_add_cols(data, list(
+  data <- cheapr::df_modify(data, list(
     ep_start = gfirst(data[[time]],
                       g = g3,
                       na.rm = FALSE)

@@ -110,11 +110,12 @@ check_valid_time_interval <- function(x){
 #' @rdname time_interval
 #' @export
 new_time_interval <- function(start, width){
-  out <- start
-  attr(out, "timespan") <- width
-  class(out) <- "time_interval"
-  attr(out, "old_class") <- oldClass(start)
-  out
+  cheapr::attrs_add(
+    start,
+    timespan = width,
+    class = "time_interval",
+    old_class = oldClass(start)
+  )
 }
 #' @export
 `[.time_interval` <- function(x, ...){
@@ -127,7 +128,6 @@ c.time_interval <- function(..., recursive = FALSE, use.names = TRUE){
     dots <- unname(dots)
   }
   int <- dots[[1L]]
-  cl <- oldClass(int)
   span <- interval_width(int)
   span_unit <- timespan_unit(span)
   span_num <- timespan_num(span)
@@ -139,19 +139,18 @@ c.time_interval <- function(..., recursive = FALSE, use.names = TRUE){
     class(dots[[i]]) <- attr(dot, "old_class")
     if (!identical(span_unit, timespan_unit(attr(dot, "timespan"))) ||
         span_num != timespan_num(attr(dot, "timespan"))){
-     cli::cli_abort(c(
-     " " = "{.cls time_interval} {i} with width {interval_width(dot)}",
-     "must match the width of",
-     " " = "{.cls time_interval} { i - 1 } with width {span}"))
+      cli::cli_abort(c(
+        " " = "{.cls time_interval} {i} with width {interval_width(dot)}",
+        "must match the width of",
+        " " = "{.cls time_interval} { i - 1 } with width {span}"))
     }
   }
-  out <- do.call(c, dots, envir = parent.frame())
-  new_time_interval(out, span)
+  new_time_interval(cheapr::cheapr_c(.args = dots), span)
 }
 #' @export
 unique.time_interval <- function(x, incomparables = FALSE, ...){
   new_time_interval(
-    collapse::funique(interval_start(x), incomparables = incomparables, ...),
+    collapse::funique(interval_start(x), ...),
     interval_width(x)
   )
 }
@@ -165,7 +164,7 @@ rep.time_interval <- function(x, ...){
 #' @exportS3Method base::rep_len
 rep_len.time_interval <- function(x, length.out){
   new_time_interval(
-    rep_len(interval_start(x), length.out),
+    cheapr::cheapr_rep_len(interval_start(x), length.out),
     interval_width(x)
   )
 }
@@ -294,11 +293,9 @@ interval_start <- function(x){
 }
 #' @export
 interval_start.time_interval <- function(x){
-  out <- x
-  attr(out, "timespan") <- NULL
-  attr(out, "old_class") <- NULL
-  class(out) <- attr(x, "old_class")
-  out
+  cheapr::attrs_add(
+    x, timespan = NULL, old_class = NULL, class = attr(x, "old_class")
+  )
 }
 #' @export
 interval_start.Interval <- function(x){
@@ -334,9 +331,9 @@ interval_count <- function(x){
 }
 #' @export
 interval_count.time_interval <- function(x){
-  cheapr::fast_df(interval = x) |>
-    fastplyr::f_count(.cols = 1L, .order = TRUE) |>
-    fastplyr::as_tbl()
+  out <- cheapr::counts(x, sort = TRUE)
+  names(out) <- c("interval", "n")
+  fastplyr::as_tbl(out)
 }
 #' @rdname time_interval
 #' @export
