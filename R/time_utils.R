@@ -306,9 +306,9 @@ as_yearqtr <- function(x){
 # Internal helper to process from/to args
 get_from_to <- function(data, ..., time, from = NULL, to = NULL,
                         .by = NULL){
-  from_var <- col_select_names(data, .cols = from)
-  to_var <- col_select_names(data, .cols = to)
-  time_var <- col_select_names(data, .cols = time)
+  from_var <- tidy_select_names(data, .cols = from)
+  to_var <- tidy_select_names(data, .cols = to)
+  time_var <- tidy_select_names(data, .cols = time)
   dot_vars <- tidy_select_names(data, ...)
   by_vars <- tidy_select_names(data, {{ .by }})
   if (length(from_var) == 0L || length(to_var) == 0L){

@@ -62,9 +62,9 @@
 time_ggplot <- function(data, time, value, group = NULL,
                         facet = FALSE, geom = ggplot2::geom_line, ...){
   # Tidyselect variables
-  time <- tidy_select_pos(data, !!enquo(time))
-  value <- tidy_select_pos(data, !!enquo(value))
-  group <- tidy_select_pos(data, !!enquo(group))
+  time <- tidy_select_names(data, !!enquo(time))
+  value <- tidy_select_names(data, !!enquo(value))
+  group <- tidy_select_names(data, !!enquo(group))
   time <- names(time)
   value <- names(value)
   group <- names(group)

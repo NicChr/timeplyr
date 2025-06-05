@@ -26,7 +26,6 @@ Imports:
     rlang (>= 1.0.0),
     scales,
     stringr (>= 1.4.0),
-    tidyselect (>= 1.2.0),
     timechange (>= 0.2.0),
     vctrs (>= 0.6.0)
 Suggests: 

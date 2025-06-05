@@ -9,7 +9,7 @@ dots_length <- function(...){
 }
 
 dot_nms <- function(...){
-  vapply(exprs(...), deparse2, "", USE.NAMES = FALSE)
+  vapply(as.list(substitute(alist(...)))[-1L], deparse2, "", USE.NAMES = FALSE)
 }
 deparse2 <- function(expr, collapse = " ", width.cutoff = 500L, nlines = 10L, ...){
   paste(deparse(expr, width.cutoff, nlines = nlines, ...), collapse = collapse)
@@ -315,11 +315,50 @@ unique_col_name <- function(data, col){
   col
 }
 
-tidy_group_info <- get_from_package("tidy_group_info", "fastplyr")
-col_select_names <- get_from_package("col_select_names", "fastplyr")
 tidy_select_names <- get_from_package("tidy_select_names", "fastplyr")
-tidy_select_pos <- get_from_package("tidy_select_pos", "fastplyr")
-across_col_names <- get_from_package("across_col_names", "fastplyr")
+
+across_col_names <- function(.cols = NULL, .fns = NULL, .names = NULL){
+  fns_null <- is.null(.fns)
+  nms_null <- is.null(.names)
+  if (fns_null && !nms_null) {
+    .fns <- ""
+    fns_null <- FALSE
+  }
+  n_fns <- length(.fns)
+  n_cols <- length(.cols)
+  if (fns_null && nms_null) {
+    out <- as.character(.cols)
+  }
+  else if (nms_null && n_fns == 1L) {
+    out <- .cols
+  }
+  else if (nms_null && n_cols == 1L) {
+    out <- .fns
+    out <- cheapr::name_repair(out, empty_sep = paste0(.cols,
+                                                       "_"), dup_sep = "_")
+  }
+  else {
+    .fns <- cheapr::name_repair(.fns %||% "", empty_sep = "",
+                                dup_sep = "")
+    out <- character(n_cols * n_fns)
+    init <- 0L
+    if (nms_null) {
+      for (.col in .cols) {
+        out[seq_len(n_fns) + init] <- paste0(.col, "_",
+                                             .fns)
+        init <- init + n_fns
+      }
+    }
+    else {
+      .fn <- .fns
+      for (.col in .cols) {
+        out[seq_len(n_fns) + init] <- stringr::str_glue(.names)
+        init <- init + n_fns
+      }
+    }
+  }
+  out
+}
 
 old_group_id <- function(data, ...,
                          order = TRUE,
