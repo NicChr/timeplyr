@@ -92,16 +92,17 @@ time_seq_id <- function(x, timespan = granularity(x),
       over_threshold <- cppdoubles::double_gt(telapsed, threshold)
     }
   } else {
-    dt <- new_dt(x = telapsed, group_id = fastplyr::group_id(g), .copy = FALSE)
-    group_id_col <- names(dt)[names(dt) == "group_id"]
-    dt[, ("over") :=
-         lapply(
-           .SD, function(x)
-             cpp_roll_time_threshold(x, threshold = threshold, switch_on_boundary = switch_on_boundary)
-         ),
-       by = group_id_col,
-       .SDcols = "x"]
-    over_threshold <- dt[["over"]]
+    if (is.null(g)){
+      over_threshold <- cpp_roll_time_threshold(
+        telapsed, threshold = threshold, switch_on_boundary = switch_on_boundary
+      )
+    } else {
+      over_threshold <- fastplyr::new_tbl(x = telapsed, group_id = GRP_group_id(g)) |>
+        fastplyr::f_mutate(.over = cpp_roll_time_threshold(
+          x, threshold = threshold, switch_on_boundary = switch_on_boundary
+        ), .by = tidyselect::any_of("group_id"), .order = FALSE) |>
+        fastplyr::f_pull(.cols = ".over")
+    }
   }
   collapse::fcumsum(over_threshold, g = g, na.rm = na_skip) + 1L
 }
