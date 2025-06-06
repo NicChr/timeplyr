@@ -100,7 +100,7 @@ time_seq_id <- function(x, timespan = granularity(x),
       over_threshold <- fastplyr::new_tbl(x = telapsed, group_id = GRP_group_id(g)) |>
         fastplyr::f_mutate(.over = cpp_roll_time_threshold(
           x, threshold = threshold, switch_on_boundary = switch_on_boundary
-        ), .by = tidyselect::any_of("group_id"), .order = FALSE) |>
+        ), .by = dplyr::any_of("group_id"), .order = FALSE) |>
         fastplyr::f_pull(.cols = ".over")
     }
   }
