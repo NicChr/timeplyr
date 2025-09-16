@@ -1,3 +1,5 @@
+# timeplyr (development version)
+
 # timeplyr 1.1.0
 
 - New options 'xfirst' and 'xlast' for 'timeplyr.roll_month' to signify

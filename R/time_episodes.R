@@ -434,3 +434,101 @@ calc_episodes <- function(data,
   ))
   data
 }
+
+
+# time_episodes2 <- function(data, time, time_by = NULL,
+#                           window = 1,
+#                           roll_episode = TRUE,
+#                           switch_on_boundary = TRUE,
+#                           fill = 0,
+#                           .add = FALSE,
+#                           event = NULL,
+#                           .by = NULL){
+#   rlang::check_required(time)
+#   N <- df_nrow(data)
+#   check_length(window, 1)
+#   check_is_num(window)
+#   if (window < 0){
+#     cli::cli_abort("{.arg window} must be strictly greater or equal to 0")
+#   }
+#   data_nms <- names(data)
+#   time_quo <- enquo(time)
+#   data <- fastplyr::f_group_by(data, .by = {{ .by }}, .order = TRUE, .add = TRUE)
+#   group_vars <- get_groups(data)
+#   time_col <- tidy_select_names(data, !!time_quo)
+#   if (length(time_col) == 0){
+#     cli::cli_abort("Please supply time column for episode calculation")
+#   }
+#   if (is.null(event)){
+#     event_col <- character(0)
+#     event_id_nm <- character(0)
+#   } else {
+#     if (!isTRUE(is.list(event) &&
+#                 collapse::fncol(event) == 1L &&
+#                 length(names(event)) == 1L)){
+#       cli::cli_abort("{.arg event} must be named {.cls list} of length 1")
+#
+#     }
+#     event_col <- names(event)
+#     if (!event_col %in% data_nms){
+#       cli::cli_abort("Column {event_col} doesn't exist")
+#     }
+#     # Add event identifier col
+#     data <- cheapr::df_modify(
+#       data, list(
+#         .event.id = cheapr::cheapr_if_else(
+#           temp[[event_col]] %in_% event[[1L]], 1L, 0L
+#         )
+#       )
+#     )
+#     if (cheapr::na_count(temp[[event_col]]) != cheapr::na_count(temp[[time_col]])){
+#       cli::cli_warn(
+#         paste0("There is a mismatch of NAs between ",
+#                time_col, " and ",
+#                event_col, ", please check.")
+#       )
+#     }
+#   }
+#   time_by <- get_granularity(data[[time_col]], time_by)
+#
+#   groups <- attributes(data)[["GRP"]]
+#
+#   out <- data |>
+#     fastplyr::f_ungroup() |>
+#     fastplyr::f_mutate(
+#       dplyr::across(
+#         time_col,
+#         \(x) time_elapsed(
+#           x, time_by, g = groups,
+#           rolling = roll_episode, fill = 0
+#         ),
+#         .names = "t_elapsed"
+#       ),
+#       dplyr::across(
+#         time_col,
+#         \(x) time_elapsed(
+#           x, time_by, g = groups,
+#           rolling = roll_episode, fill = 0
+#         ),
+#         .names = "t_elapsed"
+#       )
+#     )
+#
+#   # Convert non-event dates to NA
+#   # So that they can be skipped/ignored
+#   # if (length(event_col) > 0){
+#   #   which_non_event <- cheapr::val_find(temp[[event_id_nm]], 0L)
+#   #   event_dates <- temp[[time_col]][which_non_event] # Save to re-add later
+#   #   temp[[time_col]][which_non_event] <- na_init(temp[[time_col]])
+#   # }
+#   # Re-add dates that were modified
+#   # if (length(event_col) > 0){
+#   #   temp[[time_col]][which_non_event] <- event_dates
+#   # }
+#   out <- cheapr::rebuild(out, data)
+#   threshold <- time_by
+#   threshold[[1L]] <- time_by_num(time_by) * window
+#   out <- structure(out, time = time_col, time_by = time_by, threshold = threshold)
+#   class(out) <- c("episodes_tbl_df", class(out))
+#   out
+# }
