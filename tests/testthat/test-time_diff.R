@@ -115,12 +115,12 @@ test_that("time diff", {
     )
   ) == 0)
   expect_true(
-    age_years(leap1, leap2) == 0
+    floor(time_diff(leap1, leap2, "years")) == 0
   )
   expect_true(floor(
     time_diff(leap1, leap3, lubridate::years(1))
   ) == 1)
-  expect_true(age_years(leap1, leap3) == 1)
+  expect_true(floor(time_diff(leap1, leap3, "years")) == 1)
 
   # Test vectorization
   seq1 <- seq(-10, 10, 2)

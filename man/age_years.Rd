@@ -18,6 +18,8 @@ age_months(start, end = if (is_date(start)) Sys.Date() else Sys.time())
 Integer vector of age in years or months.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+
 Correct calculation of ages in years using lubridate periods.
 Leap year calculations work as well.
 }
