@@ -41,9 +41,7 @@ time_id <- function(x, timespan = granularity(x), g = NULL,
   check_is_time_or_num(x)
   timespan <- timespan(timespan)
   check_length(shift, 1)
-  out <- time_elapsed(x, timespan, g = g,
-                      na_skip = na_skip,
-                      rolling = FALSE)
+  out <- time_elapsed(x, timespan, g = g, na_skip = na_skip, rolling = FALSE)
   out <- as.integer(round2(out, digits = 9))
   cheapr::set_add(out, as.integer(shift))
 }

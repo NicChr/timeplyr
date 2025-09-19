@@ -119,7 +119,10 @@ new_time_interval <- function(start, width){
 }
 #' @export
 `[.time_interval` <- function(x, ...){
-  new_time_interval(`class<-`(x, attr(x, "old_class"))[...], attr(x, "timespan"))
+  out <- x
+  class(out) <- attr(out, "old_class")
+  out <- cheapr::sset(out, ...)
+  new_time_interval(out, attr(x, "timespan"))
 }
 #' @export
 c.time_interval <- function(..., recursive = FALSE, use.names = TRUE){
