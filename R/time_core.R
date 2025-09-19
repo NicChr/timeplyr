@@ -71,11 +71,13 @@ time_grid <- function(x, timespan = granularity(x),
 #' @rdname time_core
 #' @export
 time_complete_missing <- function(x, timespan = granularity(x)){
-  time_full <- time_grid(x, timespan)
-  out <- time_cast(x, time_full)
-  gaps <- cheapr::setdiff_(time_full, out)
+
+  full <- time_grid(x, timespan)
+  out <- time_cast(x, full)
+  gaps <- cheapr::setdiff_(full, out)
+
   if (length(gaps) > 0){
-    out <- c(out, gaps)
+    out <- cheapr::cheapr_c(out, gaps)
   }
   out
 }

@@ -151,12 +151,7 @@ divide <- function(a, b){
 na_init <- function(x, size = 1L){
   rep(x[NA_integer_], size)
 }
-strip_attrs <- function(x, set = FALSE){
-  cheapr::attrs_rm(x, .set = set)
-}
-strip_attr <- function(x, which, set = FALSE){
-  cheapr::attrs_add(x, .args = `names<-`(list(NULL), which), .set = set)
-}
+
 is_integerable <- function(x){
   abs(x) <= .Machine$integer.max
 }
@@ -166,19 +161,12 @@ all_integerable <- function(x, shift = 0){
     na.rm = TRUE
   )
 }
-add_attr <- function(x, which, value, set = FALSE){
-  cheapr::attrs_add(x, `names<-`(list(value), which), .set = set)
-}
 
 add_names <- function(x, value){
   names(x) <- value
   x
 }
-check_is_list <- function(x){
-  if (!is.list(x)){
-    stop(paste(deparse2(substitute(x)), "must be a list"))
-  }
-}
+
 check_length <- function(x, size){
   if (length(x) != size){
     cli::cli_abort("{.arg x} must be of length {size}")
@@ -217,12 +205,6 @@ trunc2 <- function(x){
 }
 round2 <- function(x, digits = 0){
   if (is.integer(x) && all(digits >= 0)) x else round(x, digits)
-}
-floor2 <- function(x){
-  if (is.integer(x)) x else floor(x)
-}
-ceiling2 <- function(x){
-  if (is.integer(x)) x else ceiling(x)
 }
 
 # Cheapr functions --------------------------------------------------------
@@ -317,39 +299,36 @@ unique_col_name <- function(data, col){
 
 tidy_select_names <- get_from_package("tidy_select_names", "fastplyr")
 
-across_col_names <- function(.cols = NULL, .fns = NULL, .names = NULL){
+across_col_names <- function (.cols = NULL, .fns = NULL, .names = NULL){
   fns_null <- is.null(.fns)
   nms_null <- is.null(.names)
-  if (fns_null && !nms_null) {
+
+  if (fns_null && !nms_null){
     .fns <- ""
     fns_null <- FALSE
   }
+
   n_fns <- length(.fns)
   n_cols <- length(.cols)
-  if (fns_null && nms_null) {
+
+
+  if (fns_null && nms_null){
     out <- as.character(.cols)
-  }
-  else if (nms_null && n_fns == 1L) {
+  } else if (nms_null && n_fns == 1L) {
     out <- .cols
-  }
-  else if (nms_null && n_cols == 1L) {
+  } else if (nms_null && n_cols == 1L) {
     out <- .fns
-    out <- cheapr::name_repair(out, empty_sep = paste0(.cols,
-                                                       "_"), dup_sep = "_")
-  }
-  else {
-    .fns <- cheapr::name_repair(.fns %||% "", empty_sep = "",
-                                dup_sep = "")
+    out <- cheapr::name_repair(out, empty_sep = paste0(.cols, "_"), dup_sep = "_")
+  } else {
+    .fns <- cheapr::name_repair(.fns %||% "", empty_sep = "", dup_sep = "")
     out <- character(n_cols * n_fns)
     init <- 0L
     if (nms_null) {
       for (.col in .cols) {
-        out[seq_len(n_fns) + init] <- paste0(.col, "_",
-                                             .fns)
+        out[seq_len(n_fns) + init] <- paste0(.col, "_", .fns)
         init <- init + n_fns
       }
-    }
-    else {
+    } else {
       .fn <- .fns
       for (.col in .cols) {
         out[seq_len(n_fns) + init] <- stringr::str_glue(.names)

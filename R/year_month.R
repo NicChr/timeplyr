@@ -44,7 +44,7 @@
 #' @export
 year_month <- function(x){
   if (is.numeric(x)){
-    new_year_month(strip_attrs(unclass(x)))
+    new_year_month(cheapr::attrs_clear(unclass(x)))
   } else {
     x_posix <- as.POSIXlt(x)
     y <- x_posix$year + 1900L
@@ -56,7 +56,7 @@ year_month <- function(x){
 #' @export
 year_quarter <- function(x){
   if (is.numeric(x)){
-    new_year_quarter(strip_attrs(unclass(x)))
+    new_year_quarter(cheapr::attrs_clear(unclass(x)))
   } else {
     x_posix <- as.POSIXlt(x)
     y <- x_posix$year + 1900L

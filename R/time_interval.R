@@ -313,7 +313,7 @@ interval_end.time_interval <- function(x){
 }
 #' @export
 interval_end.Interval <- function(x){
-  interval_start(x) + strip_attrs(unclass(x))
+  interval_start(x) + cheapr::attrs_clear(unclass(x))
 }
 #' @rdname time_interval
 #' @export

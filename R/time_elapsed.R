@@ -86,7 +86,7 @@ time_elapsed <- function(x, timespan = granularity(x), g = NULL,
     out <- time_diff(x_lag, x, timespan)
     if (needs_fill){
       if (has_groups){
-        out[o[sorted_group_starts]] <- fill
+        out[cheapr::sset(o, sorted_group_starts)] <- fill
       } else {
         out[sorted_group_starts] <- fill
       }

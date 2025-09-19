@@ -267,7 +267,7 @@ c.timespan <- function(..., recursive = FALSE, use.names = TRUE){
     }
     dots[[i]] <- timespan_num(dot)
   }
-  out <- do.call(c, dots, envir = parent.frame())
+  out <- cheapr::cheapr_c(.args = dots)
   new_timespan(span_unit, out)
 }
 #' @export

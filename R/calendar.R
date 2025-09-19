@@ -76,9 +76,24 @@ calendar <- function(x, label = TRUE,
     second <- NULL
   }
   out <- fastplyr::new_tbl(
-    !!name := x, year, quarter, month, month_l, week, day,
-    yday, isoyear, isoweek, isoday, epiyear, epiweek, wday, wday_l,
-    hour, minute, second
+    !!name := x,
+    year = year,
+    quarter = quarter,
+    month = month,
+    month_l = month_l,
+    week = week,
+    day = day,
+    yday = yday,
+    isoyear = isoyear,
+    isoweek = isoweek,
+    isoday = isoday,
+    epiyear = epiyear,
+    epiweek = epiweek,
+    wday = wday,
+    wday_l = wday_l,
+    hour = hour,
+    minute = minute,
+    second = second
   )
   out
 }

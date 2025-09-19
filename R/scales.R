@@ -44,7 +44,7 @@ scale_y_year_quarter <- function(...){
                    trans = transform_year_quarter())
 }
 # transform_time_interval <- function(width, endpoints_inverse, ...){
-#   scales::new_transform("time_interval", transform = \(x) strip_attrs(unclass(x)),
+#   scales::new_transform("time_interval", transform = \(x) cheapr::attrs_clear(unclass(x)),
 #                         inverse = \(x){
 #                           inv <- endpoints_inverse(x)
 #                           time_interval(inv, width)

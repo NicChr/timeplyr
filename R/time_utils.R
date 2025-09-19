@@ -389,7 +389,7 @@ adj_dur_est <- function (est, start, end, width){
   }
   frac <- ( unclass(end) - unclass(low_date) ) /
     ( unclass(up_date) - unclass(low_date) )
-  frac <- strip_attrs(frac)
+  frac <- cheapr::attrs_clear(frac)
   frac[which(low_date == up_date)] <- 0
   est + frac
 }
@@ -401,7 +401,7 @@ divide_interval_by_period <- function(start, end, width){
   }
   start <- as_datetime2(start)
   end <- as_datetime2(end)
-  estimate <- strip_attrs((unclass(end) - unclass(start)) / unit_to_seconds(width))
+  estimate <- cheapr::attrs_clear((unclass(end) - unclass(start)) / unit_to_seconds(width))
   timespans <- cheapr::recycle(start = start, end = end, width = width)
   start <- timespans[[1L]]
   end <- timespans[[2L]]
@@ -442,7 +442,7 @@ int_to_per <- function(start, end){
   set_recycle_args(start, end)
   start <- as_datetime2(start)
   end <- time_cast(end, start)
-  duration <- strip_attrs(end) - strip_attrs(start)
+  duration <- cheapr::attrs_clear(end) - cheapr::attrs_clear(start)
   start <- unclass(as.POSIXlt(start))
   end <- unclass(as.POSIXlt(end))
   negs <- duration < 0

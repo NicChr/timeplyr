@@ -28,11 +28,11 @@ time_diff <- function(x, y, timespan = 1L){
   set_time_cast(y, x)
 
   if (is.na(units)){
-    strip_attrs(divide(unclass(y) - unclass(x), num))
+    cheapr::attrs_clear(divide(unclass(y) - unclass(x), num))
   } else if (is_duration_unit(units)){
     x <- as_datetime2(x)
     y <- as_datetime2(y)
-    strip_attrs((unclass(y) - unclass(x)) / unit_to_seconds(span))
+    cheapr::attrs_clear((unclass(y) - unclass(x)) / unit_to_seconds(span))
   } else {
     period_diff(x, y, span)
   }
@@ -90,5 +90,5 @@ time_diff_original <- function(x, y, timespan = 1L){
       out <- (y - x) / by
     }
   }
-  strip_attrs(out)
+  cheapr::attrs_clear(out)
 }

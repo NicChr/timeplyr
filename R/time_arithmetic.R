@@ -299,7 +299,7 @@ diff_months.Date <- function(x, y, n = 1L, fractional = FALSE, ...){
       x, (months_add + cheapr::cheapr_if_else(l2r, n, -n)),
       roll_month = 3L
     )
-    fraction <- strip_attrs(
+    fraction <- cheapr::attrs_clear(
       (unclass(y) - unclass(small_int_start)) /
         abs(unclass(big_int_end) - unclass(small_int_start))
     )
@@ -369,7 +369,7 @@ diff_months.POSIXt <- function(x, y, n = 1L, fractional = FALSE, ...){
         "preday", c("NA", "xfirst")
       )
     )
-    fraction <- strip_attrs(
+    fraction <- cheapr::attrs_clear(
       (unclass(y) - unclass(small_int_start)) /
         abs(unclass(big_int_end) - unclass(small_int_start))
     )
@@ -445,7 +445,7 @@ diff_days.POSIXt <- function(x, y, n = 1L, fractional = FALSE, ...){
     }
 
     big_int_end <- time_add(x, temp + cheapr::cheapr_if_else(l2r, n, -n))
-    fraction <- strip_attrs(
+    fraction <- cheapr::attrs_clear(
       (unclass(y) - unclass(small_int_start)) / abs(unclass(big_int_end) - unclass(small_int_start))
     )
     fraction[which(x == y)] <- 0

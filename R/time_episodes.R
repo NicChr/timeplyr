@@ -219,7 +219,7 @@ time_episodes <- function(data, time, time_by = NULL,
   group_sizes <- attr(temp[[grp_nm]], "group.sizes")
 
   # Remove qG class
-  strip_attrs(temp[[grp_nm]], set = TRUE)
+  cheapr::attrs_clear(temp[[grp_nm]], .set = TRUE)
   # Group by group vars + time
   grp_nm2 <- unique_col_name(temp, ".group")
   temp <- cheapr::df_modify(temp, add_names(list(
