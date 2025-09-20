@@ -117,6 +117,8 @@ period_add.Date <- function(x, add, roll_month = getOption("timeplyr.roll_month"
 #' @param x Time vector. \cr
 #' E.g. a `Date`, `POSIXt`, `numeric` or any time-based vector.
 #' @param timespan [timespan].
+#' @param n `[numeric(1)]` - Number of timespans. This is mostly sugar as
+#' this can easily be specified by `timespan()`.
 #' @param roll_month See `?timechange::time_add`. Additional choices
 #' include `xlast` (default) and `xfirst`. These work conceptually similar to
 #' skipped DST intervals.
@@ -137,52 +139,41 @@ period_add.Date <- function(x, add, roll_month = getOption("timeplyr.roll_month"
 #' A date, date-time, or other time-based vector.
 #'
 #' @export
-time_add <- function(x, timespan,
+time_add <- function(x, timespan, n = 1L,
                      roll_month = getOption("timeplyr.roll_month", "xlast"),
                      roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))){
 
-  span <- timespan(timespan)
-  num <- timespan_num(span)
-  unit <- timespan_unit(span)
+  span <- timespan(timespan) * n
 
   if (!is.character(roll_month)){
-    if (is.numeric(roll_month)){
-      cli::cli_abort("
-      A {.cls numeric} vector has been supplied
-      to {.arg roll_month}, perhaps you meant
-      `timespan({unit}, {deparse1(substitute(roll_month))})`}")
-    } else {
-      cli::cli_abort("{.arg roll_month} must be a length 1 character vector")
-    }
+    cli::cli_abort("{.arg roll_month} must be a length 1 character vector")
   }
   if (!is.character(roll_dst)){
     cli::cli_abort("{.arg roll_dst} must be a length 1 or length 2 character vector")
   }
 
-  if (is.na(unit)){
-    x + num
-  } else {
+  if (!timespan_has_unit(span)){
+    x + timespan_num(span)
+  } else if (is_duration_timespan(span)){
     # If timespan is less than a day
-    if (is_duration_unit(unit)){
-      as_datetime2(x) + unit_to_seconds(span)
-    } else {
-      period_add(x, span, roll_month = roll_month, roll_dst = roll_dst)
-    }
+    as_datetime2(x) + unit_to_seconds(span)
+  } else {
+    period_add(x, span, roll_month = roll_month, roll_dst = roll_dst)
   }
 }
 #' @rdname time_add
 #' @export
-time_subtract <- function(x, timespan,
+time_subtract <- function(x, timespan, n = 1L,
                           roll_month = getOption("timeplyr.roll_month", "xlast"),
                           roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))){
-  time_add(x, -timespan(timespan), roll_month = roll_month, roll_dst = roll_dst)
+  time_add(x, -timespan(timespan), n = n, roll_month = roll_month, roll_dst = roll_dst)
 }
 #' @rdname time_add
 #' @export
 time_floor <- function(x, timespan,
                        week_start = getOption("lubridate.week.start", 1)){
 
-  span <- timespan(timespan)
+  span <- timespan(timespan) * n
   num <- timespan_num(span)
   unit <- timespan_unit(span)
 

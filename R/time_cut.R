@@ -324,7 +324,7 @@ time_breaks <- function(x, n = 5, timespan = NULL,
   breaks[["breaks"]]
 }
 
-time_breaks2 <- function(x, n = 10){
+time_breaks2 <- function(x, n = 5){
 
   rng <- as.double(collapse::frange(x))
   time_rng <- time_cast(rng, x)
@@ -332,7 +332,7 @@ time_breaks2 <- function(x, n = 10){
   # get_breaks() returns pretty numeric breaks efficiently
   # we can use this as a good starting point
 
-  guess <- cheapr::get_breaks(rng, n = n)
+  guess <- cheapr::get_breaks(rng, n = n, pretty = TRUE)
   guess <- time_cast(guess, x)
 
   # This should never be the case but include it just to be safe
@@ -365,7 +365,7 @@ time_breaks2 <- function(x, n = 10){
     width <- span * floor_nearest_n(width, 10^-(ceiling(abs(log10(width)))))
     out <- time_seq_v(time_rng[1], time_rng[2], width)
   } else {
-    width <- span * floor(width)
+    width <- span * ceiling(width)
     out <- time_seq_v(time_floor(time_rng[1], span), time_ceiling(time_rng[2], span), width)
   }
 

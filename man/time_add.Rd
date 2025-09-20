@@ -11,6 +11,7 @@
 time_add(
   x,
   timespan,
+  n = 1L,
   roll_month = getOption("timeplyr.roll_month", "xlast"),
   roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))
 )
@@ -18,6 +19,7 @@ time_add(
 time_subtract(
   x,
   timespan,
+  n = 1L,
   roll_month = getOption("timeplyr.roll_month", "xlast"),
   roll_dst = getOption("timeplyr.roll_dst", c("NA", "xfirst"))
 )
@@ -38,6 +40,9 @@ time_round(x, timespan, week_start = getOption("lubridate.week.start", 1))
 E.g. a \code{Date}, \code{POSIXt}, \code{numeric} or any time-based vector.}
 
 \item{timespan}{\link{timespan}.}
+
+\item{n}{\verb{[numeric(1)]} - Number of timespans. This is mostly sugar as
+this can easily be specified by \code{timespan()}.}
 
 \item{roll_month}{See \code{?timechange::time_add}. Additional choices
 include \code{xlast} (default) and \code{xfirst}. These work conceptually similar to
