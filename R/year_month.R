@@ -88,11 +88,7 @@ new_year_month <- function(x){
 }
 #' @export
 `[.year_month` <- function(x, ..., drop = TRUE){
-  cl <- oldClass(x)
-  class(x) <- NULL
-  val <- NextMethod("[")
-  class(val) <- cl
-  val
+  new_year_month(cheapr::sset(unclass(x), ...))
 }
 #' @export
 `[[.year_month` <- function(x, ..., drop = TRUE){
@@ -122,7 +118,7 @@ new_year_month <- function(x){
 }
 #' @exportS3Method base::c
 `c.year_month` <- function(...){
-  new_year_month(NextMethod("c"))
+  new_year_month(cheapr::cheapr_c(.args = lapply(list(...), unclass)))
 }
 #' @exportS3Method base::print
 print.year_month <- function(x, max = NULL, ...){
@@ -175,7 +171,7 @@ format.year_month <- function(x, ...){
 }
 #' @exportS3Method base::unique
 unique.year_month <- function(x, incomparables = FALSE, ...){
-  new_year_month(unique.default(x, incomparables = incomparables, ...))
+  new_year_month(collapse::funique(unclass(x), sort = FALSE))
 }
 #' @exportS3Method base::as.Date
 as.Date.year_month <- function(x, ...){
@@ -223,11 +219,7 @@ decimal_year_quarter <- function(x){
 }
 #' @export
 `[.year_quarter` <- function(x, ..., drop = TRUE){
-  cl <- oldClass(x)
-  class(x) <- NULL
-  val <- NextMethod("[")
-  class(val) <- cl
-  val
+  new_year_quarter(cheapr::sset(unclass(x), ...))
 }
 #' @export
 `[[.year_quarter` <- function(x, ..., drop = TRUE){
@@ -257,8 +249,7 @@ decimal_year_quarter <- function(x){
 }
 #' @exportS3Method base::c
 `c.year_quarter` <- function(...){
-  new_year_quarter(NextMethod("c"))
-  # new_year_quarter(do.call(c, lapply(list(...), unclass)))
+  new_year_quarter(cheapr::cheapr_c(.args = lapply(list(...), unclass)))
 }
 #' @exportS3Method base::print
 print.year_quarter <- function(x, max = NULL, ...){
@@ -311,7 +302,7 @@ format.year_quarter <- function(x, ...){
 }
 #' @exportS3Method base::unique
 unique.year_quarter <- function(x, incomparables = FALSE, ...){
-  new_year_quarter(unique.default(x, incomparables = incomparables, ...))
+  new_year_quarter(collapse::funique(unclass(x), sort = FALSE))
 }
 #' @exportS3Method base::as.Date
 as.Date.year_quarter <- function(x, ...){
