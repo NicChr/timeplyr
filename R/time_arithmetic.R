@@ -173,7 +173,7 @@ time_subtract <- function(x, timespan, n = 1L,
 time_floor <- function(x, timespan,
                        week_start = getOption("lubridate.week.start", 1)){
 
-  span <- timespan(timespan) * n
+  span <- timespan(timespan)
   num <- timespan_num(span)
   unit <- timespan_unit(span)
 

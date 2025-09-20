@@ -61,6 +61,11 @@
 #' @export
 time_ggplot <- function(data, time, value, group = NULL,
                         facet = FALSE, geom = ggplot2::geom_line, ...){
+
+  if (!is.logical(facet)){
+   cli::cli_abort("{.arg facet} must be a logical scalar")
+  }
+
   # Tidyselect variables
   time <- tidy_select_names(data, !!enquo(time))
   value <- tidy_select_names(data, !!enquo(value))
@@ -70,19 +75,19 @@ time_ggplot <- function(data, time, value, group = NULL,
   group <- names(group)
   time_var <- data[[time]]
   # Pretty x-axis breaks
-  time_breaks <- time_breaks(time_var, n = 7, time_floor = TRUE)
+  breakpoints <- time_breaks2(time_var, n = 10)
   if (is_datetime(time_var)){
-    x_scale <- ggplot2::scale_x_datetime(breaks = time_breaks,
+    x_scale <- ggplot2::scale_x_datetime(breaks = breakpoints,
                                          labels = scales::label_date_short())
   } else if (is_date(time_var)){
-    x_scale <- ggplot2::scale_x_date(breaks = time_breaks,
+    x_scale <- ggplot2::scale_x_date(breaks = breakpoints,
                                      labels = scales::label_date_short())
   } else if (is_year_month(time_var)){
-    x_scale <- scale_x_year_month(breaks = \(x) cheapr::get_breaks(as.double(x)))
+    x_scale <- scale_x_year_month(breaks = breakpoints)
   } else if (is_year_quarter(time_var)){
-    x_scale <- scale_x_year_quarter(breaks = \(x) cheapr::get_breaks(as.double(x)))
+    x_scale <- scale_x_year_quarter(breaks = breakpoints)
   } else {
-    x_scale <- ggplot2::scale_x_continuous(breaks = \(x) cheapr::get_breaks(as.double(x)))
+    x_scale <- ggplot2::scale_x_continuous(breaks = breakpoints)
   }
   # Concatenate group names together
   if (length(group) > 1L){
@@ -107,11 +112,10 @@ time_ggplot <- function(data, time, value, group = NULL,
   if (length(group) > 0L){
     if (facet){
       # Add a new col every 6 rows
-      facet_ncol <- (collapse::fnunique(fpluck(data, group_nm)) %/% 6) + 1
+      facet_ncol <- (collapse::fnunique(data[[group_nm]]) %/% 6) + 1
       out <- out +
         do.call(geom, extra_gg_args) +
-        ggplot2::facet_wrap(group, ncol = facet_ncol,
-                            scales = "free_y")
+        ggplot2::facet_wrap(group, ncol = facet_ncol, scales = "free_y")
     } else {
       out <- out +
         do.call(geom, c(list(ggplot2::aes(col = .data[[group_nm]])), extra_gg_args))
