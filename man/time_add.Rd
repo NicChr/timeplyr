@@ -5,6 +5,7 @@
 \alias{time_subtract}
 \alias{time_floor}
 \alias{time_ceiling}
+\alias{time_round}
 \title{Add/subtract timespans to dates and date-times}
 \usage{
 time_add(
@@ -29,6 +30,8 @@ time_ceiling(
   week_start = getOption("lubridate.week.start", 1),
   change_on_boundary = is_date(x)
 )
+
+time_round(x, timespan, week_start = getOption("lubridate.week.start", 1))
 }
 \arguments{
 \item{x}{Time vector. \cr

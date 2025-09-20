@@ -241,6 +241,14 @@ timespan_abbr <- function(x, short = FALSE){
 
 }
 
+is_duration_timespan <- function(x){
+  isTRUE(
+    is_duration_unit(
+      timespan_unit(x)
+    )
+  )
+}
+
 #' @export
 `[.timespan` <- function(x, ...){
   new_timespan(timespan_unit(x), NextMethod("["))

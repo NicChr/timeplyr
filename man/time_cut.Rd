@@ -71,7 +71,7 @@ less cluttered and thus prettier.
 }
 \details{
 To retrieve regular time breaks that simply spans the range of \code{x},
-use \code{time_seq()} or \code{time_aggregate()}.
+use \code{time_seq()} or \code{time_cut_width()}.
 This can also be achieved in \code{time_cut()} by supplying \code{n = Inf}.
 
 By default \code{time_cut()} will try to find

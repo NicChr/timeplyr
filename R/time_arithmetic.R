@@ -233,6 +233,21 @@ time_ceiling <- function(x, timespan,
   }
 }
 
+#' @rdname time_add
+#' @export
+time_round <- function(x, timespan, week_start = getOption("lubridate.week.start", 1)){
+
+  span <- timespan(timespan)
+
+  up <- time_ceiling(x, span, week_start = week_start)
+  down <- time_floor(x, span, week_start = week_start)
+
+  d1 <- time_diff(x, up, span)
+  d2 <- time_diff(down, x, span)
+
+  cheapr::cheapr_if_else(d1 < d2, up, down)
+}
+
 # Extract the "clock-time" as the number of seconds of the day since midnight
 # Useful for comparing clock-times
 clock_seconds <- function(x){

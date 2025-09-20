@@ -90,6 +90,10 @@ fpluck <- function(x, .cols = NULL, .default = NULL){
   .subset2(x, icol)
 }
 
+floor_nearest_n <- function(x, n){
+  floor(x / n) * n
+}
+
 # Round up to nearest n
 ceiling_nearest_n <- function(x, n){
   ceiling(x / n) * n

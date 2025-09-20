@@ -59,7 +59,7 @@ monthly_flights |>
 weekly_flights |>
   f_summarise(n = n(), arr_delay = mean(arr_delay, na.rm = TRUE))
 
-# To aggregate multiple variables, use time_aggregate
+# To aggregate multiple variables, use `time_cut_width`
 
 flights |>
   f_count(week = time_cut_width(time_hour, months(3)))

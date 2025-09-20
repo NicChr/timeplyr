@@ -173,7 +173,7 @@ cut_time_using_ops <- function(x, width, from = NULL, to = NULL){
 #'
 #' @details
 #' To retrieve regular time breaks that simply spans the range of `x`,
-#' use `time_seq()` or `time_aggregate()`.
+#' use `time_seq()` or `time_cut_width()`.
 #' This can also be achieved in `time_cut()` by supplying `n = Inf`.
 #'
 #' By default `time_cut()` will try to find
@@ -322,4 +322,56 @@ time_breaks <- function(x, n = 5, timespan = NULL,
                       time_floor = time_floor,
                       week_start = week_start)
   breaks[["breaks"]]
+}
+
+time_breaks2 <- function(x, n = 10){
+
+  rng <- as.double(collapse::frange(x))
+  time_rng <- time_cast(rng, x)
+
+  # get_breaks() returns pretty numeric breaks efficiently
+  # we can use this as a good starting point
+
+  guess <- cheapr::get_breaks(rng, n = n)
+  guess <- time_cast(guess, x)
+
+  # This should never be the case but include it just to be safe
+  if (length(guess) < 2){
+    return(guess)
+  }
+
+  if (!is_time(guess)){
+    return(guess)
+  }
+
+  # In order of decreasing unit (years, months, etc...)
+  # Stop when the correct (approximate)
+  # time granularity of breakpoint widths is found
+  # granularity() can't be used as it will return a lower unit if the
+  # granularity at a higher unit isn't exact
+
+  for (unit in rev(time_units)){
+    span <- new_timespan(unit, 1)
+    left <- guess[1]
+    right <- guess[2]
+    width <- time_diff(left, right, span)
+    if (width > 1){
+      break
+    }
+  }
+
+  # If width is sub-fractional seconds
+  if (unit == "seconds" && width < 1){
+    width <- span * floor_nearest_n(width, 10^-(ceiling(abs(log10(width)))))
+    out <- time_seq_v(time_rng[1], time_rng[2], width)
+  } else {
+    width <- span * floor(width)
+    out <- time_seq_v(time_floor(time_rng[1], span), time_ceiling(time_rng[2], span), width)
+  }
+
+  if (length(out) < 2){
+    guess
+  } else {
+    out
+  }
 }

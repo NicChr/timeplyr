@@ -26,3 +26,8 @@
                        "olympiads", "lustrums",
                        "decades", "indictions", "scores",
                        "centuries", "milleniums")
+
+# New time units
+period_units <- c("days", "weeks", "months", "years")
+duration_units <- c("seconds", "minutes", "hours")
+time_units <- c(duration_units, period_units)
