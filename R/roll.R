@@ -93,6 +93,9 @@ roll_sum <- function(x, window = Inf,
                                  k = window,
                                  partial = partial,
                                  ascending = TRUE)
+
+  roll_window <- cheapr::na_replace(roll_window, length(x) + 1L)
+
   if (!is.null(weights)){
     x <- x * weights
   }
@@ -101,8 +104,8 @@ roll_sum <- function(x, window = Inf,
                               adaptive = TRUE,
                               align = "right",
                               na.rm = na.rm, ...)
-  if (!fpluck(sorted_info, "sorted")){
-    out <- greorder2(out, g = fpluck(sorted_info, "GRP"))
+  if (!sorted_info[["sorted"]]){
+    out <- greorder2(out, g = sorted_info[["GRP"]])
   }
   out
 }
@@ -122,13 +125,16 @@ roll_mean <- function(x, window = Inf, g = NULL, partial = TRUE,
                                  k = window,
                                  partial = partial,
                                  ascending = TRUE)
+
+  roll_window <- cheapr::na_replace(roll_window, length(x) + 1L)
+
   out <- frollmean3(x,
                     n = roll_window,
                     weights = weights,
                     adaptive = TRUE, align = "right",
                     na.rm = na.rm, ...)
-  if (!fpluck(sorted_info, "sorted")){
-    out <- greorder2(out, g = fpluck(sorted_info, "GRP"))
+  if (!sorted_info[["sorted"]]){
+    out <- greorder2(out, g = sorted_info[["GRP"]])
   }
   out
 }

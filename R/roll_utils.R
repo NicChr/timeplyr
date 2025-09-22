@@ -23,20 +23,30 @@ roll_chop <- function(x, sizes = rep_len(1L, cheapr::vector_length(x))){
 }
 
 # No partial argument, just a weights extension to data.table::frollsum()
-frollsum3 <- function(x, n, weights = NULL, ...){
+frollsum3 <- function(x, n, weights = NULL, adaptive = FALSE, ...){
+
+  if (adaptive){
+    n <- cheapr::na_replace(n, length(x) + 1L)
+  }
+
   if (!is.null(weights)){
     x <- x * weights
   }
-  data.table::frollsum(x, n = n, ...)
+  data.table::frollsum(x, n = n, adaptive = adaptive, ...)
 }
-frollmean3 <- function(x, n, weights = NULL, ...){
+frollmean3 <- function(x, n, weights = NULL, adaptive = FALSE, ...){
+
+  if (adaptive){
+    n <- cheapr::na_replace(n, length(x) + 1L)
+  }
+
   if (!is.null(weights)){
     x <- x * weights
     weights[is.na(x)] <- NA_real_
-    out <- data.table::frollsum(x, n = n, ...) /
-      data.table::frollsum(weights, n = n, ...)
+    out <- data.table::frollsum(x, n = n, adaptive = adaptive, ...) /
+      data.table::frollsum(weights, n = n, adaptive = adaptive, ...)
   } else {
-    out <- data.table::frollmean(x, n = n, ...)
+    out <- data.table::frollmean(x, n = n, adaptive = adaptive, ...)
   }
   out
 }
