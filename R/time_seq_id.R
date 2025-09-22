@@ -68,10 +68,11 @@
 time_seq_id <- function(x, timespan = granularity(x),
                         threshold = 1, g = NULL, na_skip = TRUE,
                         rolling = TRUE, switch_on_boundary = FALSE){
+
   check_is_time_or_num(x)
+
   g <- GRP2(g)
-  timespan <- timespan(timespan)
-  time_num <- timespan_num(timespan)
+
   if (is_whole_number(threshold)){
     threshold <- as.integer(threshold)
   }
@@ -82,7 +83,7 @@ time_seq_id <- function(x, timespan = granularity(x),
     fill <- -Inf
   }
   # Elapsed time
-  telapsed <- time_elapsed(x, timespan, g = g,
+  telapsed <- time_elapsed(x, timespan(timespan), g = g,
                            rolling = rolling, na_skip = na_skip,
                            fill = fill)
   if (rolling){
