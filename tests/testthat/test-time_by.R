@@ -12,8 +12,7 @@ test_that("time_by", {
   expect_snapshot(
     flights |>
       dplyr::filter(dplyr::between(time_hour, start, end)) |>
-      time_by(time_hour, "3 days") |>
-      fastplyr::f_count()
+      time_by(time_hour, "3 days")
   )
   expect_snapshot(
     flights |>

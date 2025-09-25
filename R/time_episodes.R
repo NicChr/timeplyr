@@ -496,35 +496,13 @@ calc_episodes <- function(data,
 #   out <- data |>
 #     fastplyr::f_ungroup() |>
 #     fastplyr::f_mutate(
-#       dplyr::across(
-#         time_col,
-#         \(x) time_elapsed(
-#           x, time_by, g = groups,
-#           rolling = roll_episode, fill = 0
-#         ),
-#         .names = "t_elapsed"
-#       ),
-#       dplyr::across(
-#         time_col,
-#         \(x) time_elapsed(
-#           x, time_by, g = groups,
-#           rolling = roll_episode, fill = 0
-#         ),
-#         .names = "t_elapsed"
+#       t_elapsed = time_elapsed(
+#         .data[[time_col]],
+#         time_by, g = groups,
+#         rolling = roll_episode, fill = 0
 #       )
 #     )
 #
-#   # Convert non-event dates to NA
-#   # So that they can be skipped/ignored
-#   # if (length(event_col) > 0){
-#   #   which_non_event <- cheapr::val_find(temp[[event_id_nm]], 0L)
-#   #   event_dates <- temp[[time_col]][which_non_event] # Save to re-add later
-#   #   temp[[time_col]][which_non_event] <- na_init(temp[[time_col]])
-#   # }
-#   # Re-add dates that were modified
-#   # if (length(event_col) > 0){
-#   #   temp[[time_col]][which_non_event] <- event_dates
-#   # }
 #   out <- cheapr::rebuild(out, data)
 #   threshold <- time_by
 #   threshold[[1L]] <- time_by_num(time_by) * window
@@ -532,3 +510,18 @@ calc_episodes <- function(data,
 #   class(out) <- c("episodes_tbl_df", class(out))
 #   out
 # }
+
+
+#' @exportS3Method cheapr::rebuild
+rebuild.episodes_tbl_df <- function(x, template, ...){
+
+  class(template) <- cheapr::val_rm(class(template), "episodes_tbl_df")
+
+  out <- cheapr::rebuild(x, template, ...)
+
+
+  extra_attrs <- cheapr::list_drop_null(attributes(template)[c("time", "time_by", "threshold")])
+  attributes(out) <- c(attributes(out), extra_attrs)
+  class(out) <- c("episodes_tbl_df", class(out))
+  out
+}

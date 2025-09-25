@@ -1,16 +1,29 @@
 # time_by
 
     Code
-      fastplyr::f_count(time_by(dplyr::filter(flights, dplyr::between(time_hour,
-        start, end)), time_hour, "3 days"))
+      time_by(dplyr::filter(flights, dplyr::between(time_hour, start, end)),
+      time_hour, "3 days")
     Output
-      # A tibble: 4 x 2
-        time_hour                      n
-      * <tm_ntrvl>                 <int>
-      1 [2013-03-16 08:00:00, +3D)  2694
-      2 [2013-03-19 08:00:00, +3D)  2918
-      3 [2013-03-22 08:00:00, +3D)  2650
-      4 [2013-03-25 08:00:00, +3D)   977
+      # A tibble: 9,239 x 19
+      # Time:     time_hour [4]
+      # Width:    3 days
+      # Range:    2013-03-16 08:00:00 -- 2013-03-28 08:00:00
+          year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
+         <int> <int> <int>    <int>          <int>     <dbl>    <int>          <int>
+       1  2013     3    16       37           2358        39      408            338
+       2  2013     3    16       57           2245       132      201           2356
+       3  2013     3    16      753            801        -8      854            908
+       4  2013     3    16      753            800        -7     1045           1116
+       5  2013     3    16      753            800        -7      945           1004
+       6  2013     3    16      753            800        -7     1020           1031
+       7  2013     3    16      754            802        -8      907            919
+       8  2013     3    16      756            800        -4      953           1000
+       9  2013     3    16      757            800        -3      958           1012
+      10  2013     3    16      758            805        -7     1055           1105
+      # i 9,229 more rows
+      # i 11 more variables: arr_delay <dbl>, carrier <chr>, flight <int>,
+      #   tailnum <chr>, origin <chr>, dest <chr>, air_time <dbl>, distance <dbl>,
+      #   hour <dbl>, minute <dbl>, time_hour <tm_ntrvl>
 
 ---
 

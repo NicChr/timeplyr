@@ -153,6 +153,7 @@ tbl_sum.time_tbl_df <- function(x, ...){
   num_row <- prettyNum(nrow(x), big.mark = ",")
   num_col <- prettyNum(ncol(x), big.mark = ",")
   tbl_header <- c("A tibble" = paste0(num_row, " x ", num_col))
+
   c(tbl_header,
     groups_header,
     time_header,
@@ -162,12 +163,14 @@ tbl_sum.time_tbl_df <- function(x, ...){
 
 #' @exportS3Method cheapr::rebuild
 rebuild.time_tbl_df <- function(x, template, ...){
-  out <- NextMethod("rebuild")
 
   time_var <- time_tbl_time_col(template)
-  time <- fastplyr::f_group_data(out)[[time_var]]
+  time <- fastplyr::f_group_data(x)[[time_var]]
 
-  if (is.null(time)){
+  class(template) <- setdiff(class(template), "time_tbl_df")
+  out <- cheapr::rebuild(x, template, ...)
+
+  if (is.null(time) || !is_time_interval(time)){
     attr(out, "time") <- NULL
     class(out) <- cheapr::val_rm(class(out), "time_tbl_df")
   }
