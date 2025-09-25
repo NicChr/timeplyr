@@ -93,8 +93,7 @@ granularity.default <- function(x, ...){
 }
 #' @export
 granularity.numeric <- function(x, ...){
-  gcd_diff <- gcd_time_diff(unclass(x))
-  new_timespan(NA_character_, gcd_diff)
+  new_timespan(NA_character_, gcd_time_diff(x))
 }
 #' @export
 granularity.Date <- function(x, exact = TRUE, ...){
@@ -109,7 +108,7 @@ granularity.Date <- function(x, exact = TRUE, ...){
     td <- time_elapsed(x, rolling = FALSE, new_timespan("months"), na_skip = TRUE)
     is_whole_num <- is_whole_number(td, na.rm = TRUE)
     if (!is_whole_num){
-      gcd_delta <- gcd_time_diff(unclass(x))
+      gcd_delta <- gcd_time_diff(x)
       out_unit <- "days"
     } else {
       gcd_delta <- gcd_time_diff(td)
@@ -121,7 +120,7 @@ granularity.Date <- function(x, exact = TRUE, ...){
       }
     }
   } else {
-    gcd_delta <- gcd_time_diff(unclass(x))
+    gcd_delta <- gcd_time_diff(x)
     out_unit <- "days"
   }
   new_timespan(out_unit, gcd_delta)
@@ -140,7 +139,7 @@ granularity.POSIXt <- function(x, exact = FALSE, ...){
       is_whole_num <- is_whole_number(td, na.rm = TRUE)
     }
     if (!is_whole_num){
-      gcd_delta <- gcd_time_diff(unclass(x))
+      gcd_delta <- gcd_time_diff(x)
       out_unit <- "seconds"
     } else {
       gcd_delta <- gcd_time_diff(td)
@@ -161,7 +160,7 @@ granularity.POSIXt <- function(x, exact = FALSE, ...){
       }
     }
   } else {
-    gcd_delta <- gcd_time_diff(unclass(x))
+    gcd_delta <- gcd_time_diff(x)
     out_unit <- "seconds"
   }
   if (out_unit == "seconds"){
@@ -175,7 +174,7 @@ granularity.year_month <- function(x, ...){
   if (length(x) >= 1e04){
     x <- collapse::funique(x)
   }
-  gcd_diff <- gcd_time_diff(unclass(x))
+  gcd_diff <- gcd_time_diff(x)
   new_timespan(NA_character_, gcd_diff)
 }
 #' @export
@@ -183,7 +182,7 @@ granularity.year_quarter <- function(x, ...){
   if (length(x) >= 1e04){
     x <- collapse::funique(x)
   }
-  gcd_diff <- gcd_time_diff(unclass(x))
+  gcd_diff <- gcd_time_diff(x)
   new_timespan(NA_character_, gcd_diff)
 }
 
