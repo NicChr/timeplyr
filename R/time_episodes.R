@@ -437,13 +437,13 @@ calc_episodes <- function(data,
 
 
 # time_episodes2 <- function(data, time, time_by = NULL,
-#                           window = 1,
-#                           roll_episode = TRUE,
-#                           switch_on_boundary = TRUE,
-#                           fill = 0,
-#                           .add = FALSE,
-#                           event = NULL,
-#                           .by = NULL){
+#                            window = 1,
+#                            roll_episode = TRUE,
+#                            switch_on_boundary = TRUE,
+#                            fill = 0,
+#                            .add = FALSE,
+#                            event = NULL,
+#                            .by = NULL){
 #   rlang::check_required(time)
 #   N <- df_nrow(data)
 #   check_length(window, 1)
@@ -453,9 +453,9 @@ calc_episodes <- function(data,
 #   }
 #   data_nms <- names(data)
 #   time_quo <- enquo(time)
-#   data <- fastplyr::f_group_by(data, .by = {{ .by }}, .order = TRUE, .add = TRUE)
-#   group_vars <- get_groups(data)
-#   time_col <- tidy_select_names(data, !!time_quo)
+#   new_data <- fastplyr::f_group_by(data, .by = {{ .by }}, .order = TRUE, .add = TRUE)
+#   group_vars <- get_groups(new_data)
+#   time_col <- tidy_select_names(new_data, !!time_quo)
 #   if (length(time_col) == 0){
 #     cli::cli_abort("Please supply time column for episode calculation")
 #   }
@@ -474,8 +474,8 @@ calc_episodes <- function(data,
 #       cli::cli_abort("Column {event_col} doesn't exist")
 #     }
 #     # Add event identifier col
-#     data <- cheapr::df_modify(
-#       data, list(
+#     new_data <- cheapr::df_modify(
+#       new_data, list(
 #         .event.id = cheapr::cheapr_if_else(
 #           temp[[event_col]] %in_% event[[1L]], 1L, 0L
 #         )
@@ -489,17 +489,22 @@ calc_episodes <- function(data,
 #       )
 #     }
 #   }
-#   time_by <- get_granularity(data[[time_col]], time_by)
+#   time_by <- get_granularity(new_data[[time_col]], time_by)
 #
-#   groups <- attributes(data)[["GRP"]]
+#   groups <- attributes(new_data)[["GRP"]]
 #
-#   out <- data |>
+#   out <- new_data |>
 #     fastplyr::f_ungroup() |>
 #     fastplyr::f_mutate(
 #       t_elapsed = time_elapsed(
 #         .data[[time_col]],
 #         time_by, g = groups,
 #         rolling = roll_episode, fill = 0
+#       ),
+#
+#       ep_id = time_seq_id(
+#         .data[[time_col]], time_by, threshold = window,
+#         switch_on_boundary = switch_on_boundary
 #       )
 #     )
 #

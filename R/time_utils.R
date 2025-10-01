@@ -123,32 +123,6 @@ unit_to_seconds <- function(x){
 }
 
 # Calculate size of period unit to expand from and to for specified length
-# period_by_calc2 <- function(from, to, length){
-#   quo <- (length - 1)
-#
-#   # This returns `0` when `length == 1`
-#   quo[cheapr::val_find(quo, 0)] <- Inf
-#
-#   # First try and see if we can create a sequence in
-#   # whole months, if not then whole days,
-#   # if not then it must be in seconds
-#
-#   month_delta <- time_diff(from, to, new_timespan("months")) / quo
-#
-#   if (is_whole_number(month_delta)){
-#     out <- new_timespan("months", month_delta)
-#   } else {
-#     day_delta <- time_diff(from, to, new_timespan("days")) / quo
-#     if (is_whole_number(day_delta)){
-#       out <- new_timespan("days", day_delta)
-#     } else {
-#       out <- time_diff(from, to, new_timespan("seconds")) / quo
-#       out <- seconds_to_higher_timespan(new_timespan("seconds", out))
-#     }
-#   }
-#   out
-# }
-
 period_by_calc <- function(from, to, length){
 
   quo <- (length - 1L)
@@ -236,9 +210,6 @@ time_cast <- function(x, template){
 # Coerce pair of time based vectors to the most informative
 # class between them
 set_time_cast <- function(x, y){
-  if (identical(parent.frame(n = 1), globalenv())){
-    stop("Users cannot use set_time_cast from the global environment")
-  }
   if (!identical(class(x), class(y))){
     x_nm <- deparse2(substitute(x))
     y_nm <- deparse2(substitute(y))

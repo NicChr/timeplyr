@@ -75,7 +75,7 @@ time_ggplot <- function(data, time, value, group = NULL,
   group <- names(group)
   time_var <- data[[time]]
   # Pretty x-axis breaks
-  breakpoints <- time_breaks2(time_var, n = 10)
+  breakpoints <- time_breakpoints(time_var, n = 10)
   if (is_datetime(time_var)){
     x_scale <- ggplot2::scale_x_datetime(breaks = breakpoints,
                                          labels = scales::label_date_short())

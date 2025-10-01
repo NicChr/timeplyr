@@ -1,5 +1,12 @@
 # timeplyr (development version)
 
+- Rolling calculations have been fixed to work with the new 
+rolling data.table functions.
+
+- `time_add` gains the `n` arg to help with adding timespans to 
+time-based vectors more easily.
+
+
 # timeplyr 1.1.0
 
 - New options 'xfirst' and 'xlast' for 'timeplyr.roll_month' to signify

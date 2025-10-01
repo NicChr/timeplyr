@@ -324,7 +324,7 @@ time_breaks <- function(x, n = 5, timespan = NULL,
   breaks[["breaks"]]
 }
 
-time_breaks2 <- function(x, n = 10){
+time_breakpoints <- function(x, n = 10){
 
   rng <- as.double(collapse::frange(x))
   time_rng <- time_cast(rng, x)
