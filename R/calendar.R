@@ -53,7 +53,7 @@ calendar <- function(x, label = TRUE,
   wday <- cheapr::val_replace((time_info$wday - (as.integer(week_start) - 1L)) %% 7L, 0L, 7L)
   if (label){
     days <- c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
-    days <- days[cheapr::val_replace((1:7 + (week_start)) %% 7L, 0L, 7L)]
+    days <- days[cheapr::val_replace( ( (1:7) + (week_start) ) %% 7L, 0L, 7L)]
 
     wday_l <- as.integer(wday)
     attr(wday_l, "levels") <- days
