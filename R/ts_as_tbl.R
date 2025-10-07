@@ -63,7 +63,7 @@ ts_as_tbl <- function(x, name = "time", value = "value", group = "group"){
  UseMethod("ts_as_tbl")
 }
 ts_as_tibble <- function(x, name = "time", value = "value", group = "group"){
-  lifecycle::deprecate_soft("1.0.0", "ts_as_tibble()", "ts_as_tbl()")
+  lifecycle::deprecate_warn("1.0.0", "ts_as_tibble()", "ts_as_tbl()")
   ts_as_tbl(x, name, value, group)
 }
 #' @rdname ts_as_tbl

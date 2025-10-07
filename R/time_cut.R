@@ -165,29 +165,35 @@ cut_time_using_ops <- function(x, width, from = NULL, to = NULL){
 #' Cut dates and datetimes into regularly spaced date or datetime intervals
 #'
 #' @description
-#' Useful functions especially for when plotting time-series.
-#' `time_cut` makes approximately `n` groups of equal time range.
+#' Useful functions especially for when plotting time-series. \cr
+#'
+#' `time_cut_n` makes approximately `n` groups of equal time range.
 #' It prioritises the highest time unit possible, making axes look
-#' less cluttered and thus prettier.
-#' `time_breaks` returns only the breaks.
+#' less cluttered and thus prettier. \cr
+#'
+#' `time_breaks` returns only the breakpoints.
+#'
+#' `time_breakpoints` is a newer and faster alternative to
+#' `time_breaks` which differs in
+#' that it calls `range()` on the input data and therefore need only work with
+#' a vector of 2 values, unlike `time_breaks` which requires more data points
+#' to create better looking breaks.
 #'
 #' @details
 #' To retrieve regular time breaks that simply spans the range of `x`,
-#' use `time_seq()` or `time_cut_width()`.
-#' This can also be achieved in `time_cut()` by supplying `n = Inf`.
+#' use `time_seq()`to manually specify the range and time width or
+#' `time_grid()` to use the range of the supplied data.
 #'
-#' By default `time_cut()` will try to find
-#'  the prettiest way of cutting the interval by
+#'
+#' By default `time_cut_n()` will try to find
+#' the 'prettiest' way of cutting the interval by
 #' trying to cut the date/date-times into
 #' groups of the highest possible time units,
 #' starting at years and ending at milliseconds.
 #'
-#' When `x` is a numeric vector, `time_cut` will behave similar to `time_cut`
-#' except for 3 things:
-#' * The intervals are all right-open and of equal width.
-#' * The left value of the leftmost interval is always `min(x)`.
-#' * Up to `n` breaks are created, i.e `<= n` breaks. This is to prioritise
-#'   pretty breaks.
+#' `time_breakpoints` does the same but using a different internal method.
+#'
+#'
 #' @inheritParams time_grid
 #' @param n Number of breaks.
 #' @param time_floor Logical. Should the initial date/datetime be
@@ -197,8 +203,8 @@ cut_time_using_ops <- function(x, width, from = NULL, to = NULL){
 #' This is only used when `time_floor = TRUE`.
 #'
 #' @returns
-#' `time_breaks` returns a vector of breaks. \cr
-#' `time_cut` returns either a vector or `time_interval`. \cr
+#' `time_breaks` and `time_breakpoints` both return a vector of breakpoints \cr
+#' `time_cut_n` and `time_cut_width` returns a `time_interval`
 #'
 #' @examples
 #' library(timeplyr)
@@ -233,9 +239,6 @@ cut_time_using_ops <- function(x, width, from = NULL, to = NULL){
 #' cut_dates <- time_cut_n(df$date)
 #' date_breaks <- time_breaks(df$date)
 #'
-#' # When n = Inf it should be equivalent to using time_cut_width
-#' identical(time_cut_n(df$date, n = Inf, "month"),
-#'           time_cut_width(df$date, "month"))
 #' # To get exact breaks at regular intervals, use time_grid
 #' weekly_breaks <- time_grid(
 #'   df$date, "5 weeks",
@@ -250,18 +253,6 @@ cut_time_using_ops <- function(x, width, from = NULL, to = NULL){
 #'   geom_bar(stat = "identity") +
 #'   scale_x_date(breaks = weekly_breaks,
 #'                labels = weekly_labels)
-#' @rdname time_cut
-#' @export
-time_cut <- function(x, n = 5, timespan = NULL,
-                     from = NULL, to = NULL,
-                     time_floor = FALSE,
-                     week_start = getOption("lubridate.week.start", 1)){
-  lifecycle::deprecate_soft("1.0.0", "time_cut()", "time_cut_n()")
-  time_cut_n(x, n = n, timespan = timespan,
-             from = from, to = to,
-             time_floor = time_floor,
-             week_start = week_start)
-}
 #' @rdname time_cut
 #' @export
 time_cut_n <- function(x, n = 5, timespan = NULL,
@@ -324,6 +315,8 @@ time_breaks <- function(x, n = 5, timespan = NULL,
   breaks[["breaks"]]
 }
 
+#' @rdname time_cut
+#' @export
 time_breakpoints <- function(x, n = 10){
 
   rng <- as.double(collapse::frange(x))
@@ -380,4 +373,17 @@ time_breakpoints <- function(x, n = 10){
   }
 
   time_seq_v(left, right, width)
+}
+
+#' @rdname time_cut
+#' @export
+time_cut <- function(x, n = 5, timespan = NULL,
+                     from = NULL, to = NULL,
+                     time_floor = FALSE,
+                     week_start = getOption("lubridate.week.start", 1)){
+  lifecycle::deprecate_warn("1.0.0", "time_cut()", "time_cut_n()")
+  time_cut_n(x, n = n, timespan = timespan,
+             from = from, to = to,
+             time_floor = time_floor,
+             week_start = week_start)
 }

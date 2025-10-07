@@ -6,6 +6,8 @@ rolling data.table functions.
 - `time_add` gains the `n` arg to help with adding timespans to 
 time-based vectors more easily.
 
+- New function `time_breakpoints` as a simpler alternative to `time_breaks` that
+works much better with `ggplot2`
 
 # timeplyr 1.1.0
 
