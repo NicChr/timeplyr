@@ -1,3 +1,5 @@
+# timeplyr (development version)
+
 # timeplyr 1.1.1
 
 - Rolling calculations have been fixed to work with the new 
