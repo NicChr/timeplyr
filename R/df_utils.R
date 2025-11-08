@@ -60,7 +60,7 @@ df_n_distinct <- function(data){
 
 
 mutate_one <- function(.data, expr, .by = NULL){
-  group_vars <- fastplyr::f_group_vars(.data)
+  group_vars <- get_groups(.data, .by = {{ .by }})
   out <- fastplyr::f_mutate(
     .data, {{ expr }}, .by = {{ .by }}, .keep = "none"
   )
