@@ -176,21 +176,27 @@ time_seq <- function(from = NULL, to = NULL, time_by = NULL, length.out = NULL,
 time_seq_sizes <- function(from, to, timespan){
   timespan <- timespan(timespan)
   set_time_cast(from, to)
-  tdiff <- time_diff(from, to, timespan)
-  tdiff[which(from == to)] <- 0L
-  tdiff_rng <- collapse::frange(tdiff, na.rm = TRUE)
-  if (isTRUE(any(tdiff_rng < 0))){
-    cli::cli_abort("At least 1 sequence length is negative, please check the supplied timespan increments")
+
+  size <- time_diff(from, to, timespan)
+  num <- timespan_num(timespan)
+  size[cheapr::which_(from == to & num == 0L)] <- 0L
+
+  size_rng <- collapse::frange(size, na.rm = TRUE)
+  if (any(size_rng < 0, na.rm = TRUE)){
+    cli::cli_abort(
+      "At least 1 sequence length is negative, please check the supplied timespan increments"
+    )
   }
-  if (length(tdiff) == 0 || all(is_integerable(abs(tdiff_rng) + 1), na.rm = TRUE)){
-    if (is.integer(tdiff)){
-      tdiff + 1L
-    } else {
-      as.integer(tdiff + 1e-10) + 1L
-    }
-  } else {
-    trunc(tdiff + 1e-10) + 1
+
+  # Account for floating point errors
+  size <- trunc(size + 1e-10) + 1
+  size_rng <- trunc(size_rng + 1e-10) + 1
+
+  if (all(size_rng <= .Machine[["integer.max"]], na.rm = TRUE)){
+    size <- as.integer(size)
   }
+
+  size
 }
 #' @rdname time_seq
 #' @export
