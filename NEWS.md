@@ -1,5 +1,8 @@
 # timeplyr (development version)
 
+- Fixed a bug where calling using `time_complete(.by = )` would cause an 
+error.
+
 # timeplyr 1.1.1
 
 - Rolling calculations have been fixed to work with the new 
