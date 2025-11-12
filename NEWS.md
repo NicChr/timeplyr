@@ -1,4 +1,4 @@
-# timeplyr (development version)
+# timeplyr 1.1.2
 
 - Fixed a bug where calling using `time_complete(.by = )` would cause an 
 error.

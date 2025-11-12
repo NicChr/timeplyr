@@ -1,6 +1,6 @@
-* Updated to version 1.1.1
+* Updated to version 1.1.2
 
-* Checked and passed using rhub v2.0.0 in the following environments:
+* Checked and passed using rhub v2.0.1 in the following environments:
 
 ## Test environments
 - R-hubv2 windows (R-devel)
