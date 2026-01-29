@@ -97,11 +97,11 @@ collapse::set_collapse(nthreads = 1L)
 today <- today()
 now <- now()
 
-time_seq(today, today + months(1), time = "day")
+time_seq(today, today \%m+\% months(1), time = "day")
 time_seq(today, length.out = 10, time = "day")
 time_seq(today, length.out = 10, time = "hour")
 
-time_seq(today, today + months(1), time = timespan("days", 1)) # Alternative
+time_seq(today, today \%m+\% months(1), time = timespan("days", 1)) # Alternative
 time_seq(today, today + years(1), time = "week")
 time_seq(today, today + years(1), time = "fortnight")
 time_seq(today, today + years(1), time = "year")
