@@ -1,5 +1,7 @@
 # timeplyr 1.1.2
 
+- Thanks @vspinu for fixing a bug where examples would fail when run on leap days.
+
 - Fixed a bug where calling using `time_complete(.by = )` would cause an 
 error.
 
