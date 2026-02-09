@@ -7,7 +7,7 @@
 #' You can learn more about the tidyverse,
 #' data.table and collapse using the links below
 #'
-#' \href{https://www.tidyverse.org/learn/}{tidyverse}
+#' \href{https://tidyverse.org/learn/}{tidyverse}
 #'
 #' \href{https://CRAN.R-project.org/package=data.table}{data.table}
 #'
