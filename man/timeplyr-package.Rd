@@ -17,7 +17,7 @@ data.table and collapse using the links below
 
 \href{https://CRAN.R-project.org/package=data.table}{data.table}
 
-\href{https://sebkrantz.github.io/collapse/articles/collapse_intro.html}{collapse}
+\href{https://fastverse.org/collapse/articles/collapse_intro.html}{collapse}
 }
 \seealso{
 Useful links:
