@@ -39,7 +39,7 @@ expand and summarise both raw and aggregate date/datetime data.
 
 Significant efforts have been made to ensure that grouped calculations
 are fast and efficient thanks to the excellent functionality within the
-[collapse](https://sebkrantz.github.io/collapse/reference/collapse-package.html)
+[collapse](https://fastverse.org/collapse/articles/collapse_intro.html)
 package.
 
 ## Installation
@@ -266,8 +266,7 @@ hourly data into weekly data.
 
 ```{r}
 time_cut_width(flights$time_hour, "week") |> 
-    as_tbl() |> 
-    count(value)
+    interval_count()
 ```
 
 To get full weeks, simply utilise the `from` arg with `floor_date()`
@@ -276,13 +275,12 @@ To get full weeks, simply utilise the `from` arg with `floor_date()`
 time_cut_width(
     flights$time_hour, "week" , from = min(floor_date(flights$time_hour, "week"))
 ) |> 
-    as_tbl() |> 
-    count(value)
+  interval_count()
 ```
 
-# Interval metadata
+# Interval helpers
 
-Some common metadata functions
+Some common time interval functions
 
 ```{r}
 int <- time_cut_width(today() + days(0:13), timespan("weeks"))
@@ -302,7 +300,7 @@ making them work quite fast in R.
 
 `timespans` are simply numeric vectors with a time unit attribute.
 
-`time_intervals` are the unclassed version of the time object they are
+`time_intervals` are the un-classed version of the time object they are
 representing, along with a `timespan` attribute to record the interval width, 
 as well as an attribute to record the original class. 
 
@@ -560,9 +558,8 @@ seq_lengths <- time_seq_sizes(start, start + days(c(1, 10, 20)),
                               timespan("days", c(1, 5, 10)))
 seq_lengths
 
-# Use time_seq_v2() if you know the sequence lengths
-seqs <- time_seq_v2(seq_lengths, start, timespan("days", c(1, 5, 10)))
-seqs
+# Use length.out if you know the sequence lengths
+time_seq(length = seq_lengths, from = start, time = timespan("days", c(1, 5, 10)))
 ```
 
 ## `iso_week()`

@@ -21,7 +21,7 @@ expand and summarise both raw and aggregate date/datetime data.
 
 Significant efforts have been made to ensure that grouped calculations
 are fast and efficient thanks to the excellent functionality within the
-[collapse](https://sebkrantz.github.io/collapse/reference/collapse-package.html)
+[collapse](https://fastverse.org/collapse/articles/collapse_intro.html)
 package.
 
 ## Installation
@@ -40,11 +40,11 @@ remotes::install_github("NicChr/timeplyr")
 library(timeplyr)
 library(tidyverse)
 #> ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-#> ✔ dplyr     1.1.4     ✔ readr     2.1.5
-#> ✔ forcats   1.0.0     ✔ stringr   1.5.1
-#> ✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+#> ✔ dplyr     1.1.4     ✔ readr     2.1.6
+#> ✔ forcats   1.0.1     ✔ stringr   1.6.0
+#> ✔ ggplot2   4.0.1     ✔ tibble    3.3.0
 #> ✔ lubridate 1.9.4     ✔ tidyr     1.3.1
-#> ✔ purrr     1.0.4     
+#> ✔ purrr     1.2.0     
 #> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 #> ✖ dplyr::filter()       masks stats::filter()
 #> ✖ dplyr::lag()          masks stats::lag()
@@ -278,7 +278,7 @@ on a Date vector this is exactly what you get.
 ``` r
 time_interval(today())
 #> <time_interval> [width:1D]
-#> [1] [2025-02-28, +1D)
+#> [1] [2026-02-10, +1D)
 ```
 
 Going into more detail, timeplyr uses the ‘resolution’ of the object to
@@ -340,10 +340,9 @@ e.g. converting hourly data into weekly data.
 
 ``` r
 time_cut_width(flights$time_hour, "week") |> 
-    as_tbl() |> 
-    count(value)
+    interval_count()
 #> # A tibble: 53 × 2
-#>    value                          n
+#>    interval                       n
 #>    <tm_ntrvl>                 <int>
 #>  1 [2013-01-01 05:00:00, +1W)  6099
 #>  2 [2013-01-08 05:00:00, +1W)  6109
@@ -364,10 +363,9 @@ To get full weeks, simply utilise the `from` arg with `floor_date()`
 time_cut_width(
     flights$time_hour, "week" , from = min(floor_date(flights$time_hour, "week"))
 ) |> 
-    as_tbl() |> 
-    count(value)
+  interval_count()
 #> # A tibble: 53 × 2
-#>    value                 n
+#>    interval              n
 #>    <tm_ntrvl>        <int>
 #>  1 [2012-12-30, +1W)  4334
 #>  2 [2013-01-06, +1W)  6118
@@ -382,9 +380,9 @@ time_cut_width(
 #> # ℹ 43 more rows
 ```
 
-# Interval metadata
+# Interval helpers
 
-Some common metadata functions
+Some common time interval functions
 
 ``` r
 int <- time_cut_width(today() + days(0:13), timespan("weeks"))
@@ -393,21 +391,21 @@ interval_width(int)
 #> <Timespan:weeks>
 #> [1] 1
 interval_range(int)
-#> [1] "2025-02-28" "2025-03-14"
+#> [1] "2026-02-10" "2026-02-24"
 interval_start(int)
-#>  [1] "2025-02-28" "2025-02-28" "2025-02-28" "2025-02-28" "2025-02-28"
-#>  [6] "2025-02-28" "2025-02-28" "2025-03-07" "2025-03-07" "2025-03-07"
-#> [11] "2025-03-07" "2025-03-07" "2025-03-07" "2025-03-07"
+#>  [1] "2026-02-10" "2026-02-10" "2026-02-10" "2026-02-10" "2026-02-10"
+#>  [6] "2026-02-10" "2026-02-10" "2026-02-17" "2026-02-17" "2026-02-17"
+#> [11] "2026-02-17" "2026-02-17" "2026-02-17" "2026-02-17"
 interval_end(int)
-#>  [1] "2025-03-07" "2025-03-07" "2025-03-07" "2025-03-07" "2025-03-07"
-#>  [6] "2025-03-07" "2025-03-07" "2025-03-14" "2025-03-14" "2025-03-14"
-#> [11] "2025-03-14" "2025-03-14" "2025-03-14" "2025-03-14"
+#>  [1] "2026-02-17" "2026-02-17" "2026-02-17" "2026-02-17" "2026-02-17"
+#>  [6] "2026-02-17" "2026-02-17" "2026-02-24" "2026-02-24" "2026-02-24"
+#> [11] "2026-02-24" "2026-02-24" "2026-02-24" "2026-02-24"
 interval_count(int)
 #> # A tibble: 2 × 2
 #>   interval              n
 #>   <tm_ntrvl>        <int>
-#> 1 [2025-02-28, +1W)     7
-#> 2 [2025-03-07, +1W)     7
+#> 1 [2026-02-10, +1W)     7
+#> 2 [2026-02-17, +1W)     7
 ```
 
 # More detail
@@ -418,7 +416,7 @@ attributes, making them work quite fast in R.
 
 `timespans` are simply numeric vectors with a time unit attribute.
 
-`time_intervals` are the unclassed version of the time object they are
+`time_intervals` are the un-classed version of the time object they are
 representing, along with a `timespan` attribute to record the interval
 width, as well as an attribute to record the original class.
 
@@ -431,7 +429,7 @@ timespan("days", 1:3) |> unclass()
 #> attr(,"unit")
 #> [1] "days"
 time_interval(today()) |>  unclass()
-#> [1] 20147
+#> [1] 20494
 #> attr(,"timespan")
 #> <Timespan:days>
 #> [1] 1
@@ -488,6 +486,17 @@ flights <- flights |>
 flights_monthly <- flights |>
   select(date, arr_delay) |>
   time_by(date, "month")
+#> ! Expressions will be optimised where possible.
+#> 
+#> Optimised expressions are independent from unoptimised ones and typical
+#> data-masking rules may not apply
+#> 
+#> Run `fastplyr::fastplyr_disable_optimisations()` to disable optimisations
+#> globally
+#> 
+#> Run `fastplyr::fastplyr_disable_informative_msgs()` to disable this and other
+#> informative messages
+#> This message is displayed once per session.
 
 flights_monthly
 #> # A tibble: 336,776 x 2
@@ -644,7 +653,7 @@ inspired by the excellent ‘zoo’ and ‘tsibble’ packages.
 ``` r
 today <- today()
 year_month(today)
-#> [1] "2025 Feb"
+#> [1] "2026 Feb"
 ```
 
 The underlying data for a `year_month` is the number of months since 1
@@ -661,11 +670,11 @@ To create a sequence of ‘year_months’, one can use base arithmetic
 
 ``` r
 year_month(today) + 0:12
-#>  [1] "2025 Feb" "2025 Mar" "2025 Apr" "2025 May" "2025 Jun" "2025 Jul"
-#>  [7] "2025 Aug" "2025 Sep" "2025 Oct" "2025 Nov" "2025 Dec" "2026 Jan"
-#> [13] "2026 Feb"
+#>  [1] "2026 Feb" "2026 Mar" "2026 Apr" "2026 May" "2026 Jun" "2026 Jul"
+#>  [7] "2026 Aug" "2026 Sep" "2026 Oct" "2026 Nov" "2026 Dec" "2027 Jan"
+#> [13] "2027 Feb"
 year_quarter(today) + 0:4
-#> [1] "2025 Q1" "2025 Q2" "2025 Q3" "2025 Q4" "2026 Q1"
+#> [1] "2026 Q1" "2026 Q2" "2026 Q3" "2026 Q4" "2027 Q1"
 ```
 
 ## `time_elapsed()`
@@ -868,9 +877,8 @@ seq_lengths <- time_seq_sizes(start, start + days(c(1, 10, 20)),
 seq_lengths
 #> [1] 2 3 3
 
-# Use time_seq_v2() if you know the sequence lengths
-seqs <- time_seq_v2(seq_lengths, start, timespan("days", c(1, 5, 10)))
-seqs
+# Use length.out if you know the sequence lengths
+time_seq(length = seq_lengths, from = start, time = timespan("days", c(1, 5, 10)))
 #> [1] "2020-01-31" "2020-02-01" "2020-01-31" "2020-02-05" "2020-02-10"
 #> [6] "2020-01-31" "2020-02-10" "2020-02-20"
 ```
@@ -881,11 +889,11 @@ Simple function to get formatted ISO weeks.
 
 ``` r
 iso_week(today())
-#> [1] "2025-W09"
+#> [1] "2026-W07"
 iso_week(today(), day = TRUE)
-#> [1] "2025-W09-5"
+#> [1] "2026-W07-2"
 iso_week(today(), year = FALSE)
-#> [1] "W09"
+#> [1] "W07"
 ```
 
 ## `time_cut()`
