@@ -11,7 +11,7 @@
 #'
 #' \href{https://CRAN.R-project.org/package=data.table}{data.table}
 #'
-#' \href{https://fastverse.org/collapse/articles/collapse_intro.html}{collapse}
+#' \href{https://github.com/fastverse/collapse}{collapse}
 #'
 #' @importFrom cheapr sset
 #' @importFrom data.table :=

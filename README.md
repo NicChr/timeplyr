@@ -21,7 +21,7 @@ expand and summarise both raw and aggregate date/datetime data.
 
 Significant efforts have been made to ensure that grouped calculations
 are fast and efficient thanks to the excellent functionality within the
-collapse package.
+[collapse](https://github.com/fastverse/collapse) package.
 
 ## Installation
 
